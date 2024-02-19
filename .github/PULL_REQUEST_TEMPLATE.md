@@ -17,7 +17,7 @@ Messages:
 
 - [ ] Register new messages in `codec.go` and in `msg_legacy.go`
 
-Testing and documentation:
+Testing and docs:
 
 - [ ] Wrote or updated tests
 - [ ] Wrote or updated docs
