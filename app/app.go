@@ -82,7 +82,7 @@ import (
 
 const (
 	AccountAddressPrefix = "fuelsequencer"
-	Name                 = "FuelSequencerApp"
+	Name                 = "fuelsequencer"
 )
 
 var (
