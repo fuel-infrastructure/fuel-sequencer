@@ -4,10 +4,14 @@ accounts:
   coins:
   - 20000token
   - 200000000stake
+  mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
+  # fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm
 - name: bob
   coins:
   - 10000token
   - 100000000stake
+  mnemonic: gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage
+  # fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m
 client:
   openapi:
     path: docs/static/openapi.yml
