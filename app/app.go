@@ -82,7 +82,7 @@ import (
 
 const (
 	AccountAddressPrefix = "fuelsequencer"
-	Name                 = "fuelsequencer"
+	Name                 = "FuelSequencerApp"
 )
 
 var (
@@ -91,14 +91,13 @@ var (
 )
 
 var (
-	_ runtime.AppI            = (*App)(nil)
-	_ servertypes.Application = (*App)(nil)
+	_ runtime.AppI            = (*FuelSequencerApp)(nil)
+	_ servertypes.Application = (*FuelSequencerApp)(nil)
 )
 
-// App extends an ABCI application, but with most of its parameters exported.
-// They are exported for convenience in creating helper functions, as object
-// capabilities aren't needed for testing.
-type App struct {
+// FuelSequencerApp extends an ABCI application, but with most of its parameters exported.
+// They are exported for convenience in creating helper functions, as object capabilities aren't needed for testing.
+type FuelSequencerApp struct {
 	*runtime.App
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
@@ -192,9 +191,9 @@ func New(
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) (*App, error) {
+) (*FuelSequencerApp, error) {
 	var (
-		app        = &App{}
+		app        = &FuelSequencerApp{}
 		appBuilder *runtime.AppBuilder
 
 		// merge the AppConfig and other configuration in one config
@@ -359,7 +358,7 @@ func New(
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *App) LegacyAmino() *codec.LegacyAmino {
+func (app *FuelSequencerApp) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
@@ -367,12 +366,12 @@ func (app *App) LegacyAmino() *codec.LegacyAmino {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *App) AppCodec() codec.Codec {
+func (app *FuelSequencerApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
-func (app *App) GetKey(storeKey string) *storetypes.KVStoreKey {
+func (app *FuelSequencerApp) GetKey(storeKey string) *storetypes.KVStoreKey {
 	kvStoreKey, ok := app.UnsafeFindStoreKey(storeKey).(*storetypes.KVStoreKey)
 	if !ok {
 		return nil
@@ -381,7 +380,7 @@ func (app *App) GetKey(storeKey string) *storetypes.KVStoreKey {
 }
 
 // GetMemKey returns the MemoryStoreKey for the provided store key.
-func (app *App) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
+func (app *FuelSequencerApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	key, ok := app.UnsafeFindStoreKey(storeKey).(*storetypes.MemoryStoreKey)
 	if !ok {
 		return nil
@@ -391,7 +390,7 @@ func (app *App) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 }
 
 // kvStoreKeys returns all the kv store keys registered inside App.
-func (app *App) kvStoreKeys() map[string]*storetypes.KVStoreKey {
+func (app *FuelSequencerApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	keys := make(map[string]*storetypes.KVStoreKey)
 	for _, k := range app.GetStoreKeys() {
 		if kv, ok := k.(*storetypes.KVStoreKey); ok {
@@ -403,29 +402,29 @@ func (app *App) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 }
 
 // GetSubspace returns a param subspace for a given module name.
-func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *FuelSequencerApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
 // GetIBCKeeper returns the IBC keeper.
-func (app *App) GetIBCKeeper() *ibckeeper.Keeper {
+func (app *FuelSequencerApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
 }
 
 // GetCapabilityScopedKeeper returns the capability scoped keeper.
-func (app *App) GetCapabilityScopedKeeper(moduleName string) capabilitykeeper.ScopedKeeper {
+func (app *FuelSequencerApp) GetCapabilityScopedKeeper(moduleName string) capabilitykeeper.ScopedKeeper {
 	return app.CapabilityKeeper.ScopeToModule(moduleName)
 }
 
 // SimulationManager implements the SimulationApp interface.
-func (app *App) SimulationManager() *module.SimulationManager {
+func (app *FuelSequencerApp) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {

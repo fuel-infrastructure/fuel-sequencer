@@ -151,7 +151,7 @@ func appExport(
 	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	var (
-		bApp *app.App
+		bApp *app.FuelSequencerApp
 		err  error
 	)
 
