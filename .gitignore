@@ -32,3 +32,6 @@ release/
 .idea/
 .vscode/
 .DS_Store
+
+# Blockchain data
+/data/
