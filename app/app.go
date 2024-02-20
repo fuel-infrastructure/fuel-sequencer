@@ -112,6 +112,7 @@ func init() {
 }
 
 // getGovProposalHandlers return the chain proposal handlers.
+// Deprecated: This function is added just in case we need to register any module param handlers with the gov module.
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
 	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
