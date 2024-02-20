@@ -31,8 +31,8 @@ import (
 func initRootCmd(
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
-	interfaceRegistry codectypes.InterfaceRegistry,
-	appCodec codec.Codec,
+	_ codectypes.InterfaceRegistry,
+	_ codec.Codec,
 	basicManager module.BasicManager,
 ) {
 	rootCmd.AddCommand(
@@ -128,7 +128,7 @@ func newApp(
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	app, err := app.New(
+	fuelSequencerApp, err := app.NewFuelSequencerApp(
 		logger, db, traceStore, true,
 		appOpts,
 		baseappOptions...,
@@ -136,7 +136,7 @@ func newApp(
 	if err != nil {
 		panic(err)
 	}
-	return app
+	return fuelSequencerApp
 }
 
 // appExport creates a new app (optionally at a given height) and exports state.
@@ -172,7 +172,7 @@ func appExport(
 	appOpts = viperAppOpts
 
 	if height != -1 {
-		bApp, err = app.New(logger, db, traceStore, false, appOpts)
+		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, false, appOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}
@@ -181,7 +181,7 @@ func appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		bApp, err = app.New(logger, db, traceStore, true, appOpts)
+		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, true, appOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}
