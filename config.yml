@@ -23,3 +23,4 @@ faucet:
 validators:
 - name: alice
   bonded: 100000000stake
+  home: ./data/fuelsequencer
