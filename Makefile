@@ -181,21 +181,13 @@ proto-format:
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
 		find ./proto -name "*.proto" -exec clang-format -i {} \; ; fi
 	@echo "✅ Finished formatting Protobuf files!"
-#
-#proto-swagger-gen:
-#	@echo "🤖 Generating API docs..."
-#	@$(protoSwaggerImage) sh ./utils/protoc-swagger-gen.sh
-#
-#	@go run github.com/rakyll/statik -src=client/docs/swagger-ui -dest=client/docs -f -m
-#	@if [ -n "$(git status --porcelain)" ]; then \
-#        echo "❌ API docs are out of sync!";\
-#        exit 1;\
-#    else \
-#        echo "✅ Finished API docs generation!";\
-#    fi
-#
-#proto-routine: proto-format proto-go-gen proto-swagger-gen
-#
+
+# This command makes use of Ignites new way of specifying docs. This can be reviewed/improved later on
+docs-gen:
+	ignite generate openapi
+
+proto-routine: proto-format proto-go-gen docs-gen
+
 ################################################################################
 ####                                   Run                                   ###
 ################################################################################
@@ -218,6 +210,7 @@ proto-format:
 #	@echo "🔎 Running linter..."
 #	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
 #	@echo "✅ Finished running linter!"
+# in tools put lint like entrypoint, otherwise it won't run
 #
 ################################################################################
 ####                                  Tests                                  ###
