@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	bridgemodulekeeper "fuelsequencer/x/bridge/keeper"
+
 	_ "cosmossdk.io/api/cosmos/tx/config/v1" // import for side-effects
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -51,6 +53,7 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"fuelsequencer/docs"
@@ -96,6 +99,7 @@ type FuelSequencerApp struct {
 	AuthzKeeper    authzkeeper.Keeper
 	EvidenceKeeper evidencekeeper.Keeper
 
+	BridgeKeeper bridgemodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -222,6 +226,7 @@ func NewFuelSequencerApp(
 		&app.UpgradeKeeper,
 		&app.AuthzKeeper,
 		&app.EvidenceKeeper,
+		&app.BridgeKeeper,
 		// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	); err != nil {
 		panic(err)

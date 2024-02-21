@@ -1,0 +1,17 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "fuelsequencer/bridge/params.proto";
+
+option go_package = "fuelsequencer/x/bridge/types";
+
+// GenesisState defines the bridge module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
