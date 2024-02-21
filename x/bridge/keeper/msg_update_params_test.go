@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"fuelsequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func TestMsgUpdateParams(t *testing.T) {

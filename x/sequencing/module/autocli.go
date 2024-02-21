@@ -3,7 +3,7 @@ package sequencing
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 
-	modulev1 "fuelsequencer/api/fuelsequencer/sequencing"
+	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing"
 )
 
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.

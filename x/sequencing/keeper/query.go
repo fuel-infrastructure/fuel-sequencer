@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fuelsequencer/x/sequencing/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 var _ types.QueryServer = Keeper{}

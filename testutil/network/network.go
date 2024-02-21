@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/stretchr/testify/require"
 
-	"fuelsequencer/app"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )
 
 type (

@@ -3,10 +3,10 @@ package sequencing_test
 import (
 	"testing"
 
-	keepertest "fuelsequencer/testutil/keeper"
-	"fuelsequencer/testutil/nullify"
-	sequencing "fuelsequencer/x/sequencing/module"
-	"fuelsequencer/x/sequencing/types"
+	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
+	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
 	"github.com/stretchr/testify/require"
 )

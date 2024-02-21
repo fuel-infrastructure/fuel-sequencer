@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"fuelsequencer/app"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )
 
 // NewRootCmd creates a new root command for fuelsequencerd. It is called once in the main function.

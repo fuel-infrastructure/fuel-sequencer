@@ -1,13 +1,13 @@
 package app
 
 import (
-	bridgemodulev1 "fuelsequencer/api/fuelsequencer/bridge/module"
-	_ "fuelsequencer/x/bridge/module" // import for side-effects
-	bridgemoduletypes "fuelsequencer/x/bridge/types"
+	bridgemodulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bridge/module"
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module" // import for side-effects
+	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
-	sequencingmodulev1 "fuelsequencer/api/fuelsequencer/sequencing/module"
-	_ "fuelsequencer/x/sequencing/module" // import for side-effects
-	sequencingmoduletypes "fuelsequencer/x/sequencing/types"
+	sequencingmodulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing/module"
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module" // import for side-effects
+	sequencingmoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"

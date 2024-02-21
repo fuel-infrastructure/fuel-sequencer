@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	keepertest "fuelsequencer/testutil/keeper"
-	"fuelsequencer/x/sequencing/keeper"
-	"fuelsequencer/x/sequencing/types"
+	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 func setupMsgServer(t testing.TB) (keeper.Keeper, types.MsgServer, context.Context) {

@@ -3,8 +3,8 @@ package bridge
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"fuelsequencer/x/bridge/keeper"
-	"fuelsequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.

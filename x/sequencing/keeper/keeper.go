@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"fuelsequencer/x/sequencing/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 type (

@@ -5,7 +5,7 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"fuelsequencer/app"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )
 
 func initSDKConfig() {

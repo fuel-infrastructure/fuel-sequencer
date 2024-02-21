@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fuelsequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 type msgServer struct {

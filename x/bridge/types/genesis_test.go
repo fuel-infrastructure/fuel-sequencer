@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"fuelsequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
 	"github.com/stretchr/testify/require"
 )

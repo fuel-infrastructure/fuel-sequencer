@@ -6,8 +6,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"fuelsequencer/app"
-	"fuelsequencer/cmd/fuelsequencerd/cmd"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	"github.com/fuel-infrastructure/fuel-sequencer/cmd/fuelsequencerd/cmd"
 )
 
 func main() {

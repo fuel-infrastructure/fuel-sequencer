@@ -4,7 +4,7 @@ package fuelsequencer.bridge;
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "fuelsequencer/x/bridge/types";
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 // Params defines the parameters for the module.
 message Params {

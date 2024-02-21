@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
 
-option go_package = "fuelsequencer/x/bridge/types";
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 // Query defines the gRPC querier service.
 service Query {

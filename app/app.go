@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	bridgemodulekeeper "fuelsequencer/x/bridge/keeper"
+	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 
 	_ "cosmossdk.io/api/cosmos/tx/config/v1" // import for side-effects
 	"cosmossdk.io/depinject"
@@ -54,10 +54,10 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	sequencingmodulekeeper "fuelsequencer/x/sequencing/keeper"
+	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	"fuelsequencer/docs"
+	"github.com/fuel-infrastructure/fuel-sequencer/docs"
 )
 
 const (

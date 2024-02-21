@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	keepertest "fuelsequencer/testutil/keeper"
-	"fuelsequencer/x/bridge/types"
+	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func TestParamsQuery(t *testing.T) {

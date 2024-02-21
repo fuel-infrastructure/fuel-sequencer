@@ -20,9 +20,9 @@ import (
 
 	// this line is used by starport scaffolding # 1
 
-	modulev1 "fuelsequencer/api/fuelsequencer/sequencing/module"
-	"fuelsequencer/x/sequencing/keeper"
-	"fuelsequencer/x/sequencing/types"
+	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing/module"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 var (

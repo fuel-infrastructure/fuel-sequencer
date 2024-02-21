@@ -1,4 +1,4 @@
-module fuelsequencer
+module github.com/fuel-infrastructure/fuel-sequencer
 
 go 1.21
 

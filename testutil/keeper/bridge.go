@@ -17,8 +17,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
 
-	"fuelsequencer/x/bridge/keeper"
-	"fuelsequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {

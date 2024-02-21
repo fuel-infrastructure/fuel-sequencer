@@ -3,10 +3,10 @@ package bridge_test
 import (
 	"testing"
 
-	keepertest "fuelsequencer/testutil/keeper"
-	"fuelsequencer/testutil/nullify"
-	bridge "fuelsequencer/x/bridge/module"
-	"fuelsequencer/x/bridge/types"
+	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
+	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
 	"github.com/stretchr/testify/require"
 )

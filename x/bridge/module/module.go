@@ -20,9 +20,9 @@ import (
 
 	// this line is used by starport scaffolding # 1
 
-	modulev1 "fuelsequencer/api/fuelsequencer/bridge/module"
-	"fuelsequencer/x/bridge/keeper"
-	"fuelsequencer/x/bridge/types"
+	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bridge/module"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 var (

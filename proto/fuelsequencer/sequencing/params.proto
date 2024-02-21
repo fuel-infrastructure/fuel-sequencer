@@ -4,7 +4,7 @@ package fuelsequencer.sequencing;
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "fuelsequencer/x/sequencing/types";
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types";
 
 // Params defines the parameters for the module.
 message Params {

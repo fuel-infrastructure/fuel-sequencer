@@ -3,8 +3,8 @@ package sequencing
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"fuelsequencer/x/sequencing/keeper"
-	"fuelsequencer/x/sequencing/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.
