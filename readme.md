@@ -31,6 +31,15 @@ curl https://get.ignite.com/username/fuelsequencer@latest! | sudo bash
 ```
 `username/fuelsequencer` should match the `username` and `repo_name` of the Github repository to which the source code was pushed. Learn more about [the install process](https://github.com/allinbits/starport-installer).
 
+
+### TODO: Write how we should use docker and what it does currently.
+
+Pass data folder as volumes
+
+https://github.com/osmosis-labs/osmosis/blob/main/tests/e2e/configurer/factory.go#L19
+https://github.com/osmosis-labs/osmosis/blob/3eccca25dd40ec45c0a295f079fb21da66eeeb6a/tests/e2e/containers/containers.go#L487
+https://github.com/osmosis-labs/osmosis/blob/main/scripts/makefiles/docker.mk
+
 ## Learn more
 
 - [Ignite CLI](https://ignite.com/cli)
