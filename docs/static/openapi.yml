@@ -8262,6 +8262,42 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuelsequencer/bridge/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerBridgeQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.bridge.Msg/UpdateParams:
     post:
       summary: |-
@@ -8308,7 +8344,9 @@ paths:
                 type: string
                 description: >-
                   authority is the address that controls the module (defaults to
-                  x/gov unless overwritten).
+                  x/gov unless
+
+                  overwritten).
               params:
                 description: |-
                   params defines the module parameters to update.
@@ -8318,42 +8356,6 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
-  /fuelsequencer/sequencing/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: FuelsequencerSequencingQuery_Params
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
   /fuelsequencer.sequencing.Msg/UpdateParams:
     post:
       summary: |-
@@ -8400,7 +8402,9 @@ paths:
                 type: string
                 description: >-
                   authority is the address that controls the module (defaults to
-                  x/gov unless overwritten).
+                  x/gov unless
+
+                  overwritten).
               params:
                 description: |-
                   params defines the module parameters to update.
@@ -8410,6 +8414,42 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
+  /fuelsequencer/sequencing/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerSequencingQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -11933,6 +11973,16 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
+  fuelsequencer.bridge.Params:
+    type: object
+    description: Params defines the parameters for the module.
+  fuelsequencer.bridge.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.bridge.MsgUpdateParams:
     type: object
     properties:
@@ -11940,7 +11990,9 @@ definitions:
         type: string
         description: >-
           authority is the address that controls the module (defaults to x/gov
-          unless overwritten).
+          unless
+
+          overwritten).
       params:
         description: |-
           params defines the module parameters to update.
@@ -11953,19 +12005,6 @@ definitions:
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
-  fuelsequencer.bridge.Params:
-    type: object
-    description: Params defines the parameters for the module.
-  fuelsequencer.sequencing.Params:
-    type: object
-    description: Params defines the parameters for the module.
-  fuelsequencer.sequencing.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        description: params holds all the parameters of this module.
-        type: object
-    description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.sequencing.MsgUpdateParams:
     type: object
     properties:
@@ -11973,7 +12012,9 @@ definitions:
         type: string
         description: >-
           authority is the address that controls the module (defaults to x/gov
-          unless overwritten).
+          unless
+
+          overwritten).
       params:
         description: |-
           params defines the module parameters to update.
@@ -11986,3 +12027,13 @@ definitions:
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
+  fuelsequencer.sequencing.Params:
+    type: object
+    description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+    description: QueryParamsResponse is response type for the Query/Params RPC method.

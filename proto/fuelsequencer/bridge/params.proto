@@ -10,6 +10,4 @@ option go_package = "fuelsequencer/x/bridge/types";
 message Params {
   option (amino.name) = "fuelsequencer/x/bridge/Params";
   option (gogoproto.equal) = true;
-
-  
 }

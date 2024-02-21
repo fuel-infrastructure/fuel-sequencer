@@ -32,3 +32,6 @@ release/
 
 # Blockchain data
 /data/
+
+# Build directory
+build/

@@ -10,6 +10,4 @@ option go_package = "fuelsequencer/x/sequencing/types";
 message Params {
   option (amino.name) = "fuelsequencer/x/sequencing/Params";
   option (gogoproto.equal) = true;
-
-  
 }
