@@ -54,6 +54,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
+	sequencingmodulekeeper "fuelsequencer/x/sequencing/keeper"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"fuelsequencer/docs"
@@ -99,7 +100,8 @@ type FuelSequencerApp struct {
 	AuthzKeeper    authzkeeper.Keeper
 	EvidenceKeeper evidencekeeper.Keeper
 
-	BridgeKeeper bridgemodulekeeper.Keeper
+	BridgeKeeper     bridgemodulekeeper.Keeper
+	SequencingKeeper sequencingmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -227,6 +229,7 @@ func NewFuelSequencerApp(
 		&app.AuthzKeeper,
 		&app.EvidenceKeeper,
 		&app.BridgeKeeper,
+		&app.SequencingKeeper,
 		// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	); err != nil {
 		panic(err)

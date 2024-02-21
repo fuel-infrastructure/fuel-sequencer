@@ -1,0 +1,15 @@
+syntax = "proto3";
+package fuelsequencer.sequencing;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "fuelsequencer/x/sequencing/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "fuelsequencer/x/sequencing/Params";
+  option (gogoproto.equal) = true;
+
+  
+}

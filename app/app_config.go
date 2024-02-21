@@ -5,6 +5,10 @@ import (
 	_ "fuelsequencer/x/bridge/module" // import for side-effects
 	bridgemoduletypes "fuelsequencer/x/bridge/types"
 
+	sequencingmodulev1 "fuelsequencer/api/fuelsequencer/sequencing/module"
+	_ "fuelsequencer/x/sequencing/module" // import for side-effects
+	sequencingmoduletypes "fuelsequencer/x/sequencing/types"
+
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
@@ -66,6 +70,7 @@ var (
 		consensustypes.ModuleName,
 		// chain modules
 		bridgemoduletypes.ModuleName,
+		sequencingmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -85,6 +90,7 @@ var (
 		genutiltypes.ModuleName,
 		// chain modules
 		bridgemoduletypes.ModuleName,
+		sequencingmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -96,6 +102,7 @@ var (
 		genutiltypes.ModuleName,
 		// chain modules
 		bridgemoduletypes.ModuleName,
+		sequencingmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -226,6 +233,10 @@ var (
 			{
 				Name:   bridgemoduletypes.ModuleName,
 				Config: appconfig.WrapAny(&bridgemodulev1.Module{}),
+			},
+			{
+				Name:   sequencingmoduletypes.ModuleName,
+				Config: appconfig.WrapAny(&sequencingmodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},
