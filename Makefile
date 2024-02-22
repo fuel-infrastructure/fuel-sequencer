@@ -254,5 +254,5 @@ run-docker-image:
     		${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished running Docker image!"
 
-# Write doc in readme on how we should expect to use docker
+# Write doc in readme on how we should expect to use docker, write if you have permission issues do chmod -R 777 ./
 # Avoid running a new container for same image each time.
