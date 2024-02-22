@@ -255,4 +255,5 @@ run-docker-image:
 	@echo "✅ Finished running Docker image!"
 
 # Write doc in readme on how we should expect to use docker, write if you have permission issues do chmod -R 777 ./
+# Also make run-docker-image DATA_FOLDER="custom data folder" format needs to be /path/to/folder/with/config/data/keyring-test
 # Avoid running a new container for same image each time.
