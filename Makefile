@@ -188,51 +188,36 @@ docs-gen:
 
 proto-routine: proto-format proto-go-gen docs-gen
 
-################################################################################
-####                                   Run                                   ###
-################################################################################
-#
-#run: proto-go-gen serve
-#
-#serve:
-#	ignite chain serve --reset-once --skip-proto --build.tags ledger
-#
-################################################################################
-####                                   CI                                    ###
-################################################################################
-#
-#ci: lint test-unit gosec
-#
-#gosec:
-#	gosec -exclude-dir=deps -severity=high ./...
-#
-#lint:
-#	@echo "🔎 Running linter..."
-#	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
-#	@echo "✅ Finished running linter!"
-# in tools put lint like entrypoint, otherwise it won't run
-#
-################################################################################
-####                                  Tests                                  ###
-################################################################################
-#
-#test-unit:
-#	@go test -mod=readonly ./x/$(module)/...
-#
-#test-ibc-conformance: check-docker-image-exists
-#	@interchaintest --matrix e2e/matrix.json
-#
-#test-e2e-basic: check-docker-image-exists
-#	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
-#
-#test-e2e-entrypoint: check-docker-image-exists
-#	@cd e2e/tests && go test -mod=readonly -race -v ./entrypoint/... --test.timeout 0
-#
-#test-e2e: check-docker-image-exists
-#	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... ./entrypoint/... --test.timeout 0
-#
-#test-all: test-unit test-ibc-conformance test-e2e
-#
+###############################################################################
+###                                   Run                                   ###
+###############################################################################
+
+run: proto-go-gen serve
+
+serve:
+	ignite chain serve --reset-once --skip-proto --build.tags ledger
+
+###############################################################################
+###                                   CI                                    ###
+###############################################################################
+
+ci: lint test-unit gosec
+
+gosec:
+	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
+
+lint:
+	@echo "🔎 Running linter..."
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
+	@echo "✅ Finished running linter!"
+
+###############################################################################
+###                                  Tests                                  ###
+###############################################################################
+
+test-unit:
+	@go test -mod=readonly ./x/$(module)/...
+
 #test-cover:
 #	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/...
 #

@@ -165,6 +165,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 	/* Handle staking state. */
 
 	// iterate through redelegations, reset creation height
+	//nolint:errcheck
 	app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
 		for i := range red.Entries {
 			red.Entries[i].CreationHeight = 0
@@ -177,6 +178,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 	})
 
 	// iterate through unbonding delegations, reset creation height
+	//nolint:errcheck
 	app.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
 		for i := range ubd.Entries {
 			ubd.Entries[i].CreationHeight = 0
@@ -206,6 +208,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 			validator.Jailed = true
 		}
 
+		//nolint:errcheck
 		app.StakingKeeper.SetValidator(ctx, validator)
 		counter++
 	}
@@ -223,10 +226,13 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 	/* Handle slashing state. */
 
 	// reset start height on signing infos
+	//nolint:errcheck
 	app.SlashingKeeper.IterateValidatorSigningInfos(
 		ctx,
 		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
 			info.StartHeight = 0
+
+			//nolint:errcheck
 			app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
 			return false
 		},

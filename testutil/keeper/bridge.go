@@ -43,6 +43,7 @@ func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
+	//nolint:errcheck
 	k.SetParams(ctx, types.DefaultParams())
 
 	return k, ctx
