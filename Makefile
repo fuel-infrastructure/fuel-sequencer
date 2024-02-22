@@ -218,36 +218,40 @@ lint:
 test-unit:
 	@go test -mod=readonly ./x/$(module)/...
 
-#test-cover:
-#	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/...
-#
-#test-html:
-#	@go tool cover -html=coverage.out
-#
-################################################################################
-####                                Docker                                   ###
-################################################################################
-#
-#check-docker-image-exists:
-#ifeq (,$(shell docker images -q ${DOCKER_IMAGE_NAME}:latest 2> /dev/null))
-#	@echo "❌ Docker image ${DOCKER_IMAGE_NAME}:latest not found";
-#	@exit 1;
-#endif
-#
-#build-docker-image:
-#	@echo "🤖 Building Docker image..."
-#	@heighliner build \
-#		--chain ${DOCKER_IMAGE_NAME} \
-#		--tag ${DOCKER_IMAGE_TAG} \
-#		--dockerfile cosmos \
-#		--build-target "make install" \
-#		--build-env "LEDGER_ENABLED=false BUILD_TAGS=muslc" \
-#		--binaries "/go/bin/entrypointd" \
-#		--local
-#	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
-#	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
-#	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest
-#	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:latest
-#	@echo "✅ Finished building Docker image!"
-# As variable we need to pass the data folder here (set it by default to current directory data if not passed) and pass
-# when you run the container pass volumes
+test-cover:
+	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/...
+
+
+###############################################################################
+###                                Docker                                   ###
+###############################################################################
+
+check-docker-image-exists:
+ifeq (,$(shell docker images -q ${DOCKER_IMAGE_NAME}:latest 2> /dev/null))
+	@echo "❌ Docker image ${DOCKER_IMAGE_NAME}:latest not found";
+	@exit 1;
+else
+	@echo "✅ Found docker image ${DOCKER_IMAGE_NAME}:latest"
+endif
+
+build-docker-image:
+	@echo "🤖 Building Docker image..."
+	@docker build \
+		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} \
+		--build-arg GO_VERSION=${REQUIRE_GO_VERSION} \
+		.
+	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
+	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
+	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest
+	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:latest
+	@echo "✅ Finished building Docker image!"
+
+DATA_FOLDER="/data/fuelsequencer"
+run-docker-image:
+	@echo "🤖 Running Docker image..."
+	@docker run \
+    		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
+    		${DOCKER_IMAGE_NAME}:latest
+	@echo "✅ Finished running Docker image!"
+
+# Write doc in readme on how we should expect to use docker
