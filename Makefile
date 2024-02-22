@@ -249,9 +249,10 @@ build-docker-image:
 DATA_FOLDER="/data/fuelsequencer"
 run-docker-image:
 	@echo "🤖 Running Docker image..."
-	@docker run \
+	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished running Docker image!"
 
 # Write doc in readme on how we should expect to use docker
+# Avoid running a new container for same image each time.
