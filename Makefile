@@ -258,16 +258,17 @@ run-docker-container:
 start-docker-container:
 	@echo "🤖 Starting Docker image..."
 	@docker start $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@echo "🤖 Started Docker image!"
 
 stop-docker-container:
 	@echo "🤖 Stopping Docker image..."
 	@docker stop $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
-	@echo "🤖 Stopped Docker image..."
+	@echo "🤖 Stopped Docker image!"
 
 remove-docker-container:
 	@echo "🤖 Removing Docker image..."
 	@docker rm -v $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
-	@echo "🤖 Removed Docker image..."
+	@echo "🤖 Removed Docker image!"
 
 follow-docker-logs:
 	@docker logs -f $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
