@@ -3,6 +3,7 @@
 DOCKER := $(shell which docker)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
+DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
@@ -251,24 +252,24 @@ run-docker-container:
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
-    		--name $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g') \
+    		--name $(DOCKER_CONTAINER_NAME) \
     		-p 26656:26656 -p 26657:26657 -p 1317:1317 \
     		${DOCKER_IMAGE_NAME}:latest
 
 start-docker-container:
 	@echo "🤖 Starting Docker image..."
-	@docker start $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@docker start $(DOCKER_CONTAINER_NAME)
 	@echo "🤖 Started Docker image!"
 
 stop-docker-container:
 	@echo "🤖 Stopping Docker image..."
-	@docker stop $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@docker stop $(DOCKER_CONTAINER_NAME)
 	@echo "🤖 Stopped Docker image!"
 
 remove-docker-container:
 	@echo "🤖 Removing Docker image..."
-	@docker rm -v $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@docker rm -v $(DOCKER_CONTAINER_NAME)
 	@echo "🤖 Removed Docker image!"
 
 follow-docker-logs:
-	@docker logs -f $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@docker logs -f $(DOCKER_CONTAINER_NAME)
