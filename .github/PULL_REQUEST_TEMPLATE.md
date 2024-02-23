@@ -15,7 +15,7 @@ PR:
 
 Messages:
 
-- [ ] Register new messages in `codec.go` and in `msg_legacy.go`
+- [ ] Register new messages in `codec.go`
 
 Testing and docs:
 
