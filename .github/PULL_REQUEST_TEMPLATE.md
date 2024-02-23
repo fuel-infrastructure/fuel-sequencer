@@ -13,6 +13,12 @@ PR:
 - [ ] Pull the latest changes from `main` before requesting review
 - [ ] Re-reviewed `Files changed`
 
+State and params:
+
+- [ ] Included new state/param in genesis init and export.
+- [ ] Included queries for new state/param.
+- [ ] Included set/get/getAll for new state.
+
 Messages:
 
 - [ ] Register new messages in `codec.go`
