@@ -79,17 +79,55 @@ Dependencies:
 make build-docker-image
 ```
 
-## Running Docker Image
+### Running Docker Image
+
+The first time you run the docker container you should run it using:
 
 ```bash
-make run-docker-image
+make run-docker-container
 ```
 
-The command above will map the chain data located at `./data/fuelsequencer` by default using docker volumes. If you want 
-to pass an alternative data folder you should run the make command as follows:
+The command above will do the following:
+
+1. Create the docker container
+2. Map the chain data located at `./data/fuelsequencer` by default using docker volumes
+3. Give a name to the container
+4. Expose the necessary ports
+5. Start the container. 
+
+If you want to pass an alternative data folder you should run the make command as follows:
 
 ```bash
-make run-docker-image DATA_FOLDER="/path/to/folder/with/config/data/and/keyring-test"
+make run-docker-container DATA_FOLDER="/path/to/folder/with/config/data/and/keyring-test"
+```
+
+After creating and running the docker container for the first time, you should manage the container as follows:
+
+```bash
+# To stop the container
+make stop-docker-container
+```
+
+```bash
+# To restart the container
+make start-docker-container
+```
+
+```bash
+# Run make stop-docker-image first if the container has not been stopped yet.
+make stop-docker-container
+
+# To remove the container.
+make remove-docker-container
+```
+
+**NOTE**: Re-running the container using `make run-docker-container` will fail because docker will find an existing 
+container with the same name during the creation process.
+
+To follow the container's logs run the following command:
+
+```bash
+make follow-docker-logs
 ```
 
 ### References

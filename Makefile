@@ -247,9 +247,27 @@ build-docker-image:
 	@echo "✅ Finished building Docker image!"
 
 DATA_FOLDER="/data/fuelsequencer"
-run-docker-image:
+run-docker-container:
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
+    		--name $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g') \
+    		-p 26656:26656 -p 26657:26657 -p 1317:1317 \
     		${DOCKER_IMAGE_NAME}:latest
-	@echo "✅ Finished running Docker image!"
+
+start-docker-container:
+	@echo "🤖 Starting Docker image..."
+	@docker start $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+
+stop-docker-container:
+	@echo "🤖 Stopping Docker image..."
+	@docker stop $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@echo "🤖 Stopped Docker image..."
+
+remove-docker-container:
+	@echo "🤖 Removing Docker image..."
+	@docker rm -v $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
+	@echo "🤖 Removed Docker image..."
+
+follow-docker-logs:
+	@docker logs -f $(shell echo ${DOCKER_IMAGE_NAME}_latest | sed 's|/|_|g')
