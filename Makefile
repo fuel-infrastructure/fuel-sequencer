@@ -183,7 +183,7 @@ proto-format:
 	@echo "✅ Finished formatting Protobuf files!"
 
 # This command makes use of Ignites new way of specifying docs. This can be reviewed/improved later on
-docs-gen:
+proto-swagger-gen:
 	ignite generate openapi
 
 proto-routine: proto-format proto-go-gen docs-gen
@@ -253,7 +253,3 @@ run-docker-image:
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished running Docker image!"
-
-# Write doc in readme on how we should expect to use docker, write if you have permission issues do chmod -R 777 ./
-# Also make run-docker-image DATA_FOLDER="custom data folder" format needs to be /path/to/folder/with/config/data/keyring-test
-# Avoid running a new container for same image each time.
