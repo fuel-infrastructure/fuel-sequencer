@@ -183,7 +183,8 @@ proto-format:
 		find ./proto -name "*.proto" -exec clang-format -i {} \; ; fi
 	@echo "✅ Finished formatting Protobuf files!"
 
-# This command makes use of Ignites new way of specifying docs. This can be reviewed/improved later on
+# This command makes use of Ignite's new way of specifying docs. This can be improved later on with an approach similar
+# to EntryPoint
 proto-swagger-gen:
 	ignite generate openapi
 
