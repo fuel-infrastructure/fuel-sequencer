@@ -72,7 +72,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=fuelsequencer \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
-			-X github.com/cometbft/cometbft/version.TMCoreSemVer=$(COMETBFT_VERSION)
+		  -X github.com/cometbft/cometbft/version.TMCoreSemVer=$(COMETBFT_VERSION)
 
 ifeq (cleveldb,$(findstring cleveldb,$(FS_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
