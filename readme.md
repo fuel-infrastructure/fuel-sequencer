@@ -1,5 +1,5 @@
 # FuelSequencer
-**FuelSequencer** is a blockchain built using Cosmos SDK and Tendermint and created with [Ignite CLI](https://ignite.com/cli).
+**FuelSequencer** is a blockchain built using Cosmos SDK and CometBFT and created with [Ignite CLI](https://ignite.com/cli).
 
 ## Get started
 
