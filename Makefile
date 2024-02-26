@@ -133,21 +133,47 @@ clean:
 
 build-all: clean
 	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
+	@$(eval SIDECAR_MAIN := ./cmd/sidecar/main.go)
+	@$(eval CLIENT_MAIN := ./cmd/client/main.go)
 
 	@$(eval ARCH := linux-amd64)
-	@echo "🔧 (1/3) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
+	@echo "🔧 (1/9) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
 	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH) $(MAIN)
 	@tar -czf $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/fuelsequencerd-$(VERSION)-$(ARCH)
 
+	@echo "🔧 (2/9) Building sidecar-$(VERSION)-$(ARCH)..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) $(SIDECAR_MAIN)
+	@tar -czf $(BUILDDIR)/sidecar-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/sidecar-$(VERSION)-$(ARCH)
+
+	@echo "🔧 (3/9) Building client-$(VERSION)-$(ARCH)..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-$(ARCH) $(CLIENT_MAIN)
+	@tar -czf $(BUILDDIR)/client-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/client-$(VERSION)-$(ARCH)
+
 	@$(eval ARCH := linux-arm64)
-	@echo "🔧 (2/3) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
+	@echo "🔧 (4/9) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
 	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH) $(MAIN)
 	@tar -czf $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/fuelsequencerd-$(VERSION)-$(ARCH)
 
+	@echo "🔧 (5/9) Building sidecar-$(VERSION)-$(ARCH)..."
+	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) $(SIDECAR_MAIN)
+	@tar -czf $(BUILDDIR)/sidecar-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/sidecar-$(VERSION)-$(ARCH)
+
+	@echo "🔧 (6/9) Building client-$(VERSION)-$(ARCH)..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-$(ARCH) $(CLIENT_MAIN)
+	@tar -czf $(BUILDDIR)/client-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/client-$(VERSION)-$(ARCH)
+
 	@$(eval ARCH := darwin-amd64)
-	@echo "🔧 (3/3) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
+	@echo "🔧 (7/9) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
 	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH) $(MAIN)
 	@tar -czf $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/fuelsequencerd-$(VERSION)-$(ARCH)
+
+	@echo "🔧 (8/9) Building sidecar-$(VERSION)-$(ARCH)..."
+	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) $(SIDECAR_MAIN)
+	@tar -czf $(BUILDDIR)/sidecar-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/sidecar-$(VERSION)-$(ARCH)
+
+	@echo "🔧 (9/9) Building client-$(VERSION)-$(ARCH)..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-$(ARCH) $(CLIENT_MAIN)
+	@tar -czf $(BUILDDIR)/client-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/client-$(VERSION)-$(ARCH)
 
 	@echo "✅ Finished building!"
 
@@ -157,6 +183,17 @@ do-checksum:
 	@echo "✅ Finished generating checksum!"
 
 build-with-checksum: build-all do-checksum
+
+run-client:
+	@$(eval ARCH := linux-amd64)
+	@if [ -z "$(BLOCK_NUMBER)" ]; then echo "BLOCK_NUMBER is not set. Use make run-client BLOCK_NUMBER=<number>"; exit 1; fi
+	@echo "Running client $(VERSION) for $(ARCH) with block number $(BLOCK_NUMBER)..."
+	@$(BUILDDIR)/client-$(VERSION)-$(ARCH) -blocknumber $(BLOCK_NUMBER)
+
+run-sidecar:
+	@$(eval ARCH := linux-amd64)
+	@echo "Running sidecar $(VERSION) for $(ARCH)..."
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH)
 
 ###############################################################################
 ###                                 Protobuf                                ###

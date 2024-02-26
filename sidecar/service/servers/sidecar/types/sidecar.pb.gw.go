@@ -34,17 +34,17 @@ var _ = descriptor.ForMessage
 var _ = metadata.Join
 
 var (
-	filter_Oracle_GetBlockEvents_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Sidecar_GetBlockEvents_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Oracle_GetBlockEvents_0(ctx context.Context, marshaler runtime.Marshaler, client OracleClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_Sidecar_GetBlockEvents_0(ctx context.Context, marshaler runtime.Marshaler, client SidecarClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryBlockEventsRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Oracle_GetBlockEvents_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sidecar_GetBlockEvents_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -53,14 +53,14 @@ func request_Oracle_GetBlockEvents_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func local_request_Oracle_GetBlockEvents_0(ctx context.Context, marshaler runtime.Marshaler, server OracleServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_Sidecar_GetBlockEvents_0(ctx context.Context, marshaler runtime.Marshaler, server SidecarServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryBlockEventsRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Oracle_GetBlockEvents_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sidecar_GetBlockEvents_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -69,13 +69,13 @@ func local_request_Oracle_GetBlockEvents_0(ctx context.Context, marshaler runtim
 
 }
 
-// RegisterOracleHandlerServer registers the http handlers for service Oracle to "mux".
-// UnaryRPC     :call OracleServer directly.
+// RegisterSidecarHandlerServer registers the http handlers for service Sidecar to "mux".
+// UnaryRPC     :call SidecarServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterOracleHandlerFromEndpoint instead.
-func RegisterOracleHandlerServer(ctx context.Context, mux *runtime.ServeMux, server OracleServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterSidecarHandlerFromEndpoint instead.
+func RegisterSidecarHandlerServer(ctx context.Context, mux *runtime.ServeMux, server SidecarServer) error {
 
-	mux.Handle("GET", pattern_Oracle_GetBlockEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Sidecar_GetBlockEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -86,7 +86,7 @@ func RegisterOracleHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Oracle_GetBlockEvents_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Sidecar_GetBlockEvents_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -94,16 +94,16 @@ func RegisterOracleHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 			return
 		}
 
-		forward_Oracle_GetBlockEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Sidecar_GetBlockEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterOracleHandlerFromEndpoint is same as RegisterOracleHandler but
+// RegisterSidecarHandlerFromEndpoint is same as RegisterSidecarHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterOracleHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterSidecarHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.Dial(endpoint, opts...)
 	if err != nil {
 		return err
@@ -123,23 +123,23 @@ func RegisterOracleHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMu
 		}()
 	}()
 
-	return RegisterOracleHandler(ctx, mux, conn)
+	return RegisterSidecarHandler(ctx, mux, conn)
 }
 
-// RegisterOracleHandler registers the http handlers for service Oracle to "mux".
+// RegisterSidecarHandler registers the http handlers for service Sidecar to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterOracleHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterOracleHandlerClient(ctx, mux, NewOracleClient(conn))
+func RegisterSidecarHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterSidecarHandlerClient(ctx, mux, NewSidecarClient(conn))
 }
 
-// RegisterOracleHandlerClient registers the http handlers for service Oracle
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "OracleClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "OracleClient"
+// RegisterSidecarHandlerClient registers the http handlers for service Sidecar
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "SidecarClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "SidecarClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "OracleClient" to call the correct interceptors.
-func RegisterOracleHandlerClient(ctx context.Context, mux *runtime.ServeMux, client OracleClient) error {
+// "SidecarClient" to call the correct interceptors.
+func RegisterSidecarHandlerClient(ctx context.Context, mux *runtime.ServeMux, client SidecarClient) error {
 
-	mux.Handle("GET", pattern_Oracle_GetBlockEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Sidecar_GetBlockEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -148,14 +148,14 @@ func RegisterOracleHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Oracle_GetBlockEvents_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Sidecar_GetBlockEvents_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Oracle_GetBlockEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Sidecar_GetBlockEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -163,9 +163,9 @@ func RegisterOracleHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 }
 
 var (
-	pattern_Oracle_GetBlockEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "sidecar", "v1", "get_block_events"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Sidecar_GetBlockEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "sidecar", "v1", "get_block_events"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
-	forward_Oracle_GetBlockEvents_0 = runtime.ForwardResponseMessage
+	forward_Sidecar_GetBlockEvents_0 = runtime.ForwardResponseMessage
 )
