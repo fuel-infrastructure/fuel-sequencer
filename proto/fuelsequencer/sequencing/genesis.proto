@@ -1,0 +1,15 @@
+syntax = "proto3";
+package fuelsequencer.sequencing;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "fuelsequencer/sequencing/params.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types";
+
+// GenesisState defines the sequencing module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}

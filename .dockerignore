@@ -1,0 +1,29 @@
+# Github folder
+.github/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE.
+*.out
+
+# Build directory. The container should have its own build folder.
+build/
+
+# Chain data directory is ignored because it should be mapped from the host machine.
+data/
+
+# IDE dependencies.
+.idea/
+.vscode/
+.DS_Store
+
+# Frontend directories.
+vue/node_modules
+vue/dist
+
+# Ignite config
+config.yml
+
+# Markdown files
+*.md

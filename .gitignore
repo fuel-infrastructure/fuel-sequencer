@@ -4,6 +4,9 @@
 *.dll
 *.so
 *.dylib
+*.dot
+*.log
+*.ign
 
 # Test binary, built with `go test -c`
 *.test
@@ -13,10 +16,22 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+vue/node_modules
+vue/dist
 
 # Go workspace file
 go.work
 
-# IDEs
+# Release directory
+release/
+
+# IDE dependencies
 .idea/
 .vscode/
+.DS_Store
+
+# Blockchain data
+/data/
+
+# Build directory
+build/

@@ -1,0 +1,104 @@
+version: 1
+build:
+  binary: "fuelsequencerd"
+accounts:
+- name: alice
+  coins:
+  - 200000000ufuel
+  mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
+  # fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm
+- name: bob
+  coins:
+  - 100000000ufuel
+  mnemonic: gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage
+  # fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m
+- name: carol
+  coins:
+  - 1000000000000000ufuel
+  mnemonic: bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve
+  # fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g
+- name: dexter
+  coins:
+    - 1000000000000000ufuel
+  mnemonic: bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing
+  # fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu
+client:
+  openapi:
+    path: docs/static/openapi.yml
+validators:
+- name: alice
+  bonded: 100000000ufuel
+  config:
+    consensus:
+      # How long we wait for a proposal block before prevoting nil
+      timeout_propose: "1s"
+      # How much timeout_propose increases with each round
+      timeout_propose_delta: "500ms"
+      # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
+      timeout_prevote: "1s"
+      # How much the timeout_prevote increases with each round
+      timeout_prevote_delta: "500ms"
+      # How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
+      timeout_precommit: "1s"
+      # How much the timeout_precommit increases with each round
+      timeout_precommit_delta: "500ms"
+      # How long we wait after committing a block, before starting on the new
+      # height (this gives us a chance to receive some more precommits, even
+      # though we already have +2/3).
+      timeout_commit: "1s"
+  home: ./data/fuelsequencer
+  app:
+    api:
+      swagger: true
+    grpc:
+      address: 0.0.0.0:9090
+- name: bob
+  bonded: 50000000ufuel
+  config:
+    consensus:
+      # How long we wait for a proposal block before prevoting nil
+      timeout_propose: "1s"
+      # How much timeout_propose increases with each round
+      timeout_propose_delta: "500ms"
+      # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
+      timeout_prevote: "1s"
+      # How much the timeout_prevote increases with each round
+      timeout_prevote_delta: "500ms"
+      # How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
+      timeout_precommit: "1s"
+      # How much the timeout_precommit increases with each round
+      timeout_precommit_delta: "500ms"
+      # How long we wait after committing a block, before starting on the new
+      # height (this gives us a chance to receive some more precommits, even
+      # though we already have +2/3).
+      timeout_commit: "1s"
+  home: ./data/fuelsequencer
+  app:
+    api:
+      swagger: true
+    grpc:
+      address: 0.0.0.0:9090
+genesis:
+  chain_id: "fuelsequencer-1"
+  app_state:
+    crisis:
+      constant_fee:
+        amount: "1000"
+        denom: "ufuel"
+    gov:
+      params:
+        voting_period: "10s"
+        expedited_voting_period: "1s"
+        min_deposit:
+          - amount: "10000000"
+            denom: "ufuel"
+        expedited_min_deposit:
+          - amount: "20000000"
+            denom: "ufuel"
+    mint:
+      params:
+        mint_denom: "ufuel"
+    staking:
+      params:
+        bond_denom: "ufuel"
+

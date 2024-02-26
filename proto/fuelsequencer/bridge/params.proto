@@ -1,0 +1,13 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "fuelsequencer/x/bridge/Params";
+  option (gogoproto.equal) = true;
+}
