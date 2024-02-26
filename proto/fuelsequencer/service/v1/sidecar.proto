@@ -1,0 +1,34 @@
+syntax = "proto3";
+package fuelsequencer.service.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/service/servers/sidecar/types";
+
+// Oracle defines the gRPC oracle service.
+service Oracle {
+  // Prices defines a method for fetching the latest prices.
+  rpc GetBlockEvents(QueryBlockEventsRequest)
+      returns (QueryBlockEventsResponse) {
+    option (google.api.http).get = "/fuelsequencer/sidecar/v1/get_block_events";
+  };
+}
+
+// QueryBlockEventsRequest defines the request type for the the GetBlockEvents
+// method.
+message QueryBlockEventsRequest { string blockNumber = 1; }
+
+// QueryBlockEventsResponse defines the response type for the GetBlockEvents
+// method.
+message QueryBlockEventsResponse {
+  // events defines the list of events.
+  repeated Event events = 1;
+}
+
+message Event {
+  string eventType = 1;
+  bytes data = 2;
+}
