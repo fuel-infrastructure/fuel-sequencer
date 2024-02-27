@@ -61,8 +61,8 @@ func NewSidecarServer(o sidecar.Sidecar, logger *zap.Logger) *SidecarServer {
 		// if the server has been started, close it
 		if os.httpSrv != nil {
 			ctx, cf := context.WithTimeout(context.Background(), DefaultServerShutdownTimeout)
-			os.httpSrv.Shutdown(ctx) // close HTTP server backing GRPC-gateway
-			os.grpcSrv.Stop()        // close GRPC server serving listeners that have been routed to GRPC server
+			_ = os.httpSrv.Shutdown(ctx)
+			os.grpcSrv.Stop()
 			cf()
 		}
 	})

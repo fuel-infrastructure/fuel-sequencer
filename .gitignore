@@ -35,4 +35,3 @@ release/
 
 # Build directory
 build/
-.env
