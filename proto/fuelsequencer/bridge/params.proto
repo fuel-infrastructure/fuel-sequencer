@@ -3,6 +3,7 @@ package fuelsequencer.bridge;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -10,4 +11,9 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 message Params {
   option (amino.name) = "fuelsequencer/x/bridge/Params";
   option (gogoproto.equal) = true;
+
+  google.protobuf.Timestamp vesting_start_time = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
 }
