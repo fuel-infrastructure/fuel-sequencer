@@ -19,18 +19,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/servers/sidecar/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sync"
 )
 
 const DefaultServerShutdownTimeout = 3 * time.Second
 
 // SidecarServer is the base implementation of the service.SidecarServer interface, this is meant to
-// serve requests from a remote OracleClient.
+// serve requests from a remote SidecarClient.
 type SidecarServer struct { //nolint
 	types.UnimplementedSidecarServer
 
-	// expected implementation of the oracle
+	// expected implementation of the sidecar
 	o sidecar.Sidecar
 
 	// underlying grpc-server -- serves all grpc requests
@@ -49,7 +49,7 @@ type SidecarServer struct { //nolint
 	logger *zap.Logger
 }
 
-// NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Oracle interface.
+// NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
 func NewSidecarServer(o sidecar.Sidecar, logger *zap.Logger) *SidecarServer {
 	logger = logger.With(zap.String("server", "sidecar"))
 
@@ -81,7 +81,7 @@ func (os *SidecarServer) routeRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// StartServer starts the oracle gRPC server on the given host and port. The server is killed on any errors from the listener, or if ctx is cancelled.
+// StartServer starts the sidecar gRPC server on the given host and port. The server is killed on any errors from the listener, or if ctx is cancelled.
 // This method returns an error via any failure from the listener. This is a blocking call, i.e until the server is closed or the server errors,
 // this method will block.
 func (os *SidecarServer) StartServer(ctx context.Context, host, port string) error {
@@ -92,7 +92,7 @@ func (os *SidecarServer) StartServer(ctx context.Context, host, port string) err
 	}
 	// create grpc server
 	os.grpcSrv = grpc.NewServer()
-	// register oracle server
+	// register sidecar server
 	types.RegisterSidecarServer(os.grpcSrv, os)
 
 	// register the grpc-gateway
@@ -119,18 +119,17 @@ func (os *SidecarServer) StartServer(ctx context.Context, host, port string) err
 
 	// listen for ctx cancellation
 	eg.Go(func() error {
-		// if the context is closed, close the server + oracle
+		// if the context is closed, close the server + sidecar
 		<-ctx.Done()
-		os.logger.Info("context cancelled, closing oracle")
+		os.logger.Info("context cancelled, closing sidecar")
 
 		_ = os.Close()
 		return nil
 	})
 
-	// start the oracle, return error if it fails
+	// start the sidecar, return error if it fails
 	eg.Go(func() error {
-		// start the oracle
-		os.logger.Info("starting oracle")
+		os.logger.Info("starting sidecar")
 		return os.o.Start(ctx)
 	})
 
@@ -166,10 +165,10 @@ func (os *SidecarServer) GetBlockEvents(
 
 	os.logger.Info("received request for block events", zap.String("blockNumber", req.BlockNumber))
 
-	// Check that oracle is running
+	// Check that sidecar is running
 	if !os.o.IsRunning() {
-		os.logger.Error("oracle not running")
-		return nil, errors.New("oracle not running")
+		os.logger.Error("sidecar not running")
+		return nil, errors.New("sidecar not running")
 	}
 
 	// Convert the block number from the request to a big.Int
@@ -215,14 +214,14 @@ func (os *SidecarServer) GetBlockEvents(
 	}
 }
 
-// Close closes the underlying oracle server, and blocks until all open requests have been satisfied.
+// Close closes the underlying sidecar server, and blocks until all open requests have been satisfied.
 func (os *SidecarServer) Close() error {
 	// close + close server if necessary
 	os.Closer.Close()
 	return nil
 }
 
-// Done returns a channel that is closed when the oracle server is closed.
+// Done returns a channel that is closed when the sidecar server is closed.
 func (os *SidecarServer) Done() <-chan struct{} {
 	return os.Closer.Done()
 }

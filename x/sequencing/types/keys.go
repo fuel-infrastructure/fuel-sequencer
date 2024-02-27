@@ -11,9 +11,7 @@ const (
 	MemStoreKey = "mem_sequencing"
 )
 
-var (
-	ParamsKey = []byte("p_sequencing")
-)
+var ParamsKey = []byte("p_sequencing")
 
 func KeyPrefix(p string) []byte {
 	return []byte(p)

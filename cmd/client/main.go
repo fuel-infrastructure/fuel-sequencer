@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/servers/sidecar/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 var (

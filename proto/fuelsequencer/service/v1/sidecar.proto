@@ -6,9 +6,9 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/servers/sidecar/types";
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types";
 
-// Sidecar defines the gRPC oracle service.
+// Sidecar defines the gRPC sidecar service.
 service Sidecar {
   // Prices defines a method for fetching the latest prices.
   rpc GetBlockEvents(QueryBlockEventsRequest)

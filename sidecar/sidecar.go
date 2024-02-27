@@ -13,17 +13,19 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+
 	"go.uber.org/zap"
 )
 
 var _ Sidecar = (*SidecarImpl)(nil)
 
-// Oracle defines the expected interface for an oracle. It is consumed by the oracle server.
+// Sidecar defines the expected interface for a sidecar. It is consumed by the sidecar server.
 //
 //go:generate mockery --name Sidecar --filename mock_sidecar.go
 type Sidecar interface {
 	IsRunning() bool
-	QueryBlockEvents(blockNumber *big.Int) ([]GenericEvent, error)
+	QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error)
 	Start(ctx context.Context) error
 	Stop()
 }
@@ -39,11 +41,11 @@ type SidecarImpl struct {
 	mu              sync.Mutex
 	updateInterval  time.Duration
 
-	// running is the current status of the main oracle process (running or not).
+	// running is the current status of the main sidecar process (running or not).
 	running atomic.Bool
 }
 
-// NewSidecar creates a new Oracle instance.
+// NewSidecar creates a new Sidecar instance.
 func NewSidecar(
 	client *ethclient.Client,
 	contractAddress common.Address,
@@ -64,7 +66,6 @@ func NewSidecar(
 
 // Start begins the process of querying and storing events from the Ethereum blockchain.
 func (o *SidecarImpl) Start(ctx context.Context) error {
-
 	// Initial check to verify Ethereum client connectivity and log fetching capability
 	query := ethereum.FilterQuery{
 		FromBlock: o.startBlock,
@@ -86,23 +87,23 @@ func (o *SidecarImpl) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop signals the oracle to stop processing.
+// Stop signals the sidecar to stop processing.
 func (o *SidecarImpl) Stop() {
 	o.running.Store(false)
 }
 
-// IsRunning checks if the oracle process is currently running.
-// It returns true if the oracle is running, false otherwise.
+// IsRunning checks if the sidecar process is currently running.
+// It returns true if the sidecar is running, false otherwise.
 func (o *SidecarImpl) IsRunning() bool {
 	return o.running.Load()
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
-func (o *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]GenericEvent, error) {
+func (o *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	blockHash := blockNumber.String() // Assuming block number is used directly as key; adjust if necessary
+	blockHash := blockNumber.String()
 
 	block, exists := o.blocksMap[blockHash]
 	if !exists {

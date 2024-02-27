@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 	"os/signal"
 	"strings"
@@ -17,17 +18,19 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
-	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/servers/sidecar"
+	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 )
 
 var (
-	host = flag.String("host", "localhost", "host for the grpc-service to listen on")
-	port = flag.String("port", "8080", "port for the grpc-service to listen on")
+	host               = flag.String("host", "localhost", "host for the grpc-service to listen on")
+	port               = flag.String("port", "8080", "port for the grpc-service to listen on")
+	ethNodeAPI         = flag.String("eth_node_api", "http://127.0.0.1:8545/", "Ethereum node API endpoint")
+	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
+	ethStartBlockStr   = flag.String("eth_start_block", "0", "Ethereum start query block")
 )
 
-// start the oracle-grpc server + oracle process, cancel on interrupt or terminate.
+// start the sidecar-grpc server + sidecar process, cancel on interrupt or terminate.
 func main() {
 	// channel with width for either signal
 	sigs := make(chan os.Signal, 1)
@@ -42,14 +45,26 @@ func main() {
 	// parse flags
 	flag.Parse()
 
-	ethNodeAPI, contractAddressHex, ethStartBlock := config.GetEnvironmentalVariables()
+	// Validate required flags
+	if *ethNodeAPI == "" || *contractAddressHex == "" {
+		log.Fatal("ethNodeAPI and contractAddress are required flags")
+	}
 
-	client, err := ethclient.Dial(ethNodeAPI)
+	// Convert the ethStartBlock to big.Int
+	ethStartBlock := new(big.Int)
+	_, ok := ethStartBlock.SetString(*ethStartBlockStr, 10)
+	if !ok {
+		log.Fatalf("Invalid ethStartBlock value: %s", *ethStartBlockStr)
+	}
+
+	// Connect to the ethereum client
+	client, err := ethclient.Dial(*ethNodeAPI)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	contractAddr := common.HexToAddress(contractAddressHex)
+	// Convert the address from string
+	contractAddr := common.HexToAddress(*contractAddressHex)
 	contractAbi, err := abi.JSON(strings.NewReader(mockbridgex.MockBridgeXABI))
 	if err != nil {
 		log.Fatal(err)
@@ -62,7 +77,7 @@ func main() {
 		return
 	}
 
-	// Create the oracle.
+	// Create the sidecar.
 	sideCar := sidecar.NewSidecar(
 		client,
 		contractAddr,
@@ -71,43 +86,24 @@ func main() {
 		logger,
 	)
 	if err != nil {
-		logger.Error("failed to create oracle", zap.Error(err))
+		logger.Error("failed to create sidecar", zap.Error(err))
 		return
 	}
 
 	// create server
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
-	// cancel oracle on interrupt or terminate
+	// cancel sidecar on interrupt or terminate
 	go func() {
 		<-sigs
 		logger.Info(
-			"received interrupt or terminate signal, closing oracle",
+			"received interrupt or terminate signal, closing sidecar",
 		)
 
 		cancel()
 	}()
 
-	// // start prometheus metrics
-	// if cfg.Metrics.Enabled {
-	// 	logger.Info("starting prometheus metrics", zap.String("address", cfg.Metrics.PrometheusServerAddress))
-	// 	ps, err := promserver.NewPrometheusServer(cfg.Metrics.PrometheusServerAddress, logger)
-	// 	if err != nil {
-	// 		logger.Error("failed to start prometheus metrics", zap.Error(err))
-	// 		return
-	// 	}
-
-	// 	go ps.Start()
-
-	// 	// close server on shut-down
-	// 	go func() {
-	// 		<-ctx.Done()
-	// 		logger.Info("stopping prometheus metrics")
-	// 		ps.Close()
-	// 	}()
-	// }
-
-	// start oracle + server, and wait for either to finish
+	// start sidecar + server, and wait for either to finish
 	if err := srv.StartServer(ctx, *host, *port); err != nil {
 		logger.Error("stopping server", zap.Error(err))
 	}

@@ -10,6 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 const (
@@ -52,21 +54,14 @@ type (
 		Message []byte
 	}
 
-	// GenericEvent that will hold the event type and the data. We remove a lot of extra
-	// fluff from the log. By removing the topic which indicates the type of the event, we can save space
-	// and computing power on chain determining who the event belongs to.
-	GenericEvent struct {
-		EventType string
-		Data      []byte
-	}
-
 	// EthereumBlock stores events associated with a block.
 	EthereumBlock struct {
 		BlockNumber *big.Int
-		Events      []GenericEvent
+		Events      []sidecartypes.Event
 	}
 )
 
+// processAndStoreLog processes the log received and stores it in the blocksMap
 func processAndStoreLog(
 	vLog types.Log,
 	contractAbi abi.ABI,
@@ -76,7 +71,7 @@ func processAndStoreLog(
 	if _, exists := blocksMap[blockNumStr]; !exists {
 		blocksMap[blockNumStr] = &EthereumBlock{
 			BlockNumber: new(big.Int).SetUint64(vLog.BlockNumber),
-			Events:      make([]GenericEvent, 0),
+			Events:      make([]sidecartypes.Event, 0),
 		}
 	}
 
@@ -90,8 +85,8 @@ func processAndStoreLog(
 }
 
 // processLog decodes an Ethereum log into a specific event struct.
-func processLog(vLog types.Log, contractAbi abi.ABI) (GenericEvent, error) {
-	var genericEvent GenericEvent
+func processLog(vLog types.Log, contractAbi abi.ABI) (sidecartypes.Event, error) {
+	var genericEvent sidecartypes.Event
 	var err error
 
 	switch vLog.Topics[0].Hex() {

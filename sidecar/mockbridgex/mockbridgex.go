@@ -186,7 +186,6 @@ func (_MockBridgeX *MockBridgeXTransactorRaw) Transact(opts *bind.TransactOpts, 
 func (_MockBridgeX *MockBridgeXCaller) LatestBlock(opts *bind.CallOpts) (uint64, error) {
 	var out []interface{}
 	err := _MockBridgeX.contract.Call(opts, &out, "latestBlock")
-
 	if err != nil {
 		return *new(uint64), err
 	}
@@ -194,7 +193,6 @@ func (_MockBridgeX *MockBridgeXCaller) LatestBlock(opts *bind.CallOpts) (uint64,
 	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
 
 	return out0, err
-
 }
 
 // LatestBlock is a free data retrieval call binding the contract method 0x07e2da96.
@@ -217,7 +215,6 @@ func (_MockBridgeX *MockBridgeXCallerSession) LatestBlock() (uint64, error) {
 func (_MockBridgeX *MockBridgeXCaller) StateDataCommitments(opts *bind.CallOpts, arg0 *big.Int) ([32]byte, error) {
 	var out []interface{}
 	err := _MockBridgeX.contract.Call(opts, &out, "state_dataCommitments", arg0)
-
 	if err != nil {
 		return *new([32]byte), err
 	}
@@ -225,7 +222,6 @@ func (_MockBridgeX *MockBridgeXCaller) StateDataCommitments(opts *bind.CallOpts,
 	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
-
 }
 
 // StateDataCommitments is a free data retrieval call binding the contract method 0xaeeed33e.
@@ -248,7 +244,6 @@ func (_MockBridgeX *MockBridgeXCallerSession) StateDataCommitments(arg0 *big.Int
 func (_MockBridgeX *MockBridgeXCaller) StateProofNonce(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
 	err := _MockBridgeX.contract.Call(opts, &out, "state_proofNonce")
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -256,7 +251,6 @@ func (_MockBridgeX *MockBridgeXCaller) StateProofNonce(opts *bind.CallOpts) (*bi
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // StateProofNonce is a free data retrieval call binding the contract method 0x55ae3f22.
@@ -435,7 +429,6 @@ type MockBridgeXAuthorizeEvent struct {
 //
 // Solidity: event AuthorizeEvent(address indexed _from, bytes _message)
 func (_MockBridgeX *MockBridgeXFilterer) FilterAuthorizeEvent(opts *bind.FilterOpts, _from []common.Address) (*MockBridgeXAuthorizeEventIterator, error) {
-
 	var _fromRule []interface{}
 	for _, _fromItem := range _from {
 		_fromRule = append(_fromRule, _fromItem)
@@ -452,7 +445,6 @@ func (_MockBridgeX *MockBridgeXFilterer) FilterAuthorizeEvent(opts *bind.FilterO
 //
 // Solidity: event AuthorizeEvent(address indexed _from, bytes _message)
 func (_MockBridgeX *MockBridgeXFilterer) WatchAuthorizeEvent(opts *bind.WatchOpts, sink chan<- *MockBridgeXAuthorizeEvent, _from []common.Address) (event.Subscription, error) {
-
 	var _fromRule []interface{}
 	for _, _fromItem := range _from {
 		_fromRule = append(_fromRule, _fromItem)
@@ -582,7 +574,6 @@ type MockBridgeXDataCommitmentStored struct {
 //
 // Solidity: event DataCommitmentStored(uint256 proofNonce, uint64 indexed startBlock, uint64 indexed endBlock, bytes32 indexed dataCommitment)
 func (_MockBridgeX *MockBridgeXFilterer) FilterDataCommitmentStored(opts *bind.FilterOpts, startBlock []uint64, endBlock []uint64, dataCommitment [][32]byte) (*MockBridgeXDataCommitmentStoredIterator, error) {
-
 	var startBlockRule []interface{}
 	for _, startBlockItem := range startBlock {
 		startBlockRule = append(startBlockRule, startBlockItem)
@@ -607,7 +598,6 @@ func (_MockBridgeX *MockBridgeXFilterer) FilterDataCommitmentStored(opts *bind.F
 //
 // Solidity: event DataCommitmentStored(uint256 proofNonce, uint64 indexed startBlock, uint64 indexed endBlock, bytes32 indexed dataCommitment)
 func (_MockBridgeX *MockBridgeXFilterer) WatchDataCommitmentStored(opts *bind.WatchOpts, sink chan<- *MockBridgeXDataCommitmentStored, startBlock []uint64, endBlock []uint64, dataCommitment [][32]byte) (event.Subscription, error) {
-
 	var startBlockRule []interface{}
 	for _, startBlockItem := range startBlock {
 		startBlockRule = append(startBlockRule, startBlockItem)
@@ -745,7 +735,6 @@ type MockBridgeXSendToSequencerEvent struct {
 //
 // Solidity: event SendToSequencerEvent(address indexed _from, uint256 _amount, string _to, uint256 _duration)
 func (_MockBridgeX *MockBridgeXFilterer) FilterSendToSequencerEvent(opts *bind.FilterOpts, _from []common.Address) (*MockBridgeXSendToSequencerEventIterator, error) {
-
 	var _fromRule []interface{}
 	for _, _fromItem := range _from {
 		_fromRule = append(_fromRule, _fromItem)
@@ -762,7 +751,6 @@ func (_MockBridgeX *MockBridgeXFilterer) FilterSendToSequencerEvent(opts *bind.F
 //
 // Solidity: event SendToSequencerEvent(address indexed _from, uint256 _amount, string _to, uint256 _duration)
 func (_MockBridgeX *MockBridgeXFilterer) WatchSendToSequencerEvent(opts *bind.WatchOpts, sink chan<- *MockBridgeXSendToSequencerEvent, _from []common.Address) (event.Subscription, error) {
-
 	var _fromRule []interface{}
 	for _, _fromItem := range _from {
 		_fromRule = append(_fromRule, _fromItem)
