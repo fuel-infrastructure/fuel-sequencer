@@ -45,9 +45,6 @@ func main() {
 	// parse flags
 	flag.Parse()
 
-	fmt.Println(*host)
-	fmt.Println(*port)
-
 	// Validate required flags
 	if *ethNodeAPI == "" || *contractAddressHex == "" {
 		log.Fatal("ethNodeAPI and contractAddress are required flags")
@@ -108,9 +105,6 @@ func main() {
 
 		cancel()
 	}()
-
-	fmt.Println(*host)
-	fmt.Println(*port)
 
 	// start sidecar + server, and wait for either to finish
 	if err := srv.StartServer(ctx, *host, *port); err != nil {

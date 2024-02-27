@@ -36,12 +36,13 @@ type SidecarImpl struct {
 	mu     sync.Mutex
 
 	// --------------------- Ethereum Config --------------------- //
-	client          *ethclient.Client
-	contractAddress common.Address
-	contractABI     abi.ABI
-	startBlock      *big.Int
-	blocksMap       map[string]*EthereumBlock
-	updateInterval  time.Duration
+	client                *ethclient.Client
+	contractAddress       common.Address
+	contractABI           abi.ABI
+	startBlock            *big.Int
+	blocksMap             map[string]*EthereumBlock
+	updateInterval        time.Duration
+	latestBlockWithEvents *big.Int
 
 	// running is the current status of the main sidecar process (running or not).
 	running atomic.Bool
@@ -109,6 +110,14 @@ func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Eve
 	blockNumberStr := blockNumber.String()
 	block, exists := s.blocksMap[blockNumberStr]
 	if !exists {
+
+		// If the queried block is within the range of processed blocks but not found,
+		// it means there were no events for this block, hence return an empty list.
+		if s.latestBlockWithEvents != nil && blockNumber.Cmp(s.latestBlockWithEvents) <= 0 {
+			return []sidecartypes.Event{}, nil
+		}
+
+		// Otherwise this block was not yet processed
 		return nil, fmt.Errorf("no events found for block number %s", blockNumber)
 	}
 
@@ -118,6 +127,7 @@ func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Eve
 // queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
 func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 	lastQueriedBlock := s.startBlock
+
 	ticker := time.NewTicker(s.updateInterval)
 	defer ticker.Stop()
 
@@ -150,6 +160,7 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 			for _, vLog := range logs {
 				processAndStoreLog(vLog, s.contractABI, s.blocksMap)
 			}
+			s.latestBlockWithEvents = big.NewInt(0).SetUint64(lastLogBlock)
 			s.mu.Unlock()
 		}
 	}
