@@ -89,7 +89,7 @@ var (
 		authz.ModuleName,
 		genutiltypes.ModuleName,
 		// chain modules
-		bridgemoduletypes.ModuleName,
+		bridgemoduletypes.ModuleName, // Must be after mint and slashing modules, since it tracks their events.
 		sequencingmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}

@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package fuelsequencer.bridge;
 
 import "amino/amino.proto";
@@ -6,23 +7,38 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
+import "fuelsequencer/bridge/supply_delta_info.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 // Query defines the gRPC querier service.
 service Query {
+  
   // Parameters queries the parameters of the module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fuelsequencer/bridge/params";
+  
+  }
+  
+  // Queries a SupplyDeltaInfo by index.
+  rpc SupplyDeltaInfo (QueryGetSupplyDeltaInfoRequest) returns (QueryGetSupplyDeltaInfoResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info";
+  
   }
 }
-
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
+  
   // params holds all the parameters of this module.
-  Params params = 1
-      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
+
+message QueryGetSupplyDeltaInfoRequest {}
+
+message QueryGetSupplyDeltaInfoResponse {
+  SupplyDeltaInfo SupplyDeltaInfo = 1 [(gogoproto.nullable) = false];
+}
+

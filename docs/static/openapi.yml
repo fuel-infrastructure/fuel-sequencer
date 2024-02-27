@@ -8320,6 +8320,79 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
+    get:
+      summary: Queries a SupplyDeltaInfo by index.
+      operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaInfo:
+                type: object
+                properties:
+                  mint:
+                    type: string
+                  burn:
+                    type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuelsequencer/bridge/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerBridgeQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.sequencing.Msg/UpdateParams:
     post:
       summary: |-
@@ -11926,6 +11999,30 @@ definitions:
   fuelsequencer.bridge.Params:
     type: object
     description: Params defines the parameters for the module.
+  fuelsequencer.bridge.QueryGetSupplyDeltaInfoResponse:
+    type: object
+    properties:
+      SupplyDeltaInfo:
+        type: object
+        properties:
+          mint:
+            type: string
+          burn:
+            type: string
+  fuelsequencer.bridge.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      mint:
+        type: string
+      burn:
+        type: string
   fuelsequencer.sequencing.MsgUpdateParams:
     type: object
     properties:

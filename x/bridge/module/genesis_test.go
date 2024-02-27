@@ -3,6 +3,7 @@ package bridge_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
@@ -15,6 +16,10 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
+		SupplyDeltaInfo: &types.SupplyDeltaInfo{
+			Mint: math.NewInt(87),
+			Burn: math.NewInt(46),
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -26,5 +31,6 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
+	require.Equal(t, genesisState.SupplyDeltaInfo, got.SupplyDeltaInfo)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

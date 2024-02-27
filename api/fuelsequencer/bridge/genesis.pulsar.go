@@ -15,14 +15,16 @@ import (
 )
 
 var (
-	md_GenesisState        protoreflect.MessageDescriptor
-	fd_GenesisState_params protoreflect.FieldDescriptor
+	md_GenesisState                 protoreflect.MessageDescriptor
+	fd_GenesisState_params          protoreflect.FieldDescriptor
+	fd_GenesisState_supplyDeltaInfo protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_genesis_proto_init()
 	md_GenesisState = File_fuelsequencer_bridge_genesis_proto.Messages().ByName("GenesisState")
 	fd_GenesisState_params = md_GenesisState.Fields().ByName("params")
+	fd_GenesisState_supplyDeltaInfo = md_GenesisState.Fields().ByName("supplyDeltaInfo")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -96,6 +98,12 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
+	if x.SupplyDeltaInfo != nil {
+		value := protoreflect.ValueOfMessage(x.SupplyDeltaInfo.ProtoReflect())
+		if !f(fd_GenesisState_supplyDeltaInfo, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -113,6 +121,8 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		return x.Params != nil
+	case "fuelsequencer.bridge.GenesisState.supplyDeltaInfo":
+		return x.SupplyDeltaInfo != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -131,6 +141,8 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		x.Params = nil
+	case "fuelsequencer.bridge.GenesisState.supplyDeltaInfo":
+		x.SupplyDeltaInfo = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -149,6 +161,9 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	switch descriptor.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		value := x.Params
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.supplyDeltaInfo":
+		value := x.SupplyDeltaInfo
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
@@ -172,6 +187,8 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		x.Params = value.Message().Interface().(*Params)
+	case "fuelsequencer.bridge.GenesisState.supplyDeltaInfo":
+		x.SupplyDeltaInfo = value.Message().Interface().(*SupplyDeltaInfo)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -197,6 +214,11 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 			x.Params = new(Params)
 		}
 		return protoreflect.ValueOfMessage(x.Params.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.supplyDeltaInfo":
+		if x.SupplyDeltaInfo == nil {
+			x.SupplyDeltaInfo = new(SupplyDeltaInfo)
+		}
+		return protoreflect.ValueOfMessage(x.SupplyDeltaInfo.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -212,6 +234,9 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		m := new(Params)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.supplyDeltaInfo":
+		m := new(SupplyDeltaInfo)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -286,6 +311,10 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			l = options.Size(x.Params)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		if x.SupplyDeltaInfo != nil {
+			l = options.Size(x.SupplyDeltaInfo)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -314,6 +343,20 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.SupplyDeltaInfo != nil {
+			encoded, err := options.Marshal(x.SupplyDeltaInfo)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
 		}
 		if x.Params != nil {
 			encoded, err := options.Marshal(x.Params)
@@ -414,6 +457,42 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaInfo", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.SupplyDeltaInfo == nil {
+					x.SupplyDeltaInfo = &SupplyDeltaInfo{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.SupplyDeltaInfo); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -469,7 +548,8 @@ type GenesisState struct {
 	unknownFields protoimpl.UnknownFields
 
 	// params defines all the parameters of the module.
-	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	Params          *Params          `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	SupplyDeltaInfo *SupplyDeltaInfo `protobuf:"bytes,2,opt,name=supplyDeltaInfo,proto3" json:"supplyDeltaInfo,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -499,6 +579,13 @@ func (x *GenesisState) GetParams() *Params {
 	return nil
 }
 
+func (x *GenesisState) GetSupplyDeltaInfo() *SupplyDeltaInfo {
+	if x != nil {
+		return x.SupplyDeltaInfo
+	}
+	return nil
+}
+
 var File_fuelsequencer_bridge_genesis_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
@@ -510,12 +597,20 @@ var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
 	0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x1a, 0x21, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
 	0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x4f, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69,
-	0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x3f, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x50, 0x61,
-	0x72, 0x61, 0x6d, 0x73, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52,
-	0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xc0, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x2c, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x73, 0x75, 0x70,
+	0x70, 0x6c, 0x79, 0x5f, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x22, 0xa0, 0x01, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73,
+	0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x3f, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x50, 0x61, 0x72,
+	0x61, 0x6d, 0x73, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x06,
+	0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x4f, 0x0a, 0x0f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79,
+	0x44, 0x65, 0x6c, 0x74, 0x61, 0x49, 0x6e, 0x66, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x25, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
+	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c,
+	0x74, 0x61, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65,
+	0x6c, 0x74, 0x61, 0x49, 0x6e, 0x66, 0x6f, 0x42, 0xc0, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e,
 	0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72,
 	0x69, 0x64, 0x67, 0x65, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f,
 	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e,
@@ -545,16 +640,18 @@ func file_fuelsequencer_bridge_genesis_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bridge_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bridge_genesis_proto_goTypes = []interface{}{
-	(*GenesisState)(nil), // 0: fuelsequencer.bridge.GenesisState
-	(*Params)(nil),       // 1: fuelsequencer.bridge.Params
+	(*GenesisState)(nil),    // 0: fuelsequencer.bridge.GenesisState
+	(*Params)(nil),          // 1: fuelsequencer.bridge.Params
+	(*SupplyDeltaInfo)(nil), // 2: fuelsequencer.bridge.SupplyDeltaInfo
 }
 var file_fuelsequencer_bridge_genesis_proto_depIdxs = []int32{
 	1, // 0: fuelsequencer.bridge.GenesisState.params:type_name -> fuelsequencer.bridge.Params
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: fuelsequencer.bridge.GenesisState.supplyDeltaInfo:type_name -> fuelsequencer.bridge.SupplyDeltaInfo
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_genesis_proto_init() }
@@ -563,6 +660,7 @@ func file_fuelsequencer_bridge_genesis_proto_init() {
 		return
 	}
 	file_fuelsequencer_bridge_params_proto_init()
+	file_fuelsequencer_bridge_supply_delta_info_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_fuelsequencer_bridge_genesis_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenesisState); i {
