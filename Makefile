@@ -136,8 +136,10 @@ build-fuelsequencerd:
 	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
 	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 $(MAIN)
+	
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
 	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 $(MAIN)
+
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
 	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
 

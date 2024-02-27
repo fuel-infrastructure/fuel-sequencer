@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-
 	"go.uber.org/zap"
 )
 
@@ -32,13 +31,16 @@ type Sidecar interface {
 
 // SidecarImpl is the core component responsible for fetching ethereum blocks and processing events.
 type SidecarImpl struct {
-	logger          *zap.Logger
+	// --------------------- General Config --------------------- //
+	logger *zap.Logger
+	mu     sync.Mutex
+
+	// --------------------- Ethereum Config --------------------- //
 	client          *ethclient.Client
 	contractAddress common.Address
 	contractABI     abi.ABI
 	startBlock      *big.Int
 	blocksMap       map[string]*EthereumBlock
-	mu              sync.Mutex
 	updateInterval  time.Duration
 
 	// running is the current status of the main sidecar process (running or not).
@@ -54,71 +56,69 @@ func NewSidecar(
 	logger *zap.Logger,
 ) *SidecarImpl {
 	return &SidecarImpl{
+		logger:          logger,
 		client:          client,
 		contractAddress: contractAddress,
 		contractABI:     contractAbi,
 		startBlock:      startBlock,
-		logger:          logger,
 		blocksMap:       make(map[string]*EthereumBlock),
-		updateInterval:  10 * time.Second, // Adjust the interval as needed
+		updateInterval:  10 * time.Second,
 	}
 }
 
 // Start begins the process of querying and storing events from the Ethereum blockchain.
-func (o *SidecarImpl) Start(ctx context.Context) error {
+func (s *SidecarImpl) Start(ctx context.Context) error {
+	s.logger.Info("starting sidecar")
+
 	// Initial check to verify Ethereum client connectivity and log fetching capability
 	query := ethereum.FilterQuery{
-		FromBlock: o.startBlock,
-		ToBlock:   o.startBlock,
-		Addresses: []common.Address{o.contractAddress},
+		FromBlock: s.startBlock,
+		ToBlock:   s.startBlock,
+		Addresses: []common.Address{s.contractAddress},
 	}
 
 	// Attempt to fetch logs as a connectivity and configuration check
-	_, err := o.client.FilterLogs(ctx, query)
+	_, err := s.client.FilterLogs(ctx, query)
 	if err != nil {
-		o.logger.Error("Failed to fetch logs for initial check", zap.Error(err))
+		s.logger.Error("Failed to fetch logs for initial check", zap.Error(err))
 		return err
 	}
 
-	o.running.Store(true)
-	go o.queryAndStoreEvents(ctx)
-
-	// Side car started succesfully
+	s.running.Store(true)
+	go s.queryAndStoreEvents(ctx)
 	return nil
 }
 
 // Stop signals the sidecar to stop processing.
-func (o *SidecarImpl) Stop() {
-	o.running.Store(false)
+func (s *SidecarImpl) Stop() {
+	s.logger.Info("stopping sidecar")
+	s.running.Store(false)
 }
 
 // IsRunning checks if the sidecar process is currently running.
 // It returns true if the sidecar is running, false otherwise.
-func (o *SidecarImpl) IsRunning() bool {
-	return o.running.Load()
+func (s *SidecarImpl) IsRunning() bool {
+	return s.running.Load()
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
-func (o *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
+func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	blockHash := blockNumber.String()
-
-	block, exists := o.blocksMap[blockHash]
+	blockNumberStr := blockNumber.String()
+	block, exists := s.blocksMap[blockNumberStr]
 	if !exists {
 		return nil, fmt.Errorf("no events found for block number %s", blockNumber)
 	}
 
-	// Assuming your EthereumBlock structure has a slice of Events
-	// You might need to convert or map these events to your expected return type.
 	return block.Events, nil
 }
 
 // queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
-func (o *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
-	lastQueriedBlock := o.startBlock
-	ticker := time.NewTicker(o.updateInterval)
+func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
+	lastQueriedBlock := s.startBlock
+	ticker := time.NewTicker(s.updateInterval)
 	defer ticker.Stop()
 
 	for {
@@ -126,31 +126,31 @@ func (o *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if !o.IsRunning() {
+			if !s.IsRunning() {
 				return
 			}
 
-			query := ethereum.FilterQuery{
+			logs, err := s.client.FilterLogs(context.Background(), ethereum.FilterQuery{
 				FromBlock: lastQueriedBlock,
-				Addresses: []common.Address{o.contractAddress},
-			}
-
-			logs, err := o.client.FilterLogs(context.Background(), query)
+				Addresses: []common.Address{s.contractAddress},
+			})
 			if err != nil {
-				o.logger.Error("Error fetching logs", zap.Error(err))
+				s.logger.Error("Error fetching logs", zap.Error(err))
 				continue
 			}
 
-			if len(logs) > 0 {
-				lastLogBlock := logs[len(logs)-1].BlockNumber
-				lastQueriedBlock = new(big.Int).SetUint64(lastLogBlock + 1)
+			if len(logs) == 0 {
+				continue
 			}
 
-			o.mu.Lock()
+			lastLogBlock := logs[len(logs)-1].BlockNumber
+			lastQueriedBlock = big.NewInt(0).SetUint64(lastLogBlock + 1)
+
+			s.mu.Lock()
 			for _, vLog := range logs {
-				processAndStoreLog(vLog, o.contractABI, o.blocksMap)
+				processAndStoreLog(vLog, s.contractABI, s.blocksMap)
 			}
-			o.mu.Unlock()
+			s.mu.Unlock()
 		}
 	}
 }

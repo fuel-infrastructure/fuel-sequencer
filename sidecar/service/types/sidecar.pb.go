@@ -227,7 +227,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SidecarClient interface {
-	// Prices defines a method for fetching the latest prices.
+	// GetBlockEvents defines a method for fetching the events per block number.
 	GetBlockEvents(ctx context.Context, in *QueryBlockEventsRequest, opts ...grpc.CallOption) (*QueryBlockEventsResponse, error)
 }
 
@@ -250,7 +250,7 @@ func (c *sidecarClient) GetBlockEvents(ctx context.Context, in *QueryBlockEvents
 
 // SidecarServer is the server API for Sidecar service.
 type SidecarServer interface {
-	// Prices defines a method for fetching the latest prices.
+	// GetBlockEvents defines a method for fetching the events per block number.
 	GetBlockEvents(context.Context, *QueryBlockEventsRequest) (*QueryBlockEventsResponse, error)
 }
 

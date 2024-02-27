@@ -18,7 +18,7 @@ import (
 var (
 	host        = flag.String("host", "localhost", "host for the grpc-service to listen on")
 	port        = flag.String("port", "8080", "port for the grpc-service to listen on")
-	blockNumber = flag.String("blocknumber", "", "block number to query events for") // Add a flag for block number
+	blockNumber = flag.String("blocknumber", "", "block number to query events for")
 )
 
 func main() {

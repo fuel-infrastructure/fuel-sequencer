@@ -10,7 +10,7 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/sidecar/servi
 
 // Sidecar defines the gRPC sidecar service.
 service Sidecar {
-  // Prices defines a method for fetching the latest prices.
+  // GetBlockEvents defines a method for fetching the events per block number.
   rpc GetBlockEvents(QueryBlockEventsRequest)
       returns (QueryBlockEventsResponse) {
     option (google.api.http).get = "/fuelsequencer/sidecar/v1/get_block_events";

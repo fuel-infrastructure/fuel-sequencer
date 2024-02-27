@@ -31,7 +31,7 @@ type SidecarServer struct { //nolint
 	types.UnimplementedSidecarServer
 
 	// expected implementation of the sidecar
-	o sidecar.Sidecar
+	s sidecar.Sidecar
 
 	// underlying grpc-server -- serves all grpc requests
 	grpcSrv *grpc.Server
@@ -50,54 +50,54 @@ type SidecarServer struct { //nolint
 }
 
 // NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
-func NewSidecarServer(o sidecar.Sidecar, logger *zap.Logger) *SidecarServer {
+func NewSidecarServer(s sidecar.Sidecar, logger *zap.Logger) *SidecarServer {
 	logger = logger.With(zap.String("server", "sidecar"))
 
-	os := &SidecarServer{
-		o:      o,
+	ss := &SidecarServer{
+		s:      s,
 		logger: logger,
 	}
-	os.Closer = sync.NewCloser().WithCallback(func() {
+	ss.Closer = sync.NewCloser().WithCallback(func() {
 		// if the server has been started, close it
-		if os.httpSrv != nil {
+		if ss.httpSrv != nil {
 			ctx, cf := context.WithTimeout(context.Background(), DefaultServerShutdownTimeout)
-			_ = os.httpSrv.Shutdown(ctx)
-			os.grpcSrv.Stop()
+			_ = ss.httpSrv.Shutdown(ctx)
+			ss.grpcSrv.Stop()
 			cf()
 		}
 	})
 
-	return os
+	return ss
 }
 
 // routeRequest determines if the incoming http request is a grpc or http request and routes to the proper handler.
-func (os *SidecarServer) routeRequest(w http.ResponseWriter, r *http.Request) {
+func (ss *SidecarServer) routeRequest(w http.ResponseWriter, r *http.Request) {
 	if r.ProtoMajor == 2 && strings.HasPrefix(
 		r.Header.Get("Content-Type"), "application/grpc") {
 
-		os.grpcSrv.ServeHTTP(w, r)
+		ss.grpcSrv.ServeHTTP(w, r)
 	} else {
-		os.gatewayMux.ServeHTTP(w, r)
+		ss.gatewayMux.ServeHTTP(w, r)
 	}
 }
 
 // StartServer starts the sidecar gRPC server on the given host and port. The server is killed on any errors from the listener, or if ctx is cancelled.
 // This method returns an error via any failure from the listener. This is a blocking call, i.e until the server is closed or the server errors,
 // this method will block.
-func (os *SidecarServer) StartServer(ctx context.Context, host, port string) error {
+func (ss *SidecarServer) StartServer(ctx context.Context, host, port string) error {
 	serverEndpoint := fmt.Sprintf("%s:%s", host, port)
-	os.httpSrv = &http.Server{
+	ss.httpSrv = &http.Server{
 		Addr:              serverEndpoint,
 		ReadHeaderTimeout: DefaultServerShutdownTimeout,
 	}
 	// create grpc server
-	os.grpcSrv = grpc.NewServer()
+	ss.grpcSrv = grpc.NewServer()
 	// register sidecar server
-	types.RegisterSidecarServer(os.grpcSrv, os)
+	types.RegisterSidecarServer(ss.grpcSrv, ss)
 
 	// register the grpc-gateway
 	// it handles the http request and dials the server endpoint with the grpc request
-	os.gatewayMux = runtime.NewServeMux(
+	ss.gatewayMux = runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &gateway.JSONPb{
 			EmitDefaults: true,
 			Indent:       "",
@@ -105,15 +105,15 @@ func (os *SidecarServer) StartServer(ctx context.Context, host, port string) err
 		}),
 	)
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err := types.RegisterSidecarHandlerFromEndpoint(ctx, os.gatewayMux, serverEndpoint, opts)
+	err := types.RegisterSidecarHandlerFromEndpoint(ctx, ss.gatewayMux, serverEndpoint, opts)
 	if err != nil {
 		return err
 	}
 
 	router := http.NewServeMux()
-	router.HandleFunc("/", os.routeRequest)
+	router.HandleFunc("/", ss.routeRequest)
 
-	os.httpSrv.Handler = h2c.NewHandler(router, &http2.Server{})
+	ss.httpSrv.Handler = h2c.NewHandler(router, &http2.Server{})
 
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -121,28 +121,28 @@ func (os *SidecarServer) StartServer(ctx context.Context, host, port string) err
 	eg.Go(func() error {
 		// if the context is closed, close the server + sidecar
 		<-ctx.Done()
-		os.logger.Info("context cancelled, closing sidecar")
+		ss.logger.Info("context cancelled, closing sidecar")
 
-		_ = os.Close()
+		_ = ss.Close()
 		return nil
 	})
 
 	// start the sidecar, return error if it fails
 	eg.Go(func() error {
-		os.logger.Info("starting sidecar")
-		return os.o.Start(ctx)
+		ss.logger.Info("starting sidecar")
+		return ss.s.Start(ctx)
 	})
 
 	// start the server
 	eg.Go(func() error {
 		// serve, and return any errors
-		os.logger.Info(
+		ss.logger.Info(
 			"starting grpc server",
 			zap.String("host", host),
 			zap.String("port", port),
 		)
 
-		err = os.httpSrv.ListenAndServe()
+		err = ss.httpSrv.ListenAndServe()
 		if err != nil {
 			return fmt.Errorf("[grpc server]: error serving: %w", err)
 		}
@@ -154,7 +154,7 @@ func (os *SidecarServer) StartServer(ctx context.Context, host, port string) err
 	return eg.Wait()
 }
 
-func (os *SidecarServer) GetBlockEvents(
+func (ss *SidecarServer) GetBlockEvents(
 	ctx context.Context,
 	req *types.QueryBlockEventsRequest,
 ) (*types.QueryBlockEventsResponse, error) {
@@ -163,11 +163,11 @@ func (os *SidecarServer) GetBlockEvents(
 		return nil, errors.New("nil request")
 	}
 
-	os.logger.Info("received request for block events", zap.String("blockNumber", req.BlockNumber))
+	ss.logger.Info("received request for block events", zap.String("blockNumber", req.BlockNumber))
 
 	// Check that sidecar is running
-	if !os.o.IsRunning() {
-		os.logger.Error("sidecar not running")
+	if !ss.s.IsRunning() {
+		ss.logger.Error("sidecar not running")
 		return nil, errors.New("sidecar not running")
 	}
 
@@ -183,9 +183,9 @@ func (os *SidecarServer) GetBlockEvents(
 	go func() {
 		var events []*types.Event
 
-		blockchainEvents, err := os.o.QueryBlockEvents(blockNumber)
+		blockchainEvents, err := ss.s.QueryBlockEvents(blockNumber)
 		if err != nil {
-			os.logger.Error("error querying block events", zap.Error(err))
+			ss.logger.Error("error querying block events", zap.Error(err))
 			resCh <- nil
 			return
 		}
@@ -204,7 +204,7 @@ func (os *SidecarServer) GetBlockEvents(
 	// Defer to context closure
 	select {
 	case <-ctx.Done():
-		os.logger.Error("context cancelled")
+		ss.logger.Error("context cancelled")
 		return nil, context.Canceled
 	case resp := <-resCh:
 		if resp == nil {
@@ -215,13 +215,13 @@ func (os *SidecarServer) GetBlockEvents(
 }
 
 // Close closes the underlying sidecar server, and blocks until all open requests have been satisfied.
-func (os *SidecarServer) Close() error {
+func (ss *SidecarServer) Close() error {
 	// close + close server if necessary
-	os.Closer.Close()
+	ss.Closer.Close()
 	return nil
 }
 
 // Done returns a channel that is closed when the sidecar server is closed.
-func (os *SidecarServer) Done() <-chan struct{} {
-	return os.Closer.Done()
+func (ss *SidecarServer) Done() <-chan struct{} {
+	return ss.Closer.Done()
 }

@@ -45,6 +45,9 @@ func main() {
 	// parse flags
 	flag.Parse()
 
+	fmt.Println(*host)
+	fmt.Println(*port)
+
 	// Validate required flags
 	if *ethNodeAPI == "" || *contractAddressHex == "" {
 		log.Fatal("ethNodeAPI and contractAddress are required flags")
@@ -73,7 +76,10 @@ func main() {
 	var logger *zap.Logger
 	logger, err = zap.NewProduction()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create logger: %s\n", err.Error())
+		_, err = fmt.Fprintf(os.Stderr, "failed to create logger: %s\n", err.Error())
+		if err != nil {
+			return
+		}
 		return
 	}
 
@@ -102,6 +108,9 @@ func main() {
 
 		cancel()
 	}()
+
+	fmt.Println(*host)
+	fmt.Println(*port)
 
 	// start sidecar + server, and wait for either to finish
 	if err := srv.StartServer(ctx, *host, *port); err != nil {
