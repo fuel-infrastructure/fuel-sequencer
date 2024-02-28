@@ -133,6 +133,7 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 	defer ticker.Stop()
 
 	for {
+		s.logger.Debug("Processing block", zap.Int64("block", lastQueriedBlock.Int64()))
 		select {
 		case <-ctx.Done():
 			return
