@@ -136,7 +136,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (sidecartypes.Event, error)
 		event.From = common.HexToAddress(vLog.Topics[1].Hex())
 
 		// Fillup the generic event with fields
-		genericEvent.EventType = "AuthorizeEvent"
+		genericEvent.EventType = AuthorizeEventName
 		genericEvent.Data, err = json.Marshal(event)
 	default:
 		return genericEvent, fmt.Errorf("unknown event type")

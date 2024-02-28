@@ -1,8 +1,8 @@
 module github.com/fuel-infrastructure/fuel-sequencer
 
-go 1.22
+go 1.21
 
-toolchain go1.22.0
+toolchain go1.21.0
 
 replace (
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.

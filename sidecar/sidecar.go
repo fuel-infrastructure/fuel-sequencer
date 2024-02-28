@@ -20,8 +20,6 @@ import (
 var _ Sidecar = (*SidecarImpl)(nil)
 
 // Sidecar defines the expected interface for a sidecar. It is consumed by the sidecar server.
-//
-//go:generate mockery --name Sidecar --filename mock_sidecar.go
 type Sidecar interface {
 	IsRunning() bool
 	QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error)
