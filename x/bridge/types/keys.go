@@ -13,6 +13,9 @@ const (
 
 var (
 	ParamsKey = []byte("p_bridge")
+
+	LastEthereumNonceKey       = []byte("LastEthereumNonce")
+	LastEthereumBlockSyncedKey = []byte("LastEthereumBlockSynced")
 )
 
 func KeyPrefix(p string) []byte {

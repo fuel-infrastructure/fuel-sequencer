@@ -17,6 +17,16 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Shows the parameters of the module",
 				},
+				{
+					RpcMethod: "LastEthereumNonce",
+					Use:       "show-last-ethereum-nonce",
+					Short:     "show LastEthereumNonce",
+				},
+				{
+					RpcMethod: "LastEthereumBlockSynced",
+					Use:       "show-last-ethereum-block-synced",
+					Short:     "show LastEthereumBlockSynced",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

@@ -101,4 +101,6 @@ genesis:
     staking:
       params:
         bond_denom: "ufuel"
-
+    bridge:
+      last_ethereum_nonce: "0"
+      last_ethereum_block_synced: "0"

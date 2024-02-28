@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
 	"github.com/stretchr/testify/require"
@@ -20,9 +21,11 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc:     "valid genesis state",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
 
+				LastEthereumNonce:       math.NewInt(3),
+				LastEthereumBlockSynced: math.NewInt(1),
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
