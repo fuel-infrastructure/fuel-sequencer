@@ -237,5 +237,4 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 			return false
 		},
 	)
-
 }
