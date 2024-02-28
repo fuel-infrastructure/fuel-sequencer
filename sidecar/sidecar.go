@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -140,28 +143,90 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 				return
 			}
 
-			logs, err := s.client.FilterLogs(context.Background(), ethereum.FilterQuery{
-				FromBlock: lastQueriedBlock,
-				Addresses: []common.Address{s.contractAddress},
-			})
-			if err != nil {
-				s.logger.Error("Error fetching logs", zap.Error(err))
-				continue
-			}
-
-			if len(logs) == 0 {
-				continue
-			}
-
-			lastLogBlock := logs[len(logs)-1].BlockNumber
-			lastQueriedBlock = big.NewInt(0).SetUint64(lastLogBlock + 1)
-
-			s.mu.Lock()
-			for _, vLog := range logs {
-				processAndStoreLog(vLog, s.contractABI, s.blocksMap)
-			}
-			s.latestBlockWithEvents = big.NewInt(0).SetUint64(lastLogBlock)
-			s.mu.Unlock()
+			s.fetchAndProcessLogs(ctx, &lastQueriedBlock)
 		}
 	}
+}
+
+// fetchAndProcessLogs fetches the logs from the blockchain and processes them.
+func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context, lastQueriedBlock **big.Int) {
+	logs, err := s.client.FilterLogs(ctx, ethereum.FilterQuery{
+		FromBlock: *lastQueriedBlock,
+		Addresses: []common.Address{s.contractAddress},
+	})
+	if err != nil {
+		s.logger.Error("Error fetching logs", zap.Error(err))
+		return
+	}
+
+	if len(logs) == 0 {
+		return
+	}
+
+	success := s.processLogs(logs)
+	if !success {
+		return
+	}
+
+	// Update the last queried block to the block number of the last log + 1
+	lastLogBlock := logs[len(logs)-1].BlockNumber
+	*lastQueriedBlock = big.NewInt(0).SetUint64(lastLogBlock + 1)
+}
+
+// processLogs processes each log in a sequential order stores it.
+func (s *SidecarImpl) processLogs(logs []types.Log) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	lastTxIndex := -1
+	lastLogIndex := -1
+
+	for _, vLog := range logs {
+		if !s.isLogSequential(vLog, &lastTxIndex, &lastLogIndex) {
+			return false
+		}
+
+		s.storeLog(vLog)
+	}
+	return true
+}
+
+// isLogSequential checks if the log is sequential based on TxIndex and LogIndex.
+func (s *SidecarImpl) isLogSequential(vLog types.Log, lastTxIndex, lastLogIndex *int) bool {
+	currentTxIndex := int(vLog.TxIndex)
+	currentLogIndex := int(vLog.Index)
+
+	if currentTxIndex <= *lastTxIndex || currentLogIndex <= *lastLogIndex {
+		s.logger.Error(
+			"Log is not sequential",
+			zap.Int("currentTxIndex", currentTxIndex),
+			zap.Int("lastTxIndex", *lastTxIndex),
+			zap.Int("currentLogIndex", currentLogIndex),
+			zap.Int("lastLogIndex", *lastLogIndex),
+		)
+		return false
+	}
+
+	*lastTxIndex = currentTxIndex
+	*lastLogIndex = currentLogIndex
+	return true
+}
+
+// storeLog processes and stores a single log.
+func (s *SidecarImpl) storeLog(vLog types.Log) {
+	blockNumStr := strconv.FormatUint(vLog.BlockNumber, 10)
+	if _, exists := s.blocksMap[blockNumStr]; !exists {
+		s.blocksMap[blockNumStr] = &EthereumBlock{
+			BlockNumber: new(big.Int).SetUint64(vLog.BlockNumber),
+			Events:      make([]sidecartypes.Event, 0),
+		}
+	}
+
+	event, err := processLog(vLog, s.contractABI)
+	if err != nil {
+		s.logger.Error("Error processing log", zap.Error(err))
+		return
+	}
+
+	s.blocksMap[blockNumStr].Events = append(s.blocksMap[blockNumStr].Events, event)
 }
