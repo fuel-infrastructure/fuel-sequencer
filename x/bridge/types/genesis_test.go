@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
 	"github.com/stretchr/testify/require"
@@ -24,8 +25,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
-					Mint: "34",
-					Burn: "37",
+					Mint: math.NewInt(34),
+					Burn: math.NewInt(37),
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},

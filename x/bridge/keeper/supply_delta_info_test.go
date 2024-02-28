@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
@@ -13,7 +14,10 @@ import (
 )
 
 func createTestSupplyDeltaInfo(keeper keeper.Keeper, ctx context.Context) types.SupplyDeltaInfo {
-	item := types.SupplyDeltaInfo{}
+	item := types.SupplyDeltaInfo{
+		Mint: math.NewInt(10),
+		Burn: math.NewInt(30),
+	}
 	keeper.SetSupplyDeltaInfo(ctx, item)
 	return item
 }

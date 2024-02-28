@@ -24,7 +24,8 @@ var (
 	}
 
 	// govModuleBurner is the burner address when it's the gov module that is burning coins.
-	govModuleBurner = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	// We should leave this as sdk.AccAddress to ensure the bech32 prefix gets set before we call .String()
+	govModuleBurner = authtypes.NewModuleAddress(govtypes.ModuleName)
 )
 
 // UpdateSupplyDeltaFromEventManager tries to find mint and burn events that should be tracked.
@@ -144,7 +145,7 @@ func getBurnAmountFromCoinBurnEvent(ctx sdk.Context, k Keeper, event sdk.Event) 
 	if !ok {
 		ctx.Logger().Warn("found burn event without burner attribute", "event", event)
 		return
-	} else if attribute.Value != govModuleBurner {
+	} else if attribute.Value != govModuleBurner.String() {
 		ctx.Logger().Debug("skipping non-gov burn event", "event", event) // No need to warn, debug logging is enough.
 		return
 	}
