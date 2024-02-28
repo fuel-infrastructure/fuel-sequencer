@@ -124,6 +124,7 @@ func (m *QueryBlockEventsResponse) GetEvents() []*Event {
 	return nil
 }
 
+// Event stores the event data and type queried from Ethereum.
 type Event struct {
 	EventType string `protobuf:"bytes,1,opt,name=eventType,proto3" json:"eventType,omitempty"`
 	Data      []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`

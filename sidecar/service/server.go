@@ -129,7 +129,6 @@ func (ss *SidecarServer) StartServer(ctx context.Context, host, port string) err
 
 	// start the sidecar, return error if it fails
 	eg.Go(func() error {
-		ss.logger.Info("starting sidecar")
 		return ss.s.Start(ctx)
 	})
 

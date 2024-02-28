@@ -28,6 +28,7 @@ message QueryBlockEventsResponse {
   repeated Event events = 1;
 }
 
+// Event stores the event data and type queried from Ethereum.
 message Event {
   string eventType = 1;
   bytes data = 2;
