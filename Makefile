@@ -8,6 +8,8 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
+MOCKS_DIR = $(CURDIR)/tests/mocks
+
 # don't override user values
 ifeq (,$(VERSION))
   VERSION := $(shell echo $(shell git describe --tags 2>/dev/null) | sed 's/^v//')
@@ -279,3 +281,15 @@ remove-docker-container:
 
 follow-docker-logs:
 	@docker logs -f $(DOCKER_CONTAINER_NAME)
+
+###############################################################################
+###                                 Mocks                                   ###
+###############################################################################
+
+mocks: $(MOCKS_DIR)
+	@go install github.com/golang/mock/mockgen@v1.6.0
+	sh ./utils/mockgen.sh
+.PHONY: mocks
+
+$(MOCKS_DIR):
+	mkdir -p $(MOCKS_DIR)
