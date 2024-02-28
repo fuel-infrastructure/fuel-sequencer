@@ -15,13 +15,17 @@ PR:
 
 State and params:
 
-- [ ] Included new state/param in genesis init and export.
-- [ ] Included queries for new state/param.
-- [ ] Included set/get/getAll for new state.
+- [ ] Include new state/param in genesis init and export.
+- [ ] Include queries for new state/param.
+- [ ] Include set/get/getAll for new state.
 
 Messages:
 
 - [ ] Register new messages in `codec.go`
+
+API:
+
+- [ ] Run `ignite chain build` to ensure `api/` folder is updated.
 
 Testing and docs:
 
