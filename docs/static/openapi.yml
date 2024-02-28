@@ -8262,6 +8262,85 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
+    get:
+      summary: Queries a SupplyDeltaInfo by index.
+      operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaInfo:
+                type: object
+                properties:
+                  mint:
+                    type: string
+                  burn:
+                    type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuelsequencer/bridge/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerBridgeQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the FUEL token, used
+                      when tracking block events.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.bridge.Msg/UpdateParams:
     post:
       summary: |-
@@ -8317,82 +8396,15 @@ paths:
 
                   NOTE: All parameters must be supplied.
                 type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the FUEL token, used
+                      when tracking block events.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
-  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
-    get:
-      summary: Queries a SupplyDeltaInfo by index.
-      operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              SupplyDeltaInfo:
-                type: object
-                properties:
-                  mint:
-                    type: string
-                  burn:
-                    type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
-  /fuelsequencer/bridge/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: FuelsequencerBridgeQuery_Params
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
   /fuelsequencer.sequencing.Msg/UpdateParams:
     post:
       summary: |-
@@ -11974,30 +11986,14 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
-  fuelsequencer.bridge.MsgUpdateParams:
-    type: object
-    properties:
-      authority:
-        type: string
-        description: >-
-          authority is the address that controls the module (defaults to x/gov
-          unless
-
-          overwritten).
-      params:
-        description: |-
-          params defines the module parameters to update.
-
-          NOTE: All parameters must be supplied.
-        type: object
-    description: MsgUpdateParams is the Msg/UpdateParams request type.
-  fuelsequencer.bridge.MsgUpdateParamsResponse:
-    type: object
-    description: |-
-      MsgUpdateParamsResponse defines the response structure for executing a
-      MsgUpdateParams message.
   fuelsequencer.bridge.Params:
     type: object
+    properties:
+      bridge_denom:
+        type: string
+        description: >-
+          bridge_denom is the assumed denom for the FUEL token, used when
+          tracking block events.
     description: Params defines the parameters for the module.
   fuelsequencer.bridge.QueryGetSupplyDeltaInfoResponse:
     type: object
@@ -12015,6 +12011,12 @@ definitions:
       params:
         description: params holds all the parameters of this module.
         type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the FUEL token, used when
+              tracking block events.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.bridge.SupplyDeltaInfo:
     type: object
@@ -12023,6 +12025,34 @@ definitions:
         type: string
       burn:
         type: string
+  fuelsequencer.bridge.MsgUpdateParams:
+    type: object
+    properties:
+      authority:
+        type: string
+        description: >-
+          authority is the address that controls the module (defaults to x/gov
+          unless
+
+          overwritten).
+      params:
+        description: |-
+          params defines the module parameters to update.
+
+          NOTE: All parameters must be supplied.
+        type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the FUEL token, used when
+              tracking block events.
+    description: MsgUpdateParams is the Msg/UpdateParams request type.
+  fuelsequencer.bridge.MsgUpdateParamsResponse:
+    type: object
+    description: |-
+      MsgUpdateParamsResponse defines the response structure for executing a
+      MsgUpdateParams message.
   fuelsequencer.sequencing.MsgUpdateParams:
     type: object
     properties:
