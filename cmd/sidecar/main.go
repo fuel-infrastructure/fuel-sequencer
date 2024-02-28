@@ -28,6 +28,7 @@ var (
 	ethNodeRPC         = flag.String("eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
 	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
 	ethStartBlockStr   = flag.String("eth_start_block", "0", "Ethereum start query block")
+	development        = flag.Bool("development", false, "Start logger in development mode")
 )
 
 // start the sidecar-grpc server + sidecar process, cancel on interrupt or terminate.
@@ -71,13 +72,18 @@ func main() {
 	}
 
 	var logger *zap.Logger
-	logger, err = zap.NewProduction()
-	if err != nil {
-		_, err = fmt.Fprintf(os.Stderr, "failed to create logger: %s\n", err.Error())
+	if *development {
+		logger, err = zap.NewDevelopment()
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to create logger: %s\n", err.Error())
 			return
 		}
-		return
+	} else {
+		logger, err = zap.NewProduction()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to create logger: %s\n", err.Error())
+			return
+		}
 	}
 
 	// Create the sidecar.
