@@ -147,14 +147,18 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 func (am AppModule) BeginBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	am.keeper.UpdateSupplyDeltaFromBeginBlockEvents(ctx)
+	am.keeper.UpdateSupplyDeltaFromEventManager(ctx, fmt.Sprintf("%s/%s", types.ModuleName, "BeginBlock"))
 
 	return nil
 }
 
 // EndBlock contains the logic that is automatically triggered at the end of each block.
 // The end block implementation is optional.
-func (am AppModule) EndBlock(ctx context.Context) error {
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	am.keeper.UpdateSupplyDeltaFromEventManager(ctx, fmt.Sprintf("%s/%s", types.ModuleName, "EndBlock"))
+
 	return nil
 }
 

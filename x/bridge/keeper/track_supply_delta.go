@@ -5,6 +5,9 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 )
@@ -12,21 +15,24 @@ import (
 // MintBurnEventProcessor takes an event an extracts a mint and/or burn amount from it.
 type MintBurnEventProcessor func(sdk.Context, Keeper, sdk.Event) (mint, burn math.Int)
 
-// UpdateSupplyDeltaFromBeginBlockEvents tries to find mint and burn events that should be tracked. Any observed events
-// that are of interest are parsed and applied to the supply delta info.
-func (k Keeper) UpdateSupplyDeltaFromBeginBlockEvents(ctx sdk.Context) {
+var (
+	// eventProcessors is a mapping of event type to the processor for it.
+	eventProcessors = map[string]MintBurnEventProcessor{
+		slashingtypes.EventTypeSlash: getBurnAmountFromSlashEvent,
+		minttypes.EventTypeMint:      getMintAmountFromMintEvent,
+		banktypes.EventTypeCoinBurn:  getBurnAmountFromCoinBurnEvent,
+	}
+
+	// govModuleBurner is the burner address when it's the gov module that is burning coins.
+	govModuleBurner = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+)
+
+// UpdateSupplyDeltaFromEventManager tries to find mint and burn events that should be tracked.
+// Any observed events that are of interest are parsed and applied to the supply delta info.
+func (k Keeper) UpdateSupplyDeltaFromEventManager(ctx sdk.Context, source string) {
 
 	totalMint := math.ZeroInt()
 	totalBurn := math.ZeroInt()
-
-	// Mapping of event type to the processor for it.
-	eventProcessors := map[string]MintBurnEventProcessor{
-		slashingtypes.EventTypeSlash: getBurnAmountFromSlashEvent,
-		minttypes.EventTypeMint:      getMintAmountFromMintEvent,
-		// TODO: monitor for gov module burns
-		// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.2/x/gov/keeper/tally.go#L18
-		// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.2/x/gov/keeper/deposit.go#L184-L186
-	}
 
 	// Process events of interest.
 	for _, event := range ctx.EventManager().Events() {
@@ -36,7 +42,7 @@ func (k Keeper) UpdateSupplyDeltaFromBeginBlockEvents(ctx sdk.Context) {
 			totalMint = totalMint.Add(mint)
 			totalBurn = totalBurn.Add(burn)
 
-			ctx.Logger().Debug("processed event", "event_type", event, "mint", mint, "burn", burn)
+			ctx.Logger().Debug("processed event", "event_type", event, "mint", mint, "burn", burn, "source", source)
 		}
 	}
 
@@ -54,15 +60,19 @@ func (k Keeper) UpdateSupplyDeltaFromBeginBlockEvents(ctx sdk.Context) {
 	}
 }
 
+func assertEventType(expected, actual string) {
+	if expected != actual {
+		panic(fmt.Sprintf("unexpected event type, expected %s got %s", expected, actual))
+	}
+}
+
+// getMintAmountFromMintEvent monitors for inflation-related mint events:
+// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.3/x/mint/abci.go#L67
 func getMintAmountFromMintEvent(ctx sdk.Context, _ Keeper, event sdk.Event) (mint, burn math.Int) {
 
 	mint = math.ZeroInt()
 	burn = math.ZeroInt()
-
-	// Expect mint event.
-	if event.Type != minttypes.EventTypeMint {
-		panic(fmt.Sprintf("unexpected event type, expected %s got %s", minttypes.EventTypeMint, event.Type))
-	}
+	assertEventType(minttypes.EventTypeMint, event.Type)
 
 	// Expect amount attribute.
 	attribute, ok := event.GetAttribute(sdk.AttributeKeyAmount)
@@ -82,15 +92,14 @@ func getMintAmountFromMintEvent(ctx sdk.Context, _ Keeper, event sdk.Event) (min
 	return
 }
 
+// getBurnAmountFromSlashEvent monitors for slash events:
+// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.3/x/slashing/keeper/keeper.go#L102
+// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.3/x/slashing/keeper/infractions.go#L139
 func getBurnAmountFromSlashEvent(ctx sdk.Context, k Keeper, event sdk.Event) (mint, burn math.Int) {
 
 	mint = math.ZeroInt()
 	burn = math.ZeroInt()
-
-	// Expect slash event.
-	if event.Type != slashingtypes.EventTypeSlash {
-		panic(fmt.Sprintf("unexpected event type, expected %s got %s", slashingtypes.EventTypeSlash, event.Type))
-	}
+	assertEventType(slashingtypes.EventTypeSlash, event.Type)
 
 	// Expect burned coins attribute.
 	attribute, ok := event.GetAttribute(slashingtypes.AttributeKeyBurnedCoins)
@@ -102,14 +111,66 @@ func getBurnAmountFromSlashEvent(ctx sdk.Context, k Keeper, event sdk.Event) (mi
 	// Expect burned coins to be parseable into coins.
 	amountsBurned, err := sdk.ParseCoinsNormalized(attribute.Value)
 	if err != nil {
-		ctx.Logger().Warn("found non-coins burned coins in burn event", "event", event, "amount", attribute)
+		ctx.Logger().Warn("found non-coins burned coins attribute in slash event", "event", event, "amount", attribute)
 		return
 	}
 
-	// Expect the FUEL token.
-	amountBurned := amountsBurned.AmountOf("ufuel") // TODO: make this dynamic
+	// Expect the bridged token.
+	bridgeDenom := k.GetParams(ctx).BridgeDenom
+	amountBurned := amountsBurned.AmountOf(bridgeDenom)
 	if amountBurned.IsZero() {
-		ctx.Logger().Warn("did not find slash denom in burned coins in burn event", "event", event, "amount", attribute)
+		ctx.Logger().Warn(
+			"did not find bridge denom in slash event's burned coins",
+			"event", event, "amount", attribute, "bridge_denom", bridgeDenom,
+		)
+		return
+	}
+
+	burn = amountBurned
+	return
+}
+
+// getBurnAmountFromCoinBurnEvent monitors for gov module burns:
+// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.3/x/gov/keeper/deposit.go#L48
+// - https://github.com/cosmos/cosmos-sdk/blob/v0.50.3/x/gov/keeper/deposit.go#L242
+func getBurnAmountFromCoinBurnEvent(ctx sdk.Context, k Keeper, event sdk.Event) (mint, burn math.Int) {
+
+	mint = math.ZeroInt()
+	burn = math.ZeroInt()
+	assertEventType(banktypes.EventTypeCoinBurn, event.Type)
+
+	// Expect burner to be the gov module.
+	attribute, ok := event.GetAttribute(banktypes.AttributeKeyBurner)
+	if !ok {
+		ctx.Logger().Warn("found burn event without burner attribute", "event", event)
+		return
+	} else if attribute.Value != govModuleBurner {
+		ctx.Logger().Debug("skipping non-gov burn event", "event", event) // No need to warn, debug logging is enough.
+		return
+	}
+
+	// Expect amount attribute.
+	attribute, ok = event.GetAttribute(sdk.AttributeKeyAmount)
+	if !ok {
+		ctx.Logger().Warn("found burn event without amount attribute", "event", event)
+		return
+	}
+
+	// Expect amount to be parseable into coins.
+	amountsBurned, err := sdk.ParseCoinsNormalized(attribute.Value)
+	if err != nil {
+		ctx.Logger().Warn("found non-coins amount attribute in burn event", "event", event, "amount", attribute)
+		return
+	}
+
+	// Expect the bridged token.
+	bridgeDenom := k.GetParams(ctx).BridgeDenom
+	amountBurned := amountsBurned.AmountOf(bridgeDenom)
+	if amountBurned.IsZero() {
+		ctx.Logger().Warn(
+			"did not find bridge denom in burn event's burned coins",
+			"event", event, "amount", attribute, "bridge_denom", bridgeDenom,
+		)
 		return
 	}
 

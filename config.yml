@@ -101,4 +101,6 @@ genesis:
     staking:
       params:
         bond_denom: "ufuel"
-
+    bridge:
+      params:
+        bridge_denom: "ufuel"
