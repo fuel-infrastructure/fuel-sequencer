@@ -13,12 +13,10 @@ const (
 
 var (
 	ParamsKey = []byte("p_bridge")
+
+	SupplyDeltaInfoKey = []byte("supply_delta_info")
 )
 
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
-
-const (
-	SupplyDeltaInfoKey = "SupplyDeltaInfo/value/"
-)
