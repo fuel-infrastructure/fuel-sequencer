@@ -177,6 +177,11 @@ proto-go-gen:
 	@$(protoImage) sh ./utils/protocgen.sh;
 	@echo "✅ Finished Go code generation!"
 
+proto-go-gen-pulsar:
+	@echo "🤖 Generating API code from protobuf..."
+	@$(protoImage) sh ./utils/protocgen-pulsar.sh;
+	@echo "✅ Finished API code generation!"
+
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
