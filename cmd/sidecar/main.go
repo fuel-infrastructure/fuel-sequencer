@@ -25,7 +25,7 @@ import (
 var (
 	host               = flag.String("host", "localhost", "host for the grpc-service to listen on")
 	port               = flag.String("port", "8080", "port for the grpc-service to listen on")
-	ethNodeAPI         = flag.String("eth_node_api", "http://127.0.0.1:8545/", "Ethereum node API endpoint")
+	ethNodeRPC         = flag.String("eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
 	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
 	ethStartBlockStr   = flag.String("eth_start_block", "0", "Ethereum start query block")
 )
@@ -46,8 +46,8 @@ func main() {
 	flag.Parse()
 
 	// Validate required flags
-	if *ethNodeAPI == "" || *contractAddressHex == "" {
-		log.Fatal("ethNodeAPI and contractAddress are required flags")
+	if *ethNodeRPC == "" || *contractAddressHex == "" {
+		log.Fatal("eth_node_rpc and contract_address are required flags")
 	}
 
 	// Convert the ethStartBlock to big.Int
@@ -58,7 +58,7 @@ func main() {
 	}
 
 	// Connect to the ethereum client
-	client, err := ethclient.Dial(*ethNodeAPI)
+	client, err := ethclient.Dial(*ethNodeRPC)
 	if err != nil {
 		log.Fatal(err)
 	}

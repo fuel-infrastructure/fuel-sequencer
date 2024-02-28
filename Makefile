@@ -180,7 +180,7 @@ run-client:
 run-sidecar:
 	@$(eval ARCH := linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
-	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_api="$(ETH_NODE_API)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)"
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
@@ -298,25 +298,3 @@ remove-docker-container:
 
 follow-docker-logs:
 	@docker logs -f $(DOCKER_CONTAINER_NAME)
-
-###############################################################################
-###                                Mocks                                    ###
-###############################################################################
-
-mocks: gen-mocks format
-
-gen-mocks:
-	@echo "--> generating mocks"
-	@go install github.com/vektra/mockery/v2
-	@go generate ./...
-
-###############################################################################
-###                                Formatting                               ###
-###############################################################################
-
-format:
-	@find . -name '*.go' -type f -not -path "*.git*" -not -path "*mocks*" -not -path "./client/docs/statik/statik.go" -not -name '*.pb.go' -not -name '*.pulsar.go' -not -name '*.gw.go' | xargs go run mvdan.cc/gofumpt -w .
-	@find . -name '*.go' -type f -not -path "*.git*" -not -path "*mocks*" -not -path "./client/docs/statik/statik.go" -not -name '*.pb.go' -not -name '*.pulsar.go' -not -name '*.gw.go' | xargs go run github.com/client9/misspell/cmd/misspell -w
-	@find . -name '*.go' -type f -not -path "*.git*" -not -path "*mocks*" -not -path "./client/docs/statik/statik.go" -not -name '*.pb.go' -not -name '*.pulsar.go' -not -name '*.gw.go' | xargs go run golang.org/x/tools/cmd/goimports -w -local github.com/skip-mev/slinky
-
-.PHONY: format
