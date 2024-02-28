@@ -1,0 +1,16 @@
+ignite scaffold message SupplyDelta        ethereum_nonce:string mint:string burn:string               --signer authority --module bridge     --no-simulation -y
+ignite scaffold message WithdrawToEthereum ethereum_nonce:string to:string amount:array.coin           --signer from      --module bridge     --no-simulation -y
+ignite scaffold message PostBlob           ethereum_nonce:string topic:string order:string data:string --signer from      --module sequencing --no-simulation -y
+
+State, genesis, query: LastEthereumBlockSynced
+State, genesis, query: EthereumEvents
+
+State, genesis, query: Topics
+State, genesis, query: MintAmount
+State, genesis, query: BurnAmount
+
+Param: VestingStartTime
+Param: DepositContractAddress
+Param: AuthorizeContractAddress
+Param: AuthorizeMessagesAllowed
+Param: SupplyDeltaPeriod
