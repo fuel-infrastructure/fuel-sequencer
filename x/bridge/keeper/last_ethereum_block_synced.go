@@ -38,6 +38,15 @@ func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val math.Int, f
 	return val, true
 }
 
+// MustGetLastEthereumBlockSynced returns lastEthereumBlockSynced and panics if it does't find it
+func (k Keeper) MustGetLastEthereumBlockSynced(ctx context.Context) math.Int {
+	val, found := k.GetLastEthereumBlockSynced(ctx)
+	if !found {
+		panic("expected to find last ethereum nonce")
+	}
+	return val
+}
+
 // RemoveLastEthereumBlockSynced removes lastEthereumBlockSynced from the store
 func (k Keeper) RemoveLastEthereumBlockSynced(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))

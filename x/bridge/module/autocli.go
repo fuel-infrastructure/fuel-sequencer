@@ -38,6 +38,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					RpcMethod: "UpdateParams",
 					Skip:      true, // skipped because authority gated
 				},
+				{
+					RpcMethod:      "WithdrawToEthereum",
+					Use:            "withdraw-to-ethereum [nonce] [to] [amount]",
+					Short:          "Send a WithdrawToEthereum tx",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "nonce"}, {ProtoField: "to"}, {ProtoField: "amount"}},
+				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
 		},

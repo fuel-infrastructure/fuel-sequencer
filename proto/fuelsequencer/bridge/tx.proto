@@ -7,31 +7,35 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "fuelsequencer/bridge/params.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  
+
   // UpdateParams defines a (governance) operation for updating the module
   // parameters. The authority defaults to the x/gov module account.
-  rpc UpdateParams (MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  rpc SupplyDelta  (MsgSupplyDelta ) returns (MsgSupplyDeltaResponse );
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+  rpc SupplyDelta(MsgSupplyDelta) returns (MsgSupplyDeltaResponse);
+  rpc WithdrawToEthereum(MsgWithdrawToEthereum)
+      returns (MsgWithdrawToEthereumResponse);
 }
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
-  option (cosmos.msg.v1.signer) =                              "authority";
-  option           (amino.name) = "fuelsequencer/x/bridge/MsgUpdateParams";
-  
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "fuelsequencer/x/bridge/MsgUpdateParams";
+
   // authority is the address that controls the module (defaults to x/gov unless
   // overwritten).
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // params defines the module parameters to update.
-  
+
   // NOTE: All parameters must be supplied.
-  Params params = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Params params = 2
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 }
 
 // MsgUpdateParamsResponse defines the response structure for executing a
@@ -49,16 +53,48 @@ message MsgSupplyDeltaResponse {
 
   // nonce uniquely identifies any message that we send to Ethereum.
   string nonce = 1 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 
-  // supply_delta reports the change in the bridge token's supply due to mints and burns.
+  // supply_delta reports the change in the bridge token's supply due to mints
+  // and burns.
   string supply_delta = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 
+message MsgWithdrawToEthereum {
+  option (cosmos.msg.v1.signer) = "from";
+
+  // from is the Sequencer address that is sending the tokens.
+  string from = 1;
+
+  // to is the Ethereum address that will be receiving the tokens.
+  string to = 2;
+
+  // amount is the tokens being sent, which must be the expacted bridge token.
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+}
+
+message MsgWithdrawToEthereumResponse {
+
+  // nonce uniquely identifies any message that we send to Ethereum.
+  string nonce = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // from is the Sequencer address that is sending the tokens.
+  string from = 2;
+
+  // to is the Ethereum address that will be receiving the tokens.
+  string to = 3;
+
+  // amount is the tokens being sent, which must be the expacted bridge token.
+  cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
+}

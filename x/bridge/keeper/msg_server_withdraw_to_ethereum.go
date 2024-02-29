@@ -7,7 +7,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
+func (k msgServer) WithdrawToEthereum(goCtx context.Context, msg *types.MsgWithdrawToEthereum) (*types.MsgWithdrawToEthereumResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: Handling the message and construct full response
@@ -16,7 +16,10 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	nonce := k.MustGetLastEthereumNonce(ctx).AddRaw(1)
 	k.SetLastEthereumNonce(ctx, nonce)
 
-	return &types.MsgSupplyDeltaResponse{
-		Nonce: nonce,
+	return &types.MsgWithdrawToEthereumResponse{
+		Nonce:  nonce,
+		From:   msg.From,
+		To:     msg.To,
+		Amount: msg.Amount,
 	}, nil
 }
