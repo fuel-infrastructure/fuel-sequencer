@@ -10,4 +10,20 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 message Params {
   option (amino.name) = "fuelsequencer/x/bridge/Params";
   option (gogoproto.equal) = true;
+
+  // deposit_contract_address is the contract address we expect to receive
+  // deposit messages from.
+  string deposit_contract_address = 1;
+
+  // authorize_contract_address is the contract address we expect to receive
+  // authorize messages from.
+  string authorize_contract_address = 2;
+
+  // authorize_messages_allowed is a whitelist for authorize messages that we
+  // can receive and process.
+  repeated string authorize_messages_allowed = 3;
+
+  // supply_delta_period is the frequency in block at which we report supply
+  // delta info to Ethereum.
+  uint64 supply_delta_period = 4;
 }

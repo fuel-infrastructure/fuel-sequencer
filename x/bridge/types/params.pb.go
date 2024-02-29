@@ -26,6 +26,18 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
+	// deposit_contract_address is the contract address we expect to receive
+	// deposit messages from.
+	DepositContractAddress string `protobuf:"bytes,1,opt,name=deposit_contract_address,json=depositContractAddress,proto3" json:"deposit_contract_address,omitempty"`
+	// authorize_contract_address is the contract address we expect to receive
+	// authorize messages from.
+	AuthorizeContractAddress string `protobuf:"bytes,2,opt,name=authorize_contract_address,json=authorizeContractAddress,proto3" json:"authorize_contract_address,omitempty"`
+	// authorize_messages_allowed is a whitelist for authorize messages that we
+	// can receive and process.
+	AuthorizeMessagesAllowed []string `protobuf:"bytes,3,rep,name=authorize_messages_allowed,json=authorizeMessagesAllowed,proto3" json:"authorize_messages_allowed,omitempty"`
+	// supply_delta_period is the frequency in block at which we report supply
+	// delta info to Ethereum.
+	SupplyDeltaPeriod uint64 `protobuf:"varint,4,opt,name=supply_delta_period,json=supplyDeltaPeriod,proto3" json:"supply_delta_period,omitempty"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -61,6 +73,34 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+func (m *Params) GetDepositContractAddress() string {
+	if m != nil {
+		return m.DepositContractAddress
+	}
+	return ""
+}
+
+func (m *Params) GetAuthorizeContractAddress() string {
+	if m != nil {
+		return m.AuthorizeContractAddress
+	}
+	return ""
+}
+
+func (m *Params) GetAuthorizeMessagesAllowed() []string {
+	if m != nil {
+		return m.AuthorizeMessagesAllowed
+	}
+	return nil
+}
+
+func (m *Params) GetSupplyDeltaPeriod() uint64 {
+	if m != nil {
+		return m.SupplyDeltaPeriod
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*Params)(nil), "fuelsequencer.bridge.Params")
 }
@@ -68,19 +108,28 @@ func init() {
 func init() { proto.RegisterFile("fuelsequencer/bridge/params.proto", fileDescriptor_99c31778739894e8) }
 
 var fileDescriptor_99c31778739894e8 = []byte{
-	// 188 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4c, 0x2b, 0x4d, 0xcd,
-	0x29, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0xd2, 0x4f, 0x2a, 0xca, 0x4c, 0x49, 0x4f,
-	0xd5, 0x2f, 0x48, 0x2c, 0x4a, 0xcc, 0x2d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x41,
-	0x51, 0xa2, 0x07, 0x51, 0x22, 0x25, 0x98, 0x98, 0x9b, 0x99, 0x97, 0xaf, 0x0f, 0x26, 0x21, 0x0a,
-	0xa5, 0x44, 0xd2, 0xf3, 0xd3, 0xf3, 0xc1, 0x4c, 0x7d, 0x10, 0x0b, 0x22, 0xaa, 0x64, 0xc0, 0xc5,
-	0x16, 0x00, 0x36, 0xce, 0x4a, 0xed, 0xc5, 0x02, 0x79, 0xc6, 0xae, 0xe7, 0x1b, 0xb4, 0x64, 0x51,
-	0x2d, 0xad, 0x80, 0x59, 0x0b, 0x51, 0xe7, 0x14, 0x76, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72,
-	0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7,
-	0x72, 0x0c, 0x51, 0x36, 0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x20,
-	0x33, 0x74, 0x33, 0xf3, 0xd2, 0x8a, 0x12, 0x8b, 0x4b, 0x8a, 0x4a, 0x93, 0x4b, 0x4a, 0x8b, 0x52,
-	0x21, 0x62, 0x58, 0x0c, 0x2e, 0xa9, 0x2c, 0x48, 0x2d, 0x4e, 0x62, 0x03, 0x3b, 0xc8, 0x18, 0x10,
-	0x00, 0x00, 0xff, 0xff, 0x18, 0xd6, 0x1f, 0x32, 0xf4, 0x00, 0x00, 0x00,
+	// 321 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x90, 0x3f, 0x4b, 0xfb, 0x40,
+	0x1c, 0xc6, 0x7b, 0x6d, 0x29, 0xfc, 0xb2, 0x35, 0xbf, 0x22, 0xa1, 0xe0, 0x59, 0x1d, 0xa4, 0x08,
+	0x26, 0x83, 0x8b, 0x48, 0x97, 0xaa, 0xab, 0x50, 0x3a, 0x38, 0xb8, 0x84, 0x6b, 0xee, 0xdb, 0xf4,
+	0x20, 0xc9, 0x9d, 0xf7, 0x07, 0xad, 0x2f, 0xc1, 0xc9, 0xc9, 0xd9, 0x97, 0xe0, 0xcb, 0x70, 0xec,
+	0xe8, 0x28, 0xed, 0xa0, 0x2f, 0x43, 0x72, 0x17, 0x85, 0xa0, 0xb8, 0x1c, 0xc7, 0xf7, 0xf3, 0x79,
+	0x9e, 0xe1, 0xf1, 0x76, 0xe7, 0x06, 0x32, 0x05, 0xd7, 0x06, 0x8a, 0x04, 0x64, 0x34, 0x93, 0x8c,
+	0xa6, 0x10, 0x09, 0x22, 0x49, 0xae, 0x42, 0x21, 0xb9, 0xe6, 0x7e, 0xaf, 0xa6, 0x84, 0x4e, 0xe9,
+	0x77, 0x49, 0xce, 0x0a, 0x1e, 0xd9, 0xd7, 0x89, 0xfd, 0x5e, 0xca, 0x53, 0x6e, 0xbf, 0x51, 0xf9,
+	0x73, 0xd7, 0xbd, 0xc7, 0xa6, 0xd7, 0x99, 0xd8, 0x3e, 0xff, 0xd8, 0x0b, 0x28, 0x08, 0xae, 0x98,
+	0x8e, 0x13, 0x5e, 0x68, 0x49, 0x12, 0x1d, 0x13, 0x4a, 0x25, 0x28, 0x15, 0xa0, 0x01, 0x1a, 0xfe,
+	0x9b, 0x6e, 0x55, 0xfc, 0xac, 0xc2, 0x63, 0x47, 0xfd, 0x91, 0xd7, 0x27, 0x46, 0x2f, 0xb8, 0x64,
+	0x77, 0xf0, 0x33, 0xdb, 0xb4, 0xd9, 0xe0, 0xdb, 0xf8, 0x33, 0x9d, 0x83, 0x52, 0x24, 0x05, 0x15,
+	0x93, 0x2c, 0xe3, 0x37, 0x40, 0x83, 0xd6, 0xa0, 0x55, 0x4b, 0x5f, 0x54, 0xc2, 0xd8, 0x71, 0x3f,
+	0xf4, 0xfe, 0x2b, 0x23, 0x44, 0xb6, 0x8c, 0x29, 0x64, 0x9a, 0xc4, 0x02, 0x24, 0xe3, 0x34, 0x68,
+	0x0f, 0xd0, 0xb0, 0x3d, 0xed, 0x3a, 0x74, 0x5e, 0x92, 0x89, 0x05, 0x27, 0xfb, 0x1f, 0x4f, 0x3b,
+	0xe8, 0xfe, 0xfd, 0xf9, 0x60, 0xbb, 0xbe, 0xed, 0xed, 0xd7, 0xba, 0x6e, 0x8d, 0xd3, 0xcb, 0x97,
+	0x35, 0x46, 0xab, 0x35, 0x46, 0x6f, 0x6b, 0x8c, 0x1e, 0x36, 0xb8, 0xb1, 0xda, 0xe0, 0xc6, 0xeb,
+	0x06, 0x37, 0xae, 0x46, 0x29, 0xd3, 0x0b, 0x33, 0x0b, 0x13, 0x9e, 0x47, 0x65, 0xc7, 0x21, 0x2b,
+	0xe6, 0x92, 0x28, 0x2d, 0x4d, 0xa2, 0x8d, 0x04, 0x77, 0xfb, 0xa5, 0x58, 0x2f, 0x05, 0xa8, 0x59,
+	0xc7, 0xee, 0x7e, 0xf4, 0x19, 0x00, 0x00, 0xff, 0xff, 0xbd, 0x6a, 0x96, 0x11, 0xdb, 0x01, 0x00,
+	0x00,
 }
 
 func (this *Params) Equal(that interface{}) bool {
@@ -100,6 +149,23 @@ func (this *Params) Equal(that interface{}) bool {
 	if that1 == nil {
 		return this == nil
 	} else if this == nil {
+		return false
+	}
+	if this.DepositContractAddress != that1.DepositContractAddress {
+		return false
+	}
+	if this.AuthorizeContractAddress != that1.AuthorizeContractAddress {
+		return false
+	}
+	if len(this.AuthorizeMessagesAllowed) != len(that1.AuthorizeMessagesAllowed) {
+		return false
+	}
+	for i := range this.AuthorizeMessagesAllowed {
+		if this.AuthorizeMessagesAllowed[i] != that1.AuthorizeMessagesAllowed[i] {
+			return false
+		}
+	}
+	if this.SupplyDeltaPeriod != that1.SupplyDeltaPeriod {
 		return false
 	}
 	return true
@@ -124,6 +190,34 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.SupplyDeltaPeriod != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.SupplyDeltaPeriod))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.AuthorizeMessagesAllowed) > 0 {
+		for iNdEx := len(m.AuthorizeMessagesAllowed) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.AuthorizeMessagesAllowed[iNdEx])
+			copy(dAtA[i:], m.AuthorizeMessagesAllowed[iNdEx])
+			i = encodeVarintParams(dAtA, i, uint64(len(m.AuthorizeMessagesAllowed[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.AuthorizeContractAddress) > 0 {
+		i -= len(m.AuthorizeContractAddress)
+		copy(dAtA[i:], m.AuthorizeContractAddress)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.AuthorizeContractAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.DepositContractAddress) > 0 {
+		i -= len(m.DepositContractAddress)
+		copy(dAtA[i:], m.DepositContractAddress)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.DepositContractAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -144,6 +238,23 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.DepositContractAddress)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.AuthorizeContractAddress)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	if len(m.AuthorizeMessagesAllowed) > 0 {
+		for _, s := range m.AuthorizeMessagesAllowed {
+			l = len(s)
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	if m.SupplyDeltaPeriod != 0 {
+		n += 1 + sovParams(uint64(m.SupplyDeltaPeriod))
+	}
 	return n
 }
 
@@ -182,6 +293,121 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DepositContractAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DepositContractAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AuthorizeContractAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AuthorizeContractAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AuthorizeMessagesAllowed", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AuthorizeMessagesAllowed = append(m.AuthorizeMessagesAllowed, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaPeriod", wireType)
+			}
+			m.SupplyDeltaPeriod = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SupplyDeltaPeriod |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipParams(dAtA[iNdEx:])

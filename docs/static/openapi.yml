@@ -8339,6 +8339,38 @@ paths:
               params:
                 description: params holds all the parameters of this module.
                 type: object
+                properties:
+                  deposit_contract_address:
+                    type: string
+                    description: >-
+                      deposit_contract_address is the contract address we expect
+                      to receive
+
+                      deposit messages from.
+                  authorize_contract_address:
+                    type: string
+                    description: >-
+                      authorize_contract_address is the contract address we
+                      expect to receive
+
+                      authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -8417,6 +8449,38 @@ paths:
 
                   NOTE: All parameters must be supplied.
                 type: object
+                properties:
+                  deposit_contract_address:
+                    type: string
+                    description: >-
+                      deposit_contract_address is the contract address we expect
+                      to receive
+
+                      deposit messages from.
+                  authorize_contract_address:
+                    type: string
+                    description: >-
+                      authorize_contract_address is the contract address we
+                      expect to receive
+
+                      authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
@@ -12003,6 +12067,36 @@ definitions:
     description: Params defines the parameters for the x/staking module.
   fuelsequencer.bridge.Params:
     type: object
+    properties:
+      deposit_contract_address:
+        type: string
+        description: |-
+          deposit_contract_address is the contract address we expect to receive
+          deposit messages from.
+      authorize_contract_address:
+        type: string
+        description: >-
+          authorize_contract_address is the contract address we expect to
+          receive
+
+          authorize messages from.
+      authorize_messages_allowed:
+        type: array
+        items:
+          type: string
+        description: >-
+          authorize_messages_allowed is a whitelist for authorize messages that
+          we
+
+          can receive and process.
+      supply_delta_period:
+        type: string
+        format: uint64
+        description: >-
+          supply_delta_period is the frequency in block at which we report
+          supply
+
+          delta info to Ethereum.
     description: Params defines the parameters for the module.
   fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
     type: object
@@ -12020,6 +12114,38 @@ definitions:
       params:
         description: params holds all the parameters of this module.
         type: object
+        properties:
+          deposit_contract_address:
+            type: string
+            description: >-
+              deposit_contract_address is the contract address we expect to
+              receive
+
+              deposit messages from.
+          authorize_contract_address:
+            type: string
+            description: >-
+              authorize_contract_address is the contract address we expect to
+              receive
+
+              authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.bridge.MsgUpdateParams:
     type: object
@@ -12037,6 +12163,38 @@ definitions:
 
           NOTE: All parameters must be supplied.
         type: object
+        properties:
+          deposit_contract_address:
+            type: string
+            description: >-
+              deposit_contract_address is the contract address we expect to
+              receive
+
+              deposit messages from.
+          authorize_contract_address:
+            type: string
+            description: >-
+              authorize_contract_address is the contract address we expect to
+              receive
+
+              authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.bridge.MsgUpdateParamsResponse:
     type: object

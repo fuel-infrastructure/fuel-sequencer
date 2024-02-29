@@ -29,7 +29,7 @@ State, genesis, query: Topics
 ~~State, genesis, query: BurnAmount~~ (another PR)
 
 ~~Param: VestingStartTime~~ (another PR)
-Param: DepositContractAddress
-Param: AuthorizeContractAddress
-Param: AuthorizeMessagesAllowed
-Param: SupplyDeltaPeriod
+~~Param: DepositContractAddress~~ (OK)
+~~Param: AuthorizeContractAddress~~ (OK)
+~~Param: AuthorizeMessagesAllowed~~ (OK)
+~~Param: SupplyDeltaPeriod~~ (OK)

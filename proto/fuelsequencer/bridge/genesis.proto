@@ -13,21 +13,18 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 message GenesisState {
 
   // params defines all the parameters of the module.
-  Params                  params = 1 [
+  Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+  bytes last_ethereum_nonce = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-  bytes last_ethereum_nonce = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable)   = false,
-    (amino.dont_omitempty) = true
-  ];
   bytes last_ethereum_block_synced = 3 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable)   = false,
+    (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
 }
-
