@@ -51,6 +51,7 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/server/commitments"
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -364,6 +365,7 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
+	commitments.RegisterDataCommitmentsServer(apiSvr.ClientCtx, apiSvr.Router)
 
 	// register app's OpenAPI routes.
 	docs.RegisterOpenAPIService(Name, apiSvr.Router)
