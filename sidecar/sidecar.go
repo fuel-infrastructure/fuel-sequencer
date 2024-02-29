@@ -37,13 +37,17 @@ type SidecarImpl struct {
 	mu     sync.Mutex
 
 	// --------------------- Ethereum Config --------------------- //
-	client                *ethclient.Client
-	contractAddress       common.Address
-	contractABI           abi.ABI
-	startBlock            *big.Int
-	blocksMap             map[string]*EthereumBlock
-	updateInterval        time.Duration
-	latestBlockWithEvents *big.Int
+	client          *ethclient.Client
+	contractAddress common.Address
+	contractABI     abi.ABI
+	startBlock      *big.Int
+	blocksMap       map[string]*EthereumBlock
+	updateInterval  time.Duration
+
+	// startQueryBlock is the block at which we started querying for events.
+	startQueryBlock *big.Int
+	// lastQueryBlock is last block we queried for events.
+	lastQueryBlock *big.Int
 
 	// running is the current status of the main sidecar process (running or not).
 	running atomic.Bool
@@ -114,7 +118,7 @@ func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Eve
 
 		// If the queried block is within the range of processed blocks but not found,
 		// it means there were no events for this block, hence return an empty list.
-		if s.latestBlockWithEvents != nil && blockNumber.Cmp(s.latestBlockWithEvents) <= 0 {
+		if s.lastQueryBlock != nil && blockNumber.Cmp(s.lastQueryBlock) <= 0 {
 			return []sidecartypes.Event{}, nil
 		}
 
