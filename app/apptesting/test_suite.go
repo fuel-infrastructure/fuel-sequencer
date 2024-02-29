@@ -4,17 +4,17 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
-	tmtypes "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/testutil/sims"
-
-	// Cosmos SDK
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/rootmulti"
+
+	tmtypes "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -22,10 +22,8 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	// FuelSequencer
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 
-	// Testing
 	"github.com/stretchr/testify/suite"
 )
 
