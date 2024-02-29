@@ -82,7 +82,13 @@ func getDefaultGenesisStateBytes(app *FuelSequencerApp) []byte {
 		}
 
 		genesisState := app.DefaultGenesis()
-		genesisState, err = simtestutil.GenesisStateWithValSet(app.AppCodec(), genesisState, valSet, []authtypes.GenesisAccount{acc}, balances...)
+		genesisState, err = simtestutil.GenesisStateWithValSet(
+			app.AppCodec(),
+			genesisState,
+			valSet,
+			[]authtypes.GenesisAccount{acc},
+			balances...,
+		)
 		if err != nil {
 			panic(err)
 		}
