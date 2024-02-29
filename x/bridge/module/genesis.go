@@ -1,7 +1,6 @@
 package bridge
 
 import (
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
@@ -10,14 +9,13 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+	defaults := types.DefaultGenesis()
+
 	// Set if defined
 	if genState.SupplyDeltaInfo != nil {
 		k.SetSupplyDeltaInfo(ctx, *genState.SupplyDeltaInfo)
 	} else {
-		k.SetSupplyDeltaInfo(ctx, types.SupplyDeltaInfo{
-			Mint: math.ZeroInt(),
-			Burn: math.ZeroInt(),
-		})
+		k.SetSupplyDeltaInfo(ctx, *defaults.SupplyDeltaInfo)
 	}
 	// this line is used by starport scaffolding # genesis/module/init
 	//nolint:errcheck
