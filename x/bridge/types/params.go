@@ -34,6 +34,7 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
+	// TODO: consider setting more meaningful default params
 	return NewParams("", "", nil, 0)
 }
 

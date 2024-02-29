@@ -21,6 +21,7 @@ func NewParams(maxBlobSizeBytes, gasPerBlobByte uint64) Params {
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
+	// TODO: consider setting more meaningful default params
 	return NewParams(0, 0)
 }
 
