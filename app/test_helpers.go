@@ -47,13 +47,11 @@ func SetupTestingApp(isCheckTx bool) *FuelSequencerApp {
 		panic(err)
 	}
 	if !isCheckTx {
-		stateBytes := getDefaultGenesisStateBytes(app)
-
 		_, _ = app.BaseApp.InitChain(
 			&abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: simtestutil.DefaultConsensusParams,
-				AppStateBytes:   stateBytes,
+				AppStateBytes:   getDefaultGenesisStateBytes(app),
 			},
 		)
 	}
