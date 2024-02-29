@@ -14,7 +14,7 @@ import (
 type FuelSequencerProposalHandler struct {
 	logger     log.Logger
 	valStore   baseapp.ValidatorStore     // to get the current validators' pubkeys
-	txSelector baseapp.TxSelector         // a utility for checking whether a Tx can be included in the proposal
+	txSelector TxSelector                 // a utility for checking whether a Tx can be included in the proposal
 	txVerifier baseapp.ProposalTxVerifier // a utility for transaction verification
 
 	// Any required objects need to go here
@@ -28,7 +28,7 @@ func NewFuelSequencerProposalHandler(
 		logger:     logger,
 		valStore:   valStore,
 		txVerifier: txVerifier,
-		txSelector: baseapp.NewDefaultTxSelector(),
+		txSelector: NewFuelSequencerTxSelector(),
 	}
 }
 
@@ -61,12 +61,13 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			// TODO: This should be removed as it was implemented for demonstration purposes
 			aggregatedOracleData, err := h.aggregateVotesIntoParsedOracleData(ctx, req.LocalLastCommit)
 			if err != nil {
-				return nil, errors.New(fmt.Sprintf("failed to aggregate votes into parsed oracle data; err:%s", err))
+				return nil, fmt.Errorf("failed to aggregate votes into parsed oracle data: %w", err)
 			}
 			voteExtTxBz, err := aggregatedOracleData.Marshal()
 			if err != nil {
-				return nil, errors.New("failed to encode injected vote extension tx")
+				return nil, fmt.Errorf("failed to encode injected vote extension tx: %w", err)
 			}
+			// It is important txs that cannot be decoded into sdk.Tx are appended at entry 0.
 			req.Txs = append([][]byte{voteExtTxBz}, req.Txs...)
 
 			// TODO: Define custom logic here
@@ -83,7 +84,20 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Since we are assuming a NoOp mempool we simply return the transactions requested from CometBFT, which, by
 		// default, should be in FIFO order. Note, we still need to ensure the transactions returned respect
 		// req.MaxTxBytes and blockParams.MaxGas
-		for _, txBz := range req.Txs {
+		for index, txBz := range req.Txs {
+
+			// Vote extension trsanctions typically do not satisfy sdk.Tx. Therefore, we cannot handle them the same way
+			// we handle other transactions.
+			// Note: Here we are assuming that vote extension transactions are inputted at index zero.
+			// TODO: Check if vote extension was expected if done periodically
+			if index == 0 {
+				success := h.txSelector.SelectVETxForProposal(ctx, uint64(req.MaxTxBytes), txBz)
+				if !success {
+					return nil, errors.New("failed to add vote extension transaction to block proposal")
+				}
+				continue
+			}
+
 			tx, err := h.txVerifier.TxDecode(txBz)
 			if err != nil {
 				return nil, err
@@ -164,7 +178,13 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			maxBlockGas = b.MaxGas
 		}
 
-		for _, txBytes := range req.Txs {
+		for index, txBytes := range req.Txs {
+			// Vote extension transactions are typically not a transaction, therefore, they can be skipped since no gas
+			// is consumed. Note: Here we are assuming that vote extension transactions are inputted at index zero.
+			// TODO: Check if vote extension was expected if done periodically
+			if index == 0 {
+				continue
+			}
 
 			// There is something wrong with the Tx if it cannot be decoded. Thus reject the block proposal.
 			tx, err := h.txVerifier.TxDecode(txBytes)
@@ -203,7 +223,7 @@ func (h *FuelSequencerProposalHandler) aggregateVotesIntoParsedOracleData(
 	// Just use first VoteExtension; We could check that all VEs match.
 	var voteExtension CustomOracleVoteExtension
 	if err := json.Unmarshal(localLastCommit.Votes[0].VoteExtension, &voteExtension); err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to json.unmarshal vote extension; err:%s", err))
+		return nil, fmt.Errorf("failed to json.unmarshal vote extension: %w", err)
 	}
 
 	return &AggregatedOracleData{
