@@ -215,7 +215,7 @@ proto-format:
 proto-swagger-gen:
 	ignite generate openapi
 
-proto-routine: proto-format proto-go-gen docs-gen
+proto-routine: proto-format proto-go-gen
 
 ###############################################################################
 ###                                   Run                                   ###
