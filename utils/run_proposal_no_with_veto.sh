@@ -1,8 +1,6 @@
-# This script is meant to be run
-
 PROPOSAL_ID=1
 
-fuelsequencerd tx gov submit-proposal utils/proposal.json --from alice --home ./data/fuelsequencer --chain-id fuelsequencer-1 -y
+fuelsequencerd tx gov submit-proposal utils/proposal_community_spend.json --from alice --home ./data/fuelsequencer --chain-id fuelsequencer-1 -y
 sleep 1
 fuelsequencerd q gov proposal $PROPOSAL_ID
 
