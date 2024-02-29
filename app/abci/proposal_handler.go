@@ -15,9 +15,9 @@ type FuelSequencerProposalHandler struct {
 	// Any required objects need to go here
 }
 
-// NewFuelSequencerProposalHandler defines a new FuelSequencerProposalHandler object
-func NewFuelSequencerProposalHandler(logger log.Logger) FuelSequencerProposalHandler {
-	return FuelSequencerProposalHandler{
+// NewFuelSequencerProposalHandler defines a custom FuelSequencer proposal handler object
+func NewFuelSequencerProposalHandler(logger log.Logger) *FuelSequencerProposalHandler {
+	return &FuelSequencerProposalHandler{
 		logger: logger,
 	}
 }
@@ -28,10 +28,18 @@ func NewFuelSequencerProposalHandler(logger log.Logger) FuelSequencerProposalHan
 // 1. Can be non-deterministic
 // 2. A transaction cannot exceed RequestPrepareProposal.MaxTxBytes
 // 3. Block gas cannot exceed BlockParams.MaxGas
+// 4. If vote extensions are enabled it will get the vote extensions of the previous block in req.LocalLastCommit
 //
-// Note: Here we are assuming that the NoOp mempool is to be used. In the case that a different mempool is implemented
-// we must refer to the default implementation below in order to add some mempool specific logic, if required.
-// Default Implementation: https://github.com/cosmos/cosmos-sdk/blob/7e6948f50cd4838a0161838a099f74e0b5b0213c/baseapp/abci_utils.go#L198
+// Note: Here we are assuming that the NoOp mempool is to be used, meaning that Txs requested from CometBFT will simply
+// be returned and not verified. It is also recommended that the ProcessProposalHandler implements any verifications
+// that PrepareProposalHandler is implementing, therefore, for the NoOp mempool ProcessProposalHandler shouldn't
+// implement any verification checks.
+// In the case that a different mempool is implemented we must perform extra Tx verification checks in
+// PrepareProposalHandler and ProcessProposalHandler because we are no longer relying on CometBFT, and thus we must
+// ensure that we are including valid transactions.
+//
+// Please refer to the following default handler implementation on Cosmos SDK main branch if in doubt:
+// https://github.com/cosmos/cosmos-sdk/blob/a86a83f761383c1ea434925cddd199cd5a271303/baseapp/abci_utils.go#L199-L303
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
 		if VoteExtensionsEnabled(ctx) {
@@ -71,30 +79,6 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			}
 
 			return &abci.ResponsePrepareProposal{Txs: h.txSelector.SelectedTxs(ctx)}, nil
-		}
-
-		iterator := h.mempool.Select(ctx, req.Txs)
-		for iterator != nil {
-			memTx := iterator.Tx()
-
-			// NOTE: Since transaction verification was already executed in CheckTx,
-			// which calls mempool.Insert, in theory everything in the pool should be
-			// valid. But some mempool implementations may insert invalid txs, so we
-			// check again.
-			txBz, err := h.txVerifier.PrepareProposalVerifyTx(memTx)
-			if err != nil {
-				err := h.mempool.Remove(memTx)
-				if err != nil && !errors.Is(err, mempool.ErrTxNotFound) {
-					return nil, err
-				}
-			} else {
-				stop := h.txSelector.SelectTxForProposal(ctx, uint64(req.MaxTxBytes), maxBlockGas, memTx, txBz)
-				if stop {
-					break
-				}
-			}
-
-			iterator = iterator.Next()
 		}
 
 		h.logger.Info(
