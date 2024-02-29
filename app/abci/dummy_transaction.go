@@ -1,7 +1,9 @@
 package abci
 
 /**
-TODO: This file should be replaced as it was implemented for demonstration purposes
+TODO: This file should be replaced as it was implemented for demonstration purposes. Please note that here we are using
+    : JSON to marshal the vote extension for simplicity. However,the Cosmos SDK docs suggest using a more lightweight
+    : encoding that produce a small output, such as compressed bytes or custom encodings.
 */
 
 import (
