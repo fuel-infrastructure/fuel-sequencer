@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtypes "github.com/cometbft/cometbft/types"
 
@@ -95,74 +94,3 @@ func getDefaultGenesisStateBytes(app *FuelSequencerApp) []byte {
 	}
 	return defaultGenesisBz
 }
-
-//func genesisStateWithValSet(
-//	app *FuelSequencerApp, genesisState GenesisState,
-//	valSet *cmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
-//	balances ...banktypes.Balance,
-//) GenesisState {
-//	// set genesis accounts
-//	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
-//	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
-//
-//	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
-//	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
-//
-//	bondAmt := sdk.DefaultPowerReduction
-//	oneDec := math.LegacyOneDec()
-//
-//	for _, val := range valSet.Validators {
-//		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
-//		if err != nil {
-//			panic(err)
-//		}
-//		pkAny, err := cdctypes.NewAnyWithValue(pk)
-//		if err != nil {
-//			panic(err)
-//		}
-//		validator := stakingtypes.Validator{
-//			OperatorAddress:   sdk.ValAddress(val.Address).String(),
-//			ConsensusPubkey:   pkAny,
-//			Jailed:            false,
-//			Status:            stakingtypes.Bonded,
-//			Tokens:            bondAmt,
-//			DelegatorShares:   math.LegacyOneDec(),
-//			Description:       stakingtypes.Description{},
-//			UnbondingHeight:   int64(0),
-//			UnbondingTime:     time.Unix(0, 0).UTC(),
-//			Commission:        stakingtypes.NewCommission(oneDec, oneDec, oneDec),
-//			MinSelfDelegation: math.ZeroInt(),
-//		}
-//		validators = append(validators, validator)
-//		delegation := stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), val.Address.String(), oneDec)
-//		delegations = append(delegations, delegation)
-//
-//	}
-//	// set validators and delegations
-//	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
-//	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
-//
-//	totalSupply := sdk.NewCoins()
-//	for _, b := range balances {
-//		// add genesis acc tokens to total supply
-//		totalSupply = totalSupply.Add(b.Coins...)
-//	}
-//
-//	for range delegations {
-//		// add delegated tokens to total supply
-//		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
-//	}
-//
-//	// add bonded amount to bonded pool module account
-//	balances = append(balances, banktypes.Balance{
-//		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-//		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, bondAmt)},
-//	})
-//
-//	// update total supply
-//	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply,
-//		[]banktypes.Metadata{}, []banktypes.SendEnabled{})
-//	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
-//
-//	return genesisState
-//}
