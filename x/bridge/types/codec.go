@@ -11,8 +11,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateParams{},
 		&MsgSupplyDelta{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgWithdrawToEthereum{},
 	)
 	// this line is used by starport scaffolding # 3
