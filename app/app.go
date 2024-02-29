@@ -52,6 +52,7 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -268,6 +269,11 @@ func NewFuelSequencerApp(
 	// }
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+
+	// PREPARE AND PROCESS PROPOSAL HANDLERS
+	proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app)
+	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
+	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
 	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
 	app.SetMempool(mempool.NoOpMempool{})
