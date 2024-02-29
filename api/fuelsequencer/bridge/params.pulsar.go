@@ -453,7 +453,8 @@ type Params struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// bridge_denom is the assumed denom for the bridged token, used when tracking its supply changes.
+	// bridge_denom is the assumed denom for the bridged token, used when tracking
+	// its supply changes.
 	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
 }
 

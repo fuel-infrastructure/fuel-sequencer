@@ -14,9 +14,9 @@ func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		Params: DefaultParams(),
 		SupplyDeltaInfo: &SupplyDeltaInfo{
-			Mint:   math.ZeroInt(),
-			Burn:   math.ZeroInt(),
-			Offset: math.ZeroInt(),
+			LastSupply: math.ZeroInt(),
+			Delta:      math.ZeroInt(),
+			Offset:     math.ZeroInt(),
 		},
 		// this line is used by starport scaffolding # genesis/types/default
 	}
