@@ -62,7 +62,7 @@ func (k Keeper) TrackChangesInSupplyDeltaInfo(ctx sdk.Context, bankKeeper types.
 		newDelta := latestSupply.Sub(supplyDeltaInfo.LastSupply)
 		supplyDeltaInfo.Delta = supplyDeltaInfo.Delta.Add(newDelta)
 
-		ctx.Logger().Info("recorded change in bridge token supply", "delta", newDelta, "supply", latestSupply)
+		ctx.Logger().Debug("recorded change in bridge token supply", "delta", newDelta, "supply", latestSupply)
 
 		supplyDeltaInfo.LastSupply = latestSupply
 		k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
