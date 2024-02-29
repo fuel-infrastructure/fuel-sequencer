@@ -2,7 +2,6 @@ package sidecar
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -51,7 +50,7 @@ type (
 )
 
 // processLog decodes an Ethereum log into a specific event struct.
-func processLog(vLog types.Log, contractAbi abi.ABI) (sidecartypes.Event, error) {
+func processLog(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error) {
 	var genericEvent sidecartypes.Event
 	var err error
 
@@ -62,7 +61,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (sidecartypes.Event, error)
 		var event SendToSequencerEvent
 		err = contractAbi.UnpackIntoInterface(&event, SendToSequencerEventName, vLog.Data)
 		if err != nil {
-			return genericEvent, err
+			return nil, err
 		}
 
 		// From is indexed, so extract it from Topics
@@ -78,7 +77,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (sidecartypes.Event, error)
 		var event AuthorizeEvent
 		err = contractAbi.UnpackIntoInterface(&event, AuthorizeEventName, vLog.Data)
 		if err != nil {
-			return genericEvent, err
+			return nil, err
 		}
 
 		// From is indexed, so extract it from Topics
@@ -88,8 +87,8 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (sidecartypes.Event, error)
 		genericEvent.EventType = AuthorizeEventName
 		genericEvent.Data, err = json.Marshal(event)
 	default:
-		return genericEvent, fmt.Errorf("unknown event type")
+		return nil, nil
 	}
 
-	return genericEvent, err
+	return &genericEvent, err
 }
