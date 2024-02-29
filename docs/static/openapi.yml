@@ -8475,6 +8475,55 @@ paths:
                     type: string
       tags:
         - Msg
+  /fuelsequencer/sequencing/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerSequencingQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  max_blob_size_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      max_blob_size_bytes is the maximum size of blobs that can
+                      be submitted in bytes.
+                  gas_per_blob_byte:
+                    type: string
+                    format: uint64
+                    description: >-
+                      gas_per_blob_byte is extra gas to be consumed per byte in
+                      submitted blobs.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.sequencing.Msg/PostBlob:
     post:
       operationId: FuelsequencerSequencingMsg_PostBlob
@@ -8594,45 +8643,22 @@ paths:
               params:
                 description: 'NOTE: All parameters must be supplied.'
                 type: object
+                properties:
+                  max_blob_size_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      max_blob_size_bytes is the maximum size of blobs that can
+                      be submitted in bytes.
+                  gas_per_blob_byte:
+                    type: string
+                    format: uint64
+                    description: >-
+                      gas_per_blob_byte is extra gas to be consumed per byte in
+                      submitted blobs.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
-  /fuelsequencer/sequencing/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: FuelsequencerSequencingQuery_Params
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -12300,6 +12326,42 @@ definitions:
 
           delta info to Ethereum.
     description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.Params:
+    type: object
+    properties:
+      max_blob_size_bytes:
+        type: string
+        format: uint64
+        description: >-
+          max_blob_size_bytes is the maximum size of blobs that can be submitted
+          in bytes.
+      gas_per_blob_byte:
+        type: string
+        format: uint64
+        description: >-
+          gas_per_blob_byte is extra gas to be consumed per byte in submitted
+          blobs.
+    description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          max_blob_size_bytes:
+            type: string
+            format: uint64
+            description: >-
+              max_blob_size_bytes is the maximum size of blobs that can be
+              submitted in bytes.
+          gas_per_blob_byte:
+            type: string
+            format: uint64
+            description: >-
+              gas_per_blob_byte is extra gas to be consumed per byte in
+              submitted blobs.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.sequencing.MsgPostBlob:
     type: object
     properties:
@@ -12348,19 +12410,22 @@ definitions:
       params:
         description: 'NOTE: All parameters must be supplied.'
         type: object
+        properties:
+          max_blob_size_bytes:
+            type: string
+            format: uint64
+            description: >-
+              max_blob_size_bytes is the maximum size of blobs that can be
+              submitted in bytes.
+          gas_per_blob_byte:
+            type: string
+            format: uint64
+            description: >-
+              gas_per_blob_byte is extra gas to be consumed per byte in
+              submitted blobs.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.sequencing.MsgUpdateParamsResponse:
     type: object
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
-  fuelsequencer.sequencing.Params:
-    type: object
-    description: Params defines the parameters for the module.
-  fuelsequencer.sequencing.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        description: params holds all the parameters of this module.
-        type: object
-    description: QueryParamsResponse is response type for the Query/Params RPC method.

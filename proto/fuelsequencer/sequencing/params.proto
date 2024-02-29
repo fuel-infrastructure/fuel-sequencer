@@ -10,4 +10,10 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/
 message Params {
   option (amino.name) = "fuelsequencer/x/sequencing/Params";
   option (gogoproto.equal) = true;
+
+  // max_blob_size_bytes is the maximum size of blobs that can be submitted in bytes.
+  uint64 max_blob_size_bytes = 1;
+
+  // gas_per_blob_byte is extra gas to be consumed per byte in submitted blobs.
+  uint64 gas_per_blob_byte = 2;
 }

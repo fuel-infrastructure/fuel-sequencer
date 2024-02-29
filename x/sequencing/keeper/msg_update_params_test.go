@@ -12,6 +12,7 @@ import (
 func TestMsgUpdateParams(t *testing.T) {
 	k, ms, ctx := setupMsgServer(t)
 	defaultParams := types.DefaultParams()
+	nonDefaultParams := types.NewParams(1000, 1000)
 	require.NoError(t, k.SetParams(ctx, defaultParams))
 	wctx := sdk.UnwrapSDKContext(ctx)
 
@@ -44,6 +45,14 @@ func TestMsgUpdateParams(t *testing.T) {
 			input: &types.MsgUpdateParams{
 				Authority: k.GetAuthority(),
 				Params:    defaultParams,
+			},
+			expErr: false,
+		},
+		{
+			name: "all good with non default params",
+			input: &types.MsgUpdateParams{
+				Authority: k.GetAuthority(),
+				Params:    nonDefaultParams,
 			},
 			expErr: false,
 		},
