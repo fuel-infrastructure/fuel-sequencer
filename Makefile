@@ -199,14 +199,10 @@ cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
+    # This runs ./utils/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
 	@$(protoImage) sh ./utils/protocgen.sh;
 	@echo "✅ Finished Go code generation!"
-
-proto-go-gen-pulsar:
-	@echo "🤖 Generating API code from protobuf..."
-	@$(protoImage) sh ./utils/protocgen-pulsar.sh;
-	@echo "✅ Finished API code generation!"
 
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
@@ -254,6 +250,13 @@ test-unit:
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/...
 
+mocks: $(MOCKS_DIR)
+	@go install github.com/golang/mock/mockgen@v1.6.0
+	sh ./utils/mockgen.sh
+.PHONY: mocks
+
+$(MOCKS_DIR):
+	mkdir -p $(MOCKS_DIR)
 
 ###############################################################################
 ###                                Docker                                   ###
@@ -305,15 +308,3 @@ remove-docker-container:
 
 follow-docker-logs:
 	@docker logs -f $(DOCKER_CONTAINER_NAME)
-
-###############################################################################
-###                                 Mocks                                   ###
-###############################################################################
-
-mocks: $(MOCKS_DIR)
-	@go install github.com/golang/mock/mockgen@v1.6.0
-	sh ./utils/mockgen.sh
-.PHONY: mocks
-
-$(MOCKS_DIR):
-	mkdir -p $(MOCKS_DIR)

@@ -140,6 +140,12 @@ make follow-docker-logs
 
 ## Testing
 
+### Generate mocks
+
+```bash
+make mocks
+```
+
 ### Unit tests
 
 ```bash
