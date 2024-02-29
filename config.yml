@@ -1,6 +1,7 @@
 version: 1
 build:
   binary: "fuelsequencerd"
+  main: ./cmd/fuelsequencerd
 accounts:
 - name: alice
   coins:
