@@ -602,9 +602,13 @@ type GenesisState struct {
 	unknownFields protoimpl.UnknownFields
 
 	// params defines all the parameters of the module.
-	Params                  *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
-	LastEthereumNonce       []byte  `protobuf:"bytes,2,opt,name=last_ethereum_nonce,json=lastEthereumNonce,proto3" json:"last_ethereum_nonce,omitempty"`
-	LastEthereumBlockSynced []byte  `protobuf:"bytes,3,opt,name=last_ethereum_block_synced,json=lastEthereumBlockSynced,proto3" json:"last_ethereum_block_synced,omitempty"`
+	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	// last_ethereum_nonce is the last nonce used in messages towards Ethereum.
+	// In other words, the next nonce to be used is this value +1.
+	LastEthereumNonce []byte `protobuf:"bytes,2,opt,name=last_ethereum_nonce,json=lastEthereumNonce,proto3" json:"last_ethereum_nonce,omitempty"`
+	// last_ethereum_block_synced is the last Ethereum block synced.
+	// In other words, the next block to be synced is this value +1.
+	LastEthereumBlockSynced []byte `protobuf:"bytes,3,opt,name=last_ethereum_block_synced,json=lastEthereumBlockSynced,proto3" json:"last_ethereum_block_synced,omitempty"`
 }
 
 func (x *GenesisState) Reset() {

@@ -21,5 +21,8 @@ func (msg *MsgWithdrawToEthereum) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
+
+	// TODO: validate other fields if necessary
+
 	return nil
 }

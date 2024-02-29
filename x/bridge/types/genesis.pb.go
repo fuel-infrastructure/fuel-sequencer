@@ -29,8 +29,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // GenesisState defines the bridge module's genesis state.
 type GenesisState struct {
 	// params defines all the parameters of the module.
-	Params                  Params                `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
-	LastEthereumNonce       cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=last_ethereum_nonce,json=lastEthereumNonce,proto3,customtype=cosmossdk.io/math.Int" json:"last_ethereum_nonce"`
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// last_ethereum_nonce is the last nonce used in messages towards Ethereum.
+	// In other words, the next nonce to be used is this value +1.
+	LastEthereumNonce cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=last_ethereum_nonce,json=lastEthereumNonce,proto3,customtype=cosmossdk.io/math.Int" json:"last_ethereum_nonce"`
+	// last_ethereum_block_synced is the last Ethereum block synced.
+	// In other words, the next block to be synced is this value +1.
 	LastEthereumBlockSynced cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=last_ethereum_block_synced,json=lastEthereumBlockSynced,proto3,customtype=cosmossdk.io/math.Int" json:"last_ethereum_block_synced"`
 }
 

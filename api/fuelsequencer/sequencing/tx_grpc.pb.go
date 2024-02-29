@@ -30,6 +30,7 @@ type MsgClient interface {
 	// UpdateParams defines a (governance) operation for updating the module
 	// parameters. The authority defaults to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// PostBlob defines an operation for posting ordered data at a specific topic.
 	PostBlob(ctx context.Context, in *MsgPostBlob, opts ...grpc.CallOption) (*MsgPostBlobResponse, error)
 }
 
@@ -66,6 +67,7 @@ type MsgServer interface {
 	// UpdateParams defines a (governance) operation for updating the module
 	// parameters. The authority defaults to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// PostBlob defines an operation for posting ordered data at a specific topic.
 	PostBlob(context.Context, *MsgPostBlob) (*MsgPostBlobResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }

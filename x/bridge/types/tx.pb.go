@@ -410,7 +410,10 @@ type MsgClient interface {
 	// UpdateParams defines a (governance) operation for updating the module
 	// parameters. The authority defaults to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// SupplyDelta defines an operation for submitting a report to Ethereum
+	// about changes in supply of the bridged token.
 	SupplyDelta(ctx context.Context, in *MsgSupplyDelta, opts ...grpc.CallOption) (*MsgSupplyDeltaResponse, error)
+	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
 	WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error)
 }
 
@@ -454,7 +457,10 @@ type MsgServer interface {
 	// UpdateParams defines a (governance) operation for updating the module
 	// parameters. The authority defaults to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// SupplyDelta defines an operation for submitting a report to Ethereum
+	// about changes in supply of the bridged token.
 	SupplyDelta(context.Context, *MsgSupplyDelta) (*MsgSupplyDeltaResponse, error)
+	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
 	WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error)
 }
 

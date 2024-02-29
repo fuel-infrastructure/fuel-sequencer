@@ -15,12 +15,18 @@ message GenesisState {
   // params defines all the parameters of the module.
   Params params = 1
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+
+  // last_ethereum_nonce is the last nonce used in messages towards Ethereum.
+  // In other words, the next nonce to be used is this value +1.
   bytes last_ethereum_nonce = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  // last_ethereum_block_synced is the last Ethereum block synced.
+  // In other words, the next block to be synced is this value +1.
   bytes last_ethereum_block_synced = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",

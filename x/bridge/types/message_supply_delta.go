@@ -19,5 +19,8 @@ func (msg *MsgSupplyDelta) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
+
+	// TODO: validate other fields if necessary
+
 	return nil
 }

@@ -26,7 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	// max_blob_size_bytes is the maximum size of blobs that can be submitted in bytes.
+	// max_blob_size_bytes is the maximum size of blobs that can be submitted in
+	// bytes.
 	MaxBlobSizeBytes uint64 `protobuf:"varint,1,opt,name=max_blob_size_bytes,json=maxBlobSizeBytes,proto3" json:"max_blob_size_bytes,omitempty"`
 	// gas_per_blob_byte is extra gas to be consumed per byte in submitted blobs.
 	GasPerBlobByte uint64 `protobuf:"varint,2,opt,name=gas_per_blob_byte,json=gasPerBlobByte,proto3" json:"gas_per_blob_byte,omitempty"`
