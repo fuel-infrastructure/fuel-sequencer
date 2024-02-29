@@ -39,10 +39,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Skip:      true, // skipped because authority gated
 				},
 				{
+					RpcMethod: "SupplyDelta",
+					Skip:      true, // skipped because generated through concensus
+				},
+				{
 					RpcMethod:      "WithdrawToEthereum",
-					Use:            "withdraw-to-ethereum [nonce] [to] [amount]",
+					Use:            "withdraw-to-ethereum [to] [amount]",
 					Short:          "Send a WithdrawToEthereum tx",
-					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "nonce"}, {ProtoField: "to"}, {ProtoField: "amount"}},
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "to"}, {ProtoField: "amount"}},
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},

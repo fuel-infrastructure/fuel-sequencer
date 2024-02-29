@@ -871,6 +871,1298 @@ func (x *fastReflection_MsgUpdateParamsResponse) ProtoMethods() *protoiface.Meth
 	}
 }
 
+var (
+	md_MsgPostBlob       protoreflect.MessageDescriptor
+	fd_MsgPostBlob_from  protoreflect.FieldDescriptor
+	fd_MsgPostBlob_topic protoreflect.FieldDescriptor
+	fd_MsgPostBlob_order protoreflect.FieldDescriptor
+	fd_MsgPostBlob_data  protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_fuelsequencer_sequencing_tx_proto_init()
+	md_MsgPostBlob = File_fuelsequencer_sequencing_tx_proto.Messages().ByName("MsgPostBlob")
+	fd_MsgPostBlob_from = md_MsgPostBlob.Fields().ByName("from")
+	fd_MsgPostBlob_topic = md_MsgPostBlob.Fields().ByName("topic")
+	fd_MsgPostBlob_order = md_MsgPostBlob.Fields().ByName("order")
+	fd_MsgPostBlob_data = md_MsgPostBlob.Fields().ByName("data")
+}
+
+var _ protoreflect.Message = (*fastReflection_MsgPostBlob)(nil)
+
+type fastReflection_MsgPostBlob MsgPostBlob
+
+func (x *MsgPostBlob) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_MsgPostBlob)(x)
+}
+
+func (x *MsgPostBlob) slowProtoReflect() protoreflect.Message {
+	mi := &file_fuelsequencer_sequencing_tx_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_MsgPostBlob_messageType fastReflection_MsgPostBlob_messageType
+var _ protoreflect.MessageType = fastReflection_MsgPostBlob_messageType{}
+
+type fastReflection_MsgPostBlob_messageType struct{}
+
+func (x fastReflection_MsgPostBlob_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_MsgPostBlob)(nil)
+}
+func (x fastReflection_MsgPostBlob_messageType) New() protoreflect.Message {
+	return new(fastReflection_MsgPostBlob)
+}
+func (x fastReflection_MsgPostBlob_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgPostBlob
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_MsgPostBlob) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgPostBlob
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_MsgPostBlob) Type() protoreflect.MessageType {
+	return _fastReflection_MsgPostBlob_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_MsgPostBlob) New() protoreflect.Message {
+	return new(fastReflection_MsgPostBlob)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_MsgPostBlob) Interface() protoreflect.ProtoMessage {
+	return (*MsgPostBlob)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_MsgPostBlob) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.From != "" {
+		value := protoreflect.ValueOfString(x.From)
+		if !f(fd_MsgPostBlob_from, value) {
+			return
+		}
+	}
+	if x.Topic != "" {
+		value := protoreflect.ValueOfString(x.Topic)
+		if !f(fd_MsgPostBlob_topic, value) {
+			return
+		}
+	}
+	if x.Order != "" {
+		value := protoreflect.ValueOfString(x.Order)
+		if !f(fd_MsgPostBlob_order, value) {
+			return
+		}
+	}
+	if len(x.Data) != 0 {
+		value := protoreflect.ValueOfBytes(x.Data)
+		if !f(fd_MsgPostBlob_data, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_MsgPostBlob) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlob.from":
+		return x.From != ""
+	case "fuelsequencer.sequencing.MsgPostBlob.topic":
+		return x.Topic != ""
+	case "fuelsequencer.sequencing.MsgPostBlob.order":
+		return x.Order != ""
+	case "fuelsequencer.sequencing.MsgPostBlob.data":
+		return len(x.Data) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlob"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlob does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlob) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlob.from":
+		x.From = ""
+	case "fuelsequencer.sequencing.MsgPostBlob.topic":
+		x.Topic = ""
+	case "fuelsequencer.sequencing.MsgPostBlob.order":
+		x.Order = ""
+	case "fuelsequencer.sequencing.MsgPostBlob.data":
+		x.Data = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlob"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlob does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_MsgPostBlob) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlob.from":
+		value := x.From
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlob.topic":
+		value := x.Topic
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlob.order":
+		value := x.Order
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlob.data":
+		value := x.Data
+		return protoreflect.ValueOfBytes(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlob"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlob does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlob) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlob.from":
+		x.From = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlob.topic":
+		x.Topic = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlob.order":
+		x.Order = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlob.data":
+		x.Data = value.Bytes()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlob"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlob does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlob) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlob.from":
+		panic(fmt.Errorf("field from of message fuelsequencer.sequencing.MsgPostBlob is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlob.topic":
+		panic(fmt.Errorf("field topic of message fuelsequencer.sequencing.MsgPostBlob is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlob.order":
+		panic(fmt.Errorf("field order of message fuelsequencer.sequencing.MsgPostBlob is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlob.data":
+		panic(fmt.Errorf("field data of message fuelsequencer.sequencing.MsgPostBlob is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlob"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlob does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_MsgPostBlob) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlob.from":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlob.topic":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlob.order":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlob.data":
+		return protoreflect.ValueOfBytes(nil)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlob"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlob does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_MsgPostBlob) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.sequencing.MsgPostBlob", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_MsgPostBlob) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlob) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_MsgPostBlob) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_MsgPostBlob) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*MsgPostBlob)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.From)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Topic)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Order)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Data)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*MsgPostBlob)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Data) > 0 {
+			i -= len(x.Data)
+			copy(dAtA[i:], x.Data)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Data)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if len(x.Order) > 0 {
+			i -= len(x.Order)
+			copy(dAtA[i:], x.Order)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Order)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if len(x.Topic) > 0 {
+			i -= len(x.Topic)
+			copy(dAtA[i:], x.Topic)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Topic)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.From) > 0 {
+			i -= len(x.From)
+			copy(dAtA[i:], x.From)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.From)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*MsgPostBlob)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgPostBlob: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgPostBlob: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.From = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Topic", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Topic = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Order", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Order = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Data = append(x.Data[:0], dAtA[iNdEx:postIndex]...)
+				if x.Data == nil {
+					x.Data = []byte{}
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_MsgPostBlobResponse       protoreflect.MessageDescriptor
+	fd_MsgPostBlobResponse_nonce protoreflect.FieldDescriptor
+	fd_MsgPostBlobResponse_from  protoreflect.FieldDescriptor
+	fd_MsgPostBlobResponse_topic protoreflect.FieldDescriptor
+	fd_MsgPostBlobResponse_order protoreflect.FieldDescriptor
+	fd_MsgPostBlobResponse_data  protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_fuelsequencer_sequencing_tx_proto_init()
+	md_MsgPostBlobResponse = File_fuelsequencer_sequencing_tx_proto.Messages().ByName("MsgPostBlobResponse")
+	fd_MsgPostBlobResponse_nonce = md_MsgPostBlobResponse.Fields().ByName("nonce")
+	fd_MsgPostBlobResponse_from = md_MsgPostBlobResponse.Fields().ByName("from")
+	fd_MsgPostBlobResponse_topic = md_MsgPostBlobResponse.Fields().ByName("topic")
+	fd_MsgPostBlobResponse_order = md_MsgPostBlobResponse.Fields().ByName("order")
+	fd_MsgPostBlobResponse_data = md_MsgPostBlobResponse.Fields().ByName("data")
+}
+
+var _ protoreflect.Message = (*fastReflection_MsgPostBlobResponse)(nil)
+
+type fastReflection_MsgPostBlobResponse MsgPostBlobResponse
+
+func (x *MsgPostBlobResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_MsgPostBlobResponse)(x)
+}
+
+func (x *MsgPostBlobResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_fuelsequencer_sequencing_tx_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_MsgPostBlobResponse_messageType fastReflection_MsgPostBlobResponse_messageType
+var _ protoreflect.MessageType = fastReflection_MsgPostBlobResponse_messageType{}
+
+type fastReflection_MsgPostBlobResponse_messageType struct{}
+
+func (x fastReflection_MsgPostBlobResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_MsgPostBlobResponse)(nil)
+}
+func (x fastReflection_MsgPostBlobResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_MsgPostBlobResponse)
+}
+func (x fastReflection_MsgPostBlobResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgPostBlobResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_MsgPostBlobResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgPostBlobResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_MsgPostBlobResponse) Type() protoreflect.MessageType {
+	return _fastReflection_MsgPostBlobResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_MsgPostBlobResponse) New() protoreflect.Message {
+	return new(fastReflection_MsgPostBlobResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_MsgPostBlobResponse) Interface() protoreflect.ProtoMessage {
+	return (*MsgPostBlobResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_MsgPostBlobResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Nonce != "" {
+		value := protoreflect.ValueOfString(x.Nonce)
+		if !f(fd_MsgPostBlobResponse_nonce, value) {
+			return
+		}
+	}
+	if x.From != "" {
+		value := protoreflect.ValueOfString(x.From)
+		if !f(fd_MsgPostBlobResponse_from, value) {
+			return
+		}
+	}
+	if x.Topic != "" {
+		value := protoreflect.ValueOfString(x.Topic)
+		if !f(fd_MsgPostBlobResponse_topic, value) {
+			return
+		}
+	}
+	if x.Order != "" {
+		value := protoreflect.ValueOfString(x.Order)
+		if !f(fd_MsgPostBlobResponse_order, value) {
+			return
+		}
+	}
+	if len(x.Data) != 0 {
+		value := protoreflect.ValueOfBytes(x.Data)
+		if !f(fd_MsgPostBlobResponse_data, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_MsgPostBlobResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.nonce":
+		return x.Nonce != ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.from":
+		return x.From != ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.topic":
+		return x.Topic != ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.order":
+		return x.Order != ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.data":
+		return len(x.Data) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlobResponse"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlobResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlobResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.nonce":
+		x.Nonce = ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.from":
+		x.From = ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.topic":
+		x.Topic = ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.order":
+		x.Order = ""
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.data":
+		x.Data = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlobResponse"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlobResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_MsgPostBlobResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.nonce":
+		value := x.Nonce
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.from":
+		value := x.From
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.topic":
+		value := x.Topic
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.order":
+		value := x.Order
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.data":
+		value := x.Data
+		return protoreflect.ValueOfBytes(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlobResponse"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlobResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlobResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.nonce":
+		x.Nonce = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.from":
+		x.From = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.topic":
+		x.Topic = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.order":
+		x.Order = value.Interface().(string)
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.data":
+		x.Data = value.Bytes()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlobResponse"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlobResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlobResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.nonce":
+		panic(fmt.Errorf("field nonce of message fuelsequencer.sequencing.MsgPostBlobResponse is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.from":
+		panic(fmt.Errorf("field from of message fuelsequencer.sequencing.MsgPostBlobResponse is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.topic":
+		panic(fmt.Errorf("field topic of message fuelsequencer.sequencing.MsgPostBlobResponse is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.order":
+		panic(fmt.Errorf("field order of message fuelsequencer.sequencing.MsgPostBlobResponse is not mutable"))
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.data":
+		panic(fmt.Errorf("field data of message fuelsequencer.sequencing.MsgPostBlobResponse is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlobResponse"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlobResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_MsgPostBlobResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.nonce":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.from":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.topic":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.order":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.sequencing.MsgPostBlobResponse.data":
+		return protoreflect.ValueOfBytes(nil)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.sequencing.MsgPostBlobResponse"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.sequencing.MsgPostBlobResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_MsgPostBlobResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.sequencing.MsgPostBlobResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_MsgPostBlobResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_MsgPostBlobResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_MsgPostBlobResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_MsgPostBlobResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*MsgPostBlobResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Nonce)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.From)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Topic)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Order)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Data)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*MsgPostBlobResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Data) > 0 {
+			i -= len(x.Data)
+			copy(dAtA[i:], x.Data)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Data)))
+			i--
+			dAtA[i] = 0x2a
+		}
+		if len(x.Order) > 0 {
+			i -= len(x.Order)
+			copy(dAtA[i:], x.Order)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Order)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if len(x.Topic) > 0 {
+			i -= len(x.Topic)
+			copy(dAtA[i:], x.Topic)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Topic)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if len(x.From) > 0 {
+			i -= len(x.From)
+			copy(dAtA[i:], x.From)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.From)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Nonce) > 0 {
+			i -= len(x.Nonce)
+			copy(dAtA[i:], x.Nonce)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Nonce)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*MsgPostBlobResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgPostBlobResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgPostBlobResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Nonce", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Nonce = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.From = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Topic", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Topic = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Order", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Order = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Data = append(x.Data[:0], dAtA[iNdEx:postIndex]...)
+				if x.Data == nil {
+					x.Data = []byte{}
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -893,8 +2185,6 @@ type MsgUpdateParams struct {
 	// authority is the address that controls the module (defaults to x/gov unless
 	// overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	// params defines the module parameters to update.
-	//
 	// NOTE: All parameters must be supplied.
 	Params *Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params,omitempty"`
 }
@@ -961,6 +2251,141 @@ func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_sequencing_tx_proto_rawDescGZIP(), []int{1}
 }
 
+type MsgPostBlob struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// from is the address posting the blob.
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// topic is the Topic that this blob belongs to.
+	Topic string `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
+	// order is the blob sequencer order.
+	Order string `protobuf:"bytes,3,opt,name=order,proto3" json:"order,omitempty"`
+	// data is the bytes
+	Data []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+func (x *MsgPostBlob) Reset() {
+	*x = MsgPostBlob{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fuelsequencer_sequencing_tx_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MsgPostBlob) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MsgPostBlob) ProtoMessage() {}
+
+// Deprecated: Use MsgPostBlob.ProtoReflect.Descriptor instead.
+func (*MsgPostBlob) Descriptor() ([]byte, []int) {
+	return file_fuelsequencer_sequencing_tx_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *MsgPostBlob) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *MsgPostBlob) GetTopic() string {
+	if x != nil {
+		return x.Topic
+	}
+	return ""
+}
+
+func (x *MsgPostBlob) GetOrder() string {
+	if x != nil {
+		return x.Order
+	}
+	return ""
+}
+
+func (x *MsgPostBlob) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type MsgPostBlobResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// nonce uniquely identifies any message that we send to Ethereum.
+	Nonce string `protobuf:"bytes,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	// from is the address posting the blob.
+	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	// topic is the Topic that this blob belongs to.
+	Topic string `protobuf:"bytes,3,opt,name=topic,proto3" json:"topic,omitempty"`
+	// order is the blob sequencer order.
+	Order string `protobuf:"bytes,4,opt,name=order,proto3" json:"order,omitempty"`
+	// data is the bytes
+	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+func (x *MsgPostBlobResponse) Reset() {
+	*x = MsgPostBlobResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fuelsequencer_sequencing_tx_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MsgPostBlobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MsgPostBlobResponse) ProtoMessage() {}
+
+// Deprecated: Use MsgPostBlobResponse.ProtoReflect.Descriptor instead.
+func (*MsgPostBlobResponse) Descriptor() ([]byte, []int) {
+	return file_fuelsequencer_sequencing_tx_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *MsgPostBlobResponse) GetNonce() string {
+	if x != nil {
+		return x.Nonce
+	}
+	return ""
+}
+
+func (x *MsgPostBlobResponse) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *MsgPostBlobResponse) GetTopic() string {
+	if x != nil {
+		return x.Topic
+	}
+	return ""
+}
+
+func (x *MsgPostBlobResponse) GetOrder() string {
+	if x != nil {
+		return x.Order
+	}
+	return ""
+}
+
+func (x *MsgPostBlobResponse) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 var File_fuelsequencer_sequencing_tx_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_sequencing_tx_proto_rawDesc = []byte{
@@ -990,14 +2415,38 @@ var file_fuelsequencer_sequencing_tx_proto_rawDesc = []byte{
 	0x6e, 0x63, 0x65, 0x72, 0x2f, 0x78, 0x2f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e,
 	0x67, 0x2f, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d,
 	0x73, 0x22, 0x19, 0x0a, 0x17, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61,
-	0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x7a, 0x0a, 0x03,
-	0x4d, 0x73, 0x67, 0x12, 0x6c, 0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72,
-	0x61, 0x6d, 0x73, 0x12, 0x29, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x2e, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x2e, 0x4d,
-	0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x31,
-	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x6c, 0x0a, 0x0b,
+	0x4d, 0x73, 0x67, 0x50, 0x6f, 0x73, 0x74, 0x42, 0x6c, 0x6f, 0x62, 0x12, 0x12, 0x0a, 0x04, 0x66,
+	0x72, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x74, 0x6f, 0x70, 0x69, 0x63, 0x12, 0x14, 0x0a, 0x05, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x3a,
+	0x09, 0x82, 0xe7, 0xb0, 0x2a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x22, 0xac, 0x01, 0x0a, 0x13, 0x4d,
+	0x73, 0x67, 0x50, 0x6f, 0x73, 0x74, 0x42, 0x6c, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x41, 0x0a, 0x05, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x42, 0x2b, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74,
+	0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0x52, 0x05,
+	0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70,
+	0x69, 0x63, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x12,
+	0x14, 0x0a, 0x05, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x6f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x32, 0xdc, 0x01, 0x0a, 0x03, 0x4d, 0x73,
+	0x67, 0x12, 0x6c, 0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d,
+	0x73, 0x12, 0x29, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x2e, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x2e, 0x4d, 0x73, 0x67,
+	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x31, 0x2e, 0x66,
+	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x73, 0x65, 0x71,
+	0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x60, 0x0a, 0x08, 0x50, 0x6f, 0x73, 0x74, 0x42, 0x6c, 0x6f, 0x62, 0x12, 0x25, 0x2e, 0x66, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x2e, 0x4d, 0x73, 0x67, 0x50, 0x6f, 0x73, 0x74, 0x42, 0x6c,
+	0x6f, 0x62, 0x1a, 0x2d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2e, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x2e, 0x4d, 0x73,
+	0x67, 0x50, 0x6f, 0x73, 0x74, 0x42, 0x6c, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
 	0x65, 0x1a, 0x05, 0x80, 0xe7, 0xb0, 0x2a, 0x01, 0x42, 0xd3, 0x01, 0x0a, 0x1c, 0x63, 0x6f, 0x6d,
 	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x73,
 	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x69, 0x6e, 0x67, 0x42, 0x07, 0x54, 0x78, 0x50, 0x72, 0x6f,
@@ -1027,18 +2476,22 @@ func file_fuelsequencer_sequencing_tx_proto_rawDescGZIP() []byte {
 	return file_fuelsequencer_sequencing_tx_proto_rawDescData
 }
 
-var file_fuelsequencer_sequencing_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_fuelsequencer_sequencing_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_fuelsequencer_sequencing_tx_proto_goTypes = []interface{}{
 	(*MsgUpdateParams)(nil),         // 0: fuelsequencer.sequencing.MsgUpdateParams
 	(*MsgUpdateParamsResponse)(nil), // 1: fuelsequencer.sequencing.MsgUpdateParamsResponse
-	(*Params)(nil),                  // 2: fuelsequencer.sequencing.Params
+	(*MsgPostBlob)(nil),             // 2: fuelsequencer.sequencing.MsgPostBlob
+	(*MsgPostBlobResponse)(nil),     // 3: fuelsequencer.sequencing.MsgPostBlobResponse
+	(*Params)(nil),                  // 4: fuelsequencer.sequencing.Params
 }
 var file_fuelsequencer_sequencing_tx_proto_depIdxs = []int32{
-	2, // 0: fuelsequencer.sequencing.MsgUpdateParams.params:type_name -> fuelsequencer.sequencing.Params
+	4, // 0: fuelsequencer.sequencing.MsgUpdateParams.params:type_name -> fuelsequencer.sequencing.Params
 	0, // 1: fuelsequencer.sequencing.Msg.UpdateParams:input_type -> fuelsequencer.sequencing.MsgUpdateParams
-	1, // 2: fuelsequencer.sequencing.Msg.UpdateParams:output_type -> fuelsequencer.sequencing.MsgUpdateParamsResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
+	2, // 2: fuelsequencer.sequencing.Msg.PostBlob:input_type -> fuelsequencer.sequencing.MsgPostBlob
+	1, // 3: fuelsequencer.sequencing.Msg.UpdateParams:output_type -> fuelsequencer.sequencing.MsgUpdateParamsResponse
+	3, // 4: fuelsequencer.sequencing.Msg.PostBlob:output_type -> fuelsequencer.sequencing.MsgPostBlobResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -1075,6 +2528,30 @@ func file_fuelsequencer_sequencing_tx_proto_init() {
 				return nil
 			}
 		}
+		file_fuelsequencer_sequencing_tx_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MsgPostBlob); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fuelsequencer_sequencing_tx_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MsgPostBlobResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1082,7 +2559,7 @@ func file_fuelsequencer_sequencing_tx_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_fuelsequencer_sequencing_tx_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
