@@ -8262,6 +8262,138 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced:
+    get:
+      summary: Queries a LastEthereumBlockSynced by index.
+      operationId: FuelsequencerBridgeQuery_LastEthereumBlockSynced
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              block:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce:
+    get:
+      summary: Queries a LastEthereumNonce by index.
+      operationId: FuelsequencerBridgeQuery_LastEthereumNonce
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuelsequencer/bridge/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerBridgeQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  deposit_contract_address:
+                    type: string
+                    description: >-
+                      deposit_contract_address is the contract address we expect
+                      to receive
+
+                      deposit messages from.
+                  authorize_contract_address:
+                    type: string
+                    description: >-
+                      authorize_contract_address is the contract address we
+                      expect to receive
+
+                      authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.bridge.Msg/SupplyDelta:
     post:
       summary: |-
@@ -8479,6 +8611,57 @@ paths:
                     type: string
       tags:
         - Msg
+  /fuelsequencer/sequencing/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerSequencingQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  max_blob_size_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      max_blob_size_bytes is the maximum size of blobs that can
+                      be submitted in
+
+                      bytes.
+                  gas_per_blob_byte:
+                    type: string
+                    format: uint64
+                    description: >-
+                      gas_per_blob_byte is extra gas to be consumed per byte in
+                      submitted blobs.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.sequencing.Msg/PostBlob:
     post:
       summary: >-
@@ -8619,57 +8802,6 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
-  /fuelsequencer/sequencing/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: FuelsequencerSequencingQuery_Params
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-                properties:
-                  max_blob_size_bytes:
-                    type: string
-                    format: uint64
-                    description: >-
-                      max_blob_size_bytes is the maximum size of blobs that can
-                      be submitted in
-
-                      bytes.
-                  gas_per_blob_byte:
-                    type: string
-                    format: uint64
-                    description: >-
-                      gas_per_blob_byte is extra gas to be consumed per byte in
-                      submitted blobs.
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -12193,6 +12325,88 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
+  fuelsequencer.bridge.Params:
+    type: object
+    properties:
+      deposit_contract_address:
+        type: string
+        description: |-
+          deposit_contract_address is the contract address we expect to receive
+          deposit messages from.
+      authorize_contract_address:
+        type: string
+        description: >-
+          authorize_contract_address is the contract address we expect to
+          receive
+
+          authorize messages from.
+      authorize_messages_allowed:
+        type: array
+        items:
+          type: string
+        description: >-
+          authorize_messages_allowed is a whitelist for authorize messages that
+          we
+
+          can receive and process.
+      supply_delta_period:
+        type: string
+        format: uint64
+        description: >-
+          supply_delta_period is the frequency in block at which we report
+          supply
+
+          delta info to Ethereum.
+    description: Params defines the parameters for the module.
+  fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
+    type: object
+    properties:
+      block:
+        type: string
+  fuelsequencer.bridge.QueryGetLastEthereumNonceResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+  fuelsequencer.bridge.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          deposit_contract_address:
+            type: string
+            description: >-
+              deposit_contract_address is the contract address we expect to
+              receive
+
+              deposit messages from.
+          authorize_contract_address:
+            type: string
+            description: >-
+              authorize_contract_address is the contract address we expect to
+              receive
+
+              authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.bridge.MsgSupplyDelta:
     type: object
     properties:
@@ -12304,39 +12518,46 @@ definitions:
             type: string
           amount:
             type: string
-  fuelsequencer.bridge.Params:
+  fuelsequencer.sequencing.Params:
     type: object
     properties:
-      deposit_contract_address:
-        type: string
-        description: |-
-          deposit_contract_address is the contract address we expect to receive
-          deposit messages from.
-      authorize_contract_address:
-        type: string
-        description: >-
-          authorize_contract_address is the contract address we expect to
-          receive
-
-          authorize messages from.
-      authorize_messages_allowed:
-        type: array
-        items:
-          type: string
-        description: >-
-          authorize_messages_allowed is a whitelist for authorize messages that
-          we
-
-          can receive and process.
-      supply_delta_period:
+      max_blob_size_bytes:
         type: string
         format: uint64
         description: >-
-          supply_delta_period is the frequency in block at which we report
-          supply
+          max_blob_size_bytes is the maximum size of blobs that can be submitted
+          in
 
-          delta info to Ethereum.
+          bytes.
+      gas_per_blob_byte:
+        type: string
+        format: uint64
+        description: >-
+          gas_per_blob_byte is extra gas to be consumed per byte in submitted
+          blobs.
     description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          max_blob_size_bytes:
+            type: string
+            format: uint64
+            description: >-
+              max_blob_size_bytes is the maximum size of blobs that can be
+              submitted in
+
+              bytes.
+          gas_per_blob_byte:
+            type: string
+            format: uint64
+            description: >-
+              gas_per_blob_byte is extra gas to be consumed per byte in
+              submitted blobs.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.sequencing.MsgPostBlob:
     type: object
     properties:
@@ -12406,43 +12627,3 @@ definitions:
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
-  fuelsequencer.sequencing.Params:
-    type: object
-    properties:
-      max_blob_size_bytes:
-        type: string
-        format: uint64
-        description: >-
-          max_blob_size_bytes is the maximum size of blobs that can be submitted
-          in
-
-          bytes.
-      gas_per_blob_byte:
-        type: string
-        format: uint64
-        description: >-
-          gas_per_blob_byte is extra gas to be consumed per byte in submitted
-          blobs.
-    description: Params defines the parameters for the module.
-  fuelsequencer.sequencing.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        description: params holds all the parameters of this module.
-        type: object
-        properties:
-          max_blob_size_bytes:
-            type: string
-            format: uint64
-            description: >-
-              max_blob_size_bytes is the maximum size of blobs that can be
-              submitted in
-
-              bytes.
-          gas_per_blob_byte:
-            type: string
-            format: uint64
-            description: >-
-              gas_per_blob_byte is extra gas to be consumed per byte in
-              submitted blobs.
-    description: QueryParamsResponse is response type for the Query/Params RPC method.

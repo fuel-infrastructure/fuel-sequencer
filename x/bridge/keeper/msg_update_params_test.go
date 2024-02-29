@@ -13,8 +13,8 @@ func TestMsgUpdateParams(t *testing.T) {
 	k, ms, ctx := setupMsgServer(t)
 	defaultParams := types.DefaultParams()
 	nonDefaultParams := types.NewParams(
-		"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-		"0x0ec68c5b10f21effb74f2a5c61dfe6b08c0db6cb",
+		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
+		"0xCDfAe2bC63f41AAb3eF1cD1C72Fb8AaE4E3dC5dF",
 		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
 	)
