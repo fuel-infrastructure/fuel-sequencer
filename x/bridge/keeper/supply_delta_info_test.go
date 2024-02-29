@@ -15,8 +15,9 @@ import (
 
 func createTestSupplyDeltaInfo(keeper keeper.Keeper, ctx context.Context) types.SupplyDeltaInfo {
 	item := types.SupplyDeltaInfo{
-		Mint: math.NewInt(10),
-		Burn: math.NewInt(30),
+		Mint:   math.NewInt(10),
+		Burn:   math.NewInt(30),
+		Offset: math.NewInt(123),
 	}
 	keeper.SetSupplyDeltaInfo(ctx, item)
 	return item

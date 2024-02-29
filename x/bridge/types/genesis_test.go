@@ -25,8 +25,9 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
-					Mint: math.NewInt(34),
-					Burn: math.NewInt(37),
+					Mint:   math.NewInt(34),
+					Burn:   math.NewInt(37),
+					Offset: math.NewInt(123),
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},

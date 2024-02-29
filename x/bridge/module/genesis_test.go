@@ -17,8 +17,9 @@ func TestGenesis(t *testing.T) {
 		Params: types.DefaultParams(),
 
 		SupplyDeltaInfo: &types.SupplyDeltaInfo{
-			Mint: math.NewInt(87),
-			Burn: math.NewInt(46),
+			Mint:   math.NewInt(87),
+			Burn:   math.NewInt(46),
+			Offset: math.NewInt(123),
 		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}

@@ -7,12 +7,24 @@ import "cosmos_proto/cosmos.proto";
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 message SupplyDeltaInfo {
+
+  // mint is the amount of bridge tokens that should be minted on Ethereum.
   string mint = 1 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable)   = false
   ];
+
+  // burn is the amount of bridge tokens that should be minted on Ethereum.
   string burn = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable)   = false
+  ];
+
+  // offset is used to account for changes in supply that we do not want to post to Ethereum,
+  // including deposits and withdrawals, because Ethereum will know about these anyways.
+  string offset = 3 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable)   = false
