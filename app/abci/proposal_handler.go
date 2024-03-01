@@ -232,3 +232,31 @@ func (h *FuelSequencerProposalHandler) aggregateVotesIntoParsedOracleData(
 		ExtendedCommitInfo: localLastCommit,
 	}, nil
 }
+
+// PreBlocker contains logic that should run before any other logic during FinalizeBlock. FinalizeBlock ignores
+// any byte slices that don't implement sdk.Tx. As a result, any important results originating from PrepareProposal or
+// ProcessProposal that don't implement sdk.Tx need to be made available to the modules in storage at this stage.
+func (h *FuelSequencerProposalHandler) PreBlocker(
+	ctx sdk.Context, req *abci.RequestFinalizeBlock,
+) (*sdk.ResponsePreBlock, error) {
+	if len(req.Txs) == 0 {
+		return &sdk.ResponsePreBlock{}, nil
+	}
+
+	if VoteExtensionsEnabled(ctx) {
+
+		// TODO: Check if certain transactions are expected at this stage
+
+		// TODO: This was done for demonstration purposes and should be adapted as per application requirements
+		var injectedVoteExtTx AggregatedOracleData
+		if err := json.Unmarshal(req.Txs[0], &injectedVoteExtTx); err != nil {
+			return &sdk.ResponsePreBlock{}, fmt.Errorf("failed to decode injected vote extension tx: %w", err)
+		}
+
+		// TODO: Custom logic like storing "special" transactions in state
+	}
+
+	h.logger.Info("finished executing pre-block hook")
+
+	return &sdk.ResponsePreBlock{}, nil
+}

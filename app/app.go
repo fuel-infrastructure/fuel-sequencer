@@ -278,6 +278,9 @@ func NewFuelSequencerApp(
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
+	// PREBLOCKER
+	app.SetPreBlocker(proposalHandler.PreBlocker)
+
 	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
 	app.SetMempool(mempool.NoOpMempool{})
 
