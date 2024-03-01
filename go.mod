@@ -3,6 +3,7 @@ module github.com/fuel-infrastructure/fuel-sequencer
 go 1.21
 
 replace (
+	github.com/cosmos/cosmos-sdk => github.com/migueldingli1997/cosmos-sdk v0.50.4-fix-logging-2
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// replace broken goleveldb

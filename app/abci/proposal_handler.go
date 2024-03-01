@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -119,6 +122,32 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 	}
 }
 
+func getData() (int, error) {
+	// Make a GET request to the server
+	resp, err := http.Get("http://localhost:8080/")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return 0, err
+	}
+
+	// Convert the response body to an integer
+	number, err := strconv.Atoi(string(body))
+	if err != nil {
+		fmt.Println("Error:", err)
+		return 0, err
+	}
+
+	return number, nil
+}
+
 // ProcessProposalHandler defines the logic which confirms the validity of a block proposal. This logic is executed
 // by all validators, and it needs to obey the following rules:
 //
@@ -169,6 +198,19 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			}
 
 			// TODO: Define custom logic here
+		}
+
+		num, err := getData()
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("I GOT NOTHING :("))
+		} else {
+			if num == 1 {
+				ctx.Logger().Error(fmt.Sprintf("I GOT %d AT H=%d => ACCEPT", num, req.Height))
+				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
+			} else {
+				ctx.Logger().Error(fmt.Sprintf("I GOT %d AT H=%d => REJECT", num, req.Height))
+				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+			}
 		}
 
 		var totalTxGas uint64

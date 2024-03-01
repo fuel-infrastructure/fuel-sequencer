@@ -1,13 +1,31 @@
 package network
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	pruningtypes "cosmossdk.io/store/pruning/types"
+
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
-	"github.com/stretchr/testify/require"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
+
+	"github.com/stretchr/testify/require"
 )
 
 type (
@@ -25,6 +43,28 @@ func New(t *testing.T, configs ...Config) *Network {
 	var cfg network.Config
 	if len(configs) == 0 {
 		cfg = DefaultConfig()
+
+		// Enable logging.
+		cfg.EnableLogging = true
+
+		// Set custom number of validators.
+		cfg.NumValidators = 5
+
+		// Update x/bridge genesis to ensure chain runs.
+		bridgeGenesis := bridgetypes.DefaultGenesis()
+		bridgeGenesis.Params.BridgeDenom = "stake"
+
+		// Update x/sequencing genesis to ensure chain runs.
+		sequencingGenesis := sequencingtypes.DefaultGenesis()
+
+		bz, err := json.Marshal(bridgeGenesis)
+		require.NoError(t, err)
+		cfg.GenesisState["bridge"] = bz
+
+		bz, err = json.Marshal(sequencingGenesis)
+		require.NoError(t, err)
+		cfg.GenesisState["sequencing"] = bz
+
 	} else {
 		cfg = configs[0]
 	}
@@ -39,7 +79,7 @@ func New(t *testing.T, configs ...Config) *Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg, err := network.DefaultConfigWithAppConfig(app.AppConfig())
+	cfg, err := DefaultConfigWithAppConfig(app.AppConfig())
 	if err != nil {
 		panic(err)
 	}
@@ -77,4 +117,81 @@ func freePorts(n int) ([]string, error) {
 		}
 	}
 	return ports, nil
+}
+
+func DefaultConfigWithAppConfig(appConfig depinject.Config) (Config, error) {
+	var (
+		appBuilder        *runtime.AppBuilder
+		txConfig          client.TxConfig
+		legacyAmino       *codec.LegacyAmino
+		cdc               codec.Codec
+		interfaceRegistry codectypes.InterfaceRegistry
+	)
+
+	if err := depinject.Inject(
+		depinject.Configs(
+			appConfig,
+			depinject.Supply(log.NewNopLogger()),
+		),
+		&appBuilder,
+		&txConfig,
+		&cdc,
+		&legacyAmino,
+		&interfaceRegistry,
+	); err != nil {
+		return Config{}, err
+	}
+
+	cfg := network.DefaultConfig(func() network.TestFixture {
+		return network.TestFixture{}
+	})
+	cfg.Codec = cdc
+	cfg.TxConfig = txConfig
+	cfg.LegacyAmino = legacyAmino
+	cfg.InterfaceRegistry = interfaceRegistry
+	cfg.GenesisState = appBuilder.DefaultGenesis()
+	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
+		theApp := &app.FuelSequencerApp{}
+
+		// we build a unique app instance for every validator here
+		var appBuilder *runtime.AppBuilder
+		if err := depinject.Inject(
+			depinject.Configs(
+				appConfig,
+				depinject.Supply(val.GetCtx().Logger),
+			),
+			&appBuilder); err != nil {
+			panic(err)
+		}
+		theApp.App = appBuilder.Build(
+			dbm.NewMemDB(),
+			nil,
+			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
+			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
+			baseapp.SetChainID(cfg.ChainID),
+		)
+
+		testdata.RegisterQueryServer(theApp.GRPCQueryRouter(), testdata.QueryImpl{})
+
+		// VOTE EXTENSION HANDLER
+		voteExtensionsHandler := abci.NewFuelSequencerVoteExtHandler(theApp.Logger())
+		theApp.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
+		theApp.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
+
+		// PREPARE AND PROCESS PROPOSAL HANDLERS
+		proposalHandler := abci.NewFuelSequencerProposalHandler(theApp.Logger(), theApp.StakingKeeper, theApp)
+		theApp.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
+		theApp.SetProcessProposal(proposalHandler.ProcessProposalHandler())
+
+		// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
+		theApp.SetMempool(mempool.NoOpMempool{})
+
+		if err := theApp.Load(true); err != nil {
+			panic(err)
+		}
+
+		return theApp
+	}
+
+	return cfg, nil
 }
