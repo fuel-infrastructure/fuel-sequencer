@@ -11,7 +11,11 @@ const (
 	MemStoreKey = "mem_bridge"
 )
 
-var ParamsKey = []byte("p_bridge")
+var (
+	ParamsKey = []byte("p_bridge")
+
+	SupplyDeltaInfoKey = []byte("supply_delta_info")
+)
 
 func KeyPrefix(p string) []byte {
 	return []byte(p)

@@ -17,6 +17,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Shows the parameters of the module",
 				},
+				{
+					RpcMethod: "SupplyDeltaInfo",
+					Use:       "show-supply-delta-info",
+					Short:     "show supply-delta-info",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

@@ -10,4 +10,8 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 message Params {
   option (amino.name) = "fuelsequencer/x/bridge/Params";
   option (gogoproto.equal) = true;
+
+  // bridge_denom is the assumed denom for the bridged token, used when tracking
+  // its supply changes.
+  string bridge_denom = 1;
 }

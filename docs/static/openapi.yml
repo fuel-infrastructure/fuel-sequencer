@@ -8262,6 +8262,105 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
+    get:
+      summary: Queries a SupplyDeltaInfo by index.
+      operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaInfo:
+                type: object
+                properties:
+                  last_supply:
+                    type: string
+                    description: >-
+                      last_supply is the last supply recorded for the bridge
+                      token.
+                  delta:
+                    type: string
+                    description: >-
+                      delta is the amount of bridge tokens that should be minted
+                      (positive) or
+
+                      burned (negative) on Ethereum.
+                  offset:
+                    type: string
+                    description: >-
+                      offset is used to account for changes in supply that we do
+                      not want to post
+
+                      to Ethereum, including deposits and withdrawals, because
+                      Ethereum will know
+
+                      about these anyways.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuelsequencer/bridge/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerBridgeQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when tracking
+
+                      its supply changes.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.bridge.Msg/UpdateParams:
     post:
       summary: |-
@@ -8317,6 +8416,14 @@ paths:
 
                   NOTE: All parameters must be supplied.
                 type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when tracking
+
+                      its supply changes.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
@@ -8378,6 +8485,42 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
+  /fuelsequencer/sequencing/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerSequencingQuery_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -11901,6 +12044,81 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
+  fuelsequencer.bridge.Params:
+    type: object
+    properties:
+      bridge_denom:
+        type: string
+        description: >-
+          bridge_denom is the assumed denom for the bridged token, used when
+          tracking
+
+          its supply changes.
+    description: Params defines the parameters for the module.
+  fuelsequencer.bridge.QueryGetSupplyDeltaInfoResponse:
+    type: object
+    properties:
+      SupplyDeltaInfo:
+        type: object
+        properties:
+          last_supply:
+            type: string
+            description: last_supply is the last supply recorded for the bridge token.
+          delta:
+            type: string
+            description: >-
+              delta is the amount of bridge tokens that should be minted
+              (positive) or
+
+              burned (negative) on Ethereum.
+          offset:
+            type: string
+            description: >-
+              offset is used to account for changes in supply that we do not
+              want to post
+
+              to Ethereum, including deposits and withdrawals, because Ethereum
+              will know
+
+              about these anyways.
+  fuelsequencer.bridge.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              tracking
+
+              its supply changes.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      last_supply:
+        type: string
+        description: last_supply is the last supply recorded for the bridge token.
+      delta:
+        type: string
+        description: >-
+          delta is the amount of bridge tokens that should be minted (positive)
+          or
+
+          burned (negative) on Ethereum.
+      offset:
+        type: string
+        description: >-
+          offset is used to account for changes in supply that we do not want to
+          post
+
+          to Ethereum, including deposits and withdrawals, because Ethereum will
+          know
+
+          about these anyways.
   fuelsequencer.bridge.MsgUpdateParams:
     type: object
     properties:
@@ -11917,15 +12135,20 @@ definitions:
 
           NOTE: All parameters must be supplied.
         type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              tracking
+
+              its supply changes.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.bridge.MsgUpdateParamsResponse:
     type: object
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
-  fuelsequencer.bridge.Params:
-    type: object
-    description: Params defines the parameters for the module.
   fuelsequencer.sequencing.MsgUpdateParams:
     type: object
     properties:
@@ -11951,3 +12174,10 @@ definitions:
   fuelsequencer.sequencing.Params:
     type: object
     description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
