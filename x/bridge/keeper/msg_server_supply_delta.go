@@ -10,13 +10,38 @@ import (
 func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// TODO: Confirm signer is the module
+
+	// TODO: Check if height from ctx % params.supply_delta_period is 0 to confirm that it was injected correctly.
+
 	// TODO: Handling the message and construct full response
 	_ = ctx
 
+	// TODO: Refactor to get and increment (see AddRaw postfixed)
 	nonce := k.MustGetLastEthereumNonce(ctx).AddRaw(1)
 	k.SetLastEthereumNonce(ctx, nonce)
 
+	// TODO: Implement this logic
+	//     deltaToReport = delta + offset
+	//     if (deltaToReport > 0) {
+	//         mint = deltaToReport
+	//         burn = 0
+	//     } else {
+	//         burn = deltaToReport
+	//         mint = 0
+	//     }
+
+	// TODO: Reject message if deltaToReport is zero (just in case user submits msgSupplyDelta at the same height of
+	//     : required height to be injected.
+
+	// TODO: Check if we need to pass code and type (seems not)
+
+	// TODO: Set offset and delta to zero
+
+	// TODO: Add event
+
 	return &types.MsgSupplyDeltaResponse{
 		Nonce: nonce,
+		// SupplyDelta: Put negative or positive depending on mint or burn
 	}, nil
 }
