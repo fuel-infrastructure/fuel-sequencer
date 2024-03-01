@@ -30,7 +30,7 @@ import (
 
 // NewRootCmd creates a new root command for fuelsequencerd. It is called once in the main function.
 func NewRootCmd() *cobra.Command {
-	initSDKConfig()
+	app.InitSDKConfig()
 
 	var (
 		txConfigOpts       tx.ConfigOptions
@@ -98,8 +98,8 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
-			customCMTConfig := initCometBFTConfig()
+			customAppTemplate, customAppConfig := app.InitAppConfig()
+			customCMTConfig := app.InitCometBFTConfig()
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
