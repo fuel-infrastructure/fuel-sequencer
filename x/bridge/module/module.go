@@ -153,7 +153,7 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	am.keeper.TrackChangesInSupplyDeltaInfo(ctx, am.bankKeeper)
+	am.keeper.UpdatedSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
 
 	return nil
 }

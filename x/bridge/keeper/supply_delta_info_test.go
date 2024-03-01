@@ -23,7 +23,7 @@ func createTestSupplyDeltaInfo(keeper keeper.Keeper, ctx context.Context) types.
 	return item
 }
 
-func TestSupplyDeltaInfoGet(t *testing.T) {
+func TestGetSupplyDeltaInfo(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	item := createTestSupplyDeltaInfo(keeper, ctx)
 	rst, found := keeper.GetSupplyDeltaInfo(ctx)
@@ -34,7 +34,7 @@ func TestSupplyDeltaInfoGet(t *testing.T) {
 	)
 }
 
-func TestSupplyDeltaInfoRemove(t *testing.T) {
+func TestRemoveSupplyDeltaInfo(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	createTestSupplyDeltaInfo(keeper, ctx)
 	keeper.RemoveSupplyDeltaInfo(ctx)

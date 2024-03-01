@@ -12,7 +12,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestSupplyDeltaInfoQuery(t *testing.T) {
+func TestQuerySupplyDeltaInfo(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	item := createTestSupplyDeltaInfo(keeper, ctx)
 	tests := []struct {
@@ -22,7 +22,7 @@ func TestSupplyDeltaInfoQuery(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
+			desc:     "ValidRequest",
 			request:  &types.QueryGetSupplyDeltaInfoRequest{},
 			response: &types.QueryGetSupplyDeltaInfoResponse{SupplyDeltaInfo: item},
 		},
