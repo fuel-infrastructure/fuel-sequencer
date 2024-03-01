@@ -72,10 +72,6 @@ func (h *FuelSequencerVoteExtHandler) ExtendVoteHandler() sdk.ExtendVoteHandler 
 // this functionality should not replace any verification done in abci.ProcessProposal or abci.PrepareProposal, but
 // should complement it.
 func (h *FuelSequencerVoteExtHandler) VerifyVoteExtensionHandler() sdk.VerifyVoteExtensionHandler {
-	// TODO: Verify size in here'
-	// TODO: todo for custom logic
-	// TODO: Add boiler plate logic
-
 	return func(ctx sdk.Context, req *abci.RequestVerifyVoteExtension) (*abci.ResponseVerifyVoteExtension, error) {
 
 		// TODO: The following check must be done in production but we need to replace with our application logic.
@@ -104,7 +100,11 @@ func (h *FuelSequencerVoteExtHandler) VerifyVoteExtensionHandler() sdk.VerifyVot
 				fmt.Errorf("failed to verify oracle prices from validator %X: %w", req.ValidatorAddress, err)
 		}
 
-		// TODO: Add size check
+		// Confirm that the vote extension does not exceed the maximum size. This prevents performance degradation
+		if len(req.VoteExtension) > MaxVESize {
+			return &abci.ResponseVerifyVoteExtension{Status: abci.ResponseVerifyVoteExtension_REJECT},
+				fmt.Errorf("vote extension is too large %d: limit %d", len(req.VoteExtension), MaxVESize)
+		}
 
 		// TODO: Add custom logic here
 
