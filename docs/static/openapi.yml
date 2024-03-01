@@ -8371,6 +8371,16 @@ paths:
                 description: 'NOTE: All parameters must be supplied.'
                 type: object
                 properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when minting
+
+                      upon deposits, burning when withdrawing, and tracking
+                      changes in its
+
+                      supply, amongst other scenarios.
                   ethereum_proxy_contract_address:
                     type: string
                     description: >-
@@ -8544,6 +8554,61 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
+    get:
+      summary: Queries a SupplyDeltaInfo by index.
+      operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaInfo:
+                type: object
+                properties:
+                  last_supply:
+                    type: string
+                    description: >-
+                      last_supply is the last supply recorded for the bridge
+                      token.
+                  delta:
+                    type: string
+                    description: >-
+                      delta is the amount of bridge tokens that should be minted
+                      (positive) or
+
+                      burned (negative) on Ethereum.
+                  offset:
+                    type: string
+                    description: >-
+                      offset is used to account for changes in supply that we do
+                      not want to post
+
+                      to Ethereum, including deposits and withdrawals, because
+                      Ethereum will know
+
+                      about these anyways.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer/bridge/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -8558,6 +8623,16 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when minting
+
+                      upon deposits, burning when withdrawing, and tracking
+                      changes in its
+
+                      supply, amongst other scenarios.
                   ethereum_proxy_contract_address:
                     type: string
                     description: >-
@@ -12301,6 +12376,16 @@ definitions:
         description: 'NOTE: All parameters must be supplied.'
         type: object
         properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              minting
+
+              upon deposits, burning when withdrawing, and tracking changes in
+              its
+
+              supply, amongst other scenarios.
           ethereum_proxy_contract_address:
             type: string
             description: >-
@@ -12375,6 +12460,15 @@ definitions:
   fuelsequencer.bridge.Params:
     type: object
     properties:
+      bridge_denom:
+        type: string
+        description: >-
+          bridge_denom is the assumed denom for the bridged token, used when
+          minting
+
+          upon deposits, burning when withdrawing, and tracking changes in its
+
+          supply, amongst other scenarios.
       ethereum_proxy_contract_address:
         type: string
         description: |-
@@ -12408,6 +12502,32 @@ definitions:
     properties:
       nonce:
         type: string
+  fuelsequencer.bridge.QueryGetSupplyDeltaInfoResponse:
+    type: object
+    properties:
+      SupplyDeltaInfo:
+        type: object
+        properties:
+          last_supply:
+            type: string
+            description: last_supply is the last supply recorded for the bridge token.
+          delta:
+            type: string
+            description: >-
+              delta is the amount of bridge tokens that should be minted
+              (positive) or
+
+              burned (negative) on Ethereum.
+          offset:
+            type: string
+            description: >-
+              offset is used to account for changes in supply that we do not
+              want to post
+
+              to Ethereum, including deposits and withdrawals, because Ethereum
+              will know
+
+              about these anyways.
   fuelsequencer.bridge.QueryParamsResponse:
     type: object
     properties:
@@ -12415,6 +12535,16 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              minting
+
+              upon deposits, burning when withdrawing, and tracking changes in
+              its
+
+              supply, amongst other scenarios.
           ethereum_proxy_contract_address:
             type: string
             description: >-
@@ -12440,6 +12570,29 @@ definitions:
 
               delta info to Ethereum.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      last_supply:
+        type: string
+        description: last_supply is the last supply recorded for the bridge token.
+      delta:
+        type: string
+        description: >-
+          delta is the amount of bridge tokens that should be minted (positive)
+          or
+
+          burned (negative) on Ethereum.
+      offset:
+        type: string
+        description: >-
+          offset is used to account for changes in supply that we do not want to
+          post
+
+          to Ethereum, including deposits and withdrawals, because Ethereum will
+          know
+
+          about these anyways.
   fuelsequencer.sequencing.MsgPostBlob:
     type: object
     properties:

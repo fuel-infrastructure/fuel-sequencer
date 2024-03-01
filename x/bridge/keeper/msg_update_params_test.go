@@ -14,7 +14,6 @@ func TestMsgUpdateParams(t *testing.T) {
 	defaultParams := types.DefaultParams()
 	nonDefaultParams := types.NewParams(
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
-		"0xCDfAe2bC63f41AAb3eF1cD1C72Fb8AaE4E3dC5dF",
 		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
 	)

@@ -18,6 +18,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Shows the parameters of the module",
 				},
 				{
+					RpcMethod: "SupplyDeltaInfo",
+					Use:       "show-supply-delta-info",
+					Short:     "show supply-delta-info",
+				},
+				{
 					RpcMethod: "LastEthereumNonce",
 					Use:       "show-last-ethereum-nonce",
 					Short:     "show LastEthereumNonce",

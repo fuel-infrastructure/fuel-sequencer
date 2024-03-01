@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Query_Params_FullMethodName                  = "/fuelsequencer.bridge.Query/Params"
+	Query_SupplyDeltaInfo_FullMethodName         = "/fuelsequencer.bridge.Query/SupplyDeltaInfo"
 	Query_LastEthereumNonce_FullMethodName       = "/fuelsequencer.bridge.Query/LastEthereumNonce"
 	Query_LastEthereumBlockSynced_FullMethodName = "/fuelsequencer.bridge.Query/LastEthereumBlockSynced"
 )
@@ -30,6 +31,8 @@ const (
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// Queries a SupplyDeltaInfo by index.
+	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
 	// Queries the LastEthereumNonce.
 	LastEthereumNonce(ctx context.Context, in *QueryGetLastEthereumNonceRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumNonceResponse, error)
 	// Queries the LastEthereumBlockSynced.
@@ -47,6 +50,15 @@ func NewQueryClient(cc grpc.ClientConnInterface) QueryClient {
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
 	err := c.cc.Invoke(ctx, Query_Params_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error) {
+	out := new(QueryGetSupplyDeltaInfoResponse)
+	err := c.cc.Invoke(ctx, Query_SupplyDeltaInfo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +89,8 @@ func (c *queryClient) LastEthereumBlockSynced(ctx context.Context, in *QueryGetL
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// Queries a SupplyDeltaInfo by index.
+	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
 	// Queries the LastEthereumNonce.
 	LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error)
 	// Queries the LastEthereumBlockSynced.
@@ -90,6 +104,9 @@ type UnimplementedQueryServer struct {
 
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaInfo not implemented")
 }
 func (UnimplementedQueryServer) LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthereumNonce not implemented")
@@ -124,6 +141,24 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_SupplyDeltaInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetSupplyDeltaInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).SupplyDeltaInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_SupplyDeltaInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).SupplyDeltaInfo(ctx, req.(*QueryGetSupplyDeltaInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -174,6 +209,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "SupplyDeltaInfo",
+			Handler:    _Query_SupplyDeltaInfo_Handler,
 		},
 		{
 			MethodName: "LastEthereumNonce",

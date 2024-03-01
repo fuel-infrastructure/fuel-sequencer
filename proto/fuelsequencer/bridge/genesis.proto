@@ -6,6 +6,7 @@ import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "fuelsequencer/bridge/params.proto";
+import "fuelsequencer/bridge/supply_delta_info.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -16,9 +17,13 @@ message GenesisState {
   Params params = 1
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 
+  // supply_delta_info is the starting point for changes in the bridge token
+  // supply that we should report to Ethereum.
+  SupplyDeltaInfo supply_delta_info = 2;
+
   // last_ethereum_nonce is the last nonce used in messages towards Ethereum.
   // In other words, the next nonce to be used is this value +1.
-  bytes last_ethereum_nonce = 2 [
+  bytes last_ethereum_nonce = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false,
@@ -27,7 +32,7 @@ message GenesisState {
 
   // last_ethereum_block_synced is the last Ethereum block synced.
   // In other words, the next block to be synced is this value +1.
-  bytes last_ethereum_block_synced = 3 [
+  bytes last_ethereum_block_synced = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false,
