@@ -127,7 +127,7 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
 type MsgPostBlob struct {
-	// from is the address posting the blob.
+	// from is the address on FuelSequencer that is posting the blob.
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	// topic is the Topic that this blob belongs to.
 	Topic string `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
@@ -201,7 +201,7 @@ func (m *MsgPostBlob) GetData() []byte {
 type MsgPostBlobResponse struct {
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce cosmossdk_io_math.Int `protobuf:"bytes,1,opt,name=nonce,proto3,customtype=cosmossdk.io/math.Int" json:"nonce"`
-	// from is the address posting the blob.
+	// from is the address on FuelSequencer that is posting the blob.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	// topic is the Topic that this blob belongs to.
 	Topic string `protobuf:"bytes,3,opt,name=topic,proto3" json:"topic,omitempty"`

@@ -13,7 +13,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestLastEthereumBlockSyncedQuery(t *testing.T) {
+func TestQueryLastEthereumBlockSynced(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := math.NewInt(10)
 
@@ -25,7 +25,7 @@ func TestLastEthereumBlockSyncedQuery(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
+			desc:     "ValidRequest",
 			request:  &types.QueryGetLastEthereumBlockSyncedRequest{},
 			response: &types.QueryGetLastEthereumBlockSyncedResponse{Block: value.String()},
 		},

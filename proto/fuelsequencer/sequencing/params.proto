@@ -11,7 +11,7 @@ message Params {
   option (amino.name) = "fuelsequencer/x/sequencing/Params";
   option (gogoproto.equal) = true;
 
-  // max_blob_size_bytes is the maximum size of blobs that can be submitted in
+  // max_blob_size_bytes is the maximum size of blob that can be submitted in
   // bytes.
   uint64 max_blob_size_bytes = 1;
 

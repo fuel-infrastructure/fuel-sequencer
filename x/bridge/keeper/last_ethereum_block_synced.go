@@ -42,7 +42,7 @@ func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val math.Int, f
 func (k Keeper) MustGetLastEthereumBlockSynced(ctx context.Context) math.Int {
 	val, found := k.GetLastEthereumBlockSynced(ctx)
 	if !found {
-		panic("expected to find last ethereum nonce")
+		panic("expected to find LastEthereumBlockSynced")
 	}
 	return val
 }

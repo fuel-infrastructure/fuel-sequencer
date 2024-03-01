@@ -485,7 +485,7 @@ type Params struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// max_blob_size_bytes is the maximum size of blobs that can be submitted in
+	// max_blob_size_bytes is the maximum size of blob that can be submitted in
 	// bytes.
 	MaxBlobSizeBytes uint64 `protobuf:"varint,1,opt,name=max_blob_size_bytes,json=maxBlobSizeBytes,proto3" json:"max_blob_size_bytes,omitempty"`
 	// gas_per_blob_byte is extra gas to be consumed per byte in submitted blobs.

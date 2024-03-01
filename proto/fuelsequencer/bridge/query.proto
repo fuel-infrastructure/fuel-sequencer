@@ -19,14 +19,14 @@ service Query {
     option (google.api.http).get = "/fuelsequencer/bridge/params";
   }
 
-  // Queries a LastEthereumNonce by index.
+  // Queries the LastEthereumNonce.
   rpc LastEthereumNonce(QueryGetLastEthereumNonceRequest)
       returns (QueryGetLastEthereumNonceResponse) {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce";
   }
 
-  // Queries a LastEthereumBlockSynced by index.
+  // Queries the LastEthereumBlockSynced.
   rpc LastEthereumBlockSynced(QueryGetLastEthereumBlockSyncedRequest)
       returns (QueryGetLastEthereumBlockSyncedResponse) {
     option (google.api.http).get =

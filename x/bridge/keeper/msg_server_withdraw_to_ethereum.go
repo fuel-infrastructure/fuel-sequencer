@@ -11,6 +11,7 @@ func (k msgServer) WithdrawToEthereum(goCtx context.Context, msg *types.MsgWithd
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: Handling the message and construct full response
+	// TODO: Make sure to check that token is the bridge token
 	_ = ctx
 
 	nonce := k.MustGetLastEthereumNonce(ctx).AddRaw(1)

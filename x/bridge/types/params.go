@@ -19,23 +19,21 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	depositContractAddress string,
-	authorizeContractAddress string,
+	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
 ) Params {
 	return Params{
-		DepositContractAddress:   depositContractAddress,
-		AuthorizeContractAddress: authorizeContractAddress,
-		AuthorizeMessagesAllowed: authorizeMessagesAllowed,
-		SupplyDeltaPeriod:        supplyDeltaPeriod,
+		EthereumProxyContractAddress: ethereumProxyContractAddress,
+		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
+		SupplyDeltaPeriod:            supplyDeltaPeriod,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	// TODO: consider setting more meaningful default params
-	return NewParams("", "", nil, 0)
+	return NewParams("", nil, 0)
 }
 
 // ParamSetPairs get the params.ParamSet

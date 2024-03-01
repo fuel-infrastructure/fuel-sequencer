@@ -2256,7 +2256,7 @@ type MsgPostBlob struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// from is the address posting the blob.
+	// from is the address on FuelSequencer that is posting the blob.
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	// topic is the Topic that this blob belongs to.
 	Topic string `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
@@ -2321,7 +2321,7 @@ type MsgPostBlobResponse struct {
 
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce string `protobuf:"bytes,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	// from is the address posting the blob.
+	// from is the address on FuelSequencer that is posting the blob.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	// topic is the Topic that this blob belongs to.
 	Topic string `protobuf:"bytes,3,opt,name=topic,proto3" json:"topic,omitempty"`

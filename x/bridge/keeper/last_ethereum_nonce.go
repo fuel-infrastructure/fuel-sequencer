@@ -42,7 +42,7 @@ func (k Keeper) GetLastEthereumNonce(ctx context.Context) (val math.Int, found b
 func (k Keeper) MustGetLastEthereumNonce(ctx context.Context) math.Int {
 	val, found := k.GetLastEthereumNonce(ctx)
 	if !found {
-		panic("expected to find last ethereum nonce")
+		panic("expected to find LastEthereumNonce")
 	}
 	return val
 }

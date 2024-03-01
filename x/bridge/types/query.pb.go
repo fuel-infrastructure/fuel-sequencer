@@ -339,9 +339,9 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// Queries a LastEthereumNonce by index.
+	// Queries the LastEthereumNonce.
 	LastEthereumNonce(ctx context.Context, in *QueryGetLastEthereumNonceRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumNonceResponse, error)
-	// Queries a LastEthereumBlockSynced by index.
+	// Queries the LastEthereumBlockSynced.
 	LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error)
 }
 
@@ -384,9 +384,9 @@ func (c *queryClient) LastEthereumBlockSynced(ctx context.Context, in *QueryGetL
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// Queries a LastEthereumNonce by index.
+	// Queries the LastEthereumNonce.
 	LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error)
-	// Queries a LastEthereumBlockSynced by index.
+	// Queries the LastEthereumBlockSynced.
 	LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error)
 }
 

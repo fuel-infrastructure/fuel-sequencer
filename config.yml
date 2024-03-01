@@ -104,8 +104,7 @@ genesis:
         bond_denom: "ufuel"
     bridge:
       params:
-        deposit_contract_address: "0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9"  # just an example
-        authorize_contract_address: "0xCDfAe2bC63f41AAb3eF1cD1C72Fb8AaE4E3dC5dF"  # just an example
+        ethereum_proxy_contract_address: "0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9"  # just an example
         authorize_messages_allowed:
           - "*"  # allow all
         supply_delta_period: 100
