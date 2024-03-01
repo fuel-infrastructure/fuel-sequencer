@@ -5,8 +5,10 @@ package types
 
 import (
 	context "context"
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -36,8 +38,6 @@ type MsgUpdateParams struct {
 	// authority is the address that controls the module (defaults to x/gov unless
 	// overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	// params defines the module parameters to update.
-	//
 	// NOTE: All parameters must be supplied.
 	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
 }
@@ -127,38 +127,272 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
+type MsgSupplyDelta struct {
+	// authority a placeholder to satisfy the requirement of having a signer.
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+}
+
+func (m *MsgSupplyDelta) Reset()         { *m = MsgSupplyDelta{} }
+func (m *MsgSupplyDelta) String() string { return proto.CompactTextString(m) }
+func (*MsgSupplyDelta) ProtoMessage()    {}
+func (*MsgSupplyDelta) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d51e9b242c3a000b, []int{2}
+}
+func (m *MsgSupplyDelta) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSupplyDelta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSupplyDelta.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSupplyDelta) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSupplyDelta.Merge(m, src)
+}
+func (m *MsgSupplyDelta) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSupplyDelta) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSupplyDelta.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSupplyDelta proto.InternalMessageInfo
+
+func (m *MsgSupplyDelta) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+type MsgSupplyDeltaResponse struct {
+	// nonce uniquely identifies any message that we send to Ethereum.
+	Nonce cosmossdk_io_math.Int `protobuf:"bytes,1,opt,name=nonce,proto3,customtype=cosmossdk.io/math.Int" json:"nonce"`
+	// supply_delta reports the change in the bridge token's supply due to mints
+	// and burns.
+	SupplyDelta cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=supply_delta,json=supplyDelta,proto3,customtype=cosmossdk.io/math.Int" json:"supply_delta"`
+}
+
+func (m *MsgSupplyDeltaResponse) Reset()         { *m = MsgSupplyDeltaResponse{} }
+func (m *MsgSupplyDeltaResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSupplyDeltaResponse) ProtoMessage()    {}
+func (*MsgSupplyDeltaResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d51e9b242c3a000b, []int{3}
+}
+func (m *MsgSupplyDeltaResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSupplyDeltaResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSupplyDeltaResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSupplyDeltaResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSupplyDeltaResponse.Merge(m, src)
+}
+func (m *MsgSupplyDeltaResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSupplyDeltaResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSupplyDeltaResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSupplyDeltaResponse proto.InternalMessageInfo
+
+type MsgWithdrawToEthereum struct {
+	// from is the user address on FuelSequencer that is sending the tokens.
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// to is the user address on Ethereum that will be receiving the tokens.
+	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	// amount is the tokens being sent, which must be the expacted bridge token.
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgWithdrawToEthereum) Reset()         { *m = MsgWithdrawToEthereum{} }
+func (m *MsgWithdrawToEthereum) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawToEthereum) ProtoMessage()    {}
+func (*MsgWithdrawToEthereum) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d51e9b242c3a000b, []int{4}
+}
+func (m *MsgWithdrawToEthereum) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawToEthereum) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawToEthereum.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawToEthereum) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawToEthereum.Merge(m, src)
+}
+func (m *MsgWithdrawToEthereum) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawToEthereum) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawToEthereum.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawToEthereum proto.InternalMessageInfo
+
+func (m *MsgWithdrawToEthereum) GetFrom() string {
+	if m != nil {
+		return m.From
+	}
+	return ""
+}
+
+func (m *MsgWithdrawToEthereum) GetTo() string {
+	if m != nil {
+		return m.To
+	}
+	return ""
+}
+
+func (m *MsgWithdrawToEthereum) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
+type MsgWithdrawToEthereumResponse struct {
+	// nonce uniquely identifies any message that we send to Ethereum.
+	Nonce cosmossdk_io_math.Int `protobuf:"bytes,1,opt,name=nonce,proto3,customtype=cosmossdk.io/math.Int" json:"nonce"`
+	// from is the user address on FuelSequencer that is sending the tokens.
+	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	// to is the user address on Ethereum that will be receiving the tokens.
+	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
+	// amount is the tokens being sent, which must be the expacted bridge token.
+	Amount types.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgWithdrawToEthereumResponse) Reset()         { *m = MsgWithdrawToEthereumResponse{} }
+func (m *MsgWithdrawToEthereumResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawToEthereumResponse) ProtoMessage()    {}
+func (*MsgWithdrawToEthereumResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d51e9b242c3a000b, []int{5}
+}
+func (m *MsgWithdrawToEthereumResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawToEthereumResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawToEthereumResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawToEthereumResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawToEthereumResponse.Merge(m, src)
+}
+func (m *MsgWithdrawToEthereumResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawToEthereumResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawToEthereumResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawToEthereumResponse proto.InternalMessageInfo
+
+func (m *MsgWithdrawToEthereumResponse) GetFrom() string {
+	if m != nil {
+		return m.From
+	}
+	return ""
+}
+
+func (m *MsgWithdrawToEthereumResponse) GetTo() string {
+	if m != nil {
+		return m.To
+	}
+	return ""
+}
+
+func (m *MsgWithdrawToEthereumResponse) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "fuelsequencer.bridge.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "fuelsequencer.bridge.MsgUpdateParamsResponse")
+	proto.RegisterType((*MsgSupplyDelta)(nil), "fuelsequencer.bridge.MsgSupplyDelta")
+	proto.RegisterType((*MsgSupplyDeltaResponse)(nil), "fuelsequencer.bridge.MsgSupplyDeltaResponse")
+	proto.RegisterType((*MsgWithdrawToEthereum)(nil), "fuelsequencer.bridge.MsgWithdrawToEthereum")
+	proto.RegisterType((*MsgWithdrawToEthereumResponse)(nil), "fuelsequencer.bridge.MsgWithdrawToEthereumResponse")
 }
 
 func init() { proto.RegisterFile("fuelsequencer/bridge/tx.proto", fileDescriptor_d51e9b242c3a000b) }
 
 var fileDescriptor_d51e9b242c3a000b = []byte{
-	// 358 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4d, 0x2b, 0x4d, 0xcd,
-	0x29, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0xd2, 0x4f, 0x2a, 0xca, 0x4c, 0x49, 0x4f,
-	0xd5, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x41, 0x91, 0xd6, 0x83, 0x48,
-	0x4b, 0x09, 0x26, 0xe6, 0x66, 0xe6, 0xe5, 0xeb, 0x83, 0x49, 0x88, 0x42, 0x29, 0xf1, 0xe4, 0xfc,
-	0xe2, 0xdc, 0xfc, 0x62, 0xfd, 0xdc, 0xe2, 0x74, 0xfd, 0x32, 0x43, 0x10, 0x05, 0x95, 0x90, 0x84,
-	0x48, 0xc4, 0x83, 0x79, 0xfa, 0x10, 0x0e, 0x54, 0x4a, 0x24, 0x3d, 0x3f, 0x3d, 0x1f, 0x22, 0x0e,
-	0x62, 0x41, 0x45, 0x15, 0xb1, 0xba, 0xa8, 0x20, 0xb1, 0x28, 0x31, 0x17, 0xaa, 0x51, 0xe9, 0x28,
-	0x23, 0x17, 0xbf, 0x6f, 0x71, 0x7a, 0x68, 0x41, 0x4a, 0x62, 0x49, 0x6a, 0x00, 0x58, 0x46, 0xc8,
-	0x8c, 0x8b, 0x33, 0xb1, 0xb4, 0x24, 0x23, 0xbf, 0x28, 0xb3, 0xa4, 0x52, 0x82, 0x51, 0x81, 0x51,
-	0x83, 0xd3, 0x49, 0xe2, 0xd2, 0x16, 0x5d, 0x11, 0xa8, 0x8d, 0x8e, 0x29, 0x29, 0x45, 0xa9, 0xc5,
-	0xc5, 0xc1, 0x25, 0x45, 0x99, 0x79, 0xe9, 0x41, 0x08, 0xa5, 0x42, 0xf6, 0x5c, 0x6c, 0x10, 0xb3,
-	0x25, 0x98, 0x14, 0x18, 0x35, 0xb8, 0x8d, 0x64, 0xf4, 0xb0, 0x79, 0x59, 0x0f, 0x62, 0x8b, 0x13,
-	0xe7, 0x89, 0x7b, 0xf2, 0x0c, 0x2b, 0x9e, 0x6f, 0xd0, 0x62, 0x0c, 0x82, 0x6a, 0xb3, 0xb2, 0x6c,
-	0x7a, 0xbe, 0x41, 0x0b, 0x61, 0x60, 0xd7, 0xf3, 0x0d, 0x5a, 0x6a, 0xa8, 0x5e, 0xa8, 0x80, 0x79,
-	0x02, 0xcd, 0xcd, 0x4a, 0x92, 0x5c, 0xe2, 0x68, 0x42, 0x41, 0xa9, 0xc5, 0x05, 0xf9, 0x79, 0xc5,
-	0xa9, 0x46, 0x45, 0x5c, 0xcc, 0xbe, 0xc5, 0xe9, 0x42, 0x29, 0x5c, 0x3c, 0x28, 0xbe, 0x54, 0xc5,
-	0xee, 0x3a, 0x34, 0x53, 0xa4, 0x74, 0x89, 0x52, 0x06, 0xb3, 0x4c, 0x8a, 0xb5, 0x01, 0xe4, 0x23,
-	0xa7, 0xb0, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2,
-	0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e, 0x3c, 0x96, 0x63, 0x88, 0xb2, 0x49, 0xcf, 0x2c,
-	0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0x07, 0x99, 0xac, 0x9b, 0x99, 0x97, 0x56, 0x94,
-	0x58, 0x5c, 0x52, 0x54, 0x9a, 0x5c, 0x52, 0x5a, 0x94, 0x0a, 0x11, 0xc3, 0xe2, 0xe1, 0x92, 0xca,
-	0x82, 0xd4, 0xe2, 0x24, 0x36, 0x70, 0xac, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x25, 0x30,
-	0x48, 0x7e, 0x6c, 0x02, 0x00, 0x00,
+	// 624 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcf, 0x6b, 0x13, 0x41,
+	0x14, 0xce, 0xa6, 0x3f, 0x20, 0xd3, 0x52, 0x71, 0x68, 0x6d, 0xba, 0xb4, 0xdb, 0xba, 0xa8, 0x94,
+	0xd6, 0xec, 0xd2, 0x16, 0x14, 0x8b, 0x28, 0x8d, 0x7a, 0xe8, 0x21, 0x22, 0x5b, 0x7f, 0x80, 0x97,
+	0x32, 0xd9, 0x9d, 0x6e, 0x16, 0xbb, 0x33, 0xeb, 0xcc, 0x6c, 0x6d, 0x4f, 0x8a, 0x47, 0x4f, 0xfe,
+	0x19, 0x82, 0x97, 0x1c, 0x7a, 0xf7, 0x24, 0xf4, 0x22, 0x94, 0x9e, 0xc4, 0x43, 0x91, 0xe4, 0x90,
+	0x7f, 0x43, 0x76, 0x67, 0xd2, 0xfc, 0xda, 0x42, 0x03, 0x5e, 0x92, 0x99, 0xf7, 0xbe, 0xf7, 0xbd,
+	0xf7, 0x7d, 0x79, 0x13, 0xb0, 0xb0, 0x17, 0xe3, 0x7d, 0x8e, 0xdf, 0xc7, 0x98, 0xb8, 0x98, 0xd9,
+	0x55, 0x16, 0x78, 0x3e, 0xb6, 0xc5, 0xa1, 0x15, 0x31, 0x2a, 0x28, 0x9c, 0xee, 0x49, 0x5b, 0x32,
+	0xad, 0x5f, 0x47, 0x61, 0x40, 0xa8, 0x9d, 0x7e, 0x4a, 0xa0, 0x3e, 0xeb, 0x52, 0x1e, 0x52, 0x6e,
+	0x87, 0xdc, 0xb7, 0x0f, 0xd6, 0x92, 0x2f, 0x95, 0x98, 0x93, 0x89, 0xdd, 0xf4, 0x66, 0xcb, 0x8b,
+	0x4a, 0x4d, 0xfb, 0xd4, 0xa7, 0x32, 0x9e, 0x9c, 0x54, 0xf4, 0x66, 0xe6, 0x44, 0x11, 0x62, 0x28,
+	0x6c, 0x17, 0x1a, 0xaa, 0x59, 0x15, 0x71, 0x6c, 0x1f, 0xac, 0x55, 0xb1, 0x40, 0x6b, 0xb6, 0x4b,
+	0x03, 0x22, 0xf3, 0xe6, 0x4f, 0x0d, 0x5c, 0xab, 0x70, 0xff, 0x55, 0xe4, 0x21, 0x81, 0x5f, 0xa4,
+	0x95, 0xf0, 0x1e, 0x28, 0xa0, 0x58, 0xd4, 0x28, 0x0b, 0xc4, 0x51, 0x51, 0x5b, 0xd2, 0x96, 0x0b,
+	0xe5, 0xe2, 0xd9, 0x71, 0x69, 0x5a, 0x4d, 0xb4, 0xe5, 0x79, 0x0c, 0x73, 0xbe, 0x23, 0x58, 0x40,
+	0x7c, 0xa7, 0x03, 0x85, 0x8f, 0xc1, 0xb8, 0xec, 0x5d, 0xcc, 0x2f, 0x69, 0xcb, 0x13, 0xeb, 0xf3,
+	0x56, 0x96, 0x25, 0x96, 0xec, 0x52, 0x2e, 0x9c, 0x9c, 0x2f, 0xe6, 0xbe, 0xb5, 0xea, 0x2b, 0x9a,
+	0xa3, 0xca, 0x36, 0x1f, 0x7c, 0x6e, 0xd5, 0x57, 0x3a, 0x84, 0x5f, 0x5a, 0xf5, 0x95, 0x3b, 0xbd,
+	0x12, 0x0f, 0xdb, 0x22, 0xfb, 0x66, 0x36, 0xe7, 0xc0, 0x6c, 0x5f, 0xc8, 0xc1, 0x3c, 0xa2, 0x84,
+	0x63, 0xf3, 0x11, 0x98, 0xaa, 0x70, 0x7f, 0x27, 0x8e, 0xa2, 0xfd, 0xa3, 0xa7, 0x78, 0x5f, 0x20,
+	0x38, 0x3f, 0x20, 0xb0, 0x4b, 0xc6, 0xe6, 0x54, 0xef, 0x14, 0xe6, 0x77, 0x0d, 0xdc, 0xe8, 0x25,
+	0x68, 0x53, 0xc3, 0x2d, 0x30, 0x46, 0x28, 0x71, 0xb1, 0x72, 0x69, 0x35, 0x91, 0xf4, 0xe7, 0x7c,
+	0x71, 0x46, 0x3a, 0xc5, 0xbd, 0x77, 0x56, 0x40, 0xed, 0x10, 0x89, 0x9a, 0xb5, 0x4d, 0xc4, 0xd9,
+	0x71, 0x09, 0x28, 0x0b, 0xb7, 0x89, 0x70, 0x64, 0x25, 0x7c, 0x0e, 0x26, 0x79, 0xca, 0xbc, 0xeb,
+	0x25, 0xd4, 0xa9, 0x75, 0x43, 0x32, 0x4d, 0xf0, 0xce, 0x68, 0xe6, 0x47, 0x30, 0x53, 0xe1, 0xfe,
+	0x9b, 0x40, 0xd4, 0x3c, 0x86, 0x3e, 0xbc, 0xa4, 0xcf, 0x44, 0x0d, 0x33, 0x1c, 0x87, 0x10, 0x82,
+	0xd1, 0x3d, 0x46, 0x43, 0xa5, 0x37, 0x3d, 0xc3, 0x29, 0x90, 0x17, 0x54, 0xb6, 0x74, 0xf2, 0x82,
+	0xc2, 0xfb, 0x60, 0x1c, 0x85, 0x34, 0x26, 0xa2, 0x38, 0x92, 0xfe, 0x82, 0x73, 0x96, 0x6a, 0x93,
+	0xac, 0x8f, 0xa5, 0xd6, 0xc7, 0x7a, 0x42, 0x03, 0x52, 0x1e, 0x4d, 0x26, 0x74, 0x14, 0x7c, 0xb3,
+	0x90, 0x78, 0x96, 0x72, 0x9a, 0x3f, 0x34, 0xb0, 0x90, 0x39, 0xc1, 0xff, 0x74, 0xad, 0x2d, 0x26,
+	0x3f, 0x20, 0x66, 0x24, 0x43, 0xcc, 0xe8, 0x50, 0x62, 0xd6, 0x7f, 0xe5, 0xc1, 0x48, 0x85, 0xfb,
+	0xd0, 0x03, 0x93, 0x3d, 0xef, 0xe2, 0x76, 0xf6, 0x3e, 0xf7, 0xed, 0x9d, 0x5e, 0xba, 0x12, 0xec,
+	0xc2, 0x0d, 0x04, 0x26, 0xba, 0x77, 0xf3, 0xd6, 0xa5, 0xd5, 0x5d, 0x28, 0xfd, 0xee, 0x55, 0x50,
+	0x17, 0x2d, 0x0e, 0x00, 0xcc, 0x58, 0x88, 0xd5, 0x4b, 0x39, 0x06, 0xc1, 0xfa, 0xc6, 0x10, 0xe0,
+	0x76, 0x5f, 0x7d, 0xec, 0x53, 0xf2, 0xbc, 0xcb, 0xaf, 0x4f, 0x1a, 0x86, 0x76, 0xda, 0x30, 0xb4,
+	0xbf, 0x0d, 0x43, 0xfb, 0xda, 0x34, 0x72, 0xa7, 0x4d, 0x23, 0xf7, 0xbb, 0x69, 0xe4, 0xde, 0x3e,
+	0xf4, 0x03, 0x51, 0x8b, 0xab, 0x96, 0x4b, 0x43, 0x3b, 0xe1, 0x2f, 0x05, 0x64, 0x8f, 0x21, 0x2e,
+	0x58, 0xec, 0x8a, 0x98, 0x61, 0x19, 0xcb, 0x78, 0xfd, 0xe2, 0x28, 0xc2, 0xbc, 0x3a, 0x9e, 0xfe,
+	0x85, 0x6d, 0xfc, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x9c, 0x85, 0x6f, 0x52, 0x99, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -176,6 +410,11 @@ type MsgClient interface {
 	// UpdateParams defines a (governance) operation for updating the module
 	// parameters. The authority defaults to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// SupplyDelta defines an operation for submitting a report to Ethereum
+	// about changes in supply of the bridged token.
+	SupplyDelta(ctx context.Context, in *MsgSupplyDelta, opts ...grpc.CallOption) (*MsgSupplyDeltaResponse, error)
+	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
+	WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error)
 }
 
 type msgClient struct {
@@ -195,11 +434,34 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
+func (c *msgClient) SupplyDelta(ctx context.Context, in *MsgSupplyDelta, opts ...grpc.CallOption) (*MsgSupplyDeltaResponse, error) {
+	out := new(MsgSupplyDeltaResponse)
+	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.Msg/SupplyDelta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error) {
+	out := new(MsgWithdrawToEthereumResponse)
+	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.Msg/WithdrawToEthereum", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// UpdateParams defines a (governance) operation for updating the module
 	// parameters. The authority defaults to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// SupplyDelta defines an operation for submitting a report to Ethereum
+	// about changes in supply of the bridged token.
+	SupplyDelta(context.Context, *MsgSupplyDelta) (*MsgSupplyDeltaResponse, error)
+	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
+	WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -208,6 +470,12 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+}
+func (*UnimplementedMsgServer) SupplyDelta(ctx context.Context, req *MsgSupplyDelta) (*MsgSupplyDeltaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SupplyDelta not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawToEthereum(ctx context.Context, req *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawToEthereum not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -232,6 +500,42 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_SupplyDelta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSupplyDelta)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SupplyDelta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fuelsequencer.bridge.Msg/SupplyDelta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SupplyDelta(ctx, req.(*MsgSupplyDelta))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_WithdrawToEthereum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawToEthereum)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawToEthereum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fuelsequencer.bridge.Msg/WithdrawToEthereum",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawToEthereum(ctx, req.(*MsgWithdrawToEthereum))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "fuelsequencer.bridge.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -239,6 +543,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
+		},
+		{
+			MethodName: "SupplyDelta",
+			Handler:    _Msg_SupplyDelta_Handler,
+		},
+		{
+			MethodName: "WithdrawToEthereum",
+			Handler:    _Msg_WithdrawToEthereum_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -308,6 +620,183 @@ func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgSupplyDelta) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSupplyDelta) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSupplyDelta) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSupplyDeltaResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSupplyDeltaResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSupplyDeltaResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.SupplyDelta.Size()
+		i -= size
+		if _, err := m.SupplyDelta.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	{
+		size := m.Nonce.Size()
+		i -= size
+		if _, err := m.Nonce.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawToEthereum) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawToEthereum) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawToEthereum) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.To) > 0 {
+		i -= len(m.To)
+		copy(dAtA[i:], m.To)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.To)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawToEthereumResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawToEthereumResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawToEthereumResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.To) > 0 {
+		i -= len(m.To)
+		copy(dAtA[i:], m.To)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.To)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0x12
+	}
+	{
+		size := m.Nonce.Size()
+		i -= size
+		if _, err := m.Nonce.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -340,6 +829,72 @@ func (m *MsgUpdateParamsResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	return n
+}
+
+func (m *MsgSupplyDelta) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgSupplyDeltaResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Nonce.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = m.SupplyDelta.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgWithdrawToEthereum) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.To)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgWithdrawToEthereumResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Nonce.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.To)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
@@ -493,6 +1048,534 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSupplyDelta) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSupplyDelta: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSupplyDelta: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSupplyDeltaResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSupplyDeltaResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSupplyDeltaResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Nonce", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Nonce.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SupplyDelta", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.SupplyDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawToEthereum) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawToEthereum: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawToEthereum: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.To = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawToEthereumResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawToEthereumResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawToEthereumResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Nonce", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Nonce.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.To = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

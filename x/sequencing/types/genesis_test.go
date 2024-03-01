@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenesisState_Validate(t *testing.T) {
+func TestValidateGenesisState(t *testing.T) {
 	tests := []struct {
 		desc     string
 		genState *types.GenesisState

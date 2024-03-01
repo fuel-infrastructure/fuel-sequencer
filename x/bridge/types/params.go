@@ -6,19 +6,34 @@ import (
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
+const (
+	// AllowAllAuthorizeMessages can be used if we want to allow
+	// all messages instead of specifying all of them one-by-one.
+	AllowAllAuthorizeMessages = "*"
+)
+
 // ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // NewParams creates a new Params instance
-func NewParams() Params {
-	return Params{}
+func NewParams(
+	ethereumProxyContractAddress string,
+	authorizeMessagesAllowed []string,
+	supplyDeltaPeriod uint64,
+) Params {
+	return Params{
+		EthereumProxyContractAddress: ethereumProxyContractAddress,
+		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
+		SupplyDeltaPeriod:            supplyDeltaPeriod,
+	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams()
+	// TODO: consider setting more meaningful default params
+	return NewParams("", nil, 0)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -28,5 +43,14 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+
+	// TODO: validate DepositContractAddress
+
+	// TODO: validate AuthorizeContractAddress
+
+	// TODO: validate AuthorizeMessagesAllowed
+
+	// TODO: validate SupplyDeltaPeriod
+
 	return nil
 }
