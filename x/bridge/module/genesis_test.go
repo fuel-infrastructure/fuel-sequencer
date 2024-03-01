@@ -21,6 +21,9 @@ func TestGenesis(t *testing.T) {
 			Delta:      math.NewInt(87),
 			Offset:     math.NewInt(123),
 		},
+
+		LastEthereumNonce:       math.NewInt(75),
+		LastEthereumBlockSynced: math.NewInt(13),
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -33,5 +36,7 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.Equal(t, genesisState.SupplyDeltaInfo, got.SupplyDeltaInfo)
+	require.Equal(t, genesisState.LastEthereumNonce, got.LastEthereumNonce)
+	require.Equal(t, genesisState.LastEthereumBlockSynced, got.LastEthereumBlockSynced)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

@@ -1,8 +1,6 @@
 package types
 
-import (
-	"cosmossdk.io/math"
-)
+import "cosmossdk.io/math"
 
 // this line is used by starport scaffolding # genesis/types/import
 
@@ -18,6 +16,8 @@ func DefaultGenesis() *GenesisState {
 			Delta:      math.ZeroInt(),
 			Offset:     math.ZeroInt(),
 		},
+		LastEthereumNonce:       math.ZeroInt(),
+		LastEthereumBlockSynced: math.ZeroInt(),
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }

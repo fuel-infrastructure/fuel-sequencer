@@ -23,12 +23,13 @@ func TestValidateGenesisState(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
 					LastSupply: math.NewInt(99),
 					Delta:      math.NewInt(34),
 					Offset:     math.NewInt(123),
 				},
+				LastEthereumNonce:       math.NewInt(3),
+				LastEthereumBlockSynced: math.NewInt(1),
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,

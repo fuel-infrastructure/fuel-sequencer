@@ -8262,6 +8262,299 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuelsequencer.bridge.Msg/SupplyDelta:
+    post:
+      summary: |-
+        SupplyDelta defines an operation for submitting a report to Ethereum
+        about changes in supply of the bridged token.
+      operationId: FuelsequencerBridgeMsg_SupplyDelta
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+                description: >-
+                  nonce uniquely identifies any message that we send to
+                  Ethereum.
+              supply_delta:
+                type: string
+                description: >-
+                  supply_delta reports the change in the bridge token's supply
+                  due to mints
+
+                  and burns.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: >-
+                  authority a placeholder to satisfy the requirement of having a
+                  signer.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.Msg/UpdateParams:
+    post:
+      summary: |-
+        UpdateParams defines a (governance) operation for updating the module
+        parameters. The authority defaults to the x/gov module account.
+      operationId: FuelsequencerBridgeMsg_UpdateParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            description: >-
+              MsgUpdateParamsResponse defines the response structure for
+              executing a
+
+              MsgUpdateParams message.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          description: MsgUpdateParams is the Msg/UpdateParams request type.
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: >-
+                  authority is the address that controls the module (defaults to
+                  x/gov unless
+
+                  overwritten).
+              params:
+                description: 'NOTE: All parameters must be supplied.'
+                type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when minting
+
+                      upon deposits, burning when withdrawing, and tracking
+                      changes in its
+
+                      supply that will be reported to Ethereum, amongst other
+                      scenarios.
+                  ethereum_proxy_contract_address:
+                    type: string
+                    description: >-
+                      ethereum_proxy_contract_address is the contract address we
+                      expect to
+
+                      receive deposit and authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
+            description: MsgUpdateParams is the Msg/UpdateParams request type.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.Msg/WithdrawToEthereum:
+    post:
+      summary: WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
+      operationId: FuelsequencerBridgeMsg_WithdrawToEthereum
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+                description: >-
+                  nonce uniquely identifies any message that we send to
+                  Ethereum.
+              from:
+                type: string
+                description: >-
+                  from is the user address on FuelSequencer that is sending the
+                  tokens.
+              to:
+                type: string
+                description: >-
+                  to is the user address on Ethereum that will be receiving the
+                  tokens.
+              amount:
+                description: >-
+                  amount is the tokens being sent, which must be the expacted
+                  bridge token.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              from:
+                type: string
+                description: >-
+                  from is the user address on FuelSequencer that is sending the
+                  tokens.
+              to:
+                type: string
+                description: >-
+                  to is the user address on Ethereum that will be receiving the
+                  tokens.
+              amount:
+                description: >-
+                  amount is the tokens being sent, which must be the expacted
+                  bridge token.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+      tags:
+        - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced:
+    get:
+      summary: Queries the LastEthereumBlockSynced.
+      operationId: FuelsequencerBridgeQuery_LastEthereumBlockSynced
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              block:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce:
+    get:
+      summary: Queries the LastEthereumNonce.
+      operationId: FuelsequencerBridgeQuery_LastEthereumNonce
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
     get:
       summary: Queries a SupplyDeltaInfo by index.
@@ -8335,9 +8628,37 @@ paths:
                     type: string
                     description: >-
                       bridge_denom is the assumed denom for the bridged token,
-                      used when tracking
+                      used when minting
 
-                      its supply changes.
+                      upon deposits, burning when withdrawing, and tracking
+                      changes in its
+
+                      supply that will be reported to Ethereum, amongst other
+                      scenarios.
+                  ethereum_proxy_contract_address:
+                    type: string
+                    description: >-
+                      ethereum_proxy_contract_address is the contract address we
+                      expect to
+
+                      receive deposit and authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -8361,22 +8682,36 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuelsequencer.bridge.Msg/UpdateParams:
+  /fuelsequencer.sequencing.Msg/PostBlob:
     post:
-      summary: |-
-        UpdateParams defines a (governance) operation for updating the module
-        parameters. The authority defaults to the x/gov module account.
-      operationId: FuelsequencerBridgeMsg_UpdateParams
+      summary: >-
+        PostBlob defines an operation for posting ordered data at a specific
+        topic.
+      operationId: FuelsequencerSequencingMsg_PostBlob
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
-            description: >-
-              MsgUpdateParamsResponse defines the response structure for
-              executing a
-
-              MsgUpdateParams message.
+            properties:
+              nonce:
+                type: string
+                description: >-
+                  nonce uniquely identifies any message that we send to
+                  Ethereum.
+              from:
+                type: string
+                description: from is the address on FuelSequencer that is posting the blob.
+              topic:
+                type: string
+                description: topic is the Topic that this blob belongs to.
+              order:
+                type: string
+                description: order is the blob sequencer order.
+              data:
+                type: string
+                format: byte
+                title: data is the bytes
         default:
           description: An unexpected error response.
           schema:
@@ -8397,34 +8732,24 @@ paths:
                   additionalProperties: {}
       parameters:
         - name: body
-          description: MsgUpdateParams is the Msg/UpdateParams request type.
           in: body
           required: true
           schema:
             type: object
             properties:
-              authority:
+              from:
                 type: string
-                description: >-
-                  authority is the address that controls the module (defaults to
-                  x/gov unless
-
-                  overwritten).
-              params:
-                description: |-
-                  params defines the module parameters to update.
-
-                  NOTE: All parameters must be supplied.
-                type: object
-                properties:
-                  bridge_denom:
-                    type: string
-                    description: >-
-                      bridge_denom is the assumed denom for the bridged token,
-                      used when tracking
-
-                      its supply changes.
-            description: MsgUpdateParams is the Msg/UpdateParams request type.
+                description: from is the address on FuelSequencer that is posting the blob.
+              topic:
+                type: string
+                description: topic is the Topic that this blob belongs to.
+              order:
+                type: string
+                description: order is the blob sequencer order.
+              data:
+                type: string
+                format: byte
+                title: data is the bytes
       tags:
         - Msg
   /fuelsequencer.sequencing.Msg/UpdateParams:
@@ -8477,50 +8802,26 @@ paths:
 
                   overwritten).
               params:
-                description: |-
-                  params defines the module parameters to update.
-
-                  NOTE: All parameters must be supplied.
+                description: 'NOTE: All parameters must be supplied.'
                 type: object
+                properties:
+                  max_blob_size_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      max_blob_size_bytes is the maximum size of blob that can
+                      be submitted in
+
+                      bytes.
+                  gas_per_blob_byte:
+                    type: string
+                    format: uint64
+                    description: >-
+                      gas_per_blob_byte is extra gas to be consumed per byte in
+                      submitted blobs.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
-  /fuelsequencer/sequencing/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: FuelsequencerSequencingQuery_Params
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -12044,6 +12345,120 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
+  fuelsequencer.bridge.MsgSupplyDelta:
+    type: object
+    properties:
+      authority:
+        type: string
+        description: authority a placeholder to satisfy the requirement of having a signer.
+  fuelsequencer.bridge.MsgSupplyDeltaResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+        description: nonce uniquely identifies any message that we send to Ethereum.
+      supply_delta:
+        type: string
+        description: >-
+          supply_delta reports the change in the bridge token's supply due to
+          mints
+
+          and burns.
+  fuelsequencer.bridge.MsgUpdateParams:
+    type: object
+    properties:
+      authority:
+        type: string
+        description: >-
+          authority is the address that controls the module (defaults to x/gov
+          unless
+
+          overwritten).
+      params:
+        description: 'NOTE: All parameters must be supplied.'
+        type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              minting
+
+              upon deposits, burning when withdrawing, and tracking changes in
+              its
+
+              supply that will be reported to Ethereum, amongst other scenarios.
+          ethereum_proxy_contract_address:
+            type: string
+            description: >-
+              ethereum_proxy_contract_address is the contract address we expect
+              to
+
+              receive deposit and authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
+    description: MsgUpdateParams is the Msg/UpdateParams request type.
+  fuelsequencer.bridge.MsgUpdateParamsResponse:
+    type: object
+    description: |-
+      MsgUpdateParamsResponse defines the response structure for executing a
+      MsgUpdateParams message.
+  fuelsequencer.bridge.MsgWithdrawToEthereum:
+    type: object
+    properties:
+      from:
+        type: string
+        description: from is the user address on FuelSequencer that is sending the tokens.
+      to:
+        type: string
+        description: to is the user address on Ethereum that will be receiving the tokens.
+      amount:
+        description: >-
+          amount is the tokens being sent, which must be the expacted bridge
+          token.
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+  fuelsequencer.bridge.MsgWithdrawToEthereumResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+        description: nonce uniquely identifies any message that we send to Ethereum.
+      from:
+        type: string
+        description: from is the user address on FuelSequencer that is sending the tokens.
+      to:
+        type: string
+        description: to is the user address on Ethereum that will be receiving the tokens.
+      amount:
+        description: >-
+          amount is the tokens being sent, which must be the expacted bridge
+          token.
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
   fuelsequencer.bridge.Params:
     type: object
     properties:
@@ -12051,10 +12466,44 @@ definitions:
         type: string
         description: >-
           bridge_denom is the assumed denom for the bridged token, used when
-          tracking
+          minting
 
-          its supply changes.
+          upon deposits, burning when withdrawing, and tracking changes in its
+
+          supply that will be reported to Ethereum, amongst other scenarios.
+      ethereum_proxy_contract_address:
+        type: string
+        description: |-
+          ethereum_proxy_contract_address is the contract address we expect to
+          receive deposit and authorize messages from.
+      authorize_messages_allowed:
+        type: array
+        items:
+          type: string
+        description: >-
+          authorize_messages_allowed is a whitelist for authorize messages that
+          we
+
+          can receive and process.
+      supply_delta_period:
+        type: string
+        format: uint64
+        description: >-
+          supply_delta_period is the frequency in block at which we report
+          supply
+
+          delta info to Ethereum.
     description: Params defines the parameters for the module.
+  fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
+    type: object
+    properties:
+      block:
+        type: string
+  fuelsequencer.bridge.QueryGetLastEthereumNonceResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
   fuelsequencer.bridge.QueryGetSupplyDeltaInfoResponse:
     type: object
     properties:
@@ -12092,9 +12541,36 @@ definitions:
             type: string
             description: >-
               bridge_denom is the assumed denom for the bridged token, used when
-              tracking
+              minting
 
-              its supply changes.
+              upon deposits, burning when withdrawing, and tracking changes in
+              its
+
+              supply that will be reported to Ethereum, amongst other scenarios.
+          ethereum_proxy_contract_address:
+            type: string
+            description: >-
+              ethereum_proxy_contract_address is the contract address we expect
+              to
+
+              receive deposit and authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.bridge.SupplyDeltaInfo:
     type: object
@@ -12119,36 +12595,41 @@ definitions:
           know
 
           about these anyways.
-  fuelsequencer.bridge.MsgUpdateParams:
+  fuelsequencer.sequencing.MsgPostBlob:
     type: object
     properties:
-      authority:
+      from:
         type: string
-        description: >-
-          authority is the address that controls the module (defaults to x/gov
-          unless
-
-          overwritten).
-      params:
-        description: |-
-          params defines the module parameters to update.
-
-          NOTE: All parameters must be supplied.
-        type: object
-        properties:
-          bridge_denom:
-            type: string
-            description: >-
-              bridge_denom is the assumed denom for the bridged token, used when
-              tracking
-
-              its supply changes.
-    description: MsgUpdateParams is the Msg/UpdateParams request type.
-  fuelsequencer.bridge.MsgUpdateParamsResponse:
+        description: from is the address on FuelSequencer that is posting the blob.
+      topic:
+        type: string
+        description: topic is the Topic that this blob belongs to.
+      order:
+        type: string
+        description: order is the blob sequencer order.
+      data:
+        type: string
+        format: byte
+        title: data is the bytes
+  fuelsequencer.sequencing.MsgPostBlobResponse:
     type: object
-    description: |-
-      MsgUpdateParamsResponse defines the response structure for executing a
-      MsgUpdateParams message.
+    properties:
+      nonce:
+        type: string
+        description: nonce uniquely identifies any message that we send to Ethereum.
+      from:
+        type: string
+        description: from is the address on FuelSequencer that is posting the blob.
+      topic:
+        type: string
+        description: topic is the Topic that this blob belongs to.
+      order:
+        type: string
+        description: order is the blob sequencer order.
+      data:
+        type: string
+        format: byte
+        title: data is the bytes
   fuelsequencer.sequencing.MsgUpdateParams:
     type: object
     properties:
@@ -12160,11 +12641,23 @@ definitions:
 
           overwritten).
       params:
-        description: |-
-          params defines the module parameters to update.
-
-          NOTE: All parameters must be supplied.
+        description: 'NOTE: All parameters must be supplied.'
         type: object
+        properties:
+          max_blob_size_bytes:
+            type: string
+            format: uint64
+            description: >-
+              max_blob_size_bytes is the maximum size of blob that can be
+              submitted in
+
+              bytes.
+          gas_per_blob_byte:
+            type: string
+            format: uint64
+            description: >-
+              gas_per_blob_byte is extra gas to be consumed per byte in
+              submitted blobs.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.sequencing.MsgUpdateParamsResponse:
     type: object
@@ -12173,11 +12666,19 @@ definitions:
       MsgUpdateParams message.
   fuelsequencer.sequencing.Params:
     type: object
-    description: Params defines the parameters for the module.
-  fuelsequencer.sequencing.QueryParamsResponse:
-    type: object
     properties:
-      params:
-        description: params holds all the parameters of this module.
-        type: object
-    description: QueryParamsResponse is response type for the Query/Params RPC method.
+      max_blob_size_bytes:
+        type: string
+        format: uint64
+        description: >-
+          max_blob_size_bytes is the maximum size of blob that can be submitted
+          in
+
+          bytes.
+      gas_per_blob_byte:
+        type: string
+        format: uint64
+        description: >-
+          gas_per_blob_byte is extra gas to be consumed per byte in submitted
+          blobs.
+    description: Params defines the parameters for the module.
