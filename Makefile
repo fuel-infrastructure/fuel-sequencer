@@ -226,6 +226,28 @@ run: proto-go-gen serve
 serve:
 	ignite chain serve --reset-once --skip-proto --build.tags ledger
 
+keys:
+	@echo "🤖 Generating keys..."
+
+	@$(eval MNEMONIC := "dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence")
+	@- fuelsequencerd keys delete alice -y
+	yes $(MNEMONIC) | fuelsequencerd keys add alice --recover
+
+	@$(eval MNEMONIC := "gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage")
+	@- fuelsequencerd keys delete bob -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add bob --recover
+
+	@$(eval MNEMONIC := "bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve")
+	@- fuelsequencerd keys delete carol -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add carol --recover
+
+	@$(eval MNEMONIC := "bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing")
+	@- fuelsequencerd keys delete dexter -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add dexter --recover
+
+	@echo "✅ Finished generating keys!"
+
+
 ###############################################################################
 ###                                   CI                                    ###
 ###############################################################################

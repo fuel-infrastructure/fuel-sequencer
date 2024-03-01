@@ -18,6 +18,12 @@ Dependencies:
 make run
 ```
 
+To generate keys for executing transactions:
+
+```bash
+make keys
+```
+
 ### Configure
 
 Your blockchain in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
