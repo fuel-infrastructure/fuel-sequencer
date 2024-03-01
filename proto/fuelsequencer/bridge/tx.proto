@@ -95,7 +95,7 @@ message MsgWithdrawToEthereumResponse {
     (gogoproto.nullable) = false
   ];
 
-  // from is the Sequencer address that is sending the tokens.
+  // from is the user address in FuelSequencer that is sending the tokens.
   string from = 2;
 
   // to is the Ethereum address that will be receiving the tokens.
