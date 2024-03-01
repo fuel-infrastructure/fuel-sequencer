@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -22,4 +23,10 @@ type BankKeeper interface {
 type ParamSubspace interface {
 	Get(context.Context, []byte, interface{})
 	Set(context.Context, []byte, interface{})
+}
+
+// BridgeKeeper defines the expected interface for the Bridge module
+type BridgeKeeper interface {
+	SetLastEthereumNonce(context.Context, math.Int)
+	MustGetLastEthereumNonce(context.Context) math.Int
 }

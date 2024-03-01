@@ -37,6 +37,7 @@ func SequencingKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		cdc,
 		runtime.NewKVStoreService(storeKey),
 		log.NewNopLogger(),
+		nil,
 		authority.String(),
 	)
 
