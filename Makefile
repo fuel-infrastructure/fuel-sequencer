@@ -8,6 +8,8 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
+MOCKS_DIR = $(CURDIR)/tests/mocks
+
 # don't override user values
 ifeq (,$(VERSION))
   VERSION := $(shell echo $(shell git describe --tags 2>/dev/null) | sed 's/^v//')
@@ -197,6 +199,7 @@ cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
+    # This runs ./utils/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
 	@$(protoImage) sh ./utils/protocgen.sh;
 	@echo "✅ Finished Go code generation!"
@@ -212,7 +215,7 @@ proto-format:
 proto-swagger-gen:
 	ignite generate openapi
 
-proto-routine: proto-format proto-go-gen docs-gen
+proto-routine: proto-format proto-go-gen proto-swagger-gen
 
 ###############################################################################
 ###                                   Run                                   ###
@@ -222,6 +225,28 @@ run: proto-go-gen serve
 
 serve:
 	ignite chain serve --reset-once --skip-proto --build.tags ledger
+
+keys:
+	@echo "🤖 Generating keys..."
+
+	@$(eval MNEMONIC := "dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence")
+	@- fuelsequencerd keys delete alice -y
+	yes $(MNEMONIC) | fuelsequencerd keys add alice --recover
+
+	@$(eval MNEMONIC := "gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage")
+	@- fuelsequencerd keys delete bob -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add bob --recover
+
+	@$(eval MNEMONIC := "bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve")
+	@- fuelsequencerd keys delete carol -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add carol --recover
+
+	@$(eval MNEMONIC := "bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing")
+	@- fuelsequencerd keys delete dexter -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add dexter --recover
+
+	@echo "✅ Finished generating keys!"
+
 
 ###############################################################################
 ###                                   CI                                    ###
@@ -247,6 +272,13 @@ test-unit:
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/...
 
+mocks: $(MOCKS_DIR)
+	@go install github.com/golang/mock/mockgen@v1.6.0
+	sh ./utils/mockgen.sh
+.PHONY: mocks
+
+$(MOCKS_DIR):
+	mkdir -p $(MOCKS_DIR)
 
 ###############################################################################
 ###                                Docker                                   ###
