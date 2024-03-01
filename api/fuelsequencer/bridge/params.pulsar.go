@@ -9,18 +9,75 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
 )
 
+var _ protoreflect.List = (*_Params_3_list)(nil)
+
+type _Params_3_list struct {
+	list *[]string
+}
+
+func (x *_Params_3_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_Params_3_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfString((*x.list)[i])
+}
+
+func (x *_Params_3_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_Params_3_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_Params_3_list) AppendMutable() protoreflect.Value {
+	panic(fmt.Errorf("AppendMutable can not be called on message Params at list field AuthorizeMessagesAllowed as it is not of Message kind"))
+}
+
+func (x *_Params_3_list) Truncate(n int) {
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_Params_3_list) NewElement() protoreflect.Value {
+	v := ""
+	return protoreflect.ValueOfString(v)
+}
+
+func (x *_Params_3_list) IsValid() bool {
+	return x.list != nil
+}
+
 var (
-	md_Params protoreflect.MessageDescriptor
+	md_Params                                 protoreflect.MessageDescriptor
+	fd_Params_bridge_denom                    protoreflect.FieldDescriptor
+	fd_Params_ethereum_proxy_contract_address protoreflect.FieldDescriptor
+	fd_Params_authorize_messages_allowed      protoreflect.FieldDescriptor
+	fd_Params_supply_delta_period             protoreflect.FieldDescriptor
+	fd_Params_vesting_start_time              protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_params_proto_init()
 	md_Params = File_fuelsequencer_bridge_params_proto.Messages().ByName("Params")
+	fd_Params_bridge_denom = md_Params.Fields().ByName("bridge_denom")
+	fd_Params_ethereum_proxy_contract_address = md_Params.Fields().ByName("ethereum_proxy_contract_address")
+	fd_Params_authorize_messages_allowed = md_Params.Fields().ByName("authorize_messages_allowed")
+	fd_Params_supply_delta_period = md_Params.Fields().ByName("supply_delta_period")
+	fd_Params_vesting_start_time = md_Params.Fields().ByName("vesting_start_time")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -88,6 +145,36 @@ func (x *fastReflection_Params) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.BridgeDenom != "" {
+		value := protoreflect.ValueOfString(x.BridgeDenom)
+		if !f(fd_Params_bridge_denom, value) {
+			return
+		}
+	}
+	if x.EthereumProxyContractAddress != "" {
+		value := protoreflect.ValueOfString(x.EthereumProxyContractAddress)
+		if !f(fd_Params_ethereum_proxy_contract_address, value) {
+			return
+		}
+	}
+	if len(x.AuthorizeMessagesAllowed) != 0 {
+		value := protoreflect.ValueOfList(&_Params_3_list{list: &x.AuthorizeMessagesAllowed})
+		if !f(fd_Params_authorize_messages_allowed, value) {
+			return
+		}
+	}
+	if x.SupplyDeltaPeriod != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.SupplyDeltaPeriod)
+		if !f(fd_Params_supply_delta_period, value) {
+			return
+		}
+	}
+	if x.VestingStartTime != nil {
+		value := protoreflect.ValueOfMessage(x.VestingStartTime.ProtoReflect())
+		if !f(fd_Params_vesting_start_time, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -103,6 +190,16 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
+	case "fuelsequencer.bridge.Params.bridge_denom":
+		return x.BridgeDenom != ""
+	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
+		return x.EthereumProxyContractAddress != ""
+	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
+		return len(x.AuthorizeMessagesAllowed) != 0
+	case "fuelsequencer.bridge.Params.supply_delta_period":
+		return x.SupplyDeltaPeriod != uint64(0)
+	case "fuelsequencer.bridge.Params.vesting_start_time":
+		return x.VestingStartTime != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -119,6 +216,16 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
+	case "fuelsequencer.bridge.Params.bridge_denom":
+		x.BridgeDenom = ""
+	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
+		x.EthereumProxyContractAddress = ""
+	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
+		x.AuthorizeMessagesAllowed = nil
+	case "fuelsequencer.bridge.Params.supply_delta_period":
+		x.SupplyDeltaPeriod = uint64(0)
+	case "fuelsequencer.bridge.Params.vesting_start_time":
+		x.VestingStartTime = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -135,6 +242,24 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
+	case "fuelsequencer.bridge.Params.bridge_denom":
+		value := x.BridgeDenom
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
+		value := x.EthereumProxyContractAddress
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
+		if len(x.AuthorizeMessagesAllowed) == 0 {
+			return protoreflect.ValueOfList(&_Params_3_list{})
+		}
+		listValue := &_Params_3_list{list: &x.AuthorizeMessagesAllowed}
+		return protoreflect.ValueOfList(listValue)
+	case "fuelsequencer.bridge.Params.supply_delta_period":
+		value := x.SupplyDeltaPeriod
+		return protoreflect.ValueOfUint64(value)
+	case "fuelsequencer.bridge.Params.vesting_start_time":
+		value := x.VestingStartTime
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -155,6 +280,18 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
+	case "fuelsequencer.bridge.Params.bridge_denom":
+		x.BridgeDenom = value.Interface().(string)
+	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
+		x.EthereumProxyContractAddress = value.Interface().(string)
+	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
+		lv := value.List()
+		clv := lv.(*_Params_3_list)
+		x.AuthorizeMessagesAllowed = *clv.list
+	case "fuelsequencer.bridge.Params.supply_delta_period":
+		x.SupplyDeltaPeriod = value.Uint()
+	case "fuelsequencer.bridge.Params.vesting_start_time":
+		x.VestingStartTime = value.Message().Interface().(*timestamppb.Timestamp)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -175,6 +312,23 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
+		if x.AuthorizeMessagesAllowed == nil {
+			x.AuthorizeMessagesAllowed = []string{}
+		}
+		value := &_Params_3_list{list: &x.AuthorizeMessagesAllowed}
+		return protoreflect.ValueOfList(value)
+	case "fuelsequencer.bridge.Params.vesting_start_time":
+		if x.VestingStartTime == nil {
+			x.VestingStartTime = new(timestamppb.Timestamp)
+		}
+		return protoreflect.ValueOfMessage(x.VestingStartTime.ProtoReflect())
+	case "fuelsequencer.bridge.Params.bridge_denom":
+		panic(fmt.Errorf("field bridge_denom of message fuelsequencer.bridge.Params is not mutable"))
+	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
+		panic(fmt.Errorf("field ethereum_proxy_contract_address of message fuelsequencer.bridge.Params is not mutable"))
+	case "fuelsequencer.bridge.Params.supply_delta_period":
+		panic(fmt.Errorf("field supply_delta_period of message fuelsequencer.bridge.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -188,6 +342,18 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "fuelsequencer.bridge.Params.bridge_denom":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
+		list := []string{}
+		return protoreflect.ValueOfList(&_Params_3_list{list: &list})
+	case "fuelsequencer.bridge.Params.supply_delta_period":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "fuelsequencer.bridge.Params.vesting_start_time":
+		m := new(timestamppb.Timestamp)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -257,6 +423,27 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
+		l = len(x.BridgeDenom)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.EthereumProxyContractAddress)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if len(x.AuthorizeMessagesAllowed) > 0 {
+			for _, s := range x.AuthorizeMessagesAllowed {
+				l = len(s)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.SupplyDeltaPeriod != 0 {
+			n += 1 + runtime.Sov(uint64(x.SupplyDeltaPeriod))
+		}
+		if x.VestingStartTime != nil {
+			l = options.Size(x.VestingStartTime)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -285,6 +472,48 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.VestingStartTime != nil {
+			encoded, err := options.Marshal(x.VestingStartTime)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x2a
+		}
+		if x.SupplyDeltaPeriod != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.SupplyDeltaPeriod))
+			i--
+			dAtA[i] = 0x20
+		}
+		if len(x.AuthorizeMessagesAllowed) > 0 {
+			for iNdEx := len(x.AuthorizeMessagesAllowed) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.AuthorizeMessagesAllowed[iNdEx])
+				copy(dAtA[i:], x.AuthorizeMessagesAllowed[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.AuthorizeMessagesAllowed[iNdEx])))
+				i--
+				dAtA[i] = 0x1a
+			}
+		}
+		if len(x.EthereumProxyContractAddress) > 0 {
+			i -= len(x.EthereumProxyContractAddress)
+			copy(dAtA[i:], x.EthereumProxyContractAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.EthereumProxyContractAddress)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.BridgeDenom) > 0 {
+			i -= len(x.BridgeDenom)
+			copy(dAtA[i:], x.BridgeDenom)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.BridgeDenom)))
+			i--
+			dAtA[i] = 0xa
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -335,6 +564,157 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BridgeDenom", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.BridgeDenom = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EthereumProxyContractAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.EthereumProxyContractAddress = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field AuthorizeMessagesAllowed", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.AuthorizeMessagesAllowed = append(x.AuthorizeMessagesAllowed, string(dAtA[iNdEx:postIndex]))
+				iNdEx = postIndex
+			case 4:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaPeriod", wireType)
+				}
+				x.SupplyDeltaPeriod = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.SupplyDeltaPeriod |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field VestingStartTime", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.VestingStartTime == nil {
+					x.VestingStartTime = &timestamppb.Timestamp{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.VestingStartTime); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -388,6 +768,23 @@ type Params struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	// bridge_denom is the assumed denom for the bridged token, used when minting
+	// upon deposits, burning when withdrawing, and tracking changes in its
+	// supply that will be reported to Ethereum, amongst other scenarios.
+	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
+	// ethereum_proxy_contract_address is the contract address we expect to
+	// receive deposit and authorize messages from.
+	EthereumProxyContractAddress string `protobuf:"bytes,2,opt,name=ethereum_proxy_contract_address,json=ethereumProxyContractAddress,proto3" json:"ethereum_proxy_contract_address,omitempty"`
+	// authorize_messages_allowed is a whitelist for authorize messages that we
+	// can receive and process.
+	AuthorizeMessagesAllowed []string `protobuf:"bytes,3,rep,name=authorize_messages_allowed,json=authorizeMessagesAllowed,proto3" json:"authorize_messages_allowed,omitempty"`
+	// supply_delta_period is the frequency in block at which we report supply
+	// delta info to Ethereum.
+	SupplyDeltaPeriod uint64 `protobuf:"varint,4,opt,name=supply_delta_period,json=supplyDeltaPeriod,proto3" json:"supply_delta_period,omitempty"`
+	// vesting_start_time is the common vesting starting time for vesting accounts
+	// that will be created through deposits from Ethereum.
+	VestingStartTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=vesting_start_time,json=vestingStartTime,proto3" json:"vesting_start_time,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -410,6 +807,41 @@ func (*Params) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_params_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *Params) GetBridgeDenom() string {
+	if x != nil {
+		return x.BridgeDenom
+	}
+	return ""
+}
+
+func (x *Params) GetEthereumProxyContractAddress() string {
+	if x != nil {
+		return x.EthereumProxyContractAddress
+	}
+	return ""
+}
+
+func (x *Params) GetAuthorizeMessagesAllowed() []string {
+	if x != nil {
+		return x.AuthorizeMessagesAllowed
+	}
+	return nil
+}
+
+func (x *Params) GetSupplyDeltaPeriod() uint64 {
+	if x != nil {
+		return x.SupplyDeltaPeriod
+	}
+	return 0
+}
+
+func (x *Params) GetVestingStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.VestingStartTime
+	}
+	return nil
+}
+
 var File_fuelsequencer_bridge_params_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_bridge_params_proto_rawDesc = []byte{
@@ -419,22 +851,43 @@ var file_fuelsequencer_bridge_params_proto_rawDesc = []byte{
 	0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e, 0x6f,
 	0x2f, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f,
 	0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0x30, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x3a, 0x26, 0xe8, 0xa0,
-	0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x1d, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x2f, 0x78, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x50, 0x61,
-	0x72, 0x61, 0x6d, 0x73, 0x42, 0xbf, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65,
-	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67,
-	0x65, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01,
-	0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61,
-	0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
-	0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14,
-	0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72,
-	0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
-	0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a,
-	0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x6f, 0x1a, 0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x22, 0xdc, 0x02, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x21,
+	0x0a, 0x0c, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x44, 0x65, 0x6e, 0x6f,
+	0x6d, 0x12, 0x45, 0x0a, 0x1f, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x5f, 0x70, 0x72,
+	0x6f, 0x78, 0x79, 0x5f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x5f, 0x61, 0x64, 0x64,
+	0x72, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x1c, 0x65, 0x74, 0x68, 0x65,
+	0x72, 0x65, 0x75, 0x6d, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63,
+	0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x3c, 0x0a, 0x1a, 0x61, 0x75, 0x74, 0x68,
+	0x6f, 0x72, 0x69, 0x7a, 0x65, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x5f, 0x61,
+	0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x18, 0x61, 0x75,
+	0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x41,
+	0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x12, 0x2e, 0x0a, 0x13, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79,
+	0x5f, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x04, 0x52, 0x11, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61,
+	0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x12, 0x52, 0x0a, 0x12, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e,
+	0x67, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x05, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x08,
+	0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0x52, 0x10, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e,
+	0x67, 0x53, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x3a, 0x26, 0xe8, 0xa0, 0x1f, 0x01,
+	0x8a, 0xe7, 0xb0, 0x2a, 0x1d, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2f, 0x78, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x50, 0x61, 0x72, 0x61,
+	0x6d, 0x73, 0x42, 0xbf, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73,
+	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42,
+	0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25,
+	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64,
+	0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46,
+	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -451,14 +904,16 @@ func file_fuelsequencer_bridge_params_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bridge_params_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bridge_params_proto_goTypes = []interface{}{
-	(*Params)(nil), // 0: fuelsequencer.bridge.Params
+	(*Params)(nil),                // 0: fuelsequencer.bridge.Params
+	(*timestamppb.Timestamp)(nil), // 1: google.protobuf.Timestamp
 }
 var file_fuelsequencer_bridge_params_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: fuelsequencer.bridge.Params.vesting_start_time:type_name -> google.protobuf.Timestamp
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_params_proto_init() }

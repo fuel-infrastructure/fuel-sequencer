@@ -9,7 +9,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
-func TestParamsQuery(t *testing.T) {
+func TestQueryParams(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
 	params := types.DefaultParams()
 	require.NoError(t, keeper.SetParams(ctx, params))

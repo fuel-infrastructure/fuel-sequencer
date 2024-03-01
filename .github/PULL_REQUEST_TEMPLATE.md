@@ -10,14 +10,14 @@ PR:
 
 - [ ] Use "Draft:" until ready for review
 - [ ] PR directed at `main` branch
-- [ ] Pull the latest changes from `main` before requesting review
+- [ ] Pull latest changes from `main`
 - [ ] Re-reviewed `Files changed`
 
 State and params:
 
-- [ ] Included new state/param in genesis init and export.
-- [ ] Included queries for new state/param.
-- [ ] Included set/get/getAll for new state.
+- [ ] Include new state/param in genesis init and export.
+- [ ] Include queries for new state/param.
+- [ ] Include set/get/getAll for new state.
 
 Messages:
 
@@ -25,7 +25,7 @@ Messages:
 
 Testing and docs:
 
-- [ ] Wrote or updated tests
-- [ ] Wrote or updated docs
-- [ ] Ran linter using `make lint`
-- [ ] Ran chain using `make run`
+- [ ] `make proto-routine` for formatting and APIs.
+- [ ] `make lint` to ensure linting rules satisfied.
+- [ ] `make test-unit` to ensure tests pass.
+- [ ] `make run` to ensure chain runs.

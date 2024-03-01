@@ -12,8 +12,25 @@ message Params {
   option (amino.name) = "fuelsequencer/x/bridge/Params";
   option (gogoproto.equal) = true;
 
-  google.protobuf.Timestamp vesting_start_time = 1 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true
-  ];
+  // bridge_denom is the assumed denom for the bridged token, used when minting
+  // upon deposits, burning when withdrawing, and tracking changes in its
+  // supply that will be reported to Ethereum, amongst other scenarios.
+  string bridge_denom = 1;
+
+  // ethereum_proxy_contract_address is the contract address we expect to
+  // receive deposit and authorize messages from.
+  string ethereum_proxy_contract_address = 2;
+
+  // authorize_messages_allowed is a whitelist for authorize messages that we
+  // can receive and process.
+  repeated string authorize_messages_allowed = 3;
+
+  // supply_delta_period is the frequency in block at which we report supply
+  // delta info to Ethereum.
+  uint64 supply_delta_period = 4;
+
+  // vesting_start_time is the common vesting starting time for vesting accounts
+  // that will be created through deposits from Ethereum.
+  google.protobuf.Timestamp vesting_start_time = 5
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 }
