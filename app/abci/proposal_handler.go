@@ -122,7 +122,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 	}
 }
 
-func getData() (int, error) {
+// getNumberFromServer returns 1 or 2, or an error.
+func getNumberFromServer() (int, error) {
 	// Make a GET request to the server
 	resp, err := http.Get("http://localhost:8080/")
 	if err != nil {
@@ -200,7 +201,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			// TODO: Define custom logic here
 		}
 
-		num, err := getData()
+		// If number == 1, ACCEPT
+		// If number == 2, REJECT
+		num, err := getNumberFromServer()
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("I GOT NOTHING :("))
 		} else {
