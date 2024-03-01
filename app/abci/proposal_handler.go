@@ -250,7 +250,7 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 		// TODO: This was done for demonstration purposes and should be adapted as per application requirements
 		var injectedVoteExtTx AggregatedOracleData
 		if err := json.Unmarshal(req.Txs[0], &injectedVoteExtTx); err != nil {
-			return &sdk.ResponsePreBlock{}, fmt.Errorf("failed to decode injected vote extension tx: %w", err)
+			return nil, fmt.Errorf("failed to decode injected vote extension tx: %w", err)
 		}
 
 		// TODO: Custom logic like storing "special" transactions in state
