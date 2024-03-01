@@ -3141,9 +3141,9 @@ type MsgWithdrawToEthereum struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// from is the Sequencer address that is sending the tokens.
+	// from is the user address on FuelSequencer that is sending the tokens.
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the Ethereum address that will be receiving the tokens.
+	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be the expacted bridge token.
 	Amount *v1beta1.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
@@ -3197,9 +3197,9 @@ type MsgWithdrawToEthereumResponse struct {
 
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce string `protobuf:"bytes,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	// from is the Sequencer address that is sending the tokens.
+	// from is the user address on FuelSequencer that is sending the tokens.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the Ethereum address that will be receiving the tokens.
+	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be the expacted bridge token.
 	Amount *v1beta1.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
