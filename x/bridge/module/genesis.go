@@ -17,7 +17,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		panic(fmt.Sprintf("error when setting params: %x", err))
 	}
 
-	// Set if defined
+	// Set if defined, otherwise use default
 	if genState.SupplyDeltaInfo != nil {
 		k.SetSupplyDeltaInfo(ctx, *genState.SupplyDeltaInfo)
 	} else {

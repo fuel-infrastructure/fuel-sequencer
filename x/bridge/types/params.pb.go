@@ -28,7 +28,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Params struct {
 	// bridge_denom is the assumed denom for the bridged token, used when minting
 	// upon deposits, burning when withdrawing, and tracking changes in its
-	// supply, amongst other scenarios.
+	// supply that will be reported to Ethereum, amongst other scenarios.
 	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
 	// ethereum_proxy_contract_address is the contract address we expect to
 	// receive deposit and authorize messages from.

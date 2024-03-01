@@ -13,7 +13,7 @@ message Params {
 
   // bridge_denom is the assumed denom for the bridged token, used when minting
   // upon deposits, burning when withdrawing, and tracking changes in its
-  // supply, amongst other scenarios.
+  // supply that will be reported to Ethereum, amongst other scenarios.
   string bridge_denom = 1;
 
   // ethereum_proxy_contract_address is the contract address we expect to
