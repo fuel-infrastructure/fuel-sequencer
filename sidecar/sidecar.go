@@ -189,6 +189,11 @@ func (s *SidecarImpl) processLogs(logs []types.Log) bool {
 	for _, vLog := range logs {
 		currentBlockNumber := vLog.BlockNumber
 
+		if vLog.Removed {
+			s.logger.Debug("Processed a removed log, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
+			continue
+		}
+
 		if !s.isLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex) {
 			return false
 		}
