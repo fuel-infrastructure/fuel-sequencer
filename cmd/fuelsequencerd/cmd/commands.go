@@ -41,6 +41,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func initRootCmd(
@@ -141,6 +142,7 @@ func startSidecarCmd() *cobra.Command {
 		host               string
 		port               string
 		ethNodeRPC         string
+		cosmosNodeRPC      string
 		contractAddressHex string
 		ethStartBlockStr   string
 		development        bool
@@ -150,13 +152,14 @@ func startSidecarCmd() *cobra.Command {
 		Use:   "start-sidecar",
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return startSidecar(host, port, ethNodeRPC, contractAddressHex, ethStartBlockStr, development)
+			return startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlockStr, development)
 		},
 	}
 
 	cmd.Flags().StringVar(&host, "host", "localhost", "host for the grpc-service to listen on")
 	cmd.Flags().StringVar(&port, "port", "8080", "port for the grpc-service to listen on")
 	cmd.Flags().StringVar(&ethNodeRPC, "eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
+	cmd.Flags().StringVar(&cosmosNodeRPC, "cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
 	cmd.Flags().StringVar(&contractAddressHex, "contract_address", "", "Contract address in hex format")
 	cmd.Flags().StringVar(&ethStartBlockStr, "eth_start_block", "0", "Ethereum start query block")
 	cmd.Flags().BoolVar(&development, "development", false, "Start logger in development mode")
@@ -164,7 +167,7 @@ func startSidecarCmd() *cobra.Command {
 	return cmd
 }
 
-func startSidecar(host, port, ethNodeRPC, contractAddressHex, ethStartBlockStr string, development bool) error {
+func startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlockStr string, development bool) error {
 	sigs := make(chan os.Signal, 1)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -176,7 +179,7 @@ func startSidecar(host, port, ethNodeRPC, contractAddressHex, ethStartBlockStr s
 		return fmt.Errorf("invalid ethStartBlock value: %s", ethStartBlockStr)
 	}
 
-	client, err := ethclient.Dial(ethNodeRPC)
+	ethClient, err := ethclient.Dial(ethNodeRPC)
 	if err != nil {
 		return err
 	}
@@ -186,6 +189,15 @@ func startSidecar(host, port, ethNodeRPC, contractAddressHex, ethStartBlockStr s
 	if err != nil {
 		return err
 	}
+
+	// Create a connection to the Cosmos gRPC server.
+	grpcConn, err := grpc.Dial(cosmosNodeRPC, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return err
+	}
+
+	// This creates a gRPC client to query the x/bridge service.
+	bridgeClient := bridgetypes.NewQueryClient(grpcConn)
 
 	var logger *zap.Logger
 	if development {
@@ -197,7 +209,7 @@ func startSidecar(host, port, ethNodeRPC, contractAddressHex, ethStartBlockStr s
 		return fmt.Errorf("failed to create logger: %s", err)
 	}
 
-	sideCar := sidecar.NewSidecar(client, contractAddr, contractAbi, ethStartBlock, logger)
+	sideCar := sidecar.NewSidecar(ethClient, bridgeClient, contractAddr, contractAbi, ethStartBlock, logger)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
 	go func() {

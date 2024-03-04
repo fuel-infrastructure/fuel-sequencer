@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/ethereum/go-ethereum"
@@ -17,7 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"go.uber.org/zap"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 var _ Sidecar = (*SidecarImpl)(nil)
@@ -37,7 +39,7 @@ type SidecarImpl struct {
 	mu     sync.Mutex
 
 	// --------------------- Ethereum Config --------------------- //
-	client          *ethclient.Client
+	ethClient       *ethclient.Client
 	contractAddress common.Address
 	contractABI     abi.ABI
 	blocksMap       map[string]*EthereumBlock
@@ -48,26 +50,31 @@ type SidecarImpl struct {
 	// lastQueryBlock is last block we queried for events.
 	lastQueryBlock *big.Int
 
+	// --------------------- Cosmos Config ------------------------ //
+	bridgeQueryClient bridgetypes.QueryClient
+
 	// running is the current status of the main sidecar process (running or not).
 	running atomic.Bool
 }
 
 // NewSidecar creates a new Sidecar instance.
 func NewSidecar(
-	client *ethclient.Client,
+	ethClient *ethclient.Client,
+	bridgeQueryClient bridgetypes.QueryClient,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
 	startQueryBlock *big.Int,
 	logger *zap.Logger,
 ) *SidecarImpl {
 	return &SidecarImpl{
-		logger:          logger,
-		client:          client,
-		contractAddress: contractAddress,
-		contractABI:     contractAbi,
-		startQueryBlock: startQueryBlock,
-		blocksMap:       make(map[string]*EthereumBlock),
-		updateInterval:  10 * time.Second,
+		logger:            logger,
+		ethClient:         ethClient,
+		bridgeQueryClient: bridgeQueryClient,
+		contractAddress:   contractAddress,
+		contractABI:       contractAbi,
+		startQueryBlock:   startQueryBlock,
+		blocksMap:         make(map[string]*EthereumBlock),
+		updateInterval:    10 * time.Second,
 	}
 }
 
@@ -83,7 +90,7 @@ func (s *SidecarImpl) Start(ctx context.Context) error {
 	}
 
 	// Attempt to fetch logs as a connectivity and configuration check
-	_, err := s.client.FilterLogs(ctx, query)
+	_, err := s.ethClient.FilterLogs(ctx, query)
 	if err != nil {
 		s.logger.Error("Failed to fetch logs for initial check", zap.Error(err))
 		return err
@@ -129,6 +136,19 @@ func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Eve
 	return block.Events, nil
 }
 
+// fetchLastSyncedEthereumBlock fetches the last block that was processed on the sequencer chain.
+func (s *SidecarImpl) fetchLastSyncedEthereumBlock(ctx context.Context) (*big.Int, error) {
+	resp, err := s.bridgeQueryClient.LastEthereumBlockSynced(ctx, &bridgetypes.QueryGetLastEthereumBlockSyncedRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch last synced Ethereum block from fuel sequencer: %v", err)
+	}
+
+	lastSyncedBlock := new(big.Int)
+	lastSyncedBlock.SetString(resp.Block, 10)
+
+	return lastSyncedBlock, nil
+}
+
 // queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
 func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 
@@ -147,6 +167,18 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 				return
 			}
 
+			// Fetch the last synced Ethereum block before querying for new logs
+			lastSyncedBlock, err := s.fetchLastSyncedEthereumBlock(ctx)
+			s.logger.Debug("Querying LastSyncedEthereumBlock: ", zap.String("last synced block", lastSyncedBlock.String()))
+			if err != nil {
+				s.logger.Error("Error: ", zap.Error(err))
+				continue
+			}
+
+			if lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
+				s.lastQueryBlock = lastSyncedBlock
+			}
+
 			s.fetchAndProcessLogs(ctx)
 		}
 	}
@@ -157,7 +189,7 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	logs, err := s.client.FilterLogs(ctx, ethereum.FilterQuery{
+	logs, err := s.ethClient.FilterLogs(ctx, ethereum.FilterQuery{
 		FromBlock: s.lastQueryBlock,
 		Addresses: []common.Address{s.contractAddress},
 	})
