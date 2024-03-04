@@ -202,15 +202,19 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 		return
 	}
 
-	if s.processLogs(logs) {
-		// Update the last queried block to the block number of the last log + 1
-		lastLogBlock := logs[len(logs)-1].BlockNumber
-		s.lastQueryBlock = big.NewInt(0).SetUint64(lastLogBlock + 1)
+	err = s.processLogs(logs)
+	if err != nil {
+		s.logger.Error("Error fetching logs: Logs are not sequential", zap.Error(err))
+		return
 	}
+
+	// Update the last queried block to the block number of the last log + 1
+	lastLogBlock := logs[len(logs)-1].BlockNumber
+	s.lastQueryBlock = big.NewInt(0).SetUint64(lastLogBlock + 1)
 }
 
 // processLogs processes each log in a sequential order stores it.
-func (s *SidecarImpl) processLogs(logs []types.Log) bool {
+func (s *SidecarImpl) processLogs(logs []types.Log) error {
 	// Temporary structure to hold events per block
 	tempBlocks := make(map[uint64][]sidecartypes.Event)
 
@@ -226,14 +230,15 @@ func (s *SidecarImpl) processLogs(logs []types.Log) bool {
 			continue
 		}
 
-		if !s.isLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex) {
-			return false
+		if err := s.validateIsLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex); err != nil {
+			s.logger.Error("Failed sequential validation", zap.Error(err))
+			return err
 		}
 
 		event, err := processLog(vLog, s.contractABI)
 		if err != nil {
 			s.logger.Error("Error processing log", zap.Error(err))
-			return false
+			return fmt.Errorf("error processing log %s", err)
 		}
 
 		// If the event is nil it means we've processed an unknown event and we can skip it.
@@ -244,6 +249,7 @@ func (s *SidecarImpl) processLogs(logs []types.Log) bool {
 
 		// Add the event to the temporary block map
 		tempBlocks[currentBlockNumber] = append(tempBlocks[currentBlockNumber], *event)
+		s.logger.Debug("Processed a log successfully.", zap.Int64("block", int64(vLog.BlockNumber)))
 	}
 
 	// All logs are sequential; move them from temporary to permanent storage
@@ -255,59 +261,41 @@ func (s *SidecarImpl) processLogs(logs []types.Log) bool {
 		}
 	}
 
-	return true
+	return nil
 }
 
-// isLogSequential checks if the log is sequential based on TxIndex and LogIndex.
-func (s *SidecarImpl) isLogSequential(vLog types.Log, lastBlockNumber *uint64, lastTxIndex, lastLogIndex *int) bool {
+// validateIsLogSequential checks if the log is sequential based on TxIndex and LogIndex.
+func (s *SidecarImpl) validateIsLogSequential(vLog types.Log, lastBlockNumber *uint64, lastTxIndex, lastLogIndex *int) error {
 	currentBlockNumber := vLog.BlockNumber
 	currentTxIndex := int(vLog.TxIndex)
 	currentLogIndex := int(vLog.Index)
 
-	// Verify that the block number is sequential.
+	// Initial verification to ascertain that the current block's number sequentially follows the last processed block's number.
 	if currentBlockNumber != *lastBlockNumber {
-
 		if currentBlockNumber < *lastBlockNumber {
-			s.logger.Error(
-				"Block is not sequential",
-				zap.Uint64("currentBlockNumber", currentBlockNumber),
-				zap.Uint64("lastBlockNumber", *lastBlockNumber),
+			return fmt.Errorf(
+				"non-sequential block detected: current block number %d precedes last processed block number %d",
+				currentBlockNumber, *lastBlockNumber,
 			)
-			return false
 		}
 
-		// Reset the indices for the new block
+		// Resetting indices for the new block, acknowledging the transition to a subsequent block in the sequence.
 		*lastTxIndex = -1
 		*lastLogIndex = -1
 	}
 
-	// For logs within the same block, check transaction and log indices
+	// Ensuring within-block log sequentiality by comparing the current log's indices against the last processed log's indices.
 	if currentTxIndex <= *lastTxIndex || currentLogIndex <= *lastLogIndex {
-		s.logger.Error(
-			"Log is not sequential within the block",
-			zap.Uint64("currentBlockNumber", currentBlockNumber),
-			zap.Int("currentTxIndex", currentTxIndex),
-			zap.Int("lastTxIndex", *lastTxIndex),
-			zap.Int("currentLogIndex", currentLogIndex),
-			zap.Int("lastLogIndex", *lastLogIndex),
+		return fmt.Errorf(
+			"log sequentiality violation within block %d: currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d",
+			currentBlockNumber, currentTxIndex, *lastTxIndex, currentLogIndex, *lastLogIndex,
 		)
-		return false
 	}
 
-	s.logger.Debug(
-		"Processed log in order.",
-		zap.Uint64("currentBlockNumber", currentBlockNumber),
-		zap.Uint64("lastBlockNumber", *lastBlockNumber),
-		zap.Int("currentTxIndex", currentTxIndex),
-		zap.Int("lastTxIndex", *lastTxIndex),
-		zap.Int("currentLogIndex", currentLogIndex),
-		zap.Int("lastLogIndex", *lastLogIndex),
-	)
-
-	// Update the tracking variables
+	// Upon successful validation, updating tracking variables to reflect the most recent log's indices.
 	*lastBlockNumber = currentBlockNumber
 	*lastTxIndex = currentTxIndex
 	*lastLogIndex = currentLogIndex
 
-	return true
+	return nil
 }

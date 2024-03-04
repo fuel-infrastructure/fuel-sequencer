@@ -67,8 +67,8 @@ func initRootCmd(
 		genesisCommand(txConfig, basicManager),
 		queryCommand(),
 		txCommand(),
-		startSidecarCmd(),
-		queryBlockEventsCmd(),
+		startSidecarServerCmd(),
+		querySidecarServerCmd(),
 		keys.Commands(),
 	)
 }
@@ -137,7 +137,7 @@ func txCommand() *cobra.Command {
 	return cmd
 }
 
-func startSidecarCmd() *cobra.Command {
+func startSidecarServerCmd() *cobra.Command {
 	var (
 		host               string
 		port               string
@@ -225,10 +225,10 @@ func startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, eth
 	return nil
 }
 
-func queryBlockEventsCmd() *cobra.Command {
+func querySidecarServerCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "query-sidecar-block-events",
-		Short: "Queries block events from the Sidecar service",
+		Use:   "query-sidecar-server-events",
+		Short: "Queries block events from the Sidecar service by block number",
 		RunE:  queryBlockEvents,
 	}
 
@@ -260,6 +260,12 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	}
 
 	events := resp.GetEvents()
+
+	if len(events) == 0 {
+		fmt.Printf("No events emitted for block: %s\n", blockNumber)
+		return nil
+	}
+
 	for _, event := range events {
 		fmt.Printf("Block Event: %s\n", event)
 	}
