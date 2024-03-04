@@ -26,6 +26,19 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
+	// bridge_denom is the assumed denom for the bridged token, used when minting
+	// upon deposits, burning when withdrawing, and tracking changes in its
+	// supply that will be reported to Ethereum, amongst other scenarios.
+	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
+	// ethereum_proxy_contract_address is the contract address we expect to
+	// receive deposit and authorize messages from.
+	EthereumProxyContractAddress string `protobuf:"bytes,2,opt,name=ethereum_proxy_contract_address,json=ethereumProxyContractAddress,proto3" json:"ethereum_proxy_contract_address,omitempty"`
+	// authorize_messages_allowed is a whitelist for authorize messages that we
+	// can receive and process.
+	AuthorizeMessagesAllowed []string `protobuf:"bytes,3,rep,name=authorize_messages_allowed,json=authorizeMessagesAllowed,proto3" json:"authorize_messages_allowed,omitempty"`
+	// supply_delta_period is the frequency in block at which we report supply
+	// delta info to Ethereum.
+	SupplyDeltaPeriod uint64 `protobuf:"varint,4,opt,name=supply_delta_period,json=supplyDeltaPeriod,proto3" json:"supply_delta_period,omitempty"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -61,6 +74,34 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+func (m *Params) GetBridgeDenom() string {
+	if m != nil {
+		return m.BridgeDenom
+	}
+	return ""
+}
+
+func (m *Params) GetEthereumProxyContractAddress() string {
+	if m != nil {
+		return m.EthereumProxyContractAddress
+	}
+	return ""
+}
+
+func (m *Params) GetAuthorizeMessagesAllowed() []string {
+	if m != nil {
+		return m.AuthorizeMessagesAllowed
+	}
+	return nil
+}
+
+func (m *Params) GetSupplyDeltaPeriod() uint64 {
+	if m != nil {
+		return m.SupplyDeltaPeriod
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*Params)(nil), "fuelsequencer.bridge.Params")
 }
@@ -68,19 +109,29 @@ func init() {
 func init() { proto.RegisterFile("fuelsequencer/bridge/params.proto", fileDescriptor_99c31778739894e8) }
 
 var fileDescriptor_99c31778739894e8 = []byte{
-	// 188 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4c, 0x2b, 0x4d, 0xcd,
-	0x29, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0xd2, 0x4f, 0x2a, 0xca, 0x4c, 0x49, 0x4f,
-	0xd5, 0x2f, 0x48, 0x2c, 0x4a, 0xcc, 0x2d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x41,
-	0x51, 0xa2, 0x07, 0x51, 0x22, 0x25, 0x98, 0x98, 0x9b, 0x99, 0x97, 0xaf, 0x0f, 0x26, 0x21, 0x0a,
-	0xa5, 0x44, 0xd2, 0xf3, 0xd3, 0xf3, 0xc1, 0x4c, 0x7d, 0x10, 0x0b, 0x22, 0xaa, 0x64, 0xc0, 0xc5,
-	0x16, 0x00, 0x36, 0xce, 0x4a, 0xed, 0xc5, 0x02, 0x79, 0xc6, 0xae, 0xe7, 0x1b, 0xb4, 0x64, 0x51,
-	0x2d, 0xad, 0x80, 0x59, 0x0b, 0x51, 0xe7, 0x14, 0x76, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72,
-	0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7,
-	0x72, 0x0c, 0x51, 0x36, 0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x20,
-	0x33, 0x74, 0x33, 0xf3, 0xd2, 0x8a, 0x12, 0x8b, 0x4b, 0x8a, 0x4a, 0x93, 0x4b, 0x4a, 0x8b, 0x52,
-	0x21, 0x62, 0x58, 0x0c, 0x2e, 0xa9, 0x2c, 0x48, 0x2d, 0x4e, 0x62, 0x03, 0x3b, 0xc8, 0x18, 0x10,
-	0x00, 0x00, 0xff, 0xff, 0x18, 0xd6, 0x1f, 0x32, 0xf4, 0x00, 0x00, 0x00,
+	// 344 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x90, 0xb1, 0x6a, 0x2a, 0x41,
+	0x18, 0x85, 0x1d, 0x15, 0xc1, 0xbd, 0xb7, 0x71, 0xaf, 0xc5, 0x22, 0xf7, 0xae, 0x7a, 0x8b, 0x20,
+	0x81, 0xec, 0x16, 0xe9, 0x82, 0x8d, 0x89, 0x29, 0x03, 0x62, 0x91, 0x22, 0xcd, 0x30, 0xee, 0xfc,
+	0xae, 0x0b, 0xbb, 0x3b, 0x93, 0x7f, 0x66, 0x88, 0xe6, 0x09, 0x42, 0xaa, 0x3c, 0x42, 0x1e, 0x21,
+	0x8f, 0x91, 0xd2, 0x32, 0x65, 0xd0, 0x22, 0x79, 0x8c, 0xb0, 0x3b, 0x1a, 0x10, 0xd2, 0x0c, 0x3f,
+	0xe7, 0x7c, 0xe7, 0xc0, 0x1c, 0xa7, 0x3f, 0x37, 0x90, 0x2a, 0xb8, 0x35, 0x90, 0x47, 0x80, 0xe1,
+	0x0c, 0x13, 0x1e, 0x43, 0x28, 0x19, 0xb2, 0x4c, 0x05, 0x12, 0x85, 0x16, 0x6e, 0xfb, 0x00, 0x09,
+	0x2c, 0xd2, 0x69, 0xb1, 0x2c, 0xc9, 0x45, 0x58, 0xbe, 0x16, 0xec, 0xb4, 0x63, 0x11, 0x8b, 0xf2,
+	0x0c, 0x8b, 0xcb, 0xaa, 0xff, 0x1f, 0xaa, 0x4e, 0x63, 0x52, 0xf6, 0xb9, 0x7d, 0xe7, 0xb7, 0x4d,
+	0x53, 0x0e, 0xb9, 0xc8, 0x3c, 0xd2, 0x23, 0x83, 0xe6, 0xf4, 0x97, 0xd5, 0xc6, 0x85, 0xe4, 0x5e,
+	0x3a, 0x5d, 0xd0, 0x0b, 0x40, 0x30, 0x19, 0x95, 0x28, 0x96, 0x2b, 0x1a, 0x89, 0x5c, 0x23, 0x8b,
+	0x34, 0x65, 0x9c, 0x23, 0x28, 0xe5, 0x55, 0xcb, 0xd4, 0xdf, 0x3d, 0x36, 0x29, 0xa8, 0x8b, 0x1d,
+	0x34, 0xb2, 0x8c, 0x3b, 0x74, 0x3a, 0xcc, 0xe8, 0x85, 0xc0, 0xe4, 0x1e, 0x68, 0x06, 0x4a, 0xb1,
+	0x18, 0x14, 0x65, 0x69, 0x2a, 0xee, 0x80, 0x7b, 0xb5, 0x5e, 0x6d, 0xd0, 0x9c, 0x7a, 0xdf, 0xc4,
+	0xd5, 0x0e, 0x18, 0x59, 0xdf, 0x0d, 0x9c, 0x3f, 0xca, 0x48, 0x99, 0xae, 0x28, 0x87, 0x54, 0x33,
+	0x2a, 0x01, 0x13, 0xc1, 0xbd, 0x7a, 0x8f, 0x0c, 0xea, 0xd3, 0x96, 0xb5, 0xc6, 0x85, 0x33, 0x29,
+	0x8d, 0xb3, 0xa3, 0xcf, 0xe7, 0x2e, 0x79, 0xfc, 0x78, 0x39, 0xfe, 0x77, 0xb8, 0xe6, 0x72, 0xbf,
+	0xa7, 0xfd, 0xff, 0xf9, 0xf5, 0xeb, 0xc6, 0x27, 0xeb, 0x8d, 0x4f, 0xde, 0x37, 0x3e, 0x79, 0xda,
+	0xfa, 0x95, 0xf5, 0xd6, 0xaf, 0xbc, 0x6d, 0xfd, 0xca, 0xcd, 0x30, 0x4e, 0xf4, 0xc2, 0xcc, 0x82,
+	0x48, 0x64, 0x61, 0xd1, 0x71, 0x92, 0xe4, 0x73, 0x64, 0x4a, 0xa3, 0x89, 0xb4, 0x41, 0xb0, 0xda,
+	0x0f, 0xc5, 0x7a, 0x25, 0x41, 0xcd, 0x1a, 0xe5, 0xd2, 0xa7, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff,
+	0xea, 0xc3, 0x6e, 0x50, 0xcd, 0x01, 0x00, 0x00,
 }
 
 func (this *Params) Equal(that interface{}) bool {
@@ -100,6 +151,23 @@ func (this *Params) Equal(that interface{}) bool {
 	if that1 == nil {
 		return this == nil
 	} else if this == nil {
+		return false
+	}
+	if this.BridgeDenom != that1.BridgeDenom {
+		return false
+	}
+	if this.EthereumProxyContractAddress != that1.EthereumProxyContractAddress {
+		return false
+	}
+	if len(this.AuthorizeMessagesAllowed) != len(that1.AuthorizeMessagesAllowed) {
+		return false
+	}
+	for i := range this.AuthorizeMessagesAllowed {
+		if this.AuthorizeMessagesAllowed[i] != that1.AuthorizeMessagesAllowed[i] {
+			return false
+		}
+	}
+	if this.SupplyDeltaPeriod != that1.SupplyDeltaPeriod {
 		return false
 	}
 	return true
@@ -124,6 +192,34 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.SupplyDeltaPeriod != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.SupplyDeltaPeriod))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.AuthorizeMessagesAllowed) > 0 {
+		for iNdEx := len(m.AuthorizeMessagesAllowed) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.AuthorizeMessagesAllowed[iNdEx])
+			copy(dAtA[i:], m.AuthorizeMessagesAllowed[iNdEx])
+			i = encodeVarintParams(dAtA, i, uint64(len(m.AuthorizeMessagesAllowed[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.EthereumProxyContractAddress) > 0 {
+		i -= len(m.EthereumProxyContractAddress)
+		copy(dAtA[i:], m.EthereumProxyContractAddress)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.EthereumProxyContractAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.BridgeDenom) > 0 {
+		i -= len(m.BridgeDenom)
+		copy(dAtA[i:], m.BridgeDenom)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.BridgeDenom)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -144,6 +240,23 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.BridgeDenom)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.EthereumProxyContractAddress)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	if len(m.AuthorizeMessagesAllowed) > 0 {
+		for _, s := range m.AuthorizeMessagesAllowed {
+			l = len(s)
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	if m.SupplyDeltaPeriod != 0 {
+		n += 1 + sovParams(uint64(m.SupplyDeltaPeriod))
+	}
 	return n
 }
 
@@ -182,6 +295,121 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgeDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BridgeDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EthereumProxyContractAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EthereumProxyContractAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AuthorizeMessagesAllowed", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AuthorizeMessagesAllowed = append(m.AuthorizeMessagesAllowed, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaPeriod", wireType)
+			}
+			m.SupplyDeltaPeriod = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SupplyDeltaPeriod |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipParams(dAtA[iNdEx:])

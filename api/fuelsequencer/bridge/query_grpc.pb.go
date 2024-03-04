@@ -19,7 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName = "/fuelsequencer.bridge.Query/Params"
+	Query_Params_FullMethodName                  = "/fuelsequencer.bridge.Query/Params"
+	Query_SupplyDeltaInfo_FullMethodName         = "/fuelsequencer.bridge.Query/SupplyDeltaInfo"
+	Query_LastEthereumNonce_FullMethodName       = "/fuelsequencer.bridge.Query/LastEthereumNonce"
+	Query_LastEthereumBlockSynced_FullMethodName = "/fuelsequencer.bridge.Query/LastEthereumBlockSynced"
 )
 
 // QueryClient is the client API for Query service.
@@ -28,6 +31,12 @@ const (
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// Queries a SupplyDeltaInfo by index.
+	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
+	// Queries the LastEthereumNonce.
+	LastEthereumNonce(ctx context.Context, in *QueryGetLastEthereumNonceRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumNonceResponse, error)
+	// Queries the LastEthereumBlockSynced.
+	LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error)
 }
 
 type queryClient struct {
@@ -47,12 +56,45 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error) {
+	out := new(QueryGetSupplyDeltaInfoResponse)
+	err := c.cc.Invoke(ctx, Query_SupplyDeltaInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) LastEthereumNonce(ctx context.Context, in *QueryGetLastEthereumNonceRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumNonceResponse, error) {
+	out := new(QueryGetLastEthereumNonceResponse)
+	err := c.cc.Invoke(ctx, Query_LastEthereumNonce_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error) {
+	out := new(QueryGetLastEthereumBlockSyncedResponse)
+	err := c.cc.Invoke(ctx, Query_LastEthereumBlockSynced_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// Queries a SupplyDeltaInfo by index.
+	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
+	// Queries the LastEthereumNonce.
+	LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error)
+	// Queries the LastEthereumBlockSynced.
+	LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -62,6 +104,15 @@ type UnimplementedQueryServer struct {
 
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaInfo not implemented")
+}
+func (UnimplementedQueryServer) LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastEthereumNonce not implemented")
+}
+func (UnimplementedQueryServer) LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastEthereumBlockSynced not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -94,6 +145,60 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_SupplyDeltaInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetSupplyDeltaInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).SupplyDeltaInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_SupplyDeltaInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).SupplyDeltaInfo(ctx, req.(*QueryGetSupplyDeltaInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_LastEthereumNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLastEthereumNonceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LastEthereumNonce(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_LastEthereumNonce_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LastEthereumNonce(ctx, req.(*QueryGetLastEthereumNonceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_LastEthereumBlockSynced_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLastEthereumBlockSyncedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LastEthereumBlockSynced(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_LastEthereumBlockSynced_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LastEthereumBlockSynced(ctx, req.(*QueryGetLastEthereumBlockSyncedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -104,6 +209,18 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "SupplyDeltaInfo",
+			Handler:    _Query_SupplyDeltaInfo_Handler,
+		},
+		{
+			MethodName: "LastEthereumNonce",
+			Handler:    _Query_LastEthereumNonce_Handler,
+		},
+		{
+			MethodName: "LastEthereumBlockSynced",
+			Handler:    _Query_LastEthereumBlockSynced_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
