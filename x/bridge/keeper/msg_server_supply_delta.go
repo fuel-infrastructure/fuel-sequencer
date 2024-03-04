@@ -23,22 +23,13 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 
 	// TODO: Implement this logic
 	//     deltaToReport = delta + offset
-	//     if (deltaToReport > 0) {
-	//         mint = deltaToReport
-	//         burn = 0
-	//     } else {
-	//         burn = deltaToReport
-	//         mint = 0
-	//     }
 
 	// TODO: Reject message if deltaToReport is zero (just in case user submits msgSupplyDelta at the same height of
 	//     : required height to be injected.
 
-	// TODO: Check if we need to pass code and type (seems not)
-
 	// TODO: Set offset and delta to zero
 
-	// TODO: Add event
+	// TODO: Add event, we can have one event that reports supply
 
 	return &types.MsgSupplyDeltaResponse{
 		Nonce: nonce,
