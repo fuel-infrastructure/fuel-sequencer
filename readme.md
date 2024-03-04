@@ -1,3 +1,11 @@
+**TO RUN EXPERIMENT**:
+
+- `go run server.go` in terminal 1.
+- `(cd testutil/network/ && go test . -v)` in terminal 2.
+- Observe how at certain blocks we go to a new round (CTRL+F `round=1`).
+
+------
+
 # FuelSequencer
 **FuelSequencer** is a blockchain built using Cosmos SDK and CometBFT and created with [Ignite CLI](https://ignite.com/cli).
 

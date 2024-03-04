@@ -173,11 +173,6 @@ func DefaultConfigWithAppConfig(appConfig depinject.Config) (Config, error) {
 
 		testdata.RegisterQueryServer(app.GRPCQueryRouter(), testdata.QueryImpl{})
 
-		// VOTE EXTENSION HANDLER
-		voteExtensionsHandler := abci.NewFuelSequencerVoteExtHandler(app.Logger())
-		app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
-		app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
-
 		// PREPARE AND PROCESS PROPOSAL HANDLERS
 		proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app)
 		app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
