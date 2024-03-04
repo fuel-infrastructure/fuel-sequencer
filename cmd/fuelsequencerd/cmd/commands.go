@@ -235,7 +235,7 @@ func querySidecarServerCmd() *cobra.Command {
 	cmd.Flags().String("host", "localhost", "Host for the gRPC service to listen on")
 	cmd.Flags().String("port", "8080", "Port for the gRPC service to listen on")
 	cmd.Flags().String("blocknumber", "", "Block number to query events for")
-	cmd.MarkFlagRequired("blocknumber")
+	_ = cmd.MarkFlagRequired("blocknumber")
 
 	return cmd
 }
