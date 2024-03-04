@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -26,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	_ "github.com/cosmos/cosmos-sdk/x/auth" // import for side-effects
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"   // import for side-effects
@@ -269,11 +271,6 @@ func NewFuelSequencerApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// VOTE EXTENSION HANDLER
-	voteExtensionsHandler := abci.NewFuelSequencerVoteExtHandler(app.Logger())
-	app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
-	app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
-
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
@@ -281,6 +278,21 @@ func NewFuelSequencerApp(
 
 	// PREBLOCKER
 	app.SetPreBlocker(proposalHandler.PreBlocker)
+
+	// ANTEHANDLER
+	anteHandler, err := NewAnteHandler(
+		ante.HandlerOptions{
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
+			SignModeHandler: app.txConfig.SignModeHandler(),
+			FeegrantKeeper:  nil,
+			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ante handler: %w", err)
+	}
+	app.SetAnteHandler(anteHandler)
 
 	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
 	app.SetMempool(mempool.NoOpMempool{})

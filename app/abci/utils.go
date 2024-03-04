@@ -11,7 +11,9 @@ import (
 // TxSelector defines a helper type that assists in selecting transactions during mempool transaction selection in
 // PrepareProposal. It keeps track of the total number of bytes and total gas of the selected transactions. It also
 // keeps track of the selected transactions themselves.
-// NOTE: This struct was copied over from the Cosmos SDK because we need special handling for vote extensions
+// NOTE: This functionality was copied over from the Cosmos SDK because we need special handling for injected
+// transactions that do not implement sdk.Tx. If this requirement is no longer needed we should remove this struct and
+// make use of the default Cosmos SDK implementation.
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a86a83f761383c1ea434925cddd199cd5a271303/baseapp/abci_utils.go#L390-L454
 type TxSelector interface {
 	// SelectedTxs should return a copy of the selected transactions.
@@ -25,10 +27,12 @@ type TxSelector interface {
 	// loop (typically over a mempool) or <false> otherwise.
 	SelectTxForProposal(ctx context.Context, maxTxBytes, maxBlockGas uint64, memTx sdk.Tx, txBz []byte) bool
 
-	// SelectVETxForProposal should attempt to select a vote extension tx for inclusion in a proposal based on inclusion
-	// criteria defined by the TxSelector. It must return <true> if the vote extension was added to the block proposal
-	// or <false> otherwise.
-	SelectVETxForProposal(_ context.Context, maxTxBytes uint64, veBz []byte) bool
+	// SelectNonSDKTxForProposal should attempt to select a transaction that doesn't implement sdk.Tx for inclusion in a
+	// proposal based on inclusion criteria defined by the TxSelector. It must return <true> if the transaction was
+	// added to the block proposal or <false> otherwise. NOTE: This has different return conditions than
+	// SelectTxForProposal because in our application we need to know whether a non-sdk.Tx has been included in the
+	// block or not.
+	SelectNonSDKTxForProposal(_ context.Context, maxTxBytes uint64, veBz []byte) bool
 }
 
 type fuelSequencerTxSelector struct {
@@ -85,29 +89,17 @@ func (ts *fuelSequencerTxSelector) SelectTxForProposal(
 	return ts.totalTxBytes >= maxTxBytes || (maxBlockGas > 0 && (ts.totalTxGas >= maxBlockGas))
 }
 
-func (ts *fuelSequencerTxSelector) SelectVETxForProposal(_ context.Context, maxTxBytes uint64, veTxBz []byte) bool {
-	veTxSize := uint64(len(veTxBz))
+func (ts *fuelSequencerTxSelector) SelectNonSDKTxForProposal(_ context.Context, maxTxBytes uint64, txBz []byte) bool {
+	txSize := uint64(len(txBz))
 
-	// only add the transaction to the proposal if we have enough capacity. Note that vote extension transactions do not
-	// consume any gas
-	if (veTxSize + ts.totalTxBytes) <= maxTxBytes {
-		ts.totalTxBytes += veTxSize
-		ts.selectedTxs = append(ts.selectedTxs, veTxBz)
+	// only add the transaction to the proposal if we have enough capacity. Note: Transactions that do not implement
+	// sdk.Tx do not consume any gas
+	if (txSize + ts.totalTxBytes) <= maxTxBytes {
+		ts.totalTxBytes += txSize
+		ts.selectedTxs = append(ts.selectedTxs, txBz)
 		return true
 	}
 
-	// if we reach this point it means that the vote extension transaction was not selected
+	// if we reach this point it means that the transaction was not selected
 	return false
-}
-
-// VoteExtensionsEnabled determines if vote extensions are enabled for the current block. If vote extensions are enabled
-// at height h, then a proposer will receive vote extensions in height h+1. This is primarily utilized by any module
-// that needs to make state changes based on whether vote extensions have been included in a proposal.
-func VoteExtensionsEnabled(ctx sdk.Context) bool {
-	cp := ctx.ConsensusParams()
-	if cp.Abci == nil || cp.Abci.VoteExtensionsEnableHeight == 0 {
-		return false
-	}
-
-	return cp.Abci.VoteExtensionsEnableHeight < ctx.BlockHeight()
 }
