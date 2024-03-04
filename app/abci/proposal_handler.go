@@ -1,7 +1,6 @@
 package abci
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -9,6 +8,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 type FuelSequencerProposalHandler struct {
@@ -127,7 +127,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
 		// TODO: This should be adapted as per application requirements
 		// First expect that the first transaction is always the EthEventsTx
-		var injectedEthEventsTx EthEventsTx
+		var injectedEthEventsTx bridgetypes.EthEventsTx
 		if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 		}
@@ -139,7 +139,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 		}
-		if !injectedEthEventsTx.Equal(ethEventsTx) {
+		if !injectedEthEventsTx.Equal(&ethEventsTx) {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 		}
 
@@ -185,10 +185,10 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 }
 
 // TODO: This function should be replaced with our application logic
-func (h *FuelSequencerProposalHandler) generateEthEventsTx() (*EthEventsTx, error) {
+func (h *FuelSequencerProposalHandler) generateEthEventsTx() (bridgetypes.EthEventsTx, error) {
 	// TODO: Perform any custom logic
 
-	return &EthEventsTx{
+	return bridgetypes.EthEventsTx{
 		EventsData: []string{"Event 1", "Event 2", "Event 3"},
 	}, nil
 }
@@ -197,7 +197,7 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx() (*EthEventsTx, erro
 // implementing sdk.Tx. As a result, any important results originating from PrepareProposal or ProcessProposal not
 // implementing sdk.Tx need to be made available to the modules in storage at PreBlocker stage.
 func (h *FuelSequencerProposalHandler) PreBlocker(
-	ctx sdk.Context, req *abci.RequestFinalizeBlock,
+	_ sdk.Context, req *abci.RequestFinalizeBlock,
 ) (*sdk.ResponsePreBlock, error) {
 	// TODO: This should be adapted as per application requirements
 	// This check is done for completeness’s sake as we should not expect to run into this scenario
@@ -208,8 +208,8 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 	// TODO: Check if certain transactions are expected at this stage ex MsgSupplyDelta at specific epochs
 
 	// TODO: This was done for demonstration purposes and should be adapted as per application requirements.
-	var injectedEthEventsTx EthEventsTx
-	if err := json.Unmarshal(req.Txs[0], &injectedEthEventsTx); err != nil {
+	var injectedEthEventsTx bridgetypes.EthEventsTx
+	if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
 		return nil, fmt.Errorf("failed to decode injected eth events tx: %w", err)
 	}
 
