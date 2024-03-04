@@ -271,11 +271,6 @@ func NewFuelSequencerApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// VOTE EXTENSION HANDLER
-	voteExtensionsHandler := abci.NewFuelSequencerVoteExtHandler(app.Logger())
-	app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
-	app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
-
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
