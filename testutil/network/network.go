@@ -20,7 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	fuelsequencerapp "github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
@@ -79,7 +79,7 @@ func New(t *testing.T, configs ...Config) *Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg, err := DefaultConfigWithAppConfig(app.AppConfig())
+	cfg, err := DefaultConfigWithAppConfig(fuelsequencerapp.AppConfig())
 	if err != nil {
 		panic(err)
 	}
@@ -151,7 +151,7 @@ func DefaultConfigWithAppConfig(appConfig depinject.Config) (Config, error) {
 	cfg.InterfaceRegistry = interfaceRegistry
 	cfg.GenesisState = appBuilder.DefaultGenesis()
 	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
-		theApp := &app.FuelSequencerApp{}
+		app := &fuelsequencerapp.FuelSequencerApp{}
 
 		// we build a unique app instance for every validator here
 		var appBuilder *runtime.AppBuilder
@@ -163,7 +163,7 @@ func DefaultConfigWithAppConfig(appConfig depinject.Config) (Config, error) {
 			&appBuilder); err != nil {
 			panic(err)
 		}
-		theApp.App = appBuilder.Build(
+		app.App = appBuilder.Build(
 			dbm.NewMemDB(),
 			nil,
 			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
@@ -171,26 +171,26 @@ func DefaultConfigWithAppConfig(appConfig depinject.Config) (Config, error) {
 			baseapp.SetChainID(cfg.ChainID),
 		)
 
-		testdata.RegisterQueryServer(theApp.GRPCQueryRouter(), testdata.QueryImpl{})
+		testdata.RegisterQueryServer(app.GRPCQueryRouter(), testdata.QueryImpl{})
 
 		// VOTE EXTENSION HANDLER
-		voteExtensionsHandler := abci.NewFuelSequencerVoteExtHandler(theApp.Logger())
-		theApp.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
-		theApp.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
+		voteExtensionsHandler := abci.NewFuelSequencerVoteExtHandler(app.Logger())
+		app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
+		app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
 
 		// PREPARE AND PROCESS PROPOSAL HANDLERS
-		proposalHandler := abci.NewFuelSequencerProposalHandler(theApp.Logger(), theApp.StakingKeeper, theApp)
-		theApp.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
-		theApp.SetProcessProposal(proposalHandler.ProcessProposalHandler())
+		proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app)
+		app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
+		app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
 		// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
-		theApp.SetMempool(mempool.NoOpMempool{})
+		app.SetMempool(mempool.NoOpMempool{})
 
-		if err := theApp.Load(true); err != nil {
+		if err := app.Load(true); err != nil {
 			panic(err)
 		}
 
-		return theApp
+		return app
 	}
 
 	return cfg, nil
