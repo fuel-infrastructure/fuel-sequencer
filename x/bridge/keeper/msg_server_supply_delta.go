@@ -12,6 +12,8 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 
 	// TODO: Confirm signer is the module
 
+	// TODO: Confirm that supply_delta_period is non-zero
+
 	// TODO: Check if height from ctx % params.supply_delta_period is 0 to confirm that it was injected correctly.
 
 	// TODO: Handling the message and construct full response
