@@ -12,7 +12,9 @@ import (
 	"syscall"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,12 +22,14 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 var (
 	host               = flag.String("host", "localhost", "host for the grpc-service to listen on")
 	port               = flag.String("port", "8080", "port for the grpc-service to listen on")
 	ethNodeRPC         = flag.String("eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
+	cosmosNodeRPC      = flag.String("cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
 	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
 	ethStartBlockStr   = flag.String("eth_start_block", "0", "Ethereum start query block")
 	development        = flag.Bool("development", false, "Start logger in development mode")
@@ -47,8 +51,8 @@ func main() {
 	flag.Parse()
 
 	// Validate required flags
-	if *ethNodeRPC == "" || *contractAddressHex == "" {
-		log.Fatal("eth_node_rpc and contract_address are required flags")
+	if *ethNodeRPC == "" || *contractAddressHex == "" || *cosmosNodeRPC == "" {
+		log.Fatal("eth_node_rpc, cosmos_node_rpc and contract_address are required flags")
 	}
 
 	// Convert the ethStartBlock to big.Int
@@ -59,7 +63,7 @@ func main() {
 	}
 
 	// Connect to the ethereum client
-	client, err := ethclient.Dial(*ethNodeRPC)
+	ethClient, err := ethclient.Dial(*ethNodeRPC)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,6 +74,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Create a connection to the Cosmos gRPC server.
+	grpcConn, err := grpc.Dial(
+		*cosmosNodeRPC,
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// This creates a gRPC client to query the x/bridge service.
+	bridgeClient := bridgetypes.NewQueryClient(grpcConn)
 
 	var logger *zap.Logger
 	if *development {
@@ -88,7 +104,8 @@ func main() {
 
 	// Create the sidecar.
 	sideCar := sidecar.NewSidecar(
-		client,
+		ethClient,
+		bridgeClient,
 		contractAddr,
 		contractAbi,
 		ethStartBlock,
