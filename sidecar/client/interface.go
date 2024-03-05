@@ -10,7 +10,7 @@ import (
 // AppSidecarClient defines the interface that will be utilized by the
 // application to query the Sidecar service. This interface is meant to
 // be implemented by the gRPC client that connects to the Sidecar service.
-type AppSidecarClient interface { //nolint
+type AppSidecarClient interface {
 	sidecartypes.SidecarClient
 
 	// Start starts the Sidecar client. This should connect to the remote
