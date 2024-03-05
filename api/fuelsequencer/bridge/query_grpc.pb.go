@@ -22,6 +22,7 @@ const (
 	Query_Params_FullMethodName                  = "/fuelsequencer.bridge.Query/Params"
 	Query_LastEthereumNonce_FullMethodName       = "/fuelsequencer.bridge.Query/LastEthereumNonce"
 	Query_LastEthereumBlockSynced_FullMethodName = "/fuelsequencer.bridge.Query/LastEthereumBlockSynced"
+	Query_SupplyDeltaInfo_FullMethodName         = "/fuelsequencer.bridge.Query/SupplyDeltaInfo"
 )
 
 // QueryClient is the client API for Query service.
@@ -34,6 +35,8 @@ type QueryClient interface {
 	LastEthereumNonce(ctx context.Context, in *QueryGetLastEthereumNonceRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumNonceResponse, error)
 	// Queries a LastEthereumBlockSynced by index.
 	LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error)
+	// Queries a SupplyDeltaInfo by index.
+	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
 }
 
 type queryClient struct {
@@ -71,6 +74,15 @@ func (c *queryClient) LastEthereumBlockSynced(ctx context.Context, in *QueryGetL
 	return out, nil
 }
 
+func (c *queryClient) SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error) {
+	out := new(QueryGetSupplyDeltaInfoResponse)
+	err := c.cc.Invoke(ctx, Query_SupplyDeltaInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -81,6 +93,8 @@ type QueryServer interface {
 	LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error)
 	// Queries a LastEthereumBlockSynced by index.
 	LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error)
+	// Queries a SupplyDeltaInfo by index.
+	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -96,6 +110,9 @@ func (UnimplementedQueryServer) LastEthereumNonce(context.Context, *QueryGetLast
 }
 func (UnimplementedQueryServer) LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthereumBlockSynced not implemented")
+}
+func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaInfo not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -164,6 +181,24 @@ func _Query_LastEthereumBlockSynced_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_SupplyDeltaInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetSupplyDeltaInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).SupplyDeltaInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_SupplyDeltaInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).SupplyDeltaInfo(ctx, req.(*QueryGetSupplyDeltaInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -182,6 +217,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LastEthereumBlockSynced",
 			Handler:    _Query_LastEthereumBlockSynced_Handler,
+		},
+		{
+			MethodName: "SupplyDeltaInfo",
+			Handler:    _Query_SupplyDeltaInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
