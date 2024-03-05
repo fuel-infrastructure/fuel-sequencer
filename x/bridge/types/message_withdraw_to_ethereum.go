@@ -1,6 +1,8 @@
 package types
 
 import (
+	"regexp"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -22,7 +24,15 @@ func (msg *MsgWithdrawToEthereum) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
 
-	// TODO: validate other fields if necessary
+	// A valid Ethereum address is a 42-character hex string starting with "0x"
+	match, _ := regexp.MatchString("^0x[a-fA-F0-9]{40}$", msg.To)
+	if !match {
+		return errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format")
+	}
+
+	if !msg.Amount.IsValid() || msg.Amount.Amount.IsZero() {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be a valid, non-zero value")
+	}
 
 	return nil
 }
