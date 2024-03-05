@@ -1,4 +1,4 @@
-package integration_tests
+package e2e
 
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
