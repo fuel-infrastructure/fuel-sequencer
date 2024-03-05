@@ -440,7 +440,7 @@ func (app *FuelSequencerApp) Close() error {
 	// close the Sidecar service
 	if app.sidecar != nil {
 		app.Logger().Info("stopping Sidecar")
-		app.sidecar.Stop()
+		_ = app.sidecar.Stop()
 	}
 
 	return nil
