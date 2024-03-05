@@ -8,12 +8,12 @@ import "google/api/annotations.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
+import "fuelsequencer/bridge/supply_delta_info.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  
   // Parameters queries the parameters of the module.
   rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fuelsequencer/bridge/params";
@@ -31,25 +31,49 @@ service Query {
     option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced";
   
   }
+
+  // Queries a SupplyDeltaInfo by index.
+  rpc SupplyDeltaInfo(QueryGetSupplyDeltaInfoRequest)
+      returns (QueryGetSupplyDeltaInfoResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info";
+  }
+
+  // Queries the LastEthereumNonce.
+  rpc LastEthereumNonce(QueryGetLastEthereumNonceRequest)
+      returns (QueryGetLastEthereumNonceResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce";
+  }
+
+  // Queries the LastEthereumBlockSynced.
+  rpc LastEthereumBlockSynced(QueryGetLastEthereumBlockSyncedRequest)
+      returns (QueryGetLastEthereumBlockSyncedResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced";
+  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  
+
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+message QueryGetSupplyDeltaInfoRequest {}
+
+message QueryGetSupplyDeltaInfoResponse {
+  SupplyDeltaInfo SupplyDeltaInfo = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryGetLastEthereumNonceRequest {}
 
-message QueryGetLastEthereumNonceResponse {
-  string nonce = 1;
-}
+message QueryGetLastEthereumNonceResponse { string nonce = 1; }
 
 message QueryGetLastEthereumBlockSyncedRequest {}
 
-message QueryGetLastEthereumBlockSyncedResponse {
-  string block = 1;
-}
+message QueryGetLastEthereumBlockSyncedResponse { string block = 1; }

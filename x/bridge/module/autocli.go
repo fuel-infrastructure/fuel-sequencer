@@ -18,6 +18,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Shows the parameters of the module",
 				},
 				{
+					RpcMethod: "SupplyDeltaInfo",
+					Use:       "show-supply-delta-info",
+					Short:     "show supply-delta-info",
+				},
+				{
 					RpcMethod: "LastEthereumNonce",
 					Use:       "show-last-ethereum-nonce",
 					Short:     "show LastEthereumNonce",
@@ -37,6 +42,16 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				{
 					RpcMethod: "UpdateParams",
 					Skip:      true, // skipped because authority gated
+				},
+				{
+					RpcMethod: "SupplyDelta",
+					Skip:      true, // skipped because generated through concensus
+				},
+				{
+					RpcMethod:      "WithdrawToEthereum",
+					Use:            "withdraw-to-ethereum [to] [amount]",
+					Short:          "Send a WithdrawToEthereum tx",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "to"}, {ProtoField: "amount"}},
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},

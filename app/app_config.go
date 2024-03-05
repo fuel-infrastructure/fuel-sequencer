@@ -89,7 +89,7 @@ var (
 		authz.ModuleName,
 		genutiltypes.ModuleName,
 		// chain modules
-		bridgemoduletypes.ModuleName,
+		bridgemoduletypes.ModuleName, // Must be after modules that can change supply, since it tracks supply changes.
 		sequencingmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}

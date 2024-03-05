@@ -10,7 +10,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 )
 
-func TestLastEthereumNonceGet(t *testing.T) {
+func TestGetLastEthereumNonce(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := math.NewInt(10)
 
@@ -23,7 +23,7 @@ func TestLastEthereumNonceGet(t *testing.T) {
 	)
 }
 
-func TestLastEthereumNonceRemove(t *testing.T) {
+func TestRemoveLastEthereumNonce(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := math.NewInt(10)
 

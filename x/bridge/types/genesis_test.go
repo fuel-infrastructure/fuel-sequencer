@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenesisState_Validate(t *testing.T) {
+func TestValidateGenesisState(t *testing.T) {
 	tests := []struct {
 		desc     string
 		genState *types.GenesisState
@@ -23,7 +23,11 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-
+				SupplyDeltaInfo: &types.SupplyDeltaInfo{
+					LastSupply: math.NewInt(99),
+					Delta:      math.NewInt(34),
+					Offset:     math.NewInt(123),
+				},
 				LastEthereumNonce:       math.NewInt(3),
 				LastEthereumBlockSynced: math.NewInt(1),
 				// this line is used by starport scaffolding # types/genesis/validField

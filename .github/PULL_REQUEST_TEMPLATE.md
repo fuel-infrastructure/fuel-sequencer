@@ -10,7 +10,7 @@ PR:
 
 - [ ] Use "Draft:" until ready for review
 - [ ] PR directed at `main` branch
-- [ ] Pull the latest changes from `main` before requesting review
+- [ ] Pull latest changes from `main`
 - [ ] Re-reviewed `Files changed`
 
 State and params:
@@ -23,13 +23,9 @@ Messages:
 
 - [ ] Register new messages in `codec.go`
 
-API:
-
-- [ ] Run `ignite chain build` to ensure `api/` folder is updated.
-
 Testing and docs:
 
-- [ ] Wrote or updated tests
-- [ ] Wrote or updated docs
-- [ ] Ran linter using `make lint`
-- [ ] Ran chain using `make run`
+- [ ] `make proto-routine` for formatting and APIs.
+- [ ] `make lint` to ensure linting rules satisfied.
+- [ ] `make test-unit` to ensure tests pass.
+- [ ] `make run` to ensure chain runs.

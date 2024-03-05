@@ -1,0 +1,35 @@
+syntax = "proto3";
+package fuelsequencer.service.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types";
+
+// Sidecar defines the gRPC sidecar service.
+service Sidecar {
+  // GetBlockEvents defines a method for fetching the events per block number.
+  rpc GetBlockEvents(QueryBlockEventsRequest)
+      returns (QueryBlockEventsResponse) {
+    option (google.api.http).get = "/fuelsequencer/sidecar/v1/get_block_events";
+  };
+}
+
+// QueryBlockEventsRequest defines the request type for the the GetBlockEvents
+// method.
+message QueryBlockEventsRequest { string blockNumber = 1; }
+
+// QueryBlockEventsResponse defines the response type for the GetBlockEvents
+// method.
+message QueryBlockEventsResponse {
+  // events defines the list of events.
+  repeated Event events = 1;
+}
+
+// Event stores the event data and type queried from Ethereum.
+message Event {
+  string event_type = 1;
+  bytes data = 2;
+}

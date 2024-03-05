@@ -8,8 +8,8 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
+		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
 

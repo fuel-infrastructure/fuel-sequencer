@@ -28,6 +28,10 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					RpcMethod: "UpdateParams",
 					Skip:      true, // skipped because authority gated
 				},
+				{
+					RpcMethod: "PostBlob",
+					Skip:      true, // skipped because not expected to be used from CLI
+				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
 		},

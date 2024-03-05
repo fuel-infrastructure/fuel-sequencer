@@ -17,3 +17,5 @@ cd ..
 # Move proto files to the right places
 cp -r github.com/fuel-infrastructure/fuel-sequencer/* ./
 rm -rf github.com
+
+./utils/protocgen-pulsar.sh

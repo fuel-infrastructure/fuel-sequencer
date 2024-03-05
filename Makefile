@@ -8,6 +8,8 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
+MOCKS_DIR = $(CURDIR)/tests/mocks
+
 # don't override user values
 ifeq (,$(VERSION))
   VERSION := $(shell echo $(shell git describe --tags 2>/dev/null) | sed 's/^v//')
@@ -129,27 +131,40 @@ go.sum: go.mod
 	@go mod verify
 
 clean:
-	@rm -rf $(BUILDDIR)/
+	@echo "🧹 Cleaning..."
+	@rm -rf $(BUILDDIR)/*
 
-build-all: clean
+build-fuelsequencerd:
 	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
+	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 $(MAIN)
+	
+	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
+	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 $(MAIN)
 
-	@$(eval ARCH := linux-amd64)
-	@echo "🔧 (1/3) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH) $(MAIN)
-	@tar -czf $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/fuelsequencerd-$(VERSION)-$(ARCH)
+	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
+	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
 
-	@$(eval ARCH := linux-arm64)
-	@echo "🔧 (2/3) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH) $(MAIN)
-	@tar -czf $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/fuelsequencerd-$(VERSION)-$(ARCH)
+build-sidecar:
+	@$(eval MAIN := ./cmd/sidecar/main.go)
+	@echo "🔧 Building sidecar-$(VERSION)-linux-amd64..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-linux-amd64 $(MAIN)
+	@echo "🔧 Building sidecar-$(VERSION)-linux-arm64..."
+	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-linux-arm64 $(MAIN)
+	@echo "🔧 Building sidecar-$(VERSION)-darwin-amd64..."
+	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-darwin-amd64 $(MAIN)
 
-	@$(eval ARCH := darwin-amd64)
-	@echo "🔧 (3/3) Building fuelsequencerd-$(VERSION)-$(ARCH)..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH) $(MAIN)
-	@tar -czf $(BUILDDIR)/fuelsequencerd-$(VERSION)-$(ARCH).tgz $(BUILDFOLDER)/fuelsequencerd-$(VERSION)-$(ARCH)
+build-client:
+	@$(eval MAIN := ./cmd/client/main.go)
+	@echo "🔧 Building client-$(VERSION)-linux-amd64..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-linux-amd64 $(MAIN)
+	@echo "🔧 Building client-$(VERSION)-linux-arm64..."
+	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-linux-arm64 $(MAIN)
+	@echo "🔧 Building client-$(VERSION)-darwin-amd64..."
+	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-darwin-amd64 $(MAIN)
 
-	@echo "✅ Finished building!"
+build-all: clean build-fuelsequencerd build-sidecar build-client
+	@echo "✅ Finished building all!"
 
 do-checksum:
 	@echo "🤖 Generating checksum..."
@@ -157,6 +172,17 @@ do-checksum:
 	@echo "✅ Finished generating checksum!"
 
 build-with-checksum: build-all do-checksum
+
+run-client:
+	@$(eval ARCH := linux-amd64)
+	@if [ -z "$(BLOCK_NUMBER)" ]; then echo "BLOCK_NUMBER is not set. Use make run-client BLOCK_NUMBER=<number>"; exit 1; fi
+	@echo "Running client $(VERSION) for $(ARCH) with block number $(BLOCK_NUMBER)..."
+	@$(BUILDDIR)/client-$(VERSION)-$(ARCH) -blocknumber $(BLOCK_NUMBER)
+
+run-sidecar:
+	@$(eval ARCH := linux-amd64)
+	@echo "Running sidecar $(VERSION) for $(ARCH)..."
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --development="$(DEVELOPMENT)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
@@ -173,6 +199,7 @@ cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
+    # This runs ./utils/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
 	@$(protoImage) sh ./utils/protocgen.sh;
 	@echo "✅ Finished Go code generation!"
@@ -188,7 +215,7 @@ proto-format:
 proto-swagger-gen:
 	ignite generate openapi
 
-proto-routine: proto-format proto-go-gen docs-gen
+proto-routine: proto-format proto-go-gen proto-swagger-gen
 
 ###############################################################################
 ###                                   Run                                   ###
@@ -198,6 +225,28 @@ run: proto-go-gen serve
 
 serve:
 	ignite chain serve --reset-once --skip-proto --build.tags ledger
+
+keys:
+	@echo "🤖 Generating keys..."
+
+	@$(eval MNEMONIC := "dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence")
+	@- fuelsequencerd keys delete alice -y
+	yes $(MNEMONIC) | fuelsequencerd keys add alice --recover
+
+	@$(eval MNEMONIC := "gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage")
+	@- fuelsequencerd keys delete bob -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add bob --recover
+
+	@$(eval MNEMONIC := "bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve")
+	@- fuelsequencerd keys delete carol -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add carol --recover
+
+	@$(eval MNEMONIC := "bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing")
+	@- fuelsequencerd keys delete dexter -y
+	@yes $(MNEMONIC) | fuelsequencerd keys add dexter --recover
+
+	@echo "✅ Finished generating keys!"
+
 
 ###############################################################################
 ###                                   CI                                    ###
@@ -223,6 +272,13 @@ test-unit:
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/...
 
+mocks: $(MOCKS_DIR)
+	@go install github.com/golang/mock/mockgen@v1.6.0
+	sh ./utils/mockgen.sh
+.PHONY: mocks
+
+$(MOCKS_DIR):
+	mkdir -p $(MOCKS_DIR)
 
 ###############################################################################
 ###                                Docker                                   ###

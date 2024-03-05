@@ -18,6 +18,12 @@ Dependencies:
 make run
 ```
 
+To generate keys for executing transactions:
+
+```bash
+make keys
+```
+
 ### Configure
 
 Your blockchain in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
@@ -139,6 +145,12 @@ make follow-docker-logs
 - https://github.com/osmosis-labs/osmosis/blob/main/scripts/makefiles/docker.mk
 
 ## Testing
+
+### Generate mocks
+
+```bash
+make mocks
+```
 
 ### Unit tests
 

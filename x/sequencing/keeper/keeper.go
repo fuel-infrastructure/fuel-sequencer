@@ -17,6 +17,8 @@ type (
 		storeService store.KVStoreService
 		logger       log.Logger
 
+		bridgeKeeper types.BridgeKeeper
+
 		// the address capable of executing a MsgUpdateParams message. Typically, this
 		// should be the x/gov module account.
 		authority string
@@ -27,8 +29,8 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService store.KVStoreService,
 	logger log.Logger,
+	bridgeKeeper types.BridgeKeeper,
 	authority string,
-
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
@@ -38,6 +40,7 @@ func NewKeeper(
 		cdc:          cdc,
 		storeService: storeService,
 		authority:    authority,
+		bridgeKeeper: bridgeKeeper,
 		logger:       logger,
 	}
 }

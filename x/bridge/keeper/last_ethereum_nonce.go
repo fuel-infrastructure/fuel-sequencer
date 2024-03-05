@@ -38,6 +38,15 @@ func (k Keeper) GetLastEthereumNonce(ctx context.Context) (val math.Int, found b
 	return val, true
 }
 
+// MustGetLastEthereumNonce returns lastEthereumNonce and panics if it does't find it
+func (k Keeper) MustGetLastEthereumNonce(ctx context.Context) math.Int {
+	val, found := k.GetLastEthereumNonce(ctx)
+	if !found {
+		panic("expected to find LastEthereumNonce")
+	}
+	return val
+}
+
 // RemoveLastEthereumNonce removes lastEthereumNonce from the store
 func (k Keeper) RemoveLastEthereumNonce(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))

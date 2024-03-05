@@ -13,7 +13,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestLastEthereumNonceQuery(t *testing.T) {
+func TestQueryLastEthereumNonce(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := math.NewInt(10)
 
@@ -25,7 +25,7 @@ func TestLastEthereumNonceQuery(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
+			desc:     "ValidRequest",
 			request:  &types.QueryGetLastEthereumNonceRequest{},
 			response: &types.QueryGetLastEthereumNonceResponse{Nonce: value.String()},
 		},
