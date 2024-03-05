@@ -42,12 +42,16 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			// Set the supply delta info
 			s.App.BridgeKeeper.SetSupplyDeltaInfo(s.Ctx(), tc.supplyDeltaInfo)
 
+			// TODO: Do msg server call
+
 			if len(tc.expErrMsg) > 0 {
 				s.Require().Error(err)
 				s.Require().ErrorContains(err, tc.expErrMsg)
 				return
 			}
 			s.Require().NoError(err)
+
+			// TODO: Do asserts
 		})
 	}
 }
