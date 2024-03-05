@@ -3,6 +3,7 @@ package integration_tests
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -93,6 +94,14 @@ func (v *validator) init() error {
 	if err != nil {
 		panic(err)
 	}
+	genesisState := app.DefaultGenesis()
+	if err != nil {
+		panic(err)
+	}
+	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
+	if err != nil {
+		panic(err)
+	}
 
 	appGenesis := &genutiltypes.AppGenesis{
 		AppName:       fuelsequencerapp.Name,
@@ -101,7 +110,7 @@ func (v *validator) init() error {
 		ChainID:       v.chain.id,
 		InitialHeight: genDoc.InitialHeight,
 		AppHash:       genDoc.AppHash,
-		AppState:      fuelsequencerapp.GetDefaultGenesisStateBytes(app),
+		AppState:      stateBytes,
 		Consensus: &genutiltypes.ConsensusGenesis{
 			Validators: nil,
 		},

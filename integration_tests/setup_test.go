@@ -21,7 +21,6 @@ import (
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -30,6 +29,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/spf13/viper"
@@ -48,7 +48,8 @@ func init() {
 
 const (
 	testDenom      = "ufuel"
-	initBalanceStr = "210000000000ufuel"
+	initBalance    = 210000000000        // per validator
+	initBalanceStr = "210000000000ufuel" // per validator
 	minGasPrice    = "2"
 
 	fuelSequencerDockerImageRepo = "fuel-infrastructure/fuel-sequencer"
@@ -65,11 +66,11 @@ var (
 
 func MNEMONICS() []string {
 	return []string{
-		"test test test test test test test test test test test junk", // TODO: must match one on test-contracts
+		"test test test test test test test test test test test junk", // should match the one on test-contracts
 		"receive roof marine sure lady hundred sea enact exist place bean wagon kingdom betray science photo loop funny bargain floor suspect only strike endless",
 		"march carpet enact kiss tribe plastic wash enter index lift topic riot try juice replace supreme original shift hover adapt mutual holiday manual nut",
-		"assault section bleak gadget venture ship oblige pave fabric more initial april dutch scene parade shallow educate gesture lunar match patch hawk member problem",
-		"say monitor orient heart super local purse cricket caution primary bring insane road expect rather help two extend own execute throw nation plunge subject",
+		//"assault section bleak gadget venture ship oblige pave fabric more initial april dutch scene parade shallow educate gesture lunar match patch hawk member problem",
+		//"say monitor orient heart super local purse cricket caution primary bring insane road expect rather help two extend own execute throw nation plunge subject",
 	}
 }
 
@@ -106,7 +107,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.initEthereumFromMnemonics(mnemonics)
 
 	// run the eth container so that the contract addresses are available
-	//s.runEthContainer()
+	s.runEthContainer()
 
 	// continue generating node genesis
 	s.initGenesis()
@@ -221,18 +222,9 @@ func (s *IntegrationTestSuite) initGenesis() {
 	s.Require().NoError(err)
 	appGenState[govtypes.ModuleName] = bz
 
-	// set crisis denom
-	var crisisGenState crisistypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[crisistypes.ModuleName], &crisisGenState))
-	crisisGenState.ConstantFee.Denom = testDenom
-	bz, err = cdc.MarshalJSON(&crisisGenState)
-	s.Require().NoError(err)
-	appGenState[crisistypes.ModuleName] = bz
-
 	// set staking bond denom
 	var stakingGenState stakingtypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[stakingtypes.ModuleName], &stakingGenState))
-	stakingGenState.Params.BondDenom = testDenom
 	bz, err = cdc.MarshalJSON(&stakingGenState)
 	s.Require().NoError(err)
 	appGenState[stakingtypes.ModuleName] = bz
@@ -240,7 +232,6 @@ func (s *IntegrationTestSuite) initGenesis() {
 	// set mint denom
 	var mintGenState minttypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
-	mintGenState.Params.MintDenom = testDenom
 	mintGenState.Params.InflationMax = math.LegacyZeroDec()
 	mintGenState.Params.InflationMin = math.LegacyZeroDec()
 	mintGenState.Params.InflationRateChange = math.LegacyZeroDec()
@@ -249,25 +240,24 @@ func (s *IntegrationTestSuite) initGenesis() {
 	s.Require().NoError(err)
 	appGenState[minttypes.ModuleName] = bz
 
-	//distGenState := disttypes.DefaultGenesisState()
-	//distGenState.Params.CommunityTax = math.LegacyZeroDec()
-	//distGenState.FeePool.CommunityPool = sdk.NewDecCoins(sdk.NewDecCoin(testDenom, math.NewInt(1000000000)))
-	//bz, err = cdc.MarshalJSON(distGenState)
-	//s.Require().NoError(err)
-	//appGenState[disttypes.ModuleName] = bz
-
+	// TODO: genesis supply will be incorrect if we add more accounts
 	var bankGenState banktypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(testDenom, math.NewInt(101050001000000))) // TODO: make dynamic
+	genesisSupply := int64(len(s.chain.validators) * initBalance)
+	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(testDenom, math.NewInt(genesisSupply)))
 	bz, err = cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
+	var bridgeGenState bridgetypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
+	bridgeGenState.Params.BridgeDenom = testDenom
+	bz, err = cdc.MarshalJSON(&bridgeGenState)
+	s.Require().NoError(err)
+	appGenState[bridgetypes.ModuleName] = bz
+
 	var genUtilGenState genutiltypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
-
-	// TODO: bridge module state
-	// TODO: sequencing module state
 
 	// generate genesis txs
 	genTxs := make([]json.RawMessage, len(s.chain.validators))
