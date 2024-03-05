@@ -184,6 +184,7 @@ func startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, eth
 		return err
 	}
 
+	// TODO: replace MockBridgeXABI with actual contract once it's available.
 	contractAddr := common.HexToAddress(contractAddressHex)
 	contractAbi, err := abi.JSON(strings.NewReader(mockbridgex.MockBridgeXABI))
 	if err != nil {
