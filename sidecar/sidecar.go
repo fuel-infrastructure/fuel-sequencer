@@ -228,7 +228,7 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	s.lastQueryBlock = new(big.Int).SetUint64(currentBlockNumber)
 }
 
-// processLogs processes each log in a sequential order stores it.
+// processLogs processes each log in a sequential order and stores it.
 func (s *SidecarImpl) processLogs(logs []types.Log) error {
 	// Temporary structure to hold events per block
 	tempBlocks := make(map[uint64][]sidecartypes.Event)
