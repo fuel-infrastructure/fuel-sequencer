@@ -52,7 +52,7 @@ func SetupTestingApp(isCheckTx bool) *FuelSequencerApp {
 			&abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: simtestutil.DefaultConsensusParams,
-				AppStateBytes:   getDefaultGenesisStateBytes(app),
+				AppStateBytes:   GetDefaultGenesisStateBytes(app),
 			},
 		)
 	}
@@ -62,7 +62,7 @@ func SetupTestingApp(isCheckTx bool) *FuelSequencerApp {
 
 var defaultGenesisBz []byte
 
-func getDefaultGenesisStateBytes(app *FuelSequencerApp) []byte {
+func GetDefaultGenesisStateBytes(app *FuelSequencerApp) []byte {
 	if len(defaultGenesisBz) == 0 {
 		privVal := mock.NewPV()
 		pubKey, err := privVal.GetPubKey()
