@@ -33,7 +33,8 @@ type SupplyDeltaInfo struct {
 	Delta cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=delta,proto3,customtype=cosmossdk.io/math.Int" json:"delta"`
 	// offset is used to account for changes in supply that we do not want to post
 	// to Ethereum, including deposits and withdrawals, because Ethereum will know
-	// about these anyways.
+	// about these anyways. Note that offset can be positive (to account for
+	// unreported burn) or negative (to account for unreported mint)
 	Offset cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=offset,proto3,customtype=cosmossdk.io/math.Int" json:"offset"`
 }
 
