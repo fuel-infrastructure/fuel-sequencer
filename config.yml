@@ -53,6 +53,10 @@ validators:
       swagger: true
     grpc:
       address: 0.0.0.0:9090
+    sidecar:
+      enabled: true
+      address: localhost:8080
+      timeout: 5s
 - name: bob
   bonded: 50000000ufuel
   config:
@@ -79,6 +83,10 @@ validators:
       swagger: true
     grpc:
       address: 0.0.0.0:9090
+    sidecar:
+      enabled: true
+      address: localhost:8080
+      timeout: 5s
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:

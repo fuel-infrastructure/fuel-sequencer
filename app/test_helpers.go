@@ -7,7 +7,6 @@ import (
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtypes "github.com/cometbft/cometbft/types"
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -16,11 +15,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 
 const (
 	TestAppStartingHeight = 1
 	TestAppChainID        = "fuelsequencer-1"
+	TestAppSidecarEnabled = false
 )
 
 // SetupTestingApp initializes a new FuelSequencerApp
@@ -32,8 +33,9 @@ func SetupTestingApp(isCheckTx bool) *FuelSequencerApp {
 
 	db := dbm.NewMemDB()
 	appOpts := simtestutil.AppOptionsMap{
-		flags.FlagInitHeight: TestAppStartingHeight,
-		flags.FlagChainID:    TestAppChainID,
+		flags.FlagInitHeight:             TestAppStartingHeight,
+		flags.FlagChainID:                TestAppChainID,
+		sidecarconfig.FlagSidecarEnabled: TestAppSidecarEnabled,
 	}
 	app, err := NewFuelSequencerApp(
 		log.NewNopLogger(),

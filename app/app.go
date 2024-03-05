@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -56,6 +57,9 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 
+	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 
@@ -108,6 +112,9 @@ type FuelSequencerApp struct {
 
 	// simulation manager
 	sm *module.SimulationManager
+
+	// sidecar
+	sidecar sidecarclient.AppSidecarClient
 }
 
 func init() {
@@ -271,8 +278,33 @@ func NewFuelSequencerApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
+	// SIDECAR :: Configure
+	cfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	// SIDECAR :: Create client
+	app.sidecar, err = sidecarclient.NewClientFromConfig(
+		cfg,
+		app.Logger().With("client", "sidecar"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// SIDECAR :: Connect to the client
+	go func() {
+		if err := app.sidecar.Start(context.Background()); err != nil {
+			app.Logger().Error("failed to start Sidecar client", "err", err)
+			panic(err)
+		}
+
+		app.Logger().Info("started Sidecar client", "addr", cfg.Address)
+	}()
+
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
-	proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app)
+	proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app, app.sidecar)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
@@ -296,8 +328,6 @@ func NewFuelSequencerApp(
 
 	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
 	app.SetMempool(mempool.NoOpMempool{})
-
-	// Register legacy modules
 
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
@@ -398,6 +428,22 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 
 	// register app's OpenAPI routes.
 	docs.RegisterOpenAPIService(Name, apiSvr.Router)
+}
+
+// Close closes the underlying baseapp and the Sidecar service.
+// This function blocks on the closure of the Sidecar service.
+func (app *FuelSequencerApp) Close() error {
+	if err := app.App.Close(); err != nil {
+		return err
+	}
+
+	// close the Sidecar service
+	if app.sidecar != nil {
+		app.Logger().Info("stopping Sidecar")
+		app.sidecar.Stop()
+	}
+
+	return nil
 }
 
 // GetMaccPerms returns a copy of the module account permissions

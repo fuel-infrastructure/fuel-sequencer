@@ -22,10 +22,10 @@ import (
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )
 
 func initRootCmd(
@@ -43,7 +43,7 @@ func initRootCmd(
 		snapshot.Cmd(newApp),
 	)
 
-	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
+	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
@@ -55,8 +55,9 @@ func initRootCmd(
 	)
 }
 
-func addModuleInitFlags(startCmd *cobra.Command) {
+func addStartFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
+	sidecarconfig.AddStartCmdFlags(startCmd)
 }
 
 // genesisCommand builds genesis-related `fuelsequencerd genesis` command. Users may provide application specific commands as a parameter
@@ -169,6 +170,10 @@ func appExport(
 
 	// overwrite the FlagInvCheckPeriod
 	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
+
+	// overwrite the FlagSidecarEnabled since we don't need it for app export
+	viperAppOpts.Set(sidecarconfig.FlagSidecarEnabled, false)
 	appOpts = viperAppOpts
 
 	if height != -1 {

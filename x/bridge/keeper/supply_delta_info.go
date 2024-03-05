@@ -47,8 +47,8 @@ func (k Keeper) RemoveSupplyDeltaInfo(ctx context.Context) {
 	store.Delete([]byte{0})
 }
 
-// UpdatedSupplyDeltaInfoWithNewDelta notes down any changes in supply of the bridge token
-func (k Keeper) UpdatedSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper types.BankKeeper) {
+// UpdateSupplyDeltaInfoWithNewDelta notes down any changes in supply of the bridge token
+func (k Keeper) UpdateSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper types.BankKeeper) {
 
 	// Get latest recorded supply and actual supply.
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
