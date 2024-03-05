@@ -1,4 +1,4 @@
-package e2e
+package testsuite
 
 import (
 	"encoding/json"

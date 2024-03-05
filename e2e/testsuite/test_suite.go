@@ -1,4 +1,4 @@
-package e2e
+package testsuite
 
 import (
 	"bytes"
@@ -74,7 +74,7 @@ func MNEMONICS() []string {
 	}
 }
 
-type IntegrationTestSuite struct {
+type E2ETestSuite struct {
 	suite.Suite
 
 	chain         *chain
@@ -84,11 +84,11 @@ type IntegrationTestSuite struct {
 	valResources  []*dockertest.Resource
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+func TestE2ETestSuite(t *testing.T) {
+	suite.Run(t, new(E2ETestSuite))
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
+func (s *E2ETestSuite) SetupSuite() {
 	s.T().Log("setting up e2e integration test suite...")
 
 	var err error
@@ -117,7 +117,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.runValidators()
 }
 
-func (s *IntegrationTestSuite) TearDownSuite() {
+func (s *E2ETestSuite) TearDownSuite() {
 	if str := os.Getenv("E2E_SKIP_CLEANUP"); len(str) > 0 {
 		skipCleanup, err := strconv.ParseBool(str)
 		s.Require().NoError(err)
@@ -140,7 +140,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
 }
 
-func (s *IntegrationTestSuite) initNodes(nodeCount int) { //nolint:unused
+func (s *E2ETestSuite) initNodes(nodeCount int) { //nolint:unused
 	s.Require().NoError(s.chain.createAndInitValidators(nodeCount))
 
 	// initialize a genesis file for the first validator
@@ -161,7 +161,7 @@ func (s *IntegrationTestSuite) initNodes(nodeCount int) { //nolint:unused
 	}
 }
 
-func (s *IntegrationTestSuite) initNodesWithMnemonics(mnemonics ...string) {
+func (s *E2ETestSuite) initNodesWithMnemonics(mnemonics ...string) {
 	s.Require().NoError(s.chain.createAndInitValidatorsWithMnemonics(mnemonics))
 
 	//initialize a genesis file for the first validator
@@ -183,7 +183,7 @@ func (s *IntegrationTestSuite) initNodesWithMnemonics(mnemonics ...string) {
 	}
 }
 
-func (s *IntegrationTestSuite) initEthereum() { //nolint:unused
+func (s *E2ETestSuite) initEthereum() { //nolint:unused
 	// TODO: create genesis file instead of assuming it exists
 
 	for _, val := range s.chain.validators {
@@ -191,7 +191,7 @@ func (s *IntegrationTestSuite) initEthereum() { //nolint:unused
 	}
 }
 
-func (s *IntegrationTestSuite) initEthereumFromMnemonics(mnemonics []string) {
+func (s *E2ETestSuite) initEthereumFromMnemonics(mnemonics []string) {
 	// TODO: create genesis file instead of assuming it exists
 
 	for i, val := range s.chain.validators {
@@ -199,7 +199,7 @@ func (s *IntegrationTestSuite) initEthereumFromMnemonics(mnemonics []string) {
 	}
 }
 
-func (s *IntegrationTestSuite) initGenesis() {
+func (s *E2ETestSuite) initGenesis() {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
@@ -295,7 +295,7 @@ func (s *IntegrationTestSuite) initGenesis() {
 	}
 }
 
-func (s *IntegrationTestSuite) initValidatorConfigs() {
+func (s *E2ETestSuite) initValidatorConfigs() {
 	for i, val := range s.chain.validators {
 		cmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
 
@@ -345,7 +345,7 @@ func (s *IntegrationTestSuite) initValidatorConfigs() {
 	}
 }
 
-func (s *IntegrationTestSuite) runEthContainer() {
+func (s *E2ETestSuite) runEthContainer() {
 	s.T().Log("starting Ethereum container...")
 	var err error
 	runOpts := dockertest.RunOptions{
@@ -399,7 +399,7 @@ func (s *IntegrationTestSuite) runEthContainer() {
 	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
 }
 
-func (s *IntegrationTestSuite) runValidators() {
+func (s *E2ETestSuite) runValidators() {
 	s.T().Log("starting validator containers...")
 
 	s.valResources = make([]*dockertest.Resource, len(s.chain.validators))
@@ -482,7 +482,7 @@ func noRestart(config *docker.HostConfig) {
 	}
 }
 
-func (s *IntegrationTestSuite) logsByContainerID(id string) string {
+func (s *E2ETestSuite) logsByContainerID(id string) string {
 	var containerLogsBuf bytes.Buffer
 	s.Require().NoError(s.dockerPool.Client.Logs(
 		docker.LogsOptions{
@@ -496,7 +496,7 @@ func (s *IntegrationTestSuite) logsByContainerID(id string) string {
 	return containerLogsBuf.String()
 }
 
-func (s *IntegrationTestSuite) TestBasicChain() {
+func (s *E2ETestSuite) TestBasicChain() {
 	// this test verifies that the setup functions all operate as expected
 	s.Run("bring up basic chain", func() {
 	})

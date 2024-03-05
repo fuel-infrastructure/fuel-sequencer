@@ -1,4 +1,4 @@
-package e2e
+package testsuite
 
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
