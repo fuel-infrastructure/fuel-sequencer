@@ -43,15 +43,20 @@ func NewFuelSequencerProposalHandler(
 // 2. Transaction size cannot exceed RequestPrepareProposal.MaxTxBytes
 // 3. Block gas cannot exceed BlockParams.MaxGas
 //
-// Note: Here we are assuming that the NoOp mempool is to be used, meaning that txs requested from CometBFT will simply
+// Notes:
+//
+// 1. Here we are assuming that the NoOp mempool is to be used, meaning that txs requested from CometBFT will simply
 // be returned and not verified. It is recommended that the ProcessProposalHandler implements any verifications that
 // PrepareProposalHandler implements, therefore, for the NoOp mempool, ProcessProposalHandler shouldn't implement any
 // verification checks. In the case that a different mempool is implemented we must perform extra tx verification checks
 // in PrepareProposalHandler and ProcessProposalHandler because we are no longer relying on CometBFT, and thus we must
 // ensure that we are including valid transactions.
-//
 // Please refer to the following default handler implementation on Cosmos SDK main branch if in doubt:
 // https://github.com/cosmos/cosmos-sdk/blob/a86a83f761383c1ea434925cddd199cd5a271303/baseapp/abci_utils.go#L199-L303
+//
+// 2. Any error raised by PrepareProposalHandler is caught in baseapp/abci.go, resulting into the req.Txs to be returned
+// to CometBFT.
+// Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
 		// TODO: This should be adapted as per application requirements
@@ -103,7 +108,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			}
 		}
 
-		h.logger.Info("prepared proposal", "txs", len(h.txSelector.SelectedTxs(ctx)))
+		h.logger.Debug("prepared proposal", "txs", len(h.txSelector.SelectedTxs(ctx)))
 
 		return &abci.ResponsePrepareProposal{Txs: h.txSelector.SelectedTxs(ctx)}, nil
 	}
@@ -142,7 +147,9 @@ func getNumberFromServer() (int, error) {
 // 1. Must be deterministic
 // 2. Block gas cannot exceed BlockParams.MaxGas
 //
-// Note: Here we are assuming that the NoOp mempool is to be used, meaning that PrepareProposal may include some txs
+// Notes:
+//
+// 1. Here we are assuming that the NoOp mempool is to be used, meaning that PrepareProposal may include some txs
 // that might fail verification. The logic implemented here attempts to perform the exact verifications performed by the
 // PrepareProposalHandler as suggested by the Cosmos SDK documentation. Unfortunately, we cannot verify whether
 // transaction sizes exceed the limit because MaxTxBytes is not part of abci.RequestProcessProposal. That being said, it
@@ -150,9 +157,12 @@ func getNumberFromServer() (int, error) {
 // It is also important to highlight that the default implementation of ProcessProposalHandler doesn't perform any
 // verifications for NoOp mempools, however, we have included a block gas max limit check to follow recommendations
 // stated in the documentation.
-//
 // Please refer to the following default handler implementation on Cosmos SDK main branch if in doubt:
 // https://github.com/cosmos/cosmos-sdk/blob/a86a83f761383c1ea434925cddd199cd5a271303/baseapp/abci_utils.go#L305-L352
+//
+// 2. Any error raised by ProcessProposalHandler is caught in baseapp/abci.go, resulting into the application to reject
+// the block proposal.
+// Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
 		// TODO: This should be adapted as per application requirements
@@ -223,7 +233,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			}
 		}
 
-		h.logger.Info("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
+		h.logger.Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
@@ -260,7 +270,7 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 
 	// TODO: Custom logic like storing "special" transactions in state
 
-	h.logger.Info("finished executing pre-block hook")
+	h.logger.Debug("finished executing pre-block hook")
 
 	return &sdk.ResponsePreBlock{}, nil
 }

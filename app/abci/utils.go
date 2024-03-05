@@ -11,27 +11,17 @@ import (
 // TxSelector defines a helper type that assists in selecting transactions during mempool transaction selection in
 // PrepareProposal. It keeps track of the total number of bytes and total gas of the selected transactions. It also
 // keeps track of the selected transactions themselves.
-// NOTE: This functionality was copied over from the Cosmos SDK because we need special handling for injected
-// transactions that do not implement sdk.Tx. If this requirement is no longer needed we should remove this struct and
-// make use of the default Cosmos SDK implementation.
+// NOTE: This struct embeds Cosmos SDK functionality because we only need special handling for injected transactions
+// that do not implement sdk.Tx. If this special handling is no longer needed in the future we should remove all
+// functionality and make use of the default Cosmos SDK implementation.
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a86a83f761383c1ea434925cddd199cd5a271303/baseapp/abci_utils.go#L390-L454
 type TxSelector interface {
-	// SelectedTxs should return a copy of the selected transactions.
-	SelectedTxs(ctx context.Context) [][]byte
-
-	// Clear should clear the TxSelector, nulling out all relevant fields.
-	Clear()
-
-	// SelectTxForProposal should attempt to select a transaction for inclusion in a proposal based on inclusion
-	// criteria defined by the TxSelector. It must return <true> if the caller should halt the transaction selection
-	// loop (typically over a mempool) or <false> otherwise.
-	SelectTxForProposal(ctx context.Context, maxTxBytes, maxBlockGas uint64, memTx sdk.Tx, txBz []byte) bool
+	baseapp.TxSelector
 
 	// SelectNonSDKTxForProposal should attempt to select a transaction that doesn't implement sdk.Tx for inclusion in a
-	// proposal based on inclusion criteria defined by the TxSelector. It must return <true> if the transaction was
-	// added to the block proposal or <false> otherwise. NOTE: This has different return conditions than
-	// SelectTxForProposal because in our application we need to know whether a non-sdk.Tx has been included in the
-	// block or not.
+	// proposal. It must return <true> if the transaction is added to the block proposal or <false> otherwise. NOTE:
+	// This has different return conditions than baseapp.TxSelector.SelectTxForProposal because in our application we
+	// need to know whether a non-sdk.Tx has been included in the block or not.
 	SelectNonSDKTxForProposal(_ context.Context, maxTxBytes uint64, veBz []byte) bool
 }
 
