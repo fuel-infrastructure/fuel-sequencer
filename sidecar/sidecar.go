@@ -189,8 +189,25 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Determine the range of blocks to query.
+	currentBlockNumber, err := s.ethClient.BlockNumber(ctx)
+	if err != nil {
+		s.logger.Error("Error fetching current block number", zap.Error(err))
+		return
+	}
+
+	// Return if there is no update for the ETH block height.
+	if currentBlockNumber <= s.lastQueryBlock.Uint64() {
+		s.logger.Debug(
+			"Current block number already processed.",
+			zap.String("current block number", s.lastQueryBlock.String()),
+		)
+		return
+	}
+
 	logs, err := s.ethClient.FilterLogs(ctx, ethereum.FilterQuery{
 		FromBlock: s.lastQueryBlock,
+		ToBlock:   new(big.Int).SetUint64(currentBlockNumber),
 		Addresses: []common.Address{s.contractAddress},
 	})
 	if err != nil {
@@ -198,19 +215,17 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 		return
 	}
 
-	if len(logs) == 0 {
-		return
+	// Process the logs if any are found.
+	if len(logs) > 0 {
+		if err := s.processLogs(logs); err != nil {
+			s.logger.Error("Failed to process logs", zap.Error(err))
+			return
+		}
 	}
 
-	err = s.processLogs(logs)
-	if err != nil {
-		s.logger.Error("Error fetching logs: Logs are not sequential", zap.Error(err))
-		return
-	}
-
-	// Update the last queried block to the block number of the last log + 1
-	lastLogBlock := logs[len(logs)-1].BlockNumber
-	s.lastQueryBlock = big.NewInt(0).SetUint64(lastLogBlock + 1)
+	// Regardless of whether logs were found, update the last queried block to the current block number,
+	// since we have now queried up to this block.
+	s.lastQueryBlock = new(big.Int).SetUint64(currentBlockNumber)
 }
 
 // processLogs processes each log in a sequential order stores it.
