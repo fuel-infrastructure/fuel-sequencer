@@ -81,6 +81,10 @@ validators:
       address: 0.0.0.0:9090
 genesis:
   chain_id: "fuelsequencer-1"
+  consensus:
+    params:
+      abci:
+        vote_extensions_enable_height: "1"
   app_state:
     crisis:
       constant_fee:
