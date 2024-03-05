@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -10,31 +12,52 @@ import (
 func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: Confirm signer is the module
+	// Confirm that the msg signer is the bridge module's authority address (governance).
+	if k.GetAuthority() != msg.Authority {
+		return nil, errors.Wrapf(
+			types.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
+		)
+	}
 
-	// TODO: Confirm that supply_delta_period is non-zero
+	// Confirm that BridgeParams.SupplyDeltaPeriod is non-zero, otherwise we can't calculate the expected height at
+	// which a MsgSupplyDelta is to be sent.
+	supplyDeltaPeriod := k.GetParams(ctx).SupplyDeltaPeriod
+	if supplyDeltaPeriod == 0 {
+		return nil, errors.Wrapf(types.ErrInvalidSupplyDeltaPeriod, "SupplyDeltaPeriod cannot be zero")
+	}
 
-	// TODO: Check if height from ctx % params.supply_delta_period is 0 to confirm that it was injected correctly.
+	// Confirm that MsgSupplyDelta was injected at the correct height.
+	blockHeight := ctx.BlockHeight()
+	if (uint64(blockHeight) % supplyDeltaPeriod) != 0 {
+		return nil, errors.Wrapf(
+			types.ErrUnexpectedOperation, "MsgSupplyDelta cannot be submitted at height %d", blockHeight,
+		)
+	}
 
-	// TODO: Handling the message and construct full response
-	_ = ctx
+	// Increment LastEthereumNonce and get the result so that it is added to MsgSupplyDeltaResponse.
+	nonce := k.MustIncrAndGetLastEthereumNonce(ctx)
 
-	// TODO: Refactor to get and increment (see AddRaw postfixed)
-	nonce := k.MustGetLastEthereumNonce(ctx).AddRaw(1)
-	k.SetLastEthereumNonce(ctx, nonce)
+	// Calculate the supply delta to be reported.
+	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
+	supplyDelta := supplyDeltaInfo.Delta.Add(supplyDeltaInfo.Offset)
 
-	// TODO: Implement this logic
-	//     deltaToReport = delta + offset
+	// If the supply delta is zero, then there is either nothing to report to Ethereum or MsgSupplyDelta was submitted
+	// at a valid height by a user. We should fail in both scenarios.
+	if supplyDelta == sdkmath.ZeroInt() {
+		return nil, errors.Wrapf(types.ErrInvalidSupplyDeltaValue, "cannot report 0 supply delta to Ethereum")
+	}
 
-	// TODO: Reject message if deltaToReport is zero (just in case user submits msgSupplyDelta at the same height of
-	//     : required height to be injected.
+	// Reset SupplyDeltaInfo
+	k.MustResetSupplyDeltaInfo(ctx)
 
-	// TODO: Set offset and delta to zero
-
-	// TODO: Add event, we can have one event that reports supply
+	// Emit event
+	err := ctx.EventManager().EmitTypedEvent(&types.EventSupplyDeltaReported{SupplyDelta: supplyDelta, Nonce: nonce})
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.MsgSupplyDeltaResponse{
-		Nonce: nonce,
-		// SupplyDelta: Put negative or positive depending on mint or burn
+		Nonce:       nonce,
+		SupplyDelta: supplyDelta,
 	}, nil
 }
