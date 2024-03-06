@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,7 +26,7 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 		{
 			"error sending coins from account to module",
 			false,
-			"send coins error",
+			fmt.Sprintf("cannot send tokens from %s to bridge module: spendable balance 0fuel is smaller than 200fuel", withdrawer),
 		},
 	}
 
