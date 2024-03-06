@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -43,7 +42,7 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 
 	// If the supply delta is zero, then there is either nothing to report to Ethereum or MsgSupplyDelta was submitted
 	// at a valid height by a user. We should fail in both scenarios.
-	if supplyDelta == sdkmath.ZeroInt() {
+	if supplyDelta.IsZero() {
 		return nil, errors.Wrapf(types.ErrInvalidSupplyDeltaValue, "cannot report 0 supply delta to Ethereum")
 	}
 
