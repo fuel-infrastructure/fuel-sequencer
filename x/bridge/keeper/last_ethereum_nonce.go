@@ -47,9 +47,9 @@ func (k Keeper) MustGetLastEthereumNonce(ctx context.Context) math.Int {
 	return val
 }
 
-// MustIncrAndGetLastEthereumNonce increments LastEthereumNonce by one and returns the result. It panics if
-// LastEthereumNonce is not found
-func (k Keeper) MustIncrAndGetLastEthereumNonce(ctx context.Context) math.Int {
+// MustGetNextEthereumNonce increments LastEthereumNonce by one and returns the result. It panics if LastEthereumNonce
+// is not found
+func (k Keeper) MustGetNextEthereumNonce(ctx context.Context) math.Int {
 	val, found := k.GetLastEthereumNonce(ctx)
 	if !found {
 		panic("expected to find LastEthereumNonce")

@@ -34,7 +34,7 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	}
 
 	// Increment LastEthereumNonce and get the result so that it is added to MsgSupplyDeltaResponse.
-	nonce := k.MustIncrAndGetLastEthereumNonce(ctx)
+	nonce := k.MustGetNextEthereumNonce(ctx)
 
 	// Calculate the supply delta to be reported.
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
