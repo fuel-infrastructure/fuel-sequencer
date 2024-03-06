@@ -14,13 +14,11 @@ func NewMsgSupplyDelta(authority string) *MsgSupplyDelta {
 	}
 }
 
-func (msg *MsgSupplyDelta) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+func (m *MsgSupplyDelta) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
-
-	// TODO: validate other fields if necessary
 
 	return nil
 }
