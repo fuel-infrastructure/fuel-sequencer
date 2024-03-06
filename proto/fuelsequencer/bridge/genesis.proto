@@ -39,4 +39,3 @@ message GenesisState {
     (amino.dont_omitempty) = true
   ];
 }
-
