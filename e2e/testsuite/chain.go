@@ -1,33 +1,49 @@
 package testsuite
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"cosmossdk.io/x/evidence"
+	"cosmossdk.io/x/upgrade"
 	cmrand "github.com/cometbft/cometbft/libs/rand"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	sdkTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
+	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 )
 
 const (
 	keyringPassphrase = "testpassphrase"
 	keyringAppName    = "testnet"
+
+	tmpDirPattern = "fuelsequencer-e2e-testnet"
+
+	validatorKeyName       = "val"
+	validatorMonikerPrefix = "validator"
 )
 
 var (
@@ -36,10 +52,23 @@ var (
 )
 
 func init() {
-	// TODO: might need to use custom test encoding config to register our custom stuff
-	bankModule := bank.AppModuleBasic{}
-	authModule := auth.AppModuleBasic{}
-	encodingConfig = testutil.MakeTestEncodingConfig(bankModule, authModule)
+	// TODO: is this the correct way?
+	modules := []module.AppModuleBasic{
+		auth.AppModuleBasic{},
+		bank.AppModuleBasic{},
+		staking.AppModuleBasic{},
+		distribution.AppModuleBasic{},
+		consensus.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+		mint.AppModuleBasic{},
+		gov.AppModuleBasic{},
+		crisis.AppModuleBasic{},
+		upgrade.AppModuleBasic{},
+		evidence.AppModuleBasic{},
+		bridge.AppModuleBasic{},
+		sequencing.AppModuleBasic{},
+	}
+	encodingConfig = testutil.MakeTestEncodingConfig(modules...)
 
 	encodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*sdk.Msg)(nil),
@@ -60,6 +89,9 @@ type chain struct {
 	id         string
 	numNodes   int
 	validators []*validator
+
+	grpcClients *GRPCClients
+	rpcClient   *rpchttp.HTTP
 }
 
 func newChain(numNodes int) (*chain, error) {
@@ -72,7 +104,7 @@ func newChain(numNodes int) (*chain, error) {
 		}
 	}
 
-	tmpDir, err := os.MkdirTemp(dir, "fuelsequencer-e2e-testnet")
+	tmpDir, err := os.MkdirTemp(dir, tmpDirPattern)
 	if err != nil {
 		return nil, err
 	}
@@ -106,11 +138,11 @@ func (c *chain) createAndInitFuelSequencerValidators(mnemonics []string) error {
 
 		// create keys
 		if useMnemonics {
-			if err := node.createKey("val"); err != nil {
+			if err := node.createKeyFromMnemonic(validatorKeyName, mnemonics[i], ""); err != nil {
 				return err
 			}
 		} else {
-			if err := node.createKeyFromMnemonic("val", mnemonics[i], ""); err != nil {
+			if err := node.createKey(validatorKeyName); err != nil {
 				return err
 			}
 		}
@@ -129,29 +161,15 @@ func (c *chain) createFuelSequencerValidator(index int) *validator {
 	return &validator{
 		chain:   c,
 		index:   index,
-		moniker: "fuelsequencer",
+		moniker: fmt.Sprintf("%s%d", validatorMonikerPrefix, index),
 	}
 }
 
-func (c *chain) clientContext(nodeURI string, kb *keyring.Keyring, fromName string, fromAddr sdk.AccAddress) (*client.Context, error) { //nolint:unparam
-	amino := codec.NewLegacyAmino()
-	interfaceRegistry := sdkTypes.NewInterfaceRegistry()
-	interfaceRegistry.RegisterImplementations((*sdk.Msg)(nil),
-		&stakingtypes.MsgCreateValidator{},
-	)
-	interfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &secp256k1.PubKey{}, &ed25519.PubKey{})
+func (c *chain) clientContext(
+	nodeURI string, kb *keyring.Keyring, fromName string, fromAddr sdk.AccAddress,
+) (*client.Context, error) { //nolint:unparam
 
-	protoCodec := codec.NewProtoCodec(interfaceRegistry)
-	txCfg := sdkTx.NewTxConfig(protoCodec, sdkTx.DefaultSignModes)
-
-	encodingConfig := testutil.TestEncodingConfig{
-		InterfaceRegistry: interfaceRegistry,
-		Codec:             protoCodec,
-		TxConfig:          txCfg,
-		Amino:             amino,
-	}
-	// TODO: simapp.ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	// TODO: simapp.ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	// TODO: if anything goes wrong with unregistered types, might need to re-add some stuff to this function
 
 	rpcClient, err := rpchttp.New(nodeURI, "/websocket")
 	if err != nil {
@@ -160,7 +178,7 @@ func (c *chain) clientContext(nodeURI string, kb *keyring.Keyring, fromName stri
 
 	clientContext := client.Context{}.
 		WithChainID(c.id).
-		WithCodec(protoCodec).
+		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -211,7 +229,8 @@ func (c *chain) sendMsgs(clientCtx client.Context, msgs ...sdk.Msg) (*sdk.TxResp
 		}
 	}
 
-	txf = txf.WithFees("246913560ufuel")
+	// TODO: make customisable
+	txf = txf.WithFees(fmt.Sprintf("246913560%s", BridgeDenom))
 
 	err := tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgs...)
 	if err != nil {
@@ -231,4 +250,13 @@ func (c *chain) sendMsgs(clientCtx client.Context, msgs ...sdk.Msg) (*sdk.TxResp
 	}
 
 	return &res, nil
+}
+
+func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
+	res, err := c.rpcClient.Status(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("rpc client status: %w", err)
+	}
+	height := res.SyncInfo.LatestBlockHeight
+	return uint64(height), nil
 }

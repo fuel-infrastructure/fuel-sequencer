@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 
 	"cosmossdk.io/math"
@@ -43,11 +42,11 @@ func init() {
 	app.InitCometBFTConfig()
 	app.InitAppConfig()
 
-	sdk.DefaultBondDenom = bridgeDenom
+	sdk.DefaultBondDenom = BridgeDenom
 }
 
 const (
-	bridgeDenom  = "ufuel"
+	BridgeDenom  = "ufuel"
 	minGasPrices = "0.01"
 
 	// Balance and staked amount per validator
@@ -57,23 +56,37 @@ const (
 	fuelSequencerDockerImageRepo = "fuel-infrastructure/fuel-sequencer"
 	fuelSequencerDockerImageTag  = "latest"
 
+	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
+	fuelSequencerBinary               = "fuelsequencerd"
+
 	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
 	ethereumDockerImageTag  = "latest"
 )
 
 var (
 	// Balance and staked amount per validator
-	initBalanceStr = fmt.Sprintf("%d%s", initBalance, bridgeDenom)
-	initStakedCoin = sdk.NewInt64Coin(bridgeDenom, initStaked)
+	InitBalanceCoin = sdk.NewInt64Coin(BridgeDenom, initBalance)
+	InitStakedCoin  = sdk.NewInt64Coin(BridgeDenom, initStaked)
 
 	// MNEMONICS dictates how many Sequencer nodes will be created by specifying their mnemonic.
 	// The first mnemonic is reused for the Ethereum validator mnemonic.
 	MNEMONICS = []string{
-		"test test test test test test test test test test test junk", // should match the one on test-contracts
-		"receive roof marine sure lady hundred sea enact exist place bean wagon kingdom betray science photo loop funny bargain floor suspect only strike endless",
-		"march carpet enact kiss tribe plastic wash enter index lift topic riot try juice replace supreme original shift hover adapt mutual holiday manual nut",
-		//"assault section bleak gadget venture ship oblige pave fabric more initial april dutch scene parade shallow educate gesture lunar match patch hawk member problem",
-		//"say monitor orient heart super local purse cricket caution primary bring insane road expect rather help two extend own execute throw nation plunge subject",
+		// should match the one on test-contracts
+		"test test test test test test test test test test test junk",
+		// alice
+		"dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence",
+		// bob
+		"gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage",
+	}
+
+	// ADDRESSES are the FuelSequencer addresses derived from the above MNEMONICS.
+	ADDRESSES = []string{
+		// first validator
+		"fuelsequencer15yk64u7zc9g9k2yr2wmzeva5qgwxps6y3z4xeu",
+		// alice
+		"fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+		// bob
+		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 	}
 )
 
@@ -87,10 +100,10 @@ type E2ETestSuite struct {
 	valResources  []*dockertest.Resource
 }
 
-func TestE2ETestSuite(t *testing.T) {
-	// TODO: should we get this to be runnable?
-	suite.Run(t, new(E2ETestSuite))
-}
+// TODO: should we get this to be runnable?
+//func TestE2ETestSuite(t *testing.T) {
+//	suite.Run(t, new(E2ETestSuite))
+//}
 
 func (s *E2ETestSuite) SetupSuite() {
 	s.T().Log("setting up E2E test suite...")
@@ -118,6 +131,10 @@ func (s *E2ETestSuite) SetupSuite() {
 
 	// container infrastructure
 	s.runFuelSequencerValidators()
+
+	// set up clients
+	s.initGRPCClients()
+	s.initRPCClient()
 }
 
 func (s *E2ETestSuite) TearDownSuite() {
@@ -152,7 +169,7 @@ func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
 	val0ConfigDir := s.chain.validators[0].configDir()
 	for _, val := range s.chain.validators {
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.address()),
+			addGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.address()),
 		)
 	}
 
@@ -199,8 +216,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// set short voting period to allow gov proposals in tests
 	seconds20 := time.Second * 20
 	govGenState.Params.VotingPeriod = &seconds20
-	govGenState.Params.MinDeposit = sdk.Coins{{Denom: bridgeDenom, Amount: math.OneInt()}}
-	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: bridgeDenom, Amount: math.OneInt()}}
+	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
+	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
 	bz, err := cdc.MarshalJSON(&govGenState)
 	s.Require().NoError(err)
 	appGenState[govtypes.ModuleName] = bz
@@ -227,14 +244,14 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	var bankGenState banktypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
 	genesisSupply := int64(len(s.chain.validators) * initBalance)
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(bridgeDenom, math.NewInt(genesisSupply)))
+	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
 	bz, err = cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
-	bridgeGenState.Params.BridgeDenom = bridgeDenom
+	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz
@@ -245,7 +262,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// generate genesis txs
 	genTxs := make([]json.RawMessage, len(s.chain.validators))
 	for i, val := range s.chain.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(initStakedCoin)
+		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
 		s.Require().NoError(err)
 
 		signedTx, err := val.signMsg(createValmsg)
@@ -321,8 +338,10 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 
 		appConfig := srvconfig.DefaultConfig()
 		appConfig.API.Enable = true
+		appConfig.API.Address = "tcp://0.0.0.0:1317"
+		appConfig.GRPC.Address = "0.0.0.0:9090"
 		appConfig.Pruning = "nothing"
-		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, bridgeDenom)
+		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
 
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
@@ -393,10 +412,9 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 			Repository: fuelSequencerDockerImageRepo,
 			Tag:        fuelSequencerDockerImageTag,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/home/fuelsequencer/.fuelsequencerd", val.configDir()),
+				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
 			},
-			// TODO: why do we have to specify home explicitly? what's the default home?
-			Entrypoint: []string{"fuelsequencerd", "start", "--trace=true", "--home", "/home/fuelsequencer/.fuelsequencerd"},
+			Entrypoint: []string{fuelSequencerBinary, "start", "--trace=true"},
 		}
 
 		// expose the first validator for debugging and communication
@@ -408,6 +426,10 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 				"26657/tcp": {{HostIP: "", HostPort: "26657"}},
 			}
 			runOpts.ExposedPorts = []string{"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp"}
+
+			val.hostRPCPort = "tcp://localhost:26657"
+			val.hostAPIPort = "tcp://localhost:1317"
+			val.hostGRPCPort = "localhost:9090"
 		}
 
 		resource, err := s.dockerPool.RunWithOptions(runOpts, noRestart)
@@ -479,8 +501,6 @@ func (s *E2ETestSuite) logsByContainerID(id string) string {
 	return containerLogsBuf.String()
 }
 
-func (s *E2ETestSuite) TestBasicChain() {
-	// this test verifies that the setup functions all operate as expected
-	s.Run("bring up basic chain", func() {
-	})
+func (s *E2ETestSuite) Ctx() context.Context {
+	return context.Background()
 }

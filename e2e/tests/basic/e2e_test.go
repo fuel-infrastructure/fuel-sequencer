@@ -16,7 +16,7 @@ func (s *BasicTestSuite) SetupTest() {
 		s.T().Skip()
 	}
 
-	//s.Reset()
+	// TODO: s.Reset()
 }
 
 func TestBasicTestSuite(t *testing.T) {
