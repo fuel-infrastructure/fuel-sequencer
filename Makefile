@@ -316,19 +316,30 @@ run-docker-container:
     		${DOCKER_IMAGE_NAME}:latest
 
 start-docker-container:
-	@echo "🤖 Starting Docker image..."
+	@echo "🤖 Starting Docker container..."
 	@docker start $(DOCKER_CONTAINER_NAME)
-	@echo "🤖 Started Docker image!"
+	@echo "✅ Started Docker container!"
 
 stop-docker-container:
-	@echo "🤖 Stopping Docker image..."
+	@echo "🤖 Stopping Docker container..."
 	@docker stop $(DOCKER_CONTAINER_NAME)
-	@echo "🤖 Stopped Docker image!"
+	@echo "✅ Stopped Docker container!"
 
 remove-docker-container:
-	@echo "🤖 Removing Docker image..."
+	@echo "🤖 Removing Docker container..."
 	@docker rm -v $(DOCKER_CONTAINER_NAME)
-	@echo "🤖 Removed Docker image!"
+	@echo "✅ Removed Docker container!"
 
 follow-docker-logs:
 	@docker logs -f $(DOCKER_CONTAINER_NAME)
+
+###############################################################################
+###                                   E2E                                   ###
+###############################################################################
+
+build-ethereum-docker-image:
+	@echo "🤖 Updating git submodules..."
+	@git submodule update --remote
+	@# No need to add echo, since `make build` has its own.
+	@(cd e2e/test-contracts && make build)
+	@# No need to add echo, since `make build` has its own.
