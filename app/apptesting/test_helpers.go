@@ -1,4 +1,4 @@
-package app
+package apptesting
 
 import (
 	"encoding/json"
@@ -7,6 +7,8 @@ import (
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtypes "github.com/cometbft/cometbft/types"
+	fuelsequencerapp "github.com/fuel-infrastructure/fuel-sequencer/app"
+
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -24,20 +26,26 @@ const (
 	TestAppSidecarEnabled = false
 )
 
+// This function is required so that configuration functions are called once in testing
+func init() {
+	fuelsequencerapp.InitSDKConfig()
+	fuelsequencerapp.InitCometBFTConfig()
+	fuelsequencerapp.InitAppConfig()
+
+	// This is set to prevent the usage of cached addresses with a cosmos prefix for testing purposes
+	sdk.SetAddrCacheEnabled(false)
+}
+
 // SetupTestingApp initializes a new FuelSequencerApp
 // Note: use NewTMLogger(NewSyncWriter(Stdout)) instead of NewNopLogger if you want to see test logs
-func SetupTestingApp(isCheckTx bool) *FuelSequencerApp {
-	InitSDKConfig()
-	InitCometBFTConfig()
-	InitAppConfig()
-
+func SetupTestingApp(isCheckTx bool) *fuelsequencerapp.FuelSequencerApp {
 	db := dbm.NewMemDB()
 	appOpts := simtestutil.AppOptionsMap{
 		flags.FlagInitHeight:             TestAppStartingHeight,
 		flags.FlagChainID:                TestAppChainID,
 		sidecarconfig.FlagSidecarEnabled: TestAppSidecarEnabled,
 	}
-	app, err := NewFuelSequencerApp(
+	app, err := fuelsequencerapp.NewFuelSequencerApp(
 		log.NewNopLogger(),
 		db,
 		nil,
@@ -62,7 +70,7 @@ func SetupTestingApp(isCheckTx bool) *FuelSequencerApp {
 
 var defaultGenesisBz []byte
 
-func getDefaultGenesisStateBytes(app *FuelSequencerApp) []byte {
+func getDefaultGenesisStateBytes(app *fuelsequencerapp.FuelSequencerApp) []byte {
 	if len(defaultGenesisBz) == 0 {
 		privVal := mock.NewPV()
 		pubKey, err := privVal.GetPubKey()

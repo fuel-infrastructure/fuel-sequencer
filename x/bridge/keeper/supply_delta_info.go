@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,6 +39,20 @@ func (k Keeper) MustGetSupplyDeltaInfo(ctx context.Context) types.SupplyDeltaInf
 		panic("expected to find supply delta info")
 	}
 	return val
+}
+
+// MustResetSupplyDeltaInfo resets the offset and delta values. NOTE: LastSupply is not safe to reset as this needs to
+// be continuously tracked by the blockchain. MustResetSupplyDeltaInfo panics if SupplyDeltaInfo is not found
+func (k Keeper) MustResetSupplyDeltaInfo(ctx context.Context) {
+	val, found := k.GetSupplyDeltaInfo(ctx)
+	if !found {
+		panic("expected to find supply delta info")
+	}
+
+	val.Delta = sdkmath.ZeroInt()
+	val.Offset = sdkmath.ZeroInt()
+
+	k.SetSupplyDeltaInfo(ctx, val)
 }
 
 // RemoveSupplyDeltaInfo removes supplyDeltaInfo from the store

@@ -44,7 +44,7 @@ type KeeperTestHelper struct {
 
 // Setup sets up basic environment for suite (App, Ctx, and test accounts) with Now() as block time
 func (s *KeeperTestHelper) Setup() {
-	s.App = app.SetupTestingApp(false)
+	s.App = SetupTestingApp(false)
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
 		Ctx:             s.Ctx().WithBlockTime(time.Now().UTC()),
