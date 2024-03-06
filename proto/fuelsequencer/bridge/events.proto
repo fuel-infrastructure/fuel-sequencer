@@ -1,0 +1,24 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+message EventSupplyDeltaReported {
+
+  // supply_delta is the latest supply delta reported to Ethereum.
+  string supply_delta = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // nonce is the latest nonce reported to Ethereum.
+  string nonce = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}

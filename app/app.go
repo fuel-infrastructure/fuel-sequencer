@@ -329,6 +329,8 @@ func NewFuelSequencerApp(
 	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
 	app.SetMempool(mempool.NoOpMempool{})
 
+	// Register legacy modules
+
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		return nil, err
@@ -440,7 +442,9 @@ func (app *FuelSequencerApp) Close() error {
 	// close the Sidecar service
 	if app.sidecar != nil {
 		app.Logger().Info("stopping Sidecar")
-		_ = app.sidecar.Stop()
+		if err := app.sidecar.Stop(); err != nil {
+			app.Logger().Error("error when stopping sidecar", "err", err)
+		}
 	}
 
 	return nil

@@ -4,7 +4,8 @@ package fuelsequencer.bridge;
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 /**
-TODO: Adapt EthEventsTx as per application requirements. Please use sidecar definitions.
+TODO: Adapt EthEventsTx as per application requirements. Please use sidecar
+definitions.
 */
 
 message EthEventsTx {

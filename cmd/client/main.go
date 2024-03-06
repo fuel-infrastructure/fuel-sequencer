@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 var (
@@ -45,10 +45,13 @@ func main() {
 	defer conn.Close()
 
 	// Create a new client
-	client := types.NewSidecarClient(conn)
+	client := sidecartypes.NewSidecarClient(conn)
 
 	log.Printf("Calling GetBlockEvents RPC for block number %s...\n", *blockNumber)
-	resp, err := client.GetBlockEvents(context.Background(), &types.QueryBlockEventsRequest{BlockNumber: *blockNumber})
+	resp, err := client.GetBlockEvents(
+		context.Background(),
+		&sidecartypes.QueryBlockEventsRequest{BlockNumber: *blockNumber},
+	)
 	if err != nil {
 		log.Fatalf("could not get block events: %v", err) //nolint
 	}

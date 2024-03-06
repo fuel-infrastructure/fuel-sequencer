@@ -30,7 +30,7 @@ type GRPCClient struct {
 	client sidecartypes.SidecarClient
 	// underlying grpc connection
 	conn *grpc.ClientConn
-	// timeout for the client, Price requests will block for this duration.
+	// timeout for the client, event requests will block for this duration.
 	timeout time.Duration
 }
 
