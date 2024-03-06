@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	math "cosmossdk.io/math"
 	types "github.com/cosmos/cosmos-sdk/types"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -131,4 +132,53 @@ func (m *MockParamSubspace) Set(arg0 context.Context, arg1 []byte, arg2 interfac
 func (mr *MockParamSubspaceMockRecorder) Set(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockParamSubspace)(nil).Set), arg0, arg1, arg2)
+}
+
+// MockBridgeKeeper is a mock of BridgeKeeper interface.
+type MockBridgeKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockBridgeKeeperMockRecorder
+}
+
+// MockBridgeKeeperMockRecorder is the mock recorder for MockBridgeKeeper.
+type MockBridgeKeeperMockRecorder struct {
+	mock *MockBridgeKeeper
+}
+
+// NewMockBridgeKeeper creates a new mock instance.
+func NewMockBridgeKeeper(ctrl *gomock.Controller) *MockBridgeKeeper {
+	mock := &MockBridgeKeeper{ctrl: ctrl}
+	mock.recorder = &MockBridgeKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockBridgeKeeper) EXPECT() *MockBridgeKeeperMockRecorder {
+	return m.recorder
+}
+
+// MustGetLastEthereumNonce mocks base method.
+func (m *MockBridgeKeeper) MustGetLastEthereumNonce(arg0 context.Context) math.Int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MustGetLastEthereumNonce", arg0)
+	ret0, _ := ret[0].(math.Int)
+	return ret0
+}
+
+// MustGetLastEthereumNonce indicates an expected call of MustGetLastEthereumNonce.
+func (mr *MockBridgeKeeperMockRecorder) MustGetLastEthereumNonce(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustGetLastEthereumNonce", reflect.TypeOf((*MockBridgeKeeper)(nil).MustGetLastEthereumNonce), arg0)
+}
+
+// SetLastEthereumNonce mocks base method.
+func (m *MockBridgeKeeper) SetLastEthereumNonce(arg0 context.Context, arg1 math.Int) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetLastEthereumNonce", arg0, arg1)
+}
+
+// SetLastEthereumNonce indicates an expected call of SetLastEthereumNonce.
+func (mr *MockBridgeKeeperMockRecorder) SetLastEthereumNonce(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastEthereumNonce", reflect.TypeOf((*MockBridgeKeeper)(nil).SetLastEthereumNonce), arg0, arg1)
 }
