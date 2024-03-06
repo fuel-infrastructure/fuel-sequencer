@@ -62,6 +62,12 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
+		// TODO: Tomorrow try to run a deployment instance of test contracts, connect sidecar and check if you can get
+		//     : the events successfully. Then try to unmarshal the events using proto to check that all is ok.
+		//response, err := h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"})
+		//h.logger.Info("try1", "ERR", err)
+		//h.logger.Info("try2", "RESPONSE", response)
+
 		// TODO: This should be adapted as per application requirements
 		ethEventsTx, err := h.generateEthEventsTx()
 		if err != nil {
