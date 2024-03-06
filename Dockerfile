@@ -35,6 +35,8 @@ FROM ${RUNNER_IMAGE}
 
 # Get the binary from the previous stage and add it to /usr/local/bin/fu
 COPY --from=builder /fuel-sequencer/build/fuelsequencerd /usr/local/bin/fuelsequencerd
+# Copy the bash script from the builder
+COPY --from=builder /fuel-sequencer/utils/node_and_sidecar.sh /usr/local/bin/node_and_sidecar
 
 # Install some packages and create a fuelsequencer user
 RUN apk add bash vim sudo dasel \
@@ -57,8 +59,5 @@ EXPOSE 26656
 EXPOSE 26657
 EXPOSE 1317
 
-# Set `fuelsequencerd` as the main execution binary.
-ENTRYPOINT ["fuelsequencerd"]
-
-# Default commands to be executed if not specified in docker run
-CMD ["start"]
+# Run the script when the container launches
+CMD ["node_and_sidecar"]

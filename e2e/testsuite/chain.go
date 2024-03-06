@@ -43,7 +43,7 @@ const (
 	tmpDirPattern = "fuelsequencer-e2e-testnet"
 
 	validatorKeyName       = "val"
-	validatorMonikerPrefix = "validator"
+	validatorMonikerPrefix = "fuelsequencer"
 )
 
 var (
@@ -161,7 +161,7 @@ func (c *chain) createFuelSequencerValidator(index int) *validator {
 	return &validator{
 		chain:   c,
 		index:   index,
-		moniker: fmt.Sprintf("%s%d", validatorMonikerPrefix, index),
+		moniker: validatorMonikerPrefix,
 	}
 }
 

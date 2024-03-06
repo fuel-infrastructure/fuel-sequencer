@@ -414,7 +414,8 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 			Mounts: []string{
 				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
 			},
-			Entrypoint: []string{fuelSequencerBinary, "start", "--trace=true"},
+			// Entrypoint disabled in favor of using node_and_sidecar.sh as an entrypoint
+			//Entrypoint: []string{fuelSequencerBinary, "start", "--trace=true"},
 		}
 
 		// expose the first validator for debugging and communication
