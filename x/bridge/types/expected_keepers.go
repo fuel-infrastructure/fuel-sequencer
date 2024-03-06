@@ -14,13 +14,8 @@ type AccountKeeper interface {
 
 // BankKeeper defines the expected interface for the Bank module.
 type BankKeeper interface {
-	// GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-	GetSupply(ctx sdk.Context, denom string) sdk.Coin
-
 	SpendableCoins(context.Context, sdk.AccAddress) sdk.Coins
-
-	// SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	// BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+	GetSupply(ctx context.Context, denom string) sdk.Coin
 	// Methods imported from bank should be defined here
 }
 

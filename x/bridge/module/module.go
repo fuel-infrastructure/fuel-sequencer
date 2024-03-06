@@ -23,7 +23,6 @@ import (
 	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bridge/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 var (
@@ -184,8 +183,8 @@ type ModuleInputs struct {
 	Config       *modulev1.Module
 	Logger       log.Logger
 
-	AccountKeeper bridgetypes.AccountKeeper
-	BankKeeper    bridgetypes.BankKeeper
+	AccountKeeper types.AccountKeeper
+	BankKeeper    types.BankKeeper
 }
 
 type ModuleOutputs struct {
