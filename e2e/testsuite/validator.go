@@ -16,7 +16,6 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/privval"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -85,11 +84,7 @@ func (v *validator) init() error {
 	}
 
 	db := dbm.NewMemDB()
-	appOpts := simtestutil.AppOptionsMap{
-		flags.FlagInitHeight:             fuelsequencerapp.TestAppStartingHeight, // TODO: from integration_test instead
-		flags.FlagChainID:                fuelsequencerapp.TestAppChainID,        // TODO: from integration_test instead
-		sidecarconfig.FlagSidecarEnabled: false,
-	}
+	appOpts := simtestutil.AppOptionsMap{sidecarconfig.FlagSidecarEnabled: false}
 	app, err := fuelsequencerapp.NewFuelSequencerApp(log.NewNopLogger(), db, nil, true, appOpts)
 	if err != nil {
 		panic(err)
@@ -269,37 +264,6 @@ func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
 		minSelfDelegation,
 	)
 }
-
-//func (v *validator) buildDelegateKeysMsg() sdk.Msg {
-//	privKeyBz, err := hexutil.Decode(v.ethereumKey.privateKey)
-//	if err != nil {
-//		panic(fmt.Sprintf("failed to HEX decode private key: %s", err))
-//	}
-//
-//	privKey, err := crypto.ToECDSA(privKeyBz)
-//	if err != nil {
-//		panic(fmt.Sprintf("failed to convert private key: %s", err))
-//	}
-//
-//	signMsg := gravitytypes.DelegateKeysSignMsg{
-//		ValidatorAddress: sdk.ValAddress(v.address()).String(),
-//		Nonce:            0,
-//	}
-//
-//	signMsgBz := cdc.MustMarshal(&signMsg)
-//	hash := crypto.Keccak256Hash(signMsgBz).Bytes()
-//	ethSig, err := gravitytypes.NewEthereumSignature(hash, privKey)
-//	if err != nil {
-//		panic(fmt.Sprintf("failed to create Ethereum signature: %s", err))
-//	}
-//
-//	return gravitytypes.NewMsgDelegateKeys(
-//		sdk.ValAddress(v.address()),
-//		v.chain.orchestrators[v.index].address(),
-//		v.ethereumKey.address,
-//		ethSig,
-//	)
-//}
 
 func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
