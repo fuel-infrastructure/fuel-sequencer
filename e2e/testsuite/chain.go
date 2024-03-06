@@ -58,10 +58,11 @@ func init() {
 type chain struct {
 	dataDir    string
 	id         string
+	numNodes   int
 	validators []*validator
 }
 
-func newChain() (*chain, error) {
+func newChain(numNodes int) (*chain, error) {
 	var dir string
 	var err error
 	if _, found := os.LookupEnv("CI"); found {
@@ -77,8 +78,9 @@ func newChain() (*chain, error) {
 	}
 
 	return &chain{
-		id:      "chain-" + cmrand.NewRand().Str(6),
-		dataDir: tmpDir,
+		id:       "chain-" + cmrand.NewRand().Str(6),
+		dataDir:  tmpDir,
+		numNodes: numNodes,
 	}, nil
 }
 
@@ -86,9 +88,14 @@ func (c *chain) configDir() string {
 	return fmt.Sprintf("%s/%s", c.dataDir, c.id)
 }
 
-func (c *chain) createAndInitValidators(count int) error { //nolint:unused
-	for i := 0; i < count; i++ {
-		node := c.createValidator(i)
+// createAndInitFuelSequencerValidators initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
+func (c *chain) createAndInitFuelSequencerValidators(mnemonics []string) error {
+
+	// Determine whether to use mnemonics.
+	useMnemonics := len(mnemonics) > 0
+
+	for i := 0; i < c.numNodes; i++ {
+		node := c.createFuelSequencerValidator(i)
 
 		// generate genesis files
 		if err := node.init(); err != nil {
@@ -98,8 +105,14 @@ func (c *chain) createAndInitValidators(count int) error { //nolint:unused
 		c.validators = append(c.validators, node)
 
 		// create keys
-		if err := node.createKey("val"); err != nil {
-			return err
+		if useMnemonics {
+			if err := node.createKey("val"); err != nil {
+				return err
+			}
+		} else {
+			if err := node.createKeyFromMnemonic("val", mnemonics[i], ""); err != nil {
+				return err
+			}
 		}
 		if err := node.createNodeKey(); err != nil {
 			return err
@@ -112,34 +125,7 @@ func (c *chain) createAndInitValidators(count int) error { //nolint:unused
 	return nil
 }
 
-func (c *chain) createAndInitValidatorsWithMnemonics(mnemonics []string) error {
-	for i := 0; i < len(mnemonics); i++ {
-		// create node
-		node := c.createValidator(i)
-
-		// generate genesis files
-		if err := node.init(); err != nil {
-			return err
-		}
-
-		c.validators = append(c.validators, node)
-
-		// create keys
-		if err := node.createKeyFromMnemonic("val", mnemonics[i], ""); err != nil {
-			return err
-		}
-		if err := node.createNodeKey(); err != nil {
-			return err
-		}
-		if err := node.createConsensusKey(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (c *chain) createValidator(index int) *validator {
+func (c *chain) createFuelSequencerValidator(index int) *validator {
 	return &validator{
 		chain:   c,
 		index:   index,
