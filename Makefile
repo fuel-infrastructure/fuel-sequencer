@@ -339,6 +339,7 @@ follow-docker-logs:
 
 build-ethereum-docker-image:
 	@echo "🤖 Updating git submodules..."
+	@git submodule init # for the first time
 	@git submodule update --remote
 	@# No need to add echos here, since `make build` has its own.
 	@(cd e2e/test-contracts && make build)
