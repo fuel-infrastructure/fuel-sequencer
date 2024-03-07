@@ -23,6 +23,7 @@ func (msg *MsgWithdrawToEthereum) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
 
+	// TODO: We might want to verify checksum of address
 	if !common.IsHexAddress(msg.To) {
 		return errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format")
 	}
