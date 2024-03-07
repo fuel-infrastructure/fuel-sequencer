@@ -44,6 +44,19 @@ func (k msgServer) WithdrawToEthereum(
 	nonce := k.MustGetLastEthereumNonce(ctx).AddRaw(1)
 	k.SetLastEthereumNonce(ctx, nonce)
 
+	// Emit event
+	err := ctx.EventManager().EmitTypedEvent(
+		&types.EventWithdrawToEthereumReported{
+			Nonce:  nonce,
+			From:   msg.From,
+			To:     msg.To,
+			Amount: msg.Amount,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.MsgWithdrawToEthereumResponse{
 		Nonce:  nonce,
 		From:   msg.From,

@@ -87,7 +87,7 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			// Set bridge parameters
 			params := types.DefaultParams()
 			params.BridgeDenom = bridgeDenom
-			s.App.BridgeKeeper.SetParams(s.Ctx(), params)
+			_ = s.App.BridgeKeeper.SetParams(s.Ctx(), params)
 
 			// Get the SupplyDeltaInfo
 			if tc.fundAccounts {

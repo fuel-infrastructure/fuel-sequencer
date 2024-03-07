@@ -252,7 +252,7 @@ keys:
 ###                                   CI                                    ###
 ###############################################################################
 
-ci: lint test-unit gosec
+ci: proto-routine lint test-unit gosec
 
 gosec:
 	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
