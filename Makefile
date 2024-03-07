@@ -213,7 +213,9 @@ proto-format:
 # This command makes use of Ignite's new way of specifying docs.
 # This can be improved later on with a non-Ignite approach.
 proto-swagger-gen:
-	ignite generate openapi
+	@echo "🤖 Generating Swagger files..."
+	@ignite generate openapi
+	@echo "✅ Finished generating Swagger files!"
 
 proto-routine: proto-format proto-go-gen proto-swagger-gen
 

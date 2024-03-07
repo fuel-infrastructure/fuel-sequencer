@@ -8264,7 +8264,7 @@ paths:
         - Msg
   /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced:
     get:
-      summary: Queries a LastEthereumBlockSynced by index.
+      summary: Queries the LastEthereumBlockSynced.
       operationId: FuelsequencerBridgeQuery_LastEthereumBlockSynced
       responses:
         '200':
@@ -8296,7 +8296,7 @@ paths:
         - Query
   /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce:
     get:
-      summary: Queries a LastEthereumNonce by index.
+      summary: Queries the LastEthereumNonce.
       operationId: FuelsequencerBridgeQuery_LastEthereumNonce
       responses:
         '200':

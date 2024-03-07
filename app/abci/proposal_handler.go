@@ -8,21 +8,26 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 type FuelSequencerProposalHandler struct {
 	logger     log.Logger
-	valStore   baseapp.ValidatorStore     // to get the current validators' pubkeys
-	txSelector TxSelector                 // a utility for checking whether a tx can be included in the proposal
-	txVerifier baseapp.ProposalTxVerifier // a utility for transaction verification
+	valStore   baseapp.ValidatorStore         // to get the current validators' pubkeys
+	txSelector TxSelector                     // a utility for checking whether a tx can be included in the proposal
+	txVerifier baseapp.ProposalTxVerifier     // a utility for transaction verification
+	sidecar    sidecarclient.AppSidecarClient // a client to query the Sidecar service
 
 	// TODO: Any required objects need to go here
 }
 
 // NewFuelSequencerProposalHandler defines a custom FuelSequencer proposal handler object
 func NewFuelSequencerProposalHandler(
-	logger log.Logger, valStore baseapp.ValidatorStore, txVerifier baseapp.ProposalTxVerifier,
+	logger log.Logger,
+	valStore baseapp.ValidatorStore,
+	txVerifier baseapp.ProposalTxVerifier,
+	sidecar sidecarclient.AppSidecarClient,
 ) *FuelSequencerProposalHandler {
 	// TODO: Add any required parameters
 	return &FuelSequencerProposalHandler{
@@ -30,6 +35,7 @@ func NewFuelSequencerProposalHandler(
 		valStore:   valStore,
 		txVerifier: txVerifier,
 		txSelector: NewFuelSequencerTxSelector(),
+		sidecar:    sidecar,
 	}
 }
 

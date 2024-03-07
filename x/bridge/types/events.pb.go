@@ -7,7 +7,6 @@ import (
 	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
-	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
@@ -66,104 +65,31 @@ func (m *EventSupplyDeltaReported) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventSupplyDeltaReported proto.InternalMessageInfo
 
-type EventWithdrawToEthereumReported struct {
-	// nonce uniquely identifies any message that we send to Ethereum.
-	Nonce cosmossdk_io_math.Int `protobuf:"bytes,1,opt,name=nonce,proto3,customtype=cosmossdk.io/math.Int" json:"nonce"`
-	// from is the user address on FuelSequencer that is sending the tokens.
-	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the user address on Ethereum that will be receiving the tokens.
-	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
-	// amount is the tokens being sent, which must be the expacted bridge token.
-	Amount types.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount"`
-}
-
-func (m *EventWithdrawToEthereumReported) Reset()         { *m = EventWithdrawToEthereumReported{} }
-func (m *EventWithdrawToEthereumReported) String() string { return proto.CompactTextString(m) }
-func (*EventWithdrawToEthereumReported) ProtoMessage()    {}
-func (*EventWithdrawToEthereumReported) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7fe1bf01b286796a, []int{1}
-}
-func (m *EventWithdrawToEthereumReported) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *EventWithdrawToEthereumReported) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_EventWithdrawToEthereumReported.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *EventWithdrawToEthereumReported) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventWithdrawToEthereumReported.Merge(m, src)
-}
-func (m *EventWithdrawToEthereumReported) XXX_Size() int {
-	return m.Size()
-}
-func (m *EventWithdrawToEthereumReported) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventWithdrawToEthereumReported.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EventWithdrawToEthereumReported proto.InternalMessageInfo
-
-func (m *EventWithdrawToEthereumReported) GetFrom() string {
-	if m != nil {
-		return m.From
-	}
-	return ""
-}
-
-func (m *EventWithdrawToEthereumReported) GetTo() string {
-	if m != nil {
-		return m.To
-	}
-	return ""
-}
-
-func (m *EventWithdrawToEthereumReported) GetAmount() types.Coin {
-	if m != nil {
-		return m.Amount
-	}
-	return types.Coin{}
-}
-
 func init() {
 	proto.RegisterType((*EventSupplyDeltaReported)(nil), "fuelsequencer.bridge.EventSupplyDeltaReported")
-	proto.RegisterType((*EventWithdrawToEthereumReported)(nil), "fuelsequencer.bridge.EventWithdrawToEthereumReported")
 }
 
 func init() { proto.RegisterFile("fuelsequencer/bridge/events.proto", fileDescriptor_7fe1bf01b286796a) }
 
 var fileDescriptor_7fe1bf01b286796a = []byte{
-	// 381 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x52, 0x3d, 0x8f, 0xd3, 0x40,
-	0x10, 0xf5, 0x86, 0x70, 0x12, 0x7b, 0x88, 0xc2, 0x3a, 0x24, 0xdf, 0x15, 0xce, 0x71, 0x55, 0x24,
-	0x94, 0x5d, 0x05, 0x0a, 0x1a, 0x1a, 0x02, 0x29, 0xd2, 0x50, 0x18, 0x04, 0x12, 0x4d, 0xe4, 0x8f,
-	0x89, 0x6d, 0x11, 0xef, 0x98, 0xdd, 0xd9, 0x40, 0xfe, 0x05, 0x7f, 0x84, 0x8e, 0x3f, 0x40, 0x97,
-	0x32, 0xa2, 0x42, 0x14, 0x11, 0x4a, 0xfe, 0x08, 0xb2, 0xd7, 0x24, 0xa2, 0x84, 0x6e, 0xe7, 0xcd,
-	0xdb, 0xf7, 0x9e, 0x66, 0x86, 0x3f, 0x58, 0x58, 0x58, 0x1a, 0xf8, 0x60, 0x41, 0xa5, 0xa0, 0x65,
-	0xa2, 0xcb, 0x2c, 0x07, 0x09, 0x2b, 0x50, 0x64, 0x44, 0xad, 0x91, 0xd0, 0xbf, 0xf8, 0x8b, 0x22,
-	0x1c, 0xe5, 0xea, 0x22, 0xc7, 0x1c, 0x5b, 0x82, 0x6c, 0x5e, 0x8e, 0x7b, 0x75, 0x99, 0xa2, 0xa9,
-	0xd0, 0xcc, 0x5d, 0xc3, 0x15, 0x5d, 0x2b, 0x74, 0x95, 0x4c, 0x62, 0x03, 0x72, 0x35, 0x4e, 0x80,
-	0xe2, 0xb1, 0x4c, 0xb1, 0x54, 0xae, 0x7f, 0xf3, 0x85, 0xf1, 0x60, 0xda, 0xf8, 0xbe, 0xb2, 0x75,
-	0xbd, 0x5c, 0xbf, 0x80, 0x25, 0xc5, 0x11, 0xd4, 0xa8, 0x09, 0x32, 0xff, 0x25, 0xbf, 0x6b, 0x5a,
-	0x78, 0x9e, 0x35, 0x78, 0xc0, 0xae, 0xd9, 0xf0, 0xce, 0xe4, 0xe1, 0x66, 0x37, 0xf0, 0x7e, 0xee,
-	0x06, 0xf7, 0x9d, 0xb4, 0xc9, 0xde, 0x8b, 0x12, 0x65, 0x15, 0x53, 0x21, 0x66, 0x8a, 0xbe, 0x7f,
-	0x1d, 0xf1, 0x2e, 0xc1, 0x4c, 0x51, 0x74, 0x6e, 0x4e, 0xba, 0xfe, 0x33, 0x7e, 0x5b, 0xa1, 0x4a,
-	0x21, 0xe8, 0xfd, 0xbb, 0x90, 0xfb, 0x79, 0xf3, 0x8d, 0xf1, 0x41, 0x9b, 0xf7, 0x6d, 0x49, 0x45,
-	0xa6, 0xe3, 0x8f, 0xaf, 0x71, 0x4a, 0x05, 0x68, 0xb0, 0xd5, 0x31, 0xf6, 0xd1, 0x86, 0xfd, 0xaf,
-	0x8d, 0xef, 0xf3, 0xfe, 0x42, 0x63, 0xe5, 0x82, 0x46, 0xed, 0xdb, 0xbf, 0xc7, 0x7b, 0x84, 0xc1,
-	0xad, 0x16, 0xe9, 0x11, 0xfa, 0x4f, 0xf8, 0x59, 0x5c, 0xa1, 0x55, 0x14, 0xf4, 0xaf, 0xd9, 0xf0,
-	0xfc, 0xd1, 0xa5, 0xe8, 0x74, 0x9a, 0x59, 0x8b, 0x6e, 0xd6, 0xe2, 0x39, 0x96, 0x6a, 0xd2, 0x6f,
-	0x22, 0x44, 0x1d, 0x7d, 0xf2, 0x66, 0xb3, 0x0f, 0xd9, 0x76, 0x1f, 0xb2, 0x5f, 0xfb, 0x90, 0x7d,
-	0x3e, 0x84, 0xde, 0xf6, 0x10, 0x7a, 0x3f, 0x0e, 0xa1, 0xf7, 0xee, 0x69, 0x5e, 0x52, 0x61, 0x13,
-	0x91, 0x62, 0x25, 0x9b, 0xfd, 0x8f, 0x4a, 0xb5, 0xd0, 0xb1, 0x21, 0x6d, 0x53, 0xb2, 0x1a, 0x1c,
-	0x76, 0xba, 0x9b, 0x4f, 0x7f, 0x2e, 0x87, 0xd6, 0x35, 0x98, 0xe4, 0xac, 0x5d, 0xe9, 0xe3, 0xdf,
-	0x01, 0x00, 0x00, 0xff, 0xff, 0x05, 0x1b, 0xb1, 0x76, 0x5e, 0x02, 0x00, 0x00,
+	// 271 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4c, 0x2b, 0x4d, 0xcd,
+	0x29, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0xd2, 0x4f, 0x2a, 0xca, 0x4c, 0x49, 0x4f,
+	0xd5, 0x4f, 0x2d, 0x4b, 0xcd, 0x2b, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x41,
+	0x51, 0xa2, 0x07, 0x51, 0x22, 0x25, 0x92, 0x9e, 0x9f, 0x9e, 0x0f, 0x56, 0xa0, 0x0f, 0x62, 0x41,
+	0xd4, 0x4a, 0x49, 0x26, 0xe7, 0x17, 0xe7, 0xe6, 0x17, 0xc7, 0x43, 0x24, 0x20, 0x1c, 0x88, 0x94,
+	0xd2, 0x5a, 0x46, 0x2e, 0x09, 0x57, 0x90, 0xb9, 0xc1, 0xa5, 0x05, 0x05, 0x39, 0x95, 0x2e, 0xa9,
+	0x39, 0x25, 0x89, 0x41, 0xa9, 0x05, 0xf9, 0x45, 0x25, 0xa9, 0x29, 0x42, 0x7e, 0x5c, 0x3c, 0xc5,
+	0x60, 0xe1, 0xf8, 0x14, 0x90, 0xb8, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0xa7, 0x93, 0xf6, 0x89, 0x7b,
+	0xf2, 0x0c, 0xb7, 0xee, 0xc9, 0x8b, 0x42, 0x0c, 0x2a, 0x4e, 0xc9, 0xd6, 0xcb, 0xcc, 0xd7, 0xcf,
+	0x4d, 0x2c, 0xc9, 0xd0, 0xf3, 0xcc, 0x2b, 0xb9, 0xb4, 0x45, 0x97, 0x0b, 0x6a, 0x83, 0x67, 0x5e,
+	0x49, 0x10, 0x77, 0x31, 0xc2, 0x5c, 0x21, 0x47, 0x2e, 0xd6, 0xbc, 0xfc, 0xbc, 0xe4, 0x54, 0x09,
+	0x26, 0xd2, 0x0d, 0x82, 0xe8, 0x74, 0x0a, 0x3b, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6,
+	0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39,
+	0x86, 0x28, 0x9b, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0x7d, 0x50, 0xd8,
+	0xe8, 0x66, 0xe6, 0xa5, 0x15, 0x25, 0x16, 0x97, 0x14, 0x95, 0x26, 0x97, 0x94, 0x16, 0xa5, 0x42,
+	0xc4, 0x10, 0x61, 0x5a, 0x01, 0x0b, 0xd5, 0x92, 0xca, 0x82, 0xd4, 0xe2, 0x24, 0x36, 0x70, 0x70,
+	0x18, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xa4, 0xe7, 0xe8, 0xcc, 0x7a, 0x01, 0x00, 0x00,
 }
 
 func (m *EventSupplyDeltaReported) Marshal() (dAtA []byte, err error) {
@@ -209,63 +135,6 @@ func (m *EventSupplyDeltaReported) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *EventWithdrawToEthereumReported) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *EventWithdrawToEthereumReported) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *EventWithdrawToEthereumReported) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvents(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x22
-	if len(m.To) > 0 {
-		i -= len(m.To)
-		copy(dAtA[i:], m.To)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.To)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.From) > 0 {
-		i -= len(m.From)
-		copy(dAtA[i:], m.From)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.From)))
-		i--
-		dAtA[i] = 0x12
-	}
-	{
-		size := m.Nonce.Size()
-		i -= size
-		if _, err := m.Nonce.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvents(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -286,27 +155,6 @@ func (m *EventSupplyDeltaReported) Size() (n int) {
 	l = m.SupplyDelta.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	l = m.Nonce.Size()
-	n += 1 + l + sovEvents(uint64(l))
-	return n
-}
-
-func (m *EventWithdrawToEthereumReported) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.Nonce.Size()
-	n += 1 + l + sovEvents(uint64(l))
-	l = len(m.From)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
-	l = len(m.To)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
-	l = m.Amount.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
@@ -411,187 +259,6 @@ func (m *EventSupplyDeltaReported) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Nonce.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEvents(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *EventWithdrawToEthereumReported) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEvents
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: EventWithdrawToEthereumReported: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventWithdrawToEthereumReported: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Nonce", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Nonce.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.From = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.To = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -17,11 +17,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 
 const (
 	TestAppStartingHeight = 1
 	TestAppChainID        = "fuelsequencer-1"
+	TestAppSidecarEnabled = false
 )
 
 // This function is required so that configuration functions are called once in testing
@@ -39,8 +41,9 @@ func init() {
 func SetupTestingApp(isCheckTx bool) *fuelsequencerapp.FuelSequencerApp {
 	db := dbm.NewMemDB()
 	appOpts := simtestutil.AppOptionsMap{
-		flags.FlagInitHeight: TestAppStartingHeight,
-		flags.FlagChainID:    TestAppChainID,
+		flags.FlagInitHeight:             TestAppStartingHeight,
+		flags.FlagChainID:                TestAppChainID,
+		sidecarconfig.FlagSidecarEnabled: TestAppSidecarEnabled,
 	}
 	app, err := fuelsequencerapp.NewFuelSequencerApp(
 		log.NewNopLogger(),
