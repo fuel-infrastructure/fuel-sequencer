@@ -38,7 +38,7 @@ func (k msgServer) WithdrawToEthereum(
 	}
 
 	// Apply the offset to the supplyDelta
-	k.UpdatedSupplyDeltaInfoWithNewDelta(ctx, k.bankKeeper)
+	k.UpdateSupplyDeltaInfoWithNewDelta(ctx, k.bankKeeper)
 
 	// Update the Ethereum nonce
 	nonce := k.MustGetLastEthereumNonce(ctx).AddRaw(1)

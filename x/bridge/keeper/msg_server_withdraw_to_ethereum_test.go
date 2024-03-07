@@ -94,7 +94,7 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 				// Fund withdrawer account with the bridge denom
 				s.FundAcc(s.Ctx(), sdk.MustAccAddressFromBech32(tc.msg.From), sdk.NewCoins(tc.msg.Amount))
 				// Update the supplyDeltaInfo since we've minted
-				s.App.BridgeKeeper.UpdatedSupplyDeltaInfoWithNewDelta(s.Ctx(), s.App.BankKeeper)
+				s.App.BridgeKeeper.UpdateSupplyDeltaInfoWithNewDelta(s.Ctx(), s.App.BankKeeper)
 			}
 
 			response, err := msgServer.WithdrawToEthereum(s.Ctx(), &tc.msg)
