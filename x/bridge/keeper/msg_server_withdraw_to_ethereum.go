@@ -10,7 +10,11 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) WithdrawToEthereum(goCtx context.Context, msg *types.MsgWithdrawToEthereum) (*types.MsgWithdrawToEthereumResponse, error) {
+func (k msgServer) WithdrawToEthereum(
+	goCtx context.Context,
+	msg *types.MsgWithdrawToEthereum,
+) (*types.MsgWithdrawToEthereumResponse, error) {
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve bridge parameters
@@ -19,7 +23,12 @@ func (k msgServer) WithdrawToEthereum(goCtx context.Context, msg *types.MsgWithd
 
 	// Validate that the token is the bridge token
 	if msg.Amount.Denom != bridgeDenom {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid token denom: %s, expected: %s", msg.Amount.Denom, bridgeDenom)
+		return nil, errorsmod.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"invalid token denom: %s, expected: %s",
+			msg.Amount.Denom,
+			bridgeDenom,
+		)
 	}
 
 	// Burn the user's bridge tokens
