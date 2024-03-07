@@ -36,9 +36,9 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 				Amount: sdk.NewCoin(bridgeDenom, amount),
 			},
 			&types.SupplyDeltaInfo{
-				LastSupply: math.ZeroInt(),
-				Delta:      math.ZeroInt(),
-				Offset:     math.ZeroInt(),
+				LastSupply: amount,
+				Delta:      amount,
+				Offset:     amount,
 			},
 			true,
 			"",
