@@ -1,23 +1,29 @@
 package abci
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 type FuelSequencerProposalHandler struct {
-	logger     log.Logger
-	valStore   baseapp.ValidatorStore         // to get the current validators' pubkeys
-	txSelector TxSelector                     // a utility for checking whether a tx can be included in the proposal
-	txVerifier baseapp.ProposalTxVerifier     // a utility for transaction verification
-	sidecar    sidecarclient.AppSidecarClient // a client to query the Sidecar service
+	logger       log.Logger
+	valStore     baseapp.ValidatorStore         // to get the current validators' pubkeys
+	txSelector   TxSelector                     // a utility for checking whether a tx can be included in the proposal
+	txVerifier   baseapp.ProposalTxVerifier     // a utility for transaction verification
+	sidecar      sidecarclient.AppSidecarClient // a client to query the Sidecar service
+	bridgeKeeper bridgekeeper.Keeper            // Bridge keeper
 
 	// TODO: Any required objects need to go here
 }
@@ -28,14 +34,16 @@ func NewFuelSequencerProposalHandler(
 	valStore baseapp.ValidatorStore,
 	txVerifier baseapp.ProposalTxVerifier,
 	sidecar sidecarclient.AppSidecarClient,
+	bridgeKeeper bridgekeeper.Keeper,
 ) *FuelSequencerProposalHandler {
 	// TODO: Add any required parameters
 	return &FuelSequencerProposalHandler{
-		logger:     logger,
-		valStore:   valStore,
-		txVerifier: txVerifier,
-		txSelector: NewFuelSequencerTxSelector(),
-		sidecar:    sidecar,
+		logger:       logger,
+		valStore:     valStore,
+		txVerifier:   txVerifier,
+		txSelector:   NewFuelSequencerTxSelector(),
+		sidecar:      sidecar,
+		bridgeKeeper: bridgeKeeper,
 	}
 }
 
@@ -62,11 +70,51 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
-		// TODO: Tomorrow try to run a deployment instance of test contracts, connect sidecar and check if you can get
-		//     : the events successfully. Then try to unmarshal the events using proto to check that all is ok.
-		//response, err := h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"})
-		//h.logger.Info("try1", "ERR", err)
-		//h.logger.Info("try2", "RESPONSE", response)
+		//blockHeight, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
+		//if !found {
+		//	return nil, errors.New("could not get last Ethereum block synced from state")
+		//}
+
+		/**
+		TODO: 1. Sidecar not catching up
+		      2. Sequencer too fast
+		      3. Connection issues with sidecar
+		      All the above will cause a new round to start immediately as frendo requested
+		*/
+
+		response, err := h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "4"})
+		h.logger.Info("try1", "ERR", err)
+		h.logger.Info("try2", "RESPONSE", response)
+		for _, event := range response.Events {
+			h.logger.Info("try3", "event type", event.EventType)
+			var eventData sidecartypes.AuthorizeEvent
+			err = eventData.Unmarshal(event.Data)
+			h.logger.Info("try4", "ERR", err)
+			h.logger.Info("try5", "event data", eventData)
+			h.logger.Info("try6", "from hex", eventData.From)
+			h.logger.Info("try7", "from", common.HexToAddress(eventData.From))
+			h.logger.Info("try8", "msg", hex.EncodeToString(eventData.Message))
+		}
+
+		response, err = h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "3"})
+		h.logger.Info("try9", "ERR", err)
+		h.logger.Info("try10", "RESPONSE", response)
+		for _, event := range response.Events {
+			h.logger.Info("try11", "event type", event.EventType)
+			var eventData sidecartypes.SendToSequencerEvent
+			err = eventData.Unmarshal(event.Data)
+			h.logger.Info("try12", "ERR", err)
+			h.logger.Info("try13", "event data", eventData)
+			h.logger.Info("try14", "from hex", eventData.From)
+			h.logger.Info("try15", "from", common.HexToAddress(eventData.From))
+			h.logger.Info("try16", "to", eventData.To)
+			duration, success := sdkmath.NewIntFromString(eventData.Duration)
+			h.logger.Info("try17", "success", success)
+			h.logger.Info("try18", "duration", duration)
+			amount, success := sdkmath.NewIntFromString(eventData.Amount)
+			h.logger.Info("try19", "success", success)
+			h.logger.Info("try20", "amount", amount)
+		}
 
 		// TODO: This should be adapted as per application requirements
 		ethEventsTx, err := h.generateEthEventsTx()
