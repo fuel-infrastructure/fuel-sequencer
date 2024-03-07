@@ -171,11 +171,16 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 			lastSyncedBlock, err := s.fetchLastSyncedEthereumBlock(ctx)
 			s.logger.Debug("Querying LastSyncedEthereumBlock: ", zap.String("last synced block", lastSyncedBlock.String()))
 			if err != nil {
+				// Log the error if the last synced Ethereum block is not obtained.
+				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
+				// is skipped the Sequencer will not be able to produce the first block and the sidecar would not be
+				// able to query the Sequencer, causing a deadlock.
 				s.logger.Error("Error: ", zap.Error(err))
-				continue
 			}
 
-			if lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
+			// Set the last queried block to the last synced block. If the value could not be obtained from the chain
+			// it will default to s.startQueryBlock set in the beginning of this function.
+			if lastSyncedBlock != nil && lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
 				s.lastQueryBlock = lastSyncedBlock
 			}
 
