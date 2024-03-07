@@ -156,7 +156,7 @@ func ProvideClientContext(
 	// Read the config again to overwrite the default values with the values from the config file
 	clientCtx, err := config.ReadFromClientConfig(clientCtx)
 	if err != nil {
-		panic(fmt.Sprintf("OY SOMETHING WENT WRONG - %x", err))
+		panic(err)
 	}
 
 	return clientCtx
