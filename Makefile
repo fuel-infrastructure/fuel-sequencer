@@ -343,3 +343,6 @@ build-ethereum-docker-image:
 	@# No need to add echo, since `make build` has its own.
 	@(cd e2e/test-contracts && make build)
 	@# No need to add echo, since `make build` has its own.
+
+test-e2e-basic: check-docker-image-exists
+	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
