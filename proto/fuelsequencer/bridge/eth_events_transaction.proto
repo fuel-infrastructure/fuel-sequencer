@@ -1,14 +1,11 @@
 syntax = "proto3";
 package fuelsequencer.bridge;
 
+import "fuelsequencer/service/v1/sidecar.proto";
+
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
-/**
-TODO: Adapt EthEventsTx as per application requirements. Please use sidecar
-definitions.
-*/
-
 message EthEventsTx {
-  // events_data defines the list of events.
-  repeated string events_data = 1;
+  // events defines the list of Ethereum events.
+  repeated fuelsequencer.service.v1.Event events = 1;
 }

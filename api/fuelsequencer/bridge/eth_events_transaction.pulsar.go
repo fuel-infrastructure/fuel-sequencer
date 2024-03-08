@@ -4,6 +4,7 @@ package bridge
 import (
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
+	v1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/service/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -15,7 +16,7 @@ import (
 var _ protoreflect.List = (*_EthEventsTx_1_list)(nil)
 
 type _EthEventsTx_1_list struct {
-	list *[]string
+	list *[]*v1.Event
 }
 
 func (x *_EthEventsTx_1_list) Len() int {
@@ -26,32 +27,37 @@ func (x *_EthEventsTx_1_list) Len() int {
 }
 
 func (x *_EthEventsTx_1_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfString((*x.list)[i])
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
 }
 
 func (x *_EthEventsTx_1_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*v1.Event)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_EthEventsTx_1_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*v1.Event)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_EthEventsTx_1_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message EthEventsTx at list field EventsData as it is not of Message kind"))
+	v := new(v1.Event)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
 func (x *_EthEventsTx_1_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
 	*x.list = (*x.list)[:n]
 }
 
 func (x *_EthEventsTx_1_list) NewElement() protoreflect.Value {
-	v := ""
-	return protoreflect.ValueOfString(v)
+	v := new(v1.Event)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
 func (x *_EthEventsTx_1_list) IsValid() bool {
@@ -59,14 +65,14 @@ func (x *_EthEventsTx_1_list) IsValid() bool {
 }
 
 var (
-	md_EthEventsTx             protoreflect.MessageDescriptor
-	fd_EthEventsTx_events_data protoreflect.FieldDescriptor
+	md_EthEventsTx        protoreflect.MessageDescriptor
+	fd_EthEventsTx_events protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_eth_events_transaction_proto_init()
 	md_EthEventsTx = File_fuelsequencer_bridge_eth_events_transaction_proto.Messages().ByName("EthEventsTx")
-	fd_EthEventsTx_events_data = md_EthEventsTx.Fields().ByName("events_data")
+	fd_EthEventsTx_events = md_EthEventsTx.Fields().ByName("events")
 }
 
 var _ protoreflect.Message = (*fastReflection_EthEventsTx)(nil)
@@ -134,9 +140,9 @@ func (x *fastReflection_EthEventsTx) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_EthEventsTx) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.EventsData) != 0 {
-		value := protoreflect.ValueOfList(&_EthEventsTx_1_list{list: &x.EventsData})
-		if !f(fd_EthEventsTx_events_data, value) {
+	if len(x.Events) != 0 {
+		value := protoreflect.ValueOfList(&_EthEventsTx_1_list{list: &x.Events})
+		if !f(fd_EthEventsTx_events, value) {
 			return
 		}
 	}
@@ -155,8 +161,8 @@ func (x *fastReflection_EthEventsTx) Range(f func(protoreflect.FieldDescriptor, 
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_EthEventsTx) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events_data":
-		return len(x.EventsData) != 0
+	case "fuelsequencer.bridge.EthEventsTx.events":
+		return len(x.Events) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
@@ -173,8 +179,8 @@ func (x *fastReflection_EthEventsTx) Has(fd protoreflect.FieldDescriptor) bool {
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_EthEventsTx) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events_data":
-		x.EventsData = nil
+	case "fuelsequencer.bridge.EthEventsTx.events":
+		x.Events = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
@@ -191,11 +197,11 @@ func (x *fastReflection_EthEventsTx) Clear(fd protoreflect.FieldDescriptor) {
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_EthEventsTx) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events_data":
-		if len(x.EventsData) == 0 {
+	case "fuelsequencer.bridge.EthEventsTx.events":
+		if len(x.Events) == 0 {
 			return protoreflect.ValueOfList(&_EthEventsTx_1_list{})
 		}
-		listValue := &_EthEventsTx_1_list{list: &x.EventsData}
+		listValue := &_EthEventsTx_1_list{list: &x.Events}
 		return protoreflect.ValueOfList(listValue)
 	default:
 		if descriptor.IsExtension() {
@@ -217,10 +223,10 @@ func (x *fastReflection_EthEventsTx) Get(descriptor protoreflect.FieldDescriptor
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_EthEventsTx) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events_data":
+	case "fuelsequencer.bridge.EthEventsTx.events":
 		lv := value.List()
 		clv := lv.(*_EthEventsTx_1_list)
-		x.EventsData = *clv.list
+		x.Events = *clv.list
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
@@ -241,11 +247,11 @@ func (x *fastReflection_EthEventsTx) Set(fd protoreflect.FieldDescriptor, value 
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_EthEventsTx) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events_data":
-		if x.EventsData == nil {
-			x.EventsData = []string{}
+	case "fuelsequencer.bridge.EthEventsTx.events":
+		if x.Events == nil {
+			x.Events = []*v1.Event{}
 		}
-		value := &_EthEventsTx_1_list{list: &x.EventsData}
+		value := &_EthEventsTx_1_list{list: &x.Events}
 		return protoreflect.ValueOfList(value)
 	default:
 		if fd.IsExtension() {
@@ -260,8 +266,8 @@ func (x *fastReflection_EthEventsTx) Mutable(fd protoreflect.FieldDescriptor) pr
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_EthEventsTx) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events_data":
-		list := []string{}
+	case "fuelsequencer.bridge.EthEventsTx.events":
+		list := []*v1.Event{}
 		return protoreflect.ValueOfList(&_EthEventsTx_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -332,9 +338,9 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		if len(x.EventsData) > 0 {
-			for _, s := range x.EventsData {
-				l = len(s)
+		if len(x.Events) > 0 {
+			for _, e := range x.Events {
+				l = options.Size(e)
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
@@ -367,11 +373,18 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.EventsData) > 0 {
-			for iNdEx := len(x.EventsData) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.EventsData[iNdEx])
-				copy(dAtA[i:], x.EventsData[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.EventsData[iNdEx])))
+		if len(x.Events) > 0 {
+			for iNdEx := len(x.Events) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Events[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
 				dAtA[i] = 0xa
 			}
@@ -427,9 +440,9 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 			switch fieldNum {
 			case 1:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EventsData", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
 				}
-				var stringLen uint64
+				var msglen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -439,23 +452,25 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					msglen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
+				if msglen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + intStringLen
+				postIndex := iNdEx + msglen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.EventsData = append(x.EventsData, string(dAtA[iNdEx:postIndex]))
+				x.Events = append(x.Events, &v1.Event{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Events[len(x.Events)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -510,8 +525,8 @@ type EthEventsTx struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// events_data defines the list of events.
-	EventsData []string `protobuf:"bytes,1,rep,name=events_data,json=eventsData,proto3" json:"events_data,omitempty"`
+	// events defines the list of Ethereum events.
+	Events []*v1.Event `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
 }
 
 func (x *EthEventsTx) Reset() {
@@ -534,9 +549,9 @@ func (*EthEventsTx) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_eth_events_transaction_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *EthEventsTx) GetEventsData() []string {
+func (x *EthEventsTx) GetEvents() []*v1.Event {
 	if x != nil {
-		return x.EventsData
+		return x.Events
 	}
 	return nil
 }
@@ -548,10 +563,14 @@ var file_fuelsequencer_bridge_eth_events_transaction_proto_rawDesc = []byte{
 	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x65, 0x74, 0x68, 0x5f, 0x65, 0x76, 0x65, 0x6e, 0x74,
 	0x73, 0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x12, 0x14, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x22, 0x2e, 0x0a, 0x0b, 0x45, 0x74, 0x68,
-	0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x54, 0x78, 0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x76, 0x65, 0x6e,
-	0x74, 0x73, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0a, 0x65,
-	0x76, 0x65, 0x6e, 0x74, 0x73, 0x44, 0x61, 0x74, 0x61, 0x42, 0xcd, 0x01, 0x0a, 0x18, 0x63, 0x6f,
+	0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x1a, 0x26, 0x66, 0x75, 0x65, 0x6c, 0x73,
+	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2f, 0x76, 0x31, 0x2f, 0x73, 0x69, 0x64, 0x65, 0x63, 0x61, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x22, 0x46, 0x0a, 0x0b, 0x45, 0x74, 0x68, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x54, 0x78,
+	0x12, 0x37, 0x0a, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x1f, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x76, 0x65, 0x6e,
+	0x74, 0x52, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x42, 0xcd, 0x01, 0x0a, 0x18, 0x63, 0x6f,
 	0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
 	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x19, 0x45, 0x74, 0x68, 0x45, 0x76, 0x65, 0x6e, 0x74,
 	0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x72, 0x6f, 0x74,
@@ -583,13 +602,15 @@ func file_fuelsequencer_bridge_eth_events_transaction_proto_rawDescGZIP() []byte
 var file_fuelsequencer_bridge_eth_events_transaction_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bridge_eth_events_transaction_proto_goTypes = []interface{}{
 	(*EthEventsTx)(nil), // 0: fuelsequencer.bridge.EthEventsTx
+	(*v1.Event)(nil),    // 1: fuelsequencer.service.v1.Event
 }
 var file_fuelsequencer_bridge_eth_events_transaction_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: fuelsequencer.bridge.EthEventsTx.events:type_name -> fuelsequencer.service.v1.Event
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_eth_events_transaction_proto_init() }

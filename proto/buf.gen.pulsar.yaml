@@ -13,6 +13,12 @@ managed:
       - buf.build/cosmos/gogo-proto
       - buf.build/cosmos/cosmos-proto
     override:
+  override:
+    GO_PACKAGE:
+      fuelsequencer/service/v1/sidecar.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/service/v1"
+      fuelsequencer/service/v1/events.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/service/v1"
+      # All protos which are imported by protos in different modules need to be added here, otherwise, they are
+      # prefixed by cosmossdk.io/api.
 plugins:
   - name: go-pulsar
     out: ./api
