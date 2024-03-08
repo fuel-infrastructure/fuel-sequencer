@@ -70,19 +70,43 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
-		//blockHeight, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
-		//if !found {
-		//	return nil, errors.New("could not get last Ethereum block synced from state")
-		//}
+		blockHeight, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
+		if !found {
+			return nil, errors.New("could not get last Ethereum block synced from state")
+		}
 
-		/**
-		TODO: 1. Sidecar not catching up
-		      2. Sequencer too fast
-		      3. Connection issues with sidecar
-		      All the above will cause a new round to start immediately as frendo requested
-		*/
+		// Query the events of the next Ethereum block
+		ethBlockToQuery := blockHeight.Add(sdkmath.OneInt()).String()
+		response, err := h.sidecar.GetBlockEvents(
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
+		)
+		if err != nil {
+			// Any error returned from the sidecar should cause the block proposer to fail in submitting a new block,
+			// and thus generate a new consensus round. This may occur when the Sidecar is not catching up with
+			// Ethereum, Sequencer is too fast or connection issues with the sidecar, among other potential situations
+			// not specifically mentioned.
+			return nil, fmt.Errorf("failed to query sidecar at block %s: %w", ethBlockToQuery, err)
+		}
 
-		response, err := h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "4"})
+		// TODO: Validate events, define equality functions in eth_events_transactions.go etc.
+
+		// TODO: Inject tx, even if empty
+
+		response, err = h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "4"})
+		h.logger.Info("try1", "ERR", err)
+		h.logger.Info("try2", "RESPONSE", response)
+		for _, event := range response.Events {
+			h.logger.Info("try3", "event type", event.EventType)
+			var eventData sidecartypes.AuthorizeEvent
+			err = eventData.Unmarshal(event.Data)
+			h.logger.Info("try4", "ERR", err)
+			h.logger.Info("try5", "event data", eventData)
+			h.logger.Info("try6", "from hex", eventData.From)
+			h.logger.Info("try7", "from", common.HexToAddress(eventData.From))
+			h.logger.Info("try8", "msg", hex.EncodeToString(eventData.Message))
+		}
+
+		response, err = h.sidecar.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"})
 		h.logger.Info("try1", "ERR", err)
 		h.logger.Info("try2", "RESPONSE", response)
 		for _, event := range response.Events {

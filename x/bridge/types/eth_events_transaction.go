@@ -2,8 +2,9 @@ package types
 
 // isEqualStringSlices compares two slices of strings for equality
 func isEqualStringSlices(slice1, slice2 []string) bool {
+	// Slices of different lengths cannot be equal
 	if len(slice1) != len(slice2) {
-		return false // Slices of different lengths cannot be equal
+		return false
 	}
 
 	for i := range slice1 {
@@ -15,7 +16,9 @@ func isEqualStringSlices(slice1, slice2 []string) bool {
 	return true // All elements are equal
 }
 
-// Equal compares two EthEventsTx structs for equality based on their EventsData
+// TODO: Do equality and validatebasic for EthEventsTx
+
+// Equal compares two EthEventsTx structs for equality
 func (m *EthEventsTx) Equal(e *EthEventsTx) bool {
 	return isEqualStringSlices(m.EventsData, e.EventsData)
 }
