@@ -86,7 +86,3 @@ func (m *Event) ValidateBasic() error {
 		return fmt.Errorf("unknown event type: %s", m.EventType)
 	}
 }
-
-// TODO: Monday we can refactor the unmarshalling into another function because we've got a lot of code repetition
-//     : across both functions. Possibly use interfaces.
-// TODO: Then continue with eth_events_transaction by implementing equality and validate basic as well.
