@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSendToSequencerEvent_Equal(t *testing.T) {
+func TestConcreteEvent_Equal(t *testing.T) {
 	var nilSendToSequencerEvent *types.SendToSequencerEvent = nil
 	var nilAuthorizeEvent *types.AuthorizeEvent = nil
 
