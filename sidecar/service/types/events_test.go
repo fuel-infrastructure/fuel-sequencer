@@ -88,3 +88,103 @@ func TestConcreteEvent_Equal(t *testing.T) {
 		})
 	}
 }
+
+func TestConcreteEvent_ValidateBasic(t *testing.T) {
+	var nilSendToSequencerEvent *types.SendToSequencerEvent = nil
+	var nilAuthorizeEvent *types.AuthorizeEvent = nil
+
+	testCases := []struct {
+		name      string
+		event     types.ConcreteEvent
+		expErrMsg string
+	}{
+		{
+			name:  "SendToSequencerEvent - valid",
+			event: testtypes.TestSendToSequencerEvent1,
+		},
+		{
+			name:      "SendToSequencerEvent - nil receiver - error",
+			event:     nilSendToSequencerEvent,
+			expErrMsg: "SendToSequencerEvent is nil",
+		},
+		{
+			name: "SendToSequencerEvent - invalid from - error",
+			event: &types.SendToSequencerEvent{
+				From:     "invalid-from",
+				Amount:   testtypes.TestAmount1,
+				To:       testtypes.TestTo1,
+				Duration: testtypes.TestDuration1,
+			},
+			expErrMsg: "from is not a valid hex address",
+		},
+		{
+			name: "SendToSequencerEvent - invalid to - error",
+			event: &types.SendToSequencerEvent{
+				From:     testtypes.TestFrom1,
+				Amount:   testtypes.TestAmount1,
+				To:       "invalid-to",
+				Duration: testtypes.TestDuration1,
+			},
+			expErrMsg: "to is not a valid hex address",
+		},
+		{
+			name: "SendToSequencerEvent - invalid duration - error",
+			event: &types.SendToSequencerEvent{
+				From:     testtypes.TestFrom1,
+				Amount:   testtypes.TestAmount1,
+				To:       testtypes.TestTo1,
+				Duration: "0.23523",
+			},
+			expErrMsg: "could not convert duration to a valid sdk.Int",
+		},
+		{
+			name: "SendToSequencerEvent - amount is zero - error",
+			event: &types.SendToSequencerEvent{
+				From:     testtypes.TestFrom1,
+				Amount:   "0",
+				To:       testtypes.TestTo1,
+				Duration: testtypes.TestDuration1,
+			},
+			expErrMsg: "amount must be bigger than zero",
+		},
+		{
+			name: "SendToSequencerEvent - amount is float - error",
+			event: &types.SendToSequencerEvent{
+				From:     testtypes.TestFrom1,
+				Amount:   "0.4356346",
+				To:       testtypes.TestTo1,
+				Duration: testtypes.TestDuration1,
+			},
+			expErrMsg: "could not convert amount to a valid sdk.Int",
+		},
+		{
+			name:  "AuthorizeEvent - valid",
+			event: testtypes.TestAuthorizeEvent1,
+		},
+		{
+			name:      "AuthorizeEvent - nil receiver - error",
+			event:     nilAuthorizeEvent,
+			expErrMsg: "AuthorizeEvent is nil",
+		},
+		{
+			name: "AuthorizeEvent - invalid from - error",
+			event: &types.AuthorizeEvent{
+				From:    "invalid-from",
+				Message: testutils.MustHexDecodeString(testtypes.TestMessage1),
+			},
+			expErrMsg: "from is not a valid hex address",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.event.ValidateBasic()
+			if len(tc.expErrMsg) > 0 {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
