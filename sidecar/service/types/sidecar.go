@@ -32,6 +32,28 @@ type (
 	}
 )
 
+// UnmarshalConcreteEvent attempts to unmarshal a specific event from the Event sent by the sidecar
+func (m *Event) UnmarshalConcreteEvent() (ConcreteEvent, error) {
+	switch m.EventType {
+	case SendToSequencerEventName:
+		var eventData SendToSequencerEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", SendToSequencerEventName, err)
+		}
+		return &eventData, nil
+	case AuthorizeEventName:
+		var eventData AuthorizeEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
+		}
+		return &eventData, nil
+	default:
+		return nil, fmt.Errorf("unknown event type: %s", m.EventType)
+	}
+}
+
 // Equal compares two Event structs for equality
 func (m *Event) Equal(e *Event) (bool, error) {
 	// If both structs are nil then they are equal
@@ -49,66 +71,29 @@ func (m *Event) Equal(e *Event) (bool, error) {
 		return false, nil
 	}
 
-	// Unmarshal event according to type and check if the events are equal
-	switch m.EventType {
-	case SendToSequencerEventName:
-		var eventData1 SendToSequencerEvent
-		err := eventData1.Unmarshal(m.Data)
-		if err != nil {
-			return false, fmt.Errorf("could not unmarshal to %s: %w", SendToSequencerEventName, err)
-		}
-
-		var eventData2 SendToSequencerEvent
-		err = eventData2.Unmarshal(e.Data)
-		if err != nil {
-			return false, fmt.Errorf("could not unmarshal to %s: %w", SendToSequencerEventName, err)
-		}
-
-		// Equality boils down to the specific equality logic of the event type
-		return eventData1.Equal(&eventData2), nil
-	case AuthorizeEventName:
-		var eventData1 AuthorizeEvent
-		err := eventData1.Unmarshal(m.Data)
-		if err != nil {
-			return false, fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
-		}
-
-		var eventData2 AuthorizeEvent
-		err = eventData2.Unmarshal(e.Data)
-		if err != nil {
-			return false, fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
-		}
-
-		// Equality boils down to the specific equality logic of the event type
-		return eventData1.Equal(&eventData2), nil
-	default:
-		return false, fmt.Errorf("unknown event type: %s", m.EventType)
+	// Get concrete event from the first event
+	event1, err := m.UnmarshalConcreteEvent()
+	if err != nil {
+		return false, err
 	}
+
+	// Get concrete event from the second event
+	event2, err := e.UnmarshalConcreteEvent()
+	if err != nil {
+		return false, err
+	}
+
+	// Equality boils down to the specific equality logic of the event type
+	return event1.Equal(event2), nil
 }
 
 // ValidateBasic performs some sanity checks on Event
 func (m *Event) ValidateBasic() error {
-	// Unmarshal event according to type and sanitize the event accordingly
-	switch m.EventType {
-	case SendToSequencerEventName:
-		var eventData SendToSequencerEvent
-		err := eventData.Unmarshal(m.Data)
-		if err != nil {
-			return fmt.Errorf("could not unmarshal to %s: %w", SendToSequencerEventName, err)
-		}
-
-		// Validation boils down to the specific validation logic of the event type
-		return eventData.ValidateBasic()
-	case AuthorizeEventName:
-		var eventData AuthorizeEvent
-		err := eventData.Unmarshal(m.Data)
-		if err != nil {
-			return fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
-		}
-
-		// Validation boils down to the specific validation logic of the event type
-		return eventData.ValidateBasic()
-	default:
-		return fmt.Errorf("unknown event type: %s", m.EventType)
+	// Get concrete event
+	event, err := m.UnmarshalConcreteEvent()
+	if err != nil {
+		return err
 	}
+
+	return event.ValidateBasic()
 }

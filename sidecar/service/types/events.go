@@ -25,23 +25,35 @@ const (
 	AuthorizeEventName       = "AuthorizeEvent"
 )
 
-// Equal compares two SendToSequencerEvent structs for equality
-func (m *SendToSequencerEvent) Equal(e *SendToSequencerEvent) bool {
+// ConcreteEvent is a common interface for events.
+type ConcreteEvent interface {
+	Equal(ConcreteEvent) bool
+	ValidateBasic() error
+}
+
+// Equal attempts to compare two SendToSequencerEvent structs for equality
+func (m *SendToSequencerEvent) Equal(e ConcreteEvent) bool {
+	// Structs are not equal if they are of different type
+	other, ok := e.(*SendToSequencerEvent)
+	if !ok {
+		return false
+	}
+
 	// If both structs are nil then they are equal
-	if m == nil && e == nil {
+	if m == nil && other == nil {
 		return true
 	}
 
 	// If one of them only is nil then they are not equal
-	if m == nil || e == nil {
+	if m == nil || other == nil {
 		return false
 	}
 
 	// Two SendToSequencerEvents are equal if all their elements are equal
-	return m.From == e.From &&
-		m.To == e.To &&
-		m.Duration == e.Duration &&
-		m.Amount == e.Amount
+	return m.From == other.From &&
+		m.To == other.To &&
+		m.Duration == other.Duration &&
+		m.Amount == other.Amount
 }
 
 // ValidateBasic performs some sanity checks on the SendToSequencerEvent
@@ -75,20 +87,26 @@ func (m *SendToSequencerEvent) ValidateBasic() error {
 	return nil
 }
 
-// Equal compares two AuthorizeEvent structs for equality
-func (m *AuthorizeEvent) Equal(e *AuthorizeEvent) bool {
+// Equal attempts to compare two AuthorizeEvent structs for equality
+func (m *AuthorizeEvent) Equal(e ConcreteEvent) bool {
+	// Structs are not equal if they are of different type
+	other, ok := e.(*AuthorizeEvent)
+	if !ok {
+		return false
+	}
+
 	// If both structs are nil then they are equal
-	if m == nil && e == nil {
+	if m == nil && other == nil {
 		return true
 	}
 
 	// If one of them only is nil then they are not equal
-	if m == nil || e == nil {
+	if m == nil || other == nil {
 		return false
 	}
 
 	// Two AuthorizeEvents are equal if all their elements are equal
-	return m.From == e.From && bytes.Equal(m.Message, e.Message)
+	return m.From == other.From && bytes.Equal(m.Message, other.Message)
 }
 
 func (m *AuthorizeEvent) ValidateBasic() error {
