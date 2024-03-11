@@ -32,18 +32,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	dockerutil "github.com/fuel-infrastructure/fuel-sequencer/e2e/docker"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
-	"github.com/ory/dockertest/v3/docker"
-	"go.uber.org/zap"
 )
 
 const (
 	keyringPassphrase = "testpassphrase"
 	keyringAppName    = "testnet"
 
-	dockerVolumeName = "fuelsequencer-e2e-testnet"
+	tmpDirPattern = "fuelsequencer-e2e-testnet"
 
 	validatorKeyName       = "val"
 	validatorMonikerPrefix = "fuelsequencer"
@@ -88,8 +85,6 @@ func init() {
 }
 
 type chain struct {
-	log *zap.Logger
-
 	dataDir    string
 	id         string
 	numNodes   int
@@ -99,24 +94,24 @@ type chain struct {
 	rpcClient   *rpchttp.HTTP
 }
 
-func newChain(log *zap.Logger, dc *docker.Client, numNodes int) (*chain, error) {
+func newChain(numNodes int) (*chain, error) {
+	var dir string
+	var err error
+	if _, found := os.LookupEnv("CI"); found {
+		dir, err = os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	volume, err := dc.CreateVolume(docker.CreateVolumeOptions{Name: dockerVolumeName})
+	tmpDir, err := os.MkdirTemp(dir, tmpDirPattern)
 	if err != nil {
 		return nil, err
 	}
 
-	dockerutil.SetVolumeOwner(context.Background(), dockerutil.VolumeOwnerOptions{
-		Log:        log,
-		Client:     dc,
-		VolumeName: "",
-		UidGid:     "",
-	})
-
 	return &chain{
-		log:      log,
 		id:       "chain-" + cmrand.NewRand().Str(6),
-		dataDir:  volume.Mountpoint,
+		dataDir:  tmpDir,
 		numNodes: numNodes,
 	}, nil
 }
