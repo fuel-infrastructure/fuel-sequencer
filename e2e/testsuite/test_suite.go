@@ -33,6 +33,8 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 )
 
 // TODO: teardown with shutting off of containers
@@ -90,8 +92,14 @@ var (
 	}
 )
 
+var (
+	LogLevel = zaptest.Level(zap.DebugLevel)
+)
+
 type E2ETestSuite struct {
 	suite.Suite
+
+	log *zap.Logger
 
 	chain         *chain
 	dockerPool    *dockertest.Pool
@@ -107,6 +115,8 @@ type E2ETestSuite struct {
 
 func (s *E2ETestSuite) SetupSuite() {
 	s.T().Log("setting up E2E test suite...")
+
+	s.log = zaptest.NewLogger(s.T(), LogLevel)
 
 	var err error
 	s.chain, err = newChain(len(MNEMONICS))
@@ -414,8 +424,7 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 			Mounts: []string{
 				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
 			},
-			// Entrypoint disabled in favor of using node_and_sidecar.sh as an entrypoint
-			//Entrypoint: []string{fuelSequencerBinary, "start", "--trace=true"},
+			// Assumption: image entrypoint is a script that runs a node and a sidecar.
 		}
 
 		// expose the first validator for debugging and communication
@@ -504,4 +513,10 @@ func (s *E2ETestSuite) logsByContainerID(id string) string {
 
 func (s *E2ETestSuite) Ctx() context.Context {
 	return context.Background()
+}
+
+func (s *E2ETestSuite) Logger() *zap.Logger {
+	return s.log.With(
+		zap.String("test", s.T().Name()),
+	)
 }
