@@ -119,9 +119,9 @@ func (s *E2ETestSuite) SetupSuite() {
 	s.log = zaptest.NewLogger(s.T(), LogLevel)
 
 	var err error
-	s.chain, err = newChain(len(MNEMONICS))
-	s.Require().NoError(err)
 	s.dockerPool, err = dockertest.NewPool("")
+	s.Require().NoError(err)
+	s.chain, err = newChain(s.Logger(), s.dockerPool.Client, len(MNEMONICS))
 	s.Require().NoError(err)
 	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.chain.id))
 	s.Require().NoError(err)
@@ -415,6 +415,15 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 	s.T().Log("starting validator containers...")
 
 	s.valResources = make([]*dockertest.Resource, len(s.chain.validators))
+
+	s.dockerPool.Client.CreateVolume(docker.CreateVolumeOptions{
+		Name:       "",
+		Driver:     "",
+		DriverOpts: nil,
+		Context:    nil,
+		Labels:     nil,
+	})
+
 	for i, val := range s.chain.validators {
 		runOpts := &dockertest.RunOptions{
 			Name:       val.instanceName(),
