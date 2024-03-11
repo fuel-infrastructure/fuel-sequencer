@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -89,6 +90,11 @@ func (m *Event) Equal(e *Event) (bool, error) {
 
 // ValidateBasic performs some sanity checks on Event
 func (m *Event) ValidateBasic() error {
+	// Error if the receiver is nil
+	if m == nil {
+		return errors.New("event is nil")
+	}
+
 	// Get concrete event
 	event, err := m.UnmarshalConcreteEvent()
 	if err != nil {

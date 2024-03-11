@@ -60,6 +60,11 @@ func (m *SendToSequencerEvent) Equal(e ConcreteEvent) bool {
 func (m *SendToSequencerEvent) ValidateBasic() error {
 	// TODO: More checks can be added in the future
 
+	// Error if the receiver is nil
+	if m == nil {
+		return errors.New("SendToSequencerEvent is nil")
+	}
+
 	// Check that From is a valid hex address
 	if !common.IsHexAddress(m.From) {
 		return errors.New("from is not a valid hex address")
@@ -111,6 +116,11 @@ func (m *AuthorizeEvent) Equal(e ConcreteEvent) bool {
 
 func (m *AuthorizeEvent) ValidateBasic() error {
 	// TODO: More checks can be added in the future
+
+	// Error if the receiver is nil
+	if m == nil {
+		return errors.New("AuthorizeEvent is nil")
+	}
 
 	// Check that From is a valid hex address
 	if !common.IsHexAddress(m.From) {

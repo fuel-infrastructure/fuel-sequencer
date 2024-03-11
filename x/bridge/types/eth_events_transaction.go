@@ -1,6 +1,10 @@
 package types
 
-import sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+import (
+	"errors"
+
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+)
 
 // isEqualEventSlices compares two slices of Ethereum events for equality
 func isEqualEventSlices(slice1, slice2 []*sidecartypes.Event) (bool, error) {
@@ -42,10 +46,25 @@ func isValidEventSlice(slice []*sidecartypes.Event) error {
 
 // Equal compares two EthEventsTx structs for equality
 func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
+	// If both structs are nil then they are equal
+	if m == nil && e == nil {
+		return true, nil
+	}
+
+	// If one of them only is nil then they are not equal
+	if m == nil || e == nil {
+		return false, nil
+	}
+
 	return isEqualEventSlices(m.Events, e.Events)
 }
 
 // ValidateBasic performs some sanity checks on EthEventsTx
 func (m *EthEventsTx) ValidateBasic() error {
+	// Error if the receiver is nil
+	if m == nil {
+		return errors.New("EthEventsTx is nil")
+	}
+
 	return isValidEventSlice(m.Events)
 }
