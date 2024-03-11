@@ -54,7 +54,7 @@ message MsgPostBlob {
   // order is the blob sequencer order.
   string order = 3;
 
-  // data is the bytes
+  // data is the blob data bytes.
   bytes data = 4;
 }
 
@@ -75,6 +75,6 @@ message MsgPostBlobResponse {
   // order is the blob sequencer order.
   string order = 4;
 
-  // data is the bytes
+  // data is the blob data bytes.
   bytes data = 5;
 }

@@ -2262,7 +2262,7 @@ type MsgPostBlob struct {
 	Topic string `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
 	// order is the blob sequencer order.
 	Order string `protobuf:"bytes,3,opt,name=order,proto3" json:"order,omitempty"`
-	// data is the bytes
+	// data is the blob data bytes.
 	Data []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 }
 
@@ -2327,7 +2327,7 @@ type MsgPostBlobResponse struct {
 	Topic string `protobuf:"bytes,3,opt,name=topic,proto3" json:"topic,omitempty"`
 	// order is the blob sequencer order.
 	Order string `protobuf:"bytes,4,opt,name=order,proto3" json:"order,omitempty"`
-	// data is the bytes
+	// data is the blob data bytes.
 	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
 }
 
