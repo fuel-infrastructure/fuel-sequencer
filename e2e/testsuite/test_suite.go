@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	osuser "os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -414,6 +415,10 @@ func (s *E2ETestSuite) runEthContainer() {
 func (s *E2ETestSuite) runFuelSequencerValidators() {
 	s.T().Log("starting validator containers...")
 
+	// Get user from OS to ensure permissions match up when the container writes files.
+	user, err := osuser.Current()
+	s.Require().NoError(err)
+
 	s.valResources = make([]*dockertest.Resource, len(s.chain.validators))
 	for i, val := range s.chain.validators {
 		runOpts := &dockertest.RunOptions{
@@ -424,6 +429,7 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 			Mounts: []string{
 				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
 			},
+			User: fmt.Sprintf("%s:%s", user.Uid, user.Gid),
 			// Assumption: image entrypoint is a script that runs a node and a sidecar.
 		}
 
