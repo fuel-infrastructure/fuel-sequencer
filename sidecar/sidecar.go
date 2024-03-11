@@ -42,7 +42,7 @@ type SidecarImpl struct {
 	ethClient       *ethclient.Client
 	contractAddress common.Address
 	contractABI     abi.ABI
-	blocksMap       map[string]*EthereumBlock
+	blocksMap       map[string]*sidecartypes.EthereumBlock
 	updateInterval  time.Duration
 
 	// startQueryBlock is the block at which we started querying for events.
@@ -73,7 +73,7 @@ func NewSidecar(
 		contractAddress:   contractAddress,
 		contractABI:       contractAbi,
 		startQueryBlock:   startQueryBlock,
-		blocksMap:         make(map[string]*EthereumBlock),
+		blocksMap:         make(map[string]*sidecartypes.EthereumBlock),
 		updateInterval:    10 * time.Second,
 	}
 }
@@ -275,7 +275,7 @@ func (s *SidecarImpl) processLogs(logs []types.Log) error {
 	// All logs are sequential; move them from temporary to permanent storage
 	for blockNum, events := range tempBlocks {
 		blockNumStr := strconv.FormatUint(blockNum, 10)
-		s.blocksMap[blockNumStr] = &EthereumBlock{
+		s.blocksMap[blockNumStr] = &sidecartypes.EthereumBlock{
 			BlockNumber: new(big.Int).SetUint64(blockNum),
 			Events:      events,
 		}

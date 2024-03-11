@@ -1,24 +1,51 @@
 package types
 
-// isEqualStringSlices compares two slices of strings for equality
-func isEqualStringSlices(slice1, slice2 []string) bool {
-	// Slices of different lengths cannot be equal
+import sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+
+// isEqualEventSlices compares two slices of Ethereum events for equality
+func isEqualEventSlices(slice1, slice2 []*sidecartypes.Event) (bool, error) {
 	if len(slice1) != len(slice2) {
-		return false
+		// Slices of different lengths cannot be equal
+		return false, nil
 	}
 
 	for i := range slice1 {
-		if slice1[i] != slice2[i] {
-			return false // Found unequal elements
+		equalElements, err := slice1[i].Equal(slice2[i])
+		if err != nil {
+			// Return error if equality failed
+			return false, err
+		}
+
+		if !equalElements {
+			// Found unequal elements
+			return false, nil
 		}
 	}
 
-	return true // All elements are equal
+	// All elements are equal
+	return true, nil
 }
 
-// TODO: Do equality and validatebasic for EthEventsTx
+// isValidEventSlice performs some sanity checks on the list of Ethereum events
+func isValidEventSlice(slice []*sidecartypes.Event) error {
+	for _, event := range slice {
+		err := event.ValidateBasic()
+		if err != nil {
+			// Return error if verification failed.
+			return err
+		}
+	}
+
+	// All elements pass validation
+	return nil
+}
 
 // Equal compares two EthEventsTx structs for equality
-func (m *EthEventsTx) Equal(e *EthEventsTx) bool {
-	return isEqualStringSlices(m.EventsData, e.EventsData)
+func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
+	return isEqualEventSlices(m.Events, e.Events)
+}
+
+// ValidateBasic performs some sanity checks on EthEventsTx
+func (m *EthEventsTx) ValidateBasic() error {
+	return isValidEventSlice(m.Events)
 }

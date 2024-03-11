@@ -9,6 +9,22 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const (
+	// Hash function signatures used to identify events
+
+	// SendToSequencerEventHashFn Hash function signatures used to identify events
+	// crypto.Keccak256Hash([]byte("SendToSequencerEvent(address,uint256,string,uint256)")).Hex()
+	SendToSequencerEventHashFn = "0x5dee65305d37f37b03a10fb088c878b533e94440a61a4ad4f99cb82821398f98"
+
+	// AuthorizeEventHashFn Hash function signatures used to identify events
+	// crypto.Keccak256Hash([]byte("AuthorizeEvent(address,bytes)")).Hex()
+	AuthorizeEventHashFn = "0x0de3682d77bb5d715a5dba2f9da0d61c2afa6d0e32190e6873a3790e03c5965a"
+
+	// Event names
+	SendToSequencerEventName = "SendToSequencerEvent"
+	AuthorizeEventName       = "AuthorizeEvent"
+)
+
 // Equal compares two SendToSequencerEvent structs for equality
 func (m *SendToSequencerEvent) Equal(e *SendToSequencerEvent) bool {
 	// If both structs are nil then they are equal
