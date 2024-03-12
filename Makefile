@@ -351,3 +351,8 @@ build-ethereum-docker-image:
 
 test-e2e-basic: check-docker-image-exists
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
+
+clean-e2e:
+	@docker stop fuelsequencer0 fuelsequencer1 fuelsequencer2 ethereum
+	@docker rm fuelsequencer0 fuelsequencer1 fuelsequencer2 ethereum
+	@docker network prune -f
