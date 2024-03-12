@@ -307,13 +307,15 @@ build-docker-image:
 	@echo "✅ Finished building Docker image!"
 
 DATA_FOLDER="/data/fuelsequencer"
+COMMAND?=""
 run-docker-container:
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
     		-p 26656:26656 -p 26657:26657 -p 1317:1317 \
-    		${DOCKER_IMAGE_NAME}:latest
+    		${DOCKER_IMAGE_NAME}:latest \
+    		${COMMAND}
 
 start-docker-container:
 	@echo "🤖 Starting Docker container..."
