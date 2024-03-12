@@ -3,6 +3,7 @@ package abci
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -68,6 +69,11 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
+		// TODO: Add MsgSupplyDelta logic and inject transaction at index 1 if we expect a MsgSupplyDelta.
+		//     : MsgSupplyDelta should always be included in height even if PrepareProposal errors. Note that current
+		//     : baseApp behaviour returns req.Txs if PrepareProposal fails, therefore, we must make sure to add
+		//     : MsgSupplyDelta to req.Txs before any error.
+
 		blockHeight, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
 			return nil, errors.New("could not get last Ethereum block synced from state")
@@ -78,17 +84,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		response, err := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
 		)
-		if err != nil {
-			// Any error returned from the sidecar will cause the block proposer to return req.Txs and thus the block
-			// proposer will panic because it won't find EthEventsTx at index zero. As a result, a new consensus round
-			// should be generated. This may occur when the Sidecar is not catching up with Ethereum, Sequencer is too
-			// fast or connection issues with the sidecar, among other potential situations not specifically mentioned.
-			return nil, fmt.Errorf("failed to query sidecar at block %s: %w", ethBlockToQuery, err)
-		}
 
-		// TODO: Add MsgSupplyDelta logic and inject transaction at index 1 if we expect a MsgSupplyDelta
-
-		ethEventsTx, err := h.generateEthEventsTx(response)
+		ethEventsTx, err := h.generateEthEventsTx(response, err)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
 		}
@@ -107,22 +104,27 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// This is needed to clear variables tracked by the TxSelector
 		defer h.txSelector.Clear()
 
+		// EthEventsTx will not satisfy sdk.Tx. Therefore, we cannot handle it the same way as we handle other
+		// transactions. Note: Here we are assuming that EthEventsTx is injected at index zero and that we will
+		// always have such a tx.
+		success := h.txSelector.SelectNonSDKTxForProposal(ctx, uint64(req.MaxTxBytes), req.Txs[0])
+		if !success {
+			// If we fail in selecting the EthEventsTx it must be that the events are too large. In this case an empty
+			// block is generated and expected to be rejected by ProcessProposal
+			req.Txs = [][]byte{}
+			return nil, errors.New("failed to add eth events transaction to block proposal")
+
+			// TODO: This should probably be revised when MsgSupplyDelta is introduced because in some heights we should
+			//     : always return MsgSupplyDelta. At the same time, we can leave as is and cause the block to be
+			//     : rejected in ProcessProposal and generate another consensus round. Whatever is decided consider also
+			//     : implications of this on ProcessProposal.
+			//     : Extra: Should we assume that MsgSupplyDelta will fit MaxTxBytes and MaxGas?
+		}
+
 		// Since we are assuming a NoOp mempool we simply return the transactions requested from CometBFT, which, by
 		// default, should be in FIFO order. Note, we still need to ensure the transactions returned respect
 		// req.MaxTxBytes and blockParams.MaxGas
-		for index, txBz := range req.Txs {
-
-			// EthEventsTx will not satisfy sdk.Tx. Therefore, we cannot handle it the same way as we handle other
-			// transactions. Note: Here we are assuming that EthEventsTx is injected at index zero and that we will
-			// always have such a tx.
-			if index == 0 {
-				success := h.txSelector.SelectNonSDKTxForProposal(ctx, uint64(req.MaxTxBytes), txBz)
-				if !success {
-					return nil, errors.New("failed to add eth events transaction to block proposal")
-				}
-				continue
-			}
-
+		for _, txBz := range req.Txs[1:] {
 			tx, err := h.txVerifier.TxDecode(txBz)
 			if err != nil {
 				return nil, err
@@ -167,7 +169,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Expect that there is at least one transaction (EthEventsTx must be there)
 		if len(req.Txs) < 1 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"block proposal doesn't have any transactions first transaction expected to be an eth events tx",
+				"block proposal doesn't have any transactions: first transaction expected to be an eth events tx",
 			)
 		}
 
@@ -191,25 +193,24 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		response, err := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
 		)
-		if err != nil {
-			// Any error returned from the sidecar should cause the validator to fail in processing the block proposal.
-			// A new consensus round is generated if more than 2/3s of the validator set errors. An error at this stage
-			// can occur if Sidecar is not catching up with Ethereum, Sequencer is too fast or connection issues with
-			// the sidecar, among other potential situations not specifically mentioned.
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to query sidecar at block %s: %w", ethBlockToQuery, err,
-			)
-		}
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		ethEventsTx, err := h.generateEthEventsTx(response)
+		ethEventsTx, err := h.generateEthEventsTx(response, err)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to generate eth events tx: %w", err,
 			)
 		}
 
-		// Check that the injected EthEventsTx matches the one generated by the validator verifying the block proposal
+		// Reject block if the sequencer should not proceed with block generation
+		if !ethEventsTx.AdvanceSequencer {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"generated eth events tx implies block rejection",
+			)
+		}
+
+		// Reject block if injected EthEventsTx does not match the one generated by the validator verifying the block
+		// proposal
 		equal, err := injectedEthEventsTx.Equal(ethEventsTx)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -231,13 +232,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			maxBlockGas = b.MaxGas
 		}
 
-		for index, txBytes := range req.Txs {
-			// Eth events transactions typically don't implement sdk.Tx, therefore, they can be skipped since no gas
-			// is consumed. Note: Here we are assuming that eth events txs are always injected at index zero.
-			if index == 0 {
-				continue
-			}
-
+		// NOTE: Eth events transactions typically don't implement sdk.Tx, therefore, they can be skipped since no
+		// gas is consumed. Here we are assuming that eth events txs are always injected at index zero.
+		for _, txBytes := range req.Txs[1:] {
 			// There is something wrong with the Tx if it cannot be decoded. Thus reject the block proposal.
 			tx, err := h.txVerifier.TxDecode(txBytes)
 			if err != nil {
@@ -268,9 +265,33 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 // generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
 // returned from the sidecar don't pass validation.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
-	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
+	sidecarResponse *sidecartypes.QueryBlockEventsResponse, sidecarErr error,
 ) (*bridgetypes.EthEventsTx, error) {
-	ethEventsTx := bridgetypes.EthEventsTx{Events: sidecarResponse.Events}
+	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
+	// when it errors.
+	var events []*sidecartypes.Event
+	if sidecarResponse != nil {
+		events = sidecarResponse.Events
+	}
+
+	newEthereumBlock := true
+	advanceSequencer := true
+	if sidecarErr != nil {
+		// If the sidecar errored newEthereumBlock must be set to false as this means that the sidecar failed to query
+		// the next Ethereum block, therefore, we can't account for it
+		newEthereumBlock = false
+
+		// Set advanceSequencer to false if sidecar error is not due to block generation
+		if !strings.Contains(sidecarErr.Error(), sidecartypes.ErrBlockDoesNotExist) {
+			advanceSequencer = false
+		}
+	}
+
+	ethEventsTx := bridgetypes.EthEventsTx{
+		Events:           events,
+		NewEthereumBlock: newEthereumBlock,
+		AdvanceSequencer: advanceSequencer,
+	}
 	if err := ethEventsTx.ValidateBasic(); err != nil {
 		return nil, err
 	}

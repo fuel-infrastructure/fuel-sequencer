@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -27,7 +28,7 @@ var _ Sidecar = (*SidecarImpl)(nil)
 // Sidecar defines the expected interface for a sidecar. It is consumed by the sidecar server.
 type Sidecar interface {
 	IsRunning() bool
-	QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error)
+	QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error)
 	Start(ctx context.Context) error
 	Stop()
 }
@@ -114,7 +115,7 @@ func (s *SidecarImpl) IsRunning() bool {
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
-func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error) {
+func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -129,8 +130,26 @@ func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Eve
 			return []sidecartypes.Event{}, nil
 		}
 
+		syncProgress, err := s.ethClient.SyncProgress(ctx)
+		if err != nil {
+			return nil, errors.New("could not get syncing status from Ethereum node")
+		}
+
+		ethHeight, err := s.ethClient.BlockNumber(ctx)
+		if err != nil {
+			return nil, errors.New("could not get latest height from Ethereum node")
+		}
+
+		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must
+		// be the height being queried does not exist yet
+		isNodeSynced := syncProgress == nil
+		sidecarSyncedWithEthereum := s.lastQueryBlock.Cmp(new(big.Int).SetUint64(ethHeight)) == 0
+		if isNodeSynced && sidecarSyncedWithEthereum {
+			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
+		}
+
 		// Otherwise this block was not yet processed
-		return nil, fmt.Errorf("no events found for block number %s", blockNumber)
+		return nil, fmt.Errorf("block not yet processed %s", blockNumber)
 	}
 
 	return block.Events, nil

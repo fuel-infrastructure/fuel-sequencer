@@ -56,7 +56,12 @@ func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
 		return false, nil
 	}
 
-	return isEqualEventSlices(m.Events, e.Events)
+	// Check if the events are equal
+	equalEventSlices, err := isEqualEventSlices(m.Events, e.Events)
+
+	return m.AdvanceSequencer == e.AdvanceSequencer &&
+		m.NewEthereumBlock == e.NewEthereumBlock &&
+		equalEventSlices, err
 }
 
 // ValidateBasic performs some sanity checks on EthEventsTx

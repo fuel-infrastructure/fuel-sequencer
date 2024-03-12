@@ -8,4 +8,14 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 message EthEventsTx {
   // events defines the list of Ethereum events.
   repeated fuelsequencer.service.v1.Event events = 1;
+
+  // advanceSequencer is a boolean which indicates whether the sequencer should
+  // generate a new block. This is used to advance the Sequencer in cases where
+  // the sidecar errors ex. when no new blocks are generated on Ethereum.
+  bool advanceSequencer = 2;
+
+  // newEthereumBlock is a boolean which indicates whether a new Ethereum block
+  // has been detected by the sidecar. This is needed to determine when
+  // LastEthereumBlockSynced should be incremented by the PreBlocker.
+  bool newEthereumBlock = 3;
 }
