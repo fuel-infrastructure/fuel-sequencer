@@ -29,6 +29,8 @@ const (
 type ConcreteEvent interface {
 	Equal(ConcreteEvent) bool
 	ValidateBasic() error
+	Marshal() (dAtA []byte, err error)
+	Unmarshal(dAtA []byte) error
 }
 
 // Equal attempts to compare two SendToSequencerEvent structs for equality

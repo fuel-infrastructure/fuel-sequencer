@@ -67,4 +67,9 @@ var (
 		From:    TestFrom3,
 		Message: testutils.MustHexDecodeString(TestMessage3),
 	}
+	TestEvent1          = testutils.MustGetSidecarEventFromConcreteEvent(TestSendToSequencerEvent3)
+	TestEvent2          = testutils.MustGetSidecarEventFromConcreteEvent(TestAuthorizeEvent3)
+	TestEvent3          = testutils.MustGetSidecarEventFromConcreteEvent(TestSendToSequencerEvent2)
+	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestSidecarResponse = sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 )

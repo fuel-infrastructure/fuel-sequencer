@@ -3,6 +3,8 @@ package testutil
 import (
 	"encoding/hex"
 	"fmt"
+
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 func MustHexDecodeString(s string) []byte {
@@ -11,4 +13,30 @@ func MustHexDecodeString(s string) []byte {
 		panic(fmt.Sprintf("MustDecodeString: invalid input %s", s))
 	}
 	return decoded
+}
+
+func MustGetSidecarEventFromConcreteEvent(concreteEvent sidecartypes.ConcreteEvent) *sidecartypes.Event {
+	// Marshal the data
+	data, err := concreteEvent.Marshal()
+	if err != nil {
+		panic(err)
+	}
+
+	// Get event type
+	var eventType string
+	switch concreteEvent.(type) {
+	case *sidecartypes.SendToSequencerEvent:
+		eventType = sidecartypes.SendToSequencerEventName
+	case *sidecartypes.AuthorizeEvent:
+		eventType = sidecartypes.AuthorizeEventName
+	default:
+		panic("invalid event type")
+	}
+
+	event := &sidecartypes.Event{
+		EventType: eventType,
+		Data:      data,
+	}
+
+	return event
 }
