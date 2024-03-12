@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,8 +25,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	_ "github.com/cosmos/cosmos-sdk/x/auth" // import for side-effects
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"   // import for side-effects
@@ -51,6 +55,10 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
+
+	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -104,6 +112,9 @@ type FuelSequencerApp struct {
 
 	// simulation manager
 	sm *module.SimulationManager
+
+	// sidecar
+	sidecar sidecarclient.AppSidecarClient
 }
 
 func init() {
@@ -267,6 +278,57 @@ func NewFuelSequencerApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
+	// SIDECAR :: Configure
+	cfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	// SIDECAR :: Create client
+	app.sidecar, err = sidecarclient.NewClientFromConfig(
+		cfg,
+		app.Logger().With("client", "sidecar"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// SIDECAR :: Connect to the client
+	go func() {
+		if err := app.sidecar.Start(context.Background()); err != nil {
+			app.Logger().Error("failed to start Sidecar client", "err", err)
+			panic(err)
+		}
+
+		app.Logger().Info("started Sidecar client", "addr", cfg.Address)
+	}()
+
+	// PREPARE AND PROCESS PROPOSAL HANDLERS
+	proposalHandler := abci.NewFuelSequencerProposalHandler(app.Logger(), app.StakingKeeper, app, app.sidecar)
+	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
+	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
+
+	// PREBLOCKER
+	app.SetPreBlocker(proposalHandler.PreBlocker)
+
+	// ANTEHANDLER
+	anteHandler, err := NewAnteHandler(
+		ante.HandlerOptions{
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
+			SignModeHandler: app.txConfig.SignModeHandler(),
+			FeegrantKeeper:  nil,
+			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ante handler: %w", err)
+	}
+	app.SetAnteHandler(anteHandler)
+
+	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
+	app.SetMempool(mempool.NoOpMempool{})
+
 	// Register legacy modules
 
 	// register streaming services
@@ -368,6 +430,24 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 
 	// register app's OpenAPI routes.
 	docs.RegisterOpenAPIService(Name, apiSvr.Router)
+}
+
+// Close closes the underlying baseapp and the Sidecar service.
+// This function blocks on the closure of the Sidecar service.
+func (app *FuelSequencerApp) Close() error {
+	if err := app.App.Close(); err != nil {
+		return err
+	}
+
+	// close the Sidecar service
+	if app.sidecar != nil {
+		app.Logger().Info("stopping Sidecar")
+		if err := app.sidecar.Stop(); err != nil {
+			app.Logger().Error("error when stopping sidecar", "err", err)
+		}
+	}
+
+	return nil
 }
 
 // GetMaccPerms returns a copy of the module account permissions

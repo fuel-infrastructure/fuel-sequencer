@@ -4,6 +4,7 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 
 func InitSDKConfig() {
@@ -40,6 +41,7 @@ func InitAppConfig() (string, interface{}) {
 	// The following code snippet is just for reference.
 	type CustomAppConfig struct {
 		serverconfig.Config `mapstructure:",squash"`
+		SidecarConfig       sidecarconfig.SidecarConfig `mapstructure:"sidecar"`
 	}
 
 	// Optionally allow the chain developer to overwrite the SDK's default
@@ -62,18 +64,21 @@ func InitAppConfig() (string, interface{}) {
 
 	customAppConfig := CustomAppConfig{
 		Config: *srvCfg,
+		SidecarConfig: sidecarconfig.SidecarConfig{
+			Enabled: sidecarconfig.DefaultSidecarEnabled,
+			Address: sidecarconfig.DefaultSidecarAddress,
+			Timeout: sidecarconfig.DefaultSidecarTimeout,
+		},
 	}
 
-	customAppTemplate := serverconfig.DefaultConfigTemplate
-	// Edit the default template file
-	//
-	// customAppTemplate := serverconfig.DefaultConfigTemplate + `
-	// [wasm]
-	// # This is the maximum sdk gas (wasm and storage) that we allow for any x/wasm "smart" queries
-	// query_gas_limit = 300000
-	// # This is the number of wasm vm instances we keep cached in memory for speed-up
-	// # Warning: this is currently unstable and may lead to crashes, best to keep for 0 unless testing locally
-	// lru_size = 0`
+	customAppTemplate := serverconfig.DefaultConfigTemplate + `
+	[sidecar]
+	# This dictates whether the Sidecar will be queried.
+	enabled = false
+	# This defines the Sidecar server to listen to.
+	address = "http://localhost:8080"
+	# This defines how long the client should wait for responses.
+	timeout = "5s"`
 
 	return customAppTemplate, customAppConfig
 }
