@@ -1,6 +1,8 @@
 package basic_test
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -39,7 +41,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Zero(res.Code)
 
 		// Wait for blocks (RPC).
-		err = s.WaitForBlocks(s.Ctx(), 2)
+		err = s.WaitForBlocks(s.Ctx(), 2, time.Minute)
 		s.Require().NoError(err)
 
 		// Ensure balance was reduced (GRPC)

@@ -3,12 +3,13 @@ package testsuite
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 )
 
 // WaitForBlocks blocks until all chains reach a block height delta equal to or greater than the delta argument.
 // If a ChainHeighter does not monotonically increase the height, this function may block program execution indefinitely.
-func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int) error {
+func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
 
 	start, err := s.chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
@@ -28,11 +29,10 @@ func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int) error {
 		}
 	}()
 
-	// Time out after 30 seconds.
-	// TODO: make customisable
+	// Wait for blocks and timeout if it takes too long.
 	select {
-	case <-time.After(30 * time.Second):
-		return errors.New("timed out")
+	case <-time.After(timeoutAfter):
+		return errors.New(fmt.Sprintf("timed out waiting for %d blocks", delta))
 	case <-done:
 		return nil
 	}
