@@ -79,10 +79,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
 		)
 		if err != nil {
-			// Any error returned from the sidecar should cause the block proposer to fail in submitting a new block,
-			// and thus generate a new consensus round. This may occur when the Sidecar is not catching up with
-			// Ethereum, Sequencer is too fast or connection issues with the sidecar, among other potential situations
-			// not specifically mentioned.
+			// Any error returned from the sidecar will cause the block proposer to return req.Txs and thus the block
+			// proposer will panic because it won't find EthEventsTx at index zero. As a result, a new consensus round
+			// should be generated. This may occur when the Sidecar is not catching up with Ethereum, Sequencer is too
+			// fast or connection issues with the sidecar, among other potential situations not specifically mentioned.
 			return nil, fmt.Errorf("failed to query sidecar at block %s: %w", ethBlockToQuery, err)
 		}
 
