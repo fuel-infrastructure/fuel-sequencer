@@ -9,6 +9,8 @@ import (
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
+const DerivationPath = "m/44'/60'/0'/0/0"
+
 func createMnemonic() (string, error) { //nolint:unused
 	entropySeed, err := bip39.NewEntropy(256)
 	if err != nil {
