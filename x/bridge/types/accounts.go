@@ -13,7 +13,9 @@ import (
 // string is a valid Ethereum address, excluding the 0x prefix.
 var isValidEthAddr = regexp.MustCompile("^[a-fA-F0-9]{40}$").MatchString
 
-func GenerateCrosschainAccountAddress(ethAddress string) (sdk.AccAddress, error) {
+// GenerateSequencerAccountForEthereumAddress trims the 0x prefix from an Ethereum address, if any,
+// and decodes it into bytes before passing it to GenerateSequencerAccountForEthereumAddressFromBz.
+func GenerateSequencerAccountForEthereumAddress(ethAddress string) (sdk.AccAddress, error) {
 	if strings.HasPrefix(ethAddress, "0x") {
 		ethAddress = ethAddress[2:] // trim 0x prefix
 	}
@@ -25,14 +27,15 @@ func GenerateCrosschainAccountAddress(ethAddress string) (sdk.AccAddress, error)
 	if err != nil {
 		return nil, err
 	}
-	return GenerateCrosschainAccountAddressFromBz(ethAddressBz)
+	return GenerateSequencerAccountForEthereumAddressFromBz(ethAddressBz)
 }
 
-func GenerateCrosschainAccountAddressFromBz(ethAddress []byte) (sdk.AccAddress, error) {
+// GenerateSequencerAccountForEthereumAddressFromBz derives a Sequencer address from the module name and
+// the specified Ethereum address. The module name ensures we do not overlap with other modules' addresses.
+func GenerateSequencerAccountForEthereumAddressFromBz(ethAddress []byte) (sdk.AccAddress, error) {
 	if len(ethAddress) != 20 {
-		return nil, ErrInvalidAddress.Wrapf("expected eth address to be 20 bytes long, got %d", len(ethAddress))
+		return nil, ErrInvalidEthAddressLength.Wrapf("got %d", len(ethAddress))
 	}
 
-	ethAccount := sdkaddress.Module(ModuleName, []byte(ethAccountsKey))
-	return sdkaddress.Derive(ethAccount, []byte(ethAddress)), nil
+	return sdkaddress.Module(ModuleName, ethAddress), nil
 }

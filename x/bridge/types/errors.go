@@ -15,4 +15,6 @@ var (
 	ErrUnexpectedOperation      = sdkerrors.Register(ModuleName, 1102, "operation was not expected")
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
 	ErrInvalidAddress           = sdkerrors.Register(ModuleName, 1104, "invalid address")
+	ErrUnexpectedAccountType    = sdkerrors.Register(ModuleName, 1105, "unexpected account type")
+	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106, "expected eth address to be 20 bytes long")
 )

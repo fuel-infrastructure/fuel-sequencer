@@ -1,64 +1,89 @@
 package keeper
 
 import (
-	"errors"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k Keeper) createCrosschainAccount(
+// baseAccFromAcc extracts the base account from a sdk.AccountI.
+// The account must be a base account or a ContinuousVestingAccount.
+func baseAccFromAcc(acc sdk.AccountI) (*authtypes.BaseAccount, error) {
+	if vacc, ok := acc.(*vestingtypes.ContinuousVestingAccount); ok {
+		return vacc.BaseVestingAccount.BaseAccount, nil
+	}
+
+	if baseAcc, ok := acc.(*authtypes.BaseAccount); ok {
+		return baseAcc, nil
+	}
+
+	return nil, types.ErrUnexpectedAccountType.Wrapf("could not extract base acc from %s", acc.GetAddress().String())
+}
+
+// getSequencerAccountForEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
+// The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
+// to follow the specified vestingDuration, regardless of whether the account already existed in other forms.
+func (k Keeper) getSequencerAccountForEthereumAddress(
 	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
 ) (sdk.AccAddress, error) {
-	// TODO: what if we receive multiple deposit requests to the same account with a different vesting duration?
-	// TODO: can we safely overwrite an account if it was pre-created by someone by means of transferring tokens to it?
 
-	accAddress, err := types.GenerateCrosschainAccountAddress(ethAddress)
+	accAddress, err := types.GenerateSequencerAccountForEthereumAddress(ethAddress)
 	if err != nil {
 		return nil, err
 	}
 
+	// Calculate vesting details.
+	var vestingStartTime time.Time
 	var vestingEndTime time.Time
 	var vestingDone bool
 	if vestingDuration > 0 {
-		vestingEndTime = k.GetParams(ctx).VestingStartTime.Add(vestingDuration)
+		vestingStartTime = k.GetParams(ctx).VestingStartTime
+		vestingEndTime = vestingStartTime.Add(vestingDuration)
 		vestingDone = ctx.BlockTime().After(vestingEndTime)
 	}
 
-	// If account already exists, use it.
+	var baseAcc *authtypes.BaseAccount
+	var newAcc bool
+
+	// If account already exists, use it, otherwise create one.
+	// We also extract the base account since we'll most likely use it.
 	acc := k.accountKeeper.GetAccount(ctx, accAddress)
-	if acc != nil {
-
-		// Vesting done, so we don't need to confirm that the account is a vesting account.
-		if vestingDone {
-			return accAddress, nil
-		}
-
-		// If account is a vesting account, we can confirm that it was set up correctly
-		vacc, ok := acc.(banktypes.VestingAccount)
-		if ok {
-
-		}
-	}
-
-	// Assume account will be a base account.
-	baseAcc := authtypes.NewBaseAccountWithAddress(accAddress)
-	acc := sdk.AccountI(baseAcc)
-
-	// Create vesting account if vesting not done.
-	if !vestingDone {
-		acc, err = vestingtypes.NewDelayedVestingAccount(baseAcc, totalCoins, vestingEndTime.Unix())
+	if acc == nil {
+		newAcc = true
+		baseAcc = authtypes.NewBaseAccountWithAddress(accAddress)
+		acc = sdk.AccountI(baseAcc)
+	} else {
+		newAcc = false
+		baseAcc, err = baseAccFromAcc(acc)
 		if err != nil {
-			return nil, errors.New("some error") // TODO: some error
+			return nil, err
 		}
 	}
 
-	k.accountKeeper.NewAccount(ctx, acc)
-	k.accountKeeper.SetAccount(ctx, acc)
+	// If vesting done, ensure we use the base account. Otherwise, create a vesting account.
+	if vestingDone {
+		acc = baseAcc
+	} else {
+		// Calculate the new total balance for the vesting account.
+		existingBalance := k.bankKeeper.GetAllBalances(ctx, accAddress)
+		newBalance := existingBalance.Add(totalCoins...)
 
+		acc, err = vestingtypes.NewContinuousVestingAccount(
+			baseAcc, newBalance, vestingStartTime.Unix(), vestingEndTime.Unix(),
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Get an account number if it's a new account.
+	if newAcc {
+		k.accountKeeper.NewAccount(ctx, acc)
+	}
+
+	k.accountKeeper.SetAccount(ctx, acc)
 	return accAddress, nil
 }
