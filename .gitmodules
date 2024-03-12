@@ -1,5 +1,5 @@
 [submodule "e2e/test-contracts"]
 	path = e2e/test-contracts
 	url = https://github.com/fuel-infrastructure/test-contracts
-	branch = e2e-ify
-	# TODO: update branch to main branch once e2e-ify is merged
+	branch = e2e
+	# TODO: update branch to main branch once e2e branch is merged
