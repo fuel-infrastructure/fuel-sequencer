@@ -109,11 +109,6 @@ type E2ETestSuite struct {
 	valResources  []*dockertest.Resource
 }
 
-// TODO: should we get this to be runnable?
-//func TestE2ETestSuite(t *testing.T) {
-//	suite.Run(t, new(E2ETestSuite))
-//}
-
 func (s *E2ETestSuite) SetupSuite() {
 	s.T().Log("setting up E2E test suite...")
 
