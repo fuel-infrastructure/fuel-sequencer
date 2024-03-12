@@ -16,7 +16,7 @@ func (s *BasicTestSuite) SetupTest() {
 		s.T().Skip()
 	}
 
-	// TODO: s.Reset()
+	// TODO: s.Reset() once this is possible, to run tests sequentially
 }
 
 func TestBasicTestSuite(t *testing.T) {
