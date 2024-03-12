@@ -164,6 +164,13 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
+		// Expect that there is at least one transaction (EthEventsTx must be there)
+		if len(req.Txs) < 1 {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"block proposal doesn't have any transactions first transaction expected to be an eth events tx",
+			)
+		}
+
 		// Expect that the first transaction is always the EthEventsTx
 		var injectedEthEventsTx bridgetypes.EthEventsTx
 		if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
