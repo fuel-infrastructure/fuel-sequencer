@@ -194,8 +194,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		if err != nil {
 			// Any error returned from the sidecar should cause the validator to fail in processing the block proposal.
 			// A new consensus round is generated if more than 2/3s of the validator set errors. An error at this stage
-			// can occur when if Sidecar is not catching up with Ethereum, Sequencer is too fast or connection issues
-			// with the sidecar, among other potential situations not specifically mentioned.
+			// can occur if Sidecar is not catching up with Ethereum, Sequencer is too fast or connection issues with
+			// the sidecar, among other potential situations not specifically mentioned.
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to query sidecar at block %s: %w", ethBlockToQuery, err,
 			)
