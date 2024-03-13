@@ -9,7 +9,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// vestingStartTimeDelay is a constant period of time in which tokens are completely locked.
+// vestingStartTimeDelay is a constant period of time during which tokens are completely locked.
 var vestingStartTimeDelay = time.Hour * 24 * 365
 
 // blankBaseVestingAccount returns a blank base vesting account. We only need
@@ -63,8 +63,18 @@ func (k Keeper) generateSequencerAccountForEthereumAddress(
 	var vestingEndTime time.Time
 	vestingDone := true
 	if vestingDuration > 0 {
-		vestingStartTime = k.GetParams(ctx).VestingStartTime.Add(vestingStartTimeDelay)
-		vestingEndTime = vestingStartTime.Add(vestingDuration)
+		// The vesting start time delay is included in the vesting duration, so
+		// if the vesting duration is smaller, it cannot be considered as valid.
+		// We consider vestingDuration == vestingStartTimeDelay as invalid as well.
+		if vestingDuration <= vestingStartTimeDelay {
+			return nil, types.ErrInvalidVestingDuration.Wrapf(
+				"must be greater than vesting start time delay, got %s <= %s",
+				vestingDuration, vestingStartTimeDelay,
+			)
+		}
+		params := k.GetParams(ctx)
+		vestingStartTime = params.VestingStartTime.Add(vestingStartTimeDelay)
+		vestingEndTime = params.VestingStartTime.Add(vestingDuration)
 		vestingDone = ctx.BlockTime().Compare(vestingEndTime) >= 0 // block time is at or after vesting end time
 	}
 

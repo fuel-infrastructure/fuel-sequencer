@@ -37,9 +37,10 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 
 	// Helper times.
 	blockTime, _ := time.Parse(time.DateOnly, "2024-01-01")
-	blockTimePlusOneYear := blockTime.Add(time.Hour * 24 * 365) // accounts for vesting start time delay
-	someTimeWayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
-	someTimeWayInTheFuturePlusOneYear := someTimeWayInTheFuture.Add(time.Hour * 24 * 365)
+	oneYear := time.Hour * 24 * 365
+	twoYears := oneYear * 2
+	blockTimePlusOneYear := blockTime.Add(oneYear) // accounts for vesting start time delay
+	someTimeWaaaayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
 
 	// Helper token amounts.
 	token200 := sdk.NewCoins(sdk.NewInt64Coin(token, 200))
@@ -93,15 +94,34 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 		// --------- Test cases with basic invalid values
 		//
 		{
-			name:        "invalid eth address => err",
-			blockTime:   blockTime,
-			fundAccount: nil,
+			name:      "invalid eth address => err",
+			blockTime: blockTime,
 			args: fnArgs{
-				ethAddress:      "invalid_eth_address",
-				vestingDuration: 0,
-				totalCoins:      nil,
+				ethAddress: "invalid_eth_address",
 			},
 			expectErrMsg: "invalid Ethereum address format (invalid_eth_address)",
+		},
+		{
+			name:             "vesting duration < vesting start time delay (1 year) => err",
+			blockTime:        blockTime,
+			vestingStartTime: blockTime,
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: oneYear - 1,
+				totalCoins:      token100,
+			},
+			expectErrMsg: "must be greater than vesting start time delay, got 8759h59m59.999999999s <= 8760h0m0s",
+		},
+		{
+			name:             "vesting duration == vesting start time delay (1 year) => err",
+			blockTime:        blockTime,
+			vestingStartTime: blockTime,
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: oneYear,
+				totalCoins:      token100,
+			},
+			expectErrMsg: "must be greater than vesting start time delay, got 8760h0m0s <= 8760h0m0s",
 		},
 		//
 		// --------- Test cases with no precreated account
@@ -136,7 +156,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			// blockTime:              2024
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is before the actual start time, so we expect no tokens to be available.
 			name:             "acc with vesting starting in the future => vesting account",
@@ -145,7 +165,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			fundAccount:      token100,
 			args: fnArgs{
 				ethAddress:      ethAddr1Str,
-				vestingDuration: time.Hour,
+				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
@@ -153,25 +173,25 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
 					OriginalVesting: token100,
-					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+					EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting duration
 				},
 			}),
 			expectSpendableCoins: nil,
 		},
 		{
-			// blockTime:              2025 + 30 mins
+			// blockTime:              2025 + 0.5 year
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
 			name:             "acc with vesting half-way => vesting account",
-			blockTime:        blockTimePlusOneYear.Add(time.Hour / 2), // half-way through vesting duration
+			blockTime:        blockTimePlusOneYear.Add(oneYear / 2), // half-way through vesting duration
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
 				ethAddress:      ethAddr1Str,
-				vestingDuration: time.Hour,
+				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
@@ -179,44 +199,44 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
 					OriginalVesting: token100,
-					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+					EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 				},
 			}),
-			expectSpendableCoins: token50,
+			expectSpendableCoins: token50, // half of the vesting tokens are available
 		},
 		{
-			// blockTime:              2025 + 60 mins
+			// blockTime:              2025 + 1 year
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is at the end of the actual end time, meaning all the tokens are expected to be available.
 			name:             "acc with vesting ended => base account",
-			blockTime:        blockTimePlusOneYear.Add(time.Hour), // all the way through vesting duration
+			blockTime:        blockTimePlusOneYear.Add(oneYear), // all the way through vesting duration
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
 				ethAddress:      ethAddr1Str,
-				vestingDuration: time.Hour,
+				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected:  matchesBaseAcc(seqAddr1BaseAcc),
-			expectSpendableCoins: token100,
+			expectSpendableCoins: token100, // all tokens available
 		},
 		{
-			// blockTime:              2025 + 60 mins - 1 ns
+			// blockTime:              2025 + 1 year - 1 ns
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is ALMOST at actual end time, meaning all the tokens are pretty much all available.
 			name:             "edge check :: acc with vesting ALMOST ended => vesting account",
-			blockTime:        blockTimePlusOneYear.Add(time.Hour - 1), // all the way through vesting duration
+			blockTime:        blockTimePlusOneYear.Add(oneYear - 1), // all the way through vesting duration
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
 				ethAddress:      ethAddr1Str,
-				vestingDuration: time.Hour,
+				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
@@ -224,7 +244,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
 					OriginalVesting: token100,
-					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+					EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 				},
 			}),
 			expectSpendableCoins: token100, // all tokens available, due to rounding
@@ -249,7 +269,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			// blockTime:              2024
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is before the actual start time, so we expect no tokens to be available in precreated account.
 			// But we're creating an account with no vesting duration, so this gets overwritten with a base account.
@@ -259,7 +279,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
 					OriginalVesting: token100,
-					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+					EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 				},
 			},
 			blockTime:        blockTime,
@@ -274,28 +294,28 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
 		{
-			// blockTime:              2025 + 30 mins
+			// blockTime:              2025 + 0.5 year
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
 			name:             "acc with vesting half-way overrides existing base account => vesting account",
 			precreateAccount: seqAddr1BaseAcc,
-			blockTime:        blockTimePlusOneYear.Add(time.Hour / 2), // half-way through vesting duration
+			blockTime:        blockTimePlusOneYear.Add(oneYear / 2), // half-way through vesting duration
 			vestingStartTime: blockTime,
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
 				ethAddress:      ethAddr1Str,
-				vestingDuration: time.Hour,
+				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
 				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
-					OriginalVesting: token100,                                   // only 100 are vesting
-					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+					OriginalVesting: token100,                                 // only 100 are vesting
+					EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 				},
 			}),
 			expectSpendableCoins: token150, // precreated account's 100 plus half of newly vested tokens
@@ -312,24 +332,24 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			precreateAccount: &vestingtypes.DelayedVestingAccount{ // Use unexpected vesting account type
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
-					OriginalVesting: token50,                                  // only 50 are vesting initially
-					EndTime:         someTimeWayInTheFuturePlusOneYear.Unix(), // all tokens are locked
+					OriginalVesting: token50,                          // only 50 are vesting initially
+					EndTime:         someTimeWaaaayInTheFuture.Unix(), // all tokens are locked
 				},
 			},
-			blockTime:        blockTimePlusOneYear.Add(time.Hour / 2), // half-way through vesting duration
+			blockTime:        blockTimePlusOneYear.Add(oneYear / 2), // half-way through vesting duration
 			vestingStartTime: blockTime,
 			fundAccount:      token150, // fund with 150 due to precreated account
 			args: fnArgs{
 				ethAddress:      ethAddr1Str,
-				vestingDuration: time.Hour,
+				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
 				StartTime: blockTimePlusOneYear.Unix(), // precreated account's vesting start time is disregarded
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
-					OriginalVesting: token100, // 100 are vesting (the original 50 vesting become spendable)
-					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(),
+					OriginalVesting: token100,                                 // 100 are vesting; the original 50 are liquid
+					EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 				},
 			}),
 			expectSpendableCoins: token100, // all of precreated account's 50 plus half of the 100 newly vested tokens
