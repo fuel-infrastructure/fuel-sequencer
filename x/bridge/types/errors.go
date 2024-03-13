@@ -6,7 +6,6 @@ import (
 	sdkerrors "cosmossdk.io/errors"
 )
 
-// x/bridge module sentinel errors
 var (
 	ErrInvalidSigner = sdkerrors.Register(
 		ModuleName, 1100, "expected gov account as only signer for proposal message",
@@ -15,7 +14,6 @@ var (
 	ErrUnexpectedOperation      = sdkerrors.Register(ModuleName, 1102, "operation was not expected")
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
 	ErrInvalidEthAddress        = sdkerrors.Register(ModuleName, 1104, "invalid ethereum address")
-	ErrInvalidAddress           = sdkerrors.Register(ModuleName, 1105, "invalid address")
-	ErrUnexpectedAccountType    = sdkerrors.Register(ModuleName, 1106, "unexpected account type")
-	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1107, "expected eth address to be 20 bytes long")
+	ErrUnexpectedAccountType    = sdkerrors.Register(ModuleName, 1105, "unexpected account type")
+	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106, "expected eth address to be 20 bytes long")
 )

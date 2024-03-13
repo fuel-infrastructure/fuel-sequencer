@@ -1,33 +1,21 @@
 package types
 
 import (
-	"encoding/hex"
-	"regexp"
-	"strings"
-
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
+	"github.com/ethereum/go-ethereum/common"
 )
-
-// isValidEthAddr defines a regular expression to check if the provided
-// string is a valid Ethereum address, excluding the 0x prefix.
-var isValidEthAddr = regexp.MustCompile("^[a-fA-F0-9]{40}$").MatchString
 
 // GenerateSequencerAccountForEthereumAddress trims the 0x prefix from an Ethereum address, if any,
 // and decodes it into bytes before passing it to GenerateSequencerAccountForEthereumAddressFromBz.
 func GenerateSequencerAccountForEthereumAddress(ethAddress string) (sdk.AccAddress, error) {
-	if strings.HasPrefix(ethAddress, "0x") {
-		ethAddress = ethAddress[2:] // trim 0x prefix
-	}
-	if !isValidEthAddr(ethAddress) {
-		return nil, ErrInvalidAddress.Wrapf("string is not valid ethereum address: %s", ethAddress)
+	// TODO: We might want to verify checksum of address
+	if !common.IsHexAddress(ethAddress) {
+		return nil, errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format")
 	}
 
-	ethAddressBz, err := hex.DecodeString(ethAddress)
-	if err != nil {
-		return nil, err
-	}
-	return GenerateSequencerAccountForEthereumAddressFromBz(ethAddressBz)
+	return GenerateSequencerAccountForEthereumAddressFromBz(common.FromHex(ethAddress))
 }
 
 // GenerateSequencerAccountForEthereumAddressFromBz derives a Sequencer address from the module name and
