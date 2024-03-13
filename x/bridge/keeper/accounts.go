@@ -38,7 +38,7 @@ func (k Keeper) getSequencerAccountForEthereumAddress(
 	// Calculate vesting details.
 	var vestingStartTime time.Time
 	var vestingEndTime time.Time
-	var vestingDone bool
+	vestingDone := true
 	if vestingDuration > 0 {
 		vestingStartTime = k.GetParams(ctx).VestingStartTime
 		vestingEndTime = vestingStartTime.Add(vestingDuration)
