@@ -14,17 +14,9 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 
 // Query defines the gRPC querier service.
 service Query {
-
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fuelsequencer/bridge/params";
-  }
-
-  // Queries a SupplyDeltaInfo by index.
-  rpc SupplyDeltaInfo(QueryGetSupplyDeltaInfoRequest)
-      returns (QueryGetSupplyDeltaInfoResponse) {
-    option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info";
   }
 
   // Queries the LastEthereumNonce.
@@ -40,8 +32,14 @@ service Query {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced";
   }
-}
 
+  // Queries the SupplyDeltaInfo.
+  rpc SupplyDeltaInfo(QueryGetSupplyDeltaInfoRequest)
+      returns (QueryGetSupplyDeltaInfoResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info";
+  }
+}
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
