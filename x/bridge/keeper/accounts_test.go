@@ -321,10 +321,53 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			expectSpendableCoins: token150, // precreated account's 100 plus half of newly vested tokens
 		},
 		{
-			// blockTime:              2025 + 30 mins
+			// blockTime:              2025 + 0.5 year
 			// vestingStartTime:       2024
 			// actualVestingStartTime: 2025
-			// actualVestingEndTime:   2025 + 60 mins
+			// actualVestingEndTime:   2025 + 1 year
+			//
+			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
+			name: "acc with vesting half-way builds on top of existing vesting account (ContinuousVestingAccount), " +
+				"resulting in updated OriginalVesting and maintained delegation values => vesting account",
+			precreateAccount: &vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:      seqAddr1BaseAcc,
+					OriginalVesting:  token100,
+					DelegatedFree:    token50,                                  // these should be untouched
+					DelegatedVesting: token50,                                  // these should be untouched
+					EndTime:          blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
+				},
+			},
+			blockTime:        blockTimePlusOneYear.Add(oneYear / 2), // half-way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token200, // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: twoYears,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // precreated account's vesting start time is disregarded
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:      seqAddr1BaseAcc,
+					OriginalVesting:  token200,                                 // 100 + 100 are all vesting
+					DelegatedFree:    token50,                                  // these were untouched
+					DelegatedVesting: token50,                                  // these were untouched
+					EndTime:          blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
+				},
+			}),
+			expectSpendableCoins: token150, // half of all the 200 vesting tokens + DelegatedVesting
+			//
+			// "+ DelegatedVesting" comes from the definition of LockedCoins: "vesting coins that are not delegated"
+			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/bank/types/vesting.go#L11-L12
+			// This means that the DelegatedVesting are considered spendable, according to the definition.
+		},
+		{
+			// blockTime:              2025 + 0.5 year
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
 			name: "acc with vesting half-way builds on top of existing vesting account (DelayedVestingAccount), " +
