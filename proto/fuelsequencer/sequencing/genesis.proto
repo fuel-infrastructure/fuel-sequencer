@@ -16,6 +16,6 @@ message GenesisState {
   // params defines all the parameters of the module.
   Params params = 1
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
-  // topicList hold all the list of topics
+  // topicList hold all the list of topics.
   repeated Topic topicList = 2 [ (gogoproto.nullable) = false ];
 }

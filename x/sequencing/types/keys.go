@@ -23,14 +23,14 @@ func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
 
-// TopicKey returns the store key to retrieve a Topic from the index fields
+// TopicKey returns the store key to retrieve a Topic from the topic Id
 func TopicKey(
-	index string,
+	topicId string,
 ) []byte {
 	var key []byte
 
-	indexBytes := []byte(index)
-	key = append(key, indexBytes...)
+	topicIdBytes := []byte(topicId)
+	key = append(key, topicIdBytes...)
 	key = append(key, []byte("/")...)
 
 	return key

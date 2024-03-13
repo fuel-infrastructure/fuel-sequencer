@@ -12,7 +12,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
-// SetTopic set a specific topic in the store from its index.
+// SetTopic set a specific topic in the store by its Id.
 func (k Keeper) SetTopic(ctx context.Context, topic types.Topic) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKeyPrefix))
@@ -22,7 +22,7 @@ func (k Keeper) SetTopic(ctx context.Context, topic types.Topic) {
 	), b)
 }
 
-// GetTopic returns a topic from its index.
+// GetTopic returns a topic by its Id.
 func (k Keeper) GetTopic(
 	ctx context.Context,
 	index math.Int,
@@ -41,7 +41,7 @@ func (k Keeper) GetTopic(
 	return val, true
 }
 
-// RemoveTopic removes a topic from the store
+// RemoveTopic removes a topic from the store.
 func (k Keeper) RemoveTopic(
 	ctx context.Context,
 	index math.Int,

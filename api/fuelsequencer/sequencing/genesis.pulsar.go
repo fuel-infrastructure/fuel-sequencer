@@ -609,7 +609,7 @@ type GenesisState struct {
 
 	// params defines all the parameters of the module.
 	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
-	// topicList hold all the list of topics
+	// topicList hold all the list of topics.
 	TopicList []*Topic `protobuf:"bytes,2,rep,name=topicList,proto3" json:"topicList,omitempty"`
 }
 

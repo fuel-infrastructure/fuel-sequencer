@@ -28,6 +28,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Shows a topic",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "id"}},
 				},
+				{
+					RpcMethod: "NextTopicId",
+					Use:       "show-next-topic-id",
+					Short:     "Shows the next topic id",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

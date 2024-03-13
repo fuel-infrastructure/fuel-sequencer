@@ -26,7 +26,7 @@ func (k msgServer) PostBlob(
 		return nil, errorsmod.Wrapf(
 			types.ErrDataTooBig,
 			"message size %d exceeds max blob size bytes %d",
-			uint64(len(msg.Data)),
+			msgLength,
 			maxBlobSizeBytes,
 		)
 	}
