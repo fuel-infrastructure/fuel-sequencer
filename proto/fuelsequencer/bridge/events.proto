@@ -3,6 +3,7 @@ package fuelsequencer.bridge;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -21,4 +22,23 @@ message EventSupplyDeltaReported {
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
+}
+
+message EventWithdrawToEthereumReported {
+
+  // nonce uniquely identifies any message that we send to Ethereum.
+  string nonce = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // from is the user address on FuelSequencer that is sending the tokens.
+  string from = 2;
+
+  // to is the user address on Ethereum that will be receiving the tokens.
+  string to = 3;
+
+  // amount is the tokens being sent, which must be the expacted bridge token.
+  cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
