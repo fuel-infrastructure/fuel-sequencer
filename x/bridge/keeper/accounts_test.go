@@ -1,31 +1,53 @@
 package keeper_test
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 const (
 	firstAccNumber   = 7 // this is not zero due to module accounts
 	firstAccSequence = 0
+
+	token = "token"
+)
+
+type (
+	accountValidator func(acc sdk.AccountI) bool
 )
 
 func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 
+	// ethAddr1Str -> seqAddr1Str
 	ethAddr1Str := "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
-	//ethAddr2Str := "0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9"
-
-	// corresponds to ethAddress1
 	seqAddr1Str := "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k"
 	seqAddr1 := sdk.MustAccAddressFromBech32(seqAddr1Str)
 
-	blockTime, _ := time.Parse("YYYY", "2000")
-	token100 := sdk.NewCoins(sdk.NewInt64Coin("token", 100))
+	// corresponds to seqAddr1Str
+	seqAddr1BaseAcc := &authtypes.BaseAccount{
+		Address:       seqAddr1Str,
+		AccountNumber: firstAccNumber,
+		Sequence:      firstAccSequence,
+	}
 
-	type accountValidator func(acc sdk.AccountI) bool
+	// Helper times.
+	blockTime, _ := time.Parse(time.DateOnly, "2024-01-01")
+	blockTimePlusOneYear := blockTime.Add(time.Hour * 24 * 365) // accounts for vesting start time delay
+	someTimeWayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
+	someTimeWayInTheFuturePlusOneYear := someTimeWayInTheFuture.Add(time.Hour * 24 * 365)
 
+	// Helper token amounts.
+	token200 := sdk.NewCoins(sdk.NewInt64Coin(token, 200))
+	token150 := sdk.NewCoins(sdk.NewInt64Coin(token, 150))
+	token100 := sdk.NewCoins(sdk.NewInt64Coin(token, 100))
+	token50 := sdk.NewCoins(sdk.NewInt64Coin(token, 50))
+
+	// matchesBaseAcc asserts that the account is a base account and matches the supplied account.
 	matchesBaseAcc := func(baseAcc *authtypes.BaseAccount) accountValidator {
 		return func(acc sdk.AccountI) bool {
 			bAcc, ok := acc.(*authtypes.BaseAccount)
@@ -37,34 +59,58 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 		}
 	}
 
-	//matchesContinuousVestingAccount := func(vestingAcc *vestingtypes.ContinuousVestingAccount) accountValidator {
-	//	return func(acc sdk.AccountI) bool {
-	//		vAcc, ok := acc.(*vestingtypes.ContinuousVestingAccount)
-	//		return ok &&
-	//			(vAcc.StartTime == vestingAcc.StartTime) &&
-	//			(vAcc.OriginalVesting.Equal(vestingAcc.OriginalVesting)) &&
-	//			(vAcc.DelegatedFree.Equal(vestingAcc.DelegatedFree)) &&
-	//			(vAcc.DelegatedVesting.Equal(vestingAcc.DelegatedVesting)) &&
-	//			(vAcc.EndTime != vestingAcc.EndTime) &&
-	//			matchesBaseAcc(vestingAcc.BaseAccount)(vAcc.BaseAccount)
-	//	}
-	//}
+	// matchesContinuousVestingAccount asserts that the account is a vesting account and matches the supplied account.
+	matchesContinuousVestingAccount := func(vestingAcc *vestingtypes.ContinuousVestingAccount) accountValidator {
+		return func(acc sdk.AccountI) bool {
+			vAcc, ok := acc.(*vestingtypes.ContinuousVestingAccount)
+			return ok &&
+				(vAcc.StartTime == vestingAcc.StartTime) &&
+				(vAcc.OriginalVesting.Equal(vestingAcc.OriginalVesting)) &&
+				(vAcc.DelegatedFree.Equal(vestingAcc.DelegatedFree)) &&
+				(vAcc.DelegatedVesting.Equal(vestingAcc.DelegatedVesting)) &&
+				(vAcc.EndTime == vestingAcc.EndTime) &&
+				matchesBaseAcc(vestingAcc.BaseAccount)(vAcc.BaseAccount)
+		}
+	}
 
-	type args struct {
+	type fnArgs struct {
 		ethAddress      string
 		vestingDuration time.Duration
 		totalCoins      sdk.Coins
 	}
 	testsCases := []struct {
-		name                string
-		precreateAccount    sdk.AccountI
-		args                args
-		isAccountAsExpected func(sdk.AccountI) bool
-		expectErrMsg        string
+		name                 string
+		precreateAccount     sdk.AccountI
+		blockTime            time.Time
+		vestingStartTime     time.Time
+		fundAccount          sdk.Coins
+		args                 fnArgs
+		isAccountAsExpected  func(sdk.AccountI) bool
+		expectSpendableCoins sdk.Coins
+		expectErrMsg         string
 	}{
+		//
+		// --------- Test cases with basic invalid values
+		//
 		{
-			name: "new account with no vesting and no coins => valid base account",
-			args: args{
+			name:        "invalid eth address => err",
+			blockTime:   blockTime,
+			fundAccount: nil,
+			args: fnArgs{
+				ethAddress:      "invalid_eth_address",
+				vestingDuration: 0,
+				totalCoins:      nil,
+			},
+			expectErrMsg: "invalid Ethereum address format (invalid_eth_address)",
+		},
+		//
+		// --------- Test cases with no precreated account
+		//
+		{
+			name:        "account with no vesting and no coins => base account",
+			blockTime:   blockTime,
+			fundAccount: nil,
+			args: fnArgs{
 				ethAddress:      ethAddr1Str,
 				vestingDuration: 0,
 				totalCoins:      nil,
@@ -72,17 +118,221 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			isAccountAsExpected: matchesBaseAcc(
 				authtypes.NewBaseAccount(seqAddr1, nil, firstAccNumber, firstAccSequence),
 			),
+			expectSpendableCoins: nil,
 		},
 		{
-			name: "new account with no vesting and some coins => valid base account",
-			args: args{
+			name:        "account with no vesting and some coins => base account",
+			blockTime:   blockTime,
+			fundAccount: token100,
+			args: fnArgs{
 				ethAddress:      ethAddr1Str,
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesBaseAcc(
-				authtypes.NewBaseAccount(seqAddr1, nil, firstAccNumber, firstAccSequence),
-			),
+			isAccountAsExpected:  matchesBaseAcc(seqAddr1BaseAcc),
+			expectSpendableCoins: token100,
+		},
+		{
+			// blockTime:              2024
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is before the actual start time, so we expect no tokens to be available.
+			name:             "acc with vesting starting in the future => vesting account",
+			blockTime:        blockTime,
+			vestingStartTime: blockTime,
+			fundAccount:      token100,
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: time.Hour,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token100,
+					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+				},
+			}),
+			expectSpendableCoins: nil,
+		},
+		{
+			// blockTime:              2025 + 30 mins
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
+			name:             "acc with vesting half-way => vesting account",
+			blockTime:        blockTimePlusOneYear.Add(time.Hour / 2), // half-way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token100,
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: time.Hour,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token100,
+					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+				},
+			}),
+			expectSpendableCoins: token50,
+		},
+		{
+			// blockTime:              2025 + 60 mins
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is at the end of the actual end time, meaning all the tokens are expected to be available.
+			name:             "acc with vesting ended => base account",
+			blockTime:        blockTimePlusOneYear.Add(time.Hour), // all the way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token100,
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: time.Hour,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected:  matchesBaseAcc(seqAddr1BaseAcc),
+			expectSpendableCoins: token100,
+		},
+		{
+			// blockTime:              2025 + 60 mins - 1 ns
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is ALMOST at actual end time, meaning all the tokens are pretty much all available.
+			name:             "edge check :: acc with vesting ALMOST ended => vesting account",
+			blockTime:        blockTimePlusOneYear.Add(time.Hour - 1), // all the way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token100,
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: time.Hour,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token100,
+					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+				},
+			}),
+			expectSpendableCoins: token100, // all tokens available, due to rounding
+		},
+		//
+		// --------- Test cases with overriding of a precreated account
+		//
+		{
+			name:             "account with no vesting and some coins overrides existing base account => base account",
+			precreateAccount: seqAddr1BaseAcc,
+			blockTime:        blockTime,
+			fundAccount:      token200, // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: 0,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected:  matchesBaseAcc(seqAddr1BaseAcc),
+			expectSpendableCoins: token200, // all the 200 tokens are available
+		},
+		{
+			// blockTime:              2024
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is before the actual start time, so we expect no tokens to be available in precreated account.
+			// But we're creating an account with no vesting duration, so this gets overwritten with a base account.
+			name: "account with no vesting and some coins overrides existing vesting account => base account",
+			precreateAccount: &vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token100,
+					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+				},
+			},
+			blockTime:        blockTime,
+			vestingStartTime: blockTime,
+			fundAccount:      token200, // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: 0,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected:  matchesBaseAcc(seqAddr1BaseAcc),
+			expectSpendableCoins: token200, // all the 200 tokens are available
+		},
+		{
+			// blockTime:              2025 + 30 mins
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
+			name:             "acc with vesting half-way overrides existing base account => vesting account",
+			precreateAccount: seqAddr1BaseAcc,
+			blockTime:        blockTimePlusOneYear.Add(time.Hour / 2), // half-way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token200, // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: time.Hour,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token100,                                   // only 100 are vesting
+					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(), // 1 hour vesting duration
+				},
+			}),
+			expectSpendableCoins: token150, // precreated account's 100 plus half of newly vested tokens
+		},
+		{
+			// blockTime:              2025 + 30 mins
+			// vestingStartTime:       2024
+			// actualVestingStartTime: 2025
+			// actualVestingEndTime:   2025 + 60 mins
+			//
+			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
+			name: "acc with vesting half-way builds on top of existing vesting account (DelayedVestingAccount), " +
+				"disregarding any existing vesting schedule => vesting account",
+			precreateAccount: &vestingtypes.DelayedVestingAccount{ // Use unexpected vesting account type
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token50,                                  // only 50 are vesting initially
+					EndTime:         someTimeWayInTheFuturePlusOneYear.Unix(), // all tokens are locked
+				},
+			},
+			blockTime:        blockTimePlusOneYear.Add(time.Hour / 2), // half-way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token150, // fund with 150 due to precreated account
+			args: fnArgs{
+				ethAddress:      ethAddr1Str,
+				vestingDuration: time.Hour,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: matchesContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
+				StartTime: blockTimePlusOneYear.Unix(), // precreated account's vesting start time is disregarded
+				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+					BaseAccount:     seqAddr1BaseAcc,
+					OriginalVesting: token100, // 100 are vesting (the original 50 vesting become spendable)
+					EndTime:         blockTimePlusOneYear.Add(time.Hour).Unix(),
+				},
+			}),
+			expectSpendableCoins: token100, // all of precreated account's 50 plus half of the 100 newly vested tokens
 		},
 	}
 
@@ -90,21 +340,52 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			ctx := s.Ctx().WithBlockTime(blockTime)
+			ctx := s.Ctx().WithBlockTime(tc.blockTime)
+
+			// Set vesting start time
+			params := s.App.BridgeKeeper.GetParams(ctx)
+			params.VestingStartTime = tc.vestingStartTime
+			err := s.App.BridgeKeeper.SetParams(ctx, params)
+			s.Require().NoError(err)
+
+			// Precreate account
+			if tc.precreateAccount != nil {
+				s.App.AccountKeeper.NewAccount(ctx, tc.precreateAccount)
+				s.App.AccountKeeper.SetAccount(ctx, tc.precreateAccount)
+
+				// Confirm creation
+				addr := tc.precreateAccount.GetAddress()
+				s.Require().True(s.App.AccountKeeper.GetAccount(ctx, addr).GetAddress().Equals(addr))
+			}
 
 			// Get sequencer account
-			accAddress, err := s.App.BridgeKeeper.GetSequencerAddressForEthereumAddress(
+			accAddress, err := s.App.BridgeKeeper.GenerateSequencerAccountForEthereumAddress(
 				ctx, tc.args.ethAddress, tc.args.vestingDuration, tc.args.totalCoins,
 			)
-
 			if tc.expectErrMsg != "" {
 				s.Require().ErrorContains(err, tc.expectErrMsg)
 				return
 			}
 			s.Require().NoError(err)
 
+			// Simulate minting of tokens to account
+			if !tc.fundAccount.Empty() {
+				err = s.App.MintKeeper.MintCoins(ctx, tc.fundAccount)
+				s.Require().NoError(err)
+				err = s.App.BankKeeper.SendCoinsFromModuleToAccount(
+					ctx, minttypes.ModuleName, accAddress, tc.fundAccount,
+				)
+				s.Require().NoError(err)
+			}
+
 			account := s.App.AccountKeeper.GetAccount(ctx, accAddress)
 			s.Require().True(tc.isAccountAsExpected(account))
+
+			spendableCoins := s.App.BankKeeper.SpendableCoins(ctx, accAddress)
+			s.Require().True(
+				tc.expectSpendableCoins.Equal(spendableCoins),
+				fmt.Sprintf("%s != %s", tc.expectSpendableCoins, spendableCoins),
+			)
 		})
 	}
 }
