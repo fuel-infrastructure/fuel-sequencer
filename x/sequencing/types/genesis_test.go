@@ -32,7 +32,6 @@ func TestValidateGenesisState(t *testing.T) {
 						Id: math.OneInt(),
 					},
 				},
-				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
 		},
@@ -50,7 +49,20 @@ func TestValidateGenesisState(t *testing.T) {
 			},
 			valid: false,
 		},
-		// this line is used by starport scaffolding # types/genesis/testcase
+		{
+			desc: "non-sequential topic IDs",
+			genState: &types.GenesisState{
+				TopicList: []types.Topic{
+					{
+						Id: math.ZeroInt(),
+					},
+					{
+						Id: math.NewInt(2),
+					},
+				},
+			},
+			valid: false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {

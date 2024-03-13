@@ -13,4 +13,6 @@ var (
 	ErrOrderNotMatching   = sdkerrors.Register(ModuleName, 1102, "order doesn't match")
 	ErrDataTooBig         = sdkerrors.Register(ModuleName, 1103, "data from message too big")
 	ErrTopicIdNotMatching = sdkerrors.Register(ModuleName, 1104, "topic id doesn't match")
+	ErrInvalidGenesis     = sdkerrors.Register(ModuleName, 1105, "invalid genesis")
+	ErrTopicNotUnique     = sdkerrors.Register(ModuleName, 1106, "duplicate topic found")
 )

@@ -36,5 +36,11 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
-	// this line is used by starport scaffolding # genesis/test/assert
+
+	// Check that NextTopicId is set correctly
+	nextTopicId := k.MustGetNextTopicId(ctx)
+	require.True(t, nextTopicId.Equal(math.NewInt(2)))
+
+	// Verify other genesis state elements as needed
+	require.Equal(t, genesisState.Params, got.Params)
 }

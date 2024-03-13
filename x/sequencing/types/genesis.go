@@ -1,7 +1,8 @@
 package types
 
 import (
-	"fmt"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 )
 
 // DefaultIndex is the default global index
@@ -19,17 +20,28 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	// Check for duplicated index in topic
-	topicIndexMap := make(map[string]struct{})
 
-	for _, elem := range gs.TopicList {
-		index := string(TopicKey(elem.Id.String()))
-		if _, ok := topicIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for topic")
+	// Check for duplicated index in topic and that they are sequential
+	uniqueTopics := make(map[math.Int]bool)
+
+	for i, t := range gs.TopicList {
+
+		// Verify topic id is sequential
+		expId := math.NewInt(int64(i))
+		if !t.Id.Equal(math.NewInt(int64(i))) {
+			return errorsmod.Wrapf(
+				ErrInvalidGenesis,
+				"topic id's are not sequential expected %s got %s",
+				expId.String(), t.Id.String())
 		}
-		topicIndexMap[index] = struct{}{}
+
+		// Verify topic is unique
+		if _, ok := uniqueTopics[t.Id]; ok {
+			return errorsmod.Wrapf(ErrTopicNotUnique, "topic not unique at id %s", t.Id.String())
+		}
+
+		uniqueTopics[t.Id] = true
 	}
-	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }

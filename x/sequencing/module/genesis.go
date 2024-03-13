@@ -23,8 +23,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 	}
 
-	// Set the next topic id
-	k.SetNextTopicId(ctx, largestTopicId)
+	// Set the next topic id as current largest topic Id + 1
+	k.SetNextTopicId(ctx, largestTopicId.Add(math.OneInt()))
 
 	if err := k.SetParams(ctx, genState.Params); err != nil {
 		panic(fmt.Sprintf("error when setting params: %x", err))
