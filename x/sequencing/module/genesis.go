@@ -3,6 +3,7 @@ package sequencing
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -11,7 +12,19 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
-	// this line is used by starport scaffolding # genesis/module/init
+
+	largestTopicId := math.ZeroInt()
+	// Set all the topics
+	for _, elem := range genState.TopicList {
+		k.SetTopic(ctx, elem)
+
+		if elem.Id.GT(largestTopicId) {
+			largestTopicId = elem.Id
+		}
+	}
+
+	// Set the next topic id
+	k.SetNextTopicId(ctx, largestTopicId)
 
 	if err := k.SetParams(ctx, genState.Params); err != nil {
 		panic(fmt.Sprintf("error when setting params: %x", err))
@@ -22,6 +35,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
+
+	genesis.TopicList = k.GetAllTopic(ctx)
+	genesis.NextTopicId = k.MustGetNextTopicId(ctx)
 
 	// this line is used by starport scaffolding # genesis/module/export
 

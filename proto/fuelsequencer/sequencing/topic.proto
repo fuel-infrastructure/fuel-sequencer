@@ -1,0 +1,27 @@
+syntax = "proto3";
+package fuelsequencer.sequencing;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types";
+
+message Topic {
+  // id uniquely identifies the topic.
+  string id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // owner is the sequencer address, who is the owner of this topic, assigned at
+  // creation.
+  string owner = 2;
+
+  // order is the sequential order of the topic.
+  string order = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}

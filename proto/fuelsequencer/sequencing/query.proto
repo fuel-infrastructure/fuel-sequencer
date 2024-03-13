@@ -1,22 +1,37 @@
 syntax = "proto3";
+
 package fuelsequencer.sequencing;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/sequencing/params.proto";
+import "fuelsequencer/sequencing/topic.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types";
 
 // Query defines the gRPC querier service.
 service Query {
+
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fuelsequencer/sequencing/params";
   }
-}
 
+  // Queries a Topic by Id.
+  rpc Topic(QueryGetTopicRequest) returns (QueryGetTopicResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/sequencing/topic/{id}";
+  }
+
+  // Queries all Topics.
+  rpc TopicAll(QueryAllTopicRequest) returns (QueryAllTopicResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/sequencing/topic";
+  }
+}
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
@@ -25,4 +40,19 @@ message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+message QueryGetTopicRequest { string id = 1; }
+
+message QueryGetTopicResponse {
+  Topic topic = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAllTopicRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllTopicResponse {
+  repeated Topic topic = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

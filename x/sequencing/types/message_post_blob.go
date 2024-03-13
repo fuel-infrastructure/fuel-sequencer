@@ -2,13 +2,19 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgPostBlob{}
 
-func NewMsgPostBlob(from string, topic string, order string, data []byte) *MsgPostBlob {
+func NewMsgPostBlob(
+	from string,
+	topic math.Int,
+	order math.Int,
+	data []byte,
+) *MsgPostBlob {
 	return &MsgPostBlob{
 		From:  from,
 		Topic: topic,

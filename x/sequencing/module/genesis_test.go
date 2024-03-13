@@ -3,6 +3,7 @@ package sequencing_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
@@ -15,6 +16,14 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
+		TopicList: []types.Topic{
+			{
+				Id: math.ZeroInt(),
+			},
+			{
+				Id: math.OneInt(),
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -26,5 +35,6 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
+	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
