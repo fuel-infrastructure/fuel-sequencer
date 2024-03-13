@@ -32,6 +32,13 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "show-last-ethereum-block-synced",
 					Short:     "show LastEthereumBlockSynced",
 				},
+				{
+					RpcMethod:      "SequencerAddressFromEthereumAddress",
+					Use:            "sequencer-address-from-ethereum-address [ethereum-address]",
+					Short:          "Query SequencerAddressFromEthereumAddress",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereumAddress"}},
+				},
+
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},
