@@ -110,7 +110,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		success := h.txSelector.SelectNonSDKTxForProposal(ctx, uint64(req.MaxTxBytes), req.Txs[0])
 		if !success {
 			// If we fail in selecting the EthEventsTx it must be that the events are too large. In this case an empty
-			// block is generated and expected to be rejected by ProcessProposal
+			// block is generated and expected to be rejected by ProcessProposal. NOTE: When an error is returned the
+			// baseApp sends req.Txs to CometBFT, therefore, we have to remove the injected EthEventsTx
 			req.Txs = [][]byte{}
 			return nil, errors.New("failed to add eth events transaction to block proposal")
 

@@ -76,5 +76,5 @@ var (
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 	}
-	TestSidecarResponse = sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 )

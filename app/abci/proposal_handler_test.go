@@ -1,42 +1,332 @@
 package abci_test
 
-func (s *AppTestSuite) TestPrepareProposalHandler() {
-	testCases := []struct {
-		name                       string
-		setLastEthereumBlockSynced bool
-		expErrMsg                  string
-	}{
-		{
-			name:                       "error - LastEthereumBlockSynced not found",
-			setLastEthereumBlockSynced: false,
-			expErrMsg:                  "could not get last Ethereum block synced from state",
-		},
+import (
+	"errors"
+	"fmt"
+	"math"
+	"time"
+
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
+	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/golang/mock/gomock"
+)
+
+func calculateTotalTxBytes(txs [][]byte) uint64 {
+	var totalTxBytes uint64
+
+	for _, txBz := range txs {
+		totalTxBytes += uint64(len(txBz))
 	}
 
-	//s.SetupTest()
-	//ctrl := gomock.NewController(s.T())
-	//defer ctrl.Finish()
-	//sidecarClientMock := sidecartestutil.NewMockAppSidecarClient(ctrl)
-	//sidecarClientMock.EXPECT().GetBlockEvents(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("test error"))
-	//propHandler := s.GetTestProposalHandler(sidecarClientMock)
-	//propHandler.PrepareProposalHandler()(s.Ctx(), &abcitypes.RequestPrepareProposal{
-	//	MaxTxBytes:         0,
-	//	Txs:                nil,
-	//	LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
-	//	Misbehavior:        nil,
-	//	Height:             0,
-	//	Time:               time.Time{},
-	//	NextValidatorsHash: nil,
-	//	ProposerAddress:    nil,
-	//})
+	return totalTxBytes
+}
+
+func (s *AppTestSuite) TestPrepareProposalHandler() {
+	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. EthEventsTx doesn't consume any gas
+	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
+
+	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTx)
+	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+	})
+	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: false,
+	})
+	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: false,
+		NewEthereumBlock: false,
+	})
+
+	totalBytesTxWithEventsAndDummyTxs := int64(calculateTotalTxBytes(
+		[][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]},
+	))
+
+	testCases := []struct {
+		name                          string
+		removeLastEthereumBlockSynced bool
+		expQueryBlockEventsCalled     int
+		expQueryBlockEventsReq        *sidecartypes.QueryBlockEventsRequest
+		queryBlockEventsRet           TestQueryBlockEventsRet
+		requestPrepareProposal        *abcitypes.RequestPrepareProposal
+		maxBlockGas                   int64
+		expErrMsg                     string
+		expRes                        *abcitypes.ResponsePrepareProposal
+	}{
+		{
+			name:                          "returns injected eth tx and other txs if block events found",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: TestQueryBlockEventsRet{
+				testtypes.TestSidecarResponse, nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         math.MaxInt64,
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]},
+			},
+		},
+		{
+			name:                          "returns injected eth tx and other txs if no block events found",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: TestQueryBlockEventsRet{
+				&sidecartypes.QueryBlockEventsResponse{}, nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         math.MaxInt64,
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{
+					encodedEthEventsTxWithoutEvents,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				},
+			},
+		},
+		{
+			name:                          "returns injected eth tx and other txs if no new Ethereum block",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet:           TestQueryBlockEventsRet{nil, fmt.Errorf("%s 1", sidecartypes.ErrBlockDoesNotExist)},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         math.MaxInt64,
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{
+					encodedEthEventsTxNoNewBlock,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				},
+			},
+		},
+		{
+			name:                          "returns injected eth tx and other txs if sidecar errors",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet:           TestQueryBlockEventsRet{nil, errors.New("block not yet processed 1")},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         math.MaxInt64,
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{
+					encodedEthEventsTxSidecarErr,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				},
+			},
+		},
+		{
+			name:                          "returns error if LastEthereumBlockSynced not found",
+			removeLastEthereumBlockSynced: true,
+			expQueryBlockEventsCalled:     0,
+			expQueryBlockEventsReq:        nil,
+			queryBlockEventsRet:           TestQueryBlockEventsRet{},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         0,
+				Txs:                nil,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expErrMsg:   "could not get last Ethereum block synced from state",
+		},
+		{
+			name:                          "returns error if EthEventsTx cannot be generated",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: TestQueryBlockEventsRet{
+				&sidecartypes.QueryBlockEventsResponse{Events: []*sidecartypes.Event{
+					{EventType: "invalid-event", Data: nil},
+				}}, nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         0,
+				Txs:                nil,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expErrMsg:   "failed to generate eth events tx",
+		},
+		{
+			name:                          "returns error if EthEventsTx cannot be selected by the TxSelector",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: TestQueryBlockEventsRet{
+				testtypes.TestSidecarResponse, nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         0, // Set to zero to make sure there is no capacity for first transaction
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expErrMsg:   "failed to add eth events transaction to block proposal",
+		},
+		{
+			name:                          "returns selected Txs if MaxTxBytes exceeded",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: TestQueryBlockEventsRet{
+				testtypes.TestSidecarResponse, nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				// Set to expected size - 1 to omit last tx
+				MaxTxBytes:         totalBytesTxWithEventsAndDummyTxs - 1,
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1]},
+			},
+		},
+		{
+			name:                          "returns selected Txs if MaxBlockGas exceeded",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: TestQueryBlockEventsRet{
+				testtypes.TestSidecarResponse, nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes:         math.MaxInt64,
+				Txs:                encodedDummyTxs,
+				LocalLastCommit:    abcitypes.ExtendedCommitInfo{},
+				Misbehavior:        nil,
+				Height:             0,
+				Time:               time.Time{},
+				NextValidatorsHash: nil,
+				ProposerAddress:    nil,
+			},
+			maxBlockGas: totalTxsGas - 1, // Set to total - 1 so that the last transaction is omitted
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1]},
+			},
+		},
+	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			if tc.setLastEthereumBlockSynced {
-
+			// Remove LastEthereumBlockSynced if not required by test
+			if tc.removeLastEthereumBlockSynced {
+				s.App.BridgeKeeper.RemoveLastEthereumBlockSynced(s.Ctx())
 			}
+
+			// Set the MaxBlockGas
+			prepareProposalHandlerCtx := s.Ctx().WithConsensusParams(
+				comettypes.ConsensusParams{
+					Block: &comettypes.BlockParams{
+						MaxBytes: 0,
+						MaxGas:   tc.maxBlockGas,
+					},
+				},
+			)
+
+			// Set sidecar mock
+			ctrl := gomock.NewController(s.T())
+			defer ctrl.Finish()
+			sidecarClientMock := sidecartestutil.NewMockAppSidecarClient(ctrl)
+			if tc.expQueryBlockEventsCalled > 0 {
+				// If we expect queryBlockEvents to be called, then we must expect the function to be called with
+				// certain parameters for expQueryBlockEventsCalled times
+				sidecarClientMock.EXPECT().GetBlockEvents(
+					gomock.Eq(prepareProposalHandlerCtx), gomock.Eq(tc.expQueryBlockEventsReq),
+				).Return(
+					tc.queryBlockEventsRet.Response,
+					tc.queryBlockEventsRet.Error,
+				).Times(tc.expQueryBlockEventsCalled)
+			} else {
+				// If queryBlockEvents is expected to not be called, then we must expect the function to be called 0
+				// times with any parameters
+				sidecarClientMock.EXPECT().GetBlockEvents(gomock.Any(), gomock.Any()).Times(0)
+			}
+
+			// Execute PrepareProposalHandler
+			propHandler := s.GetTestProposalHandler(sidecarClientMock)
+			res, err := propHandler.PrepareProposalHandler()(prepareProposalHandlerCtx, tc.requestPrepareProposal)
+
+			if len(tc.expErrMsg) > 0 {
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErrMsg)
+				s.Require().Nil(res)
+				return
+			}
+			s.Require().NoError(err)
+
+			s.Require().Equal(tc.expRes, res)
 		})
 	}
 }

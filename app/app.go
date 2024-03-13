@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	_ "github.com/cosmos/cosmos-sdk/x/auth" // import for side-effects
@@ -450,6 +451,16 @@ func (app *FuelSequencerApp) Close() error {
 	}
 
 	return nil
+}
+
+// NewTxBuilder returns a new instance of TxBuilder. This was added for testing purposes.
+func (app *FuelSequencerApp) NewTxBuilder() client.TxBuilder {
+	return app.txConfig.NewTxBuilder()
+}
+
+// GetTxEncoder returns the underlying TxEncoder. This was added for testing purposes.
+func (app *FuelSequencerApp) GetTxEncoder() sdk.TxEncoder {
+	return app.txConfig.TxEncoder()
 }
 
 // GetMaccPerms returns a copy of the module account permissions
