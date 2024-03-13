@@ -83,19 +83,19 @@ func (k Keeper) generateSequencerAccountForEthereumAddress(
 
 	// If account already exists, use it, otherwise create one.
 	// We also extract the base account since we'll most likely use it.
-	acc := k.accountKeeper.GetAccount(ctx, accAddress)
-	createNewAcc := acc == nil
-	if acc == nil {
+	existingAcc := k.accountKeeper.GetAccount(ctx, accAddress)
+	createNewAcc := existingAcc == nil
+	if existingAcc == nil {
 		baseAcc = authtypes.NewBaseAccountWithAddress(accAddress)
 		baseVestingAcc = blankBaseVestingAccount()
-		acc = sdk.AccountI(baseAcc)
 	} else {
-		baseAcc, baseVestingAcc = detailsFromFromExistingAcc(acc)
+		baseAcc, baseVestingAcc = detailsFromFromExistingAcc(existingAcc)
 	}
 
 	// If vesting done, ensure we use the base account. Otherwise, create a vesting account.
+	var newAcc sdk.AccountI
 	if vestingDone {
-		acc = baseAcc
+		newAcc = baseAcc
 	} else {
 		vestingAcc := vestingtypes.NewContinuousVestingAccountRaw(
 			&vestingtypes.BaseVestingAccount{
@@ -111,15 +111,15 @@ func (k Keeper) generateSequencerAccountForEthereumAddress(
 			return nil, err
 		}
 
-		acc = vestingAcc
+		newAcc = vestingAcc
 	}
 
 	// Get an account number if it's a new account.
 	// This assigns a new account sequence.
 	if createNewAcc {
-		k.accountKeeper.NewAccount(ctx, acc)
+		k.accountKeeper.NewAccount(ctx, newAcc)
 	}
 
-	k.accountKeeper.SetAccount(ctx, acc)
+	k.accountKeeper.SetAccount(ctx, newAcc)
 	return accAddress, nil
 }
