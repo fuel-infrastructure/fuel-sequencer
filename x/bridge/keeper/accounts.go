@@ -97,8 +97,7 @@ func (k Keeper) generateSequencerAccountForEthereumAddress(
 			},
 			vestingStartTime.Unix(),
 		)
-		err = vestingAcc.Validate()
-		if err != nil {
+		if err = vestingAcc.Validate(); err != nil {
 			return nil, err
 		}
 
