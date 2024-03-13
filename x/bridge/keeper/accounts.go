@@ -105,6 +105,7 @@ func (k Keeper) generateSequencerAccountForEthereumAddress(
 	}
 
 	// Get an account number if it's a new account.
+	// This assigns a new account sequence.
 	if createNewAcc {
 		k.accountKeeper.NewAccount(ctx, acc)
 	}
