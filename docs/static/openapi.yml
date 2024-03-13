@@ -8328,7 +8328,7 @@ paths:
         - Query
   /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
     get:
-      summary: Queries a SupplyDeltaInfo by index.
+      summary: Queries the SupplyDeltaInfo.
       operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
       responses:
         '200':
