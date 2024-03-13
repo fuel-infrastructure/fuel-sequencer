@@ -15,11 +15,17 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	largestTopicId := math.ZeroInt()
 	// Set all the topics
-	for _, elem := range genState.TopicList {
-		k.SetTopic(ctx, elem)
+	for _, topic := range genState.TopicList {
 
-		if elem.Id.GT(largestTopicId) {
-			largestTopicId = elem.Id
+		// Panic if topic fails validation
+		if err := topic.ValidateBasic(); err != nil {
+			panic(err)
+		}
+
+		k.SetTopic(ctx, topic)
+
+		if topic.Id.GT(largestTopicId) {
+			largestTopicId = topic.Id
 		}
 	}
 

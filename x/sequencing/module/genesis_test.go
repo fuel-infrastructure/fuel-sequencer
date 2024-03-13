@@ -18,10 +18,14 @@ func TestGenesis(t *testing.T) {
 
 		TopicList: []types.Topic{
 			{
-				Id: math.ZeroInt(),
+				Id:    math.ZeroInt(),
+				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
+				Order: math.ZeroInt(),
 			},
 			{
-				Id: math.OneInt(),
+				Id:    math.OneInt(),
+				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
+				Order: math.ZeroInt(),
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
