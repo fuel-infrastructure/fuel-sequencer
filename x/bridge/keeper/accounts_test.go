@@ -21,6 +21,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 	seqAddr1Str := "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k"
 	seqAddr1 := sdk.MustAccAddressFromBech32(seqAddr1Str)
 
+	blockTime, _ := time.Parse("YYYY", "2000")
 	token100 := sdk.NewCoins(sdk.NewInt64Coin("token", 100))
 
 	type accountValidator func(acc sdk.AccountI) bool
@@ -89,8 +90,11 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			accAddress, err := s.App.BridgeKeeper.GetSequencerAccountForEthereumAddress(
-				s.Ctx(), tc.args.ethAddress, tc.args.vestingDuration, tc.args.totalCoins,
+			ctx := s.Ctx().WithBlockTime(blockTime)
+
+			// Get sequencer account
+			accAddress, err := s.App.BridgeKeeper.GetSequencerAddressForEthereumAddress(
+				ctx, tc.args.ethAddress, tc.args.vestingDuration, tc.args.totalCoins,
 			)
 
 			if tc.expectErrMsg != "" {
@@ -99,7 +103,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			}
 			s.Require().NoError(err)
 
-			account := s.App.AccountKeeper.GetAccount(s.Ctx(), accAddress)
+			account := s.App.AccountKeeper.GetAccount(ctx, accAddress)
 			s.Require().True(tc.isAccountAsExpected(account))
 		})
 	}

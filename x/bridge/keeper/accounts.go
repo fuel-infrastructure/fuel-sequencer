@@ -9,6 +9,9 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+// vestingStartTimeDelay is a constant period of time in which tokens are completely locked.
+var vestingStartTimeDelay = time.Hour * 24 * 365
+
 // baseAccFromAcc extracts the base account from a sdk.AccountI.
 // The account must be a base account or a ContinuousVestingAccount.
 func baseAccFromAcc(acc sdk.AccountI) (*authtypes.BaseAccount, error) {
@@ -23,14 +26,14 @@ func baseAccFromAcc(acc sdk.AccountI) (*authtypes.BaseAccount, error) {
 	return nil, types.ErrUnexpectedAccountType.Wrapf("could not extract base acc from %s", acc.GetAddress().String())
 }
 
-// getSequencerAccountForEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
+// getSequencerAddressForEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
 // The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
 // to follow the specified vestingDuration, regardless of whether the account already existed in other forms.
-func (k Keeper) getSequencerAccountForEthereumAddress(
+func (k Keeper) getSequencerAddressForEthereumAddress(
 	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
 ) (sdk.AccAddress, error) {
 
-	accAddress, err := types.GenerateSequencerAccountForEthereumAddress(ethAddress)
+	accAddress, err := types.GenerateSequencerAddressForEthereumAddress(ethAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +43,7 @@ func (k Keeper) getSequencerAccountForEthereumAddress(
 	var vestingEndTime time.Time
 	vestingDone := true
 	if vestingDuration > 0 {
-		vestingStartTime = k.GetParams(ctx).VestingStartTime
+		vestingStartTime = k.GetParams(ctx).VestingStartTime.Add(vestingStartTimeDelay)
 		vestingEndTime = vestingStartTime.Add(vestingDuration)
 		vestingDone = ctx.BlockTime().After(vestingEndTime)
 	}
