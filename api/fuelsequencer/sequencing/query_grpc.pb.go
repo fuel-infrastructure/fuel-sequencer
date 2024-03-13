@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName   = "/fuelsequencer.sequencing.Query/Params"
-	Query_Topic_FullMethodName    = "/fuelsequencer.sequencing.Query/Topic"
-	Query_TopicAll_FullMethodName = "/fuelsequencer.sequencing.Query/TopicAll"
+	Query_Params_FullMethodName      = "/fuelsequencer.sequencing.Query/Params"
+	Query_Topic_FullMethodName       = "/fuelsequencer.sequencing.Query/Topic"
+	Query_TopicAll_FullMethodName    = "/fuelsequencer.sequencing.Query/TopicAll"
+	Query_NextTopicId_FullMethodName = "/fuelsequencer.sequencing.Query/NextTopicId"
 )
 
 // QueryClient is the client API for Query service.
@@ -34,6 +35,8 @@ type QueryClient interface {
 	Topic(ctx context.Context, in *QueryGetTopicRequest, opts ...grpc.CallOption) (*QueryGetTopicResponse, error)
 	// Queries all Topics.
 	TopicAll(ctx context.Context, in *QueryAllTopicRequest, opts ...grpc.CallOption) (*QueryAllTopicResponse, error)
+	// NextTopicId queries the next topic ID.
+	NextTopicId(ctx context.Context, in *QueryGetNextTopicIdRequest, opts ...grpc.CallOption) (*QueryGetNextTopicIdResponse, error)
 }
 
 type queryClient struct {
@@ -71,6 +74,15 @@ func (c *queryClient) TopicAll(ctx context.Context, in *QueryAllTopicRequest, op
 	return out, nil
 }
 
+func (c *queryClient) NextTopicId(ctx context.Context, in *QueryGetNextTopicIdRequest, opts ...grpc.CallOption) (*QueryGetNextTopicIdResponse, error) {
+	out := new(QueryGetNextTopicIdResponse)
+	err := c.cc.Invoke(ctx, Query_NextTopicId_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -81,6 +93,8 @@ type QueryServer interface {
 	Topic(context.Context, *QueryGetTopicRequest) (*QueryGetTopicResponse, error)
 	// Queries all Topics.
 	TopicAll(context.Context, *QueryAllTopicRequest) (*QueryAllTopicResponse, error)
+	// NextTopicId queries the next topic ID.
+	NextTopicId(context.Context, *QueryGetNextTopicIdRequest) (*QueryGetNextTopicIdResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -96,6 +110,9 @@ func (UnimplementedQueryServer) Topic(context.Context, *QueryGetTopicRequest) (*
 }
 func (UnimplementedQueryServer) TopicAll(context.Context, *QueryAllTopicRequest) (*QueryAllTopicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TopicAll not implemented")
+}
+func (UnimplementedQueryServer) NextTopicId(context.Context, *QueryGetNextTopicIdRequest) (*QueryGetNextTopicIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NextTopicId not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -164,6 +181,24 @@ func _Query_TopicAll_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_NextTopicId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetNextTopicIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NextTopicId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_NextTopicId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NextTopicId(ctx, req.(*QueryGetNextTopicIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -182,6 +217,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TopicAll",
 			Handler:    _Query_TopicAll_Handler,
+		},
+		{
+			MethodName: "NextTopicId",
+			Handler:    _Query_NextTopicId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

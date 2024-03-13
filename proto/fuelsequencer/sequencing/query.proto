@@ -31,7 +31,14 @@ service Query {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/sequencing/topic";
   }
+
+  // NextTopicId queries the next topic ID.
+  rpc NextTopicId(QueryGetNextTopicIdRequest)
+      returns (QueryGetNextTopicIdResponse) {
+    option (google.api.http).get = "/fuelsequencer/sequencing/next_topic_id";
+  }
 }
+
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
@@ -56,3 +63,11 @@ message QueryAllTopicResponse {
   repeated Topic topic = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
+
+// QueryGetNextTopicIdRequest is the request type for the Query/NextTopicId RPC
+// method.
+message QueryGetNextTopicIdRequest {}
+
+// QueryGetNextTopicIdResponse is the response type for the Query/NextTopicId
+// RPC method.
+message QueryGetNextTopicIdResponse { string next_topic_id = 1; }

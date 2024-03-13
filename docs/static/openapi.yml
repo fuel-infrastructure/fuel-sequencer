@@ -8491,6 +8491,146 @@ paths:
                     type: string
       tags:
         - Msg
+  /fuelsequencer.sequencing.Msg/PostBlob:
+    post:
+      summary: >-
+        PostBlob defines an operation for posting ordered data at a specific
+        topic.
+      operationId: FuelsequencerSequencingMsg_PostBlob
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+                description: >-
+                  nonce uniquely identifies any message that we send to
+                  Ethereum.
+              from:
+                type: string
+                description: from is the address on FuelSequencer that is posting the blob.
+              topic:
+                type: string
+                description: topic is the Topic that this blob belongs to.
+              order:
+                type: string
+                description: order is the blob sequencer order.
+              data:
+                type: string
+                format: byte
+                description: data is the blob data bytes.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              from:
+                type: string
+                description: from is the address on FuelSequencer that is posting the blob.
+              topic:
+                type: string
+                description: topic is the Topic that this blob belongs to.
+              order:
+                type: string
+                description: order is the blob sequencer order.
+              data:
+                type: string
+                format: byte
+                description: data is the blob data bytes.
+      tags:
+        - Msg
+  /fuelsequencer.sequencing.Msg/UpdateParams:
+    post:
+      summary: |-
+        UpdateParams defines a (governance) operation for updating the module
+        parameters. The authority defaults to the x/gov module account.
+      operationId: FuelsequencerSequencingMsg_UpdateParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            description: >-
+              MsgUpdateParamsResponse defines the response structure for
+              executing a
+
+              MsgUpdateParams message.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          description: MsgUpdateParams is the Msg/UpdateParams request type.
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: >-
+                  authority is the address that controls the module (defaults to
+                  x/gov unless
+
+                  overwritten).
+              params:
+                description: 'NOTE: All parameters must be supplied.'
+                type: object
+                properties:
+                  max_blob_size_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      max_blob_size_bytes is the maximum size of blob that can
+                      be submitted in
+
+                      bytes.
+                  gas_per_blob_byte:
+                    type: string
+                    format: uint64
+                    description: >-
+                      gas_per_blob_byte is extra gas to be consumed per byte in
+                      submitted blobs.
+            description: MsgUpdateParams is the Msg/UpdateParams request type.
+      tags:
+        - Msg
   /fuel-infrastructure/fuel-sequencer/sequencing/topic:
     get:
       summary: Queries all Topics.
@@ -8675,6 +8815,43 @@ paths:
           type: string
       tags:
         - Query
+  /fuelsequencer/sequencing/next_topic_id:
+    get:
+      summary: NextTopicId queries the next topic ID.
+      operationId: FuelsequencerSequencingQuery_NextTopicId
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              next_topic_id:
+                type: string
+            description: >-
+              QueryGetNextTopicIdResponse is the response type for the
+              Query/NextTopicId
+
+              RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer/sequencing/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -8726,146 +8903,6 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuelsequencer.sequencing.Msg/PostBlob:
-    post:
-      summary: >-
-        PostBlob defines an operation for posting ordered data at a specific
-        topic.
-      operationId: FuelsequencerSequencingMsg_PostBlob
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              nonce:
-                type: string
-                description: >-
-                  nonce uniquely identifies any message that we send to
-                  Ethereum.
-              from:
-                type: string
-                description: from is the address on FuelSequencer that is posting the blob.
-              topic:
-                type: string
-                description: topic is the Topic that this blob belongs to.
-              order:
-                type: string
-                description: order is the blob sequencer order.
-              data:
-                type: string
-                format: byte
-                description: data is the blob data bytes.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              from:
-                type: string
-                description: from is the address on FuelSequencer that is posting the blob.
-              topic:
-                type: string
-                description: topic is the Topic that this blob belongs to.
-              order:
-                type: string
-                description: order is the blob sequencer order.
-              data:
-                type: string
-                format: byte
-                description: data is the blob data bytes.
-      tags:
-        - Msg
-  /fuelsequencer.sequencing.Msg/UpdateParams:
-    post:
-      summary: |-
-        UpdateParams defines a (governance) operation for updating the module
-        parameters. The authority defaults to the x/gov module account.
-      operationId: FuelsequencerSequencingMsg_UpdateParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            description: >-
-              MsgUpdateParamsResponse defines the response structure for
-              executing a
-
-              MsgUpdateParams message.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          description: MsgUpdateParams is the Msg/UpdateParams request type.
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              authority:
-                type: string
-                description: >-
-                  authority is the address that controls the module (defaults to
-                  x/gov unless
-
-                  overwritten).
-              params:
-                description: 'NOTE: All parameters must be supplied.'
-                type: object
-                properties:
-                  max_blob_size_bytes:
-                    type: string
-                    format: uint64
-                    description: >-
-                      max_blob_size_bytes is the maximum size of blob that can
-                      be submitted in
-
-                      bytes.
-                  gas_per_blob_byte:
-                    type: string
-                    format: uint64
-                    description: >-
-                      gas_per_blob_byte is extra gas to be consumed per byte in
-                      submitted blobs.
-            description: MsgUpdateParams is the Msg/UpdateParams request type.
-      tags:
-        - Msg
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -12538,6 +12575,93 @@ definitions:
 
           delta info to Ethereum.
     description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.MsgPostBlob:
+    type: object
+    properties:
+      from:
+        type: string
+        description: from is the address on FuelSequencer that is posting the blob.
+      topic:
+        type: string
+        description: topic is the Topic that this blob belongs to.
+      order:
+        type: string
+        description: order is the blob sequencer order.
+      data:
+        type: string
+        format: byte
+        description: data is the blob data bytes.
+  fuelsequencer.sequencing.MsgPostBlobResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+        description: nonce uniquely identifies any message that we send to Ethereum.
+      from:
+        type: string
+        description: from is the address on FuelSequencer that is posting the blob.
+      topic:
+        type: string
+        description: topic is the Topic that this blob belongs to.
+      order:
+        type: string
+        description: order is the blob sequencer order.
+      data:
+        type: string
+        format: byte
+        description: data is the blob data bytes.
+  fuelsequencer.sequencing.MsgUpdateParams:
+    type: object
+    properties:
+      authority:
+        type: string
+        description: >-
+          authority is the address that controls the module (defaults to x/gov
+          unless
+
+          overwritten).
+      params:
+        description: 'NOTE: All parameters must be supplied.'
+        type: object
+        properties:
+          max_blob_size_bytes:
+            type: string
+            format: uint64
+            description: >-
+              max_blob_size_bytes is the maximum size of blob that can be
+              submitted in
+
+              bytes.
+          gas_per_blob_byte:
+            type: string
+            format: uint64
+            description: >-
+              gas_per_blob_byte is extra gas to be consumed per byte in
+              submitted blobs.
+    description: MsgUpdateParams is the Msg/UpdateParams request type.
+  fuelsequencer.sequencing.MsgUpdateParamsResponse:
+    type: object
+    description: |-
+      MsgUpdateParamsResponse defines the response structure for executing a
+      MsgUpdateParams message.
+  fuelsequencer.sequencing.Params:
+    type: object
+    properties:
+      max_blob_size_bytes:
+        type: string
+        format: uint64
+        description: >-
+          max_blob_size_bytes is the maximum size of blob that can be submitted
+          in
+
+          bytes.
+      gas_per_blob_byte:
+        type: string
+        format: uint64
+        description: >-
+          gas_per_blob_byte is extra gas to be consumed per byte in submitted
+          blobs.
+    description: Params defines the parameters for the module.
   cosmos.base.query.v1beta1.PageRequest:
     type: object
     properties:
@@ -12615,24 +12739,6 @@ definitions:
                repeated Bar results = 1;
                PageResponse page = 2;
        }
-  fuelsequencer.sequencing.Params:
-    type: object
-    properties:
-      max_blob_size_bytes:
-        type: string
-        format: uint64
-        description: >-
-          max_blob_size_bytes is the maximum size of blob that can be submitted
-          in
-
-          bytes.
-      gas_per_blob_byte:
-        type: string
-        format: uint64
-        description: >-
-          gas_per_blob_byte is extra gas to be consumed per byte in submitted
-          blobs.
-    description: Params defines the parameters for the module.
   fuelsequencer.sequencing.QueryAllTopicResponse:
     type: object
     properties:
@@ -12680,6 +12786,14 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  fuelsequencer.sequencing.QueryGetNextTopicIdResponse:
+    type: object
+    properties:
+      next_topic_id:
+        type: string
+    description: |-
+      QueryGetNextTopicIdResponse is the response type for the Query/NextTopicId
+      RPC method.
   fuelsequencer.sequencing.QueryGetTopicResponse:
     type: object
     properties:
@@ -12737,72 +12851,3 @@ definitions:
       order:
         type: string
         description: order is the sequential order of the topic.
-  fuelsequencer.sequencing.MsgPostBlob:
-    type: object
-    properties:
-      from:
-        type: string
-        description: from is the address on FuelSequencer that is posting the blob.
-      topic:
-        type: string
-        description: topic is the Topic that this blob belongs to.
-      order:
-        type: string
-        description: order is the blob sequencer order.
-      data:
-        type: string
-        format: byte
-        description: data is the blob data bytes.
-  fuelsequencer.sequencing.MsgPostBlobResponse:
-    type: object
-    properties:
-      nonce:
-        type: string
-        description: nonce uniquely identifies any message that we send to Ethereum.
-      from:
-        type: string
-        description: from is the address on FuelSequencer that is posting the blob.
-      topic:
-        type: string
-        description: topic is the Topic that this blob belongs to.
-      order:
-        type: string
-        description: order is the blob sequencer order.
-      data:
-        type: string
-        format: byte
-        description: data is the blob data bytes.
-  fuelsequencer.sequencing.MsgUpdateParams:
-    type: object
-    properties:
-      authority:
-        type: string
-        description: >-
-          authority is the address that controls the module (defaults to x/gov
-          unless
-
-          overwritten).
-      params:
-        description: 'NOTE: All parameters must be supplied.'
-        type: object
-        properties:
-          max_blob_size_bytes:
-            type: string
-            format: uint64
-            description: >-
-              max_blob_size_bytes is the maximum size of blob that can be
-              submitted in
-
-              bytes.
-          gas_per_blob_byte:
-            type: string
-            format: uint64
-            description: >-
-              gas_per_blob_byte is extra gas to be consumed per byte in
-              submitted blobs.
-    description: MsgUpdateParams is the Msg/UpdateParams request type.
-  fuelsequencer.sequencing.MsgUpdateParamsResponse:
-    type: object
-    description: |-
-      MsgUpdateParamsResponse defines the response structure for executing a
-      MsgUpdateParams message.
