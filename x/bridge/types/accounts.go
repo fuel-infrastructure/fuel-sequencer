@@ -12,7 +12,7 @@ import (
 func GenerateSequencerAddressForEthereumAddress(ethAddress string) (sdk.AccAddress, error) {
 	// TODO: We might want to verify checksum of address
 	if !common.IsHexAddress(ethAddress) {
-		return nil, errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format")
+		return nil, errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum address format (%s)", ethAddress)
 	}
 
 	return GenerateSequencerAddressForEthereumAddressFromBz(common.FromHex(ethAddress))
