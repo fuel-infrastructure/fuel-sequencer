@@ -37,7 +37,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.Params = k.GetParams(ctx)
 
 	genesis.TopicList = k.GetAllTopic(ctx)
-	genesis.NextTopicId = k.MustGetNextTopicId(ctx)
 
 	// this line is used by starport scaffolding # genesis/module/export
 
