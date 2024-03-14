@@ -357,11 +357,31 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 					EndTime:          blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 				},
 			}),
-			expectSpendableCoins: token150, // half of all the 200 vesting tokens + DelegatedVesting
+			expectSpendableCoins: token150, // balance - vesting + delegatedVesting = 200 - 100 + 50 = 150
 			//
-			// "+ DelegatedVesting" comes from the definition of LockedCoins: "vesting coins that are not delegated"
+			// If this value is confusing, and you expected the spendable tokens to be 100, look at it this way:
+			// - We explicitly funded the account with 200 tokens.
+			// - At the same time we're saying that it has 50 tokens that are vesting and delegated (DelegatedVesting).
+			// - We're also saying that it has 50 tokens that are vested and delegated (DelegatedFree).
+			//
+			// This means that in reality we implicitly funded the account with 300 tokens, not 200.
+			//
+			// Out of the 300 tokens:
+			//
+			// - Point of view 1:
+			//   - 200 are in the balance
+			//   - 100 are staked
+			// - Point of view 2:
+			//   - 100 are vesting (of which 50 staked)
+			//   - 100 are vested (of which 50 staked)
+			//   - 100 are available [apart from the vesting information]
+			//
+			// The 150 comes from the 100 that are available and the 50 which are vested but not staked.
+			//
+			// The definition of LockedCoins: "vesting coins that are not delegated"
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/bank/types/vesting.go#L11-L12
-			// This means that the DelegatedVesting are considered spendable, according to the definition.
+			// The definition of SpendableCoins: "total balance minus locked coins"
+			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/bank/types/vesting.go#L14-L16
 		},
 		{
 			// blockTime:              2025 + 0.5 year
