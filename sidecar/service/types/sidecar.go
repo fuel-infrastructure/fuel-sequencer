@@ -33,8 +33,8 @@ type (
 	}
 )
 
-// UnmarshalConcreteEvent attempts to unmarshal a specific event from the Event sent by the sidecar
-func (m *Event) UnmarshalConcreteEvent() (ConcreteEvent, error) {
+// UnmarshalParsedEvent attempts to unmarshal a parsed Ethereum event from the Event sent by the sidecar
+func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 	switch m.EventType {
 	case SendToSequencerEventName:
 		var eventData SendToSequencerEvent
@@ -72,14 +72,14 @@ func (m *Event) Equal(e *Event) (bool, error) {
 		return false, nil
 	}
 
-	// Get concrete event from the first event
-	event1, err := m.UnmarshalConcreteEvent()
+	// Get parsed event from the first event
+	event1, err := m.UnmarshalParsedEvent()
 	if err != nil {
 		return false, err
 	}
 
-	// Get concrete event from the second event
-	event2, err := e.UnmarshalConcreteEvent()
+	// Get parsed event from the second event
+	event2, err := e.UnmarshalParsedEvent()
 	if err != nil {
 		return false, err
 	}
@@ -95,8 +95,8 @@ func (m *Event) ValidateBasic() error {
 		return errors.New("event is nil")
 	}
 
-	// Get concrete event
-	event, err := m.UnmarshalConcreteEvent()
+	// Get parsed event
+	event, err := m.UnmarshalParsedEvent()
 	if err != nil {
 		return err
 	}

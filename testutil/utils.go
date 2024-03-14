@@ -15,16 +15,16 @@ func MustHexDecodeString(s string) []byte {
 	return decoded
 }
 
-func MustGetSidecarEventFromConcreteEvent(concreteEvent sidecartypes.ConcreteEvent) *sidecartypes.Event {
+func MustGetSidecarEventFromParsedEvent(parsedEvent sidecartypes.ParsedEvent) *sidecartypes.Event {
 	// Marshal the data
-	data, err := concreteEvent.Marshal()
+	data, err := parsedEvent.Marshal()
 	if err != nil {
 		panic(err)
 	}
 
 	// Get event type
 	var eventType string
-	switch concreteEvent.(type) {
+	switch parsedEvent.(type) {
 	case *sidecartypes.SendToSequencerEvent:
 		eventType = sidecartypes.SendToSequencerEventName
 	case *sidecartypes.AuthorizeEvent:

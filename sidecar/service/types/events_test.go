@@ -9,14 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConcreteEvent_Equal(t *testing.T) {
+func TestParsedEvent_Equal(t *testing.T) {
 	var nilSendToSequencerEvent *types.SendToSequencerEvent = nil
 	var nilAuthorizeEvent *types.AuthorizeEvent = nil
 
 	testCases := []struct {
 		name          string
-		event1        types.ConcreteEvent
-		event2        types.ConcreteEvent
+		event1        types.ParsedEvent
+		event2        types.ParsedEvent
 		expectedEqual bool
 	}{
 		{
@@ -89,13 +89,13 @@ func TestConcreteEvent_Equal(t *testing.T) {
 	}
 }
 
-func TestConcreteEvent_ValidateBasic(t *testing.T) {
+func TestParsedEvent_ValidateBasic(t *testing.T) {
 	var nilSendToSequencerEvent *types.SendToSequencerEvent = nil
 	var nilAuthorizeEvent *types.AuthorizeEvent = nil
 
 	testCases := []struct {
 		name      string
-		event     types.ConcreteEvent
+		event     types.ParsedEvent
 		expErrMsg string
 	}{
 		{

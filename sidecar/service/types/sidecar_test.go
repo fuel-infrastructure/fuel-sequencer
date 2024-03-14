@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUnmarshalConcreteEvent(t *testing.T) {
+func TestUnmarshalParsedEvent(t *testing.T) {
 	testCases := []struct {
 		name          string
 		event         *types.Event
-		expectedEvent types.ConcreteEvent
+		expectedEvent types.ParsedEvent
 		expErrMsg     string
 	}{
 		{
@@ -39,7 +39,7 @@ func TestUnmarshalConcreteEvent(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			event, err := tc.event.UnmarshalConcreteEvent()
+			event, err := tc.event.UnmarshalParsedEvent()
 			if len(tc.expErrMsg) > 0 {
 				require.Error(t, err)
 				require.ErrorContains(t, err, tc.expErrMsg)
@@ -71,13 +71,13 @@ func TestEvent_Equal(t *testing.T) {
 		{
 			name:          "Equal events - SendToSequencer",
 			event1:        testtypes.TestEvent1,
-			event2:        testutils.MustGetSidecarEventFromConcreteEvent(testtypes.TestSendToSequencerEvent3),
+			event2:        testutils.MustGetSidecarEventFromParsedEvent(testtypes.TestSendToSequencerEvent3),
 			expectedEqual: true,
 		},
 		{
 			name:          "Equal events - AuthorizeEvent",
 			event1:        testtypes.TestEvent2,
-			event2:        testutils.MustGetSidecarEventFromConcreteEvent(testtypes.TestAuthorizeEvent3),
+			event2:        testutils.MustGetSidecarEventFromParsedEvent(testtypes.TestAuthorizeEvent3),
 			expectedEqual: true,
 		},
 		{

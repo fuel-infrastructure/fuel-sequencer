@@ -25,16 +25,16 @@ const (
 	AuthorizeEventName       = "AuthorizeEvent"
 )
 
-// ConcreteEvent is a common interface for events.
-type ConcreteEvent interface {
-	Equal(ConcreteEvent) bool
+// ParsedEvent is a common interface for parsed Ethereum events.
+type ParsedEvent interface {
+	Equal(ParsedEvent) bool
 	ValidateBasic() error
 	Marshal() (dAtA []byte, err error)
 	Unmarshal(dAtA []byte) error
 }
 
 // Equal attempts to compare two SendToSequencerEvent structs for equality
-func (m *SendToSequencerEvent) Equal(e ConcreteEvent) bool {
+func (m *SendToSequencerEvent) Equal(e ParsedEvent) bool {
 	// Structs are not equal if they are of different type
 	other, ok := e.(*SendToSequencerEvent)
 	if !ok {
@@ -99,7 +99,7 @@ func (m *SendToSequencerEvent) ValidateBasic() error {
 }
 
 // Equal attempts to compare two AuthorizeEvent structs for equality
-func (m *AuthorizeEvent) Equal(e ConcreteEvent) bool {
+func (m *AuthorizeEvent) Equal(e ParsedEvent) bool {
 	// Structs are not equal if they are of different type
 	other, ok := e.(*AuthorizeEvent)
 	if !ok {
