@@ -5,6 +5,8 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
+ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
+
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
@@ -339,6 +341,14 @@ follow-docker-logs:
 ###                                   E2E                                   ###
 ###############################################################################
 
+check-ethereum-docker-image-exists:
+ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
+	@echo "❌ Docker image ${ETH_DOCKER_IMAGE_NAME}:latest not found";
+	@exit 1;
+else
+	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
+endif
+
 build-ethereum-docker-image:
 	@echo "🤖 Updating git submodules..."
 	@git submodule init # for the first time
@@ -349,7 +359,7 @@ build-ethereum-docker-image:
 	@git submodule update
 	@echo "✅ Finished cleaning up git submodules!"
 
-test-e2e-basic: check-docker-image-exists
+test-e2e-basic: check-docker-image-exists check-ethereum-docker-image-exists
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
 
 clean-e2e:
