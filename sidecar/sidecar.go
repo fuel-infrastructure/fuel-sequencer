@@ -194,7 +194,7 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
 				// is skipped the Sequencer will not be able to produce the first block and the sidecar would not be
 				// able to query the Sequencer, causing a deadlock.
-				s.logger.Error("Error: ", zap.Error(err))
+				s.logger.Error("failed to obtain last synced block from Sequencer", zap.Error(err))
 			}
 
 			// Set the last queried block to the last synced block. If the value couldn't be obtained from the Sequencer
