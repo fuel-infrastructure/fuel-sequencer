@@ -99,8 +99,12 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		expErrMsg string
 	}{
 		{
-			name:  "SendToSequencerEvent - valid",
+			name:  "SendToSequencerEvent - valid - to not empty",
 			event: testtypes.TestSendToSequencerEvent1,
+		},
+		{
+			name:  "SendToSequencerEvent - valid - to empty",
+			event: testtypes.TestSendToSequencerEvent2,
 		},
 		{
 			name:      "SendToSequencerEvent - nil receiver - error",
@@ -125,7 +129,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 				To:       "invalid-to",
 				Duration: testtypes.TestDuration1,
 			},
-			expErrMsg: "to is not a valid hex address",
+			expErrMsg: "to is not a valid Bech32 address",
 		},
 		{
 			name: "SendToSequencerEvent - invalid duration - error",

@@ -3,8 +3,11 @@ package types
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"strings"
 
-	sdk "cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -71,18 +74,22 @@ func (m *SendToSequencerEvent) ValidateBasic() error {
 		return errors.New("from is not a valid hex address")
 	}
 
-	// Check that To is a valid hex address
-	if !common.IsHexAddress(m.To) {
-		return errors.New("to is not a valid hex address")
+	// Check that To is a valid Cosmos address. Note that To is optional.
+	if len(strings.TrimSpace(m.To)) != 0 {
+
+		_, err := sdk.AccAddressFromBech32(m.To)
+		if err != nil {
+			return fmt.Errorf("to is not a valid Bech32 address: %w", err)
+		}
 	}
 
 	// Check that the Duration can be converted from a string to sdk.Int
-	if _, success := sdk.NewIntFromString(m.Duration); !success {
+	if _, success := sdkmath.NewIntFromString(m.Duration); !success {
 		return errors.New("could not convert duration to a valid sdk.Int")
 	}
 
 	// Check that the Amount can be converted from a string to sdk.Int and is bigger than zero
-	amount, success := sdk.NewIntFromString(m.Amount)
+	amount, success := sdkmath.NewIntFromString(m.Amount)
 	if !success {
 		return errors.New("could not convert amount to a valid sdk.Int")
 	}
