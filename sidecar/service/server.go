@@ -25,6 +25,12 @@ import (
 
 const DefaultServerShutdownTimeout = 3 * time.Second
 
+// queryBlockEventsResponseWithError struct to hold both a response and an error
+type queryBlockEventsResponseWithError struct {
+	Response *types.QueryBlockEventsResponse
+	Err      error
+}
+
 // SidecarServer is the base implementation of the service.SidecarServer interface, this is meant to
 // serve requests from a remote SidecarClient.
 type SidecarServer struct { //nolint
@@ -176,16 +182,16 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, errors.New("invalid block number")
 	}
 
-	resCh := make(chan *types.QueryBlockEventsResponse)
+	resCh := make(chan *queryBlockEventsResponseWithError)
 
 	// Run the request in a goroutine, to unblock server + ctx cancellation
 	go func() {
 		var events []*types.Event
 
-		blockchainEvents, err := ss.s.QueryBlockEvents(blockNumber)
+		blockchainEvents, err := ss.s.QueryBlockEvents(ctx, blockNumber)
 		if err != nil {
 			ss.logger.Error("error querying block events", zap.Error(err))
-			resCh <- nil
+			resCh <- &queryBlockEventsResponseWithError{Response: nil, Err: err}
 			return
 		}
 
@@ -197,7 +203,7 @@ func (ss *SidecarServer) GetBlockEvents(
 			})
 		}
 
-		resCh <- &types.QueryBlockEventsResponse{Events: events}
+		resCh <- &queryBlockEventsResponseWithError{Response: &types.QueryBlockEventsResponse{Events: events}, Err: nil}
 	}()
 
 	// Defer to context closure
@@ -206,10 +212,14 @@ func (ss *SidecarServer) GetBlockEvents(
 		ss.logger.Error("context cancelled")
 		return nil, context.Canceled
 	case resp := <-resCh:
-		if resp == nil {
+		if resp.Err != nil {
+			// Distinguish between a block not existing and any other error.
+			if strings.Contains(resp.Err.Error(), types.ErrBlockDoesNotExist) {
+				return nil, resp.Err
+			}
 			return nil, errors.New("failed to get block events")
 		}
-		return resp, nil
+		return resp.Response, nil
 	}
 }
 

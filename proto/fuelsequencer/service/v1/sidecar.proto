@@ -4,7 +4,6 @@ package fuelsequencer.service.v1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
-import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types";
 

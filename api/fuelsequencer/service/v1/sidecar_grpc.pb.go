@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: fuelsequencer/service/v1/sidecar.proto
 
-package servicev1
+package v1
 
 import (
 	context "context"
