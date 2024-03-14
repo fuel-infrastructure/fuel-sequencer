@@ -9,9 +9,9 @@ message EthEventsTx {
   // events defines the list of Ethereum events.
   repeated fuelsequencer.service.v1.Event events = 1;
 
-  // advanceSequencer is a boolean which indicates whether the sequencer should
+  // advanceSequencer is a boolean which indicates whether the Sequencer should
   // generate a new block. This is used to advance the Sequencer in cases where
-  // the sidecar errors ex. when no new blocks are generated on Ethereum.
+  // the Sidecar errors specifically due to no new blocks generated on Ethereum
   bool advanceSequencer = 2;
 
   // newEthereumBlock is a boolean which indicates whether a new Ethereum block
