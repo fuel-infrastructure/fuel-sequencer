@@ -168,7 +168,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
 		// Expect that there is at least one transaction (EthEventsTx must be there)
-		if len(req.Txs) < 1 {
+		if len(req.Txs) == 0 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"block proposal doesn't have any transactions: first tx expected to be an eth events tx",
 			)
