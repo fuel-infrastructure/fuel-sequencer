@@ -635,12 +635,12 @@ type EthEventsTx struct {
 
 	// events defines the list of Ethereum events.
 	Events []*v1.Event `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
-	// advanceSequencer is a boolean which indicates whether the sequencer should
+	// advanceSequencer is a boolean which indicates whether the Sequencer should
 	// generate a new block. This is used to advance the Sequencer in cases where
-	// the sidecar errors ex. when no new blocks are generated on Ethereum.
+	// the Sidecar errors specifically due to no new blocks generated on Ethereum
 	AdvanceSequencer bool `protobuf:"varint,2,opt,name=advanceSequencer,proto3" json:"advanceSequencer,omitempty"`
 	// newEthereumBlock is a boolean which indicates whether a new Ethereum block
-	// has been detected by the sidecar. This is needed to determine when
+	// has been detected by the Sidecar. This is needed to determine when
 	// LastEthereumBlockSynced should be incremented by the PreBlocker.
 	NewEthereumBlock bool `protobuf:"varint,3,opt,name=newEthereumBlock,proto3" json:"newEthereumBlock,omitempty"`
 }
