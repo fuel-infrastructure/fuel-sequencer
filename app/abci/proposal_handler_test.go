@@ -56,7 +56,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		removeLastEthereumBlockSynced bool
 		expQueryBlockEventsCalled     int
 		expQueryBlockEventsReq        *sidecartypes.QueryBlockEventsRequest
-		queryBlockEventsRet           apptesting.TestQueryBlockEventsRet
+		queryBlockEventsRet           apptesting.MockQueryBlockEventsResponse
 		requestPrepareProposal        *abcitypes.RequestPrepareProposal
 		maxBlockGas                   int64
 		expErrMsg                     string
@@ -67,7 +67,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -90,7 +90,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{}, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -118,7 +118,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: nil, Error: fmt.Errorf("%s 1", sidecartypes.ErrBlockDoesNotExist),
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -146,7 +146,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: nil, Error: errors.New("block not yet processed 1"),
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -174,7 +174,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: true,
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
-			queryBlockEventsRet:           apptesting.TestQueryBlockEventsRet{},
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes:         0,
 				Txs:                nil,
@@ -193,7 +193,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{Events: []*sidecartypes.Event{
 					{EventType: "invalid-event", Data: nil},
 				}},
@@ -217,7 +217,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -238,7 +238,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -262,7 +262,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -371,7 +371,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		removeLastEthereumBlockSynced bool
 		expQueryBlockEventsCalled     int
 		expQueryBlockEventsReq        *sidecartypes.QueryBlockEventsRequest
-		queryBlockEventsRet           apptesting.TestQueryBlockEventsRet
+		queryBlockEventsRet           apptesting.MockQueryBlockEventsResponse
 		requestProcessProposal        *abcitypes.RequestProcessProposal
 		maxBlockGas                   int64
 		expErrMsg                     string
@@ -381,7 +381,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
@@ -401,7 +401,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{}, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
@@ -421,7 +421,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: nil, Error: fmt.Errorf("%s 1", sidecartypes.ErrBlockDoesNotExist),
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
@@ -441,7 +441,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
-			queryBlockEventsRet:           apptesting.TestQueryBlockEventsRet{},
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:                nil,
 				ProposedLastCommit: abcitypes.CommitInfo{},
@@ -460,7 +460,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
-			queryBlockEventsRet:           apptesting.TestQueryBlockEventsRet{},
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:                encodedDummyTxs,
 				ProposedLastCommit: abcitypes.CommitInfo{},
@@ -479,7 +479,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: true,
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
-			queryBlockEventsRet:           apptesting.TestQueryBlockEventsRet{},
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:                validTxsWithEvents,
 				ProposedLastCommit: abcitypes.CommitInfo{},
@@ -498,7 +498,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{Events: []*sidecartypes.Event{
 					{EventType: "invalid-event", Data: nil},
 				}},
@@ -522,7 +522,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: nil,
 				Error:    errors.New("block not yet processed 1"),
 			},
@@ -544,7 +544,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
@@ -565,7 +565,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.TestQueryBlockEventsRet{
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
