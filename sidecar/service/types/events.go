@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"errors"
-	"strings"
 
 	sdk "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common"
@@ -67,12 +66,8 @@ func (m *SendToSequencerEvent) ValidateBasic() error {
 		return errors.New("SendToSequencerEvent is nil")
 	}
 
-	// Check that From is a valid hex address. We will be receiving addresses of the form
-	// 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266, therefore,
-	// we need to trim the appending zeros
-	fromAddress := strings.TrimPrefix(m.From, "0x")
-	fromAddress = strings.TrimLeft(fromAddress, "0")
-	if !common.IsHexAddress("0x" + fromAddress) {
+	// Check that From is a valid hex address
+	if !common.IsHexAddress(m.From) {
 		return errors.New("from is not a valid hex address")
 	}
 
@@ -128,12 +123,8 @@ func (m *AuthorizeEvent) ValidateBasic() error {
 		return errors.New("AuthorizeEvent is nil")
 	}
 
-	// Check that From is a valid hex address. We will be receiving addresses of the form
-	// 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266, therefore,
-	// we need to trim the appending zeros
-	fromAddress := strings.TrimPrefix(m.From, "0x")
-	fromAddress = strings.TrimLeft(fromAddress, "0")
-	if !common.IsHexAddress("0x" + fromAddress) {
+	// Check that From is a valid hex address
+	if !common.IsHexAddress(m.From) {
 		return errors.New("from is not a valid hex address")
 	}
 

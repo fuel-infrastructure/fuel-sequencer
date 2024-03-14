@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -24,7 +25,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error
 		}
 
 		// From is indexed, so extract it from Topics
-		sequencerEvent.From = vLog.Topics[1].Hex()
+		sequencerEvent.From = common.HexToAddress(vLog.Topics[1].Hex()).String()
 
 		// Convert the rest of the fields as required
 		sequencerEvent.To = ethEvent.To
@@ -46,7 +47,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error
 		}
 
 		// From is indexed, so extract it from Topics
-		sequencerEvent.From = vLog.Topics[1].Hex()
+		sequencerEvent.From = common.HexToAddress(vLog.Topics[1].Hex()).String()
 
 		// Convert the rest of the fields as required
 		sequencerEvent.Message = ethEvent.Message
