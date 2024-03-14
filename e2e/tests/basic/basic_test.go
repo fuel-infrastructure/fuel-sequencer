@@ -65,5 +65,11 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		// ...we expect an error if we query a block that doesn't exist.
 		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 10)
 		s.Require().Error(err)
+
+		// TODO: Ensure that the Sequencer is synced up. (once we have PreBlocker logic)
+		//err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		//s.Require().NoError(err)
+		//lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		//s.Require().Equal(4, lastEthereumBlockSynced)
 	})
 }
