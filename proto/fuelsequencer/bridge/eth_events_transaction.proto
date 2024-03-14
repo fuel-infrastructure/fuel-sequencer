@@ -15,7 +15,7 @@ message EthEventsTx {
   bool advanceSequencer = 2;
 
   // newEthereumBlock is a boolean which indicates whether a new Ethereum block
-  // has been detected by the sidecar. This is needed to determine when
+  // has been detected by the Sidecar. This is needed to determine when
   // LastEthereumBlockSynced should be incremented by the PreBlocker.
   bool newEthereumBlock = 3;
 }
