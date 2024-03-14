@@ -8326,6 +8326,43 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/sequencer_address_from_ethereum_address/{ethereumAddress}:
+    get:
+      summary: Queries a list of SequencerAddressFromEthereumAddress items.
+      operationId: FuelsequencerBridgeQuery_SequencerAddressFromEthereumAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              sequencerAddress:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: ethereumAddress
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
     get:
       summary: Queries the SupplyDeltaInfo.
@@ -8434,6 +8471,14 @@ paths:
                       report supply
 
                       delta info to Ethereum.
+                  vesting_start_time:
+                    type: string
+                    format: date-time
+                    description: >-
+                      vesting_start_time is the common vesting starting time for
+                      vesting accounts
+
+                      that will be created through deposits from Ethereum.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -8601,6 +8646,14 @@ paths:
                       report supply
 
                       delta info to Ethereum.
+                  vesting_start_time:
+                    type: string
+                    format: date-time
+                    description: >-
+                      vesting_start_time is the common vesting starting time for
+                      vesting accounts
+
+                      that will be created through deposits from Ethereum.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
@@ -12383,6 +12436,14 @@ definitions:
           supply
 
           delta info to Ethereum.
+      vesting_start_time:
+        type: string
+        format: date-time
+        description: >-
+          vesting_start_time is the common vesting starting time for vesting
+          accounts
+
+          that will be created through deposits from Ethereum.
     description: Params defines the parameters for the module.
   fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
     type: object
@@ -12464,7 +12525,20 @@ definitions:
               supply
 
               delta info to Ethereum.
+          vesting_start_time:
+            type: string
+            format: date-time
+            description: >-
+              vesting_start_time is the common vesting starting time for vesting
+              accounts
+
+              that will be created through deposits from Ethereum.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bridge.QuerySequencerAddressFromEthereumAddressResponse:
+    type: object
+    properties:
+      sequencerAddress:
+        type: string
   fuelsequencer.bridge.SupplyDeltaInfo:
     type: object
     properties:
@@ -12557,6 +12631,14 @@ definitions:
               supply
 
               delta info to Ethereum.
+          vesting_start_time:
+            type: string
+            format: date-time
+            description: >-
+              vesting_start_time is the common vesting starting time for vesting
+              accounts
+
+              that will be created through deposits from Ethereum.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.bridge.MsgUpdateParamsResponse:
     type: object
