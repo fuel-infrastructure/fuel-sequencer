@@ -9,7 +9,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/suite"
@@ -17,11 +16,6 @@ import (
 
 type AppTestSuite struct {
 	apptesting.KeeperTestHelper
-}
-
-type TestQueryBlockEventsRet struct {
-	Response *sidecartypes.QueryBlockEventsResponse
-	Error    error
 }
 
 // GetTestProposalHandler simply returns a ProposalHandler with the specified sidecar client mock
