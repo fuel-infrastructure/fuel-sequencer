@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GenerateSequencerAccountForEthereumAddress is an export of generateSequencerAccountForEthereumAddress for testing.
-func (k Keeper) GenerateSequencerAccountForEthereumAddress(
+// GenerateSequencerAccountFromEthereumAddress is an export of generateSequencerAccountFromEthereumAddress for testing.
+func (k Keeper) GenerateSequencerAccountFromEthereumAddress(
 	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
 ) (sdk.AccAddress, error) {
-	return k.generateSequencerAccountForEthereumAddress(ctx, ethAddress, vestingDuration, totalCoins)
+	return k.generateSequencerAccountFromEthereumAddress(ctx, ethAddress, vestingDuration, totalCoins)
 }

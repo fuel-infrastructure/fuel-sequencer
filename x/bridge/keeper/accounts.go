@@ -46,14 +46,14 @@ func detailsFromFromExistingAcc(acc sdk.AccountI) (*authtypes.BaseAccount, *vest
 	return baseAcc, blankBaseVestingAccount()
 }
 
-// generateSequencerAccountForEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
+// generateSequencerAccountFromEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
 // The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
 // to follow the specified vestingDuration, regardless of whether the account already existed in other forms.
-func (k Keeper) generateSequencerAccountForEthereumAddress(
+func (k Keeper) generateSequencerAccountFromEthereumAddress(
 	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
 ) (sdk.AccAddress, error) {
 
-	accAddress, err := types.GenerateSequencerAddressForEthereumAddress(ethAddress)
+	accAddress, err := types.GenerateSequencerAddressFromEthereumAddress(ethAddress)
 	if err != nil {
 		return nil, err
 	}

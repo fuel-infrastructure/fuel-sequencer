@@ -13,7 +13,7 @@ func (k Keeper) SequencerAddressFromEthereumAddress(_ context.Context, req *type
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	sequencerAddress, err := types.GenerateSequencerAddressForEthereumAddress(req.EthereumAddress)
+	sequencerAddress, err := types.GenerateSequencerAddressFromEthereumAddress(req.EthereumAddress)
 	if err != nil {
 		return nil, err
 	}

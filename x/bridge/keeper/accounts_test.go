@@ -21,7 +21,7 @@ type (
 	accountValidator func(acc sdk.AccountI) bool
 )
 
-func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
+func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 
 	// ethAddr1Str -> seqAddr1Str
 	ethAddr1Str := "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
@@ -442,7 +442,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountForEthereumAddress() {
 			}
 
 			// Get sequencer account
-			accAddress, err := s.App.BridgeKeeper.GenerateSequencerAccountForEthereumAddress(
+			accAddress, err := s.App.BridgeKeeper.GenerateSequencerAccountFromEthereumAddress(
 				ctx, tc.args.ethAddress, tc.args.vestingDuration, tc.args.totalCoins,
 			)
 			if tc.expectErrMsg != "" {
