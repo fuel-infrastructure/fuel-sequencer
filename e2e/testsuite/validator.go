@@ -48,9 +48,10 @@ type validator struct {
 	ethereumKey  ethereumKey
 
 	// FuelSequencer ports set during startup.
-	hostRPCPort  string
-	hostAPIPort  string
-	hostGRPCPort string
+	hostRPCPort     string
+	hostAPIPort     string
+	hostGRPCPort    string
+	sidecarGRPCPort string
 }
 
 type ethereumKey struct {

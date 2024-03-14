@@ -49,5 +49,21 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		updatedBalance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
 		s.Require().NoError(err)
 		s.Require().True(updatedBalance.Balances.IsAllLT(balance.Balances))
+
+		// Ensure we can query the sidecar (GRPC)
+		//
+		// ...we do not expect events at height 1.
+		events, err := s.QuerySidecarBlockEvents(s.Ctx(), 1)
+		s.Require().NoError(err)
+		s.Require().Empty(events)
+		//
+		// ...we expect events at height 3.
+		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 3)
+		s.Require().NoError(err)
+		s.Require().NotEmpty(events)
+		//
+		// ...we expect an error if we query a block that doesn't exist.
+		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 10)
+		s.Require().Error(err)
 	})
 }

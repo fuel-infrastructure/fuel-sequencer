@@ -59,5 +59,8 @@ EXPOSE 26656
 EXPOSE 26657
 EXPOSE 1317
 
+# Expose sidecar ports
+EXPOSE 8080
+
 # Run the script when the container launches
 CMD ["node_and_sidecar"]

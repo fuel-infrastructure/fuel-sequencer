@@ -141,6 +141,7 @@ func (s *E2ETestSuite) SetupSuite() {
 	// set up clients
 	s.initGRPCClients()
 	s.initRPCClient()
+	s.initSidecarClient()
 }
 
 func (s *E2ETestSuite) TearDownSuite() {
@@ -435,12 +436,14 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 				"9090/tcp":  {{HostIP: "", HostPort: "9090"}},
 				"26656/tcp": {{HostIP: "", HostPort: "26656"}},
 				"26657/tcp": {{HostIP: "", HostPort: "26657"}},
+				"8080/tcp":  {{HostIP: "", HostPort: "8080"}},
 			}
-			runOpts.ExposedPorts = []string{"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp"}
+			runOpts.ExposedPorts = []string{"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp", "8080/tcp"}
 
 			val.hostRPCPort = "tcp://localhost:26657"
 			val.hostAPIPort = "tcp://localhost:1317"
 			val.hostGRPCPort = "localhost:9090"
+			val.sidecarGRPCPort = "localhost:8080"
 		}
 
 		resource, err := s.dockerPool.RunWithOptions(runOpts, noRestart)

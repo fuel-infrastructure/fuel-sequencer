@@ -13,6 +13,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"google.golang.org/grpc"
@@ -94,4 +95,27 @@ func (s *E2ETestSuite) initRPCClient() {
 
 func (s *E2ETestSuite) getRPCClient() *rpchttp.HTTP {
 	return s.chain.rpcClient
+}
+
+// initSidecarClient establishes a Sidecar client using the first validator.
+func (s *E2ETestSuite) initSidecarClient() {
+	addr := s.chain.validators[0].sidecarGRPCPort
+
+	// Create a connection to the gRPC server.
+	grpcConn, err := grpc.Dial(
+		addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	s.Require().NoError(err)
+	s.T().Cleanup(func() {
+		if err := grpcConn.Close(); err != nil {
+			s.T().Logf("failed closing GRPC connection to sidecar: %s", err)
+		}
+	})
+
+	s.chain.sidecarClient = sidecartypes.NewSidecarClient(grpcConn)
+}
+
+func (s *E2ETestSuite) getSidecarClient() sidecartypes.SidecarClient {
+	return s.chain.sidecarClient
 }

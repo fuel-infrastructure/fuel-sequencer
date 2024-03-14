@@ -32,6 +32,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 )
@@ -90,8 +91,9 @@ type chain struct {
 	numNodes   int
 	validators []*validator
 
-	grpcClients *GRPCClients
-	rpcClient   *rpchttp.HTTP
+	grpcClients   *GRPCClients
+	rpcClient     *rpchttp.HTTP
+	sidecarClient sidecartypes.SidecarClient
 }
 
 func newChain(numNodes int) (*chain, error) {
