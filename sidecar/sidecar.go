@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -27,7 +28,7 @@ var _ Sidecar = (*SidecarImpl)(nil)
 // Sidecar defines the expected interface for a sidecar. It is consumed by the sidecar server.
 type Sidecar interface {
 	IsRunning() bool
-	QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error)
+	QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error)
 	Start(ctx context.Context) error
 	Stop()
 }
@@ -42,7 +43,7 @@ type SidecarImpl struct {
 	ethClient       *ethclient.Client
 	contractAddress common.Address
 	contractABI     abi.ABI
-	blocksMap       map[string]*EthereumBlock
+	blocksMap       map[string]*sidecartypes.EthereumBlock
 	updateInterval  time.Duration
 
 	// startQueryBlock is the block at which we started querying for events.
@@ -73,7 +74,7 @@ func NewSidecar(
 		contractAddress:   contractAddress,
 		contractABI:       contractAbi,
 		startQueryBlock:   startQueryBlock,
-		blocksMap:         make(map[string]*EthereumBlock),
+		blocksMap:         make(map[string]*sidecartypes.EthereumBlock),
 		updateInterval:    10 * time.Second,
 	}
 }
@@ -114,7 +115,7 @@ func (s *SidecarImpl) IsRunning() bool {
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
-func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error) {
+func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -129,8 +130,26 @@ func (s *SidecarImpl) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Eve
 			return []sidecartypes.Event{}, nil
 		}
 
+		syncProgress, err := s.ethClient.SyncProgress(ctx)
+		if err != nil {
+			return nil, errors.New("could not get syncing status from Ethereum node")
+		}
+
+		ethHeight, err := s.ethClient.BlockNumber(ctx)
+		if err != nil {
+			return nil, errors.New("could not get latest height from Ethereum node")
+		}
+
+		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must
+		// be the height being queried does not exist yet
+		isEthereumNodeSynced := syncProgress == nil
+		sidecarSyncedWithEthereum := s.lastQueryBlock.Cmp(new(big.Int).SetUint64(ethHeight)) == 0
+		if isEthereumNodeSynced && sidecarSyncedWithEthereum {
+			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
+		}
+
 		// Otherwise this block was not yet processed
-		return nil, fmt.Errorf("no events found for block number %s", blockNumber)
+		return nil, fmt.Errorf("block not yet processed %s", blockNumber)
 	}
 
 	return block.Events, nil
@@ -171,11 +190,16 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 			lastSyncedBlock, err := s.fetchLastSyncedEthereumBlock(ctx)
 			s.logger.Debug("Querying LastSyncedEthereumBlock: ", zap.String("last synced block", lastSyncedBlock.String()))
 			if err != nil {
-				s.logger.Error("Error: ", zap.Error(err))
-				continue
+				// Log the error if the last synced Ethereum block is not obtained.
+				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
+				// is skipped the Sequencer will not be able to produce the first block and the sidecar would not be
+				// able to query the Sequencer, causing a deadlock.
+				s.logger.Error("failed to obtain last synced block from Sequencer", zap.Error(err))
 			}
 
-			if lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
+			// Set the last queried block to the last synced block. If the value couldn't be obtained from the Sequencer
+			// then it will default to startQueryBlock set in the beginning of this function if this is the first loop.
+			if lastSyncedBlock != nil && lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
 				s.lastQueryBlock = lastSyncedBlock
 			}
 
@@ -270,7 +294,7 @@ func (s *SidecarImpl) processLogs(logs []types.Log) error {
 	// All logs are sequential; move them from temporary to permanent storage
 	for blockNum, events := range tempBlocks {
 		blockNumStr := strconv.FormatUint(blockNum, 10)
-		s.blocksMap[blockNumStr] = &EthereumBlock{
+		s.blocksMap[blockNumStr] = &sidecartypes.EthereumBlock{
 			BlockNumber: new(big.Int).SetUint64(blockNum),
 			Events:      events,
 		}

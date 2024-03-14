@@ -27,5 +27,5 @@ Testing and docs:
 
 - [ ] `make proto-routine` for formatting and APIs.
 - [ ] `make lint` to ensure linting rules satisfied.
-- [ ] `make test-unit` to ensure tests pass.
+- [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
 - [ ] `make run` to ensure chain runs.
