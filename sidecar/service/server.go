@@ -213,6 +213,7 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, context.Canceled
 	case resp := <-resCh:
 		if resp.Err != nil {
+			// Distinguish between a block not existing and any other error.
 			if strings.Contains(resp.Err.Error(), types.ErrBlockDoesNotExist) {
 				return nil, resp.Err
 			}
