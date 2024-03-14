@@ -197,8 +197,8 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 				s.logger.Error("Error: ", zap.Error(err))
 			}
 
-			// Set the last queried block to the last synced block. If the value could not be obtained from the chain
-			// it will default to s.startQueryBlock set in the beginning of this function.
+			// Set the last queried block to the last synced block. If the value couldn't be obtained from the Sequencer
+			// then it will default to startQueryBlock set in the beginning of this function if this is the first loop.
 			if lastSyncedBlock != nil && lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
 				s.lastQueryBlock = lastSyncedBlock
 			}
