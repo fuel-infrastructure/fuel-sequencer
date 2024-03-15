@@ -270,8 +270,12 @@ lint:
 ###                                  Tests                                  ###
 ###############################################################################
 
+test-all: test-unit test-e2e
+
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
+
+test-e2e: test-e2e-basic
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
