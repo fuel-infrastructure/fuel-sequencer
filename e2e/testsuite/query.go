@@ -1,6 +1,7 @@
 package testsuite
 
 import (
+	"fmt"
 	"time"
 
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
@@ -13,6 +14,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
@@ -75,7 +77,7 @@ func (s *E2ETestSuite) getGRPCClients() *GRPCClients {
 	return s.chain.grpcClients
 }
 
-// initGRPCClients establishes an RPC client using the first validator.
+// initRPCClient establishes an RPC client using the first validator.
 func (s *E2ETestSuite) initRPCClient() {
 	addr := s.chain.validators[0].hostRPCPort
 
@@ -95,6 +97,20 @@ func (s *E2ETestSuite) initRPCClient() {
 
 func (s *E2ETestSuite) getRPCClient() *rpchttp.HTTP {
 	return s.chain.rpcClient
+}
+
+// initEthereumRPCClient establishes an RPC client to the Ethereum node.
+func (s *E2ETestSuite) initEthereumRPCClient() {
+
+	url := fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp"))
+	ethClient, err := ethclient.Dial(url)
+	s.Require().NoError(err)
+
+	s.chain.ethClient = ethClient
+}
+
+func (s *E2ETestSuite) getEthereumRPCClient() *ethclient.Client {
+	return s.chain.ethClient
 }
 
 // initSidecarClient establishes a Sidecar client using the first validator.

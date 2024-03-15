@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+func (s *E2ETestSuite) Sleep(duration time.Duration) {
+	s.Logger().Info(fmt.Sprintf("Sleeping for %s", duration))
+	time.Sleep(duration)
+}
+
 // WaitForBlocks blocks until all chains reach a block height delta equal to or greater than the delta argument.
 // If a ChainHeighter does not monotonically increase the height, this function may block program execution indefinitely.
 func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {

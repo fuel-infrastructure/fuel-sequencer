@@ -91,6 +91,9 @@ var (
 		// bob
 		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 	}
+
+	// CONTRACT is the address of the proxy contract deployed on the Ethereum node.
+	CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 )
 
 var (
@@ -141,6 +144,7 @@ func (s *E2ETestSuite) SetupSuite() {
 	// set up clients
 	s.initGRPCClients()
 	s.initRPCClient()
+	s.initEthereumRPCClient()
 	s.initSidecarClient()
 }
 

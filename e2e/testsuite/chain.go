@@ -32,6 +32,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
@@ -94,6 +95,7 @@ type chain struct {
 	grpcClients   *GRPCClients
 	rpcClient     *rpchttp.HTTP
 	sidecarClient sidecartypes.SidecarClient
+	ethClient     *ethclient.Client
 }
 
 func newChain(numNodes int) (*chain, error) {
@@ -259,6 +261,13 @@ func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("rpc client status: %w", err)
 	}
-	height := res.SyncInfo.LatestBlockHeight
-	return uint64(height), nil
+	return uint64(res.SyncInfo.LatestBlockHeight), nil
+}
+
+func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {
+	res, err := c.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("rpc client status: %w", err)
+	}
+	return res, nil
 }
