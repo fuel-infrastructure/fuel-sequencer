@@ -113,7 +113,7 @@ func (k Keeper) generateSequencerAccountFromEthereumAddress(
 	// We also extract the base account since we'll most likely use it.
 	existingAcc := k.accountKeeper.GetAccount(ctx, accAddress)
 	createNewAcc := existingAcc == nil
-	if existingAcc == nil {
+	if createNewAcc {
 		baseAcc = authtypes.NewBaseAccountWithAddress(accAddress)
 		baseVestingAcc = blankBaseVestingAccount()
 	} else {
