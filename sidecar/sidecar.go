@@ -251,7 +251,7 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	// since we have now queried up to this block.
 	s.logger.Info("Processed logs from range of blocks",
 		zap.String("from_block", s.lastQueryBlock.String()),
-		zap.String("to_block", s.lastQueryBlock.String()),
+		zap.Uint64("to_block", currentBlockNumber),
 	)
 	s.lastQueryBlock = new(big.Int).SetUint64(currentBlockNumber)
 }
