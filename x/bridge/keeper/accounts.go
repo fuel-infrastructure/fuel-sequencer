@@ -69,7 +69,7 @@ func (k Keeper) depositFromEthereum(
 		return err
 	}
 
-	// TODO: make assertions about changes in the spendable balance to sanity check our calculations.
+	// TODO: consider making assertions about changes in the spendable balance to sanity check our calculations.
 
 	return nil
 }
