@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // ensure bech32 configs are set
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +16,7 @@ func TestGenerateSequencerAccountFromEthereumAddress(t *testing.T) {
 	accAddress, err := types.GenerateSequencerAddressFromEthereumAddress(ethAddress)
 	require.NoError(t, err)
 
-	require.Equal(t, "cosmos13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vq7xmqm6", accAddress.String())
+	require.Equal(t, "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k", accAddress.String())
 }
 
 func TestGenerateSequencerAccountFromEthereumAddressFromBz(t *testing.T) {
@@ -27,5 +28,5 @@ func TestGenerateSequencerAccountFromEthereumAddressFromBz(t *testing.T) {
 	accAddress, err := types.GenerateSequencerAddressFromEthereumAddressFromBz(ethAddressBz)
 	require.NoError(t, err)
 
-	require.Equal(t, "cosmos13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vq7xmqm6", accAddress.String())
+	require.Equal(t, "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k", accAddress.String())
 }
