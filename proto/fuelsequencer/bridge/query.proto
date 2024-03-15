@@ -76,9 +76,9 @@ message QueryGetLastEthereumBlockSyncedRequest {}
 message QueryGetLastEthereumBlockSyncedResponse { string block = 1; }
 
 message QuerySequencerAddressFromEthereumAddressRequest {
-  string ethereumAddress = 1;
+  string ethereum_address = 1;
 }
 
 message QuerySequencerAddressFromEthereumAddressResponse {
-  string sequencerAddress = 1;
+  string sequencer_address = 1;
 }
