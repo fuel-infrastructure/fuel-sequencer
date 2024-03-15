@@ -47,7 +47,7 @@ service Query {
       returns (QuerySequencerAddressFromEthereumAddressResponse) {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/bridge/"
-        "sequencer_address_from_ethereum_address/{ethereumAddress}";
+        "sequencer_address_from_ethereum_address/{ethereum_address}";
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.

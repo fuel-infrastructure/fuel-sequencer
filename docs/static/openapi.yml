@@ -8326,7 +8326,7 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/sequencer_address_from_ethereum_address/{ethereumAddress}:
+  /fuel-infrastructure/fuel-sequencer/bridge/sequencer_address_from_ethereum_address/{ethereum_address}:
     get:
       summary: Queries a list of SequencerAddressFromEthereumAddress items.
       operationId: FuelsequencerBridgeQuery_SequencerAddressFromEthereumAddress
@@ -8336,7 +8336,7 @@ paths:
           schema:
             type: object
             properties:
-              sequencerAddress:
+              sequencer_address:
                 type: string
         default:
           description: An unexpected error response.
@@ -8357,7 +8357,7 @@ paths:
                       type: string
                   additionalProperties: {}
       parameters:
-        - name: ethereumAddress
+        - name: ethereum_address
           in: path
           required: true
           type: string
@@ -12537,7 +12537,7 @@ definitions:
   fuelsequencer.bridge.QuerySequencerAddressFromEthereumAddressResponse:
     type: object
     properties:
-      sequencerAddress:
+      sequencer_address:
         type: string
   fuelsequencer.bridge.SupplyDeltaInfo:
     type: object

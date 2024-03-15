@@ -116,15 +116,15 @@ func request_Query_SequencerAddressFromEthereumAddress_0(ctx context.Context, ma
 		_   = err
 	)
 
-	val, ok = pathParams["ethereumAddress"]
+	val, ok = pathParams["ethereum_address"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "ethereumAddress")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "ethereum_address")
 	}
 
 	protoReq.EthereumAddress, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "ethereumAddress", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "ethereum_address", err)
 	}
 
 	msg, err := client.SequencerAddressFromEthereumAddress(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -143,15 +143,15 @@ func local_request_Query_SequencerAddressFromEthereumAddress_0(ctx context.Conte
 		_   = err
 	)
 
-	val, ok = pathParams["ethereumAddress"]
+	val, ok = pathParams["ethereum_address"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "ethereumAddress")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "ethereum_address")
 	}
 
 	protoReq.EthereumAddress, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "ethereumAddress", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "ethereum_address", err)
 	}
 
 	msg, err := server.SequencerAddressFromEthereumAddress(ctx, &protoReq)
@@ -433,7 +433,7 @@ var (
 
 	pattern_Query_SupplyDeltaInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "supply_delta_info"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SequencerAddressFromEthereumAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "sequencer_address_from_ethereum_address", "ethereumAddress"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SequencerAddressFromEthereumAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "sequencer_address_from_ethereum_address", "ethereum_address"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

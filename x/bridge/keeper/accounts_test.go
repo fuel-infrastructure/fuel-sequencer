@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	firstAccNumber   = 7 // this is not zero due to module accounts
-	firstAccSequence = 0
+	firstAccountSequence = 0
 
 	token = "token"
 )
@@ -28,11 +27,14 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 	seqAddr1Str := "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k"
 	seqAddr1 := sdk.MustAccAddressFromBech32(seqAddr1Str)
 
+	// The first account number depends on the number of module accounts created.
+	firstAccNumber := uint64(len(s.App.AccountKeeper.GetModulePermissions()))
+
 	// corresponds to seqAddr1Str
 	seqAddr1BaseAcc := &authtypes.BaseAccount{
 		Address:       seqAddr1Str,
 		AccountNumber: firstAccNumber,
-		Sequence:      firstAccSequence,
+		Sequence:      firstAccountSequence,
 	}
 
 	// Helper times.
@@ -136,7 +138,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				totalCoins:      nil,
 			},
 			isAccountAsExpected: matchesBaseAcc(
-				authtypes.NewBaseAccount(seqAddr1, nil, firstAccNumber, firstAccSequence),
+				authtypes.NewBaseAccount(seqAddr1, nil, firstAccNumber, firstAccountSequence),
 			),
 			expectSpendableCoins: nil,
 		},
