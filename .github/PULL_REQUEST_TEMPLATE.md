@@ -28,4 +28,7 @@ Testing and docs:
 - [ ] `make proto-routine` for formatting and APIs.
 - [ ] `make lint` to ensure linting rules satisfied.
 - [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
-- [ ] `make run` to ensure chain runs.
+- [ ] Run a local E2E setup to ensure the chain runs:
+  - `make install run-ethereum-docker-container run-sidecar` in terminal 1.
+  - `make run-sequencer` in terminal 2
+  - `make clean` once you're done.

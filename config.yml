@@ -54,7 +54,7 @@ validators:
     grpc:
       address: 0.0.0.0:9090
     sidecar:
-      enabled: false # set to true if you want to connect to the sidecar
+      enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
       address: localhost:8080
       timeout: 5s
 - name: bob
@@ -84,15 +84,11 @@ validators:
     grpc:
       address: 0.0.0.0:9090
     sidecar:
-      enabled: true
+      enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
       address: localhost:8080
       timeout: 5s
 genesis:
   chain_id: "fuelsequencer-1"
-  consensus:
-    params:
-      abci:
-        vote_extensions_enable_height: "1"
   app_state:
     crisis:
       constant_fee:
