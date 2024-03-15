@@ -177,7 +177,7 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 	defer ticker.Stop()
 
 	for {
-		s.logger.Debug("Processing block", zap.Int64("block", s.lastQueryBlock.Int64()))
+		s.logger.Info("Processing from block", zap.Int64("block", s.lastQueryBlock.Int64()))
 		select {
 		case <-ctx.Done():
 			return
@@ -249,6 +249,10 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 
 	// Regardless of whether logs were found, update the last queried block to the current block number,
 	// since we have now queried up to this block.
+	s.logger.Info("Processed logs from range of blocks",
+		zap.String("from_block", s.lastQueryBlock.String()),
+		zap.String("to_block", s.lastQueryBlock.String()),
+	)
 	s.lastQueryBlock = new(big.Int).SetUint64(currentBlockNumber)
 }
 
@@ -288,7 +292,7 @@ func (s *SidecarImpl) processLogs(logs []types.Log) error {
 
 		// Add the event to the temporary block map
 		tempBlocks[currentBlockNumber] = append(tempBlocks[currentBlockNumber], *event)
-		s.logger.Debug("Processed a log successfully.", zap.Int64("block", int64(vLog.BlockNumber)))
+		s.logger.Info("Processed a log successfully.", zap.Int64("block", int64(vLog.BlockNumber)))
 	}
 
 	// All logs are sequential; move them from temporary to permanent storage

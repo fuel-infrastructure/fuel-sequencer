@@ -57,8 +57,8 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().NoError(err)
 		s.Require().Empty(events)
 		//
-		// ...we expect events at height 3.
-		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 3)
+		// ...we expect events at height 4.
+		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 4)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(events)
 		//
