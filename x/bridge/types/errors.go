@@ -18,7 +18,8 @@ var (
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
 	ErrInvalidEthAddress        = sdkerrors.Register(ModuleName, 1104, "invalid ethereum address")
 	ErrInvalidVestingDuration   = sdkerrors.Register(ModuleName, 1105, "invalid vesting duration")
-	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106,
-		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
+	ErrInvalidEthAddressLength  = sdkerrors.Register(
+		ModuleName, 1106, fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
 	)
+	ErrUnsupported = sdkerrors.Register(ModuleName, 1107, "unsupported")
 )

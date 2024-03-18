@@ -2,16 +2,15 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 type accountValidator func(acc sdk.AccountI) bool
 
-// matchesBaseAcc asserts that the account is a base account and matches the supplied account.
-func matchesBaseAcc(baseAcc *authtypes.BaseAccount) accountValidator {
+// matchesEthOwnedAcc asserts that the account is an EthOwnedAccount and matches the supplied account.
+func matchesEthOwnedAcc(baseAcc *types.EthOwnedAccount) accountValidator {
 	return func(acc sdk.AccountI) bool {
-		bAcc, ok := acc.(*authtypes.BaseAccount)
+		bAcc, ok := acc.(*types.EthOwnedAccount)
 		return ok &&
 			(bAcc.GetAddress().Equals(baseAcc.GetAddress())) &&
 			((bAcc.PubKey == nil && baseAcc.PubKey == nil) || (bAcc.GetPubKey().Equals(baseAcc.GetPubKey()))) &&
@@ -20,16 +19,16 @@ func matchesBaseAcc(baseAcc *authtypes.BaseAccount) accountValidator {
 	}
 }
 
-// matchesContinuousVestingAccount asserts that the account is a vesting account and matches the supplied account.
-func matchesContinuousVestingAccount(vestingAcc *vestingtypes.ContinuousVestingAccount) accountValidator {
+// matchesEthOwnedContinuousVestingAcc asserts that the account is an EthOwnedContinuousVestingAccount and matches the supplied account.
+func matchesEthOwnedContinuousVestingAcc(vestingAcc *types.EthOwnedContinuousVestingAccount) accountValidator {
 	return func(acc sdk.AccountI) bool {
-		vAcc, ok := acc.(*vestingtypes.ContinuousVestingAccount)
+		vAcc, ok := acc.(*types.EthOwnedContinuousVestingAccount)
 		return ok &&
 			(vAcc.StartTime == vestingAcc.StartTime) &&
 			(vAcc.OriginalVesting.Equal(vestingAcc.OriginalVesting)) &&
 			(vAcc.DelegatedFree.Equal(vestingAcc.DelegatedFree)) &&
 			(vAcc.DelegatedVesting.Equal(vestingAcc.DelegatedVesting)) &&
 			(vAcc.EndTime == vestingAcc.EndTime) &&
-			matchesBaseAcc(vestingAcc.BaseAccount)(vAcc.BaseAccount)
+			matchesEthOwnedAcc(vestingAcc.ToEthOwnedAccount())(vAcc.ToEthOwnedAccount())
 	}
 }
