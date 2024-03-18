@@ -15,7 +15,7 @@ const (
 	FlagSidecarAddress = "sidecar.address"
 	FlagSidecarTimeout = "sidecar.timeout"
 
-	DefaultSidecarEnabled = true
+	DefaultSidecarEnabled = false
 	DefaultSidecarAddress = "localhost:8080"
 	DefaultSidecarTimeout = time.Second * 5
 )

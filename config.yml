@@ -54,7 +54,7 @@ validators:
     grpc:
       address: 0.0.0.0:9090
     sidecar:
-      enabled: false # set to true if you want to connect to the sidecar
+      enabled: true
       address: localhost:8080
       timeout: 5s
 - name: bob
