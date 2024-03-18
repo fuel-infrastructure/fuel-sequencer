@@ -15,7 +15,7 @@ func TestGenerateSequencerAccountFromEthereumAddress(t *testing.T) {
 	accAddress, err := types.GenerateSequencerAddressFromEthereumAddress(testutiltypes.TestEthAddr1Str)
 	require.NoError(t, err)
 
-	require.Equal(t, testutiltypes.TestSeqAddr1.String(), accAddress.String())
+	require.Equal(t, testutiltypes.TestSeqAddr1Str, accAddress.String())
 }
 
 func TestGenerateSequencerAccountFromEthereumAddressFromBz(t *testing.T) {
@@ -27,5 +27,5 @@ func TestGenerateSequencerAccountFromEthereumAddressFromBz(t *testing.T) {
 	accAddress, err := types.GenerateSequencerAddressFromEthereumAddressFromBz(ethAddressBz)
 	require.NoError(t, err)
 
-	require.Equal(t, testutiltypes.TestSeqAddr1.String(), accAddress.String())
+	require.Equal(t, testutiltypes.TestSeqAddr1Str, accAddress.String())
 }

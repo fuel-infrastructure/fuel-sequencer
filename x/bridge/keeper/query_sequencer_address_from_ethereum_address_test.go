@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -14,8 +15,8 @@ func (s *KeeperTestSuite) TestSequencerAddressFromEthereumAddress() {
 	}{
 		{
 			name:                   "valid ethereum address => expected sequencer address",
-			ethereumAddress:        "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
-			expectSequencerAddress: "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k",
+			ethereumAddress:        testutiltypes.TestEthAddr1Str,
+			expectSequencerAddress: testutiltypes.TestSeqAddr1Str,
 		},
 		{
 			name:            "invalid ethereum address => err",
