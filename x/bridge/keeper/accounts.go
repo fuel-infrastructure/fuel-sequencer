@@ -49,7 +49,7 @@ func detailsFromFromExistingAcc(acc sdk.AccountI) (*authtypes.BaseAccount, *vest
 // depositFromEthereum generates the Sequencer address corresponding to the Ethereum address that is sending the tokens.
 // Like the CreateVestingAccount function in the Cosmos SDK, we first create the account and then send tokens to it.
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/auth/vesting/msg_server.go#L31
-// Note: this is just a reference function for now and should be revised before it is used, or otherwise scrapped.
+// Note: this is just a scaffold function for now and should be revised before it is used, or otherwise scrapped.
 func (k Keeper) depositFromEthereum(
 	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
 ) error {
