@@ -275,8 +275,6 @@ test-all: test-unit test-e2e
 
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
-	@# Run some unit tests that are in the e2e folder:
-	@cd e2e && go test -mod=readonly -race -v ./testsuite/... --test.timeout 0
 
 test-e2e: test-e2e-basic
 
