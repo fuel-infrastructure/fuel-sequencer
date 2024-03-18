@@ -38,7 +38,8 @@ func InitCometBFTConfig() *cmtcfg.Config {
 // InitAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
 func InitAppConfig() (string, interface{}) {
-	// The following code snippet is just for reference.
+	// CustomAppConfig defines a configuration for a custom app.toml file.
+	// It essentially just adds SidecarConfig to the typical Cosmos SDK Config.
 	type CustomAppConfig struct {
 		serverconfig.Config `mapstructure:",squash"`
 		SidecarConfig       sidecarconfig.SidecarConfig `mapstructure:"sidecar"`
@@ -74,7 +75,7 @@ func InitAppConfig() (string, interface{}) {
 	customAppTemplate := serverconfig.DefaultConfigTemplate + `
 	[sidecar]
 	# This dictates whether the Sidecar will be queried.
-	enabled = false
+	enabled = true
 	# This defines the Sidecar server to listen to.
 	address = "http://localhost:8080"
 	# This defines how long the client should wait for responses.
