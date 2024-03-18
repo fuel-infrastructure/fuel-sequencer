@@ -3,7 +3,10 @@ package types
 // DONTCOVER
 
 import (
+	"fmt"
+
 	sdkerrors "cosmossdk.io/errors"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var (
@@ -15,5 +18,7 @@ var (
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
 	ErrInvalidEthAddress        = sdkerrors.Register(ModuleName, 1104, "invalid ethereum address")
 	ErrInvalidVestingDuration   = sdkerrors.Register(ModuleName, 1105, "invalid vesting duration")
-	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106, "expected eth address to be 20 bytes long")
+	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106,
+		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
+	)
 )
