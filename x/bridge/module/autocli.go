@@ -36,7 +36,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					RpcMethod:      "SequencerAddressFromEthereumAddress",
 					Use:            "sequencer-address-from-ethereum-address [ethereum-address]",
 					Short:          "Query SequencerAddressFromEthereumAddress",
-					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereumAddress"}},
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereum_address"}},
 				},
 
 				// this line is used by ignite scaffolding # autocli/query
