@@ -38,8 +38,6 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// TODO: teardown with shutting off of containers
-
 func init() {
 	app.InitSDKConfig()
 	app.InitCometBFTConfig()
