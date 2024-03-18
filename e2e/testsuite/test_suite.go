@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	"cosmossdk.io/math"
@@ -112,8 +113,12 @@ type E2ETestSuite struct {
 	valResources  []*dockertest.Resource
 }
 
-func (s *E2ETestSuite) SetupSuite() {
-	s.T().Log("setting up E2E test suite...")
+func (s *E2ETestSuite) SetupTest() {
+	if testing.Short() {
+		s.T().Skip()
+	}
+
+	s.T().Log("setting up E2E test...")
 
 	s.log = zaptest.NewLogger(s.T(), LogLevel)
 
@@ -148,7 +153,7 @@ func (s *E2ETestSuite) SetupSuite() {
 	s.initSidecarClient()
 }
 
-func (s *E2ETestSuite) TearDownSuite() {
+func (s *E2ETestSuite) TearDownTest() {
 	if str := os.Getenv("E2E_SKIP_CLEANUP"); len(str) > 0 {
 		skipCleanup, err := strconv.ParseBool(str)
 		s.Require().NoError(err)
