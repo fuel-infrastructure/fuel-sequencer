@@ -5,6 +5,8 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
+ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
+
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
@@ -133,6 +135,7 @@ go.sum: go.mod
 clean:
 	@echo "🧹 Cleaning..."
 	@rm -rf $(BUILDDIR)/*
+	@echo "✅ Finished cleaning!"
 
 build-fuelsequencerd:
 	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
@@ -268,8 +271,12 @@ lint:
 ###                                  Tests                                  ###
 ###############################################################################
 
+test-all: test-unit test-e2e
+
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
+
+test-e2e: test-e2e-basic
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
@@ -307,28 +314,73 @@ build-docker-image:
 	@echo "✅ Finished building Docker image!"
 
 DATA_FOLDER="/data/fuelsequencer"
+COMMAND?=""
 run-docker-container:
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
     		-p 26656:26656 -p 26657:26657 -p 1317:1317 \
-    		${DOCKER_IMAGE_NAME}:latest
+    		${DOCKER_IMAGE_NAME}:latest \
+    		${COMMAND}
 
 start-docker-container:
-	@echo "🤖 Starting Docker image..."
+	@echo "🤖 Starting Docker container..."
 	@docker start $(DOCKER_CONTAINER_NAME)
-	@echo "🤖 Started Docker image!"
+	@echo "✅ Started Docker container!"
 
 stop-docker-container:
-	@echo "🤖 Stopping Docker image..."
+	@echo "🤖 Stopping Docker container..."
 	@docker stop $(DOCKER_CONTAINER_NAME)
-	@echo "🤖 Stopped Docker image!"
+	@echo "✅ Stopped Docker container!"
 
 remove-docker-container:
-	@echo "🤖 Removing Docker image..."
+	@echo "🤖 Removing Docker container..."
 	@docker rm -v $(DOCKER_CONTAINER_NAME)
-	@echo "🤖 Removed Docker image!"
+	@echo "✅ Removed Docker container!"
 
 follow-docker-logs:
 	@docker logs -f $(DOCKER_CONTAINER_NAME)
+
+###############################################################################
+###                                   E2E                                   ###
+###############################################################################
+
+check-ethereum-docker-image-exists:
+ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
+	@echo "❌ Docker image ${ETH_DOCKER_IMAGE_NAME}:latest not found";
+	@exit 1;
+else
+	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
+endif
+
+build-ethereum-docker-image:
+	@echo "🤖 Updating git submodules..."
+	@git submodule init # for the first time
+	@git submodule update --remote
+	@# No need to add echos here, since `make build` has its own.
+	@(cd e2e/test-contracts && make build)
+	@echo "🤖 Cleaning up git submodules..."
+	@git submodule update
+	@echo "✅ Finished cleaning up git submodules!"
+
+test-e2e-basic: check-docker-image-exists check-ethereum-docker-image-exists
+	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
+
+clean-e2e:
+	@echo "🧹 Stopping Docker containers..."
+	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
+	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
+	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
+	@docker ps -aq --filter "name=ethereum" | xargs -r docker stop
+
+	@echo "🧹 Removing Docker containers..."
+	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
+	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
+	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
+	@docker ps -aq --filter "name=ethereum" | xargs -r docker rm
+
+	@echo "🧹 Pruning Docker networks..."
+	@docker network prune -f
+
+	@echo "✅ Finished cleaning E2E!"

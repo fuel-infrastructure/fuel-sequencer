@@ -154,7 +154,10 @@ func ProvideClientContext(
 		WithViper(app.Name) // env variable prefix
 
 	// Read the config again to overwrite the default values with the values from the config file
-	clientCtx, _ = config.ReadFromClientConfig(clientCtx)
+	clientCtx, err := config.ReadFromClientConfig(clientCtx)
+	if err != nil {
+		panic(err)
+	}
 
 	return clientCtx
 }
