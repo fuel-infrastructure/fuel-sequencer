@@ -21,7 +21,7 @@ func GenerateSequencerAddressFromEthereumAddress(ethAddress string) (sdk.AccAddr
 // GenerateSequencerAddressFromEthereumAddressFromBz derives a Sequencer address from the module name and
 // the specified Ethereum address. The module name ensures we do not overlap with other modules' addresses.
 func GenerateSequencerAddressFromEthereumAddressFromBz(ethAddress []byte) (sdk.AccAddress, error) {
-	if len(ethAddress) != 20 {
+	if len(ethAddress) != common.AddressLength {
 		return nil, ErrInvalidEthAddressLength.Wrapf("got %d", len(ethAddress))
 	}
 
