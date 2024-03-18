@@ -1,3 +1,5 @@
+// Test suite inspired by https://github.com/PeggyJV/sommelier/tree/v7.0.1/integration_tests
+
 package testsuite
 
 import (
