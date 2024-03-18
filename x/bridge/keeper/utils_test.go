@@ -7,10 +7,10 @@ import (
 
 type accountValidator func(acc sdk.AccountI) bool
 
-// matchesEthOwnedAcc asserts that the account is an EthOwnedAccount and matches the supplied account.
-func matchesEthOwnedAcc(baseAcc *types.EthOwnedAccount) accountValidator {
+// matchesEthOwnedAcc asserts that the account is an EthOwnedBaseAccount and matches the supplied account.
+func matchesEthOwnedAcc(baseAcc *types.EthOwnedBaseAccount) accountValidator {
 	return func(acc sdk.AccountI) bool {
-		bAcc, ok := acc.(*types.EthOwnedAccount)
+		bAcc, ok := acc.(*types.EthOwnedBaseAccount)
 		return ok &&
 			(bAcc.GetAddress().Equals(baseAcc.GetAddress())) &&
 			((bAcc.PubKey == nil && baseAcc.PubKey == nil) || (bAcc.GetPubKey().Equals(baseAcc.GetPubKey()))) &&
@@ -29,6 +29,6 @@ func matchesEthOwnedContinuousVestingAcc(vestingAcc *types.EthOwnedContinuousVes
 			(vAcc.DelegatedFree.Equal(vestingAcc.DelegatedFree)) &&
 			(vAcc.DelegatedVesting.Equal(vestingAcc.DelegatedVesting)) &&
 			(vAcc.EndTime == vestingAcc.EndTime) &&
-			matchesEthOwnedAcc(vestingAcc.ToEthOwnedAccount())(vAcc.ToEthOwnedAccount())
+			matchesEthOwnedAcc(vestingAcc.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount())
 	}
 }

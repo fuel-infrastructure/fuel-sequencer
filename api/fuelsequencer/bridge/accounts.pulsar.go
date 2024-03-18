@@ -17,25 +17,25 @@ import (
 )
 
 var (
-	md_EthOwnedAccount              protoreflect.MessageDescriptor
-	fd_EthOwnedAccount_base_account protoreflect.FieldDescriptor
+	md_EthOwnedBaseAccount              protoreflect.MessageDescriptor
+	fd_EthOwnedBaseAccount_base_account protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_accounts_proto_init()
-	md_EthOwnedAccount = File_fuelsequencer_bridge_accounts_proto.Messages().ByName("EthOwnedAccount")
-	fd_EthOwnedAccount_base_account = md_EthOwnedAccount.Fields().ByName("base_account")
+	md_EthOwnedBaseAccount = File_fuelsequencer_bridge_accounts_proto.Messages().ByName("EthOwnedBaseAccount")
+	fd_EthOwnedBaseAccount_base_account = md_EthOwnedBaseAccount.Fields().ByName("base_account")
 }
 
-var _ protoreflect.Message = (*fastReflection_EthOwnedAccount)(nil)
+var _ protoreflect.Message = (*fastReflection_EthOwnedBaseAccount)(nil)
 
-type fastReflection_EthOwnedAccount EthOwnedAccount
+type fastReflection_EthOwnedBaseAccount EthOwnedBaseAccount
 
-func (x *EthOwnedAccount) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_EthOwnedAccount)(x)
+func (x *EthOwnedBaseAccount) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_EthOwnedBaseAccount)(x)
 }
 
-func (x *EthOwnedAccount) slowProtoReflect() protoreflect.Message {
+func (x *EthOwnedBaseAccount) slowProtoReflect() protoreflect.Message {
 	mi := &file_fuelsequencer_bridge_accounts_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -47,43 +47,43 @@ func (x *EthOwnedAccount) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_EthOwnedAccount_messageType fastReflection_EthOwnedAccount_messageType
-var _ protoreflect.MessageType = fastReflection_EthOwnedAccount_messageType{}
+var _fastReflection_EthOwnedBaseAccount_messageType fastReflection_EthOwnedBaseAccount_messageType
+var _ protoreflect.MessageType = fastReflection_EthOwnedBaseAccount_messageType{}
 
-type fastReflection_EthOwnedAccount_messageType struct{}
+type fastReflection_EthOwnedBaseAccount_messageType struct{}
 
-func (x fastReflection_EthOwnedAccount_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_EthOwnedAccount)(nil)
+func (x fastReflection_EthOwnedBaseAccount_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_EthOwnedBaseAccount)(nil)
 }
-func (x fastReflection_EthOwnedAccount_messageType) New() protoreflect.Message {
-	return new(fastReflection_EthOwnedAccount)
+func (x fastReflection_EthOwnedBaseAccount_messageType) New() protoreflect.Message {
+	return new(fastReflection_EthOwnedBaseAccount)
 }
-func (x fastReflection_EthOwnedAccount_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_EthOwnedAccount
+func (x fastReflection_EthOwnedBaseAccount_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_EthOwnedBaseAccount
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_EthOwnedAccount) Descriptor() protoreflect.MessageDescriptor {
-	return md_EthOwnedAccount
+func (x *fastReflection_EthOwnedBaseAccount) Descriptor() protoreflect.MessageDescriptor {
+	return md_EthOwnedBaseAccount
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_EthOwnedAccount) Type() protoreflect.MessageType {
-	return _fastReflection_EthOwnedAccount_messageType
+func (x *fastReflection_EthOwnedBaseAccount) Type() protoreflect.MessageType {
+	return _fastReflection_EthOwnedBaseAccount_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_EthOwnedAccount) New() protoreflect.Message {
-	return new(fastReflection_EthOwnedAccount)
+func (x *fastReflection_EthOwnedBaseAccount) New() protoreflect.Message {
+	return new(fastReflection_EthOwnedBaseAccount)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_EthOwnedAccount) Interface() protoreflect.ProtoMessage {
-	return (*EthOwnedAccount)(x)
+func (x *fastReflection_EthOwnedBaseAccount) Interface() protoreflect.ProtoMessage {
+	return (*EthOwnedBaseAccount)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -91,10 +91,10 @@ func (x *fastReflection_EthOwnedAccount) Interface() protoreflect.ProtoMessage {
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_EthOwnedAccount) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_EthOwnedBaseAccount) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.BaseAccount != nil {
 		value := protoreflect.ValueOfMessage(x.BaseAccount.ProtoReflect())
-		if !f(fd_EthOwnedAccount_base_account, value) {
+		if !f(fd_EthOwnedBaseAccount_base_account, value) {
 			return
 		}
 	}
@@ -111,15 +111,15 @@ func (x *fastReflection_EthOwnedAccount) Range(f func(protoreflect.FieldDescript
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_EthOwnedAccount) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_EthOwnedBaseAccount) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthOwnedAccount.base_account":
+	case "fuelsequencer.bridge.EthOwnedBaseAccount.base_account":
 		return x.BaseAccount != nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedAccount"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedBaseAccount"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedAccount does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedBaseAccount does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -129,15 +129,15 @@ func (x *fastReflection_EthOwnedAccount) Has(fd protoreflect.FieldDescriptor) bo
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthOwnedAccount) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_EthOwnedBaseAccount) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthOwnedAccount.base_account":
+	case "fuelsequencer.bridge.EthOwnedBaseAccount.base_account":
 		x.BaseAccount = nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedAccount"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedBaseAccount"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedAccount does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedBaseAccount does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -147,16 +147,16 @@ func (x *fastReflection_EthOwnedAccount) Clear(fd protoreflect.FieldDescriptor) 
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_EthOwnedAccount) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EthOwnedBaseAccount) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fuelsequencer.bridge.EthOwnedAccount.base_account":
+	case "fuelsequencer.bridge.EthOwnedBaseAccount.base_account":
 		value := x.BaseAccount
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedAccount"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedBaseAccount"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedAccount does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedBaseAccount does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -170,15 +170,15 @@ func (x *fastReflection_EthOwnedAccount) Get(descriptor protoreflect.FieldDescri
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthOwnedAccount) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_EthOwnedBaseAccount) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthOwnedAccount.base_account":
+	case "fuelsequencer.bridge.EthOwnedBaseAccount.base_account":
 		x.BaseAccount = value.Message().Interface().(*v1beta1.BaseAccount)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedAccount"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedBaseAccount"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedAccount does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedBaseAccount does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -192,44 +192,44 @@ func (x *fastReflection_EthOwnedAccount) Set(fd protoreflect.FieldDescriptor, va
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthOwnedAccount) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EthOwnedBaseAccount) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthOwnedAccount.base_account":
+	case "fuelsequencer.bridge.EthOwnedBaseAccount.base_account":
 		if x.BaseAccount == nil {
 			x.BaseAccount = new(v1beta1.BaseAccount)
 		}
 		return protoreflect.ValueOfMessage(x.BaseAccount.ProtoReflect())
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedAccount"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedBaseAccount"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedAccount does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedBaseAccount does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_EthOwnedAccount) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EthOwnedBaseAccount) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthOwnedAccount.base_account":
+	case "fuelsequencer.bridge.EthOwnedBaseAccount.base_account":
 		m := new(v1beta1.BaseAccount)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedAccount"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthOwnedBaseAccount"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedAccount does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthOwnedBaseAccount does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_EthOwnedAccount) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_EthOwnedBaseAccount) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EthOwnedAccount", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EthOwnedBaseAccount", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -237,7 +237,7 @@ func (x *fastReflection_EthOwnedAccount) WhichOneof(d protoreflect.OneofDescript
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_EthOwnedAccount) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_EthOwnedBaseAccount) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -248,7 +248,7 @@ func (x *fastReflection_EthOwnedAccount) GetUnknown() protoreflect.RawFields {
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthOwnedAccount) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_EthOwnedBaseAccount) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -260,7 +260,7 @@ func (x *fastReflection_EthOwnedAccount) SetUnknown(fields protoreflect.RawField
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_EthOwnedAccount) IsValid() bool {
+func (x *fastReflection_EthOwnedBaseAccount) IsValid() bool {
 	return x != nil
 }
 
@@ -270,9 +270,9 @@ func (x *fastReflection_EthOwnedAccount) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_EthOwnedAccount) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_EthOwnedBaseAccount) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*EthOwnedAccount)
+		x := input.Message.Interface().(*EthOwnedBaseAccount)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -298,7 +298,7 @@ func (x *fastReflection_EthOwnedAccount) ProtoMethods() *protoiface.Methods {
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*EthOwnedAccount)
+		x := input.Message.Interface().(*EthOwnedBaseAccount)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -342,7 +342,7 @@ func (x *fastReflection_EthOwnedAccount) ProtoMethods() *protoiface.Methods {
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*EthOwnedAccount)
+		x := input.Message.Interface().(*EthOwnedBaseAccount)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -374,10 +374,10 @@ func (x *fastReflection_EthOwnedAccount) ProtoMethods() *protoiface.Methods {
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthOwnedAccount: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthOwnedBaseAccount: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthOwnedAccount: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthOwnedBaseAccount: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -899,9 +899,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// An EthOwnedAccount wraps a BaseAccount that is known to be owned and
-// controlled by an Ethereum address
-type EthOwnedAccount struct {
+// An EthOwnedBaseAccount wraps a BaseAccount that is known to be owned and
+// controlled by an Ethereum address.
+type EthOwnedBaseAccount struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -909,8 +909,8 @@ type EthOwnedAccount struct {
 	BaseAccount *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
 }
 
-func (x *EthOwnedAccount) Reset() {
-	*x = EthOwnedAccount{}
+func (x *EthOwnedBaseAccount) Reset() {
+	*x = EthOwnedBaseAccount{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fuelsequencer_bridge_accounts_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -918,18 +918,18 @@ func (x *EthOwnedAccount) Reset() {
 	}
 }
 
-func (x *EthOwnedAccount) String() string {
+func (x *EthOwnedBaseAccount) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EthOwnedAccount) ProtoMessage() {}
+func (*EthOwnedBaseAccount) ProtoMessage() {}
 
-// Deprecated: Use EthOwnedAccount.ProtoReflect.Descriptor instead.
-func (*EthOwnedAccount) Descriptor() ([]byte, []int) {
+// Deprecated: Use EthOwnedBaseAccount.ProtoReflect.Descriptor instead.
+func (*EthOwnedBaseAccount) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_accounts_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *EthOwnedAccount) GetBaseAccount() *v1beta1.BaseAccount {
+func (x *EthOwnedBaseAccount) GetBaseAccount() *v1beta1.BaseAccount {
 	if x != nil {
 		return x.BaseAccount
 	}
@@ -937,7 +937,7 @@ func (x *EthOwnedAccount) GetBaseAccount() *v1beta1.BaseAccount {
 }
 
 // An EthOwnedVestingAccount wraps a ContinuousVestingAccount that is known to
-// be owned and controlled by an Ethereum address
+// be owned and controlled by an Ethereum address.
 type EthOwnedContinuousVestingAccount struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -987,40 +987,40 @@ var file_fuelsequencer_bridge_accounts_proto_rawDesc = []byte{
 	0x31, 0x2f, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x24, 0x63, 0x6f,
 	0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x2f, 0x76, 0x31, 0x62,
 	0x65, 0x74, 0x61, 0x31, 0x2f, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0x8f, 0x01, 0x0a, 0x0f, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65, 0x64, 0x41,
-	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x49, 0x0a, 0x0c, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x61,
-	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x63,
-	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x31, 0x2e, 0x42, 0x61, 0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x04,
-	0xd0, 0xde, 0x1f, 0x01, 0x52, 0x0b, 0x62, 0x61, 0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e,
-	0x74, 0x3a, 0x31, 0x88, 0xa0, 0x1f, 0x00, 0x98, 0xa0, 0x1f, 0x00, 0xca, 0xb4, 0x2d, 0x25, 0x66,
-	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69,
-	0x64, 0x67, 0x65, 0x2e, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65, 0x64, 0x41, 0x63, 0x63, 0x6f,
-	0x75, 0x6e, 0x74, 0x49, 0x22, 0xb6, 0x01, 0x0a, 0x20, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65,
-	0x64, 0x43, 0x6f, 0x6e, 0x74, 0x69, 0x6e, 0x75, 0x6f, 0x75, 0x73, 0x56, 0x65, 0x73, 0x74, 0x69,
-	0x6e, 0x67, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x5f, 0x0a, 0x0f, 0x76, 0x65, 0x73,
-	0x74, 0x69, 0x6e, 0x67, 0x5f, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x30, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x76, 0x65, 0x73, 0x74,
-	0x69, 0x6e, 0x67, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x6e, 0x74,
-	0x69, 0x6e, 0x75, 0x6f, 0x75, 0x73, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x41, 0x63, 0x63,
-	0x6f, 0x75, 0x6e, 0x74, 0x42, 0x04, 0xd0, 0xde, 0x1f, 0x01, 0x52, 0x0e, 0x76, 0x65, 0x73, 0x74,
-	0x69, 0x6e, 0x67, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x3a, 0x31, 0x88, 0xa0, 0x1f, 0x00,
-	0x98, 0xa0, 0x1f, 0x00, 0xca, 0xb4, 0x2d, 0x25, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x45, 0x74, 0x68,
-	0x4f, 0x77, 0x6e, 0x65, 0x64, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x42, 0xc1, 0x01,
-	0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0d, 0x41, 0x63, 0x63, 0x6f,
-	0x75, 0x6e, 0x74, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca,
-	0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c,
-	0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50,
-	0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67,
-	0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x6f, 0x22, 0x93, 0x01, 0x0a, 0x13, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65, 0x64, 0x42,
+	0x61, 0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x49, 0x0a, 0x0c, 0x62, 0x61,
+	0x73, 0x65, 0x5f, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x20, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x42, 0x61, 0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x42, 0x04, 0xd0, 0xde, 0x1f, 0x01, 0x52, 0x0b, 0x62, 0x61, 0x73, 0x65, 0x41, 0x63,
+	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x3a, 0x31, 0x88, 0xa0, 0x1f, 0x00, 0x98, 0xa0, 0x1f, 0x00, 0xca,
+	0xb4, 0x2d, 0x25, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65, 0x64,
+	0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x22, 0xb6, 0x01, 0x0a, 0x20, 0x45, 0x74, 0x68,
+	0x4f, 0x77, 0x6e, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x74, 0x69, 0x6e, 0x75, 0x6f, 0x75, 0x73, 0x56,
+	0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x5f, 0x0a,
+	0x0f, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x5f, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
+	0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x43, 0x6f, 0x6e, 0x74, 0x69, 0x6e, 0x75, 0x6f, 0x75, 0x73, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e,
+	0x67, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x04, 0xd0, 0xde, 0x1f, 0x01, 0x52, 0x0e,
+	0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x3a, 0x31,
+	0x88, 0xa0, 0x1f, 0x00, 0x98, 0xa0, 0x1f, 0x00, 0xca, 0xb4, 0x2d, 0x25, 0x66, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0x2e, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65, 0x64, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74,
+	0x49, 0x42, 0xc1, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0d,
+	0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
+	0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70,
+	0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f,
+	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46,
+	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69,
+	0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65,
+	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15,
+	0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1037,13 +1037,13 @@ func file_fuelsequencer_bridge_accounts_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bridge_accounts_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_fuelsequencer_bridge_accounts_proto_goTypes = []interface{}{
-	(*EthOwnedAccount)(nil),                   // 0: fuelsequencer.bridge.EthOwnedAccount
+	(*EthOwnedBaseAccount)(nil),               // 0: fuelsequencer.bridge.EthOwnedBaseAccount
 	(*EthOwnedContinuousVestingAccount)(nil),  // 1: fuelsequencer.bridge.EthOwnedContinuousVestingAccount
 	(*v1beta1.BaseAccount)(nil),               // 2: cosmos.auth.v1beta1.BaseAccount
 	(*v1beta11.ContinuousVestingAccount)(nil), // 3: cosmos.vesting.v1beta1.ContinuousVestingAccount
 }
 var file_fuelsequencer_bridge_accounts_proto_depIdxs = []int32{
-	2, // 0: fuelsequencer.bridge.EthOwnedAccount.base_account:type_name -> cosmos.auth.v1beta1.BaseAccount
+	2, // 0: fuelsequencer.bridge.EthOwnedBaseAccount.base_account:type_name -> cosmos.auth.v1beta1.BaseAccount
 	3, // 1: fuelsequencer.bridge.EthOwnedContinuousVestingAccount.vesting_account:type_name -> cosmos.vesting.v1beta1.ContinuousVestingAccount
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
@@ -1059,7 +1059,7 @@ func file_fuelsequencer_bridge_accounts_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_fuelsequencer_bridge_accounts_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EthOwnedAccount); i {
+			switch v := v.(*EthOwnedBaseAccount); i {
 			case 0:
 				return &v.state
 			case 1:

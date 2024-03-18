@@ -99,7 +99,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				totalCoins:      nil,
 			},
 			isAccountAsExpected: matchesEthOwnedAcc(
-				types.NewEthOwnedAccount(
+				types.NewEthOwnedBaseAccount(
 					authtypes.NewBaseAccount(
 						testutiltypes.TestSeqAddr1, nil, firstAccNumber, testutiltypes.FirstAccountSequence,
 					),
@@ -117,7 +117,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesEthOwnedAcc(
-				types.NewEthOwnedAccount(seqAddr1BaseAcc),
+				types.NewEthOwnedBaseAccount(seqAddr1BaseAcc),
 			),
 			expectSpendableCoins: token100,
 		},
@@ -194,7 +194,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesEthOwnedAcc(
-				types.NewEthOwnedAccount(seqAddr1BaseAcc),
+				types.NewEthOwnedBaseAccount(seqAddr1BaseAcc),
 			),
 			expectSpendableCoins: token100, // all tokens available
 		},
@@ -240,7 +240,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesEthOwnedAcc(
-				types.NewEthOwnedAccount(seqAddr1BaseAcc),
+				types.NewEthOwnedBaseAccount(seqAddr1BaseAcc),
 			),
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
@@ -270,7 +270,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: matchesEthOwnedAcc(
-				types.NewEthOwnedAccount(seqAddr1BaseAcc),
+				types.NewEthOwnedBaseAccount(seqAddr1BaseAcc),
 			),
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
@@ -302,6 +302,20 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				},
 			)),
 			expectSpendableCoins: token150, // precreated account's 100 plus half of newly vested tokens
+		},
+		{
+			name:             "acc with vesting half-way does NOT override existing EthOwnedBaseAccount => base account",
+			precreateAccount: types.NewEthOwnedBaseAccount(seqAddr1BaseAcc), // EthOwnedBaseAccount!
+			blockTime:        blockTimePlusOneYear.Add(oneYear / 2),         // half-way through vesting duration
+			vestingStartTime: blockTime,
+			fundAccount:      token200, // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: twoYears, // disregarded
+				totalCoins:      token100,
+			},
+			isAccountAsExpected:  matchesEthOwnedAcc(types.NewEthOwnedBaseAccount(seqAddr1BaseAcc)),
+			expectSpendableCoins: token200, // precreated account's 100 plus all the newly reposit
 		},
 		{
 			// blockTime:              2025 + 0.5 year
@@ -381,10 +395,10 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				StartTime: blockTimePlusOneYear.Unix(), // accounts for 1 year delay in vesting start time
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:      seqAddr1BaseAcc,
-					OriginalVesting:  token100,                                      // will be overwritten
-					DelegatedFree:    token50,                                       // will be overwritten
-					DelegatedVesting: token50,                                       // will be overwritten
-					EndTime:          blockTimePlusOneYear.Add(hundredYears).Unix(), // will be overwritten
+					OriginalVesting:  token100,                         // will be overwritten
+					DelegatedFree:    token50,                          // will be overwritten
+					DelegatedVesting: token50,                          // will be overwritten
+					EndTime:          someTimeWaaaayInTheFuture.Unix(), // will be overwritten
 				},
 			},
 			blockTime:        blockTimePlusOneYear.Add(oneYear / 2), // half-way through vesting duration
@@ -416,13 +430,13 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			// actualVestingEndTime:   2025 + 1 year
 			//
 			// Block time is half-way between actual start and end time, meaning half of the tokens are available.
-			name: "acc with vesting half-way builds on top of existing vesting account (DelayedVestingAccount), " +
-				"disregarding any existing vesting schedule => vesting account",
-			precreateAccount: &vestingtypes.DelayedVestingAccount{ // Use unexpected vesting account type
+			name: "acc with vesting half-way does NOT build on existing vesting acc (if non-'EthOwned' " +
+				"DelayedVestingAccount), resulting in fresh vesting values => vesting account",
+			precreateAccount: &vestingtypes.DelayedVestingAccount{
 				BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 					BaseAccount:     seqAddr1BaseAcc,
-					OriginalVesting: token50,                          // only 50 are vesting initially
-					EndTime:         someTimeWaaaayInTheFuture.Unix(), // all tokens are locked
+					OriginalVesting: token50,                          // will be overwritten
+					EndTime:         someTimeWaaaayInTheFuture.Unix(), // will be overwritten
 				},
 			},
 			blockTime:        blockTimePlusOneYear.Add(oneYear / 2), // half-way through vesting duration
@@ -438,7 +452,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 					StartTime: blockTimePlusOneYear.Unix(), // precreated account's vesting start time is disregarded
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
 						BaseAccount:     seqAddr1BaseAcc,
-						OriginalVesting: token100,                                 // 100 are vesting; the original 50 are liquid
+						OriginalVesting: token100,                                 // of which half are vested
 						EndTime:         blockTimePlusOneYear.Add(oneYear).Unix(), // 1 year lock + 1 year vesting
 					},
 				},

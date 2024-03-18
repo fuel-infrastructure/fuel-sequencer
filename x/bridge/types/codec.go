@@ -10,11 +10,11 @@ import (
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.AccountI)(nil),
-		&EthOwnedAccount{},
+		&EthOwnedBaseAccount{},
 		&EthOwnedContinuousVestingAccount{},
 	)
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil),
-		&EthOwnedAccount{},
+		&EthOwnedBaseAccount{},
 		&EthOwnedContinuousVestingAccount{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),

@@ -33,16 +33,16 @@ func TestGenerateSequencerAccountFromEthereumAddressFromBz(t *testing.T) {
 	require.Equal(t, testutiltypes.TestSeqAddr1Str, accAddress.String())
 }
 
-func TestEthOwnedAccountSetSequenceErrors(t *testing.T) {
-	acc := types.NewEthOwnedAccount(authtypes.NewBaseAccountWithAddress(testutiltypes.TestSeqAddr1))
+func TestEthOwnedBaseAccountSetSequenceErrors(t *testing.T) {
+	acc := types.NewEthOwnedBaseAccount(authtypes.NewBaseAccountWithAddress(testutiltypes.TestSeqAddr1))
 	require.ErrorContains(t, acc.SetSequence(1), "cannot set sequence number for eth owned account")
 	require.ErrorContains(t, acc.SetSequence(2), "cannot set sequence number for eth owned account")
 }
 
-func TestEthOwnedAccountSetPubkeyErrors(t *testing.T) {
+func TestEthOwnedBaseAccountSetPubkeyErrors(t *testing.T) {
 	_, pk, _ := testdata.KeyTestPubAddr()
 
-	acc := types.NewEthOwnedAccount(&authtypes.BaseAccount{})
+	acc := types.NewEthOwnedBaseAccount(&authtypes.BaseAccount{})
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned account")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned account")
 }

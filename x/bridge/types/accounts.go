@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	_ authtypes.GenesisAccount = (*EthOwnedAccount)(nil)
-	_ EthOwnedAccountI         = (*EthOwnedAccount)(nil)
+	_ authtypes.GenesisAccount = (*EthOwnedBaseAccount)(nil)
+	_ EthOwnedAccountI         = (*EthOwnedBaseAccount)(nil)
 
 	_ authtypes.GenesisAccount = (*EthOwnedContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedContinuousVestingAccount)(nil)
@@ -47,29 +47,29 @@ func GenerateSequencerAddressFromEthereumAddressFromBz(ethAddress []byte) (sdk.A
 	return sdkaddress.Module(ModuleName, ethAddress), nil
 }
 
-// --------------------- EthOwnedAccount
+// --------------------- EthOwnedBaseAccount
 
-// NewEthOwnedAccount creates and returns a new EthOwnedAccount type
-func NewEthOwnedAccount(ba *authtypes.BaseAccount) *EthOwnedAccount {
-	return &EthOwnedAccount{
+// NewEthOwnedBaseAccount creates and returns a new EthOwnedBaseAccount type
+func NewEthOwnedBaseAccount(ba *authtypes.BaseAccount) *EthOwnedBaseAccount {
+	return &EthOwnedBaseAccount{
 		BaseAccount: ba,
 	}
 }
 
-// NewEthOwnedAccountWithAddress creates and returns a new EthOwnedAccount type from an address
-func NewEthOwnedAccountWithAddress(address sdk.AccAddress) *EthOwnedAccount {
-	return &EthOwnedAccount{
+// NewEthOwnedBaseAccountWithAddress creates and returns a new EthOwnedBaseAccount type from an address
+func NewEthOwnedBaseAccountWithAddress(address sdk.AccAddress) *EthOwnedBaseAccount {
+	return &EthOwnedBaseAccount{
 		BaseAccount: authtypes.NewBaseAccountWithAddress(address),
 	}
 }
 
 // SetPubKey implements the authtypes.AccountI interface
-func (EthOwnedAccount) SetPubKey(_ crypto.PubKey) error {
+func (EthOwnedBaseAccount) SetPubKey(_ crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for eth owned account")
 }
 
 // SetSequence implements the authtypes.AccountI interface
-func (EthOwnedAccount) SetSequence(_ uint64) error {
+func (EthOwnedBaseAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned account")
 }
 
@@ -92,7 +92,7 @@ func (EthOwnedContinuousVestingAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned continuous vesting account")
 }
 
-// ToEthOwnedAccount discards vesting details and converts the account to an EthOwnedAccount
-func (a EthOwnedContinuousVestingAccount) ToEthOwnedAccount() *EthOwnedAccount {
-	return NewEthOwnedAccount(a.BaseAccount)
+// ToEthOwnedBaseAccount discards vesting details and converts the account to an EthOwnedBaseAccount
+func (a EthOwnedContinuousVestingAccount) ToEthOwnedBaseAccount() *EthOwnedBaseAccount {
+	return NewEthOwnedBaseAccount(a.BaseAccount)
 }
