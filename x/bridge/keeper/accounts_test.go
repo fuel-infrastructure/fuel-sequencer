@@ -8,29 +8,18 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-)
-
-const (
-	firstAccountSequence = 0
-
-	token = "token"
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 )
 
 func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 
-	// ethAddr1Str -> seqAddr1Str
-	ethAddr1Str := "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
-	seqAddr1Str := "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k"
-	seqAddr1 := sdk.MustAccAddressFromBech32(seqAddr1Str)
-
 	// The first account number depends on the number of module accounts created.
 	firstAccNumber := uint64(len(s.App.AccountKeeper.GetModulePermissions()))
 
-	// corresponds to seqAddr1Str
 	seqAddr1BaseAcc := &authtypes.BaseAccount{
-		Address:       seqAddr1Str,
+		Address:       testutiltypes.TestSeqAddr1Str,
 		AccountNumber: firstAccNumber,
-		Sequence:      firstAccountSequence,
+		Sequence:      testutiltypes.FirstAccountSequence,
 	}
 
 	// Helper times.
@@ -41,10 +30,10 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 	someTimeWaaaayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
 
 	// Helper token amounts.
-	token200 := sdk.NewCoins(sdk.NewInt64Coin(token, 200))
-	token150 := sdk.NewCoins(sdk.NewInt64Coin(token, 150))
-	token100 := sdk.NewCoins(sdk.NewInt64Coin(token, 100))
-	token50 := sdk.NewCoins(sdk.NewInt64Coin(token, 50))
+	token200 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
+	token150 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 150))
+	token100 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	token50 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 50))
 
 	type fnArgs struct {
 		ethAddress      string
@@ -78,7 +67,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			blockTime:        blockTime,
 			vestingStartTime: blockTime,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: oneYear - 1,
 				totalCoins:      token100,
 			},
@@ -89,7 +78,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			blockTime:        blockTime,
 			vestingStartTime: blockTime,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: oneYear,
 				totalCoins:      token100,
 			},
@@ -103,12 +92,14 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			blockTime:   blockTime,
 			fundAccount: nil,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: 0,
 				totalCoins:      nil,
 			},
 			isAccountAsExpected: matchesBaseAcc(
-				authtypes.NewBaseAccount(seqAddr1, nil, firstAccNumber, firstAccountSequence),
+				authtypes.NewBaseAccount(
+					testutiltypes.TestSeqAddr1, nil, firstAccNumber, testutiltypes.FirstAccountSequence,
+				),
 			),
 			expectSpendableCoins: nil,
 		},
@@ -117,7 +108,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			blockTime:   blockTime,
 			fundAccount: token100,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
@@ -136,7 +127,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
@@ -162,7 +153,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
@@ -188,7 +179,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
@@ -207,7 +198,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token100,
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
@@ -230,7 +221,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			blockTime:        blockTime,
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
@@ -258,7 +249,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
@@ -278,7 +269,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
@@ -315,7 +306,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
@@ -375,7 +366,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			vestingStartTime: blockTime,
 			fundAccount:      token150, // fund with 150 due to precreated account
 			args: fnArgs{
-				ethAddress:      ethAddr1Str,
+				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: twoYears,
 				totalCoins:      token100,
 			},
