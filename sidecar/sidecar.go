@@ -222,9 +222,9 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 
 	// Return if there is no update for the ETH block height.
 	if currentBlockNumber <= s.lastQueryBlock.Uint64() {
-		s.logger.Info(
-			"No new blocks",
-			zap.Uint64("current_block_number", currentBlockNumber),
+		s.logger.Debug(
+			"Current block number already processed.",
+			zap.String("current block number", s.lastQueryBlock.String()),
 		)
 		return
 	}

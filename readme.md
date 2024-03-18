@@ -14,26 +14,8 @@ Dependencies:
     - https://ghcr.io/cosmos/proto-builder
     - Preferred version: `0.14.0`
 
-To run the FuelSequencer with enabled Sidecar and an Ethereum node:
-
 ```bash
-make install run-ethereum-docker-container run-sidecar  # terminal 1
-make run-sequencer                                      # terminal 2
-make clean                                              # once you're done
-```
-
-To run the FuelSequencer on its own, you need to disable the Sidecar in `config.yml` and then:
-
-```bash
-make run-sequencer
-make clean # once you're done
-```
-
-To run just the Sidecar and an Ethereum node:
-
-```bash
-make install run-ethereum-docker-container run-sidecar
-make clean # once you're done
+make run
 ```
 
 To generate keys for executing transactions:
@@ -183,7 +165,7 @@ You will need a Sequencer image and Ethereum image:
 
 ```bash
 make build-docker-image
-make build-eth-docker-image
+make build-ethereum-docker-image
 ```
 
 Then you can run E2E tests:
