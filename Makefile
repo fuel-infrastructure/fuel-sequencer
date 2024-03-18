@@ -6,6 +6,7 @@ DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
 ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
+ETH_DOCKER_CONTAINER_NAME := "ethereum"
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
@@ -132,7 +133,7 @@ go.sum: go.mod
 	@echo "🤔 Ensure dependencies have not been modified"
 	@go mod verify
 
-clean:
+clean: clean-e2e
 	@echo "🧹 Cleaning..."
 	@rm -rf $(BUILDDIR)/*
 	@echo "✅ Finished cleaning!"
@@ -176,13 +177,13 @@ do-checksum:
 
 build-with-checksum: build-all do-checksum
 
-run-client:
+run-client-binary:
 	@$(eval ARCH := linux-amd64)
 	@if [ -z "$(BLOCK_NUMBER)" ]; then echo "BLOCK_NUMBER is not set. Use make run-client BLOCK_NUMBER=<number>"; exit 1; fi
 	@echo "Running client $(VERSION) for $(ARCH) with block number $(BLOCK_NUMBER)..."
 	@$(BUILDDIR)/client-$(VERSION)-$(ARCH) -blocknumber $(BLOCK_NUMBER)
 
-run-sidecar:
+run-sidecar-binary:
 	@$(eval ARCH := linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
 	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --development="$(DEVELOPMENT)"
@@ -226,7 +227,18 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 ###                                   Run                                   ###
 ###############################################################################
 
-run: proto-go-gen serve
+run-sequencer: proto-go-gen serve
+
+run-sidecar:
+	@$(eval ETH_RPC := "http://localhost:8545")
+	@echo "Waiting for Ethereum node to start..."
+	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
+	    sleep 1; \
+	done
+	@fuelsequencerd start-sidecar \
+		--eth_node_rpc "$(ETH_RPC)" \
+		--contract_address "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9" \
+		--development=true
 
 serve:
 	ignite chain serve --reset-once --skip-proto --build.tags ledger
@@ -315,7 +327,7 @@ build-docker-image:
 
 DATA_FOLDER="/data/fuelsequencer"
 COMMAND?=""
-run-docker-container:
+run-docker-container: check-docker-image-exists
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
@@ -346,7 +358,7 @@ follow-docker-logs:
 ###                                   E2E                                   ###
 ###############################################################################
 
-check-ethereum-docker-image-exists:
+check-eth-docker-image-exists:
 ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
 	@echo "❌ Docker image ${ETH_DOCKER_IMAGE_NAME}:latest not found";
 	@exit 1;
@@ -354,7 +366,7 @@ else
 	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
 endif
 
-build-ethereum-docker-image:
+build-eth-docker-image:
 	@echo "🤖 Updating git submodules..."
 	@git submodule init # for the first time
 	@git submodule update --remote
@@ -364,7 +376,32 @@ build-ethereum-docker-image:
 	@git submodule update
 	@echo "✅ Finished cleaning up git submodules!"
 
-test-e2e-basic: check-docker-image-exists check-ethereum-docker-image-exists
+run-eth-docker-container: check-eth-docker-image-exists
+	@echo "🤖 Running Docker image..."
+	@docker run -d \
+    		--name $(ETH_DOCKER_CONTAINER_NAME) \
+			-p 8545:8545 \
+    		$(ETH_DOCKER_IMAGE_NAME):latest
+
+start-eth-docker-container:
+	@echo "🤖 Starting Docker container..."
+	@docker start $(ETH_DOCKER_CONTAINER_NAME)
+	@echo "✅ Started Docker container!"
+
+stop-eth-docker-container:
+	@echo "🤖 Stopping Docker container..."
+	@docker stop $(ETH_DOCKER_CONTAINER_NAME)
+	@echo "✅ Stopped Docker container!"
+
+remove-eth-docker-container:
+	@echo "🤖 Removing Docker container..."
+	@docker rm -v $(ETH_DOCKER_CONTAINER_NAME)
+	@echo "✅ Removed Docker container!"
+
+follow-eth-docker-logs:
+	@docker logs -f $(ETH_DOCKER_CONTAINER_NAME)
+
+test-e2e-basic: check-docker-image-exists check-eth-docker-image-exists
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
 
 clean-e2e:
