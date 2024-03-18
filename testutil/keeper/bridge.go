@@ -38,6 +38,7 @@ func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		runtime.NewKVStoreService(storeKey),
 		log.NewNopLogger(),
 		nil,
+		nil,
 		authority.String(),
 	)
 

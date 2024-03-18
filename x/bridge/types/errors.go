@@ -3,10 +3,12 @@ package types
 // DONTCOVER
 
 import (
+	"fmt"
+
 	sdkerrors "cosmossdk.io/errors"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-// x/bridge module sentinel errors
 var (
 	ErrInvalidSigner = sdkerrors.Register(
 		ModuleName, 1100, "expected gov account as only signer for proposal message",
@@ -15,4 +17,8 @@ var (
 	ErrUnexpectedOperation      = sdkerrors.Register(ModuleName, 1102, "operation was not expected")
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
 	ErrInvalidEthAddress        = sdkerrors.Register(ModuleName, 1104, "invalid ethereum address")
+	ErrInvalidVestingDuration   = sdkerrors.Register(ModuleName, 1105, "invalid vesting duration")
+	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106,
+		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
+	)
 )

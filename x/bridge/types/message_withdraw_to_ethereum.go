@@ -9,7 +9,7 @@ import (
 
 var _ sdk.Msg = &MsgWithdrawToEthereum{}
 
-func NewMsgWithdrawToEthereum(from string, nonce string, to string, amount sdk.Coin) *MsgWithdrawToEthereum {
+func NewMsgWithdrawToEthereum(from string, to string, amount sdk.Coin) *MsgWithdrawToEthereum {
 	return &MsgWithdrawToEthereum{
 		From:   from,
 		To:     to,
@@ -25,7 +25,7 @@ func (msg *MsgWithdrawToEthereum) ValidateBasic() error {
 
 	// TODO: We might want to verify checksum of address
 	if !common.IsHexAddress(msg.To) {
-		return errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format")
+		return errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format (%s)", msg.To)
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.Amount.IsZero() {
