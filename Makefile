@@ -136,6 +136,7 @@ go.sum: go.mod
 clean: clean-e2e
 	@echo "🧹 Cleaning..."
 	@rm -rf $(BUILDDIR)/*
+	@echo "✅ Finished cleaning!"
 
 build-fuelsequencerd:
 	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
@@ -282,8 +283,12 @@ lint:
 ###                                  Tests                                  ###
 ###############################################################################
 
+test-all: test-unit test-e2e
+
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
+
+test-e2e: test-e2e-basic
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
@@ -400,6 +405,19 @@ test-e2e-basic: check-docker-image-exists check-eth-docker-image-exists
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
 
 clean-e2e:
-	@echo "🧹 Cleaning E2E..."
-	docker rm -vf fuelsequencer0 fuelsequencer1 fuelsequencer2 ethereum
-	docker network prune -f
+	@echo "🧹 Stopping Docker containers..."
+	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
+	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
+	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
+	@docker ps -aq --filter "name=ethereum" | xargs -r docker stop
+
+	@echo "🧹 Removing Docker containers..."
+	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
+	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
+	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
+	@docker ps -aq --filter "name=ethereum" | xargs -r docker rm
+
+	@echo "🧹 Pruning Docker networks..."
+	@docker network prune -f
+
+	@echo "✅ Finished cleaning E2E!"

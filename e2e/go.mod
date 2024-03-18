@@ -3,6 +3,8 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.21
 
 replace (
+	// Include BridgeCommitment queries
+	github.com/cometbft/cometbft => github.com/dferendo/cometbft v0.38.5-alpha-4
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
@@ -12,6 +14,7 @@ replace (
 )
 
 require (
+	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
@@ -31,7 +34,6 @@ require (
 	cosmossdk.io/api v0.7.3 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
-	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/store v1.0.2 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect

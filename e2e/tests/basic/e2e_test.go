@@ -11,14 +11,6 @@ type BasicTestSuite struct {
 	e2etestsuite.E2ETestSuite
 }
 
-func (s *BasicTestSuite) SetupTest() {
-	if testing.Short() {
-		s.T().Skip()
-	}
-
-	// TODO: s.Reset() once this is possible, to run tests sequentially
-}
-
 func TestBasicTestSuite(t *testing.T) {
 	suite.Run(t, new(BasicTestSuite))
 }

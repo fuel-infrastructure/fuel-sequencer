@@ -108,7 +108,7 @@ make build-docker-image
 The first time you run the docker container you should run it using:
 
 ```bash
-make run-docker-container
+make run-docker-container                                 # with Sidecar
 make run-docker-container COMMAND="fuelsequencerd start"  # without Sidecar
 ```
 
