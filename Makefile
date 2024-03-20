@@ -373,7 +373,7 @@ build-eth-docker-image:
 	@# No need to add echos here, since `make build` has its own.
 	@(cd e2e/test-contracts && make build)
 	@echo "🤖 Cleaning up git submodules..."
-	@git submodule update
+	@git submodule update --remote
 	@echo "✅ Finished cleaning up git submodules!"
 
 run-eth-docker-container: check-eth-docker-image-exists
