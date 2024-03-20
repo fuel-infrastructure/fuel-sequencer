@@ -1,6 +1,9 @@
 package app
 
 import (
+	"errors"
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -51,6 +54,8 @@ func NewInjectedMessagesDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedMess
 	}
 }
 
+// AnteHandle implements the AnteHandler decorator for MsgSupplyDelta. If an error is returned from AnteHandle during
+// CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
 func (imd InjectedMessagesDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (newCtx sdk.Context, err error) {
@@ -73,10 +78,24 @@ func (imd InjectedMessagesDecorator) AnteHandle(
 		return next(ctx, tx, simulate)
 	}
 
-	// Confirm that msgSupplyDelta passes the necessary verification checks and error if not.
+	// Confirm that msgSupplyDelta passes the necessary verification checks and error if not
 	if err = msgSupplyDelta.ValidateBasic(); err != nil {
 		return ctx, err
 	}
+
+	// Get SupplyDeltaPeriod
+	supplyDeltaPeriod := imd.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
+	if supplyDeltaPeriod == 0 {
+		return ctx, errors.New("SupplyDeltaPeriod cannot be zero")
+	}
+
+	// MsgSupplyDelta can only be injected at specific height intervals. We will reject the Tx if a MsgSupplyDelta is
+	// injected at an unexpected height as this must be user-generated
+	if uint64(ctx.BlockHeight())%supplyDeltaPeriod != 0 {
+		return ctx, fmt.Errorf("MsgSupplyDelta not expected at height %d", ctx.BlockHeight())
+	}
+
+	// TODO: Add flag and remove at endblocker
 
 	// Other Ante decorators won't execute if we reach this stage
 	return ctx, nil
