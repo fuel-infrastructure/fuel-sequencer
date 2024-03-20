@@ -47,12 +47,8 @@ message MsgPostBlob {
   // from is the address on FuelSequencer that is posting the blob.
   string from = 1;
 
-  // topic is the Topic that this blob belongs to.
-  string topic = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
+  // topic is the Topic that this blob belongs to, it is a 32-byte hash.
+  bytes topic = 2;
 
   // order is the blob sequencer order.
   string order = 3 [
@@ -77,12 +73,8 @@ message MsgPostBlobResponse {
   // from is the address on FuelSequencer that is posting the blob.
   string from = 2;
 
-  // topic is the Topic that this blob belongs to.
-  string topic = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
+  // topic is the Topic that this blob belongs to, it is a 32-byte hash.
+  bytes topic = 3;
 
   // order is the blob sequencer order.
   string order = 4 [

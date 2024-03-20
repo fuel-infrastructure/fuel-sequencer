@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
+	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
@@ -18,12 +19,12 @@ func TestGenesis(t *testing.T) {
 
 		TopicList: []types.Topic{
 			{
-				Id:    math.ZeroInt(),
+				Id:    utilstest.MockTopicIDHex(0),
 				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
 				Order: math.ZeroInt(),
 			},
 			{
-				Id:    math.OneInt(),
+				Id:    utilstest.MockTopicIDHex(1),
 				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
 				Order: math.ZeroInt(),
 			},
@@ -40,10 +41,6 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
-
-	// Check that NextTopicId is set correctly
-	nextTopicId := k.MustGetNextTopicId(ctx)
-	require.True(t, nextTopicId.Equal(math.NewInt(2)))
 
 	// Verify other genesis state elements as needed
 	require.Equal(t, genesisState.Params, got.Params)

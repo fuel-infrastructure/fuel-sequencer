@@ -15,8 +15,7 @@ const (
 )
 
 var (
-	ParamsKey            = []byte("p_sequencing")
-	NextGlobalTopicIdKey = []byte("NextGlobalTopicId")
+	ParamsKey = []byte("p_sequencing")
 )
 
 func KeyPrefix(p string) []byte {
@@ -25,13 +24,7 @@ func KeyPrefix(p string) []byte {
 
 // TopicKey returns the store key to retrieve a Topic from the topic Id
 func TopicKey(
-	topicId string,
+	topicId []byte,
 ) []byte {
-	var key []byte
-
-	topicIdBytes := []byte(topicId)
-	key = append(key, topicIdBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
+	return append([]byte(topicId), topicId...)
 }

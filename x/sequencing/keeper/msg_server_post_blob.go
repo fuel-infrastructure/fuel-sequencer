@@ -35,17 +35,6 @@ func (k msgServer) PostBlob(
 	topic, found := k.GetTopic(ctx, msg.Topic)
 	if !found {
 
-		// Verify that the topic ID specified matches the next one expected
-		nextTopicId := k.MustGetNextTopicId(ctx)
-		if !nextTopicId.Equal(msg.Topic) {
-			return nil, errorsmod.Wrapf(
-				types.ErrTopicIdNotMatching,
-				"msg topic %s doesn't match next topic id %s",
-				msg.Topic.String(),
-				nextTopicId.String(),
-			)
-		}
-
 		// Verify that the topic order from the message is 0
 		if !math.ZeroInt().Equal(msg.Order) {
 			return nil, errorsmod.Wrapf(
@@ -56,13 +45,13 @@ func (k msgServer) PostBlob(
 			)
 		}
 
-		// If the topic is not found create one from scratch
-		topic.Id = nextTopicId
-		topic.Owner = msg.From
-		topic.Order = math.ZeroInt()
+		// If the topic is not found, create one from scratch
+		topic = types.Topic{
+			Id:    msg.Topic,
+			Owner: msg.From,
+			Order: math.ZeroInt(),
+		}
 
-		// Update the next topic id by 1
-		k.SetNextTopicId(ctx, nextTopicId.Add(math.OneInt()))
 	} else {
 
 		// Verify if the topic owner matches that of msg from

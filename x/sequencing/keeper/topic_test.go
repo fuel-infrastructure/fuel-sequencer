@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"context"
+	"encoding/hex"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -10,15 +11,17 @@ import (
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
+	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
-func createTestTopic(keeper keeper.Keeper, ctx context.Context, topicId math.Int) types.Topic {
+func createTestTopic(keeper keeper.Keeper, ctx context.Context, num int) types.Topic {
+	topicId := utilstest.MockTopicIDHex(num)
 	item := types.Topic{
 		Id:    topicId,
 		Owner: sample.AccAddress(),
-		Order: math.NewInt(0),
+		Order: math.ZeroInt(),
 	}
 	keeper.SetTopic(ctx, item)
 	return item
@@ -26,8 +29,8 @@ func createTestTopic(keeper keeper.Keeper, ctx context.Context, topicId math.Int
 
 func TestGetTopic(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
-	item := createTestTopic(keeper, ctx, math.ZeroInt())
-	rst, found := keeper.GetTopic(ctx, math.ZeroInt())
+	item := createTestTopic(keeper, ctx, 1)
+	rst, found := keeper.GetTopic(ctx, item.Id)
 	require.True(t, found)
 	require.Equal(t,
 		nullify.Fill(&item),
@@ -35,43 +38,46 @@ func TestGetTopic(t *testing.T) {
 	)
 }
 
-func TestRemoveSupplyDeltaInfo(t *testing.T) {
+func TestRemoveTopic(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
-	createTestTopic(keeper, ctx, math.ZeroInt())
-	keeper.RemoveTopic(ctx, math.ZeroInt())
-	_, found := keeper.GetTopic(ctx, math.ZeroInt())
+	item := createTestTopic(keeper, ctx, 1)
+	keeper.RemoveTopic(ctx, item.Id)
+	_, found := keeper.GetTopic(ctx, item.Id)
 	require.False(t, found)
 }
 
 func TestGetAllTopic(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
-	createTestTopic(keeper, ctx, math.ZeroInt())
-	createTestTopic(keeper, ctx, math.OneInt())
-	createTestTopic(keeper, ctx, math.NewInt(2))
+	// Create multiple topics with unique IDs
+	expectedTopics := []types.Topic{
+		createTestTopic(keeper, ctx, 1),
+		createTestTopic(keeper, ctx, 2),
+		createTestTopic(keeper, ctx, 3),
+	}
 
 	topics := keeper.GetAllTopic(ctx)
-	require.Equal(t, topics[0].Id, math.ZeroInt())
-	require.Equal(t, topics[1].Id, math.OneInt())
-	require.Equal(t, topics[2].Id, math.NewInt(2))
-	require.Len(t, topics, 3)
+	require.Len(t, topics, len(expectedTopics))
+
+	// Create a map of the expected IDs for easy lookup
+	expectedIDs := make(map[string]bool)
+	for _, topic := range expectedTopics {
+		expectedIDs[hex.EncodeToString(topic.Id)] = true
+	}
+
+	// Check each retrieved topic is expected
+	for _, topic := range topics {
+		_, found := expectedIDs[hex.EncodeToString(topic.Id)]
+		require.True(t, found, "Unexpected topic ID found")
+	}
 }
 
 func TestHasTopic(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
-	item := createTestTopic(keeper, ctx, math.ZeroInt())
+	item := createTestTopic(keeper, ctx, 1)
 
-	has := keeper.HasTopic(ctx, item.Id.String())
+	has := keeper.HasTopic(ctx, item.Id)
 	require.True(t, has)
 
-	has = keeper.HasTopic(ctx, "nonexistent")
+	has = keeper.HasTopic(ctx, []byte("nonexistent"))
 	require.False(t, has)
-}
-
-func TestSetAndGetNextTopicId(t *testing.T) {
-	keeper, ctx := keepertest.SequencingKeeper(t)
-	initialId := math.NewInt(5)
-	keeper.SetNextTopicId(ctx, initialId)
-
-	retrievedId := keeper.MustGetNextTopicId(ctx)
-	require.True(t, initialId.Equal(retrievedId))
 }

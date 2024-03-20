@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
+	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
 	"github.com/stretchr/testify/require"
@@ -26,10 +26,10 @@ func TestValidateGenesisState(t *testing.T) {
 
 				TopicList: []types.Topic{
 					{
-						Id: math.ZeroInt(),
+						Id: utilstest.MockTopicIDHex(0),
 					},
 					{
-						Id: math.OneInt(),
+						Id: utilstest.MockTopicIDHex(1),
 					},
 				},
 			},
@@ -40,24 +40,10 @@ func TestValidateGenesisState(t *testing.T) {
 			genState: &types.GenesisState{
 				TopicList: []types.Topic{
 					{
-						Id: math.ZeroInt(),
+						Id: utilstest.MockTopicIDHex(0),
 					},
 					{
-						Id: math.ZeroInt(),
-					},
-				},
-			},
-			valid: false,
-		},
-		{
-			desc: "non-sequential topic IDs",
-			genState: &types.GenesisState{
-				TopicList: []types.Topic{
-					{
-						Id: math.ZeroInt(),
-					},
-					{
-						Id: math.NewInt(2),
+						Id: utilstest.MockTopicIDHex(0),
 					},
 				},
 			},

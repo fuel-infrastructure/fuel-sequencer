@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
+	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
@@ -19,7 +20,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		gasPerBlobByte   uint64
 		preSetTopic      *types.Topic
 		setNonce         math.Int
-		expTopicId       math.Int
 		expTopic         *types.Topic
 		expGasConsumed   uint64
 		expErrMsg        string
@@ -28,14 +28,14 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "successfully post a blob - creates new topic",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
@@ -43,27 +43,26 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			gasPerBlobByte:   20,
 			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
-			expTopicId:       math.OneInt(),
 			expTopic: &types.Topic{
-				Id:    math.ZeroInt(),
+				Id:    utilstest.MockTopicIDHex(0),
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 13644, // Empty data gas: 14621 + 20 * 4 bytes = 13644 gas
+			expGasConsumed: 12996, // Empty data gas: 12916 + 20 * 4 bytes = 12996 gas
 			expErrMsg:      "",
 		},
 		{
 			name: "successfully post a blob - nonce update verification",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(101),
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
@@ -71,59 +70,57 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			gasPerBlobByte:   20,
 			setNonce:         math.NewInt(100),
 			preSetTopic:      nil,
-			expTopicId:       math.OneInt(),
 			expTopic: &types.Topic{
-				Id:    math.ZeroInt(),
+				Id:    utilstest.MockTopicIDHex(0),
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 13710, // Empty data gas: 13630 + 20 * 4 bytes = 13710 gas
+			expGasConsumed: 13062, // Empty data gas: 12982 + 20 * 4 bytes = 13062 gas
 			expErrMsg:      "",
 		},
 		{
 			name: "successfully post a blob - updates existing topic",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.OneInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.OneInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
 			gasPerBlobByte:   20,
 			preSetTopic: &types.Topic{
-				Id:    math.ZeroInt(),
+				Id:    utilstest.MockTopicIDHex(0),
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			setNonce:   math.ZeroInt(),
-			expTopicId: math.OneInt(),
+			setNonce: math.ZeroInt(),
 			expTopic: &types.Topic{
-				Id:    math.ZeroInt(),
+				Id:    utilstest.MockTopicIDHex(0),
 				Owner: withdrawer,
 				Order: math.OneInt(),
 			},
-			expGasConsumed: 10200, // Empty data gas: 10120 + 20 * 4 bytes = 10200 gas (less gas topic already created)
+			expGasConsumed: 13269, // Empty data gas: 13189 + 20 * 4 bytes = 13,269 gas (less gas topic already created)
 			expErrMsg:      "",
 		},
 		{
 			name: "successfully post a blob - large data",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 54),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 54),
 			},
@@ -131,20 +128,19 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			gasPerBlobByte:   20,
 			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
-			expTopicId:       math.OneInt(),
 			expTopic: &types.Topic{
-				Id:    math.ZeroInt(),
+				Id:    utilstest.MockTopicIDHex(0),
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 14644, // Empty data gas: 13564 + 20 * 54 bytes = 14644 gas
+			expGasConsumed: 13996, // Empty data gas: 12916 + 20 * 54 bytes = 13996 gas
 			expErrMsg:      "",
 		},
 		{
 			name: "post a blob that exceeds max size",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.ZeroInt(),
+				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 500),
 			},
@@ -153,7 +149,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			gasPerBlobByte:   20,
 			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
-			expTopicId:       math.ZeroInt(),
 			expTopic:         nil,
 			expErrMsg:        "message size 500 exceeds max blob size bytes 400",
 		},
@@ -161,7 +156,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "post a blob with incorrect order",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.OneInt(),
+				Topic: utilstest.MockTopicIDHex(1),
 				Order: math.NewInt(2),
 				Data:  []byte("data"),
 			},
@@ -169,20 +164,19 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			maxBlobSizeBytes: 400,
 			gasPerBlobByte:   20,
 			preSetTopic: &types.Topic{
-				Id:    math.OneInt(),
+				Id:    utilstest.MockTopicIDHex(1),
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			setNonce:   math.ZeroInt(),
-			expTopicId: math.NewInt(2),
-			expTopic:   nil,
-			expErrMsg:  "msg order 2 doesn't match next topic order 1",
+			setNonce:  math.ZeroInt(),
+			expTopic:  nil,
+			expErrMsg: "msg order 2 doesn't match next topic order 1",
 		},
 		{
 			name: "post a blob with mismatching topic owner",
 			msg: types.MsgPostBlob{
 				From:  withdrawer,
-				Topic: math.OneInt(),
+				Topic: utilstest.MockTopicIDHex(1),
 				Order: math.OneInt(),
 				Data:  []byte("data"),
 			},
@@ -190,38 +184,16 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			maxBlobSizeBytes: 400,
 			gasPerBlobByte:   20,
 			preSetTopic: &types.Topic{
-				Id:    math.OneInt(),
+				Id:    utilstest.MockTopicIDHex(1),
 				Owner: anotherAccount,
 				Order: math.ZeroInt(),
 			},
-			setNonce:   math.ZeroInt(),
-			expTopicId: math.NewInt(2),
-			expTopic:   nil,
+			setNonce: math.ZeroInt(),
+			expTopic: nil,
 			expErrMsg: fmt.Sprintf(
 				"from address %s doesn't match topic owner %s",
 				withdrawer, anotherAccount,
 			),
-		},
-		{
-			name: "post a blob with mismatching topic id",
-			msg: types.MsgPostBlob{
-				From:  withdrawer,
-				Topic: math.NewInt(2),
-				Order: math.OneInt(),
-				Data:  []byte("data"),
-			},
-			msgResponse:      nil,
-			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
-			preSetTopic: &types.Topic{
-				Id:    math.ZeroInt(),
-				Owner: anotherAccount,
-				Order: math.ZeroInt(),
-			},
-			setNonce:   math.ZeroInt(),
-			expTopicId: math.OneInt(),
-			expTopic:   nil,
-			expErrMsg:  "msg topic 2 doesn't match next topic id 1",
 		},
 	}
 
@@ -242,9 +214,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			// Pre-set a topic if needed as well as the next topic id
 			if tc.preSetTopic != nil {
 				s.App.SequencingKeeper.SetTopic(s.Ctx(), *tc.preSetTopic)
-				s.App.SequencingKeeper.SetNextTopicId(s.Ctx(), tc.preSetTopic.Id.Add(math.OneInt()))
-			} else {
-				s.App.SequencingKeeper.SetNextTopicId(s.Ctx(), math.ZeroInt())
 			}
 
 			// Set Eth nonce
@@ -280,10 +249,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				s.Require().True(found)
 				s.Require().Equal(tc.expTopic, &topic)
 			}
-
-			// Verify the next topic id is as expected
-			actTopicId := s.App.SequencingKeeper.MustGetNextTopicId(s.Ctx())
-			s.Require().Equal(tc.expTopicId, actTopicId)
 		})
 	}
 }

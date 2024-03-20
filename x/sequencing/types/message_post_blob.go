@@ -11,7 +11,7 @@ var _ sdk.Msg = &MsgPostBlob{}
 
 func NewMsgPostBlob(
 	from string,
-	topic math.Int,
+	topic []byte,
 	order math.Int,
 	data []byte,
 ) *MsgPostBlob {

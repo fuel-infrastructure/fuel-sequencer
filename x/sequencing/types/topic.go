@@ -26,12 +26,12 @@ func (t *Topic) ValidateBasic() error {
 }
 
 func ValidateTopicId(i interface{}) error {
-	v, ok := i.(math.Int)
+	v, ok := i.([]byte)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if v.LT(math.ZeroInt()) {
-		return fmt.Errorf("expected Topic Id > 0, received %d", v)
+	if len(v) != 32 {
+		return fmt.Errorf("expected Topic Id to be 32 bytes, received %d bytes", len(v))
 	}
 	return nil
 }

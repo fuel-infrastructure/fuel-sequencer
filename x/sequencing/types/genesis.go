@@ -1,8 +1,9 @@
 package types
 
 import (
+	"encoding/hex"
+
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 )
 
 // DefaultIndex is the default global index
@@ -21,26 +22,20 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 
-	// Check for duplicated index in topic and that they are sequential
-	uniqueTopics := make(map[math.Int]bool)
+	// Check for duplicated ids in topic
+	uniqueTopics := make(map[string]bool)
 
-	for i, t := range gs.TopicList {
+	for _, t := range gs.TopicList {
 
-		// Verify topic id is sequential
-		expId := math.NewInt(int64(i))
-		if !t.Id.Equal(math.NewInt(int64(i))) {
-			return errorsmod.Wrapf(
-				ErrInvalidGenesis,
-				"topic id's are not sequential expected %s got %s",
-				expId.String(), t.Id.String())
-		}
+		// Convert topic ID (bytes) to a hex string for uniqueness check
+		topicIdHex := hex.EncodeToString(t.Id)
 
 		// Verify topic is unique
-		if _, ok := uniqueTopics[t.Id]; ok {
-			return errorsmod.Wrapf(ErrTopicNotUnique, "topic not unique at id %s", t.Id.String())
+		if _, ok := uniqueTopics[topicIdHex]; ok {
+			return errorsmod.Wrapf(ErrTopicNotUnique, "topic not unique at id %s", topicIdHex)
 		}
 
-		uniqueTopics[t.Id] = true
+		uniqueTopics[topicIdHex] = true
 	}
 
 	return gs.Params.Validate()

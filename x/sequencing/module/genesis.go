@@ -3,7 +3,6 @@ package sequencing
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -13,7 +12,6 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 
-	largestTopicId := math.ZeroInt()
 	// Set all the topics
 	for _, topic := range genState.TopicList {
 
@@ -23,14 +21,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 
 		k.SetTopic(ctx, topic)
-
-		if topic.Id.GT(largestTopicId) {
-			largestTopicId = topic.Id
-		}
 	}
-
-	// Set the next topic id as current largest topic Id + 1
-	k.SetNextTopicId(ctx, largestTopicId.Add(math.OneInt()))
 
 	if err := k.SetParams(ctx, genState.Params); err != nil {
 		panic(fmt.Sprintf("error when setting params: %x", err))

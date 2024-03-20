@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"context"
-	"math/big"
 
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -48,40 +46,13 @@ func (k Keeper) Topic(ctx context.Context, req *types.QueryGetTopicRequest) (*ty
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
 
-	Id, ok := math.NewIntFromString(req.Id)
-	if !ok {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-
 	val, found := k.GetTopic(
 		ctx,
-		Id,
+		req.Id,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetTopicResponse{Topic: val}, nil
-}
-
-func (k Keeper) NextTopicId(
-	ctx context.Context,
-	req *types.QueryGetNextTopicIdRequest,
-) (*types.QueryGetNextTopicIdResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
-	}
-
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.NextGlobalTopicIdKey)
-
-	b := store.Get([]byte{0})
-	if b == nil {
-		return nil, status.Error(codes.NotFound, "next topic id not found")
-	}
-
-	nextTopicId := math.NewIntFromBigInt(new(big.Int).SetBytes(b))
-	return &types.QueryGetNextTopicIdResponse{
-		NextTopicId: nextTopicId.String(),
-	}, nil
 }
