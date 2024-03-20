@@ -10,8 +10,8 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_sequencing"
 
-	// TopicKeyPrefix is the prefix to retrieve all Topic
-	TopicKeyPrefix = "Topic/value/"
+	// TopicKey is the prefix to retrieve all Topic
+	TopicKey = "Topic/value/"
 )
 
 var (
@@ -22,8 +22,8 @@ func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
 
-// TopicKey returns the store key to retrieve a Topic from the topic Id
-func TopicKey(
+// TopicKeyPrefix returns the store key to retrieve a Topic from the topic Id
+func TopicKeyPrefix(
 	topicId []byte,
 ) []byte {
 	return append([]byte(topicId), topicId...)

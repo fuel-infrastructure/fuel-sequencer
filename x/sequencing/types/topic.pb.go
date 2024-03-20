@@ -31,7 +31,7 @@ type Topic struct {
 	// owner is the sequencer address, who is the owner of this topic, assigned at
 	// creation.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	// order is the sequential order of the topic.
+	// order is the sequential order of the topic blobs.
 	Order cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=order,proto3,customtype=cosmossdk.io/math.Int" json:"order"`
 }
 

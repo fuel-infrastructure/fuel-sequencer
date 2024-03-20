@@ -14,7 +14,7 @@ message Topic {
   // creation.
   string owner = 2;
 
-  // order is the sequential order of the topic.
+  // order is the sequential order of the topic blobs.
   string order = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",

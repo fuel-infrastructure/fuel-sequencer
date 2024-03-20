@@ -12,9 +12,9 @@ import (
 // SetTopic set a specific topic in the store by its Id.
 func (k Keeper) SetTopic(ctx context.Context, topic types.Topic) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKeyPrefix))
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKey))
 	b := k.cdc.MustMarshal(&topic)
-	store.Set(types.TopicKey(topic.Id), b)
+	store.Set(types.TopicKeyPrefix(topic.Id), b)
 }
 
 // GetTopic returns a topic by its Id.
@@ -23,9 +23,9 @@ func (k Keeper) GetTopic(
 	topicId []byte,
 ) (val types.Topic, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKeyPrefix))
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKey))
 
-	b := store.Get(types.TopicKey(topicId))
+	b := store.Get(types.TopicKeyPrefix(topicId))
 	if b == nil {
 		return val, false
 	}
@@ -40,14 +40,14 @@ func (k Keeper) RemoveTopic(
 	topicId []byte,
 ) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKeyPrefix))
-	store.Delete(types.TopicKey(topicId))
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKey))
+	store.Delete(types.TopicKeyPrefix(topicId))
 }
 
 // GetAllTopic returns all topics.
 func (k Keeper) GetAllTopic(ctx context.Context) (list []types.Topic) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKeyPrefix))
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKey))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
@@ -64,7 +64,7 @@ func (k Keeper) GetAllTopic(ctx context.Context) (list []types.Topic) {
 // HasTopic checks if the topic exists in the store.
 func (k Keeper) HasTopic(ctx context.Context, topicId []byte) bool {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKeyPrefix))
-	topicKey := types.TopicKey(topicId)
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKey))
+	topicKey := types.TopicKeyPrefix(topicId)
 	return store.Has(topicKey)
 }
