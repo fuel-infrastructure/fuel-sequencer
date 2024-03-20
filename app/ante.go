@@ -5,9 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func NewAnteHandler(options ante.HandlerOptions) (sdk.AnteHandler, error) {
+func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keeper) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
 	}
@@ -23,7 +25,7 @@ func NewAnteHandler(options ante.HandlerOptions) (sdk.AnteHandler, error) {
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		NewInjectedMessagesDecorator(),
+		NewInjectedMessagesDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
@@ -39,16 +41,38 @@ func NewAnteHandler(options ante.HandlerOptions) (sdk.AnteHandler, error) {
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 
-type InjectedMessagesDecorator struct{}
+type InjectedMessagesDecorator struct {
+	bridgeKeeper bridgekeeper.Keeper
+}
 
-func NewInjectedMessagesDecorator() InjectedMessagesDecorator {
-	return InjectedMessagesDecorator{}
+func NewInjectedMessagesDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedMessagesDecorator {
+	return InjectedMessagesDecorator{
+		bridgeKeeper: bridgeKeeper,
+	}
 }
 
 func (imd InjectedMessagesDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (newCtx sdk.Context, err error) {
 
-	// TODO: Add custom logic
-	return next(ctx, tx, simulate)
+	// MsgSupplyDelta Txs will contain only one message.
+	msgs := tx.GetMsgs()
+	if len(msgs) != 1 {
+		return next(ctx, tx, simulate)
+	}
+
+	// If the message is not a MsgSupplyDelta continue with the other Ante decorators.
+	msg := msgs[0]
+	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}) {
+		return next(ctx, tx, simulate)
+	}
+
+	// If the message cannot be parsed into MsgSupplyDelta continue with the other Ante decorators.
+	_, ok := msg.(*bridgetypes.MsgSupplyDelta)
+	if !ok {
+		return next(ctx, tx, simulate)
+	}
+
+	// Other Ante decorators won't execute if we reach this stage
+	return ctx, nil
 }
