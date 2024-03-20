@@ -68,9 +68,14 @@ func (imd InjectedMessagesDecorator) AnteHandle(
 	}
 
 	// If the message cannot be parsed into MsgSupplyDelta continue with the other Ante decorators.
-	_, ok := msg.(*bridgetypes.MsgSupplyDelta)
+	msgSupplyDelta, ok := msg.(*bridgetypes.MsgSupplyDelta)
 	if !ok {
 		return next(ctx, tx, simulate)
+	}
+
+	// Confirm that msgSupplyDelta passes the necessary verification checks and error if not.
+	if err = msgSupplyDelta.ValidateBasic(); err != nil {
+		return ctx, err
 	}
 
 	// Other Ante decorators won't execute if we reach this stage
