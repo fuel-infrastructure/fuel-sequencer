@@ -26,5 +26,5 @@ func KeyPrefix(p string) []byte {
 func TopicKeyPrefix(
 	topicId []byte,
 ) []byte {
-	return append([]byte(topicId), topicId...)
+	return append([]byte(TopicKey), topicId...)
 }

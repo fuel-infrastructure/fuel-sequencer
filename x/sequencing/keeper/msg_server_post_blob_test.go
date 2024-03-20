@@ -48,7 +48,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 12996, // Empty data gas: 12916 + 20 * 4 bytes = 12996 gas
+			expGasConsumed: 12336, // Empty data gas: 12256 + 20 * 4 bytes = 12336 gas
 			expErrMsg:      "",
 		},
 		{
@@ -75,7 +75,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 13062, // Empty data gas: 12982 + 20 * 4 bytes = 13062 gas
+			expGasConsumed: 12402, // Empty data gas: 12322 + 20 * 4 bytes = 12402 gas
 			expErrMsg:      "",
 		},
 		{
@@ -106,7 +106,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.OneInt(),
 			},
-			expGasConsumed: 13269, // Empty data gas: 13189 + 20 * 4 bytes = 13,269 gas (less gas topic already created)
+			expGasConsumed: 12609, // Empty data gas: 12529 + 20 * 4 bytes = 12609 gas (less gas topic already created)
 			expErrMsg:      "",
 		},
 		{
@@ -133,7 +133,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 13996, // Empty data gas: 12916 + 20 * 54 bytes = 13996 gas
+			expGasConsumed: 13336, // Empty data gas: 12,256 + 20 * 54 bytes = 13336 gas
 			expErrMsg:      "",
 		},
 		{
