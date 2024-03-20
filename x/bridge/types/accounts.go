@@ -3,9 +3,12 @@
 package types
 
 import (
+	"encoding/json"
+
 	errorsmod "cosmossdk.io/errors"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/ethereum/go-ethereum/common"
+	"gopkg.in/yaml.v2"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,6 +28,17 @@ var (
 type EthOwnedAccountI interface {
 	sdk.AccountI
 }
+
+// ethOwnedAccountPretty defines an unexported struct used for encoding the EthOwnedAccount details
+type ethOwnedAccountPretty struct {
+	Address       sdk.AccAddress `json:"address" yaml:"address"`
+	PubKey        string         `json:"public_key" yaml:"public_key"`
+	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
+	Sequence      uint64         `json:"sequence" yaml:"sequence"`
+	// TODO: AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
+}
+
+// TODO: save mapping from AccountOwner to the EthOwnedAccount's address
 
 // GenerateSequencerAddressFromEthereumAddress trims the 0x prefix from an Ethereum address, if any,
 // and decodes it into bytes before passing it to GenerateSequencerAddressFromEthereumAddressFromBz.
@@ -73,6 +87,75 @@ func (EthOwnedBaseAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned account")
 }
 
+// Validate implements basic validation of the EthOwnedBaseAccount
+func (a EthOwnedBaseAccount) Validate() error {
+	// TODO: if strings.TrimSpace(a.AccountOwner) == "" {
+	//	return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
+	//}
+	return a.BaseAccount.Validate()
+}
+
+// String returns a string representation of the EthOwnedBaseAccount
+func (a EthOwnedBaseAccount) String() string {
+	out, _ := a.MarshalYAML()
+	return string(out)
+}
+
+// MarshalYAML returns the YAML representation of the EthOwnedBaseAccount
+func (a EthOwnedBaseAccount) MarshalYAML() ([]byte, error) {
+	accAddr, err := sdk.AccAddressFromBech32(a.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	bz, err := yaml.Marshal(ethOwnedAccountPretty{
+		Address:       accAddr,
+		PubKey:        "",
+		AccountNumber: a.AccountNumber,
+		Sequence:      a.Sequence,
+		// TODO: AccountOwner:  a.AccountOwner,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
+}
+
+// MarshalJSON returns the JSON representation of the EthOwnedBaseAccount
+func (a EthOwnedBaseAccount) MarshalJSON() ([]byte, error) {
+	accAddr, err := sdk.AccAddressFromBech32(a.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	bz, err := json.Marshal(ethOwnedAccountPretty{
+		Address:       accAddr,
+		PubKey:        "",
+		AccountNumber: a.AccountNumber,
+		Sequence:      a.Sequence,
+		// TODO: AccountOwner:  a.AccountOwner,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
+}
+
+// UnmarshalJSON unmarshals raw JSON bytes into the EthOwnedBaseAccount
+func (a *EthOwnedBaseAccount) UnmarshalJSON(bz []byte) error {
+	var alias ethOwnedAccountPretty
+	if err := json.Unmarshal(bz, &alias); err != nil {
+		return err
+	}
+
+	a.BaseAccount = authtypes.NewBaseAccount(alias.Address, nil, alias.AccountNumber, alias.Sequence)
+	// TODO: a.AccountOwner = alias.AccountOwner
+
+	return nil
+}
+
 // --------------------- EthOwnedContinuousVestingAccount
 
 // NewEthOwnedContinuousVestingAccount creates and returns a new EthOwnedVestingAccount type
@@ -90,6 +173,75 @@ func (EthOwnedContinuousVestingAccount) SetPubKey(_ crypto.PubKey) error {
 // SetSequence implements the authtypes.AccountI interface
 func (EthOwnedContinuousVestingAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned continuous vesting account")
+}
+
+// Validate implements basic validation of the EthOwnedContinuousVestingAccount
+func (a EthOwnedContinuousVestingAccount) Validate() error {
+	// TODO: if strings.TrimSpace(a.AccountOwner) == "" {
+	//	return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
+	//}
+	return a.BaseAccount.Validate()
+}
+
+// String returns a string representation of the EthOwnedContinuousVestingAccount
+func (a EthOwnedContinuousVestingAccount) String() string {
+	out, _ := a.MarshalYAML()
+	return string(out)
+}
+
+// MarshalYAML returns the YAML representation of the EthOwnedContinuousVestingAccount
+func (a EthOwnedContinuousVestingAccount) MarshalYAML() ([]byte, error) {
+	accAddr, err := sdk.AccAddressFromBech32(a.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	bz, err := yaml.Marshal(ethOwnedAccountPretty{
+		Address:       accAddr,
+		PubKey:        "",
+		AccountNumber: a.AccountNumber,
+		Sequence:      a.Sequence,
+		// TODO: AccountOwner:  a.AccountOwner,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
+}
+
+// MarshalJSON returns the JSON representation of the EthOwnedContinuousVestingAccount
+func (a EthOwnedContinuousVestingAccount) MarshalJSON() ([]byte, error) {
+	accAddr, err := sdk.AccAddressFromBech32(a.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	bz, err := json.Marshal(ethOwnedAccountPretty{
+		Address:       accAddr,
+		PubKey:        "",
+		AccountNumber: a.AccountNumber,
+		Sequence:      a.Sequence,
+		// TODO: AccountOwner:  a.AccountOwner,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
+}
+
+// UnmarshalJSON unmarshals raw JSON bytes into the EthOwnedContinuousVestingAccount
+func (a *EthOwnedContinuousVestingAccount) UnmarshalJSON(bz []byte) error {
+	var alias ethOwnedAccountPretty
+	if err := json.Unmarshal(bz, &alias); err != nil {
+		return err
+	}
+
+	a.BaseAccount = authtypes.NewBaseAccount(alias.Address, nil, alias.AccountNumber, alias.Sequence)
+	// TODO: a.AccountOwner = alias.AccountOwner
+
+	return nil
 }
 
 // ToEthOwnedBaseAccount discards vesting details and converts the account to an EthOwnedBaseAccount
