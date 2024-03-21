@@ -58,12 +58,30 @@ func detailsFromExistingAcc(acc sdk.AccountI) (
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/auth/vesting/msg_server.go#L31
 // Note: this is just a scaffold function for now and should be revised before it is used, or otherwise scrapped.
 func (k Keeper) depositFromEthereum(
-	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
+	ctx sdk.Context, ethAddress string, recipientAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
 ) error {
 
-	address, err := k.generateSequencerAccountFromEthereumAddress(ctx, ethAddress, vestingDuration, totalCoins)
+	// Deterministically map Ethereum address to a FuelSequencer address.
+	accAddressFromEthAddress, err := types.GenerateSequencerAddressFromEthereumAddress(ethAddress)
 	if err != nil {
 		return err
+	}
+
+	// If the Ethereum address deterministically maps to the recipient address, the recipient address is owned by the
+	// Ethereum address and so the deposit requires special treatment. Otherwise, we can just create a new base account,
+	// but only if one does not exist.
+	if accAddressFromEthAddress.String() == recipientAddress {
+		_, err := k.generateSequencerAccountFromEthereumAddress(ctx, ethAddress, vestingDuration, totalCoins)
+		if err != nil {
+			return err
+		}
+	} else {
+		if accI := k.accountKeeper.GetAccount(ctx, accAddressFromEthAddress); accI == nil {
+			accI = k.accountKeeper.NewAccount(ctx,
+				authtypes.NewBaseAccountWithAddress(accAddressFromEthAddress),
+			)
+			k.accountKeeper.SetAccount(ctx, accI)
+		}
 	}
 
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, totalCoins)
@@ -71,7 +89,7 @@ func (k Keeper) depositFromEthereum(
 		return err
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, totalCoins)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddressFromEthAddress, totalCoins)
 	if err != nil {
 		return err
 	}
