@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "cosmossdk.io/math"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -75,6 +76,7 @@ var (
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
+		BlockNumber:      math.OneInt(),
 	}
 	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 )

@@ -40,7 +40,6 @@ message GenesisState {
     (amino.dont_omitempty) = true
   ];
 
-  // eth_events_tx defines the list of eth_events_tx, belonging to the
-  // last_ethereum_block_synced +1.
-  repeated EthEventsTx eth_events_tx = 5;
+  // eth_events_tx defines the last eth_events_tx.
+  EthEventsTx eth_events_tx = 5;
 }

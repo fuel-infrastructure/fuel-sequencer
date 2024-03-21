@@ -34,6 +34,26 @@ func TestValidateGenesisState(t *testing.T) {
 			},
 			valid: true,
 		},
+		{
+			desc: "invalid genesis state - EthEventsTx block number not sequential",
+			genState: &types.GenesisState{
+				LastEthereumBlockSynced: math.NewInt(1),
+				EthEventsTx: &types.EthEventsTx{
+					BlockNumber: math.NewInt(3),
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "valid genesis state with EthEventsTx",
+			genState: &types.GenesisState{
+				LastEthereumBlockSynced: math.NewInt(1),
+				EthEventsTx: &types.EthEventsTx{
+					BlockNumber: math.NewInt(2),
+				},
+			},
+			valid: true,
+		},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	}
 	for _, tc := range tests {

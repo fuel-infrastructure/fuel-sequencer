@@ -3,6 +3,7 @@ package bridge
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
@@ -27,6 +28,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetLastEthereumNonce(ctx, genState.LastEthereumNonce)
 	k.SetLastEthereumBlockSynced(ctx, genState.LastEthereumBlockSynced)
 
+	if genState.EthEventsTx != nil {
+		k.SetEthEventsTx(ctx, *genState.EthEventsTx)
+	}
+
 	// this line is used by starport scaffolding # genesis/module/init
 }
 
@@ -50,6 +55,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.LastEthereumBlockSynced = lastEthereumBlockSynced
 	}
 
+	// If ethEventsTx exists then store it.
+	ethEventsTx, ok := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Add(math.OneInt()).Uint64())
+	if ok {
+		genesis.EthEventsTx = &ethEventsTx
+	}
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

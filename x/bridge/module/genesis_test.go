@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
@@ -24,6 +25,17 @@ func TestGenesis(t *testing.T) {
 
 		LastEthereumNonce:       math.NewInt(75),
 		LastEthereumBlockSynced: math.NewInt(13),
+		EthEventsTx: &types.EthEventsTx{
+			Events: []*sidecartypes.Event{
+				{
+					EventType: "auth",
+					Data:      []byte("auth"),
+				},
+			},
+			AdvanceSequencer: true,
+			NewEthereumBlock: true,
+			BlockNumber:      math.NewInt(14),
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -38,5 +50,6 @@ func TestGenesis(t *testing.T) {
 	require.Equal(t, genesisState.SupplyDeltaInfo, got.SupplyDeltaInfo)
 	require.Equal(t, genesisState.LastEthereumNonce, got.LastEthereumNonce)
 	require.Equal(t, genesisState.LastEthereumBlockSynced, got.LastEthereumBlockSynced)
+	require.Equal(t, genesisState.EthEventsTx, got.EthEventsTx)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

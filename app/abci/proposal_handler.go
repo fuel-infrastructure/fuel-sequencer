@@ -318,16 +318,17 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 
 	// TODO: Check if certain transactions are expected at this stage ex MsgSupplyDelta at specific epochs
 
-	// TODO: This was done for demonstration purposes and should be adapted as per application requirements.
 	var injectedEthEventsTx bridgetypes.EthEventsTx
 	if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
 		return nil, fmt.Errorf("failed to decode injected eth events tx: %w", err)
 	}
 
 	// Set the injected events into state if any.
-	h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
+	if len(injectedEthEventsTx.Events) > 0 {
+		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
+	}
 
-	// Set the lastEthereumBlockSynced if we are to increment to a NewEthereumBlock
+	// Set the lastEthereumBlockSynced if we are to increment to a NewEthereumBlock.
 	if injectedEthEventsTx.NewEthereumBlock {
 		h.bridgeKeeper.SetLastEthereumBlockSynced(ctx, injectedEthEventsTx.BlockNumber)
 	}

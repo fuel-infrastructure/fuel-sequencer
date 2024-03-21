@@ -18,6 +18,7 @@ func DefaultGenesis() *GenesisState {
 		},
 		LastEthereumNonce:       math.ZeroInt(),
 		LastEthereumBlockSynced: math.ZeroInt(),
+		EthEventsTx:             nil,
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
@@ -26,6 +27,12 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// this line is used by starport scaffolding # genesis/types/validate
+
+	// If there is an EthEventsTx found then verify that the number it belongs to is
+	// lastEthereumBlockSynced + 1
+	if gs.EthEventsTx != nil && !gs.EthEventsTx.BlockNumber.Equal(gs.LastEthereumBlockSynced.Add(math.OneInt())) {
+		return ErrEthEventsTxBlockNotSequential.Wrapf("expected %s but found %s", gs.EthEventsTx, gs.LastEthereumBlockSynced.Add(math.OneInt()))
+	}
 
 	return gs.Params.Validate()
 }

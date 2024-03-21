@@ -15,57 +15,6 @@ import (
 	sync "sync"
 )
 
-var _ protoreflect.List = (*_GenesisState_5_list)(nil)
-
-type _GenesisState_5_list struct {
-	list *[]*EthEventsTx
-}
-
-func (x *_GenesisState_5_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_GenesisState_5_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_GenesisState_5_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*EthEventsTx)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_GenesisState_5_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*EthEventsTx)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_GenesisState_5_list) AppendMutable() protoreflect.Value {
-	v := new(EthEventsTx)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_GenesisState_5_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_GenesisState_5_list) NewElement() protoreflect.Value {
-	v := new(EthEventsTx)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_GenesisState_5_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
 	md_GenesisState                            protoreflect.MessageDescriptor
 	fd_GenesisState_params                     protoreflect.FieldDescriptor
@@ -174,8 +123,8 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if len(x.EthEventsTx) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_5_list{list: &x.EthEventsTx})
+	if x.EthEventsTx != nil {
+		value := protoreflect.ValueOfMessage(x.EthEventsTx.ProtoReflect())
 		if !f(fd_GenesisState_eth_events_tx, value) {
 			return
 		}
@@ -204,7 +153,7 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		return len(x.LastEthereumBlockSynced) != 0
 	case "fuelsequencer.bridge.GenesisState.eth_events_tx":
-		return len(x.EthEventsTx) != 0
+		return x.EthEventsTx != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -260,11 +209,8 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 		value := x.LastEthereumBlockSynced
 		return protoreflect.ValueOfBytes(value)
 	case "fuelsequencer.bridge.GenesisState.eth_events_tx":
-		if len(x.EthEventsTx) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_5_list{})
-		}
-		listValue := &_GenesisState_5_list{list: &x.EthEventsTx}
-		return protoreflect.ValueOfList(listValue)
+		value := x.EthEventsTx
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -294,9 +240,7 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		x.LastEthereumBlockSynced = value.Bytes()
 	case "fuelsequencer.bridge.GenesisState.eth_events_tx":
-		lv := value.List()
-		clv := lv.(*_GenesisState_5_list)
-		x.EthEventsTx = *clv.list
+		x.EthEventsTx = value.Message().Interface().(*EthEventsTx)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -329,10 +273,9 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		return protoreflect.ValueOfMessage(x.SupplyDeltaInfo.ProtoReflect())
 	case "fuelsequencer.bridge.GenesisState.eth_events_tx":
 		if x.EthEventsTx == nil {
-			x.EthEventsTx = []*EthEventsTx{}
+			x.EthEventsTx = new(EthEventsTx)
 		}
-		value := &_GenesisState_5_list{list: &x.EthEventsTx}
-		return protoreflect.ValueOfList(value)
+		return protoreflect.ValueOfMessage(x.EthEventsTx.ProtoReflect())
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
 		panic(fmt.Errorf("field last_ethereum_nonce of message fuelsequencer.bridge.GenesisState is not mutable"))
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
@@ -361,8 +304,8 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		return protoreflect.ValueOfBytes(nil)
 	case "fuelsequencer.bridge.GenesisState.eth_events_tx":
-		list := []*EthEventsTx{}
-		return protoreflect.ValueOfList(&_GenesisState_5_list{list: &list})
+		m := new(EthEventsTx)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -448,11 +391,9 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if len(x.EthEventsTx) > 0 {
-			for _, e := range x.EthEventsTx {
-				l = options.Size(e)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
+		if x.EthEventsTx != nil {
+			l = options.Size(x.EthEventsTx)
+			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -483,21 +424,19 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.EthEventsTx) > 0 {
-			for iNdEx := len(x.EthEventsTx) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.EthEventsTx[iNdEx])
-				if err != nil {
-					return protoiface.MarshalOutput{
-						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-						Buf:               input.Buf,
-					}, err
-				}
-				i -= len(encoded)
-				copy(dAtA[i:], encoded)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-				i--
-				dAtA[i] = 0x2a
+		if x.EthEventsTx != nil {
+			encoded, err := options.Marshal(x.EthEventsTx)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
 			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x2a
 		}
 		if len(x.LastEthereumBlockSynced) > 0 {
 			i -= len(x.LastEthereumBlockSynced)
@@ -759,8 +698,10 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.EthEventsTx = append(x.EthEventsTx, &EthEventsTx{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.EthEventsTx[len(x.EthEventsTx)-1]); err != nil {
+				if x.EthEventsTx == nil {
+					x.EthEventsTx = &EthEventsTx{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.EthEventsTx); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
@@ -829,9 +770,8 @@ type GenesisState struct {
 	// last_ethereum_block_synced is the last Ethereum block synced.
 	// In other words, the next block to be synced is this value +1.
 	LastEthereumBlockSynced []byte `protobuf:"bytes,4,opt,name=last_ethereum_block_synced,json=lastEthereumBlockSynced,proto3" json:"last_ethereum_block_synced,omitempty"`
-	// eth_events_tx defines the list of eth_events_tx, belonging to the
-	// last_ethereum_block_synced +1.
-	EthEventsTx []*EthEventsTx `protobuf:"bytes,5,rep,name=eth_events_tx,json=ethEventsTx,proto3" json:"eth_events_tx,omitempty"`
+	// eth_events_tx defines the last eth_events_tx.
+	EthEventsTx *EthEventsTx `protobuf:"bytes,5,opt,name=eth_events_tx,json=ethEventsTx,proto3" json:"eth_events_tx,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -882,7 +822,7 @@ func (x *GenesisState) GetLastEthereumBlockSynced() []byte {
 	return nil
 }
 
-func (x *GenesisState) GetEthEventsTx() []*EthEventsTx {
+func (x *GenesisState) GetEthEventsTx() *EthEventsTx {
 	if x != nil {
 		return x.EthEventsTx
 	}
@@ -932,7 +872,7 @@ var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
 	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52,
 	0x17, 0x6c, 0x61, 0x73, 0x74, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x42, 0x6c, 0x6f,
 	0x63, 0x6b, 0x53, 0x79, 0x6e, 0x63, 0x65, 0x64, 0x12, 0x45, 0x0a, 0x0d, 0x65, 0x74, 0x68, 0x5f,
-	0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x5f, 0x74, 0x78, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x5f, 0x74, 0x78, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32,
 	0x21, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
 	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x45, 0x74, 0x68, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73,
 	0x54, 0x78, 0x52, 0x0b, 0x65, 0x74, 0x68, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x54, 0x78, 0x42,

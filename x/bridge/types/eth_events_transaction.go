@@ -61,6 +61,7 @@ func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
 
 	return m.AdvanceSequencer == e.AdvanceSequencer &&
 		m.NewEthereumBlock == e.NewEthereumBlock &&
+		m.BlockNumber.Equal(e.BlockNumber) &&
 		equalEventSlices, err
 }
 
