@@ -151,9 +151,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 			// If a MsgSupplyDelta was supposed to be injected but was not selected, then, there must be something wrong
 			// either with the size of EthEventsTx or MsgSupplyDeltaTx. We want to fail in both of these cases
-			if index == 1 && injectMsgSupplyDelta && len(h.txSelector.SelectedTxs(ctx)) != 2 {
+			if index == 0 && injectMsgSupplyDelta && len(h.txSelector.SelectedTxs(ctx)) != 2 {
 				req.Txs = [][]byte{}
-				return nil, errors.New("failed to add eth events transaction to block proposal")
+				return nil, errors.New("failed to add message supply delta transaction to block proposal")
 			}
 
 			// If we are at full capacity stop adding transactions
