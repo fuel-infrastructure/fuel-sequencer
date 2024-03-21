@@ -59,10 +59,6 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Skip:      true, // skipped because generated through consensus
 				},
 				{
-					RpcMethod: "SupplyDeltaProcessed",
-					Skip:      true, // skipped because generated through consensus
-				},
-				{
 					RpcMethod:      "WithdrawToEthereum",
 					Use:            "withdraw-to-ethereum [to] [amount]",
 					Short:          "Send a WithdrawToEthereum tx",
