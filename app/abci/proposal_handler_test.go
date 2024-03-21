@@ -26,7 +26,7 @@ func calculateTotalTxBytes(txs [][]byte) uint64 {
 }
 
 func (s *AppTestSuite) TestPrepareProposalHandler() {
-	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. EthEventsTx doesn't consume any gas
+	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
 	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTx)
@@ -46,8 +46,16 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		NewEthereumBlock: false,
 	})
 
-	totalBytesTxWithEventsAndDummyTxs := int64(calculateTotalTxBytes(
-		[][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]},
+	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
+
+	totalTxsBytesWithEventsAndSupplyDelta := int64(calculateTotalTxBytes(
+		[][]byte{
+			encodedEthEventsTxWithEvents,
+			msgSupplyDeltaTx,
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+			encodedDummyTxs[2],
+		},
 	))
 
 	testCases := []struct {
@@ -58,9 +66,35 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		queryBlockEventsRet           apptesting.MockQueryBlockEventsResponse
 		requestPrepareProposal        *abcitypes.RequestPrepareProposal
 		maxBlockGas                   int64
+		supplyDeltaPeriod             uint64
 		expErrMsg                     string
 		expRes                        *abcitypes.ResponsePrepareProposal
 	}{
+		{
+			name:                          "returns supply delta tx if expected at height and other txs",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{
+					encodedEthEventsTxWithEvents,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				},
+			},
+		},
 		{
 			name:                          "returns injected eth tx and other txs if block events found",
 			removeLastEthereumBlockSynced: false,
@@ -72,8 +106,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]},
 			},
@@ -89,8 +125,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: [][]byte{
 					encodedEthEventsTxWithoutEvents,
@@ -111,8 +149,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: [][]byte{
 					encodedEthEventsTxNoNewBlock,
@@ -133,8 +173,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: [][]byte{
 					encodedEthEventsTxSidecarErr,
@@ -145,6 +187,20 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 		},
 		{
+			name:                          "returns error if SupplyDeltaPeriod is zero",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     0,
+			expQueryBlockEventsReq:        nil,
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: 0,
+				Txs:        nil,
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: uint64(0),
+			expErrMsg:         "SupplyDeltaPeriod cannot be zero",
+		},
+		{
 			name:                          "returns error if LastEthereumBlockSynced not found",
 			removeLastEthereumBlockSynced: true,
 			expQueryBlockEventsCalled:     0,
@@ -153,9 +209,11 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: 0,
 				Txs:        nil,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
-			expErrMsg:   "could not get last Ethereum block synced from state",
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg:         "could not get last Ethereum block synced from state",
 		},
 		{
 			name:                          "returns error if EthEventsTx cannot be generated",
@@ -171,9 +229,11 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: 0,
 				Txs:        nil,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
-			expErrMsg:   "failed to generate eth events tx",
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg:         "failed to generate eth events tx",
 		},
 		{
 			name:                          "returns error if EthEventsTx cannot be selected by the TxSelector",
@@ -186,9 +246,29 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: 0, // Set to zero to make sure there is no capacity for first transaction
 				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
-			maxBlockGas: totalTxsGas,
-			expErrMsg:   "failed to add eth events transaction to block proposal",
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg:         "failed to add eth events transaction to block proposal",
+		},
+		{
+			name:                          "returns error if MsgSupplyDeltaTx cannot be selected by the TxSelector",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				// Set to the size of EthEventsTx so that MsgSupplyDeltaTx is not chosen
+				MaxTxBytes: int64(calculateTotalTxBytes([][]byte{encodedEthEventsTxWithEvents})),
+				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg:         "failed to add message supply delta transaction to block proposal",
 		},
 		{
 			name:                          "returns selected Txs if MaxTxBytes exceeded",
@@ -200,12 +280,14 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to expected size - 1 to omit last tx
-				MaxTxBytes: totalBytesTxWithEventsAndDummyTxs - 1,
+				MaxTxBytes: totalTxsBytesWithEventsAndSupplyDelta - 1,
 				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
-			maxBlockGas: totalTxsGas,
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1]},
+				Txs: [][]byte{encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]},
 			},
 		},
 		{
@@ -219,10 +301,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
-			maxBlockGas: totalTxsGas - 1, // Set to total - 1 so that the last transaction is omitted
+			maxBlockGas:       totalTxsGas - 1, // Set to total - 1 so that the last transaction is omitted
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1]},
+				Txs: [][]byte{encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]},
 			},
 		},
 	}
@@ -245,6 +329,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 					},
 				},
 			)
+
+			// Set SupplyDeltaPeriod
+			err := s.App.BridgeKeeper.SetParams(s.Ctx(), bridgetypes.Params{SupplyDeltaPeriod: tc.supplyDeltaPeriod})
+			s.Require().NoError(err)
 
 			// Set sidecar mock
 			ctrl := gomock.NewController(s.T())

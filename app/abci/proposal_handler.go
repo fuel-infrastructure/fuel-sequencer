@@ -76,8 +76,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Inject MsgSupplyDeltaTx if expected at current height
-		blockHeight := ctx.BlockHeight()
-		injectMsgSupplyDelta := uint64(blockHeight)%supplyDeltaPeriod == 0
+		injectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 		if injectMsgSupplyDelta {
 			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx()
 			if err != nil {
@@ -256,8 +255,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Check that MsgSupplyDelta was injected correctly if expected
-		blockHeight := ctx.BlockHeight()
-		expectMsgSupplyDelta := uint64(blockHeight)%supplyDeltaPeriod == 0
+		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 		if expectMsgSupplyDelta {
 			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs)
 			if err != nil {
