@@ -1,4 +1,4 @@
 [submodule "e2e/test-contracts"]
 	path = e2e/test-contracts
 	url = https://github.com/fuel-infrastructure/test-contracts
-	branch = main
+	branch = last-working-version-for-e2e

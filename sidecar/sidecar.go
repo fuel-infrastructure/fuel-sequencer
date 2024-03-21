@@ -46,10 +46,17 @@ type SidecarImpl struct {
 	blocksMap       map[string]*sidecartypes.EthereumBlock
 	updateInterval  time.Duration
 
+	// blockPruneBuffer is the number of blocks of events to keep even if state is pruned.
+	// Example: if we know the Sequencer only needs from block 100, we still keep block 90+.
+	blockPruneBuffer uint64
+
 	// startQueryBlock is the block at which we started querying for events.
+	// It also indicates the first block that we have in state.
+	// If startQueryBlock >= nextQueryBlock then we have no blocks in state.
 	startQueryBlock *big.Int
-	// lastQueryBlock is last block we queried for events.
-	lastQueryBlock *big.Int
+	// nextQueryBlock is the next block to be queried for events.
+	// It also indicates the latest block that we have in state, plus one.
+	nextQueryBlock *big.Int
 
 	// --------------------- Cosmos Config ------------------------ //
 	bridgeQueryClient bridgetypes.QueryClient
@@ -76,6 +83,7 @@ func NewSidecar(
 		startQueryBlock:   startQueryBlock,
 		blocksMap:         make(map[string]*sidecartypes.EthereumBlock),
 		updateInterval:    10 * time.Second,
+		blockPruneBuffer:  10,
 	}
 }
 
@@ -119,15 +127,24 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Validate the blockNumber
+	if blockNumber.Sign() < 0 {
+		return nil, errors.New("block number cannot be negative")
+	}
+
 	blockNumberStr := blockNumber.String()
 	block, exists := s.blocksMap[blockNumberStr]
 	if !exists {
 
-		// Check if the queried block is within the range of blocks that have been queried for events.
-		if (s.startQueryBlock != nil && s.lastQueryBlock != nil) &&
-			(blockNumber.Cmp(s.startQueryBlock) >= 0 && blockNumber.Cmp(s.lastQueryBlock) <= 0) {
-			// The block was within the range we have queried, but no events were found, hence return an empty list.
+		// If the queried block is in the range of blocks saved in state, but no events were found, return an empty list
+		if (s.startQueryBlock != nil && s.nextQueryBlock != nil) &&
+			(blockNumber.Cmp(s.startQueryBlock) >= 0 && blockNumber.Cmp(s.nextQueryBlock) < 0) {
 			return []sidecartypes.Event{}, nil
+		}
+
+		// If the queried block is before the range of blocks saved in state, the state has been pruned.
+		if s.startQueryBlock != nil && blockNumber.Cmp(s.startQueryBlock) < 0 {
+			return nil, errors.New(fmt.Sprintf("block %d was pruned or never fetched", blockNumber))
 		}
 
 		syncProgress, err := s.ethClient.SyncProgress(ctx)
@@ -143,7 +160,7 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must
 		// be the height being queried does not exist yet
 		isEthereumNodeSynced := syncProgress == nil
-		sidecarSyncedWithEthereum := s.lastQueryBlock.Cmp(new(big.Int).SetUint64(ethHeight)) == 0
+		sidecarSyncedWithEthereum := s.nextQueryBlock.Cmp(new(big.Int).SetUint64(ethHeight+1)) == 0
 		if isEthereumNodeSynced && sidecarSyncedWithEthereum {
 			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
 		}
@@ -171,13 +188,13 @@ func (s *SidecarImpl) fetchLastSyncedEthereumBlock(ctx context.Context) (*big.In
 // queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
 func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 
-	s.lastQueryBlock = s.startQueryBlock
+	// The first block to be queried is the startQueryBlock.
+	s.nextQueryBlock = s.startQueryBlock
 
 	ticker := time.NewTicker(s.updateInterval)
 	defer ticker.Stop()
 
 	for {
-		s.logger.Info("Processing from block", zap.Int64("block", s.lastQueryBlock.Int64()))
 		select {
 		case <-ctx.Done():
 			return
@@ -185,6 +202,8 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 			if !s.IsRunning() {
 				return
 			}
+
+			s.logger.Info("Processing from block", zap.Uint64("block", s.nextQueryBlock.Uint64()))
 
 			// Fetch the last synced Ethereum block before querying for new logs
 			lastSyncedBlock, err := s.fetchLastSyncedEthereumBlock(ctx)
@@ -197,31 +216,73 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 				s.logger.Error("failed to obtain last synced block from Sequencer", zap.Error(err))
 			}
 
-			// Set the last queried block to the last synced block. If the value couldn't be obtained from the Sequencer
-			// then it will default to startQueryBlock set in the beginning of this function if this is the first loop.
-			if lastSyncedBlock != nil && lastSyncedBlock.Cmp(s.lastQueryBlock) > 0 {
-				s.lastQueryBlock = lastSyncedBlock
+			// Determine the range of blocks to query.
+			currentBlockNumber, err := s.ethClient.BlockNumber(ctx)
+			if err != nil {
+				s.logger.Error("Error fetching current Ethereum block number", zap.Error(err))
+				return
 			}
 
-			s.fetchAndProcessLogs(ctx)
+			s.calibrateBlocksAndPruneLogs(lastSyncedBlock)
+			s.fetchAndProcessLogs(ctx, currentBlockNumber)
+		}
+	}
+}
+
+// calibrateBlocksAndPruneLogs narrows down the startQueryBlock and nextQueryBlock so that we avoid
+// storing logs unnecessarily, and we fast-forward the sidecar if it's lagging behind for any reason.
+func (s *SidecarImpl) calibrateBlocksAndPruneLogs(lastSyncedBlock *big.Int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if lastSyncedBlock == nil {
+		return
+	}
+
+	// The next block to be queried should be greater than the last synced block.
+	// If the Sequencer is ahead, fast-forward the next query block to the last synced block + 1.
+	//
+	// Example: if last synced is 100 and next query is 90, next query will become 101.
+	// Example: if last synced is 100 and next query is 100, next query will become 101.
+	if lastSyncedBlock.Cmp(s.nextQueryBlock) >= 0 {
+		s.nextQueryBlock = new(big.Int).Add(lastSyncedBlock, big.NewInt(1))
+	}
+
+	// If we're storing blocks that the Sequencer does not need, update the start query block
+	// since the Sequencer will never ask for the older blocks again. We also prune the state.
+	// A prune buffer ensures that we keep data from some old Ethereum blocks, just in case.
+	//
+	// Example: if last synced is 100 and start query is 90, we can prune until 100 and set start query to 101.
+	// Example: if last synced is 100 and start query is 100, we can prune until 100 and set start query to 101.
+	if lastSyncedBlock.Cmp(s.startQueryBlock) >= 0 && lastSyncedBlock.Uint64() >= s.blockPruneBuffer {
+		pruneFrom := s.startQueryBlock.Uint64()
+		pruneUntil := lastSyncedBlock.Uint64() - s.blockPruneBuffer
+
+		// Warning: the above uint64 subtraction is only safe because we know lastSyncedBlock >= blockPruneBuffer
+
+		// Prune if there's anything to prune
+		if len(s.blocksMap) > 0 && pruneUntil > pruneFrom {
+
+			s.logger.Info("Pruning state",
+				zap.Uint64("from_block", pruneFrom),
+				zap.Uint64("to_block", pruneUntil),
+			)
+			for i := pruneFrom; i <= pruneUntil; i++ {
+				delete(s.blocksMap, strconv.FormatUint(i, 10))
+			}
+
+			s.startQueryBlock = new(big.Int).SetUint64(pruneUntil + 1)
 		}
 	}
 }
 
 // fetchAndProcessLogs fetches the logs from the blockchain and processes them.
-func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
+func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context, currentBlockNumber uint64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Determine the range of blocks to query.
-	currentBlockNumber, err := s.ethClient.BlockNumber(ctx)
-	if err != nil {
-		s.logger.Error("Error fetching current block number", zap.Error(err))
-		return
-	}
-
 	// Return if there is no update for the ETH block height.
-	if currentBlockNumber <= s.lastQueryBlock.Uint64() {
+	if currentBlockNumber < s.nextQueryBlock.Uint64() {
 		s.logger.Info(
 			"No new blocks",
 			zap.Uint64("current_block_number", currentBlockNumber),
@@ -230,7 +291,7 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	}
 
 	logs, err := s.ethClient.FilterLogs(ctx, ethereum.FilterQuery{
-		FromBlock: s.lastQueryBlock,
+		FromBlock: s.nextQueryBlock,
 		ToBlock:   new(big.Int).SetUint64(currentBlockNumber),
 		Addresses: []common.Address{s.contractAddress},
 	})
@@ -250,10 +311,11 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	// Regardless of whether logs were found, update the last queried block to the current block number,
 	// since we have now queried up to this block.
 	s.logger.Info("Processed logs from range of blocks",
-		zap.String("from_block", s.lastQueryBlock.String()),
+		zap.String("from_block", s.nextQueryBlock.String()),
 		zap.Uint64("to_block", currentBlockNumber),
+		zap.Int("no_of_events", len(logs)),
 	)
-	s.lastQueryBlock = new(big.Int).SetUint64(currentBlockNumber)
+	s.nextQueryBlock = new(big.Int).SetUint64(currentBlockNumber + 1)
 }
 
 // processLogs processes each log in a sequential order and stores it.
@@ -261,7 +323,7 @@ func (s *SidecarImpl) processLogs(logs []types.Log) error {
 	// Temporary structure to hold events per block
 	tempBlocks := make(map[uint64][]sidecartypes.Event)
 
-	lastBlockNumber := s.startQueryBlock.Uint64()
+	lastBlockNumber := s.nextQueryBlock.Uint64()
 	lastTxIndex := int(-1)
 	lastLogIndex := int(-1)
 
@@ -292,7 +354,11 @@ func (s *SidecarImpl) processLogs(logs []types.Log) error {
 
 		// Add the event to the temporary block map
 		tempBlocks[currentBlockNumber] = append(tempBlocks[currentBlockNumber], *event)
-		s.logger.Info("Processed a log successfully.", zap.Int64("block", int64(vLog.BlockNumber)))
+		s.logger.Debug("Processed a log successfully",
+			zap.Uint64("block", vLog.BlockNumber),
+			zap.Uint("tx_index", vLog.TxIndex),
+			zap.Uint("index", vLog.Index),
+		)
 	}
 
 	// All logs are sequential; move them from temporary to permanent storage
