@@ -8406,6 +8406,14 @@ paths:
                       report supply
 
                       delta info to Ethereum.
+                  vesting_start_time:
+                    type: string
+                    format: date-time
+                    description: >-
+                      vesting_start_time is the common vesting starting time for
+                      vesting accounts
+
+                      that will be created through deposits from Ethereum.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
@@ -12221,6 +12229,14 @@ definitions:
               supply
 
               delta info to Ethereum.
+          vesting_start_time:
+            type: string
+            format: date-time
+            description: >-
+              vesting_start_time is the common vesting starting time for vesting
+              accounts
+
+              that will be created through deposits from Ethereum.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.bridge.MsgUpdateParamsResponse:
     type: object
@@ -12302,6 +12318,14 @@ definitions:
           supply
 
           delta info to Ethereum.
+      vesting_start_time:
+        type: string
+        format: date-time
+        description: >-
+          vesting_start_time is the common vesting starting time for vesting
+          accounts
+
+          that will be created through deposits from Ethereum.
     description: Params defines the parameters for the module.
   fuelsequencer.sequencing.MsgPostBlob:
     type: object
