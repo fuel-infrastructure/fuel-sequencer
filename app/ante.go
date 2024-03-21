@@ -95,8 +95,12 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 		return ctx, fmt.Errorf("MsgSupplyDelta not expected at height %d", ctx.BlockHeight())
 	}
 
-	// TODO: Add flag and remove at endblocker, add SupplyDeltaProcessed to import, export and default.
-	// TODO: Scaffold single, add MustGetSupplyDeltaProcessed
+	// MsgSupplyDelta will be rejected if we have already processed a MsgSupplyDeltaTx. Here we are assuming that
+	// module initiated MsgSupplyDeltaTxs are always first of their kind in the block proposal.
+	if d.bridgeKeeper.MustGetSupplyDeltaProcessed(ctx).Processed {
+		return ctx, errors.New("MsgSupplyDelta already processed in block proposal")
+	}
+	d.bridgeKeeper.SetSupplyDeltaProcessed(ctx, bridgetypes.SupplyDeltaProcessed{Processed: true})
 
 	// Other Ante decorators won't execute if we reach this stage
 	return ctx, nil
