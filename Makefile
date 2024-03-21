@@ -186,7 +186,7 @@ run-client-binary:
 run-sidecar-binary:
 	@$(eval ARCH := linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
-	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --development="$(DEVELOPMENT)"
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --cosmos_node_rpc="$(COSMOS_NODE_RPC)" --development="$(DEVELOPMENT)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
@@ -237,11 +237,11 @@ run-sidecar:
 	done
 	@fuelsequencerd start-sidecar \
 		--eth_node_rpc "$(ETH_RPC)" \
-		--contract_address "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9" \
+		--contract_address "0x5FbDB2315678afecb367f032d93F642f64180aa3" \
 		--development=true
 
 serve:
-	ignite chain serve --reset-once --skip-proto --build.tags ledger
+	ignite chain serve --reset-once -v --skip-proto --build.tags ledger
 
 keys:
 	@echo "🤖 Generating keys..."

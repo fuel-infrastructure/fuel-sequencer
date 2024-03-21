@@ -7,6 +7,7 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
+import "fuelsequencer/bridge/eth_events_transaction.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -38,4 +39,8 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  // eth_events_tx defines the list of eth_events_tx, belonging to the
+  // last_ethereum_block_synced +1.
+  repeated EthEventsTx eth_events_tx = 5;
 }
