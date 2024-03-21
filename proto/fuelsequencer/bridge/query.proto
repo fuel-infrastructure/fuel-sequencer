@@ -47,14 +47,15 @@ service Query {
       QuerySequencerAddressFromEthereumAddressRequest)
       returns (QuerySequencerAddressFromEthereumAddressResponse) {
     option (google.api.http).get =
-    "/fuel-infrastructure/fuel-sequencer/bridge/"
+        "/fuel-infrastructure/fuel-sequencer/bridge/"
         "sequencer_address_from_ethereum_address/{ethereum_address}";
   }
-  
+
   // Queries a SupplyDeltaProcessed by index.
-  rpc SupplyDeltaProcessed (QueryGetSupplyDeltaProcessedRequest) returns (QueryGetSupplyDeltaProcessedResponse) {
-    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_processed";
-  
+  rpc SupplyDeltaProcessed(QueryGetSupplyDeltaProcessedRequest)
+      returns (QueryGetSupplyDeltaProcessedResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_processed";
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -93,6 +94,6 @@ message QuerySequencerAddressFromEthereumAddressResponse {
 message QueryGetSupplyDeltaProcessedRequest {}
 
 message QueryGetSupplyDeltaProcessedResponse {
-  SupplyDeltaProcessed SupplyDeltaProcessed = 1 [(gogoproto.nullable) = false];
+  SupplyDeltaProcessed SupplyDeltaProcessed = 1
+      [ (gogoproto.nullable) = false ];
 }
-
