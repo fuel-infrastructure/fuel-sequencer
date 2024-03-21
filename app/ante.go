@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -58,7 +59,7 @@ func NewMsgSupplyDeltaDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSupplyDelta
 // CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
 func (d MsgSupplyDeltaDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
-) (newCtx sdk.Context, err error) {
+) (sdk.Context, error) {
 
 	// MsgSupplyDelta Txs will contain only one message.
 	msgs := tx.GetMsgs()
@@ -79,9 +80,15 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 	}
 
 	// Confirm that msgSupplyDelta passes the necessary verification checks and error if not
-	if err = msgSupplyDelta.ValidateBasic(); err != nil {
+	if err := msgSupplyDelta.ValidateBasic(); err != nil {
 		return ctx, err
 	}
+
+	// Override the gas meter with an infinite one to make sure that MsgSupplyDelta never runs out of gas. This is safe
+	// because any user-initiated MsgSupplyDelta will never be included in a block as we are erroring when we detect
+	// such message
+	cachedGasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// Get SupplyDeltaPeriod
 	supplyDeltaPeriod := d.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
@@ -101,6 +108,10 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 		return ctx, errors.New("MsgSupplyDelta already processed in block proposal")
 	}
 	d.bridgeKeeper.SetSupplyDeltaProcessed(ctx, bridgetypes.SupplyDeltaProcessed{Processed: true})
+
+	// Reset the gas meter to its original state. We can't use a defer function because this doesn't work well with
+	// decorators.
+	ctx = ctx.WithGasMeter(cachedGasMeter)
 
 	// Other Ante decorators won't execute if we reach this stage
 	return ctx, nil
