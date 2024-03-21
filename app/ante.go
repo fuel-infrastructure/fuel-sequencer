@@ -84,9 +84,9 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 		return ctx, err
 	}
 
-	// Override the gas meter with an infinite one to make sure that MsgSupplyDelta never runs out of gas. This is safe
-	// because any user-initiated MsgSupplyDelta will never be included in a block as we are erroring when we detect
-	// such message
+	// Override the gas meter with an infinite one to make sure that the AnteHandler does not run out of gas when it's
+	// processing a MsgSupplyDelta. This is safe because any user-initiated MsgSupplyDelta will never be included in a
+	// block as below we are erroring when we detect such messages.
 	cachedGasMeter := ctx.GasMeter()
 	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
