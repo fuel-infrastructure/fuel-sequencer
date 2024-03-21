@@ -144,7 +144,7 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 
 		// If the queried block is before the range of blocks saved in state, the state has been pruned.
 		if s.startQueryBlock != nil && blockNumber.Cmp(s.startQueryBlock) < 0 {
-			return nil, errors.New(fmt.Sprintf("block %d was pruned or never fetched", blockNumber))
+			return nil, fmt.Errorf("block %d was pruned or never fetched", blockNumber)
 		}
 
 		syncProgress, err := s.ethClient.SyncProgress(ctx)
