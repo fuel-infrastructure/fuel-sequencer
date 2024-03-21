@@ -30,6 +30,9 @@ func TestValidateGenesisState(t *testing.T) {
 				},
 				LastEthereumNonce:       math.NewInt(3),
 				LastEthereumBlockSynced: math.NewInt(1),
+				SupplyDeltaProcessed: &types.SupplyDeltaProcessed{
+					Processed: true,
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
