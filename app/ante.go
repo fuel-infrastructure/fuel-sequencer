@@ -28,7 +28,7 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		NewInjectedMessagesDecorator(bridgeKeeper),
+		NewMsgSupplyDeltaDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
@@ -44,19 +44,19 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 
-type InjectedMessagesDecorator struct {
+type MsgSupplyDeltaDecorator struct {
 	bridgeKeeper bridgekeeper.Keeper
 }
 
-func NewInjectedMessagesDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedMessagesDecorator {
-	return InjectedMessagesDecorator{
+func NewMsgSupplyDeltaDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSupplyDeltaDecorator {
+	return MsgSupplyDeltaDecorator{
 		bridgeKeeper: bridgeKeeper,
 	}
 }
 
 // AnteHandle implements the AnteHandler decorator for MsgSupplyDelta. If an error is returned from AnteHandle during
 // CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
-func (imd InjectedMessagesDecorator) AnteHandle(
+func (d MsgSupplyDeltaDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (newCtx sdk.Context, err error) {
 
@@ -84,7 +84,7 @@ func (imd InjectedMessagesDecorator) AnteHandle(
 	}
 
 	// Get SupplyDeltaPeriod
-	supplyDeltaPeriod := imd.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
+	supplyDeltaPeriod := d.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
 	if supplyDeltaPeriod == 0 {
 		return ctx, errors.New("SupplyDeltaPeriod cannot be zero")
 	}
@@ -95,7 +95,8 @@ func (imd InjectedMessagesDecorator) AnteHandle(
 		return ctx, fmt.Errorf("MsgSupplyDelta not expected at height %d", ctx.BlockHeight())
 	}
 
-	// TODO: Add flag and remove at endblocker
+	// TODO: Add flag and remove at endblocker, add SupplyDeltaProcessed to import, export and default.
+	// TODO: Scaffold single, add MustGetSupplyDeltaProcessed
 
 	// Other Ante decorators won't execute if we reach this stage
 	return ctx, nil
