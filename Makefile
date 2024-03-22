@@ -231,7 +231,7 @@ run-sequencer: proto-go-gen serve
 
 run-sidecar:
 	@$(eval ETH_RPC := "http://localhost:8545")
-	@$(eval CONTRACT_ADDRESS := "0x5FbDB2315678afecb367f032d93F642f64180aa3")
+	@$(eval CONTRACT_ADDRESS := "0x101E64349abe34E53e3E6AAbE009197240AaE1cD")
 	@echo "Waiting for Ethereum node to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \
@@ -242,7 +242,7 @@ run-sidecar:
 		--development=true
 
 serve:
-	ignite chain serve --reset-once --skip-proto --build.tags ledger
+	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
 
 keys:
 	@echo "🤖 Generating keys..."
