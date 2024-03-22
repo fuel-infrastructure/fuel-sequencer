@@ -251,7 +251,7 @@ func (s *SidecarImpl) calibrateBlocksAndPruneLogs(lastSyncedBlock *big.Int) {
 	//
 	// Example: if last synced is 100 and start query is 90, we can prune until 100 and set start query to 101.
 	// Example: if last synced is 100 and start query is 100, we can prune until 100 and set start query to 101.
-	if lastSyncedBlock.Cmp(s.startQueryBlock) >= 0 && lastSyncedBlock.Uint64() >= s.blockPruneBuffer {
+	if lastSyncedBlock.Cmp(s.startQueryBlock) >= 0 && lastSyncedBlock.Uint64() > s.blockPruneBuffer {
 		pruneFrom := s.startQueryBlock.Uint64()
 		pruneUntil := lastSyncedBlock.Uint64() - s.blockPruneBuffer
 
