@@ -3,6 +3,7 @@ package fuelsequencer.bridge;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -27,4 +28,9 @@ message Params {
   // supply_delta_period is the frequency in block at which we report supply
   // delta info to Ethereum.
   uint64 supply_delta_period = 4;
+
+  // vesting_start_time is the common vesting starting time for vesting accounts
+  // that will be created through deposits from Ethereum.
+  google.protobuf.Timestamp vesting_start_time = 5
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 }

@@ -12,17 +12,17 @@ import (
 
 const (
 	FlagSidecarEnabled = "sidecar.enabled"
-	flagSidecarAddress = "sidecar.address"
+	FlagSidecarAddress = "sidecar.address"
 	FlagSidecarTimeout = "sidecar.timeout"
 
-	DefaultSidecarEnabled = false
+	DefaultSidecarEnabled = true
 	DefaultSidecarAddress = "localhost:8080"
 	DefaultSidecarTimeout = time.Second * 5
 )
 
 func AddStartCmdFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Bool(FlagSidecarEnabled, DefaultSidecarEnabled, "Sidecar querying enabled")
-	startCmd.Flags().String(flagSidecarAddress, DefaultSidecarAddress, "Sidecar client address")
+	startCmd.Flags().String(FlagSidecarAddress, DefaultSidecarAddress, "Sidecar client address")
 	startCmd.Flags().Duration(FlagSidecarTimeout, DefaultSidecarTimeout, "Sidecar queries timeout")
 }
 
@@ -50,7 +50,7 @@ func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg SidecarConfig, er
 	}
 
 	// get the Sidecar address
-	if v := opts.Get(flagSidecarAddress); v != nil {
+	if v := opts.Get(FlagSidecarAddress); v != nil {
 		if cfg.Address, err = cast.ToStringE(v); err != nil {
 			return
 		}

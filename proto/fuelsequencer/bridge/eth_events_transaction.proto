@@ -1,14 +1,21 @@
 syntax = "proto3";
 package fuelsequencer.bridge;
 
+import "fuelsequencer/service/v1/sidecar.proto";
+
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
-/**
-TODO: Adapt EthEventsTx as per application requirements. Please use sidecar
-definitions.
-*/
-
 message EthEventsTx {
-  // events_data defines the list of events.
-  repeated string events_data = 1;
+  // events defines the list of Ethereum events.
+  repeated fuelsequencer.service.v1.Event events = 1;
+
+  // advanceSequencer is a boolean which indicates whether the Sequencer should
+  // generate a new block. This is used to advance the Sequencer in cases where
+  // the Sidecar errors specifically due to no new blocks generated on Ethereum
+  bool advanceSequencer = 2;
+
+  // newEthereumBlock is a boolean which indicates whether a new Ethereum block
+  // has been detected by the Sidecar. This is needed to determine when
+  // LastEthereumBlockSynced should be incremented by the PreBlocker.
+  bool newEthereumBlock = 3;
 }

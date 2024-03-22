@@ -1,23 +1,88 @@
 package types
 
 import (
-	sdk "cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // Required to load the right config for testing
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 var (
+	// TestEthAddr1Str maps to TestSeqAddr1Str deterministically
+	TestEthAddr1Str = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+	TestSeqAddr1Str = "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k"
+	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
+
+	FirstAccountSequence  = uint64(0)
+	TestToken             = "token"
 	TestGovernanceAddress = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod = uint64(100)
-	TestLastEthereumNonce = sdk.NewInt(50)
-	TestLastSupply        = sdk.NewInt(100000000)
-	TestDelta             = sdk.NewInt(5000000)
-	TestOffset            = sdk.NewInt(-2000000)
+	TestLastEthereumNonce = sdkmath.NewInt(50)
+	TestLastSupply        = sdkmath.NewInt(100000000)
+	TestDelta             = sdkmath.NewInt(5000000)
+	TestOffset            = sdkmath.NewInt(-2000000)
 	TestSupplyDeltaInfo   = bridgetypes.SupplyDeltaInfo{
 		LastSupply: TestLastSupply,
 		Delta:      TestDelta,
 		Offset:     TestOffset,
 	}
+	TestFrom1                 = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+	TestFrom2                 = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+	TestFrom3                 = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
+	TestAmount1               = "100"
+	TestAmount2               = "101"
+	TestAmount3               = "102"
+	TestTo1                   = "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm"
+	TestTo2                   = ""
+	TestTo3                   = "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
+	TestDuration1             = "50"
+	TestDuration2             = "51"
+	TestDuration3             = "52"
+	TestMessage1              = "26B5A0378EBB14470BD99C6489279259F8E80E5BD30E4CC84D8385EC334CD936"
+	TestMessage2              = "7A1E4C2586F28D5C1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF"
+	TestMessage3              = "B23F8D4567E89ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890123"
+	TestSendToSequencerEvent1 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom1,
+		Amount:   TestAmount1,
+		To:       TestTo1,
+		Duration: TestDuration1,
+	}
+	TestSendToSequencerEvent2 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom2,
+		Amount:   TestAmount2,
+		To:       TestTo2,
+		Duration: TestDuration2,
+	}
+	TestSendToSequencerEvent3 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount3,
+		To:       TestTo3,
+		Duration: TestDuration3,
+	}
+	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
+		From:    TestFrom1,
+		Message: testutils.MustHexDecodeString(TestMessage1),
+	}
+	TestAuthorizeEvent2 = &sidecartypes.AuthorizeEvent{
+		From:    TestFrom2,
+		Message: testutils.MustHexDecodeString(TestMessage2),
+	}
+	TestAuthorizeEvent3 = &sidecartypes.AuthorizeEvent{
+		From:    TestFrom3,
+		Message: testutils.MustHexDecodeString(TestMessage3),
+	}
+	TestEvent1      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
+	TestEvent2      = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
+	TestEvent3      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
+	TestEvents      = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestEthEventsTx = &bridgetypes.EthEventsTx{
+		Events:           TestEvents,
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+	}
+	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 )

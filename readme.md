@@ -14,8 +14,26 @@ Dependencies:
     - https://ghcr.io/cosmos/proto-builder
     - Preferred version: `0.14.0`
 
+To run the FuelSequencer with enabled Sidecar and an Ethereum node:
+
 ```bash
-make run
+make install run-eth-docker-container run-sidecar  # terminal 1
+make run-sequencer                                 # terminal 2
+make clean                                         # once you're done
+```
+
+To run the FuelSequencer on its own, you need to disable the Sidecar in `config.yml` and then:
+
+```bash
+make run-sequencer
+make clean # once you're done
+```
+
+To run just the Sidecar and an Ethereum node:
+
+```bash
+make install run-eth-docker-container run-sidecar
+make clean # once you're done
 ```
 
 To generate keys for executing transactions:
@@ -90,15 +108,16 @@ make build-docker-image
 The first time you run the docker container you should run it using:
 
 ```bash
-make run-docker-container
+make run-docker-container                                 # with Sidecar
+make run-docker-container COMMAND="fuelsequencerd start"  # without Sidecar
 ```
 
 The command above will do the following:
 
-1. Create the docker container
-2. Map the chain data located at `./data/fuelsequencer` by default using docker volumes
-3. Give a name to the container
-4. Expose the necessary ports
+1. Create the docker container.
+2. Map the chain data located at `./data/fuelsequencer` by default using docker volumes.
+3. Give a name to the container.
+4. Expose the necessary ports.
 5. Start the container. 
 
 If you want to pass an alternative data folder you should run the make command as follows:
@@ -160,11 +179,18 @@ make test-unit
 
 ### E2E tests
 
-E2E tests are still WIP. This is a list of inspirational code that might be useful when building the E2E tests 
-framework:
+You will need a Sequencer image and Ethereum image:
 
-- https://github.com/osmosis-labs/osmosis/blob/main/tests/e2e/configurer/factory.go#L19
-- https://github.com/osmosis-labs/osmosis/blob/3eccca25dd40ec45c0a295f079fb21da66eeeb6a/tests/e2e/containers/containers.go#L487
+```bash
+make build-docker-image
+make build-eth-docker-image
+```
+
+Then you can run E2E tests:
+
+```bash
+make test-e2e-basic
+```
 
 ## FAQs
 
@@ -176,11 +202,3 @@ project's root directory:
 ```bash
 chmod -R 777 ./
 ```
-
-## Learn more
-
-- [Ignite CLI](https://ignite.com/cli)
-- [Tutorials](https://docs.ignite.com/guide)
-- [Ignite CLI docs](https://docs.ignite.com)
-- [Cosmos SDK docs](https://docs.cosmos.network)
-- [Developer Chat](https://discord.gg/ignite)

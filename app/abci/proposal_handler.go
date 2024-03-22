@@ -3,21 +3,26 @@ package abci
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 type FuelSequencerProposalHandler struct {
-	logger     log.Logger
-	valStore   baseapp.ValidatorStore         // to get the current validators' pubkeys
-	txSelector TxSelector                     // a utility for checking whether a tx can be included in the proposal
-	txVerifier baseapp.ProposalTxVerifier     // a utility for transaction verification
-	sidecar    sidecarclient.AppSidecarClient // a client to query the Sidecar service
+	logger       log.Logger
+	valStore     baseapp.ValidatorStore         // to get the current validators' pubkeys
+	txSelector   TxSelector                     // a utility for checking whether a tx can be included in the proposal
+	txVerifier   baseapp.ProposalTxVerifier     // a utility for transaction verification
+	sidecar      sidecarclient.AppSidecarClient // a client to query the Sidecar service
+	bridgeKeeper bridgekeeper.Keeper            // Bridge keeper
 
 	// TODO: Any required objects need to go here
 }
@@ -28,14 +33,16 @@ func NewFuelSequencerProposalHandler(
 	valStore baseapp.ValidatorStore,
 	txVerifier baseapp.ProposalTxVerifier,
 	sidecar sidecarclient.AppSidecarClient,
+	bridgeKeeper bridgekeeper.Keeper,
 ) *FuelSequencerProposalHandler {
 	// TODO: Add any required parameters
 	return &FuelSequencerProposalHandler{
-		logger:     logger,
-		valStore:   valStore,
-		txVerifier: txVerifier,
-		txSelector: NewFuelSequencerTxSelector(),
-		sidecar:    sidecar,
+		logger:       logger,
+		valStore:     valStore,
+		txVerifier:   txVerifier,
+		txSelector:   NewFuelSequencerTxSelector(),
+		sidecar:      sidecar,
+		bridgeKeeper: bridgeKeeper,
 	}
 }
 
@@ -62,8 +69,23 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
-		// TODO: This should be adapted as per application requirements
-		ethEventsTx, err := h.generateEthEventsTx()
+		// TODO: Add MsgSupplyDelta logic and inject transaction at index 1 if we expect a MsgSupplyDelta.
+		//     : MsgSupplyDelta should always be included in height even if PrepareProposal errors. Note that current
+		//     : baseApp behaviour returns req.Txs if PrepareProposal fails, therefore, we must make sure to add
+		//     : MsgSupplyDelta to req.Txs before any error.
+
+		blockHeight, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
+		if !found {
+			return nil, errors.New("could not get last Ethereum block synced from state")
+		}
+
+		// Query the events of the next Ethereum block
+		ethBlockToQuery := blockHeight.Add(sdkmath.OneInt()).String()
+		response, err := h.sidecar.GetBlockEvents(
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
+		)
+
+		ethEventsTx, err := h.generateEthEventsTx(response, err)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
 		}
@@ -74,8 +96,6 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Current implementation assumes txs that cannot be decoded into sdk.Tx are appended at entry 0.
 		req.Txs = append([][]byte{ethEventsTxBz}, req.Txs...)
 
-		// TODO: Define custom logic here
-
 		var maxBlockGas uint64
 		if b := ctx.ConsensusParams().Block; b != nil {
 			maxBlockGas = uint64(b.MaxGas)
@@ -84,22 +104,28 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// This is needed to clear variables tracked by the TxSelector
 		defer h.txSelector.Clear()
 
+		// EthEventsTx will not satisfy sdk.Tx. Therefore, we cannot handle it the same way as we handle other
+		// transactions. Note: Here we are assuming that EthEventsTx is injected at index zero and that we will
+		// always have such a tx.
+		success := h.txSelector.SelectNonSDKTxForProposal(ctx, uint64(req.MaxTxBytes), req.Txs[0])
+		if !success {
+			// If we fail in selecting the EthEventsTx it must be that the events are too large. In this case an empty
+			// block is generated and expected to be rejected by ProcessProposal. NOTE: When an error is returned the
+			// baseApp sends req.Txs to CometBFT, therefore, we have to remove the injected EthEventsTx
+			req.Txs = [][]byte{}
+			return nil, errors.New("failed to add eth events transaction to block proposal")
+
+			// TODO: This should probably be revised when MsgSupplyDelta is introduced because in some heights we should
+			//     : always return MsgSupplyDelta. At the same time, we can leave as is and cause the block to be
+			//     : rejected in ProcessProposal and generate another consensus round. Whatever is decided consider also
+			//     : implications of this on ProcessProposal.
+			//     : Extra: Should we assume that MsgSupplyDelta will fit MaxTxBytes and MaxGas?
+		}
+
 		// Since we are assuming a NoOp mempool we simply return the transactions requested from CometBFT, which, by
 		// default, should be in FIFO order. Note, we still need to ensure the transactions returned respect
 		// req.MaxTxBytes and blockParams.MaxGas
-		for index, txBz := range req.Txs {
-
-			// Eth events tx will not satisfy sdk.Tx. Therefore, we cannot handle it the same way as we handle other
-			// transactions. Note: Here we are assuming that the eth events tx is injected at index zero and that we
-			// will always have such a tx.
-			if index == 0 {
-				success := h.txSelector.SelectNonSDKTxForProposal(ctx, uint64(req.MaxTxBytes), txBz)
-				if !success {
-					return nil, errors.New("failed to add eth events transaction to block proposal")
-				}
-				continue
-			}
-
+		for _, txBz := range req.Txs[1:] {
 			tx, err := h.txVerifier.TxDecode(txBz)
 			if err != nil {
 				return nil, err
@@ -136,30 +162,69 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 // Please refer to the following default handler implementation on Cosmos SDK main branch if in doubt:
 // https://github.com/cosmos/cosmos-sdk/blob/a86a83f761383c1ea434925cddd199cd5a271303/baseapp/abci_utils.go#L305-L352
 //
-// 2. Any error raised by ProcessProposalHandler is caught in baseapp/abci.go, resulting into the application to reject
+// 2. Any error raised by ProcessProposalHandler is caught in baseapp/abci.go, resulting in the application to reject
 // the block proposal.
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
-		// TODO: This should be adapted as per application requirements
-		// First expect that the first transaction is always the EthEventsTx
+		// Expect that there is at least one transaction (EthEventsTx must be there)
+		if len(req.Txs) == 0 {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"block proposal doesn't have any transactions: first tx expected to be an eth events tx",
+			)
+		}
+
+		// Expect that the first transaction is always the EthEventsTx
 		var injectedEthEventsTx bridgetypes.EthEventsTx
 		if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"first transaction expected to be an eth events tx: %w", err,
+			)
 		}
 
-		// TODO: Perform any other verifications on injected txs
+		blockHeight, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
+		if !found {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"could not get last Ethereum block synced from state",
+			)
+		}
 
-		// TODO: This should be adapted as per application requirements
-		ethEventsTx, err := h.generateEthEventsTx()
+		// Query the events of the next Ethereum block
+		ethBlockToQuery := blockHeight.Add(sdkmath.OneInt()).String()
+		response, err := h.sidecar.GetBlockEvents(
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
+		)
+
+		// Generate the EthEventsTx that should be included at index 0 in the block proposal
+		ethEventsTx, err := h.generateEthEventsTx(response, err)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
-		}
-		if !injectedEthEventsTx.Equal(&ethEventsTx) {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to generate eth events tx: %w", err,
+			)
 		}
 
-		// TODO: Define custom logic here
+		// Reject block if the sequencer should not proceed with block generation
+		if !ethEventsTx.AdvanceSequencer {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"generated eth events tx implies block rejection",
+			)
+		}
+
+		// Reject block if injected EthEventsTx does not match the one generated by the validator verifying the block
+		// proposal
+		equal, err := injectedEthEventsTx.Equal(ethEventsTx)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"eth events tx equality check failed: %w", err,
+			)
+		}
+		if !equal {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"generated eth events tx does not match the one in the block proposal",
+			)
+		}
+
+		// TODO: Add MsgSupplyDelta verification logic at index 1 if we expect a MsgSupplyDelta
 
 		var totalTxGas uint64
 
@@ -168,17 +233,13 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			maxBlockGas = b.MaxGas
 		}
 
-		for index, txBytes := range req.Txs {
-			// Eth events transactions typically don't implement sdk.Tx, therefore, they can be skipped since no gas
-			// is consumed. Note: Here we are assuming that eth events txs are always injected at index zero.
-			if index == 0 {
-				continue
-			}
-
+		// NOTE: Eth events transactions typically don't implement sdk.Tx, therefore, they can be skipped since no
+		// gas is consumed. Here we are assuming that eth events txs are always injected at index zero.
+		for _, txBytes := range req.Txs[1:] {
 			// There is something wrong with the Tx if it cannot be decoded. Thus reject the block proposal.
 			tx, err := h.txVerifier.TxDecode(txBytes)
 			if err != nil {
-				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 			}
 
 			// Confirm that the block's max gas limit is not exceeded
@@ -189,7 +250,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				}
 
 				if totalTxGas > uint64(maxBlockGas) {
-					return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+					return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+						"block gas limit exceeded",
+					)
 				}
 			}
 		}
@@ -200,17 +263,45 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 	}
 }
 
-// TODO: This function should be replaced with our application logic
-func (h *FuelSequencerProposalHandler) generateEthEventsTx() (bridgetypes.EthEventsTx, error) {
-	// TODO: Perform any custom logic
+// generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
+// returned from the sidecar don't pass validation.
+func (h *FuelSequencerProposalHandler) generateEthEventsTx(
+	sidecarResponse *sidecartypes.QueryBlockEventsResponse, sidecarErr error,
+) (*bridgetypes.EthEventsTx, error) {
+	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
+	// when it errors.
+	var events []*sidecartypes.Event
+	if sidecarResponse != nil {
+		events = sidecarResponse.Events
+	}
 
-	return bridgetypes.EthEventsTx{
-		EventsData: []string{"Event 1", "Event 2", "Event 3"},
-	}, nil
+	newEthereumBlock := true
+	advanceSequencer := true
+	if sidecarErr != nil {
+		// If the sidecar errored newEthereumBlock must be set to false as this means that the sidecar failed to query
+		// the next Ethereum block, therefore, we can't account for it
+		newEthereumBlock = false
+
+		// Set advanceSequencer to false if sidecar error is not due to block generation
+		if !strings.Contains(sidecarErr.Error(), sidecartypes.ErrBlockDoesNotExist) {
+			advanceSequencer = false
+		}
+	}
+
+	ethEventsTx := bridgetypes.EthEventsTx{
+		Events:           events,
+		NewEthereumBlock: newEthereumBlock,
+		AdvanceSequencer: advanceSequencer,
+	}
+	if err := ethEventsTx.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	return &ethEventsTx, nil
 }
 
 // PreBlocker contains logic that should run before any FinalizeBlock logic. FinalizeBlock ignores any byte slices not
-// implementing sdk.Tx. As a result, any important results originating from PrepareProposal or ProcessProposal not
+// implementing sdk.Tx. As a consequence, any important results originating from PrepareProposal or ProcessProposal not
 // implementing sdk.Tx need to be made available to the modules in storage at PreBlocker stage.
 func (h *FuelSequencerProposalHandler) PreBlocker(
 	_ sdk.Context, req *abci.RequestFinalizeBlock,
