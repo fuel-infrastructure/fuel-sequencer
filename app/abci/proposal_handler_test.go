@@ -7,6 +7,8 @@ import (
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -591,17 +593,71 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: nil, Error: fmt.Errorf("%s 1", sidecartypes.ErrBlockDoesNotExist),
+				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsNoNewBlock,
+				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			maxBlockGas:       totalTxsGas,
 			supplyDeltaPeriod: 0,
 			expErrMsg:         "SupplyDeltaPeriod cannot be zero",
 		},
-		// TODO: Errors in verifyInjectedMsgSupplyDeltaTx and ante tests tomorrow
+		{
+			name:                          "returns error if MsgSupplyDelta expected but not injected",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				// MsgSupplyDelta not injected even though expected in height
+				Txs:    validTxsWithEvents[:1],
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg:         "expected at least two transactions in block proposal",
+		},
+		{
+			name:                          "returns error if MsgSupplyDelta expected but not injected",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				// MsgSupplyDelta not injected even though expected in height
+				Txs:    validTxsWithEvents[:1],
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg:         "expected at least two transactions in block proposal",
+		},
+		{
+			name:                          "returns error if incorrect msg injected in tx at index 1",
+			removeLastEthereumBlockSynced: false,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				// MsgSupplyDelta not injected even though expected in height
+				Txs:    validTxsWithEvents,
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expErrMsg: fmt.Errorf(
+				"incorrect msg type url in transaction at index 1; expected %s got %s",
+				sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}),
+				sdk.MsgTypeURL(&banktypes.MsgSend{}),
+			).Error(),
+		},
 	}
 
 	for _, tc := range testCases {
