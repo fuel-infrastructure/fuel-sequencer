@@ -31,6 +31,6 @@ func (k Keeper) EthEventsTxByBlockNumber(goCtx context.Context, req *types.Query
 
 	// Prepare and return the response
 	return &types.QueryGetEthEventsTxByBlockNumberResponse{
-		EthEventsTx: &val, // Assuming EthEventsTx is directly compatible with the response; adjust as necessary
+		EthEventsTx: &val,
 	}, nil
 }

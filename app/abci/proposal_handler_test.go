@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	cosmosmath "cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
@@ -35,19 +35,19 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      cosmosmath.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	})
 	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: false,
-		BlockNumber:      cosmosmath.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	})
 	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: false,
 		NewEthereumBlock: false,
-		BlockNumber:      cosmosmath.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	})
 
 	totalBytesTxWithEventsAndDummyTxs := int64(calculateTotalTxBytes(
@@ -298,13 +298,13 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      cosmosmath.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	})
 	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: false,
-		BlockNumber:      cosmosmath.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	})
 
 	validTxsWithEvents := [][]byte{
@@ -525,7 +525,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      cosmosmath.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	})
 
 	testCases := []struct {
@@ -566,7 +566,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 			// Verify the state changes
 			if tc.expectEvents {
 				// Check that EthEventsTx was set in the state
-				storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), cosmosmath.OneInt().Uint64())
+				storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), sdkmath.OneInt().Uint64())
 				s.Require().True(found)
 				s.Require().NotEmpty(storedTx.Events)
 			}
@@ -574,7 +574,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 				// Check that lastEthereumBlockSynced was updated
 				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
 				s.Require().True(found)
-				s.Require().Equal(cosmosmath.OneInt(), lastBlock)
+				s.Require().Equal(sdkmath.OneInt(), lastBlock)
 			}
 		})
 	}

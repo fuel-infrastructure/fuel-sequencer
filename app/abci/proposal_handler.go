@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -268,7 +267,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 // returned from the sidecar don't pass validation.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
-	blockNumber math.Int,
+	blockNumber sdkmath.Int,
 	sidecarErr error,
 ) (*bridgetypes.EthEventsTx, error) {
 	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
