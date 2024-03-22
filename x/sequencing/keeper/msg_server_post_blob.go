@@ -51,6 +51,12 @@ func (k msgServer) PostBlob(
 			Owner: msg.From,
 			Order: math.ZeroInt(),
 		}
+		if err := topic.ValidateBasic(); err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrTopicFailedValidate,
+				"topic failed to validate basic",
+			)
+		}
 
 	} else {
 
