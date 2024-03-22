@@ -16,12 +16,5 @@ var (
 	SupplyDeltaInfoKey         = []byte("supply_delta_info")
 	LastEthereumNonceKey       = []byte("LastEthereumNonce")
 	LastEthereumBlockSyncedKey = []byte("LastEthereumBlockSynced")
-)
-
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
-
-const (
-	SupplyDeltaProcessedKey = "SupplyDeltaProcessed/value/"
+	SupplyDeltaProcessedKey    = []byte("SupplyDeltaProcessed")
 )

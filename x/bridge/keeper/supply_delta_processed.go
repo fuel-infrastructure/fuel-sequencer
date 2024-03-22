@@ -11,7 +11,7 @@ import (
 // SetSupplyDeltaProcessed set supplyDeltaProcessed in the store
 func (k Keeper) SetSupplyDeltaProcessed(ctx context.Context, supplyDeltaProcessed types.SupplyDeltaProcessed) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SupplyDeltaProcessedKey))
+	store := prefix.NewStore(storeAdapter, types.SupplyDeltaProcessedKey)
 	b := k.cdc.MustMarshal(&supplyDeltaProcessed)
 	store.Set([]byte{0}, b)
 }
@@ -19,7 +19,7 @@ func (k Keeper) SetSupplyDeltaProcessed(ctx context.Context, supplyDeltaProcesse
 // GetSupplyDeltaProcessed returns supplyDeltaProcessed
 func (k Keeper) GetSupplyDeltaProcessed(ctx context.Context) (val types.SupplyDeltaProcessed, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SupplyDeltaProcessedKey))
+	store := prefix.NewStore(storeAdapter, types.SupplyDeltaProcessedKey)
 
 	b := store.Get([]byte{0})
 	if b == nil {
@@ -42,6 +42,6 @@ func (k Keeper) MustGetSupplyDeltaProcessed(ctx context.Context) (val types.Supp
 // RemoveSupplyDeltaProcessed removes supplyDeltaProcessed from the store
 func (k Keeper) RemoveSupplyDeltaProcessed(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SupplyDeltaProcessedKey))
+	store := prefix.NewStore(storeAdapter, types.SupplyDeltaProcessedKey)
 	store.Delete([]byte{0})
 }
