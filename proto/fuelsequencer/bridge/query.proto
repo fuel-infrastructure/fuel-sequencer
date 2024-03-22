@@ -9,6 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
+import "fuelsequencer/bridge/supply_delta_processed.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -49,6 +50,13 @@ service Query {
         "/fuel-infrastructure/fuel-sequencer/bridge/"
         "sequencer_address_from_ethereum_address/{ethereum_address}";
   }
+
+  // Queries a SupplyDeltaProcessed by index.
+  rpc SupplyDeltaProcessed(QueryGetSupplyDeltaProcessedRequest)
+      returns (QueryGetSupplyDeltaProcessedResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_processed";
+  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
@@ -81,4 +89,11 @@ message QuerySequencerAddressFromEthereumAddressRequest {
 
 message QuerySequencerAddressFromEthereumAddressResponse {
   string sequencer_address = 1;
+}
+
+message QueryGetSupplyDeltaProcessedRequest {}
+
+message QueryGetSupplyDeltaProcessedResponse {
+  SupplyDeltaProcessed SupplyDeltaProcessed = 1
+      [ (gogoproto.nullable) = false ];
 }

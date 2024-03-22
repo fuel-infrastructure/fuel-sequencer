@@ -906,7 +906,7 @@ type EthOwnedBaseAccount struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BaseAccount *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
+	BaseAccount *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"` // TODO: string account_owner = 2;
 }
 
 func (x *EthOwnedBaseAccount) Reset() {
@@ -943,7 +943,7 @@ type EthOwnedContinuousVestingAccount struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	VestingAccount *v1beta11.ContinuousVestingAccount `protobuf:"bytes,1,opt,name=vesting_account,json=vestingAccount,proto3" json:"vesting_account,omitempty"`
+	VestingAccount *v1beta11.ContinuousVestingAccount `protobuf:"bytes,1,opt,name=vesting_account,json=vestingAccount,proto3" json:"vesting_account,omitempty"` // TODO: string account_owner = 2;
 }
 
 func (x *EthOwnedContinuousVestingAccount) Reset() {

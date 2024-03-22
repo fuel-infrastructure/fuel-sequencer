@@ -8422,6 +8422,41 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_processed:
+    get:
+      summary: Queries a SupplyDeltaProcessed by index.
+      operationId: FuelsequencerBridgeQuery_SupplyDeltaProcessed
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaProcessed:
+                type: object
+                properties:
+                  processed:
+                    type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer/bridge/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -8761,14 +8796,17 @@ paths:
                 description: from is the address on FuelSequencer that is posting the blob.
               topic:
                 type: string
-                description: topic is the Topic that this blob belongs to.
+                format: byte
+                description: >-
+                  topic is the Topic that this blob belongs to, it is a 32-byte
+                  hash.
               order:
                 type: string
                 description: order is the blob sequencer order.
               data:
                 type: string
                 format: byte
-                title: data is the bytes
+                description: data is the blob data bytes.
         default:
           description: An unexpected error response.
           schema:
@@ -8799,14 +8837,17 @@ paths:
                 description: from is the address on FuelSequencer that is posting the blob.
               topic:
                 type: string
-                description: topic is the Topic that this blob belongs to.
+                format: byte
+                description: >-
+                  topic is the Topic that this blob belongs to, it is a 32-byte
+                  hash.
               order:
                 type: string
                 description: order is the blob sequencer order.
               data:
                 type: string
                 format: byte
-                title: data is the bytes
+                description: data is the blob data bytes.
       tags:
         - Msg
   /fuelsequencer.sequencing.Msg/UpdateParams:
@@ -12484,6 +12525,14 @@ definitions:
               for
 
               unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.QueryGetSupplyDeltaProcessedResponse:
+    type: object
+    properties:
+      SupplyDeltaProcessed:
+        type: object
+        properties:
+          processed:
+            type: boolean
   fuelsequencer.bridge.QueryParamsResponse:
     type: object
     properties:
@@ -12564,6 +12613,11 @@ definitions:
           about these anyways. Note that offset can be positive (to account for
 
           unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.SupplyDeltaProcessed:
+    type: object
+    properties:
+      processed:
+        type: boolean
   fuelsequencer.bridge.MsgSupplyDelta:
     type: object
     properties:
@@ -12694,14 +12748,15 @@ definitions:
         description: from is the address on FuelSequencer that is posting the blob.
       topic:
         type: string
-        description: topic is the Topic that this blob belongs to.
+        format: byte
+        description: topic is the Topic that this blob belongs to, it is a 32-byte hash.
       order:
         type: string
         description: order is the blob sequencer order.
       data:
         type: string
         format: byte
-        title: data is the bytes
+        description: data is the blob data bytes.
   fuelsequencer.sequencing.MsgPostBlobResponse:
     type: object
     properties:
@@ -12713,14 +12768,15 @@ definitions:
         description: from is the address on FuelSequencer that is posting the blob.
       topic:
         type: string
-        description: topic is the Topic that this blob belongs to.
+        format: byte
+        description: topic is the Topic that this blob belongs to, it is a 32-byte hash.
       order:
         type: string
         description: order is the blob sequencer order.
       data:
         type: string
         format: byte
-        title: data is the bytes
+        description: data is the blob data bytes.
   fuelsequencer.sequencing.MsgUpdateParams:
     type: object
     properties:

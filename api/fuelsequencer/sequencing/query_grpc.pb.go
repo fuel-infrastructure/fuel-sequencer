@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName = "/fuelsequencer.sequencing.Query/Params"
+	Query_Params_FullMethodName   = "/fuelsequencer.sequencing.Query/Params"
+	Query_Topic_FullMethodName    = "/fuelsequencer.sequencing.Query/Topic"
+	Query_TopicAll_FullMethodName = "/fuelsequencer.sequencing.Query/TopicAll"
 )
 
 // QueryClient is the client API for Query service.
@@ -28,6 +30,10 @@ const (
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// Queries a Topic by Id.
+	Topic(ctx context.Context, in *QueryGetTopicRequest, opts ...grpc.CallOption) (*QueryGetTopicResponse, error)
+	// Queries all Topics.
+	TopicAll(ctx context.Context, in *QueryAllTopicRequest, opts ...grpc.CallOption) (*QueryAllTopicResponse, error)
 }
 
 type queryClient struct {
@@ -47,12 +53,34 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) Topic(ctx context.Context, in *QueryGetTopicRequest, opts ...grpc.CallOption) (*QueryGetTopicResponse, error) {
+	out := new(QueryGetTopicResponse)
+	err := c.cc.Invoke(ctx, Query_Topic_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) TopicAll(ctx context.Context, in *QueryAllTopicRequest, opts ...grpc.CallOption) (*QueryAllTopicResponse, error) {
+	out := new(QueryAllTopicResponse)
+	err := c.cc.Invoke(ctx, Query_TopicAll_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// Queries a Topic by Id.
+	Topic(context.Context, *QueryGetTopicRequest) (*QueryGetTopicResponse, error)
+	// Queries all Topics.
+	TopicAll(context.Context, *QueryAllTopicRequest) (*QueryAllTopicResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -62,6 +90,12 @@ type UnimplementedQueryServer struct {
 
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) Topic(context.Context, *QueryGetTopicRequest) (*QueryGetTopicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Topic not implemented")
+}
+func (UnimplementedQueryServer) TopicAll(context.Context, *QueryAllTopicRequest) (*QueryAllTopicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TopicAll not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -94,6 +128,42 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_Topic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Topic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_Topic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Topic(ctx, req.(*QueryGetTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_TopicAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).TopicAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_TopicAll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).TopicAll(ctx, req.(*QueryAllTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -104,6 +174,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "Topic",
+			Handler:    _Query_Topic_Handler,
+		},
+		{
+			MethodName: "TopicAll",
+			Handler:    _Query_TopicAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
