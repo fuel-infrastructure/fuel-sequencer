@@ -769,7 +769,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 			// Verify the state changes
 			if tc.expectEvents {
 				// Check that EthEventsTx was set in the state
-				storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), sdkmath.OneInt().Uint64())
+				storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), uint64(1))
 				s.Require().True(found)
 				s.Require().NotEmpty(storedTx.Events)
 			}
