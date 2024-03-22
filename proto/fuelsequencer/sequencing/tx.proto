@@ -21,7 +21,6 @@ service Msg {
   // PostBlob defines an operation for posting ordered data at a specific topic.
   rpc PostBlob(MsgPostBlob) returns (MsgPostBlobResponse);
 }
-
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
@@ -48,17 +47,22 @@ message MsgPostBlob {
   // from is the address on FuelSequencer that is posting the blob.
   string from = 1;
 
-  // topic is the Topic that this blob belongs to.
-  string topic = 2;
+  // topic is the Topic that this blob belongs to, it is a 32-byte hash.
+  bytes topic = 2;
 
   // order is the blob sequencer order.
-  string order = 3;
+  string order = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 
-  // data is the bytes
+  // data is the blob data bytes.
   bytes data = 4;
 }
 
 message MsgPostBlobResponse {
+
   // nonce uniquely identifies any message that we send to Ethereum.
   string nonce = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
@@ -69,12 +73,16 @@ message MsgPostBlobResponse {
   // from is the address on FuelSequencer that is posting the blob.
   string from = 2;
 
-  // topic is the Topic that this blob belongs to.
-  string topic = 3;
+  // topic is the Topic that this blob belongs to, it is a 32-byte hash.
+  bytes topic = 3;
 
   // order is the blob sequencer order.
-  string order = 4;
+  string order = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 
-  // data is the bytes
+  // data is the blob data bytes.
   bytes data = 5;
 }
