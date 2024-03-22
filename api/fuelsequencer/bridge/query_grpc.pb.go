@@ -23,6 +23,7 @@ const (
 	Query_LastEthereumNonce_FullMethodName                   = "/fuelsequencer.bridge.Query/LastEthereumNonce"
 	Query_LastEthereumBlockSynced_FullMethodName             = "/fuelsequencer.bridge.Query/LastEthereumBlockSynced"
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.Query/SupplyDeltaInfo"
+	Query_EthEventsTxByBlockNumber_FullMethodName            = "/fuelsequencer.bridge.Query/EthEventsTxByBlockNumber"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.Query/SequencerAddressFromEthereumAddress"
 	Query_SupplyDeltaProcessed_FullMethodName                = "/fuelsequencer.bridge.Query/SupplyDeltaProcessed"
 )
@@ -39,6 +40,8 @@ type QueryClient interface {
 	LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
+	// EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
+	EthEventsTxByBlockNumber(ctx context.Context, in *QueryGetEthEventsTxByBlockNumberRequest, opts ...grpc.CallOption) (*QueryGetEthEventsTxByBlockNumberResponse, error)
 	// Queries a list of SequencerAddressFromEthereumAddress items.
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries a SupplyDeltaProcessed by index.
@@ -89,6 +92,15 @@ func (c *queryClient) SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDel
 	return out, nil
 }
 
+func (c *queryClient) EthEventsTxByBlockNumber(ctx context.Context, in *QueryGetEthEventsTxByBlockNumberRequest, opts ...grpc.CallOption) (*QueryGetEthEventsTxByBlockNumberResponse, error) {
+	out := new(QueryGetEthEventsTxByBlockNumberResponse)
+	err := c.cc.Invoke(ctx, Query_EthEventsTxByBlockNumber_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error) {
 	out := new(QuerySequencerAddressFromEthereumAddressResponse)
 	err := c.cc.Invoke(ctx, Query_SequencerAddressFromEthereumAddress_FullMethodName, in, out, opts...)
@@ -119,6 +131,8 @@ type QueryServer interface {
 	LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
+	// EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
+	EthEventsTxByBlockNumber(context.Context, *QueryGetEthEventsTxByBlockNumberRequest) (*QueryGetEthEventsTxByBlockNumberResponse, error)
 	// Queries a list of SequencerAddressFromEthereumAddress items.
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries a SupplyDeltaProcessed by index.
@@ -141,6 +155,9 @@ func (UnimplementedQueryServer) LastEthereumBlockSynced(context.Context, *QueryG
 }
 func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaInfo not implemented")
+}
+func (UnimplementedQueryServer) EthEventsTxByBlockNumber(context.Context, *QueryGetEthEventsTxByBlockNumberRequest) (*QueryGetEthEventsTxByBlockNumberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EthEventsTxByBlockNumber not implemented")
 }
 func (UnimplementedQueryServer) SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SequencerAddressFromEthereumAddress not implemented")
@@ -233,6 +250,24 @@ func _Query_SupplyDeltaInfo_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_EthEventsTxByBlockNumber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetEthEventsTxByBlockNumberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).EthEventsTxByBlockNumber(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_EthEventsTxByBlockNumber_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).EthEventsTxByBlockNumber(ctx, req.(*QueryGetEthEventsTxByBlockNumberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_SequencerAddressFromEthereumAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QuerySequencerAddressFromEthereumAddressRequest)
 	if err := dec(in); err != nil {
@@ -291,6 +326,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SupplyDeltaInfo",
 			Handler:    _Query_SupplyDeltaInfo_Handler,
+		},
+		{
+			MethodName: "EthEventsTxByBlockNumber",
+			Handler:    _Query_EthEventsTxByBlockNumber_Handler,
 		},
 		{
 			MethodName: "SequencerAddressFromEthereumAddress",

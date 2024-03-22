@@ -9,6 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
+import "fuelsequencer/bridge/eth_events_transaction.proto";
 import "fuelsequencer/bridge/supply_delta_processed.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
@@ -40,6 +41,13 @@ service Query {
       returns (QueryGetSupplyDeltaInfoResponse) {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info";
+  }
+
+  // EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
+  rpc EthEventsTxByBlockNumber(QueryGetEthEventsTxByBlockNumberRequest)
+      returns (QueryGetEthEventsTxByBlockNumberResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "eth_events_tx/{block_number}";
   }
 
   // Queries a list of SequencerAddressFromEthereumAddress items.
@@ -82,6 +90,20 @@ message QueryGetLastEthereumNonceResponse { string nonce = 1; }
 message QueryGetLastEthereumBlockSyncedRequest {}
 
 message QueryGetLastEthereumBlockSyncedResponse { string block = 1; }
+
+// QueryGetEthEventsTxByBlockNumberRequest is the request type for the
+// Query/EthEventsTxByBlockNumber RPC method.
+message QueryGetEthEventsTxByBlockNumberRequest {
+  // block_number is the Ethereum block number for which the events are queried.
+  string block_number = 1;
+}
+
+// QueryGetEthEventsTxByBlockNumberResponse is the response type for the
+// Query/EthEventsTxByBlockNumber RPC method.
+message QueryGetEthEventsTxByBlockNumberResponse {
+  // eth_events_tx contains the Ethereum events transaction information.
+  EthEventsTx eth_events_tx = 1;
+}
 
 message QuerySequencerAddressFromEthereumAddressRequest {
   string ethereum_address = 1;

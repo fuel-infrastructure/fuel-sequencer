@@ -186,7 +186,7 @@ run-client-binary:
 run-sidecar-binary:
 	@$(eval ARCH := linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
-	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --development="$(DEVELOPMENT)"
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --cosmos_node_rpc="$(COSMOS_NODE_RPC)" --development="$(DEVELOPMENT)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
