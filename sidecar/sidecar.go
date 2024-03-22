@@ -220,15 +220,8 @@ func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 				s.logger.Error("failed to obtain last synced block from Sequencer", zap.Error(err))
 			}
 
-			// Determine the range of blocks to query.
-			currentBlockNumber, err := s.ethClient.BlockNumber(ctx)
-			if err != nil {
-				s.logger.Error("Error fetching current Ethereum block number", zap.Error(err))
-				return
-			}
-
 			s.calibrateBlocksAndPruneLogs(lastSyncedBlock)
-			s.fetchAndProcessLogs(ctx, currentBlockNumber)
+			s.fetchAndProcessLogs(ctx)
 		}
 	}
 }
@@ -281,9 +274,16 @@ func (s *SidecarImpl) calibrateBlocksAndPruneLogs(lastSyncedBlock *big.Int) {
 }
 
 // fetchAndProcessLogs fetches the logs from the blockchain and processes them.
-func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context, currentBlockNumber uint64) {
+func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	// Determine the range of blocks to query.
+	currentBlockNumber, err := s.ethClient.BlockNumber(ctx)
+	if err != nil {
+		s.logger.Error("Error fetching current Ethereum block number", zap.Error(err))
+		return
+	}
 
 	// Return if there is no update for the ETH block height.
 	if currentBlockNumber < s.nextQueryBlock.Uint64() {
