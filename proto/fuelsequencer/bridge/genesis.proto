@@ -40,5 +40,5 @@ message GenesisState {
     (amino.dont_omitempty) = true
   ];
 
-  SupplyDeltaProcessed supplyDeltaProcessed = 5;
+  SupplyDeltaProcessed supply_delta_processed = 5;
 }
