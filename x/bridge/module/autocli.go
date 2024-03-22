@@ -38,7 +38,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Query SequencerAddressFromEthereumAddress",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereum_address"}},
 				},
-
+				{
+					RpcMethod: "SupplyDeltaProcessed",
+					Use:       "show-supply-delta-processed",
+					Short:     "show supply-delta-processed",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},
@@ -52,7 +56,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				},
 				{
 					RpcMethod: "SupplyDelta",
-					Skip:      true, // skipped because generated through concensus
+					Skip:      true, // skipped because generated through consensus
 				},
 				{
 					RpcMethod:      "WithdrawToEthereum",
