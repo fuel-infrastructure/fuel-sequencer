@@ -55,7 +55,7 @@ type SidecarImpl struct {
 	// If startQueryBlock >= nextQueryBlock then we have no blocks in state.
 	startQueryBlock *big.Int
 	// nextQueryBlock is the next block to be queried for events.
-	// It also indicates the latest block that we have in state, plus one.
+	// It also points to the block right after the latest one in state.
 	nextQueryBlock *big.Int
 
 	// --------------------- Cosmos Config ------------------------ //
