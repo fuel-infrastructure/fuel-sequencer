@@ -398,7 +398,7 @@ func (s *SidecarImpl) validateIsLogSequential(vLog types.Log, lastBlockNumber *u
 	}
 
 	// Ensuring within-block log sequentiality by comparing the current log's indices against the last processed log's indices.
-	if currentTxIndex <= *lastTxIndex || currentLogIndex <= *lastLogIndex {
+	if currentTxIndex < *lastTxIndex || currentLogIndex <= *lastLogIndex {
 		return fmt.Errorf(
 			"log sequentiality violation within block %d: currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d",
 			currentBlockNumber, currentTxIndex, *lastTxIndex, currentLogIndex, *lastLogIndex,
