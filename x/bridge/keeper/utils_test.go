@@ -12,6 +12,7 @@ func matchesEthOwnedAcc(baseAcc *types.EthOwnedBaseAccount) accountValidator {
 	return func(acc sdk.AccountI) bool {
 		bAcc, ok := acc.(*types.EthOwnedBaseAccount)
 		return ok &&
+			(bAcc.AccountOwner == baseAcc.AccountOwner) &&
 			(bAcc.GetAddress().Equals(baseAcc.GetAddress())) &&
 			((bAcc.PubKey == nil && baseAcc.PubKey == nil) || (bAcc.GetPubKey().Equals(baseAcc.GetPubKey()))) &&
 			(bAcc.GetAccountNumber() == baseAcc.GetAccountNumber()) &&
@@ -24,6 +25,7 @@ func matchesEthOwnedContinuousVestingAcc(vestingAcc *types.EthOwnedContinuousVes
 	return func(acc sdk.AccountI) bool {
 		vAcc, ok := acc.(*types.EthOwnedContinuousVestingAccount)
 		return ok &&
+			(vAcc.AccountOwner == vestingAcc.AccountOwner) &&
 			(vAcc.StartTime == vestingAcc.StartTime) &&
 			(vAcc.OriginalVesting.Equal(vestingAcc.OriginalVesting)) &&
 			(vAcc.DelegatedFree.Equal(vestingAcc.DelegatedFree)) &&

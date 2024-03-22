@@ -34,7 +34,8 @@ func TestGenerateSequencerAccountFromEthereumAddressFromBz(t *testing.T) {
 }
 
 func TestEthOwnedBaseAccountSetSequenceErrors(t *testing.T) {
-	acc := types.NewEthOwnedBaseAccount(authtypes.NewBaseAccountWithAddress(testutiltypes.TestSeqAddr1))
+	baseAcc := authtypes.NewBaseAccountWithAddress(testutiltypes.TestSeqAddr1)
+	acc := types.NewEthOwnedBaseAccount(baseAcc, testutiltypes.TestEthAddr1Str)
 	require.ErrorContains(t, acc.SetSequence(1), "cannot set sequence number for eth owned account")
 	require.ErrorContains(t, acc.SetSequence(2), "cannot set sequence number for eth owned account")
 }
@@ -42,13 +43,13 @@ func TestEthOwnedBaseAccountSetSequenceErrors(t *testing.T) {
 func TestEthOwnedBaseAccountSetPubkeyErrors(t *testing.T) {
 	_, pk, _ := testdata.KeyTestPubAddr()
 
-	acc := types.NewEthOwnedBaseAccount(&authtypes.BaseAccount{})
+	acc := types.NewEthOwnedBaseAccount(&authtypes.BaseAccount{}, "")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned account")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned account")
 }
 
 func TestEthOwnedContinuousVestingAccountSetSequenceErrors(t *testing.T) {
-	acc := types.NewEthOwnedContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{})
+	acc := types.NewEthOwnedContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{}, "")
 	require.ErrorContains(t, acc.SetSequence(1), "cannot set sequence number for eth owned continuous vesting account")
 	require.ErrorContains(t, acc.SetSequence(2), "cannot set sequence number for eth owned continuous vesting account")
 }
@@ -56,7 +57,7 @@ func TestEthOwnedContinuousVestingAccountSetSequenceErrors(t *testing.T) {
 func TestEthOwnedContinuousVestingAccountSetPubkeyErrors(t *testing.T) {
 	_, pk, _ := testdata.KeyTestPubAddr()
 
-	acc := types.NewEthOwnedContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{})
+	acc := types.NewEthOwnedContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{}, "")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned continuous vesting account")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned continuous vesting account")
 }

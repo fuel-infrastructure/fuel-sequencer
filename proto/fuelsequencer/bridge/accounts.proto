@@ -18,7 +18,9 @@ message EthOwnedBaseAccount {
       "fuelsequencer.bridge.EthOwnedAccountI";
 
   cosmos.auth.v1beta1.BaseAccount base_account = 1 [ (gogoproto.embed) = true ];
-  // TODO: string account_owner = 2;
+
+  // account_owner is the Ethereum address that owns and controls this account.
+  string account_owner = 2;
 }
 
 // An EthOwnedVestingAccount wraps a ContinuousVestingAccount that is known to
@@ -31,5 +33,7 @@ message EthOwnedContinuousVestingAccount {
 
   cosmos.vesting.v1beta1.ContinuousVestingAccount vesting_account = 1
       [ (gogoproto.embed) = true ];
-  // TODO: string account_owner = 2;
+
+  // account_owner is the Ethereum address that owns and controls this account.
+  string account_owner = 2;
 }

@@ -14,14 +14,17 @@ var vestingStartTimeDelay = time.Hour * 24 * 365
 
 // blankEthOwnedContinuousVestingAccount returns a blank vesting account wrapped in EthOwnedContinuousVestingAccount.
 // We only need the blanked-out amounts from this struct, so we don't care about the other fields.
-func blankEthOwnedContinuousVestingAccount() *types.EthOwnedContinuousVestingAccount {
-	return types.NewEthOwnedContinuousVestingAccount(&vestingtypes.ContinuousVestingAccount{
-		BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-			OriginalVesting:  nil,
-			DelegatedFree:    nil,
-			DelegatedVesting: nil,
+func blankEthOwnedContinuousVestingAccount(ethAddress string) *types.EthOwnedContinuousVestingAccount {
+	return types.NewEthOwnedContinuousVestingAccount(
+		&vestingtypes.ContinuousVestingAccount{
+			BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+				OriginalVesting:  nil,
+				DelegatedFree:    nil,
+				DelegatedVesting: nil,
+			},
 		},
-	})
+		ethAddress,
+	)
 }
 
 // detailsFromExistingAcc tries to extract EthOwnedBaseAccount and EthOwnedContinuousVestingAccount from sdk.AccountI.
@@ -31,7 +34,7 @@ func blankEthOwnedContinuousVestingAccount() *types.EthOwnedContinuousVestingAcc
 //
 // Practically speaking, the last case will happen if someone pre-creates an account.
 // In this case any locked tokens in this pre-created account will become liquid.
-func detailsFromExistingAcc(acc sdk.AccountI) (
+func detailsFromExistingAcc(acc sdk.AccountI, ethAddress string) (
 	_ *types.EthOwnedBaseAccount,
 	_ *types.EthOwnedContinuousVestingAccount,
 	isFirstDepositFromEthereum bool,
@@ -44,13 +47,13 @@ func detailsFromExistingAcc(acc sdk.AccountI) (
 
 	// Try to parse into EthOwnedBaseAccount.
 	if baseAcc, ok := acc.(*types.EthOwnedBaseAccount); ok {
-		return baseAcc, blankEthOwnedContinuousVestingAccount(), false
+		return baseAcc, blankEthOwnedContinuousVestingAccount(ethAddress), false
 	}
 
 	// Backup: reconstruct details from sdk.AccountI. This will only happen if an unexpected type of account was
 	// pre-created. Thus, the vesting details are not really important and any vesting tokens will become available.
 	baseAcc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-	return types.NewEthOwnedBaseAccount(baseAcc), blankEthOwnedContinuousVestingAccount(), true
+	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress), blankEthOwnedContinuousVestingAccount(ethAddress), true
 }
 
 // depositFromEthereum generates the Sequencer address corresponding to the Ethereum address that is sending the tokens.
@@ -120,11 +123,11 @@ func (k Keeper) generateSequencerAccountFromEthereumAddress(
 	existingAcc := k.accountKeeper.GetAccount(ctx, accAddress)
 	createNewAcc := existingAcc == nil
 	if createNewAcc {
-		acc = types.NewEthOwnedBaseAccountWithAddress(accAddress)
-		vestingAcc = blankEthOwnedContinuousVestingAccount()
+		acc = types.NewEthOwnedBaseAccountWithAddress(accAddress, ethAddress)
+		vestingAcc = blankEthOwnedContinuousVestingAccount(ethAddress)
 		firstDepositFromEthereum = true
 	} else {
-		acc, vestingAcc, firstDepositFromEthereum = detailsFromExistingAcc(existingAcc)
+		acc, vestingAcc, firstDepositFromEthereum = detailsFromExistingAcc(existingAcc, ethAddress)
 	}
 
 	// Calculate vesting details.
@@ -165,7 +168,7 @@ func (k Keeper) generateSequencerAccountFromEthereumAddress(
 		if err != nil {
 			return nil, err
 		}
-		newAcc = types.NewEthOwnedContinuousVestingAccount(newVestingAcc)
+		newAcc = types.NewEthOwnedContinuousVestingAccount(newVestingAcc, ethAddress)
 	} else {
 		// Reuse existing vesting account.
 		vestingAcc := vestingtypes.NewContinuousVestingAccountRaw(
@@ -181,7 +184,7 @@ func (k Keeper) generateSequencerAccountFromEthereumAddress(
 		if err = vestingAcc.Validate(); err != nil {
 			return nil, err
 		}
-		newAcc = types.NewEthOwnedContinuousVestingAccount(vestingAcc)
+		newAcc = types.NewEthOwnedContinuousVestingAccount(vestingAcc, ethAddress)
 	}
 
 	// Get an account number if it's a new account.

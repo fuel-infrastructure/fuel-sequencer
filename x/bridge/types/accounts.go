@@ -4,6 +4,7 @@ package types
 
 import (
 	"encoding/json"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -35,7 +36,7 @@ type ethOwnedAccountPretty struct {
 	PubKey        string         `json:"public_key" yaml:"public_key"`
 	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
 	Sequence      uint64         `json:"sequence" yaml:"sequence"`
-	// TODO: AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
+	AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
 }
 
 // TODO: save mapping from AccountOwner to the EthOwnedAccount's address
@@ -64,16 +65,18 @@ func GenerateSequencerAddressFromEthereumAddressFromBz(ethAddress []byte) (sdk.A
 // --------------------- EthOwnedBaseAccount
 
 // NewEthOwnedBaseAccount creates and returns a new EthOwnedBaseAccount type
-func NewEthOwnedBaseAccount(ba *authtypes.BaseAccount) *EthOwnedBaseAccount {
+func NewEthOwnedBaseAccount(ba *authtypes.BaseAccount, owner string) *EthOwnedBaseAccount {
 	return &EthOwnedBaseAccount{
-		BaseAccount: ba,
+		BaseAccount:  ba,
+		AccountOwner: owner,
 	}
 }
 
 // NewEthOwnedBaseAccountWithAddress creates and returns a new EthOwnedBaseAccount type from an address
-func NewEthOwnedBaseAccountWithAddress(address sdk.AccAddress) *EthOwnedBaseAccount {
+func NewEthOwnedBaseAccountWithAddress(address sdk.AccAddress, owner string) *EthOwnedBaseAccount {
 	return &EthOwnedBaseAccount{
-		BaseAccount: authtypes.NewBaseAccountWithAddress(address),
+		BaseAccount:  authtypes.NewBaseAccountWithAddress(address),
+		AccountOwner: owner,
 	}
 }
 
@@ -89,9 +92,9 @@ func (EthOwnedBaseAccount) SetSequence(_ uint64) error {
 
 // Validate implements basic validation of the EthOwnedBaseAccount
 func (a EthOwnedBaseAccount) Validate() error {
-	// TODO: if strings.TrimSpace(a.AccountOwner) == "" {
-	//	return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
-	//}
+	if strings.TrimSpace(a.AccountOwner) == "" {
+		return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
+	}
 	return a.BaseAccount.Validate()
 }
 
@@ -113,7 +116,7 @@ func (a EthOwnedBaseAccount) MarshalYAML() ([]byte, error) {
 		PubKey:        "",
 		AccountNumber: a.AccountNumber,
 		Sequence:      a.Sequence,
-		// TODO: AccountOwner:  a.AccountOwner,
+		AccountOwner:  a.AccountOwner,
 	})
 	if err != nil {
 		return nil, err
@@ -134,7 +137,7 @@ func (a EthOwnedBaseAccount) MarshalJSON() ([]byte, error) {
 		PubKey:        "",
 		AccountNumber: a.AccountNumber,
 		Sequence:      a.Sequence,
-		// TODO: AccountOwner:  a.AccountOwner,
+		AccountOwner:  a.AccountOwner,
 	})
 	if err != nil {
 		return nil, err
@@ -151,7 +154,7 @@ func (a *EthOwnedBaseAccount) UnmarshalJSON(bz []byte) error {
 	}
 
 	a.BaseAccount = authtypes.NewBaseAccount(alias.Address, nil, alias.AccountNumber, alias.Sequence)
-	// TODO: a.AccountOwner = alias.AccountOwner
+	a.AccountOwner = alias.AccountOwner
 
 	return nil
 }
@@ -159,9 +162,12 @@ func (a *EthOwnedBaseAccount) UnmarshalJSON(bz []byte) error {
 // --------------------- EthOwnedContinuousVestingAccount
 
 // NewEthOwnedContinuousVestingAccount creates and returns a new EthOwnedVestingAccount type
-func NewEthOwnedContinuousVestingAccount(cva *vestingtypes.ContinuousVestingAccount) *EthOwnedContinuousVestingAccount {
+func NewEthOwnedContinuousVestingAccount(
+	cva *vestingtypes.ContinuousVestingAccount, owner string,
+) *EthOwnedContinuousVestingAccount {
 	return &EthOwnedContinuousVestingAccount{
 		ContinuousVestingAccount: cva,
+		AccountOwner:             owner,
 	}
 }
 
@@ -177,9 +183,9 @@ func (EthOwnedContinuousVestingAccount) SetSequence(_ uint64) error {
 
 // Validate implements basic validation of the EthOwnedContinuousVestingAccount
 func (a EthOwnedContinuousVestingAccount) Validate() error {
-	// TODO: if strings.TrimSpace(a.AccountOwner) == "" {
-	//	return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
-	//}
+	if strings.TrimSpace(a.AccountOwner) == "" {
+		return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
+	}
 	return a.BaseAccount.Validate()
 }
 
@@ -201,7 +207,7 @@ func (a EthOwnedContinuousVestingAccount) MarshalYAML() ([]byte, error) {
 		PubKey:        "",
 		AccountNumber: a.AccountNumber,
 		Sequence:      a.Sequence,
-		// TODO: AccountOwner:  a.AccountOwner,
+		AccountOwner:  a.AccountOwner,
 	})
 	if err != nil {
 		return nil, err
@@ -222,7 +228,7 @@ func (a EthOwnedContinuousVestingAccount) MarshalJSON() ([]byte, error) {
 		PubKey:        "",
 		AccountNumber: a.AccountNumber,
 		Sequence:      a.Sequence,
-		// TODO: AccountOwner:  a.AccountOwner,
+		AccountOwner:  a.AccountOwner,
 	})
 	if err != nil {
 		return nil, err
@@ -239,12 +245,12 @@ func (a *EthOwnedContinuousVestingAccount) UnmarshalJSON(bz []byte) error {
 	}
 
 	a.BaseAccount = authtypes.NewBaseAccount(alias.Address, nil, alias.AccountNumber, alias.Sequence)
-	// TODO: a.AccountOwner = alias.AccountOwner
+	a.AccountOwner = alias.AccountOwner
 
 	return nil
 }
 
 // ToEthOwnedBaseAccount discards vesting details and converts the account to an EthOwnedBaseAccount
 func (a EthOwnedContinuousVestingAccount) ToEthOwnedBaseAccount() *EthOwnedBaseAccount {
-	return NewEthOwnedBaseAccount(a.BaseAccount)
+	return NewEthOwnedBaseAccount(a.BaseAccount, a.AccountOwner)
 }
