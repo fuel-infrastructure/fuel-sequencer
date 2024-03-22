@@ -237,7 +237,7 @@ run-sidecar:
 	done
 	@fuelsequencerd start-sidecar \
 		--eth_node_rpc "$(ETH_RPC)" \
-		--contract_address "0x5FbDB2315678afecb367f032d93F642f64180aa3" \
+		--contract_address "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9" \
 		--development=true
 
 serve:
