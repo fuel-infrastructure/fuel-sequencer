@@ -1,8 +1,8 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // Required to load the right config for testing
@@ -12,6 +12,13 @@ import (
 )
 
 var (
+	// TestEthAddr1Str maps to TestSeqAddr1Str deterministically
+	TestEthAddr1Str = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+	TestSeqAddr1Str = "fuelsequencer13tch2uhman7dhjjphmx9uwx7kvg2kqfj5y56hsmljlv93pgma5vqyks99k"
+	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
+
+	FirstAccountSequence  = uint64(0)
+	TestToken             = "token"
 	TestGovernanceAddress = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod = uint64(100)
 	TestLastEthereumNonce = sdkmath.NewInt(50)
@@ -76,7 +83,7 @@ var (
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      math.OneInt(),
+		BlockNumber:      sdkmath.OneInt(),
 	}
 	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 )

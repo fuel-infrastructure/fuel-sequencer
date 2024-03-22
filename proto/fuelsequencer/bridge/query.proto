@@ -15,6 +15,7 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 
 // Query defines the gRPC querier service.
 service Query {
+
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fuelsequencer/bridge/params";
@@ -45,8 +46,17 @@ service Query {
   rpc EthEventsTxByBlockNumber(QueryGetEthEventsTxByBlockNumberRequest)
     returns (QueryGetEthEventsTxByBlockNumberResponse) {
   option (google.api.http).get =
-    "/fuel-infrastructure/fuel-sequencer/bridge/eth_events_tx/{block_number}";
-}
+      "/fuel-infrastructure/fuel-sequencer/bridge/eth_events_tx/{block_number}";
+  }
+
+  // Queries a list of SequencerAddressFromEthereumAddress items.
+  rpc SequencerAddressFromEthereumAddress(
+      QuerySequencerAddressFromEthereumAddressRequest)
+      returns (QuerySequencerAddressFromEthereumAddressResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/"
+        "sequencer_address_from_ethereum_address/{ethereum_address}";
+  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
@@ -83,4 +93,12 @@ message QueryGetEthEventsTxByBlockNumberRequest {
 message QueryGetEthEventsTxByBlockNumberResponse {
   // eth_events_tx contains the Ethereum events transaction information.
   EthEventsTx eth_events_tx = 1;
+}
+
+message QuerySequencerAddressFromEthereumAddressRequest {
+  string ethereum_address = 1;
+}
+
+message QuerySequencerAddressFromEthereumAddressResponse {
+  string sequencer_address = 1;
 }

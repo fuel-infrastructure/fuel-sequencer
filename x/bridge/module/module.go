@@ -205,6 +205,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.StoreService,
 		in.Logger,
 		in.BankKeeper,
+		in.AccountKeeper,
 		authority.String(),
 	)
 	m := NewAppModule(
