@@ -21,7 +21,6 @@ var (
 	fd_GenesisState_supply_delta_info          protoreflect.FieldDescriptor
 	fd_GenesisState_last_ethereum_nonce        protoreflect.FieldDescriptor
 	fd_GenesisState_last_ethereum_block_synced protoreflect.FieldDescriptor
-	fd_GenesisState_supply_delta_processed     protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -31,7 +30,6 @@ func init() {
 	fd_GenesisState_supply_delta_info = md_GenesisState.Fields().ByName("supply_delta_info")
 	fd_GenesisState_last_ethereum_nonce = md_GenesisState.Fields().ByName("last_ethereum_nonce")
 	fd_GenesisState_last_ethereum_block_synced = md_GenesisState.Fields().ByName("last_ethereum_block_synced")
-	fd_GenesisState_supply_delta_processed = md_GenesisState.Fields().ByName("supply_delta_processed")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -123,12 +121,6 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if x.SupplyDeltaProcessed != nil {
-		value := protoreflect.ValueOfMessage(x.SupplyDeltaProcessed.ProtoReflect())
-		if !f(fd_GenesisState_supply_delta_processed, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -152,8 +144,6 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 		return len(x.LastEthereumNonce) != 0
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		return len(x.LastEthereumBlockSynced) != 0
-	case "fuelsequencer.bridge.GenesisState.supply_delta_processed":
-		return x.SupplyDeltaProcessed != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -178,8 +168,6 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 		x.LastEthereumNonce = nil
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		x.LastEthereumBlockSynced = nil
-	case "fuelsequencer.bridge.GenesisState.supply_delta_processed":
-		x.SupplyDeltaProcessed = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -208,9 +196,6 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		value := x.LastEthereumBlockSynced
 		return protoreflect.ValueOfBytes(value)
-	case "fuelsequencer.bridge.GenesisState.supply_delta_processed":
-		value := x.SupplyDeltaProcessed
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -239,8 +224,6 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 		x.LastEthereumNonce = value.Bytes()
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		x.LastEthereumBlockSynced = value.Bytes()
-	case "fuelsequencer.bridge.GenesisState.supply_delta_processed":
-		x.SupplyDeltaProcessed = value.Message().Interface().(*SupplyDeltaProcessed)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -271,11 +254,6 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 			x.SupplyDeltaInfo = new(SupplyDeltaInfo)
 		}
 		return protoreflect.ValueOfMessage(x.SupplyDeltaInfo.ProtoReflect())
-	case "fuelsequencer.bridge.GenesisState.supply_delta_processed":
-		if x.SupplyDeltaProcessed == nil {
-			x.SupplyDeltaProcessed = new(SupplyDeltaProcessed)
-		}
-		return protoreflect.ValueOfMessage(x.SupplyDeltaProcessed.ProtoReflect())
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
 		panic(fmt.Errorf("field last_ethereum_nonce of message fuelsequencer.bridge.GenesisState is not mutable"))
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
@@ -303,9 +281,6 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 		return protoreflect.ValueOfBytes(nil)
 	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
 		return protoreflect.ValueOfBytes(nil)
-	case "fuelsequencer.bridge.GenesisState.supply_delta_processed":
-		m := new(SupplyDeltaProcessed)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -391,10 +366,6 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.SupplyDeltaProcessed != nil {
-			l = options.Size(x.SupplyDeltaProcessed)
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -423,20 +394,6 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.SupplyDeltaProcessed != nil {
-			encoded, err := options.Marshal(x.SupplyDeltaProcessed)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0x2a
 		}
 		if len(x.LastEthereumBlockSynced) > 0 {
 			i -= len(x.LastEthereumBlockSynced)
@@ -669,42 +626,6 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					x.LastEthereumBlockSynced = []byte{}
 				}
 				iNdEx = postIndex
-			case 5:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaProcessed", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if x.SupplyDeltaProcessed == nil {
-					x.SupplyDeltaProcessed = &SupplyDeltaProcessed{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.SupplyDeltaProcessed); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -770,10 +691,6 @@ type GenesisState struct {
 	// last_ethereum_block_synced is the last Ethereum block synced.
 	// In other words, the next block to be synced is this value +1.
 	LastEthereumBlockSynced []byte `protobuf:"bytes,4,opt,name=last_ethereum_block_synced,json=lastEthereumBlockSynced,proto3" json:"last_ethereum_block_synced,omitempty"`
-	// supply_delta_processed keeps track of whether the AnteHandler has seen a
-	// MsgSupplyDelta in the block. This is used to prevent users from submitting
-	// MsgSupplyDelta transactions
-	SupplyDeltaProcessed *SupplyDeltaProcessed `protobuf:"bytes,5,opt,name=supply_delta_processed,json=supplyDeltaProcessed,proto3" json:"supply_delta_processed,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -824,13 +741,6 @@ func (x *GenesisState) GetLastEthereumBlockSynced() []byte {
 	return nil
 }
 
-func (x *GenesisState) GetSupplyDeltaProcessed() *SupplyDeltaProcessed {
-	if x != nil {
-		return x.SupplyDeltaProcessed
-	}
-	return nil
-}
-
 var File_fuelsequencer_bridge_genesis_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
@@ -850,7 +760,7 @@ var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
 	0x31, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62,
 	0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x5f, 0x64, 0x65, 0x6c,
 	0x74, 0x61, 0x5f, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x64, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0xd5, 0x03, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74,
+	0x74, 0x6f, 0x22, 0xf3, 0x02, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74,
 	0x61, 0x74, 0x65, 0x12, 0x3f, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
 	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d,
@@ -873,26 +783,20 @@ var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
 	0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74, 0xd2, 0xb4, 0x2d, 0x0a,
 	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52,
 	0x17, 0x6c, 0x61, 0x73, 0x74, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x42, 0x6c, 0x6f,
-	0x63, 0x6b, 0x53, 0x79, 0x6e, 0x63, 0x65, 0x64, 0x12, 0x60, 0x0a, 0x16, 0x73, 0x75, 0x70, 0x70,
-	0x6c, 0x79, 0x5f, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x5f, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
-	0x65, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e,
-	0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61, 0x50, 0x72, 0x6f, 0x63, 0x65,
-	0x73, 0x73, 0x65, 0x64, 0x52, 0x14, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74,
-	0x61, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x64, 0x42, 0xc0, 0x01, 0x0a, 0x18, 0x63,
-	0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
-	0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73,
-	0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02,
-	0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
-	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x63, 0x6b, 0x53, 0x79, 0x6e, 0x63, 0x65, 0x64, 0x42, 0xc0, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d,
+	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72,
+	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b,
+	0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46,
+	0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -909,20 +813,18 @@ func file_fuelsequencer_bridge_genesis_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bridge_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bridge_genesis_proto_goTypes = []interface{}{
-	(*GenesisState)(nil),         // 0: fuelsequencer.bridge.GenesisState
-	(*Params)(nil),               // 1: fuelsequencer.bridge.Params
-	(*SupplyDeltaInfo)(nil),      // 2: fuelsequencer.bridge.SupplyDeltaInfo
-	(*SupplyDeltaProcessed)(nil), // 3: fuelsequencer.bridge.SupplyDeltaProcessed
+	(*GenesisState)(nil),    // 0: fuelsequencer.bridge.GenesisState
+	(*Params)(nil),          // 1: fuelsequencer.bridge.Params
+	(*SupplyDeltaInfo)(nil), // 2: fuelsequencer.bridge.SupplyDeltaInfo
 }
 var file_fuelsequencer_bridge_genesis_proto_depIdxs = []int32{
 	1, // 0: fuelsequencer.bridge.GenesisState.params:type_name -> fuelsequencer.bridge.Params
 	2, // 1: fuelsequencer.bridge.GenesisState.supply_delta_info:type_name -> fuelsequencer.bridge.SupplyDeltaInfo
-	3, // 2: fuelsequencer.bridge.GenesisState.supply_delta_processed:type_name -> fuelsequencer.bridge.SupplyDeltaProcessed
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_genesis_proto_init() }

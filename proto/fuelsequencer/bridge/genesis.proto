@@ -39,9 +39,4 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-
-  // supply_delta_processed keeps track of whether the AnteHandler has seen a
-  // MsgSupplyDelta in the block. This is used to prevent users from submitting
-  // MsgSupplyDelta transactions
-  SupplyDeltaProcessed supply_delta_processed = 5;
 }

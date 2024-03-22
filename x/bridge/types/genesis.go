@@ -20,7 +20,6 @@ func DefaultGenesis() *GenesisState {
 		},
 		LastEthereumNonce:       math.ZeroInt(),
 		LastEthereumBlockSynced: math.ZeroInt(),
-		SupplyDeltaProcessed:    &SupplyDeltaProcessed{Processed: false},
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
