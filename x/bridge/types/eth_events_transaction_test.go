@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -33,6 +34,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
+				BlockNumber:      math.OneInt(),
 			},
 			expectedEqual: true,
 		},
@@ -49,6 +51,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
+				BlockNumber:      math.OneInt(),
 			},
 			expectedEqual: false,
 		},
@@ -59,6 +62,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: false,
 				NewEthereumBlock: true,
+				BlockNumber:      math.OneInt(),
 			},
 			expectedEqual: false,
 		},
@@ -69,6 +73,18 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: false,
+				BlockNumber:      math.OneInt(),
+			},
+			expectedEqual: false,
+		},
+		{
+			name:     "Unequal events tx - BlockNumber is different",
+			eventTx1: testtypes.TestEthEventsTx,
+			eventTx2: &types.EthEventsTx{
+				Events:           testtypes.TestEvents,
+				AdvanceSequencer: true,
+				NewEthereumBlock: false,
+				BlockNumber:      math.ZeroInt(),
 			},
 			expectedEqual: false,
 		},
