@@ -161,9 +161,10 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 		}
 
 		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must
-		// be the height being queried does not exist yet
+		// be that the height being queried does not exist yet.
 		isEthereumNodeSynced := syncProgress == nil
-		sidecarSyncedWithEthereum := s.nextQueryBlock.Cmp(new(big.Int).SetUint64(ethHeight+1)) == 0
+		nextEthereumBlock := new(big.Int).SetUint64(ethHeight + 1)
+		sidecarSyncedWithEthereum := s.nextQueryBlock.Cmp(nextEthereumBlock) == 0
 		if isEthereumNodeSynced && sidecarSyncedWithEthereum {
 			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
 		}
