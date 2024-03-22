@@ -189,7 +189,7 @@ make build-eth-docker-image
 Then you can run E2E tests:
 
 ```bash
-make test-e2e-basic
+make test-e2e
 ```
 
 ## FAQs
