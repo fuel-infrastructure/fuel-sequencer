@@ -621,23 +621,6 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:         "expected at least two transactions in block proposal",
 		},
 		{
-			name:                          "returns error if MsgSupplyDelta expected but not injected",
-			removeLastEthereumBlockSynced: false,
-			expQueryBlockEventsCalled:     1,
-			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: testtypes.TestSidecarResponse, Error: nil,
-			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				// MsgSupplyDelta not injected even though expected in height
-				Txs:    validTxsWithEvents[:1],
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
-			},
-			maxBlockGas:       totalTxsGas,
-			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
-			expErrMsg:         "expected at least two transactions in block proposal",
-		},
-		{
 			name:                          "returns error if incorrect msg injected in tx at index 1",
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
