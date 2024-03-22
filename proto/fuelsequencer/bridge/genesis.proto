@@ -39,7 +39,4 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-
-  // eth_events_tx defines the last eth_events_tx.
-  EthEventsTx eth_events_tx = 5;
 }

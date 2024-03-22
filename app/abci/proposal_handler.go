@@ -309,13 +309,10 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 func (h *FuelSequencerProposalHandler) PreBlocker(
 	ctx sdk.Context, req *abci.RequestFinalizeBlock,
 ) (*sdk.ResponsePreBlock, error) {
-	// TODO: This should be adapted as per application requirements
 	// This check is done for completeness’s sake as we should not expect to run into this scenario
 	if len(req.Txs) == 0 {
 		return nil, fmt.Errorf("expected eth events transaction to be injected")
 	}
-
-	// TODO: Check if certain transactions are expected at this stage ex MsgSupplyDelta at specific epochs
 
 	var injectedEthEventsTx bridgetypes.EthEventsTx
 	if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
@@ -327,12 +324,10 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
 	}
 
-	// Set the lastEthereumBlockSynced if we are to increment to a NewEthereumBlock.
+	// Set the lastEthereumBlockSynced if we are to increment to a new Ethereum block.
 	if injectedEthEventsTx.NewEthereumBlock {
 		h.bridgeKeeper.SetLastEthereumBlockSynced(ctx, injectedEthEventsTx.BlockNumber)
 	}
-
-	// TODO: Custom logic like storing "special" transactions in state
 
 	h.logger.Debug("finished executing pre-block hook")
 

@@ -528,6 +528,13 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 		BlockNumber:      sdkmath.OneInt(),
 	})
 
+	encodedEthEventsTxWithoutEventsNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: false,
+		BlockNumber:      sdkmath.ZeroInt(),
+	})
+
 	testCases := []struct {
 		name           string
 		requestTxs     [][]byte
@@ -546,11 +553,18 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 			expectEvents:   false,
 			expectNewBlock: true,
 		},
+		{
+			name:           "EthEventsTx without events expect new block false",
+			requestTxs:     [][]byte{encodedEthEventsTxWithoutEventsNoNewBlock},
+			expectEvents:   false,
+			expectNewBlock: false,
+		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.SetupTest()
+
 			// Simulate calling PreBlocker with the provided transactions
 			req := &abcitypes.RequestFinalizeBlock{Txs: tc.requestTxs}
 
@@ -575,6 +589,11 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
 				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
 				s.Require().True(found)
 				s.Require().Equal(sdkmath.OneInt(), lastBlock)
+			} else {
+				// Check that lastEthereumBlockSynced was updated
+				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
+				s.Require().True(found)
+				s.Require().Equal(sdkmath.ZeroInt(), lastBlock)
 			}
 		})
 	}

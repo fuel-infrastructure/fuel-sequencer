@@ -359,7 +359,8 @@ func (m *QueryGetLastEthereumBlockSyncedResponse) GetBlock() string {
 	return ""
 }
 
-// QueryGetEthEventsTxByBlockNumberRequest is the request type for the Query/EthEventsTxByBlockNumber RPC method.
+// QueryGetEthEventsTxByBlockNumberRequest is the request type for the
+// Query/EthEventsTxByBlockNumber RPC method.
 type QueryGetEthEventsTxByBlockNumberRequest struct {
 	// block_number is the Ethereum block number for which the events are queried.
 	BlockNumber string `protobuf:"bytes,1,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
@@ -407,7 +408,8 @@ func (m *QueryGetEthEventsTxByBlockNumberRequest) GetBlockNumber() string {
 	return ""
 }
 
-// QueryGetEthEventsTxByBlockNumberResponse is the response type for the Query/EthEventsTxByBlockNumber RPC method.
+// QueryGetEthEventsTxByBlockNumberResponse is the response type for the
+// Query/EthEventsTxByBlockNumber RPC method.
 type QueryGetEthEventsTxByBlockNumberResponse struct {
 	// eth_events_tx contains the Ethereum events transaction information.
 	EthEventsTx *EthEventsTx `protobuf:"bytes,1,opt,name=eth_events_tx,json=ethEventsTx,proto3" json:"eth_events_tx,omitempty"`

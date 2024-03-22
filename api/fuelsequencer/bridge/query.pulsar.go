@@ -5106,7 +5106,8 @@ func (x *QueryGetLastEthereumBlockSyncedResponse) GetBlock() string {
 	return ""
 }
 
-// QueryGetEthEventsTxByBlockNumberRequest is the request type for the Query/EthEventsTxByBlockNumber RPC method.
+// QueryGetEthEventsTxByBlockNumberRequest is the request type for the
+// Query/EthEventsTxByBlockNumber RPC method.
 type QueryGetEthEventsTxByBlockNumberRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -5143,7 +5144,8 @@ func (x *QueryGetEthEventsTxByBlockNumberRequest) GetBlockNumber() string {
 	return ""
 }
 
-// QueryGetEthEventsTxByBlockNumberResponse is the response type for the Query/EthEventsTxByBlockNumber RPC method.
+// QueryGetEthEventsTxByBlockNumberResponse is the response type for the
+// Query/EthEventsTxByBlockNumber RPC method.
 type QueryGetEthEventsTxByBlockNumberResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

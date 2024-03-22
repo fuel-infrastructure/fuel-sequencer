@@ -44,9 +44,9 @@ service Query {
 
   // EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
   rpc EthEventsTxByBlockNumber(QueryGetEthEventsTxByBlockNumberRequest)
-    returns (QueryGetEthEventsTxByBlockNumberResponse) {
-  option (google.api.http).get =
-      "/fuel-infrastructure/fuel-sequencer/bridge/eth_events_tx/{block_number}";
+      returns (QueryGetEthEventsTxByBlockNumberResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "eth_events_tx/{block_number}";
   }
 
   // Queries a list of SequencerAddressFromEthereumAddress items.
@@ -83,13 +83,15 @@ message QueryGetLastEthereumBlockSyncedRequest {}
 
 message QueryGetLastEthereumBlockSyncedResponse { string block = 1; }
 
-// QueryGetEthEventsTxByBlockNumberRequest is the request type for the Query/EthEventsTxByBlockNumber RPC method.
+// QueryGetEthEventsTxByBlockNumberRequest is the request type for the
+// Query/EthEventsTxByBlockNumber RPC method.
 message QueryGetEthEventsTxByBlockNumberRequest {
   // block_number is the Ethereum block number for which the events are queried.
   string block_number = 1;
 }
 
-// QueryGetEthEventsTxByBlockNumberResponse is the response type for the Query/EthEventsTxByBlockNumber RPC method.
+// QueryGetEthEventsTxByBlockNumberResponse is the response type for the
+// Query/EthEventsTxByBlockNumber RPC method.
 message QueryGetEthEventsTxByBlockNumberResponse {
   // eth_events_tx contains the Ethereum events transaction information.
   EthEventsTx eth_events_tx = 1;

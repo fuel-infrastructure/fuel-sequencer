@@ -8319,7 +8319,9 @@ paths:
                     description: block_number is the block that these events belong to.
             description: >-
               QueryGetEthEventsTxByBlockNumberResponse is the response type for
-              the Query/EthEventsTxByBlockNumber RPC method.
+              the
+
+              Query/EthEventsTxByBlockNumber RPC method.
         default:
           description: An unexpected error response.
           schema:
@@ -12612,7 +12614,7 @@ definitions:
           block_number:
             type: string
             description: block_number is the block that these events belong to.
-    description: >-
+    description: |-
       QueryGetEthEventsTxByBlockNumberResponse is the response type for the
       Query/EthEventsTxByBlockNumber RPC method.
   fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
