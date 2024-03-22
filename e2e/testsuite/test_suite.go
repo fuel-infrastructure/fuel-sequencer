@@ -94,7 +94,7 @@ var (
 	}
 
 	// CONTRACT is the address of the proxy contract deployed on the Ethereum node.
-	CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+	CONTRACT = "0x101E64349abe34E53e3E6AAbE009197240AaE1cD"
 )
 
 var (
