@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
 	"github.com/stretchr/testify/require"
@@ -20,14 +21,34 @@ func TestValidateGenesisState(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc:     "valid genesis state",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
 
-				// this line is used by starport scaffolding # types/genesis/validField
+				TopicList: []types.Topic{
+					{
+						Id: utilstest.MockTopicIDHex(0),
+					},
+					{
+						Id: utilstest.MockTopicIDHex(1),
+					},
+				},
 			},
 			valid: true,
 		},
-		// this line is used by starport scaffolding # types/genesis/testcase
+		{
+			desc: "duplicated topic",
+			genState: &types.GenesisState{
+				TopicList: []types.Topic{
+					{
+						Id: utilstest.MockTopicIDHex(0),
+					},
+					{
+						Id: utilstest.MockTopicIDHex(0),
+					},
+				},
+			},
+			valid: false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {

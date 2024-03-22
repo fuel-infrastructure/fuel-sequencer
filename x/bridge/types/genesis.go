@@ -1,6 +1,8 @@
 package types
 
-import "cosmossdk.io/math"
+import (
+	"cosmossdk.io/math"
+)
 
 // this line is used by starport scaffolding # genesis/types/import
 

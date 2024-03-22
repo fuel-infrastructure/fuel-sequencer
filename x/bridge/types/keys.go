@@ -19,6 +19,7 @@ var (
 	SupplyDeltaInfoKey         = []byte("supply_delta_info")
 	LastEthereumNonceKey       = []byte("LastEthereumNonce")
 	LastEthereumBlockSyncedKey = []byte("LastEthereumBlockSynced")
+	SupplyDeltaProcessedKey    = []byte("SupplyDeltaProcessed")
 )
 
 func KeyPrefix(p string) []byte {

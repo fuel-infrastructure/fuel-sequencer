@@ -323,6 +323,7 @@ func NewFuelSequencerApp(
 			FeegrantKeeper:  nil,
 			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		},
+		app.BridgeKeeper,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ante handler: %w", err)

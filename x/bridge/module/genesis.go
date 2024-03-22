@@ -27,6 +27,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetLastEthereumNonce(ctx, genState.LastEthereumNonce)
 	k.SetLastEthereumBlockSynced(ctx, genState.LastEthereumBlockSynced)
 
+	// Set SupplyDeltaProcessed to false by default
+	k.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
+
 	// this line is used by starport scaffolding # genesis/module/init
 }
 

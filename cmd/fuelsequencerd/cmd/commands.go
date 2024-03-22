@@ -38,11 +38,11 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 
 func initRootCmd(

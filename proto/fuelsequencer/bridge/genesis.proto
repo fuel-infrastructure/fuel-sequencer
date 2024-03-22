@@ -8,6 +8,7 @@ import "cosmos_proto/cosmos.proto";
 import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
 import "fuelsequencer/bridge/eth_events_transaction.proto";
+import "fuelsequencer/bridge/supply_delta_processed.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 

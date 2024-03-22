@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -70,6 +73,48 @@ func (s *AppTestSuite) CreateEncodedDummyTxs(amount uint64, gasLimit uint64) [][
 	}
 
 	return txs
+}
+
+// EncodeMsgSupplyDeltaTx is a helper that encodes a sdk.Tx containing MsgSupplyDelta to bytes
+func (s *AppTestSuite) EncodeMsgSupplyDeltaTx() []byte {
+
+	// Construct Any from message.
+	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(&bridgetypes.MsgSupplyDelta{
+		Authority: s.App.BridgeKeeper.GetAuthority(),
+	})
+	if err != nil {
+		panic("could not construct any from MsgSupplyDelta")
+	}
+
+	// Construct Tx Body with the message.
+	txBodyBz, err := proto.Marshal(&txtypes.TxBody{
+		Messages: []*codectypes.Any{msgSupplyDeltaAny},
+	})
+	if err != nil {
+		panic("could not construct TxBody")
+	}
+
+	// Construct Auth Info with Fee to avoid nil pointer panics.
+	authInfoBz, err := proto.Marshal(&txtypes.AuthInfo{
+		Fee: &txtypes.Fee{
+			GasLimit: 0,
+		},
+	})
+	if err != nil {
+		panic("could not construct AuthInfo")
+	}
+
+	// Construct final Tx.
+	txRawBz, err := proto.Marshal(&txtypes.TxRaw{
+		BodyBytes:     txBodyBz,
+		AuthInfoBytes: authInfoBz,
+		Signatures:    nil,
+	})
+	if err != nil {
+		panic("could not construct TxRaw bytes")
+	}
+
+	return txRawBz
 }
 
 // EncodeEthEventsTx is a helper to encode EthEventsTx to bytes

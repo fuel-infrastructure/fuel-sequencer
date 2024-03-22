@@ -4,12 +4,21 @@ import (
 	"context"
 
 	"cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Override the gas meter with an infinite one to make sure that MsgSupplyDelta never runs out of gas. The gas meter
+	// is reset to its original state just in case.
+	cachedGasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	defer func() {
+		ctx = ctx.WithGasMeter(cachedGasMeter)
+	}()
 
 	// Confirm that the msg signer is the bridge module's authority address (governance).
 	if k.GetAuthority() != msg.Authority {
