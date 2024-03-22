@@ -93,13 +93,12 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Query the events of the next Ethereum block
-		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt()).String()
+		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt())
 		response, err := h.sidecar.GetBlockEvents(
-			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery.String()},
 		)
 
-		// Generate EthEventsTx
-		ethEventsTx, err := h.generateEthEventsTx(response, err)
+		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
 		}
@@ -213,13 +212,13 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Query the events of the next Ethereum block
-		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt()).String()
+		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt())
 		response, err := h.sidecar.GetBlockEvents(
-			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery},
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery.String()},
 		)
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		ethEventsTx, err := h.generateEthEventsTx(response, err)
+		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to generate eth events tx: %w", err,
@@ -307,7 +306,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 // generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
 // returned from the sidecar don't pass validation.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
-	sidecarResponse *sidecartypes.QueryBlockEventsResponse, sidecarErr error,
+	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
+	blockNumber sdkmath.Int,
+	sidecarErr error,
 ) (*bridgetypes.EthEventsTx, error) {
 	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
 	// when it errors.
@@ -333,6 +334,7 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 		Events:           events,
 		NewEthereumBlock: newEthereumBlock,
 		AdvanceSequencer: advanceSequencer,
+		BlockNumber:      blockNumber,
 	}
 	if err := ethEventsTx.ValidateBasic(); err != nil {
 		return nil, err
@@ -434,23 +436,27 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(txs [][]by
 // implementing sdk.Tx. As a consequence, any important results originating from PrepareProposal or ProcessProposal not
 // implementing sdk.Tx need to be made available to the modules in storage at PreBlocker stage.
 func (h *FuelSequencerProposalHandler) PreBlocker(
-	_ sdk.Context, req *abci.RequestFinalizeBlock,
+	ctx sdk.Context, req *abci.RequestFinalizeBlock,
 ) (*sdk.ResponsePreBlock, error) {
-	// TODO: This should be adapted as per application requirements
 	// This check is done for completeness’s sake as we should not expect to run into this scenario
 	if len(req.Txs) == 0 {
 		return nil, fmt.Errorf("expected eth events transaction to be injected")
 	}
 
-	// TODO: Check if certain transactions are expected at this stage ex MsgSupplyDelta at specific epochs
-
-	// TODO: This was done for demonstration purposes and should be adapted as per application requirements.
 	var injectedEthEventsTx bridgetypes.EthEventsTx
 	if err := injectedEthEventsTx.Unmarshal(req.Txs[0]); err != nil {
 		return nil, fmt.Errorf("failed to decode injected eth events tx: %w", err)
 	}
 
-	// TODO: Custom logic like storing "special" transactions in state
+	// Set the injected events into state if any.
+	if len(injectedEthEventsTx.Events) > 0 {
+		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
+	}
+
+	// Set the lastEthereumBlockSynced if we are to increment to a new Ethereum block.
+	if injectedEthEventsTx.NewEthereumBlock {
+		h.bridgeKeeper.SetLastEthereumBlockSynced(ctx, injectedEthEventsTx.BlockNumber)
+	}
 
 	h.logger.Debug("finished executing pre-block hook")
 

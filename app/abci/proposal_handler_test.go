@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,16 +37,19 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
 	})
 	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: false,
+		BlockNumber:      sdkmath.OneInt(),
 	})
 	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: false,
 		NewEthereumBlock: false,
+		BlockNumber:      sdkmath.OneInt(),
 	})
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
@@ -384,11 +388,13 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
 	})
 	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: false,
+		BlockNumber:      sdkmath.OneInt(),
 	})
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
@@ -698,6 +704,86 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			s.Require().NoError(err)
 
 			s.Require().Equal(acceptResponse, res)
+		})
+	}
+}
+
+func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling() {
+	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTx)
+	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
+	})
+
+	encodedEthEventsTxWithoutEventsNoNewBlock := s.EncodeEthEventsTx(&bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: false,
+		BlockNumber:      sdkmath.ZeroInt(),
+	})
+
+	testCases := []struct {
+		name           string
+		requestTxs     [][]byte
+		expectEvents   bool
+		expectNewBlock bool
+	}{
+		{
+			name:           "EthEventsTx with events",
+			requestTxs:     [][]byte{encodedEthEventsTxWithEvents},
+			expectEvents:   true,
+			expectNewBlock: true,
+		},
+		{
+			name:           "EthEventsTx without events",
+			requestTxs:     [][]byte{encodedEthEventsTxWithoutEvents},
+			expectEvents:   false,
+			expectNewBlock: true,
+		},
+		{
+			name:           "EthEventsTx without events expect new block false",
+			requestTxs:     [][]byte{encodedEthEventsTxWithoutEventsNoNewBlock},
+			expectEvents:   false,
+			expectNewBlock: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			// Simulate calling PreBlocker with the provided transactions
+			req := &abcitypes.RequestFinalizeBlock{Txs: tc.requestTxs}
+
+			// Set sidecar mock
+			ctrl := gomock.NewController(s.T())
+			defer ctrl.Finish()
+			sidecarClientMock := sidecartestutil.NewMockAppSidecarClient(ctrl)
+
+			propHandler := s.GetTestProposalHandler(sidecarClientMock)
+			_, err := propHandler.PreBlocker(s.Ctx(), req)
+			s.Require().NoError(err)
+
+			// Verify the state changes
+			if tc.expectEvents {
+				// Check that EthEventsTx was set in the state
+				storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), uint64(1))
+				s.Require().True(found)
+				s.Require().NotEmpty(storedTx.Events)
+			}
+			if tc.expectNewBlock {
+				// Check that lastEthereumBlockSynced was updated
+				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
+				s.Require().True(found)
+				s.Require().Equal(sdkmath.OneInt(), lastBlock)
+			} else {
+				// Check that lastEthereumBlockSynced was updated
+				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
+				s.Require().True(found)
+				s.Require().Equal(sdkmath.ZeroInt(), lastBlock)
+			}
 		})
 	}
 }

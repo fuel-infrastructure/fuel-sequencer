@@ -21,7 +21,9 @@ var (
 	ErrInvalidEthAddressLength  = sdkerrors.Register(
 		ModuleName, 1106, fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
 	)
-	ErrUnsupported           = sdkerrors.Register(ModuleName, 1107, "unsupported")
-	ErrInvalidAccountAddress = sdkerrors.Register(ModuleName, 1108, "invalid account address")
-	ErrAccountOwnerMismatch  = sdkerrors.Register(ModuleName, 1109, "account owner mismatch")
+	ErrEthEventsTxBlockNotSequential = sdkerrors.Register(
+		ModuleName, 1107, "eth events tx block number is not the increment of last ethereum block synced")
+	ErrUnsupported           = sdkerrors.Register(ModuleName, 1108, "unsupported")
+	ErrInvalidAccountAddress = sdkerrors.Register(ModuleName, 1109, "invalid account address")
+	ErrAccountOwnerMismatch  = sdkerrors.Register(ModuleName, 1110, "account owner mismatch")
 )

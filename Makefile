@@ -186,7 +186,7 @@ run-client-binary:
 run-sidecar-binary:
 	@$(eval ARCH := linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
-	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --development="$(DEVELOPMENT)"
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --cosmos_node_rpc="$(COSMOS_NODE_RPC)" --development="$(DEVELOPMENT)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
@@ -232,7 +232,7 @@ run-sequencer: proto-go-gen serve
 run-sidecar:
 	@$(eval ETH_RPC := "http://localhost:8545")
 	@$(eval CONTRACT_ADDRESS := "0x101E64349abe34E53e3E6AAbE009197240AaE1cD")
-	@echo "Waiting for Ethereum node to start..."
+	@echo "Waiting for Ethereum node $(ETH_RPC) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \
 	done

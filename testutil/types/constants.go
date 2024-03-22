@@ -83,6 +83,7 @@ var (
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
 	}
 	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 )

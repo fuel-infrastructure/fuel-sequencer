@@ -50,8 +50,9 @@ func init() {
 }
 
 const (
-	BridgeDenom  = "ufuel"
-	minGasPrices = "0.01"
+	BridgeDenom       = "ufuel"
+	minGasPrices      = "0.01"
+	SupplyDeltaPeriod = uint64(10)
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
@@ -94,7 +95,7 @@ var (
 	}
 
 	// CONTRACT is the address of the proxy contract deployed on the Ethereum node.
-	CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+	CONTRACT = "0x101E64349abe34E53e3E6AAbE009197240AaE1cD"
 )
 
 var (
@@ -268,6 +269,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
+	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz
