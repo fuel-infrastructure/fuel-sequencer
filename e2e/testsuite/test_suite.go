@@ -50,8 +50,9 @@ func init() {
 }
 
 const (
-	BridgeDenom  = "ufuel"
-	minGasPrices = "0.01"
+	BridgeDenom       = "ufuel"
+	minGasPrices      = "0.01"
+	SupplyDeltaPeriod = uint64(10)
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
@@ -268,6 +269,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
+	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz
