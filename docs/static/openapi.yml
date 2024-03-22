@@ -8262,6 +8262,92 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/eth_events_tx/{block_number}:
+    get:
+      summary: EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
+      operationId: FuelsequencerBridgeQuery_EthEventsTxByBlockNumber
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              eth_events_tx:
+                description: >-
+                  eth_events_tx contains the Ethereum events transaction
+                  information.
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        event_type:
+                          type: string
+                        data:
+                          type: string
+                          format: byte
+                      description: >-
+                        Event stores the event data and type queried from
+                        Ethereum.
+                    description: events defines the list of Ethereum events.
+                  advance_sequencer:
+                    type: boolean
+                    title: >-
+                      advance_sequencer is a boolean which indicates whether the
+                      Sequencer should
+
+                      generate a new block. This is used to advance the
+                      Sequencer in cases where
+
+                      the Sidecar errors specifically due to no new blocks
+                      generated on Ethereum
+                  new_ethereum_block:
+                    type: boolean
+                    description: >-
+                      new_ethereum_block is a boolean which indicates whether a
+                      new Ethereum
+
+                      block has been detected by the Sidecar. This is needed to
+                      determine when
+
+                      LastEthereumBlockSynced should be incremented by the
+                      PreBlocker.
+                  block_number:
+                    type: string
+                    description: block_number is the block that these events belong to.
+            description: >-
+              QueryGetEthEventsTxByBlockNumberResponse is the response type for
+              the Query/EthEventsTxByBlockNumber RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: block_number
+          description: >-
+            block_number is the Ethereum block number for which the events are
+            queried.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced:
     get:
       summary: Queries the LastEthereumBlockSynced.
@@ -12349,6 +12435,44 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
+  fuelsequencer.bridge.EthEventsTx:
+    type: object
+    properties:
+      events:
+        type: array
+        items:
+          type: object
+          properties:
+            event_type:
+              type: string
+            data:
+              type: string
+              format: byte
+          description: Event stores the event data and type queried from Ethereum.
+        description: events defines the list of Ethereum events.
+      advance_sequencer:
+        type: boolean
+        title: >-
+          advance_sequencer is a boolean which indicates whether the Sequencer
+          should
+
+          generate a new block. This is used to advance the Sequencer in cases
+          where
+
+          the Sidecar errors specifically due to no new blocks generated on
+          Ethereum
+      new_ethereum_block:
+        type: boolean
+        description: >-
+          new_ethereum_block is a boolean which indicates whether a new Ethereum
+
+          block has been detected by the Sidecar. This is needed to determine
+          when
+
+          LastEthereumBlockSynced should be incremented by the PreBlocker.
+      block_number:
+        type: string
+        description: block_number is the block that these events belong to.
   fuelsequencer.bridge.Params:
     type: object
     properties:
@@ -12384,6 +12508,52 @@ definitions:
 
           delta info to Ethereum.
     description: Params defines the parameters for the module.
+  fuelsequencer.bridge.QueryGetEthEventsTxByBlockNumberResponse:
+    type: object
+    properties:
+      eth_events_tx:
+        description: eth_events_tx contains the Ethereum events transaction information.
+        type: object
+        properties:
+          events:
+            type: array
+            items:
+              type: object
+              properties:
+                event_type:
+                  type: string
+                data:
+                  type: string
+                  format: byte
+              description: Event stores the event data and type queried from Ethereum.
+            description: events defines the list of Ethereum events.
+          advance_sequencer:
+            type: boolean
+            title: >-
+              advance_sequencer is a boolean which indicates whether the
+              Sequencer should
+
+              generate a new block. This is used to advance the Sequencer in
+              cases where
+
+              the Sidecar errors specifically due to no new blocks generated on
+              Ethereum
+          new_ethereum_block:
+            type: boolean
+            description: >-
+              new_ethereum_block is a boolean which indicates whether a new
+              Ethereum
+
+              block has been detected by the Sidecar. This is needed to
+              determine when
+
+              LastEthereumBlockSynced should be incremented by the PreBlocker.
+          block_number:
+            type: string
+            description: block_number is the block that these events belong to.
+    description: >-
+      QueryGetEthEventsTxByBlockNumberResponse is the response type for the
+      Query/EthEventsTxByBlockNumber RPC method.
   fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
     type: object
     properties:
@@ -12490,6 +12660,15 @@ definitions:
           about these anyways. Note that offset can be positive (to account for
 
           unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.service.v1.Event:
+    type: object
+    properties:
+      event_type:
+        type: string
+      data:
+        type: string
+        format: byte
+    description: Event stores the event data and type queried from Ethereum.
   fuelsequencer.bridge.MsgSupplyDelta:
     type: object
     properties:
