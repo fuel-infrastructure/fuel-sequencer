@@ -136,13 +136,16 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 	block, exists := s.blocksMap[blockNumberStr]
 	if !exists {
 
-		// If the queried block is in the range of blocks saved in state, but no events were found, return an empty list
+		// If the queried block is in the range of blocks saved in state but no events were found, return an empty list.
+		// Example: if start block is 90 and next query block is 101, if there is no blocksMap entry for a query between
+		//          90 and 100, this means that the queried block had no events.
 		if (s.startQueryBlock != nil && s.nextQueryBlock != nil) &&
 			(blockNumber.Cmp(s.startQueryBlock) >= 0 && blockNumber.Cmp(s.nextQueryBlock) < 0) {
 			return []sidecartypes.Event{}, nil
 		}
 
 		// If the queried block is before the range of blocks saved in state, the state has been pruned.
+		// Example: if start block is 90 then we know that we do not have the data for 89 and before.
 		if s.startQueryBlock != nil && blockNumber.Cmp(s.startQueryBlock) < 0 {
 			return nil, fmt.Errorf("block %d was pruned or never fetched", blockNumber)
 		}
