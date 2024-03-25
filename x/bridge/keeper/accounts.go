@@ -10,7 +10,7 @@ import (
 )
 
 // vestingStartTimeDelay is a constant period of time during which tokens are completely locked.
-var vestingStartTimeDelay = time.Hour * 24 * 365
+const vestingStartTimeDelay = time.Hour * 24 * 365
 
 // blankEthOwnedContinuousVestingAccount returns a blank vesting account wrapped in EthOwnedContinuousVestingAccount.
 // We only need the blanked-out amounts from this struct, so we don't care about the other fields.
