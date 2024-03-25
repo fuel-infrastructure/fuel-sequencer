@@ -153,12 +153,14 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Reset SupplyDeltaProcessed in preparation for next block. It is important that SupplyDeltaProcessed is set to
-	// false even in the case of an error emerging from the EndBlock logic further below. This is important as otherwise
-	// we might have incorrect state for an upcoming supply delta update. At the time of writing,
-	// UpdateSupplyDeltaInfoWithNewDelta doesn't error, therefore, we don't need to add an ApplyFuncIfNoError function.
+	// Reset SupplyDeltaProcessed in preparation for next block.
 	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
 
+	// Process the Ethereum events injected at lastEthereumBlockSynced height.
+	lastEthereumBlockSynced := am.keeper.MustGetLastEthereumBlockSynced(ctx)
+	am.keeper.ProcessEthereumEvents(ctx, lastEthereumBlockSynced)
+
+	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
 
 	return nil
