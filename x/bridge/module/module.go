@@ -157,8 +157,7 @@ func (am AppModule) EndBlock(goCtx context.Context) error {
 	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
 
 	// Process the Ethereum events injected at lastEthereumBlockSynced height.
-	lastEthereumBlockSynced := am.keeper.MustGetLastEthereumBlockSynced(ctx)
-	am.keeper.ProcessEthereumEvents(ctx, lastEthereumBlockSynced)
+	am.keeper.ProcessEthereumEvents(ctx)
 
 	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
