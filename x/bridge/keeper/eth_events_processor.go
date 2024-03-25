@@ -14,6 +14,9 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 
 	// Get EthEventsTx at lastEthereumBlockSynced
 	ethEventsTx, found := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
+
+	// TODO: REMOVE
+	k.Logger().Info("dahna", "lebs", lastEthereumBlockSynced, "found", found)
 	if !found {
 		// If EthEventsTx is not found then either the block has already been processed or no new events where generated
 		return
@@ -80,5 +83,19 @@ func (k Keeper) ProcessAuthorizeEvent(ctx sdk.Context, event *sidecartypes.Autho
 	// TODO: ICA like logic inside of switch statement.
 	// TODO: Double context is important so we control when an error is written. Write error only if not all messages
 	//     : can be processed, I think we don't need to cache double context because the outside is enough.
+
+	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
+	msgs, err := k.DeserializeAuthorizeTx(k.cdc, event)
+	if err != nil {
+		return fmt.Errorf("failed to deserialize authorize transaction from AuthorizeEvent.Message: %w", err)
+	}
+
+	// TODO: Remove, there is one up in this file and in proposal_handler. Please remove these todos after solve parsing
+	k.Logger().Info("dylan", "msgs", msgs)
+
+	// TODO: Implement ValidateBasic of Msgs in authenticate function or something like that
+
+	// TODO: Execute msgs, emit events for responses?
+
 	return nil
 }

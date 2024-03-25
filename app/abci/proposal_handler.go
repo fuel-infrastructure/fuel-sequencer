@@ -448,6 +448,9 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 		return nil, fmt.Errorf("failed to decode injected eth events tx: %w", err)
 	}
 
+	// TODO: REMOVE
+	h.logger.Info("etheventstx", "txs", injectedEthEventsTx.String(), "len", len(injectedEthEventsTx.Events))
+
 	// Set the injected events into state if any.
 	if len(injectedEthEventsTx.Events) > 0 {
 		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
