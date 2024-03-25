@@ -39,8 +39,6 @@ type ethOwnedAccountPretty struct {
 	AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
 }
 
-// TODO: save mapping from AccountOwner to the EthOwnedAccount's address
-
 // GenerateSequencerAddressFromEthereumAddress trims the 0x prefix from an Ethereum address, if any,
 // and decodes it into bytes before passing it to GenerateSequencerAddressFromEthereumAddressFromBz.
 func GenerateSequencerAddressFromEthereumAddress(ethAddress string) (sdk.AccAddress, error) {
