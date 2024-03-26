@@ -99,7 +99,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().NoError(err)
 		s.Require().Equal(ethHeight2, ethHeight1+2)
 
-		// Ensure deposit event is at ethHeigh1+1
+		// Ensure deposit event is at ethHeight1+1
 		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+1))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
@@ -119,7 +119,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 			Duration: amount2.String(),
 		}))
 
-		// Ensure authorize event is at ethHeigh1+2
+		// Ensure authorize event is at ethHeight1+2
 		authorizeEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+2))
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
@@ -136,10 +136,36 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- PreBlocker
 
-		// TODO: Ensure that the Sequencer is synced up. (once we have PreBlocker logic)
-		//err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		s.Require().NoError(err)
+		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)
+
+		// --------------------------------------- User withdrawals on the Sequencer
+		aliceWallet := testsuite.ADDRESSES[1]
+
+		aliceBalance, err := s.QueryAllBalances(s.Ctx(), aliceWallet, nil)
+		s.Require().NoError(err)
+		s.Require().NotNil(aliceBalance)
+
+		//// Users withdraw some fuel tokens that were deposited.
+		//from := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[0])
+		//to := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[1])
+		//amount := sdk.NewCoins(sdk.NewInt64Coin(testsuite.BridgeDenom, 100))
+		//msg := banktypes.NewMsgSend(from, to, amount)
+		//res, err := s.SubmitMsgs(msg)
 		//s.Require().NoError(err)
-		//lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
-		//s.Require().Equal(ethHeight2, lastEthereumBlockSynced)
+		//s.Require().Zero(res.Code)
+		//
+		//// Wait for blocks (RPC).
+		//err = s.WaitForBlocks(s.Ctx(), 2, time.Minute)
+		//s.Require().NoError(err)
+		//
+		//// Ensure balance was reduced (GRPC)
+		//// Note: a fee was also charged.
+		//updatedBalance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
+		//s.Require().NoError(err)
+		//s.Require().True(updatedBalance.Balances.IsAllLT(balance.Balances))
+
 	})
 }
