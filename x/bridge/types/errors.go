@@ -22,5 +22,7 @@ var (
 		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
 	)
 	ErrCouldNotDeserializeAuthorizeTx = sdkerrors.Register(ModuleName, 1107, "could not deserialize AuthorizeTx")
-	ErrCouldExecuteMsg                = sdkerrors.Register(ModuleName, 1108, "could not execute msg")
+	ErrCouldNotExecuteMsg             = sdkerrors.Register(ModuleName, 1108, "could not execute msg")
+	ErrCouldNotAuthenticateTx         = sdkerrors.Register(ModuleName, 1109, "could not authenticate tx")
+	ErrCouldNotValidateMsg            = sdkerrors.Register(ModuleName, 1110, "could not validate msg")
 )

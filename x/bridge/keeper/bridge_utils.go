@@ -56,3 +56,19 @@ func (k Keeper) DeserializeAuthorizeTx(cdc codec.BinaryCodec, event *sidecartype
 
 	return msgs, nil
 }
+
+// AuthorizedMessage returns true if the sdk.Msg TypeURL is present in messagesAllowed, otherwise false
+func AuthorizedMessage(messagesAllowed []string, msg sdk.Msg) bool {
+	// Check that wildcard * option for allowing all message types is the only string in the array, if so, return true
+	if len(messagesAllowed) == 1 && messagesAllowed[0] == types.AllowAllAuthorizeMessages {
+		return true
+	}
+
+	for _, messageAllowed := range messagesAllowed {
+		if messageAllowed == sdk.MsgTypeURL(msg) {
+			return true
+		}
+	}
+
+	return false
+}

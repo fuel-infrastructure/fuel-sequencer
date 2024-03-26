@@ -16,7 +16,7 @@ func TestProtoSerialization(t *testing.T) {
 	// Construct the MsgSend with your specified addresses
 	amt, _ := sdkmath.NewIntFromString("10")
 	msgsend := &banktypes.MsgSend{
-		FromAddress: "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+		FromAddress: "fuelsequencer13hfdkxj5aeqzsll569mqreedkafp34ngcsjkqjmpq6prtgv80kcq83gttw",
 		ToAddress:   "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 		Amount: []sdk.Coin{
 			{Denom: "ufuel", Amount: amt}, // Example amount, adjust as needed
