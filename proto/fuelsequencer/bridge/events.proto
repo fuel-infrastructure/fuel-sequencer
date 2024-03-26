@@ -4,6 +4,7 @@ package fuelsequencer.bridge;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -41,4 +42,11 @@ message EventWithdrawToEthereumReported {
 
   // amount is the tokens being sent, which must be the expacted bridge token.
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
+}
+
+message EventAuthorizedTxExecuted {
+
+  // msg_responses is the list of responses generated after executing every
+  // message in AuthorizeTx
+  repeated google.protobuf.Any msg_responses = 1;
 }

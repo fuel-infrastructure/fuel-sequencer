@@ -21,6 +21,6 @@ var (
 	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106,
 		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
 	)
-	ErrEthEventsTxBlockNotSequential = sdkerrors.Register(
-		ModuleName, 1107, "eth events tx block number is not the increment of last ethereum block synced")
+	ErrCouldNotDeserializeAuthorizeTx = sdkerrors.Register(ModuleName, 1107, "could not deserialize AuthorizeTx")
+	ErrCouldExecuteMsg                = sdkerrors.Register(ModuleName, 1108, "could not execute msg")
 )

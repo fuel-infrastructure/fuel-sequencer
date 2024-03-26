@@ -3,9 +3,11 @@ package keeper
 import (
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // ProcessEthereumEvents processes the Ethereum events injected at lastEthereumBlockSynced
@@ -76,24 +78,47 @@ func (k Keeper) ProcessSendToSequencerEvent(ctx sdk.Context, event *sidecartypes
 
 // ProcessAuthorizeEvent attempts to process an AuthorizeEvent
 func (k Keeper) ProcessAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent) error {
-	// TODO: Authorize Messages, all pass or none at all, return error in this case.
-	// TODO: Do I need to save cache ctx at this stage? Probably yes because we are saving to cache not to state. Something to check.
-	// TODO: ICA like logic inside of switch statement.
-	// TODO: Double context is important so we control when an error is written. Write error only if not all messages
-	//     : can be processed, I think we don't need to cache double context because the outside is enough.
 
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := k.DeserializeAuthorizeTx(k.cdc, event)
 	if err != nil {
-		return fmt.Errorf("failed to deserialize authorize transaction from AuthorizeEvent.Message: %w", err)
+		return types.ErrCouldNotDeserializeAuthorizeTx.Wrapf("%w", err)
 	}
 
-	// TODO: Remove, there is one up in this file and in proposal_handler. Please remove these todos after solve parsing
-	k.Logger().Info("dylan", "msgs", msgs)
+	// TODO: Authenticate Tx here and return error if authentication fails
 
-	// TODO: Implement ValidateBasic of Msgs in authenticate function or something like that
+	// Execute every deserialized msg. If one of the messages errors during execution we will revert the state. i.e.
+	// either all messages get executed successfully or none at all.
+	txMsgData := &sdk.TxMsgData{
+		MsgResponses: make([]*codectypes.Any, len(msgs)),
+	}
+	err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 
-	// TODO: Execute msgs, emit events for responses?
+		// TODO: Perform validate basic here and return error if one of the msgs fail validation
+
+		for index, msg := range msgs {
+			msgResponse, err := k.executeMsg(ctx, msg)
+			if err != nil {
+				return types.ErrCouldExecuteMsg.Wrapf("msg: %s err: %w", msg.String(), err)
+			}
+			txMsgData.MsgResponses[index] = msgResponse
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventAuthorizedTxExecuted{MsgResponses: txMsgData.MsgResponses})
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+// ExecuteMsg attempts to execute an authorized message originating from Ethereum
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
+	return nil, nil
 }
