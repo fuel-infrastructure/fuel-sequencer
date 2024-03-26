@@ -9,6 +9,7 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -52,7 +53,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 		vestingStartTime     time.Time
 		fundAccount          sdk.Coins
 		args                 fnArgs
-		isAccountAsExpected  accountValidator
+		isAccountAsExpected  testutil.AccountValidator
 		expectSpendableCoins sdk.Coins
 		expectErrMsg         string
 	}{
@@ -99,7 +100,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: 0,
 				totalCoins:      nil,
 			},
-			isAccountAsExpected:  matchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: nil,
 		},
 		{
@@ -111,7 +112,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  matchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token100,
 		},
 		{
@@ -130,7 +131,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0Plus1Year.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -159,7 +160,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0Plus1Year.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -185,7 +186,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  matchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
 		{
@@ -213,7 +214,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  matchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
 		{
@@ -234,7 +235,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0Plus1Year.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -274,7 +275,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0Plus1Year.Unix(), // precreated account's vesting start time is disregarded
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -307,7 +308,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0Plus1Year.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -351,7 +352,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 				vestingDuration: years100, // NB: this gets ignored if account is EthOwnedContinuousVestingAccount
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: matchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0Plus1Year.Unix(), // precreated account's vesting start time is disregarded
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{

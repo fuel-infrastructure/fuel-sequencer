@@ -1,4 +1,4 @@
-package keeper_test
+package testutil
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -7,10 +7,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-type accountValidator func(acc sdk.AccountI) bool
+type AccountValidator func(acc sdk.AccountI) bool
 
-// matchesEthOwnedAcc asserts that the account matches the specified EthOwnedBaseAccount.
-func matchesEthOwnedAcc(expected *types.EthOwnedBaseAccount) accountValidator {
+// MatchesEthOwnedAcc asserts that the account matches the specified EthOwnedBaseAccount.
+func MatchesEthOwnedAcc(expected *types.EthOwnedBaseAccount) AccountValidator {
 	return func(acc sdk.AccountI) bool {
 		bAcc, ok := acc.(*types.EthOwnedBaseAccount)
 		return ok &&
@@ -22,14 +22,14 @@ func matchesEthOwnedAcc(expected *types.EthOwnedBaseAccount) accountValidator {
 	}
 }
 
-// matchesEthOwnedAccRaw is a wrapper for matchesEthOwnedAcc that accepts the raw values of EthOwnedBaseAccount instead
+// MatchesEthOwnedAccRaw is a wrapper for matchesEthOwnedAcc that accepts the raw values of EthOwnedBaseAccount instead
 // of EthOwnedBaseAccount directly.
-func matchesEthOwnedAccRaw(ba *authtypes.BaseAccount, owner string) accountValidator {
-	return matchesEthOwnedAcc(types.NewEthOwnedBaseAccount(ba, owner))
+func MatchesEthOwnedAccRaw(ba *authtypes.BaseAccount, owner string) AccountValidator {
+	return MatchesEthOwnedAcc(types.NewEthOwnedBaseAccount(ba, owner))
 }
 
-// matchesEthOwnedContinuousVestingAcc asserts that the account matches the specified EthOwnedContinuousVestingAccount.
-func matchesEthOwnedContinuousVestingAcc(expected *types.EthOwnedContinuousVestingAccount) accountValidator {
+// MatchesEthOwnedContinuousVestingAcc asserts that the account matches the specified EthOwnedContinuousVestingAccount.
+func MatchesEthOwnedContinuousVestingAcc(expected *types.EthOwnedContinuousVestingAccount) AccountValidator {
 	return func(acc sdk.AccountI) bool {
 		vAcc, ok := acc.(*types.EthOwnedContinuousVestingAccount)
 		return ok &&
@@ -39,12 +39,12 @@ func matchesEthOwnedContinuousVestingAcc(expected *types.EthOwnedContinuousVesti
 			(vAcc.DelegatedFree.Equal(expected.DelegatedFree)) &&
 			(vAcc.DelegatedVesting.Equal(expected.DelegatedVesting)) &&
 			(vAcc.EndTime == expected.EndTime) &&
-			matchesEthOwnedAcc(expected.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount())
+			MatchesEthOwnedAcc(expected.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount())
 	}
 }
 
-// matchesEthOwnedContinuousVestingAccRaw is a wrapper for matchesEthOwnedContinuousVestingAcc that accepts the raw
+// MatchesEthOwnedContinuousVestingAccRaw is a wrapper for matchesEthOwnedContinuousVestingAcc that accepts the raw
 // values of EthOwnedContinuousVestingAcc instead of EthOwnedContinuousVestingAcc directly.
-func matchesEthOwnedContinuousVestingAccRaw(cva *vestingtypes.ContinuousVestingAccount, owner string) accountValidator {
-	return matchesEthOwnedContinuousVestingAcc(types.NewEthOwnedContinuousVestingAccount(cva, owner))
+func MatchesEthOwnedContinuousVestingAccRaw(cva *vestingtypes.ContinuousVestingAccount, owner string) AccountValidator {
+	return MatchesEthOwnedContinuousVestingAcc(types.NewEthOwnedContinuousVestingAccount(cva, owner))
 }
