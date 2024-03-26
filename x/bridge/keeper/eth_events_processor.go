@@ -117,5 +117,4 @@ func (k Keeper) processSendToSequencerEvent(
 	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(amount)
 
 	// TODO do we store the supplyDeltaInfo or do we just keep adding the offset?
-	return
 }
