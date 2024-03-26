@@ -231,7 +231,7 @@ run-sequencer: proto-go-gen serve
 
 run-sidecar:
 	@$(eval ETH_RPC := "http://localhost:8545")
-	@$(eval CONTRACT_ADDRESS := "0x101E64349abe34E53e3E6AAbE009197240AaE1cD")
+	@$(eval CONTRACT_ADDRESS := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
 	@echo "Waiting for Ethereum node $(ETH_RPC) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \

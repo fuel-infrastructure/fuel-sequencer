@@ -94,8 +94,8 @@ var (
 		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 	}
 
-	// CONTRACT is the address of the proxy contract deployed on the Ethereum node.
-	CONTRACT = "0x101E64349abe34E53e3E6AAbE009197240AaE1cD"
+	// CONTRACT is the address of the contract that generates events, deployed on the Ethereum node.
+	CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 )
 
 var (
