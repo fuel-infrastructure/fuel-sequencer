@@ -66,8 +66,8 @@ func (m *EthOwnedBaseAccount) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EthOwnedBaseAccount proto.InternalMessageInfo
 
-// An EthOwnedVestingAccount wraps a ContinuousVestingAccount that is known to
-// be owned and controlled by an Ethereum address.
+// An EthOwnedContinuousVestingAccount wraps a ContinuousVestingAccount
+// that is known to be owned and controlled by an Ethereum address.
 type EthOwnedContinuousVestingAccount struct {
 	*types1.ContinuousVestingAccount `protobuf:"bytes,1,opt,name=vesting_account,json=vestingAccount,proto3,embedded=vesting_account" json:"vesting_account,omitempty"`
 	// account_owner is the Ethereum address that owns and controls this account.

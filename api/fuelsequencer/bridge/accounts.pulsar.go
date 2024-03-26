@@ -1073,8 +1073,8 @@ func (x *EthOwnedBaseAccount) GetAccountOwner() string {
 	return ""
 }
 
-// An EthOwnedVestingAccount wraps a ContinuousVestingAccount that is known to
-// be owned and controlled by an Ethereum address.
+// An EthOwnedContinuousVestingAccount wraps a ContinuousVestingAccount
+// that is known to be owned and controlled by an Ethereum address.
 type EthOwnedContinuousVestingAccount struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

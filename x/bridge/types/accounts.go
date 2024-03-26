@@ -5,6 +5,7 @@ package types
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -28,6 +29,10 @@ var (
 // EthOwnedAccountI wraps the sdk.AccountI interface
 type EthOwnedAccountI interface {
 	sdk.AccountI
+
+	// AddVestingCoins adds new coins with the specified vesting start and end times.
+	// If the account is already a vesting account, the start and end time should be ignored.
+	AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error)
 }
 
 // ethOwnedAccountPretty defines an unexported struct used for encoding the EthOwnedAccount details
@@ -76,6 +81,19 @@ func NewEthOwnedBaseAccountWithAddress(address sdk.AccAddress, owner string) *Et
 		BaseAccount:  authtypes.NewBaseAccountWithAddress(address),
 		AccountOwner: owner,
 	}
+}
+
+// AddVestingCoins converts the EthOwnedBaseAccount into an EthOwnedContinuousVestingAccount with the specified coins
+// as the original vesting amount and the specified start and end times. Any coins that were already in this account
+// will still remain available since we're not considering them when setting the vesting amount.
+func (a EthOwnedBaseAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
+	newVestingAcc, err := vestingtypes.NewContinuousVestingAccount(
+		a.BaseAccount, coins, startTime.Unix(), endTime.Unix(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return NewEthOwnedContinuousVestingAccount(newVestingAcc, a.AccountOwner), nil
 }
 
 // SetPubKey implements the authtypes.AccountI interface
@@ -159,7 +177,7 @@ func (a *EthOwnedBaseAccount) UnmarshalJSON(bz []byte) error {
 
 // --------------------- EthOwnedContinuousVestingAccount
 
-// NewEthOwnedContinuousVestingAccount creates and returns a new EthOwnedVestingAccount type
+// NewEthOwnedContinuousVestingAccount creates and returns a new EthOwnedContinuousVestingAccount type
 func NewEthOwnedContinuousVestingAccount(
 	cva *vestingtypes.ContinuousVestingAccount, owner string,
 ) *EthOwnedContinuousVestingAccount {
@@ -167,6 +185,13 @@ func NewEthOwnedContinuousVestingAccount(
 		ContinuousVestingAccount: cva,
 		AccountOwner:             owner,
 	}
+}
+
+// AddVestingCoins ignores the specified vesting start and end times since these have already been set. The new coins
+// will be added to the vesting amount with the existing vesting schedule.
+func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, _, _ time.Time) (EthOwnedAccountI, error) {
+	a.OriginalVesting = a.OriginalVesting.Add(coins...)
+	return a, nil
 }
 
 // SetPubKey implements the authtypes.AccountI interface
@@ -249,6 +274,7 @@ func (a *EthOwnedContinuousVestingAccount) UnmarshalJSON(bz []byte) error {
 }
 
 // ToEthOwnedBaseAccount discards vesting details and converts the account to an EthOwnedBaseAccount
+// This is mostly intended for testing where we might want to switch the account type.
 func (a EthOwnedContinuousVestingAccount) ToEthOwnedBaseAccount() *EthOwnedBaseAccount {
 	return NewEthOwnedBaseAccount(a.BaseAccount, a.AccountOwner)
 }
