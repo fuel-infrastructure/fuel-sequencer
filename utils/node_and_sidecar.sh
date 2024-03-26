@@ -9,7 +9,7 @@ fuelsequencerd start \
 fuelsequencerd start-sidecar \
   --host "0.0.0.0" \
   --eth_node_rpc "http://ethereum:8545" \
-  --contract_address "0x101E64349abe34E53e3E6AAbE009197240AaE1cD" \
+  --contract_address "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853" \
   --development=true \
   &
 
