@@ -196,3 +196,6 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error
 
 	return msgResponse, nil
 }
+
+// TODO: Consider refactoring the errors such that ProcessAuthorizeEvent simply returns the error. All specific errors
+// should go inside the concrete functions. Also, try make use of already defined cosmos sdk errors.
