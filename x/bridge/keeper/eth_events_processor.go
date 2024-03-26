@@ -174,6 +174,25 @@ func (k Keeper) authenticateTx(ctx sdk.Context, sender string, msgs []sdk.Msg) e
 }
 
 // ExecuteMsg attempts to execute an authorized message originating from Ethereum
-func (k Keeper) executeMsg(_ sdk.Context, _ sdk.Msg) (*codectypes.Any, error) {
-	return nil, nil
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
+	handler := k.router.Handler(msg)
+	if handler == nil {
+		return nil, fmt.Errorf("invalid route %s", sdk.MsgTypeURL(msg))
+	}
+
+	res, err := handler(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	// The sdk msg handler creates a new EventManager, so events must be correctly propagated back to current context
+	ctx.EventManager().EmitEvents(res.GetEvents())
+
+	// Each individual sdk.Result has exactly one Msg response.
+	msgResponse := res.MsgResponses[0]
+	if msgResponse == nil {
+		return nil, fmt.Errorf("got nil msg response for msg %s", sdk.MsgTypeURL(msg))
+	}
+
+	return msgResponse, nil
 }
