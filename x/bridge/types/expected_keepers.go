@@ -11,6 +11,8 @@ type AccountKeeper interface {
 	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
 	NewAccount(context.Context, sdk.AccountI) sdk.AccountI
 	SetAccount(context.Context, sdk.AccountI)
+
+	GetModuleAddress(moduleName string) sdk.AccAddress
 	// Methods imported from account should be defined here
 }
 
@@ -24,6 +26,11 @@ type BankKeeper interface {
 	BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	// Methods imported from bank should be defined here
+}
+
+// DistributionKeeper defines the distribution contract that must be fulfilled when creating a x/bridge keeper.
+type DistributionKeeper interface {
+	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
 
 // ParamSubspace defines the expected Subspace interface for parameters.
