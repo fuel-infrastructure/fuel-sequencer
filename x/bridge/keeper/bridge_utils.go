@@ -1,9 +1,6 @@
 package keeper
 
 import (
-	"errors"
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,14 +30,12 @@ func (k Keeper) BurnCoinsFromAddress(ctx sdk.Context, address sdk.AccAddress, am
 func (k Keeper) DeserializeAuthorizeTx(cdc codec.BinaryCodec, event *sidecartypes.AuthorizeEvent) ([]sdk.Msg, error) {
 	// this is a defensive check to ensure only the ProtoCodec is used for message unmarshalling
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, errors.New(
-			"codec is not supported: only the ProtoCodec may be used for receiving messages on the Sequencer",
-		)
+		return nil, types.ErrCodecIsNotSupported.Wrap(types.ErrStrOnlyProtoCodecAllowed)
 	}
 
 	var authorizeTx types.AuthorizeTx
 	if err := cdc.Unmarshal(event.Message, &authorizeTx); err != nil {
-		return nil, fmt.Errorf("could not unmarshal AuthorizeTx with protobuf: %w", err)
+		return nil, err
 	}
 
 	msgs := make([]sdk.Msg, len(authorizeTx.Messages))
@@ -49,7 +44,7 @@ func (k Keeper) DeserializeAuthorizeTx(cdc codec.BinaryCodec, event *sidecartype
 		var msg sdk.Msg
 		err := cdc.UnpackAny(protoAny, &msg)
 		if err != nil {
-			return nil, fmt.Errorf("could not unpack Any message to sdk.Msg: %w", err)
+			return nil, err
 		}
 		msgs[i] = msg
 	}

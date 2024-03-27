@@ -9,10 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// Registered errors
 var (
-	ErrInvalidSigner = sdkerrors.Register(
-		ModuleName, 1100, "expected gov account as only signer for proposal message",
-	)
+	ErrInvalidSigner            = sdkerrors.Register(ModuleName, 1100, "invalid signer")
 	ErrInvalidSupplyDeltaPeriod = sdkerrors.Register(ModuleName, 1101, "invalid param SupplyDeltaPeriod")
 	ErrUnexpectedOperation      = sdkerrors.Register(ModuleName, 1102, "operation was not expected")
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
@@ -21,8 +20,17 @@ var (
 	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106,
 		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
 	)
-	ErrCouldNotDeserializeAuthorizeTx = sdkerrors.Register(ModuleName, 1107, "could not deserialize AuthorizeTx")
-	ErrCouldNotExecuteMsg             = sdkerrors.Register(ModuleName, 1108, "could not execute msg")
-	ErrCouldNotAuthenticateTx         = sdkerrors.Register(ModuleName, 1109, "could not authenticate tx")
-	ErrCouldNotValidateMsg            = sdkerrors.Register(ModuleName, 1110, "could not validate msg")
+	ErrCodecIsNotSupported              = sdkerrors.Register(ModuleName, 1107, "codec is not supported")
+	ErrCouldNotGenerateSequencerAddress = sdkerrors.Register(
+		ModuleName, 1108, "could not generate Sequencer address from Ethereum address",
+	)
+	ErrMsgNotAuthorizedOnSequencer = sdkerrors.Register(ModuleName, 1109, "message not authorized on Sequencer")
+	ErrFailedToObtainMsgSigners    = sdkerrors.Register(ModuleName, 1110, "failed to obtain message signers")
+	ErrInvalidMsgHandlerRoute      = sdkerrors.Register(ModuleName, 1111, "invalid MsgHandler route")
+	ErrNilMsgResponse              = sdkerrors.Register(ModuleName, 1112, "got nil msg response")
+)
+
+// Some constant error strings used throughout the module
+var (
+	ErrStrOnlyProtoCodecAllowed = "only the ProtoCodec may be used for receiving messages on the Sequencer"
 )

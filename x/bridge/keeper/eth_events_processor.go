@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -84,11 +83,11 @@ func (k Keeper) ProcessAuthorizeEvent(ctx sdk.Context, event *sidecartypes.Autho
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := k.DeserializeAuthorizeTx(k.cdc, event)
 	if err != nil {
-		return types.ErrCouldNotDeserializeAuthorizeTx.Wrapf("%v", err)
+		return fmt.Errorf("could not deserialize AuthorizeTx: %w", err)
 	}
 
 	if err = k.authenticateTx(ctx, event.From, msgs); err != nil {
-		return types.ErrCouldNotAuthenticateTx.Wrapf("%v", err)
+		return fmt.Errorf("could not authenticate AuthorizeTx: %w", err)
 	}
 
 	// Execute every deserialized msg. If one of the messages errors during execution we will revert the state. i.e.
@@ -102,14 +101,14 @@ func (k Keeper) ProcessAuthorizeEvent(ctx sdk.Context, event *sidecartypes.Autho
 			// Confirm that the message passes the necessary stateless checks
 			if m, ok := msg.(sdk.HasValidateBasic); ok {
 				if err := m.ValidateBasic(); err != nil {
-					return types.ErrCouldNotValidateMsg.Wrapf("msg: %s err: %v", msg.String(), err)
+					return fmt.Errorf("could not validate msg: msg %s, err: %w", msg.String(), err)
 				}
 			}
 
 			// Execute message and store the response
 			msgResponse, err := k.executeMsg(ctx, msg)
 			if err != nil {
-				return types.ErrCouldNotExecuteMsg.Wrapf("msg: %s err: %v", msg.String(), err)
+				return fmt.Errorf("could not execute msg: msg %s, err: %w", msg.String(), err)
 			}
 			txMsgData.MsgResponses[index] = msgResponse
 		}
@@ -134,7 +133,7 @@ func (k Keeper) authenticateTx(ctx sdk.Context, sender string, msgs []sdk.Msg) e
 	// Generate the Sequencer address from the Ethereum address
 	mappedSequencerAddr, err := types.GenerateSequencerAddressFromEthereumAddress(sender)
 	if err != nil {
-		return fmt.Errorf("could not generate Sequencer address from Ethereum address: %w", err)
+		return types.ErrCouldNotGenerateSequencerAddress.Wrapf("%v", err)
 	}
 
 	messagesAllowed := k.GetParams(ctx).AuthorizeMessagesAllowed
@@ -142,29 +141,25 @@ func (k Keeper) authenticateTx(ctx sdk.Context, sender string, msgs []sdk.Msg) e
 
 		// Check that the message is authorized
 		if !AuthorizedMessage(messagesAllowed, msg) {
-			return fmt.Errorf("message %s not authorized on Sequencer", sdk.MsgTypeURL(msg))
+			return types.ErrMsgNotAuthorizedOnSequencer.Wrapf("%s", sdk.MsgTypeURL(msg))
 		}
 
 		// Obtain the message signers using the proto signer annotations
 		protoCodec, ok := k.cdc.(*codec.ProtoCodec)
 		if !ok {
-			return errors.New(
-				"codec is not supported: only the ProtoCodec may be used for receiving messages on the Sequencer",
-			)
+			return types.ErrCodecIsNotSupported.Wrap(types.ErrStrOnlyProtoCodecAllowed)
 		}
 		signers, _, err := protoCodec.GetMsgV1Signers(msg)
 		if err != nil {
-			return fmt.Errorf("failed to obtain message signers for message type %s: %w", sdk.MsgTypeURL(msg), err)
+			return types.ErrFailedToObtainMsgSigners.Wrapf("msg %s, err %v", sdk.MsgTypeURL(msg), err)
 		}
 
 		for _, signer := range signers {
 
 			// Make sure that the message signer is equivalent to the mapped Sequencer address of the sender on Ethereum
 			if mappedSequencerAddr.String() != sdk.AccAddress(signer).String() {
-				return fmt.Errorf(
-					"unexpected signer address: expected %s, got %s",
-					mappedSequencerAddr.String(),
-					sdk.AccAddress(signer).String(),
+				return types.ErrInvalidSigner.Wrapf(
+					"expected %s, got %s", mappedSequencerAddr.String(), sdk.AccAddress(signer).String(),
 				)
 			}
 		}
@@ -177,7 +172,7 @@ func (k Keeper) authenticateTx(ctx sdk.Context, sender string, msgs []sdk.Msg) e
 func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
 	handler := k.router.Handler(msg)
 	if handler == nil {
-		return nil, fmt.Errorf("invalid route %s", sdk.MsgTypeURL(msg))
+		return nil, types.ErrInvalidMsgHandlerRoute
 	}
 
 	res, err := handler(ctx, msg)
@@ -191,11 +186,8 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error
 	// Each individual sdk.Result has exactly one Msg response.
 	msgResponse := res.MsgResponses[0]
 	if msgResponse == nil {
-		return nil, fmt.Errorf("got nil msg response for msg %s", sdk.MsgTypeURL(msg))
+		return nil, types.ErrNilMsgResponse.Wrapf("%s", sdk.MsgTypeURL(msg))
 	}
 
 	return msgResponse, nil
 }
-
-// TODO: Consider refactoring the errors such that ProcessAuthorizeEvent simply returns the error. All specific errors
-// should go inside the concrete functions. Also, try make use of already defined cosmos sdk errors.
