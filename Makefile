@@ -239,6 +239,7 @@ run-sidecar:
 	@fuelsequencerd start-sidecar \
 		--eth_node_rpc "$(ETH_RPC)" \
 		--contract_address "$(CONTRACT_ADDRESS)" \
+		--eth_max_block_range 1 \
 		--development=true
 
 serve:
