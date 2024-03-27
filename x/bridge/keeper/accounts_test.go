@@ -196,7 +196,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			// actualVestingEndTime:   t0 + 2 years
 			//
 			// Block time is before the actual start time, so we expect no tokens to be available in precreated account.
-			// But the vesting account will get overridden by a EthOwnedBaseAccount and all tokens become available.
+			// But the vesting account will get overridden by an EthOwnedBaseAccount and all tokens become available.
 			name: "deposit with no vesting overrides ContinuousVestingAccount => EthOwnedBaseAccount",
 			precreateAccount: &vestingtypes.ContinuousVestingAccount{
 				StartTime: t0Plus1Year.Unix(),
