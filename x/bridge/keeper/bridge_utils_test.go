@@ -65,8 +65,7 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 }
 
 func (s *KeeperTestSuite) TestDeserializeAuthorizeTx() {
-	amt, ok := sdkmath.NewIntFromString("10")
-	s.Require().True(ok)
+	amt := sdkmath.NewInt(10)
 
 	testCases := []struct {
 		name      string
@@ -79,7 +78,7 @@ func (s *KeeperTestSuite) TestDeserializeAuthorizeTx() {
 			event: testtypes.TestAuthorizeEvent1,
 			expMsgs: []sdk.Msg{
 				&banktypes.MsgSend{
-					FromAddress: testtypes.TestFrom1Eth,
+					FromAddress: testtypes.TestFrom1Seq,
 					ToAddress:   testtypes.TestTo3,
 					Amount: []sdk.Coin{
 						{Denom: "ufuel", Amount: amt},

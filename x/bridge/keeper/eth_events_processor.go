@@ -17,7 +17,6 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 
 	// Get EthEventsTx at lastEthereumBlockSynced
 	ethEventsTx, found := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
-
 	if !found {
 		// If EthEventsTx is not found then either the block has already been processed or no new events where generated
 		return
