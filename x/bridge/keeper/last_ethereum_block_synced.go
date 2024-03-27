@@ -9,7 +9,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// SetLastEthereumBlockSynced set lastEthereumBlockSynced in the store
+// SetLastEthereumBlockSynced sets lastEthereumBlockSynced in the store
 func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBlockSynced math.Int) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)

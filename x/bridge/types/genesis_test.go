@@ -28,8 +28,9 @@ func TestValidateGenesisState(t *testing.T) {
 					Delta:      math.NewInt(34),
 					Offset:     math.NewInt(123),
 				},
-				LastEthereumNonce:       math.NewInt(3),
-				LastEthereumBlockSynced: math.NewInt(1),
+				LastEthereumNonce:        math.NewInt(3),
+				LastEthereumBlockSynced:  math.NewInt(1),
+				EthereumEventIndexOffset: math.NewInt(2),
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,

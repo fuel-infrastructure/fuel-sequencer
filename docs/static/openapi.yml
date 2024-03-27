@@ -8350,6 +8350,38 @@ paths:
           type: string
       tags:
         - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/ethereum_event_index_offset:
+    get:
+      summary: Queries the EthereumEventIndexOffset.
+      operationId: FuelsequencerBridgeQuery_EthereumEventIndexOffset
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              offset:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced:
     get:
       summary: Queries the LastEthereumBlockSynced.
@@ -12658,6 +12690,11 @@ definitions:
     description: |-
       QueryGetEthEventsTxByBlockNumberResponse is the response type for the
       Query/EthEventsTxByBlockNumber RPC method.
+  fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse:
+    type: object
+    properties:
+      offset:
+        type: string
   fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
     type: object
     properties:

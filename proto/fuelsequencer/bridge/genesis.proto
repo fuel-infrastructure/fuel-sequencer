@@ -40,4 +40,14 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  // ethereum_event_index_offset is the number of events to skip
+  // from the next Ethereum block to query from the Sidecar. This
+  // is used if queried events do not
+  bytes ethereum_event_index_offset = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
