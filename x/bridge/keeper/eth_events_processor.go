@@ -140,7 +140,7 @@ func (k Keeper) authenticateTx(ctx sdk.Context, sender string, msgs []sdk.Msg) e
 	for _, msg := range msgs {
 
 		// Check that the message is authorized
-		if !AuthorizedMessage(messagesAllowed, msg) {
+		if !k.AuthorizedMessage(messagesAllowed, msg) {
 			return types.ErrMsgNotAuthorizedOnSequencer.Wrapf("%s", sdk.MsgTypeURL(msg))
 		}
 

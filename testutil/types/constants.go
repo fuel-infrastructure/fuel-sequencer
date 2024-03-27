@@ -30,21 +30,37 @@ var (
 		Delta:      TestDelta,
 		Offset:     TestOffset,
 	}
-	TestFrom1                 = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-	TestFrom2                 = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
-	TestFrom3                 = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
-	TestAmount1               = "100"
-	TestAmount2               = "101"
-	TestAmount3               = "102"
-	TestTo1                   = "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm"
-	TestTo2                   = ""
-	TestTo3                   = "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
-	TestDuration1             = "50"
-	TestDuration2             = "51"
-	TestDuration3             = "52"
-	TestMessage1              = "26B5A0378EBB14470BD99C6489279259F8E80E5BD30E4CC84D8385EC334CD936"
-	TestMessage2              = "7A1E4C2586F28D5C1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF"
-	TestMessage3              = "B23F8D4567E89ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890123"
+	TestFrom1     = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+	TestFrom2     = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+	TestFrom3     = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
+	TestFrom1Eth  = "fuelsequencer13hfdkxj5aeqzsll569mqreedkafp34ngcsjkqjmpq6prtgv80kcq83gttw"
+	TestFrom2Eth  = "fuelsequencer10xafxk7jmjpfeh6394mvysjaazcjhhtegz5hqlsswgurdqq0e75q9r9vmv"
+	TestFrom3Eth  = "fuelsequencer1ssymf5jyka89gsjc9famezv2lcsed7uldfq2z8tkmvg9q3etj2qquzra5n"
+	TestAmount1   = "100"
+	TestAmount2   = "101"
+	TestAmount3   = "102"
+	TestTo1       = "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm"
+	TestTo2       = ""
+	TestTo3       = "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
+	TestDuration1 = "50"
+	TestDuration2 = "51"
+	TestDuration3 = "52"
+
+	// TestMessage1, TestMessage2 and TestMessage3 correspond to a 10ufuel bank send to TestTo3 from TestFrom1Eth,
+	// TestFrom2Eth, TestFrom3Eth respectively. These were generated with the help of utils/proto_serialization_test.go
+	TestMessage1 = "0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c7365717565" +
+		"6e63657231336866646b786a356165717a736c6c3536396d71726565646b61667033346e6763736a6b716a6d70713670727467763830" +
+		"6b637138336774747712346675656c73657175656e636572313633727376363574343839337432727a35726d646139736c79376c6764" +
+		"6c71326a677233366d1a0b0a05756675656c12023130"
+	TestMessage2 = "0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656" +
+		"e6365723130786166786b376a6d6a70666568363339346d7679736a61617a636a68687465677a3568716c73737767757264717130653" +
+		"73571397239766d7612346675656c73657175656e636572313633727376363574343839337432727a35726d646139736c79376c67646" +
+		"c71326a677233366d1a0b0a05756675656c12023130"
+	TestMessage3 = "0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656" +
+		"e636572317373796d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d766739713365746a3" +
+		"27171757a7261356e12346675656c73657175656e636572313633727376363574343839337432727a35726d646139736c79376c67646" +
+		"c71326a677233366d1a0b0a05756675656c12023130"
+
 	TestSendToSequencerEvent1 = &sidecartypes.SendToSequencerEvent{
 		From:     TestFrom1,
 		Amount:   TestAmount1,
