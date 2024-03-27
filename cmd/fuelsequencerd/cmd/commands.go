@@ -257,7 +257,7 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	blockNumber := args[0]
 	_, err = strconv.Atoi(blockNumber) // try parse
 	if err != nil {
-		return err
+		return fmt.Errorf("could not parse block number: %s", err.Error())
 	}
 
 	url := fmt.Sprintf("%s:%s", host, port)
