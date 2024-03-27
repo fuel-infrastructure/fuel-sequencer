@@ -29,52 +29,6 @@ func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwne
 	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress)
 }
 
-// depositFromEthereum generates the Sequencer address corresponding to the Ethereum address that is sending the tokens.
-// Like the CreateVestingAccount function in the Cosmos SDK, we first create the account and then send tokens to it.
-// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/auth/vesting/msg_server.go#L31
-// Note: this is just a scaffold function for now and should be revised before it is used, or otherwise scrapped.
-func (k Keeper) depositFromEthereum(
-	ctx sdk.Context, ethAddress string, recipientAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
-) error {
-
-	// Deterministically map Ethereum address to a FuelSequencer address.
-	accAddressFromEthAddress, err := types.GenerateSequencerAddressFromEthereumAddress(ethAddress)
-	if err != nil {
-		return err
-	}
-
-	// If the Ethereum address deterministically maps to the recipient address, the recipient address is owned by the
-	// Ethereum address and so the deposit requires special treatment. Otherwise, we can just create a new base account,
-	// but only if one does not exist.
-	if accAddressFromEthAddress.String() == recipientAddress {
-		_, err := k.generateSequencerAccountFromEthereumDeposit(ctx, ethAddress, vestingDuration, totalCoins)
-		if err != nil {
-			return err
-		}
-	} else {
-		if accI := k.accountKeeper.GetAccount(ctx, accAddressFromEthAddress); accI == nil {
-			accI = k.accountKeeper.NewAccount(ctx,
-				authtypes.NewBaseAccountWithAddress(accAddressFromEthAddress),
-			)
-			k.accountKeeper.SetAccount(ctx, accI)
-		}
-	}
-
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, totalCoins)
-	if err != nil {
-		return err
-	}
-
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddressFromEthAddress, totalCoins)
-	if err != nil {
-		return err
-	}
-
-	// TODO: consider making assertions about changes in the spendable balance to sanity check our calculations.
-
-	return nil
-}
-
 // generateSequencerAccountFromEthereumDeposit gets or creates a Sequencer account for the specified Ethereum address.
 // The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
 // to follow the specified vestingDuration, unless an EthOwnedContinuousVestingAccount exists already, in which
