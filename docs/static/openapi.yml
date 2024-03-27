@@ -8294,7 +8294,7 @@ paths:
                     description: events defines the list of Ethereum events.
                   advance_sequencer:
                     type: boolean
-                    title: >-
+                    description: >-
                       advance_sequencer is a boolean which indicates whether the
                       Sequencer should
 
@@ -8302,18 +8302,24 @@ paths:
                       Sequencer in cases where
 
                       the Sidecar errors specifically due to no new blocks
-                      generated on Ethereum
+                      generated on Ethereum.
                   new_ethereum_block:
                     type: boolean
                     description: >-
                       new_ethereum_block is a boolean which indicates whether a
                       new Ethereum
 
-                      block has been detected by the Sidecar. This is needed to
+                      block has been queried from the Sidecar and that the
+                      events from it were
+
+                      fully consumed by the Sequencer. This is needed to
                       determine when
 
                       LastEthereumBlockSynced should be incremented by the
-                      PreBlocker.
+                      PreBlocker. If it's
+
+                      false but events list is not empty, the block was
+                      partially consumed.
                   block_number:
                     type: string
                     description: block_number is the block that these events belong to.
@@ -12580,7 +12586,7 @@ definitions:
         description: events defines the list of Ethereum events.
       advance_sequencer:
         type: boolean
-        title: >-
+        description: >-
           advance_sequencer is a boolean which indicates whether the Sequencer
           should
 
@@ -12588,16 +12594,21 @@ definitions:
           where
 
           the Sidecar errors specifically due to no new blocks generated on
-          Ethereum
+          Ethereum.
       new_ethereum_block:
         type: boolean
         description: >-
           new_ethereum_block is a boolean which indicates whether a new Ethereum
 
-          block has been detected by the Sidecar. This is needed to determine
-          when
+          block has been queried from the Sidecar and that the events from it
+          were
 
-          LastEthereumBlockSynced should be incremented by the PreBlocker.
+          fully consumed by the Sequencer. This is needed to determine when
+
+          LastEthereumBlockSynced should be incremented by the PreBlocker. If
+          it's
+
+          false but events list is not empty, the block was partially consumed.
       block_number:
         type: string
         description: block_number is the block that these events belong to.
@@ -12665,7 +12676,7 @@ definitions:
             description: events defines the list of Ethereum events.
           advance_sequencer:
             type: boolean
-            title: >-
+            description: >-
               advance_sequencer is a boolean which indicates whether the
               Sequencer should
 
@@ -12673,17 +12684,23 @@ definitions:
               cases where
 
               the Sidecar errors specifically due to no new blocks generated on
-              Ethereum
+              Ethereum.
           new_ethereum_block:
             type: boolean
             description: >-
               new_ethereum_block is a boolean which indicates whether a new
               Ethereum
 
-              block has been detected by the Sidecar. This is needed to
-              determine when
+              block has been queried from the Sidecar and that the events from
+              it were
+
+              fully consumed by the Sequencer. This is needed to determine when
 
               LastEthereumBlockSynced should be incremented by the PreBlocker.
+              If it's
+
+              false but events list is not empty, the block was partially
+              consumed.
           block_number:
             type: string
             description: block_number is the block that these events belong to.

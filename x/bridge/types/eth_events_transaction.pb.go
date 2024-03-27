@@ -31,11 +31,13 @@ type EthEventsTx struct {
 	Events []*types.Event `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
 	// advance_sequencer is a boolean which indicates whether the Sequencer should
 	// generate a new block. This is used to advance the Sequencer in cases where
-	// the Sidecar errors specifically due to no new blocks generated on Ethereum
+	// the Sidecar errors specifically due to no new blocks generated on Ethereum.
 	AdvanceSequencer bool `protobuf:"varint,2,opt,name=advance_sequencer,json=advanceSequencer,proto3" json:"advance_sequencer,omitempty"`
 	// new_ethereum_block is a boolean which indicates whether a new Ethereum
-	// block has been detected by the Sidecar. This is needed to determine when
-	// LastEthereumBlockSynced should be incremented by the PreBlocker.
+	// block has been queried from the Sidecar and that the events from it were
+	// fully consumed by the Sequencer. This is needed to determine when
+	// LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
+	// false but events list is not empty, the block was partially consumed.
 	NewEthereumBlock bool `protobuf:"varint,3,opt,name=new_ethereum_block,json=newEthereumBlock,proto3" json:"new_ethereum_block,omitempty"`
 	// block_number is the block that these events belong to.
 	BlockNumber cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=block_number,json=blockNumber,proto3,customtype=cosmossdk.io/math.Int" json:"block_number"`

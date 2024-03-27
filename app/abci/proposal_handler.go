@@ -77,10 +77,18 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		// Inject MsgSupplyDeltaTx if expected at current height
 		injectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
+		supplyDeltaBytesSize := int64(0)
 		if injectMsgSupplyDelta {
 			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx()
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate msg supply delta tx: %w", err)
+			}
+
+			supplyDeltaBytesSize = int64(len(supplyDeltaBytes))
+			if supplyDeltaBytesSize > req.MaxTxBytes {
+				return nil, fmt.Errorf(
+					"msg supply delta tx exceeds max block size: %d > %d", supplyDeltaBytesSize, req.MaxTxBytes,
+				)
 			}
 
 			// Set MsgSupplyDeltaTx as first transaction to precede over user initiated MsgSupplyDelta
@@ -90,6 +98,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
 			return nil, errors.New("could not get last Ethereum block synced from state")
+		}
+		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
+		if !found {
+			return nil, errors.New("could not get Ethereum event index offset from state")
 		}
 
 		// Query the events of the next Ethereum block
@@ -102,6 +114,27 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
 		}
+
+		// Trim events from head to skip the events that were already processed.
+		err = ethEventsTx.TrimEventsFromHead(ethereumEventIndexOffset.Uint64())
+		if err != nil {
+			return nil, fmt.Errorf("failed to trim eth events tx head: %w", err)
+		}
+
+		// Trim events from tail to fit the block size allocated for events.
+		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
+		maxNumberOfEvents := uint64(ethEventsTx.NumberOfEventsWithMaxBytes(maxBytesForEvents))
+		trimmed, err := ethEventsTx.KeepEventsFromHead(maxNumberOfEvents)
+		if err != nil {
+			return nil, fmt.Errorf("failed to trim eth events tx tail: %w", err)
+		}
+		if trimmed > 0 {
+			ctx.Logger().Info(fmt.Sprintf(
+				"Skipped %d events because only %d could fit with max bytes %d",
+				trimmed, maxNumberOfEvents, maxBytesForEvents,
+			))
+		}
+
 		ethEventsTxBz, err := ethEventsTx.Marshal()
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode injected eth events tx: %w", err)
@@ -118,16 +151,16 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// This is needed to clear variables tracked by the TxSelector
 		defer h.txSelector.Clear()
 
-		// EthEventsTx will not satisfy sdk.Tx. Therefore, we cannot handle it the same way as we handle other
-		// transactions. Note: Here we are assuming that EthEventsTx is injected at index zero and that we will
-		// always have such a tx.
-		success := h.txSelector.SelectNonSDKTxForProposal(ctx, uint64(req.MaxTxBytes), req.Txs[0])
+		// EthEventsTx will not satisfy sdk.Tx, so we cannot handle it the same way as we handle other transactions.
+		// Note: Here we are assuming that EthEventsTx is injected at index zero and that we will always have such a tx.
+		success := h.txSelector.SelectNonSDKTxForProposal(ctx, maxBytesForEvents, req.Txs[0])
 		if !success {
-			// If we fail in selecting the EthEventsTx it must be that the events are too large. In this case an empty
-			// block is generated and expected to be rejected by ProcessProposal. If a MsgSupplyDelta Tx has been
-			// injected in a previous step, this will be disregarded as well. NOTE: When an error is returned the
-			// baseApp sends req.Txs to CometBFT, therefore, we have to remove any injected EthEventsTx and
-			// MsgSupplyDeltaTx
+			// Given that we trimmed the events list earlier on, we expect the EthEventsTx to be selected successfully.
+			// If this is not the case, an empty block is generated and expected to be rejected by ProcessProposal. If a
+			// MsgSupplyDelta Tx has been injected in a previous step, this will be disregarded as well.
+			//
+			// NOTE: When an error is returned the baseApp sends req.Txs to CometBFT, therefore we have to remove any
+			// injected EthEventsTx and MsgSupplyDelta Tx to ensure these do not make their way into the block.
 			req.Txs = [][]byte{}
 			return nil, errors.New("failed to add eth events transaction to block proposal")
 		}
@@ -146,8 +179,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 			stop := h.txSelector.SelectTxForProposal(ctx, uint64(req.MaxTxBytes), maxBlockGas, tx, txBz)
 
-			// If a MsgSupplyDelta was supposed to be injected but was not selected, then, there must be something wrong
-			// either with the size of EthEventsTx or MsgSupplyDeltaTx. We want to fail in both of these cases
+			// Given that we trimmed the events list earlier on, we expect the MsgSupplyDelta Tx to fit in the block.
+			// If this is not the case, there must be something wrong either with the size of EthEventsTx or the
+			// MsgSupplyDelta Tx. We want to fail in both of these cases.
 			if index == 0 && injectMsgSupplyDelta && len(h.txSelector.SelectedTxs(ctx)) != 2 {
 				req.Txs = [][]byte{}
 				return nil, errors.New("failed to add message supply delta transaction to block proposal")
@@ -210,6 +244,12 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				"could not get last Ethereum block synced from state",
 			)
 		}
+		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
+		if !found {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"could not get Ethereum event index offset from state",
+			)
+		}
 
 		// Query the events of the next Ethereum block
 		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt())
@@ -223,6 +263,31 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to generate eth events tx: %w", err,
 			)
+		}
+
+		// Trim events from head to skip the events that were already processed.
+		err = ethEventsTx.TrimEventsFromHead(ethereumEventIndexOffset.Uint64())
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to trim eth events tx head: %w", err,
+			)
+		}
+
+		// Trim events from tail to fit the block size allocated for events. Unlike the PrepareProposal step, here we do
+		// not have access to the max block size, so instead we assume that the proposer proposed an optimised block.
+		// TODO: consider adding access to max block size instead of assuming the optimal number of events were proposed
+		maxNumberOfEvents := uint64(len(injectedEthEventsTx.Events))
+		trimmed, err := ethEventsTx.KeepEventsFromHead(maxNumberOfEvents)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to trim eth events tx tail: %w", err,
+			)
+		}
+		if trimmed > 0 {
+			ctx.Logger().Info(fmt.Sprintf(
+				"Skipped %d events because only %d were received from the proposer",
+				trimmed, maxNumberOfEvents,
+			))
 		}
 
 		// Reject block if the sequencer should not proceed with block generation
@@ -453,9 +518,17 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
 	}
 
-	// Set the lastEthereumBlockSynced if we are to increment to a new Ethereum block.
+	// Set the lastEthereumBlockSynced and reset the event index offset if we are to increment to a new Ethereum block.
 	if injectedEthEventsTx.NewEthereumBlock {
 		h.bridgeKeeper.SetLastEthereumBlockSynced(ctx, injectedEthEventsTx.BlockNumber)
+		h.bridgeKeeper.ResetEthereumEventIndexOffset(ctx)
+	}
+
+	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
+	if !injectedEthEventsTx.NewEthereumBlock && len(injectedEthEventsTx.Events) > 0 {
+		existingOffset := h.bridgeKeeper.MustGetEthereumEventIndexOffset(ctx)
+		newOffset := existingOffset.AddRaw(int64(len(injectedEthEventsTx.Events)))
+		h.bridgeKeeper.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 
 	h.logger.Debug("finished executing pre-block hook")

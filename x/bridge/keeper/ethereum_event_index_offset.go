@@ -9,6 +9,11 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+// ResetEthereumEventIndexOffset resets ethereumEventIndexOffset in the store
+func (k Keeper) ResetEthereumEventIndexOffset(ctx context.Context) {
+	k.SetEthereumEventIndexOffset(ctx, math.ZeroInt())
+}
+
 // SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store
 func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset math.Int) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))

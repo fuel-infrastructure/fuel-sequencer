@@ -75,15 +75,37 @@ var (
 		From:    TestFrom3,
 		Message: testutils.MustHexDecodeString(TestMessage3),
 	}
-	TestEvent1      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
-	TestEvent2      = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
-	TestEvent3      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
-	TestEvents      = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
-	TestEthEventsTx = &bridgetypes.EthEventsTx{
+	TestEvent1          = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
+	TestEvent2          = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
+	TestEvent3          = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
+	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
+	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEthEventsTx     = &bridgetypes.EthEventsTx{
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestEthEventsTxWithDifferentEvents = &bridgetypes.EthEventsTx{
+		Events:           TestEventsDifferent,
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
+	}
+	TestEthEventsTxReduced = &bridgetypes.EthEventsTx{
+		Events:           TestEventsReduced,
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
+	}
+	TestEthEventsTxPartial = &bridgetypes.EthEventsTx{
+		Events:           TestEventsReduced,
+		AdvanceSequencer: true,
+		NewEthereumBlock: false, // block was partially consumed
+		BlockNumber:      sdkmath.OneInt(),
+	}
+	TestEmptySidecarResponse   = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse        = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
 )
