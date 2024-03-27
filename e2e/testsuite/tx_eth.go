@@ -42,7 +42,7 @@ func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
 }
 
 func (s *E2ETestSuite) SendEthTransactionToProxyContract(data []byte) error {
-	return s.SendEthTransaction(common.HexToAddress(CONTRACT), data)
+	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
 func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) error {

@@ -1,6 +1,7 @@
 package basic_test
 
 import (
+	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"math/big"
 	"time"
 
@@ -144,28 +145,26 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		// --------------------------------------- User withdrawals on the Sequencer
 		aliceWallet := testsuite.ADDRESSES[1]
 
-		aliceBalance, err := s.QueryAllBalances(s.Ctx(), aliceWallet, nil)
+		withdrawMsg := bridgemoduletypes.NewMsgWithdrawToEthereum(
+			aliceWallet,
+			"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+			sdk.NewInt64Coin(testsuite.BridgeDenom, 100),
+		)
+		res, err = s.SubmitMsgs(withdrawMsg)
 		s.Require().NoError(err)
-		s.Require().NotNil(aliceBalance)
+		s.Require().Zero(res.Code)
 
-		//// Users withdraw some fuel tokens that were deposited.
-		//from := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[0])
-		//to := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[1])
-		//amount := sdk.NewCoins(sdk.NewInt64Coin(testsuite.BridgeDenom, 100))
-		//msg := banktypes.NewMsgSend(from, to, amount)
-		//res, err := s.SubmitMsgs(msg)
+		// Wait for transaction to be included
+		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+
+		// --------------------------------------- Run Operator
+
+		//fulfillCallData := testsuite.PackFulfillCallDeposit(
+		//	testsuite.HEADER_RANGE_FUNCTION_ID,
+		//	[]byte("input can be anything"),
+		//)
+		//err = s.SendEthTransactionToProxyContract(authorizeData)
 		//s.Require().NoError(err)
-		//s.Require().Zero(res.Code)
-		//
-		//// Wait for blocks (RPC).
-		//err = s.WaitForBlocks(s.Ctx(), 2, time.Minute)
-		//s.Require().NoError(err)
-		//
-		//// Ensure balance was reduced (GRPC)
-		//// Note: a fee was also charged.
-		//updatedBalance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
-		//s.Require().NoError(err)
-		//s.Require().True(updatedBalance.Balances.IsAllLT(balance.Balances))
 
 	})
 }

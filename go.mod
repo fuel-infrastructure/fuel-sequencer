@@ -4,7 +4,7 @@ go 1.21
 
 replace (
 	// Include BridgeCommitment queries
-	github.com/cometbft/cometbft => github.com/dferendo/cometbft v0.38.5-alpha-4
+	github.com/cometbft/cometbft => github.com/dferendo/cometbft v0.38.5-alpha-5
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// replace broken goleveldb

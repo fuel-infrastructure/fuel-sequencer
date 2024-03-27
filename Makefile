@@ -407,12 +407,14 @@ test-e2e-basic: check-docker-image-exists check-eth-docker-image-exists
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
+	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
 	@docker ps -aq --filter "name=ethereum" | xargs -r docker stop
 
 	@echo "🧹 Removing Docker containers..."
+	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm

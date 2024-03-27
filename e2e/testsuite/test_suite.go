@@ -66,6 +66,12 @@ const (
 
 	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
 	ethereumDockerImageTag  = "latest"
+
+	succinctXOperatorDockerImageRepo = "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
+	succinctXOperatorDockerImageTag  = "latest"
+
+	succinctXRelayerDockerImageRepo = "fuel-infrastructure/fuel-stream-x-relayer-docker-e2e"
+	succinctXRelayerDockerImageTag  = "latest"
 )
 
 var (
@@ -94,8 +100,14 @@ var (
 		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 	}
 
-	// CONTRACT is the address of the contract that generates events, deployed on the Ethereum node.
-	CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
+	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	// GATEWAY_CONTRACT is a contract by Succinct that does ZK proof verification.
+	GATEWAY_CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+
+	// Circuits
+	NEXT_HEADER_FUNCTION_ID  = "0x6eed2eb6930917a14cc2c0732dfb6e4b8582a54d8c4fefae146a2261705e7a35"
+	HEADER_RANGE_FUNCTION_ID = "0xd889dce37c711c10c083d156972c0cedf8d7da68a9db7e7ad63333c108815be8"
 )
 
 var (
@@ -110,8 +122,16 @@ type E2ETestSuite struct {
 	chain         *chain
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
-	ethResource   *dockertest.Resource
-	valResources  []*dockertest.Resource
+
+	// Ethereum
+	ethResource *dockertest.Resource
+
+	// Sequencer
+	valResources []*dockertest.Resource
+
+	// SuccinctX
+	succinctOperatorResource *dockertest.Resource
+	succinctRelayerResource  *dockertest.Resource
 }
 
 func (s *E2ETestSuite) SetupTest() {
@@ -138,6 +158,7 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initEthereumNodes(MNEMONICS)
 
 	// run the eth container so that the contract addresses are available
+	// TODO: probably run this after sequencer since we would need the genesis headers from the sequencer in the smart contracts
 	s.runEthContainer()
 
 	// continue generating node genesis
@@ -146,6 +167,8 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// container infrastructure
 	s.runFuelSequencerValidators()
+
+	s.RunSuccinctXOperatorMockApi()
 
 	// set up clients
 	s.initGRPCClients()
@@ -173,6 +196,8 @@ func (s *E2ETestSuite) TearDownTest() {
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
 	}
+
+	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
 }
@@ -409,6 +434,57 @@ func (s *E2ETestSuite) runEthContainer() {
 				return false
 			}
 
+			return true
+		},
+		5*time.Minute,
+		10*time.Second,
+		"ethereum node failed to respond",
+	)
+
+	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+}
+
+// TODO: add docs
+func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
+	s.T().Log("starting SuccinctX operator container...")
+	var err error
+	runOpts := dockertest.RunOptions{
+		Name:         "succinctX-operator",
+		Repository:   succinctXOperatorDockerImageRepo,
+		Tag:          succinctXOperatorDockerImageTag,
+		NetworkID:    s.dockerNetwork.Network.ID,
+		PortBindings: map[docker.Port][]docker.PortBinding{},
+		ExposedPorts: []string{},
+
+		Env: []string{
+			"ETHEREUM_RPC_URL=http://localhost:8545",
+			"TENDERMINT_RPC_URL=http://localhost:26657",
+			"SUCCINCT_RPC_URL=http://localhost:1234", // Can be anything
+			"SUCCINCT_API_KEY=",                      // Can be anything
+			"MOCK_SUCCINCT_SERVER=true",              // Mocking Succinct API server
+			"CHAIN_ID=31337",
+			fmt.Sprintf("CONTRACT_ADDRESS=%s", FUEL_STREAM_X_CONTRACT),
+			fmt.Sprintf("NEXT_HEADER_FUNCTION_ID=%s", NEXT_HEADER_FUNCTION_ID),
+			fmt.Sprintf("HEADER_RANGE_FUNCTION_ID=%s", HEADER_RANGE_FUNCTION_ID),
+			"POST_DELAY_MINUTES=20",
+			"LOCAL_PROVE_MODE=false",
+			"LOCAL_RELAY_MODE=false",
+		},
+	}
+
+	s.succinctOperatorResource, err = s.dockerPool.RunWithOptions(
+		&runOpts,
+		noRestart,
+	)
+	s.Require().NoError(err)
+
+	// Wait for the Operator node to response
+	s.Require().Eventually(
+		func() bool {
+			_, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+
+			// TODO:
 			return true
 		},
 		5*time.Minute,
