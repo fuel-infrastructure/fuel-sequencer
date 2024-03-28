@@ -119,8 +119,6 @@ func (k Keeper) processSendToSequencerEvent(
 			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 			return
 		}
-
-		// TODO Apply logic based on whether the Ethereum sender is the owner of the recipient address
 	}
 
 	// Otherwise mint and send the coins to the specified user.
@@ -155,6 +153,7 @@ func (k Keeper) processSendToSequencerEvent(
 	k.Logger().Debug("Bridge EndBlock: Minted bridge tokens to account", "amount", tokenToMint.Amount, "address", sequencerAddr)
 }
 
+// mintToGovernanceAddress mints to the governance address incase of an error in normal processing.
 func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, supplyDeltaInfo *types.SupplyDeltaInfo) {
 
 	// tokensToMint is the new coins that will be minted
