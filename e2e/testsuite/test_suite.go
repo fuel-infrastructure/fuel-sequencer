@@ -444,7 +444,7 @@ func (s *E2ETestSuite) runEthContainer() {
 }
 
 // Note: The operator is only active for 1 proof generation
-func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
+func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 	s.T().Log("starting SuccinctX operator container...")
 	var err error
 	runOpts := dockertest.RunOptions{
@@ -484,20 +484,18 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
 	s.Require().Eventually(
 		func() bool {
 			logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
-			fmt.Printf("testx1 %s", logs)
 
 			for _, logStr := range strings.Split(logs, "\n") {
-				re := regexp.MustCompile(`Header range request submitted: (\d+), current block: (\d+), target block: (\d+)`)
+				re := regexp.MustCompile(`\[[^]]*] Header range request submitted: (\d+), start block: (\d+), target block: (\d+)`)
 
 				matches := re.FindStringSubmatch(logStr)
-				if matches != nil && len(matches) >= 4 {
+				// The first element represents the string captures, the rest are the digits obtained from the string
+				if matches != nil && len(matches) == 4 {
 					requestId = matches[1]
 					startBlock = matches[2]
 					targetBlock = matches[3]
 					return true
 				}
-
-				fmt.Printf("test %s, %s, %s", requestId, startBlock, targetBlock)
 			}
 
 			return false
@@ -507,7 +505,13 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
 		"SuccinctX operator failed to respond",
 	)
 
-	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+	s.T().Logf("SuccinctX operator request successful!")
+
+	// We only want 1 proof from the relayer
+	s.T().Logf("stopping SuccinctX operator container...")
+	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
+
+	return requestId, startBlock, targetBlock
 }
 
 func (s *E2ETestSuite) runFuelSequencerValidators() {
@@ -609,6 +613,7 @@ func (s *E2ETestSuite) logsByContainerID(id string) string {
 		docker.LogsOptions{
 			Container:    id,
 			OutputStream: &containerLogsBuf,
+			ErrorStream:  &containerLogsBuf,
 			Stdout:       true,
 			Stderr:       true,
 		},
