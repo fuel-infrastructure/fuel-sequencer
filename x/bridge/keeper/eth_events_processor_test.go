@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
@@ -246,6 +247,112 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 
 			// Check events emitted
 			s.AssertEventEmitted(processAuthorizeEventCtx, proto.MessageName(&types.EventAuthorizedTxExecuted{}), 1)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestAuthenticateTx() {
+	// Some amounts to populate bank.MsgSend messages
+	amt := sdkmath.NewInt(1000000)
+	coinAmt := sdk.NewCoin("ufuel", amt)
+	coinsAmt := sdk.NewCoins(coinAmt)
+
+	testCases := []struct {
+		name               string
+		sender             string
+		msgs               []sdk.Msg
+		authorizedMessages []string
+		expErrMsg          string
+	}{
+		{
+			name:   "authenticates valid msgs successfully",
+			sender: testtypes.TestFrom1,
+			msgs: []sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo3,
+					Amount:      coinsAmt,
+				},
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo2,
+					Amount:      coinsAmt,
+				},
+			},
+			authorizedMessages: []string{"*"},
+		},
+		{
+			name:   "errors if sender cannot be mapped to its Sequencer address",
+			sender: "invalid-eth-address",
+			msgs: []sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo3,
+					Amount:      coinsAmt,
+				},
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo2,
+					Amount:      coinsAmt,
+				},
+			},
+			authorizedMessages: []string{"*"},
+			expErrMsg:          "could not generate Sequencer address from Ethereum address",
+		},
+		{
+			name:   "errors if one of the messages is not authorized",
+			sender: testtypes.TestFrom1,
+			msgs: []sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo3,
+					Amount:      coinsAmt,
+				},
+				&types.MsgSupplyDelta{
+					Authority: testtypes.TestGovernanceAddress,
+				},
+			},
+			authorizedMessages: []string{sdk.MsgTypeURL(&banktypes.MsgSend{})},
+			expErrMsg:          "message not authorized on Sequencer",
+		},
+		{
+			name:   "errors if one of the messages' signer is not as expected",
+			sender: testtypes.TestFrom1,
+			msgs: []sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo3,
+					Amount:      coinsAmt,
+				},
+				&types.MsgSupplyDelta{
+					Authority: testtypes.TestGovernanceAddress, // Message signer not equivalent to testtypes.TestFrom1
+				},
+			},
+			authorizedMessages: []string{sdk.MsgTypeURL(&banktypes.MsgSend{}), sdk.MsgTypeURL(&types.MsgSupplyDelta{})},
+			expErrMsg:          "invalid signer",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			// Authorize required messages on Sequencer
+			err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
+				AuthorizeMessagesAllowed: tc.authorizedMessages,
+			})
+			s.Require().NoError(err)
+
+			err = s.App.BridgeKeeper.AuthenticateTx(s.Ctx(), tc.sender, tc.msgs)
+
+			if len(tc.expErrMsg) > 0 {
+				// Confirm that the expected error was raised
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErrMsg)
+				return
+			}
+
+			s.Require().NoError(err)
 		})
 	}
 }
