@@ -2,12 +2,15 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -353,6 +356,95 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 			}
 
 			s.Require().NoError(err)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestExecuteMsg() {
+	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed
+	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom2Seq)
+	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+
+	// This is the amount to be funded to the fromAcc
+	amt := sdkmath.NewInt(1000000)
+	coinAmt := sdk.NewCoin("ufuel", amt)
+
+	expMsgSendResponse, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
+	s.Require().NoError(err)
+
+	testCases := []struct {
+		name                  string
+		msg                   sdk.Msg
+		expFromBalance        sdkmath.Int
+		expToBalance          sdkmath.Int
+		expResponse           *codectypes.Any
+		resetMsgServiceRouter bool
+		expErrMsg             string
+	}{
+		{
+			name: "successfully executes recognized msg",
+			msg: &banktypes.MsgSend{
+				FromAddress: testtypes.TestFrom2Seq,
+				ToAddress:   testtypes.TestTo3,
+				Amount:      sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(10))),
+			},
+			expFromBalance:        sdkmath.NewInt(999990),
+			expToBalance:          sdkmath.NewInt(10),
+			expResponse:           expMsgSendResponse,
+			resetMsgServiceRouter: false,
+		},
+		{
+			name: "returns error if unrecognized msg",
+			msg: &banktypes.MsgSend{
+				FromAddress: testtypes.TestFrom2Seq,
+				ToAddress:   testtypes.TestTo3,
+				Amount:      sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(10))),
+			},
+			expFromBalance:        amt,
+			expToBalance:          sdkmath.ZeroInt(),
+			expResponse:           nil,
+			resetMsgServiceRouter: true, // No message will be registered
+			expErrMsg:             "invalid MsgHandler route",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			if tc.resetMsgServiceRouter {
+				s.App.BridgeKeeper = bridgekeeper.SetRouter(s.App.BridgeKeeper, baseapp.NewMsgServiceRouter())
+			}
+
+			// Fund accounts to be used so that we can execute messages
+			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
+
+			res, err := s.App.BridgeKeeper.ExecuteMsg(s.Ctx(), tc.msg)
+
+			if len(tc.expErrMsg) > 0 {
+				// Confirm that the expected error was raised
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErrMsg)
+				s.Require().Nil(res)
+
+				// Make sure that the balances are as expected
+				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
+				s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
+				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
+				s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
+				return
+			}
+			s.Require().NoError(err)
+
+			// Check that the message response was as expected
+			s.Require().Equal(tc.expResponse, res)
+
+			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvent was executed
+			// successfully
+			actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
+			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
+			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
+			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
 		})
 	}
 }
