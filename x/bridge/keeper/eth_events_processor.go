@@ -66,8 +66,6 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	}
 
 	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
-
-	return
 }
 
 // ProcessSendToSequencerEvent attempts to process a SendToSequencerEvent

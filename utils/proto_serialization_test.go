@@ -29,5 +29,5 @@ func TestProtoSerialization(t *testing.T) {
 
 	// Convert the serialized bytes to a hex string
 	hexData := fmt.Sprintf("0x%x", data)
-	fmt.Println(fmt.Sprintf("Serialized Hex Data: %s", hexData))
+	fmt.Printf("Serialized Hex Data: %s", hexData)
 }

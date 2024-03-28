@@ -9,10 +9,8 @@ import (
 )
 
 func MustHexDecodeString(s string) []byte {
-	// Check and remove the "0x" prefix if present
-	if strings.HasPrefix(s, "0x") {
-		s = s[2:]
-	}
+	// Remove the "0x" prefix if present
+	s = strings.TrimPrefix(s, "0x")
 
 	decoded, err := hex.DecodeString(s)
 	if err != nil {
