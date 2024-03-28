@@ -178,5 +178,15 @@ func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, s
 	// We have to save the supply delta here in case we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
 
+	// Emit event once completed
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventProcessed{
+		From:   types.ModuleName,
+		To:     govtypes.ModuleName,
+		Amount: tokenToMint,
+	})
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
+	}
+
 	k.Logger().Info("Minted bridge tokens to community pool", "amount", tokenToMint.Amount)
 }
