@@ -17,8 +17,8 @@ var (
 	ErrInvalidSupplyDeltaValue  = sdkerrors.Register(ModuleName, 1103, "supply delta value is invalid")
 	ErrInvalidEthAddress        = sdkerrors.Register(ModuleName, 1104, "invalid ethereum address")
 	ErrInvalidVestingDuration   = sdkerrors.Register(ModuleName, 1105, "invalid vesting duration")
-	ErrInvalidEthAddressLength  = sdkerrors.Register(ModuleName, 1106,
-		fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
+	ErrInvalidEthAddressLength  = sdkerrors.Register(
+		ModuleName, 1106, fmt.Sprintf("expected eth address to be %d bytes long", common.AddressLength),
 	)
 	ErrCodecIsNotSupported              = sdkerrors.Register(ModuleName, 1107, "codec is not supported")
 	ErrCouldNotGenerateSequencerAddress = sdkerrors.Register(
@@ -28,6 +28,11 @@ var (
 	ErrFailedToObtainMsgSigners    = sdkerrors.Register(ModuleName, 1110, "failed to obtain message signers")
 	ErrInvalidMsgHandlerRoute      = sdkerrors.Register(ModuleName, 1111, "invalid MsgHandler route")
 	ErrNilMsgResponse              = sdkerrors.Register(ModuleName, 1112, "got nil msg response")
+	ErrEthEventsTxBlockNotSequential = sdkerrors.Register(
+		ModuleName, 1113, "eth events tx block number is not the increment of last ethereum block synced")
+	ErrUnsupported           = sdkerrors.Register(ModuleName, 1114, "unsupported")
+	ErrInvalidAccountAddress = sdkerrors.Register(ModuleName, 1115, "invalid account address")
+	ErrAccountOwnerMismatch  = sdkerrors.Register(ModuleName, 1116, "account owner mismatch")
 )
 
 // Some constant error strings used throughout the module
