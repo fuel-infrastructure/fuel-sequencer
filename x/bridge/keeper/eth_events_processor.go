@@ -32,25 +32,17 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 			continue
 		}
 
-		// Process event based on its type. If an error occurs while processing an event we will not apply any state
-		// changes and move on to the next event.
+		// Process event based on its type.
 		switch pe := parsedEvent.(type) {
 		case *sidecartypes.SendToSequencerEvent:
-			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				err = k.ProcessSendToSequencerEvent(ctx, pe)
-				return err
-			})
-			if err != nil {
-				k.Logger().Error(
-					"Bridge EndBlock: failed to process SendToSequencerEvent",
-					"event", pe.String(),
-					"err", err,
-				)
-				continue
-			}
+			// This doesn't error, so unless a panic occurs we will always be able to continue to the next event if some
+			// issue occurs
+			k.processSendToSequencerEvent(ctx, pe)
 		case *sidecartypes.AuthorizeEvent:
+			// If an error occurs while processing an Authorize event we will not apply any state changes and move on to
+			// the next event.
 			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				err = k.ProcessAuthorizeEvent(ctx, pe)
+				err = k.processAuthorizeEvent(ctx, pe)
 				return err
 			})
 			if err != nil {
@@ -68,14 +60,11 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
 }
 
-// ProcessSendToSequencerEvent attempts to process a SendToSequencerEvent
-func (k Keeper) ProcessSendToSequencerEvent(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) error {
+// processSendToSequencerEvent attempts to process a SendToSequencerEvent
+func (k Keeper) processSendToSequencerEvent(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
 
-	return nil
-}
-
-// ProcessAuthorizeEvent attempts to process an AuthorizeEvent
-func (k Keeper) ProcessAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent) error {
+// processAuthorizeEvent attempts to process an AuthorizeEvent
+func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent) error {
 
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := k.DeserializeAuthorizeTx(k.cdc, event)
