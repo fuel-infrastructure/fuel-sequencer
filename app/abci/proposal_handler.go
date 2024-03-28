@@ -84,6 +84,13 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 				return nil, fmt.Errorf("failed to generate msg supply delta tx: %w", err)
 			}
 
+			supplyDeltaBytesSize = int64(len(supplyDeltaBytes))
+			if supplyDeltaBytesSize > req.MaxTxBytes {
+				return nil, fmt.Errorf(
+					"msg supply delta tx exceeds max block size: %d > %d", supplyDeltaBytesSize, req.MaxTxBytes,
+				)
+			}
+
 			// Set MsgSupplyDeltaTx as first transaction to precede over user initiated MsgSupplyDelta
 			req.Txs = append([][]byte{supplyDeltaBytes}, req.Txs...)
 		}
