@@ -92,6 +92,12 @@ var (
 		To:       TestTo4,
 		Duration: TestDuration3,
 	}
+	TestSendToSequencerEvent8 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   "failed",
+		To:       TestTo4,
+		Duration: TestDuration3,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		From:    TestFrom1,
 		Message: testutils.MustHexDecodeString(TestMessage1),
@@ -111,6 +117,7 @@ var (
 	TestEvent5      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
 	TestEvent6      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
 	TestEvent7      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
+	TestEvent8      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
 	TestEvents      = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEthEventsTx = &bridgetypes.EthEventsTx{
 		Events:           TestEvents,

@@ -1,13 +1,14 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"time"
 )
 
 func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
@@ -234,4 +235,44 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			s.Require().Equal(tc.expGovBal, actualGovBal.Amount)
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent_AmountParseFailure() {
+	blockTime, _ := time.Parse(time.RFC3339, "2024-01-01T00:00:00Z")
+	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+
+	ethEventsTx := &types.EthEventsTx{
+		Events: []*sidecartypes.Event{
+			testtypes.TestEvent8,
+		},
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      sdkmath.OneInt(),
+	}
+	s.SetupTest() // Reset the test suite
+
+	// Set initial conditions: LastEthereumBlockSynced and Params
+	s.App.BridgeKeeper.SetLastEthereumBlockSynced(s.Ctx(), ethEventsTx.BlockNumber)
+
+	// Authorize bank.MsgSend on Sequencer
+	err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
+		BridgeDenom:              "ufuel",
+		AuthorizeMessagesAllowed: []string{"*"},
+		VestingStartTime:         blockTime,
+	})
+	s.Require().NoError(err)
+
+	// Set the malformed EthEventsTx
+	s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *ethEventsTx)
+	_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), ethEventsTx.BlockNumber.Uint64())
+	s.Require().True(found)
+
+	// Trigger the processing of the Ethereum events
+	s.Require().Panics(func() {
+		s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
+	})
+
+	// Verify the governance address balance is as expected
+	actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, "ufuel")
+	s.Require().Equal(sdkmath.ZeroInt(), actualGovBal.Amount)
 }
