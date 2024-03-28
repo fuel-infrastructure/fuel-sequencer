@@ -71,7 +71,7 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 
 	if duration <= vestingStartTimeDelay {
 		return time.Time{}, time.Time{}, ErrInvalidVestingDuration.Wrapf(
-			"must be greater than vesting start time delay, got %s <= %s",
+			"duration must be greater than vesting start time delay, got %s <= %s",
 			duration, vestingStartTimeDelay,
 		)
 	}
