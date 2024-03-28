@@ -14,7 +14,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *KeeperTestSuite) TestProcessEthereumEvents() {
+func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed via the AuthorizeEvent
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
 	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
@@ -30,19 +30,22 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents() {
 		expToBalance   sdkmath.Int
 	}{
 		{
-			name:           "successfully processes Ethereum events if none error",
-			ethEventsTx:    testtypes.TestEthEventsTx, // Contains 2 SendToSequencer and 1 Authorize events
+			name: "successfully processes AuthorizeEvents if none error",
+			ethEventsTx: &types.EthEventsTx{
+				Events:           []*sidecartypes.Event{testtypes.TestEvent2},
+				AdvanceSequencer: true,
+				NewEthereumBlock: true,
+				BlockNumber:      sdkmath.OneInt(),
+			},
 			expFromBalance: sdkmath.NewInt(999990),
 			expToBalance:   sdkmath.NewInt(10),
 		},
 		{
-			name: "successfully processes valid Ethereum events if some cannot be unmarshalled",
+			name: "successfully processes valid AuthorizeEvents if some cannot be unmarshalled",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
-					testtypes.TestEvent1, // valid SendToSequencerEvent
 					{EventType: "invalid-event", Data: []byte("invalid bytes")}, // event with unrecognized type
 					testtypes.TestEvent2, // valid AuthorizeEvent
-					testtypes.TestEvent3, // valid SendToSequencerEvent
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
@@ -52,22 +55,16 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents() {
 			expToBalance:   sdkmath.NewInt(10),
 		},
 		{
-			name: "successfully processes valid Ethereum events if some error while executing",
+			name: "successfully processes valid AuthorizeEvents if some error while executing",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
-					testtypes.TestEvent1, // valid SendToSequencerEvent
-
 					// Event that sends 10 ufuel from a sequencer address that has no funds. We expect this to fail,
 					// demonstrating that other events still get processed successfully
 					testutils.MustGetSidecarEventFromParsedEvent(&sidecartypes.AuthorizeEvent{
 						From:    testtypes.TestFrom2,
 						Message: testutils.MustHexDecodeString(testtypes.TestMessage2),
 					}),
-
-					// TODO (Vitaly): Might need to add a SendToSequencerEvent that errors during execution
-
 					testtypes.TestEvent2, // valid AuthorizeEvent
-					testtypes.TestEvent3, // valid SendToSequencerEvent
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
@@ -111,8 +108,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents() {
 			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
 			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
 			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
-
-			// TODO (Vitaly): Add Assertions for SendToSequencer events
 		})
 	}
 }
