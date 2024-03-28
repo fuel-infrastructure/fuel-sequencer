@@ -3,6 +3,7 @@ package testsuite
 import (
 	"context"
 	"fmt"
+	"github.com/cometbft/cometbft/libs/bytes"
 	"os"
 
 	"cosmossdk.io/x/evidence"
@@ -270,4 +271,12 @@ func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {
 		return 0, fmt.Errorf("rpc client status: %w", err)
 	}
 	return res, nil
+}
+
+func (c *chain) BridgeCommitment(ctx context.Context, start, end uint64) (bytes.HexBytes, error) {
+	res, err := c.rpcClient.BridgeCommitment(ctx, start, end)
+	if err != nil {
+		return bytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
+	}
+	return res.BridgeCommitment, nil
 }

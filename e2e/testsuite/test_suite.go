@@ -11,7 +11,6 @@ import (
 	"os"
 	osuser "os/user"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -162,18 +161,20 @@ func (s *E2ETestSuite) SetupTest() {
 	// TODO: probably run this after sequencer since we would need the genesis headers from the sequencer in the smart contracts
 	s.runEthContainer()
 
-	// continue generating node genesis
-	s.initFuelSequencerGenesis()
-	s.initFuelSequencerValidatorConfigs()
+	s.RunSuccinctXRelayerMockApi("1")
 
-	// container infrastructure
-	s.runFuelSequencerValidators()
-
-	// set up clients
-	s.initGRPCClients()
-	s.initRPCClient()
-	s.initEthereumRPCClient()
-	s.initSidecarClient()
+	//// continue generating node genesis
+	//s.initFuelSequencerGenesis()
+	//s.initFuelSequencerValidatorConfigs()
+	//
+	//// container infrastructure
+	//s.runFuelSequencerValidators()
+	//
+	//// set up clients
+	//s.initGRPCClients()
+	//s.initRPCClient()
+	//s.initEthereumRPCClient()
+	//s.initSidecarClient()
 }
 
 func (s *E2ETestSuite) TearDownTest() {
@@ -195,8 +196,6 @@ func (s *E2ETestSuite) TearDownTest() {
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
 	}
-
-	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
 }
@@ -441,77 +440,6 @@ func (s *E2ETestSuite) runEthContainer() {
 	)
 
 	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
-}
-
-// Note: The operator is only active for 1 proof generation
-func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
-	s.T().Log("starting SuccinctX operator container...")
-	var err error
-	runOpts := dockertest.RunOptions{
-		Name:         "succinctX-operator",
-		Repository:   succinctXOperatorDockerImageRepo,
-		Tag:          succinctXOperatorDockerImageTag,
-		NetworkID:    s.dockerNetwork.Network.ID,
-		PortBindings: map[docker.Port][]docker.PortBinding{},
-		ExposedPorts: []string{},
-		Env: []string{
-			"ETHEREUM_RPC_URL=http://ethereum:8545",
-			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.chain.validators[0].instanceName()),
-			"SUCCINCT_RPC_URL=http://localhost:1234", // Can be anything
-			"SUCCINCT_API_KEY=",                      // Can be anything
-			"MOCK_SUCCINCT_SERVER=true",              // Mocking Succinct API server
-			"CHAIN_ID=31337",
-			fmt.Sprintf("CONTRACT_ADDRESS=%s", FUEL_STREAM_X_CONTRACT),
-			fmt.Sprintf("NEXT_HEADER_FUNCTION_ID=%s", NEXT_HEADER_FUNCTION_ID),
-			fmt.Sprintf("HEADER_RANGE_FUNCTION_ID=%s", HEADER_RANGE_FUNCTION_ID),
-			"POST_DELAY_MINUTES=0", // No delays
-			"LOCAL_PROVE_MODE=false",
-			"LOCAL_RELAY_MODE=false",
-		},
-	}
-
-	s.succinctOperatorResource, err = s.dockerPool.RunWithOptions(
-		&runOpts,
-		noRestart,
-	)
-	s.Require().NoError(err)
-
-	var requestId string
-	var startBlock string
-	var targetBlock string
-
-	// Wait for the Operator node to response
-	s.Require().Eventually(
-		func() bool {
-			logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
-
-			for _, logStr := range strings.Split(logs, "\n") {
-				re := regexp.MustCompile(`\[[^]]*] Header range request submitted: (\d+), start block: (\d+), target block: (\d+)`)
-
-				matches := re.FindStringSubmatch(logStr)
-				// The first element represents the string captures, the rest are the digits obtained from the string
-				if matches != nil && len(matches) == 4 {
-					requestId = matches[1]
-					startBlock = matches[2]
-					targetBlock = matches[3]
-					return true
-				}
-			}
-
-			return false
-		},
-		1*time.Minute,
-		10*time.Second,
-		"SuccinctX operator failed to respond",
-	)
-
-	s.T().Logf("SuccinctX operator request successful!")
-
-	// We only want 1 proof from the relayer
-	s.T().Logf("stopping SuccinctX operator container...")
-	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
-
-	return requestId, startBlock, targetBlock
 }
 
 func (s *E2ETestSuite) runFuelSequencerValidators() {
