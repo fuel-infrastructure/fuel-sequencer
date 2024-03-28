@@ -9,6 +9,9 @@ import (
 )
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+
+	// This is telling Cosmos SDK that it should recognise these accounts as implementations of the account interfaces.
+	// Otherwise, if it's unmarshalling (e.g. while loading the genesis file) it will not recognise the account types.
 	registry.RegisterImplementations((*sdk.AccountI)(nil),
 		&EthOwnedBaseAccount{},
 		&EthOwnedContinuousVestingAccount{},
@@ -17,6 +20,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&EthOwnedBaseAccount{},
 		&EthOwnedContinuousVestingAccount{},
 	)
+
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateParams{},
 		&MsgSupplyDelta{},
