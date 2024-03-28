@@ -89,6 +89,11 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	}
 
 	// If we have an offset, we expect at least one new event.
+	//
+	// The cases where we receive NO events are:
+	// - New Ethereum block with no events ...but we know that the current Ethereum block still has more events.
+	// - No new Ethereum block ...but we know that the current Ethereum block exists and still has more events.
+	// - An error occurred and AdvanceSequencer is false ...but we know that this is no possible from the check above.
 	if eventIndexOffset.IsPositive() && len(m.Events) == 0 {
 		return fmt.Errorf(
 			"expected at least 1 new event if offset is non-zero (%s), got EthEventsTx (%s)",
