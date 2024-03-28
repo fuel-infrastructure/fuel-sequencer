@@ -79,7 +79,11 @@ func (m *EthEventsTx) ValidateBasic() error {
 	return isValidEventSlice(m.Events)
 }
 
-// NumberOfEventsWithMaxBytes TODO
+// NumberOfEventsWithMaxBytes calculates the number of event that can fit into the specified maxBytes. This closely
+// resembles the EthEventsTx Size function but only iterates over as many events as can fit into the specified maxBytes.
+//
+// It is very important to update this function if the EthEventsTx Size function gets updated, otherwise we might be
+// overestimating or underestimating the size of EthEventsTx and inject a suboptimal number of events.
 func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 	if m == nil {
 		return 0
@@ -107,6 +111,10 @@ func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 	return len(m.Events)
 }
 
+// TrimEventsFromHead removes the first N events from the front of the list of events.
+//
+// An important check that it does is to ensure that if there are events, these cannot all be trimmed, otherwise the
+// blockchain might get stuck injecting empty EthEventsTx forever. At least one event must be kept if there are events.
 func (m *EthEventsTx) TrimEventsFromHead(numEventsToTrim uint64) error {
 	numEventsInTx := uint64(len(m.Events))
 
@@ -125,6 +133,10 @@ func (m *EthEventsTx) TrimEventsFromHead(numEventsToTrim uint64) error {
 	return nil
 }
 
+// KeepEventsFromHead keeps the first N events from the front of the list of events and trims the rest.
+//
+// An important check that it does is to ensure that if there are events, these cannot all be trimmed, otherwise the
+// blockchain might get stuck injecting empty EthEventsTx forever. At least one event must be kept if there are events.
 func (m *EthEventsTx) KeepEventsFromHead(numEventsToKeep uint64) (trimmed uint64, err error) {
 	numEventsInTx := uint64(len(m.Events))
 
