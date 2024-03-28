@@ -11,6 +11,7 @@ import (
 	"os"
 	osuser "os/user"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -167,8 +168,6 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// container infrastructure
 	s.runFuelSequencerValidators()
-
-	s.RunSuccinctXOperatorMockApi()
 
 	// set up clients
 	s.initGRPCClients()
@@ -444,7 +443,7 @@ func (s *E2ETestSuite) runEthContainer() {
 	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
 }
 
-// TODO: add docs
+// Note: The operator is only active for 1 proof generation
 func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
 	s.T().Log("starting SuccinctX operator container...")
 	var err error
@@ -455,7 +454,6 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
 		NetworkID:    s.dockerNetwork.Network.ID,
 		PortBindings: map[docker.Port][]docker.PortBinding{},
 		ExposedPorts: []string{},
-
 		Env: []string{
 			"ETHEREUM_RPC_URL=http://ethereum:8545",
 			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.chain.validators[0].instanceName()),
@@ -466,7 +464,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
 			fmt.Sprintf("CONTRACT_ADDRESS=%s", FUEL_STREAM_X_CONTRACT),
 			fmt.Sprintf("NEXT_HEADER_FUNCTION_ID=%s", NEXT_HEADER_FUNCTION_ID),
 			fmt.Sprintf("HEADER_RANGE_FUNCTION_ID=%s", HEADER_RANGE_FUNCTION_ID),
-			"POST_DELAY_MINUTES=20",
+			"POST_DELAY_MINUTES=0", // No delays
 			"LOCAL_PROVE_MODE=false",
 			"LOCAL_RELAY_MODE=false",
 		},
@@ -478,18 +476,35 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() {
 	)
 	s.Require().NoError(err)
 
+	var requestId string
+	var startBlock string
+	var targetBlock string
+
 	// Wait for the Operator node to response
 	s.Require().Eventually(
 		func() bool {
-			_, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-			defer cancel()
+			logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
+			fmt.Printf("testx1 %s", logs)
 
-			// TODO:
-			return true
+			for _, logStr := range strings.Split(logs, "\n") {
+				re := regexp.MustCompile(`Header range request submitted: (\d+), current block: (\d+), target block: (\d+)`)
+
+				matches := re.FindStringSubmatch(logStr)
+				if matches != nil && len(matches) >= 4 {
+					requestId = matches[1]
+					startBlock = matches[2]
+					targetBlock = matches[3]
+					return true
+				}
+
+				fmt.Printf("test %s, %s, %s", requestId, startBlock, targetBlock)
+			}
+
+			return false
 		},
-		5*time.Minute,
+		1*time.Minute,
 		10*time.Second,
-		"ethereum node failed to respond",
+		"SuccinctX operator failed to respond",
 	)
 
 	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
