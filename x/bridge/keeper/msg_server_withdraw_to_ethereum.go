@@ -39,7 +39,7 @@ func (k msgServer) WithdrawToEthereum(
 
 	// Apply the offset to the supplyDelta
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
-	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Add(msg.Amount.Amount)
+	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(msg.Amount.Amount)
 	k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
 
 	// Update the Ethereum nonce

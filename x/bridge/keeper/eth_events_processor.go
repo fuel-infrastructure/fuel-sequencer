@@ -7,6 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -19,7 +20,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	// Firstly retrieve the blockHeight we have last processed.
 	lastEthereumBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 
-	// Secondly retireve the events and the last block height processed.
+	// Secondly retrieve the events and the last block height processed.
 	ethEventsTx, ok := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
 	if !ok {
 		// If no events are found that this block height then we can stop here.
@@ -53,13 +54,12 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 
 	}
 
-	// Set the supply delta info into state.
-	k.SetSupplyDeltaInfo(ctx, supplyDelta)
+	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
 }
 
 // processSendToSequencerEvent processes the send to sequencer events queried from the sidecar.
 // Deposit message cannot fail. If a failure can occur, we should consider minting the tokens
-// anyways and storing them in the governance address. The only time it can fail is if
+// anyway and storing them in the governance address. The only time it can fail is if
 // we cannot parse the `Amount` of tokens as we won't know how many tokens have been processed.
 func (k Keeper) processSendToSequencerEvent(
 	ctx sdk.Context,
@@ -84,14 +84,14 @@ func (k Keeper) processSendToSequencerEvent(
 	vesting, err := time.ParseDuration(sendEvent.Duration)
 	if err != nil {
 		k.Logger().Error("Bridge EndBlock: failed to process send to sequencer duration from string", "err", err)
-		k.mintToCommunityPool(ctx, tokenToMint, supplyDeltaInfo)
+		k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 		return
 	}
 
 	// Check that From is a valid hex address
 	if !common.IsHexAddress(sendEvent.From) {
 		k.Logger().Error("Bridge EndBlock: from is not a valid hex address")
-		k.mintToCommunityPool(ctx, tokenToMint, supplyDeltaInfo)
+		k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (k Keeper) processSendToSequencerEvent(
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumAddress(ctx, sendEvent.From, vesting, tokensToMint)
 		if err != nil {
 			k.Logger().Error("Bridge EndBlock: failed to generate sequencer account from ethereum address", "err", err)
-			k.mintToCommunityPool(ctx, tokenToMint, supplyDeltaInfo)
+			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 			return
 		}
 	} else {
@@ -112,7 +112,7 @@ func (k Keeper) processSendToSequencerEvent(
 		sequencerAddr, err = sdk.AccAddressFromBech32(sendEvent.To)
 		if err != nil {
 			k.Logger().Error("Bridge EndBlock: to is not a valid Bech32 address", "err", err)
-			k.mintToCommunityPool(ctx, tokenToMint, supplyDeltaInfo)
+			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 			return
 		}
 
@@ -133,7 +133,7 @@ func (k Keeper) processSendToSequencerEvent(
 	}
 
 	// Apply negative offset to supply delta offset
-	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(amount)
+	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Add(amount)
 
 	// We have to save the supply delta here incase we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
@@ -141,7 +141,7 @@ func (k Keeper) processSendToSequencerEvent(
 	k.Logger().Info("Bridge EndBlock: Minted bridge tokens to account", "amount", tokenToMint.Amount, "address", sequencerAddr)
 }
 
-func (k Keeper) mintToCommunityPool(ctx sdk.Context, tokenToMint sdk.Coin, supplyDeltaInfo *types.SupplyDeltaInfo) {
+func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, supplyDeltaInfo *types.SupplyDeltaInfo) {
 
 	// tokensToMint is the new coins that will be minted
 	tokensToMint := sdk.NewCoins(tokenToMint)
@@ -152,18 +152,16 @@ func (k Keeper) mintToCommunityPool(ctx sdk.Context, tokenToMint sdk.Coin, suppl
 		panic(fmt.Errorf("failed to mint bridge tokens to bridge module account err: %s", err))
 	}
 
-	// Fund the community pool from the module address. We cannot mint tokens directly to the distribution module
-	// above, as the community pool keeps an internal tracker of the funds through the `FundCommunityPool` function.
-	modAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
-	err = k.distributionKeeper.FundCommunityPool(ctx, tokensToMint, modAddr)
+	// Send the minted tokens from the module address to the governance module address.
+	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, govtypes.ModuleName, tokensToMint)
 	if err != nil {
-		panic(fmt.Errorf("failed to transfer minted bridge tokens from bridge module address %s err: %s", modAddr, err))
+		panic(fmt.Errorf("failed to transfer minted tokens from module address to governance address %s, err: %s", govtypes.ModuleName, err))
 	}
 
 	// Update supply delta to reflect the minting to the community pool.
 	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Add(tokenToMint.Amount)
 
-	// We have to save the supply delta here incase we panic at a later deposit.
+	// We have to save the supply delta here in case we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
 
 	k.Logger().Info("Minted bridge tokens to community pool", "amount", tokenToMint.Amount)
