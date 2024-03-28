@@ -20,10 +20,11 @@ message EthEventsTx {
   // block has been queried from the Sidecar and that the events from it were
   // fully consumed by the Sequencer. This is needed to determine when
   // LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
-  // false but events list is not empty, the block was partially consumed.
+  // false but the events list is not empty, the block was partially consumed.
   bool new_ethereum_block = 3;
 
-  // block_number is the block that these events belong to.
+  // block_number is the block that these events belong to. This is expected to
+  // be LastEthereumBlockSynced+1, since the events are from the next block.
   string block_number = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",

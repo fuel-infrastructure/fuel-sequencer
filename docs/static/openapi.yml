@@ -8318,11 +8318,16 @@ paths:
                       LastEthereumBlockSynced should be incremented by the
                       PreBlocker. If it's
 
-                      false but events list is not empty, the block was
+                      false but the events list is not empty, the block was
                       partially consumed.
                   block_number:
                     type: string
-                    description: block_number is the block that these events belong to.
+                    description: >-
+                      block_number is the block that these events belong to.
+                      This is expected to
+
+                      be LastEthereumBlockSynced+1, since the events are from
+                      the next block.
             description: >-
               QueryGetEthEventsTxByBlockNumberResponse is the response type for
               the
@@ -12608,10 +12613,16 @@ definitions:
           LastEthereumBlockSynced should be incremented by the PreBlocker. If
           it's
 
-          false but events list is not empty, the block was partially consumed.
+          false but the events list is not empty, the block was partially
+          consumed.
       block_number:
         type: string
-        description: block_number is the block that these events belong to.
+        description: >-
+          block_number is the block that these events belong to. This is
+          expected to
+
+          be LastEthereumBlockSynced+1, since the events are from the next
+          block.
   fuelsequencer.bridge.Params:
     type: object
     properties:
@@ -12699,11 +12710,16 @@ definitions:
               LastEthereumBlockSynced should be incremented by the PreBlocker.
               If it's
 
-              false but events list is not empty, the block was partially
+              false but the events list is not empty, the block was partially
               consumed.
           block_number:
             type: string
-            description: block_number is the block that these events belong to.
+            description: >-
+              block_number is the block that these events belong to. This is
+              expected to
+
+              be LastEthereumBlockSynced+1, since the events are from the next
+              block.
     description: |-
       QueryGetEthEventsTxByBlockNumberResponse is the response type for the
       Query/EthEventsTxByBlockNumber RPC method.

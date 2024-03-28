@@ -709,9 +709,10 @@ type EthEventsTx struct {
 	// block has been queried from the Sidecar and that the events from it were
 	// fully consumed by the Sequencer. This is needed to determine when
 	// LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
-	// false but events list is not empty, the block was partially consumed.
+	// false but the events list is not empty, the block was partially consumed.
 	NewEthereumBlock bool `protobuf:"varint,3,opt,name=new_ethereum_block,json=newEthereumBlock,proto3" json:"new_ethereum_block,omitempty"`
-	// block_number is the block that these events belong to.
+	// block_number is the block that these events belong to. This is expected to
+	// be LastEthereumBlockSynced+1, since the events are from the next block.
 	BlockNumber string `protobuf:"bytes,4,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
 }
 
