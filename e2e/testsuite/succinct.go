@@ -2,7 +2,9 @@ package testsuite
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -100,10 +102,10 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	startBlock uint64,
 	targetBlock uint64,
 ) {
+	// Re-create the proof output
 	commitment, err := s.chain.BridgeCommitment(s.Ctx(), startBlock, targetBlock)
 	s.Require().NoError(err)
 
-	var target cmbytes.HexBytes
 	targetBlockBytes, err := To32PaddedHexBytes(targetBlock)
 	s.Require().NoError(err)
 
@@ -117,8 +119,9 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		Proof:      "0xbaaaaa", // Can be anything, not used
 		Output:     "0x" + cmbytes.HexBytes(targetBlockBytes).String() + commitment.String(),
 	}
-
-	// TODO: add output_1.json file
+	proofBz, err := json.Marshal(proof)
+	s.Require().NoError(err)
+	err = os.WriteFile("output_1.json", proofBz, 0644)
 
 	s.T().Log("starting SuccinctX relayer container...")
 

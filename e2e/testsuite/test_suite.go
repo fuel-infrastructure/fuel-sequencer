@@ -161,20 +161,18 @@ func (s *E2ETestSuite) SetupTest() {
 	// TODO: probably run this after sequencer since we would need the genesis headers from the sequencer in the smart contracts
 	s.runEthContainer()
 
-	s.RunSuccinctXRelayerMockApi("1")
+	// continue generating node genesis
+	s.initFuelSequencerGenesis()
+	s.initFuelSequencerValidatorConfigs()
 
-	//// continue generating node genesis
-	//s.initFuelSequencerGenesis()
-	//s.initFuelSequencerValidatorConfigs()
-	//
-	//// container infrastructure
-	//s.runFuelSequencerValidators()
-	//
-	//// set up clients
-	//s.initGRPCClients()
-	//s.initRPCClient()
-	//s.initEthereumRPCClient()
-	//s.initSidecarClient()
+	// container infrastructure
+	s.runFuelSequencerValidators()
+
+	// set up clients
+	s.initGRPCClients()
+	s.initRPCClient()
+	s.initEthereumRPCClient()
+	s.initSidecarClient()
 }
 
 func (s *E2ETestSuite) TearDownTest() {
