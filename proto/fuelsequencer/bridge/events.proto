@@ -42,3 +42,14 @@ message EventWithdrawToEthereumReported {
   // amount is the tokens being sent, which must be the expacted bridge token.
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
+
+message EventSendToSequencerEventProcessed {
+  // from is the user address on FuelSequencer that is sending the tokens.
+  string from = 1;
+
+  // to is the user address on Ethereum that will be receiving the tokens.
+  string to = 2;
+
+  // amount is the tokens being sent, which must be the expacted bridge token.
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+}

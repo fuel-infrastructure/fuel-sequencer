@@ -142,7 +142,17 @@ func (k Keeper) processSendToSequencerEvent(
 	// We have to save the supply delta here incase we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
 
-	k.Logger().Info("Bridge EndBlock: Minted bridge tokens to account", "amount", tokenToMint.Amount, "address", sequencerAddr)
+	// Emit event once completed
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventProcessed{
+		From:   sendEvent.From,
+		To:     sequencerAddr.String(),
+		Amount: tokenToMint,
+	})
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
+	}
+
+	k.Logger().Debug("Bridge EndBlock: Minted bridge tokens to account", "amount", tokenToMint.Amount, "address", sequencerAddr)
 }
 
 func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, supplyDeltaInfo *types.SupplyDeltaInfo) {
