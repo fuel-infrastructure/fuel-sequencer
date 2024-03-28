@@ -32,13 +32,13 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 		{
 			name: "successfully processes AuthorizeEvents if none error",
 			ethEventsTx: &types.EthEventsTx{
-				Events:           []*sidecartypes.Event{testtypes.TestEvent2},
+				Events:           []*sidecartypes.Event{testtypes.TestEvent2, testtypes.TestEvent2},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      sdkmath.OneInt(),
 			},
-			expFromBalance: sdkmath.NewInt(999990),
-			expToBalance:   sdkmath.NewInt(10),
+			expFromBalance: sdkmath.NewInt(999980),
+			expToBalance:   sdkmath.NewInt(20),
 		},
 		{
 			name: "successfully processes valid AuthorizeEvents if some cannot be unmarshalled",
