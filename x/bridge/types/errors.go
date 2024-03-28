@@ -28,11 +28,8 @@ var (
 	ErrFailedToObtainMsgSigners    = sdkerrors.Register(ModuleName, 1110, "failed to obtain message signers")
 	ErrInvalidMsgHandlerRoute      = sdkerrors.Register(ModuleName, 1111, "invalid MsgHandler route")
 	ErrNilMsgResponse              = sdkerrors.Register(ModuleName, 1112, "got nil msg response")
-	ErrEthEventsTxBlockNotSequential = sdkerrors.Register(
-		ModuleName, 1113, "eth events tx block number is not the increment of last ethereum block synced")
-	ErrUnsupported           = sdkerrors.Register(ModuleName, 1114, "unsupported")
-	ErrInvalidAccountAddress = sdkerrors.Register(ModuleName, 1115, "invalid account address")
-	ErrAccountOwnerMismatch  = sdkerrors.Register(ModuleName, 1116, "account owner mismatch")
+	ErrUnsupported                 = sdkerrors.Register(ModuleName, 1113, "unsupported")
+	ErrInvalidAccountAddress       = sdkerrors.Register(ModuleName, 1114, "invalid account address")
 )
 
 // Some constant error strings used throughout the module
