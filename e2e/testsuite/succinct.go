@@ -138,7 +138,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		ExposedPorts: []string{},
 		Cmd:          []string{"--", "--request-id", requestId},
 		Mounts: []string{
-			fmt.Sprintf("%s/:%s", dirPath, "/home/app/proofs"),
+			fmt.Sprintf("%s/:%s", dirPath, "/app/proofs"),
 		},
 		Env: []string{
 			"ETHEREUM_RPC_URL=http://ethereum:8545",
