@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
@@ -77,6 +78,35 @@ func (m *EthEventsTx) ValidateBasic() error {
 	}
 
 	return isValidEventSlice(m.Events)
+}
+
+// ValidateBeforeProcessing performs some state-based checks on EthEventsTx before it is officially processed.
+func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset sdkmath.Int) error {
+
+	// We cannot process an EthEventsTx without advancing the sequencer.
+	if !m.AdvanceSequencer {
+		return fmt.Errorf("expected AdvanceSequencer to be true, got false in EthEventsTx (%s)", m)
+	}
+
+	// If we have an offset, we expect at least one new event.
+	if eventIndexOffset.IsPositive() && len(m.Events) == 0 {
+		return fmt.Errorf(
+			"expected at least 1 new event if offset is non-zero (%s), got EthEventsTx (%s)",
+			eventIndexOffset, m,
+		)
+	}
+
+	// BlockNumber must be LastEthereumBlockSynced+1 since otherwise we're getting data for an Ethereum block
+	// that we've already fully processed, or we're getting data for an Ethereum block that is in the future.
+	expectedBlockNumber := lastBlockSynced.Add(sdkmath.OneInt())
+	if !m.BlockNumber.Equal(expectedBlockNumber) {
+		return fmt.Errorf(
+			"expected block number %s, got %s in EthEventsTx (%s)",
+			expectedBlockNumber, m.BlockNumber, m,
+		)
+	}
+
+	return nil
 }
 
 // NumberOfEventsWithMaxBytes calculates the number of event that can fit into the specified maxBytes. This closely

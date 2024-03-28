@@ -513,12 +513,21 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 		return nil, fmt.Errorf("failed to decode injected eth events tx: %w", err)
 	}
 
+	// Perform some checks on the injected Ethereum events transaction.
+	// If any problem is found, this is an indication of a serious bug.
+	lastBlockSynced := h.bridgeKeeper.MustGetLastEthereumBlockSynced(ctx)
+	eventIndexOffset := h.bridgeKeeper.MustGetEthereumEventIndexOffset(ctx)
+	err := injectedEthEventsTx.ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset)
+	if err != nil {
+		return nil, fmt.Errorf("eth events tx validation failed: %w", err)
+	}
+
 	// Set the injected events into state if any.
 	if len(injectedEthEventsTx.Events) > 0 {
 		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
 	}
 
-	// Set the lastEthereumBlockSynced and reset the event index offset if we are to increment to a new Ethereum block.
+	// Set LastEthereumBlockSynced and reset EthereumEventIndexOffset if we are to increment to a new Ethereum block.
 	if injectedEthEventsTx.NewEthereumBlock {
 		h.bridgeKeeper.SetLastEthereumBlockSynced(ctx, injectedEthEventsTx.BlockNumber)
 		h.bridgeKeeper.ResetEthereumEventIndexOffset(ctx)
@@ -526,8 +535,7 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
 	if !injectedEthEventsTx.NewEthereumBlock && len(injectedEthEventsTx.Events) > 0 {
-		existingOffset := h.bridgeKeeper.MustGetEthereumEventIndexOffset(ctx)
-		newOffset := existingOffset.AddRaw(int64(len(injectedEthEventsTx.Events)))
+		newOffset := eventIndexOffset.AddRaw(int64(len(injectedEthEventsTx.Events)))
 		h.bridgeKeeper.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 
