@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -34,7 +34,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      math.OneInt(),
+				BlockNumber:      sdkmath.OneInt(),
 			},
 			expectedEqual: true,
 		},
@@ -51,7 +51,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      math.OneInt(),
+				BlockNumber:      sdkmath.OneInt(),
 			},
 			expectedEqual: false,
 		},
@@ -62,7 +62,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: false,
 				NewEthereumBlock: true,
-				BlockNumber:      math.OneInt(),
+				BlockNumber:      sdkmath.OneInt(),
 			},
 			expectedEqual: false,
 		},
@@ -73,7 +73,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: false,
-				BlockNumber:      math.OneInt(),
+				BlockNumber:      sdkmath.OneInt(),
 			},
 			expectedEqual: false,
 		},
@@ -84,7 +84,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: false,
-				BlockNumber:      math.ZeroInt(),
+				BlockNumber:      sdkmath.ZeroInt(),
 			},
 			expectedEqual: false,
 		},
@@ -148,6 +148,109 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.eventTx.ValidateBasic()
+			if len(tc.expErrMsg) > 0 {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
+
+	// Calculate the LastEthereumBlockSynced that we expect when submitting TestEthEventsTx
+	blockNumber := testtypes.TestEthEventsTx.BlockNumber
+	previousBlock := blockNumber.Sub(sdkmath.OneInt())
+
+	testCases := []struct {
+		name             string
+		eventTx          *types.EthEventsTx
+		lastBlockSynced  sdkmath.Int
+		eventIndexOffset sdkmath.Int
+		expErrMsg        string
+	}{
+		// Valid transactions at the right height
+		{
+			name:             "valid full tx at right height",
+			eventTx:          testtypes.TestEthEventsTx,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.ZeroInt(),
+		},
+		{
+			name:             "valid full tx at right height even if offset is non-zero",
+			eventTx:          testtypes.TestEthEventsTx,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.NewInt(10),
+		},
+		{
+			name:             "valid partial tx at right height",
+			eventTx:          testtypes.TestEthEventsTxPartial,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.ZeroInt(),
+		},
+		{
+			name:             "valid partial tx at right height even if offset is non-zero",
+			eventTx:          testtypes.TestEthEventsTxPartial,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.NewInt(10),
+		},
+		{
+			name:             "valid empty tx at right height",
+			eventTx:          testtypes.TestEthEventsTxWithoutEvents,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.ZeroInt(),
+		},
+		{
+			name:             "valid NoNewBlock tx at right height",
+			eventTx:          testtypes.TestEthEventsTxNoNewBlock,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.ZeroInt(),
+		},
+		// Invalid transactions with AdvanceSequencer false
+		{
+			name:             "invalid tx with AdvanceSequencer false",
+			eventTx:          testtypes.TestEthEventsTxSidecarErr,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.ZeroInt(),
+			expErrMsg:        "expected AdvanceSequencer to be true",
+		},
+		// Invalid transactions with no events when there's a non-zero offset
+		{
+			name:             "invalid tx with no events when there's a non-zero offset",
+			eventTx:          testtypes.TestEthEventsTxWithoutEvents,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.NewInt(10),
+			expErrMsg:        "expected at least 1 new event if offset is non-zero (10)",
+		},
+		{
+			name:             "invalid tx with no new block when there's a non-zero offset",
+			eventTx:          testtypes.TestEthEventsTxNoNewBlock,
+			lastBlockSynced:  previousBlock,
+			eventIndexOffset: sdkmath.NewInt(10),
+			expErrMsg:        "expected at least 1 new event if offset is non-zero (10)",
+		},
+		// Invalid transactions with wrong height
+		{
+			name:             "invalid tx at height in the future",
+			eventTx:          testtypes.TestEthEventsTx,
+			lastBlockSynced:  previousBlock.SubRaw(1),
+			eventIndexOffset: sdkmath.ZeroInt(),
+			expErrMsg:        "expected block number 0, got 1 in EthEventsTx",
+		},
+		{
+			name:             "invalid tx at height in the past",
+			eventTx:          testtypes.TestEthEventsTx,
+			lastBlockSynced:  previousBlock.AddRaw(1),
+			eventIndexOffset: sdkmath.ZeroInt(),
+			expErrMsg:        "expected block number 2, got 1 in EthEventsTx",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.eventTx.ValidateBeforeProcessing(tc.lastBlockSynced, tc.eventIndexOffset)
 			if len(tc.expErrMsg) > 0 {
 				require.Error(t, err)
 				require.ErrorContains(t, err, tc.expErrMsg)
