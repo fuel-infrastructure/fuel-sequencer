@@ -42,11 +42,11 @@ var (
 	TestTo3     = "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
 	TestTo4     = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
 	// NOTE: 365 days in seconds = 31,536,000
-	TestDuration1             = "31536050s"
-	TestDuration2             = "31536051s"
-	TestDuration3             = "31536052s"
-	TestDuration4             = "31536052"
-	TestDuration5             = "52"
+	TestDuration1             = "31536050"
+	TestDuration2             = "31536051"
+	TestDuration3             = "31536052"
+	TestDuration4             = "abc"
+	TestDuration5             = "1"
 	TestMessage1              = "26B5A0378EBB14470BD99C6489279259F8E80E5BD30E4CC84D8385EC334CD936"
 	TestMessage2              = "7A1E4C2586F28D5C1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF"
 	TestMessage3              = "B23F8D4567E89ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890123"
@@ -83,7 +83,7 @@ var (
 	TestSendToSequencerEvent6 = &sidecartypes.SendToSequencerEvent{
 		From:     TestFrom3,
 		Amount:   TestAmount3,
-		To:       TestTo3,
+		To:       TestTo2,
 		Duration: TestDuration5,
 	}
 	TestSendToSequencerEvent7 = &sidecartypes.SendToSequencerEvent{

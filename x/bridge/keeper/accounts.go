@@ -46,34 +46,6 @@ func detailsFromFromExistingAcc(acc sdk.AccountI) (*authtypes.BaseAccount, *vest
 	return baseAcc, blankBaseVestingAccount()
 }
 
-// depositFromEthereum generates the Sequencer address corresponding to the Ethereum address that is sending the tokens.
-// Like the CreateVestingAccount function in the Cosmos SDK, we first create the account and then send tokens to it.
-// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/auth/vesting/msg_server.go#L31
-// Note: this is just a scaffold function for now and should be revised before it is used, or otherwise scrapped.
-func (k Keeper) depositFromEthereum(
-	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
-) error {
-
-	address, err := k.generateSequencerAccountFromEthereumAddress(ctx, ethAddress, vestingDuration, totalCoins)
-	if err != nil {
-		return err
-	}
-
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, totalCoins)
-	if err != nil {
-		return err
-	}
-
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, totalCoins)
-	if err != nil {
-		return err
-	}
-
-	// TODO: consider making assertions about changes in the spendable balance to sanity check our calculations.
-
-	return nil
-}
-
 // generateSequencerAccountFromEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
 // The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
 // to follow the specified vestingDuration, regardless of whether the account already existed in other forms.

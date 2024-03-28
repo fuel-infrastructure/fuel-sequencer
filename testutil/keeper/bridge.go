@@ -39,7 +39,6 @@ func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		log.NewNopLogger(),
 		nil,
 		nil,
-		nil,
 		authority.String(),
 	)
 

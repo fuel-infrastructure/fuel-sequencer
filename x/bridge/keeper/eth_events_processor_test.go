@@ -46,7 +46,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(0),
 			expToBalance:   sdkmath.NewInt(102),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(102),
+				Offset: sdkmath.NewInt(-102),
 			},
 			expGovBal: sdkmath.ZeroInt(),
 		},
@@ -66,7 +66,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(0),
 			expToBalance:   sdkmath.NewInt(204),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(204),
+				Offset: sdkmath.NewInt(-204),
 			},
 			expGovBal: sdkmath.ZeroInt(),
 		},
@@ -85,7 +85,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(101),
 			expToBalance:   sdkmath.NewInt(0),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(101),
+				Offset: sdkmath.NewInt(-101),
 			},
 			expGovBal: sdkmath.ZeroInt(),
 		},
@@ -105,7 +105,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(202),
 			expToBalance:   sdkmath.NewInt(0),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(202),
+				Offset: sdkmath.NewInt(-202),
 			},
 			expGovBal: sdkmath.ZeroInt(),
 		},
@@ -124,7 +124,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(0),
 			expToBalance:   sdkmath.NewInt(0),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(102),
+				Offset: sdkmath.NewInt(-102),
 			},
 			expGovBal: sdkmath.NewInt(102),
 		},
@@ -143,7 +143,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(0),
 			expToBalance:   sdkmath.NewInt(0),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(102),
+				Offset: sdkmath.NewInt(-102),
 			},
 			expGovBal: sdkmath.NewInt(102),
 		},
@@ -158,11 +158,11 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 				BlockNumber:      sdkmath.OneInt(),
 			},
 			fromAcc:        &fromAccOne,
-			toAcc:          &toAccOne,
+			toAcc:          nil,
 			expFromBalance: sdkmath.NewInt(0),
 			expToBalance:   sdkmath.NewInt(0),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(102),
+				Offset: sdkmath.NewInt(-102),
 			},
 			expGovBal: sdkmath.NewInt(102),
 		},
@@ -181,7 +181,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent() {
 			expFromBalance: sdkmath.NewInt(0),
 			expToBalance:   sdkmath.NewInt(0),
 			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(102),
+				Offset: sdkmath.NewInt(-102),
 			},
 			expGovBal: sdkmath.NewInt(102),
 		},

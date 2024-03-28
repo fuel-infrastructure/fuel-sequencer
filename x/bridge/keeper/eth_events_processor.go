@@ -80,13 +80,16 @@ func (k Keeper) processSendToSequencerEvent(
 	tokenToMint := sdk.NewCoin(params.BridgeDenom, amount)
 	tokensToMint := sdk.NewCoins(tokenToMint)
 
-	// Parse the vesting duration
-	vesting, err := time.ParseDuration(sendEvent.Duration)
-	if err != nil {
-		k.Logger().Error("Bridge EndBlock: failed to process send to sequencer duration from string", "err", err)
+	// Check that the Duration can be converted from a string to sdk.Int
+	eventDuration, success := sdkmath.NewIntFromString(sendEvent.Duration)
+	if !success {
+		k.Logger().Error("Bridge EndBlock: failed to process send to sequencer duration from string")
 		k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 		return
 	}
+
+	// Convert to vesting duration
+	vesting := time.Duration(eventDuration.Int64() * 1e9)
 
 	// Check that From is a valid hex address
 	if !common.IsHexAddress(sendEvent.From) {
@@ -97,6 +100,7 @@ func (k Keeper) processSendToSequencerEvent(
 
 	// sequencerAddr to be determined based on data provided in event.
 	var sequencerAddr sdk.AccAddress
+	var err error
 
 	// If a `To` address was not specified send tokens to the `From` Ethereum Address.
 	if len(strings.TrimSpace(sendEvent.To)) == 0 {
@@ -133,7 +137,7 @@ func (k Keeper) processSendToSequencerEvent(
 	}
 
 	// Apply negative offset to supply delta offset
-	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Add(amount)
+	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(amount)
 
 	// We have to save the supply delta here incase we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
@@ -159,7 +163,7 @@ func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, s
 	}
 
 	// Update supply delta to reflect the minting to the community pool.
-	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Add(tokenToMint.Amount)
+	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(tokenToMint.Amount)
 
 	// We have to save the supply delta here in case we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)

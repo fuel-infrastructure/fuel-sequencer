@@ -29,11 +29,6 @@ type BankKeeper interface {
 	// Methods imported from bank should be defined here
 }
 
-// DistributionKeeper defines the distribution contract that must be fulfilled when creating a x/bridge keeper.
-type DistributionKeeper interface {
-	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
-}
-
 // ParamSubspace defines the expected Subspace interface for parameters.
 type ParamSubspace interface {
 	Get(context.Context, []byte, interface{})
