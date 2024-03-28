@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -121,10 +122,13 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	}
 	proofBz, err := json.Marshal(proof)
 	s.Require().NoError(err)
-	err = os.WriteFile("output_1.json", proofBz, 0644)
+
+	// Random dir
+	dirPath, err := os.MkdirTemp(os.TempDir(), "fuelsequencer-e2e-testnet")
+	s.Require().NoError(err)
+	s.Require().NoError(writeFile(filepath.Join(dirPath, "output_1.json"), proofBz))
 
 	s.T().Log("starting SuccinctX relayer container...")
-
 	runOpts := dockertest.RunOptions{
 		Name:         "succinctX-relayer",
 		Repository:   succinctXRelayerDockerImageRepo,
@@ -133,9 +137,9 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		PortBindings: map[docker.Port][]docker.PortBinding{},
 		ExposedPorts: []string{},
 		Cmd:          []string{"--", "--request-id", requestId},
-		//Mounts: []string{
-		//	fmt.Sprintf("%s/:%s", , "proofs/output_1.json"),
-		//},
+		Mounts: []string{
+			fmt.Sprintf("%s/:%s", dirPath, "/home/app/proofs"),
+		},
 		Env: []string{
 			"ETHEREUM_RPC_URL=http://ethereum:8545",
 			"PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
