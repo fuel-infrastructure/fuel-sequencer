@@ -12,7 +12,7 @@ import (
 func TestMsgUpdateParams(t *testing.T) {
 	k, ms, ctx := setupMsgServer(t)
 	defaultParams := types.DefaultParams()
-	nonDefaultParams := types.NewParams(1000, 1000)
+	nonDefaultParams := types.NewParams(1000)
 	require.NoError(t, k.SetParams(ctx, defaultParams))
 	wctx := sdk.UnwrapSDKContext(ctx)
 
