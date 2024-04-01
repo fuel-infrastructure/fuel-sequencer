@@ -341,7 +341,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 			})
 			s.Require().NoError(err)
 
-			err = s.App.BridgeKeeper.AuthenticateTx(s.Ctx(), tc.sender, tc.msgs)
+			err = s.App.BridgeKeeper.AuthenticateTx(tc.sender, tc.msgs, tc.authorizedMessages)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised

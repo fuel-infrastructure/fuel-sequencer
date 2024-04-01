@@ -17,8 +17,8 @@ func (k Keeper) GenerateSequencerAccountFromEthereumDeposit(
 }
 
 // AuthenticateTx is an export of authenticateTx for testing.
-func (k Keeper) AuthenticateTx(ctx sdk.Context, sender string, msgs []sdk.Msg) error {
-	return k.authenticateTx(ctx, sender, msgs)
+func (k Keeper) AuthenticateTx(sender string, msgs []sdk.Msg, messagesAllowed []string) error {
+	return k.authenticateTx(sender, msgs, messagesAllowed)
 }
 
 // ExecuteMsg is an export of ExecuteMsg for testing.
