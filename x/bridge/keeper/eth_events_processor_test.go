@@ -186,14 +186,14 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
 
 			// Authorize bank.MsgSend on Sequencer
-			messagesAllowed := []string{"*"}
-			err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
-				AuthorizeMessagesAllowed: messagesAllowed,
-			})
+			bridgeParams := &types.Params{
+				AuthorizeMessagesAllowed: []string{"*"},
+			}
+			err := s.App.BridgeKeeper.SetParams(s.Ctx(), *bridgeParams)
 			s.Require().NoError(err)
 
 			processAuthorizeEventCtx := s.Ctx()
-			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(processAuthorizeEventCtx, tc.authorizeEvent, messagesAllowed)
+			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(processAuthorizeEventCtx, tc.authorizeEvent, bridgeParams)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised
@@ -306,12 +306,13 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 			s.SetupTest()
 
 			// Authorize required messages on Sequencer
-			err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
+			bridgeParams := &types.Params{
 				AuthorizeMessagesAllowed: tc.authorizedMessages,
-			})
+			}
+			err := s.App.BridgeKeeper.SetParams(s.Ctx(), *bridgeParams)
 			s.Require().NoError(err)
 
-			err = s.App.BridgeKeeper.AuthenticateTx(tc.sender, tc.msgs, tc.authorizedMessages)
+			err = s.App.BridgeKeeper.AuthenticateTx(tc.sender, tc.msgs, bridgeParams)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised

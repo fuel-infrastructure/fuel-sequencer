@@ -82,14 +82,15 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 	return vestingStartTime, vestingEndTime, nil
 }
 
-// IsAuthorizedMessage returns true if the sdk.Msg TypeURL is present in messagesAllowed, otherwise false
-func IsAuthorizedMessage(messagesAllowed []string, msg sdk.Msg) bool {
+// IsAuthorizedMessage returns true if the sdk.Msg TypeURL is present in Params.AuthorizeMessagesAllowed, otherwise,
+// returns false
+func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
 	// Check that wildcard * option for allowing all message types is the only string in the array, if so, return true
-	if len(messagesAllowed) == 1 && messagesAllowed[0] == AllowAllAuthorizeMessages {
+	if len(p.AuthorizeMessagesAllowed) == 1 && p.AuthorizeMessagesAllowed[0] == AllowAllAuthorizeMessages {
 		return true
 	}
 
-	for _, messageAllowed := range messagesAllowed {
+	for _, messageAllowed := range p.AuthorizeMessagesAllowed {
 		if messageAllowed == sdk.MsgTypeURL(msg) {
 			return true
 		}

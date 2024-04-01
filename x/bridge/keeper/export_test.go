@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // GenerateSequencerAccountFromEthereumDeposit is an export of generateSequencerAccountFromEthereumDeposit for testing.
@@ -16,8 +17,8 @@ func (k Keeper) GenerateSequencerAccountFromEthereumDeposit(
 }
 
 // AuthenticateTx is an export of authenticateTx for testing.
-func (k Keeper) AuthenticateTx(sender string, msgs []sdk.Msg, messagesAllowed []string) error {
-	return k.authenticateTx(sender, msgs, messagesAllowed)
+func (k Keeper) AuthenticateTx(sender string, msgs []sdk.Msg, bridgeParams *types.Params) error {
+	return k.authenticateTx(sender, msgs, bridgeParams)
 }
 
 // ExecuteMsg is an export of ExecuteMsg for testing.
@@ -27,9 +28,9 @@ func (k Keeper) ExecuteMsg(ctx sdk.Context, msg sdk.Msg) error {
 
 // ProcessAuthorizeEvent is an export of ProcessAuthorizeEvent for testing.
 func (k Keeper) ProcessAuthorizeEvent(
-	ctx sdk.Context, event *sidecartypes.AuthorizeEvent, messagesAllowed []string,
+	ctx sdk.Context, event *sidecartypes.AuthorizeEvent, bridgeParams *types.Params,
 ) error {
-	return k.processAuthorizeEvent(ctx, event, messagesAllowed)
+	return k.processAuthorizeEvent(ctx, event, bridgeParams)
 }
 
 // SetRouter is a testing utility which takes the existing keeper, sets its MsgServiceRouter and returns the modified

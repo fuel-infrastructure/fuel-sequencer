@@ -21,8 +21,8 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		return
 	}
 
-	// Get the list of authorized messages on the Sequencer
-	messagesAllowed := k.GetParams(ctx).AuthorizeMessagesAllowed
+	// Get the module params
+	params := k.GetParams(ctx)
 
 	for _, event := range ethEventsTx.Events {
 		// Unmarshal event sent by sidecar to a parsedEvent
@@ -44,7 +44,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 			// If an error occurs while processing an Authorize event we will not apply any state changes and move on to
 			// the next event.
 			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				err = k.processAuthorizeEvent(ctx, pe, messagesAllowed)
+				err = k.processAuthorizeEvent(ctx, pe, &params)
 				return err
 			})
 			if err != nil {
@@ -66,9 +66,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 func (k Keeper) processSendToSequencerEvent(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
 
 // processAuthorizeEvent attempts to process an AuthorizeEvent
-func (k Keeper) processAuthorizeEvent(
-	ctx sdk.Context, event *sidecartypes.AuthorizeEvent, messagesAllowed []string,
-) error {
+func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent, params *types.Params) error {
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := types.DeserializeAuthorizeTx(k.cdc, event)
 	if err != nil {
@@ -76,7 +74,7 @@ func (k Keeper) processAuthorizeEvent(
 	}
 
 	// Check whether AuthorizeTx is authorized on the Sequencer
-	if err = k.authenticateTx(event.From, msgs, messagesAllowed); err != nil {
+	if err = k.authenticateTx(event.From, msgs, params); err != nil {
 		return fmt.Errorf("could not authenticate AuthorizeTx: %w", err)
 	}
 
@@ -109,7 +107,7 @@ func (k Keeper) processAuthorizeEvent(
 }
 
 // authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
-func (k Keeper) authenticateTx(sender string, msgs []sdk.Msg, messagesAllowed []string) error {
+func (k Keeper) authenticateTx(sender string, msgs []sdk.Msg, params *types.Params) error {
 
 	// Generate the Sequencer address from the Ethereum address
 	mappedSequencerAddr, err := types.GenerateSequencerAddressFromEthereumAddress(sender)
@@ -120,7 +118,7 @@ func (k Keeper) authenticateTx(sender string, msgs []sdk.Msg, messagesAllowed []
 	for _, msg := range msgs {
 
 		// Check that the message is authorized
-		if !types.IsAuthorizedMessage(messagesAllowed, msg) {
+		if !params.IsAuthorizedMessage(msg) {
 			return types.ErrMsgNotAuthorizedOnSequencer.Wrapf("%s", sdk.MsgTypeURL(msg))
 		}
 
