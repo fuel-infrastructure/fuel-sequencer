@@ -178,13 +178,13 @@ do-checksum:
 build-with-checksum: build-all do-checksum
 
 run-client-binary:
-	@$(eval ARCH := linux-amd64)
+	@$(eval ARCH ?= linux-amd64)
 	@if [ -z "$(BLOCK_NUMBER)" ]; then echo "BLOCK_NUMBER is not set. Use make run-client BLOCK_NUMBER=<number>"; exit 1; fi
 	@echo "Running client $(VERSION) for $(ARCH) with block number $(BLOCK_NUMBER)..."
 	@$(BUILDDIR)/client-$(VERSION)-$(ARCH) -blocknumber $(BLOCK_NUMBER)
 
 run-sidecar-binary:
-	@$(eval ARCH := linux-amd64)
+	@$(eval ARCH ?= linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
 	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --cosmos_node_rpc="$(COSMOS_NODE_RPC)" --development="$(DEVELOPMENT)"
 
@@ -230,8 +230,9 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 run-sequencer: proto-go-gen serve
 
 run-sidecar:
-	@$(eval ETH_RPC := "http://localhost:8545")
-	@$(eval CONTRACT_ADDRESS := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_RPC ?= "http://localhost:8545")
+	@$(eval CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@echo "Waiting for Ethereum node $(ETH_RPC) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \
@@ -239,6 +240,7 @@ run-sidecar:
 	@fuelsequencerd start-sidecar \
 		--eth_node_rpc "$(ETH_RPC)" \
 		--contract_address "$(CONTRACT_ADDRESS)" \
+		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--development=true
 
 serve:

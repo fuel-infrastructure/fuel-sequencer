@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	host        = flag.String("host", "localhost", "host for the grpc-service to listen on")
-	port        = flag.String("port", "8080", "port for the grpc-service to listen on")
+	host        = flag.String("host", "localhost", "host of the gRPC service to query")
+	port        = flag.String("port", "8080", "port of the gRPC service to query")
 	blockNumber = flag.String("blocknumber", "", "block number to query events for")
 )
 
