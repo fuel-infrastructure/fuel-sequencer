@@ -4,6 +4,7 @@ package fuelsequencer.bridge;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
