@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	"math/big"
 	"os"
 	osuser "os/user"
@@ -157,6 +158,9 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initFuelSequencerNodes(MNEMONICS)
 	s.initEthereumNodes(MNEMONICS)
 
+	// Run the eth container, no contracts deployed yet just anvil
+	s.runEthContainer()
+
 	// continue generating node genesis
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
@@ -175,14 +179,11 @@ func (s *E2ETestSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	// Get genesis header
-	block, err := s.GetBlockByHeight(s.Ctx(), 1)
+	genesisBlockHeaderHash, err := s.chain.GetBlockHeaderHash(s.Ctx(), 1)
 	s.Require().NoError(err)
-	block.Hash()
-	s.Require().Equal(sequencerHeight, uint64(block.Header.Height))
 
-	// run the eth container so that the contract addresses are available
-	// TODO: probably run this after sequencer since we would need the genesis headers from the sequencer in the smart contracts
-	s.runEthContainer()
+	// Deploy the contracts with the header
+	s.deployContracts(1, genesisBlockHeaderHash)
 }
 
 func (s *E2ETestSuite) TearDownTest() {
@@ -442,8 +443,56 @@ func (s *E2ETestSuite) runEthContainer() {
 
 			return true
 		},
-		5*time.Minute,
-		10*time.Second,
+		1*time.Minute,
+		1*time.Second,
+		"ethereum node failed to respond",
+	)
+
+	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+}
+
+func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash cmtbytes.HexBytes) {
+	s.T().Log("deploying Ethereum contracts...")
+
+	execOptions := dockertest.ExecOptions{
+		Env: []string{
+			"ETHEREUM_RPC_URL=http://ethereum:8545",
+			"PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+			"GUARDIAN_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // Can be anything
+			fmt.Sprintf("GENESIS_HEIGHT=%d", genesisHeight),
+			fmt.Sprintf("GENESIS_HEADER=%s", genesisHeaderHash.String()),
+		},
+	}
+
+	exitCode, err := s.ethResource.Exec(
+		[]string{"bash", "scripts/deploy_contract.sh"},
+		execOptions,
+	)
+	s.Require().NoError(err)
+	s.Require().Zero(exitCode)
+
+	ethClient, err := ethclient.Dial(fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp")))
+	s.Require().NoError(err)
+
+	// Wait for the Ethereum node to respond to a request
+	s.Require().Eventually(
+		func() bool {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+
+			code, err := ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
+			if err != nil {
+				s.T().Logf("error retreiving contract's code: %e", err)
+				return false
+			} else if len(code) == 0 {
+				s.T().Logf("error retreiving contract's code, contract not depeloyed")
+				return false
+			}
+
+			return true
+		},
+		1*time.Minute,
+		2*time.Second,
 		"ethereum node failed to respond",
 	)
 

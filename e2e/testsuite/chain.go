@@ -8,6 +8,7 @@ import (
 
 	"cosmossdk.io/x/evidence"
 	"cosmossdk.io/x/upgrade"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmrand "github.com/cometbft/cometbft/libs/rand"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -263,6 +264,14 @@ func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
 		return 0, fmt.Errorf("rpc client status: %w", err)
 	}
 	return uint64(res.SyncInfo.LatestBlockHeight), nil
+}
+
+func (c *chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.HexBytes, error) {
+	res, err := c.rpcClient.Block(ctx, &height)
+	if err != nil {
+		return cmtbytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
+	}
+	return res.BlockID.Hash, nil
 }
 
 func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {
