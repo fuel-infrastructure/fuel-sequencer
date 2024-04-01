@@ -2,9 +2,16 @@ package testsuite
 
 import (
 	"context"
+	"fmt"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
+
+func (s *E2ETestSuite) GetGovernanceAddress() string {
+	return authtypes.NewModuleAddress(govtypes.ModuleName).String()
+}
 
 func (s *E2ETestSuite) QueryProposal(ctx context.Context, proposalID uint64) (govtypesv1.Proposal, error) {
 	queryClient := s.getGRPCClients().GovQueryClient
@@ -49,4 +56,30 @@ func (s *E2ETestSuite) QueryGovTallyParams(ctx context.Context) *govtypesv1.Para
 	s.Require().NoError(err)
 
 	return res.Params
+}
+
+// PollForProposalStatus polls until the proposal status matches
+func (s *E2ETestSuite) PollForProposalStatus(
+	ctx context.Context, deltaBlocks uint64, proposalID uint64, status govtypesv1.ProposalStatus,
+) {
+	h, err := s.chain.FuelSequencerHeight(ctx)
+	s.Require().NoError(err)
+
+	s.T().Log(fmt.Sprintf("Polling for status %s of proposal %d", status, proposalID))
+
+	doPoll := func(ctx context.Context, height uint64) (any, error) {
+		proposal, err := s.QueryProposal(ctx, proposalID)
+		if err != nil {
+			return nil, err
+		}
+
+		if proposal.Status != status {
+			return nil, fmt.Errorf("status (%s) does not match expected: (%s)", proposal.Status, status)
+		}
+		return nil, nil
+	}
+
+	bp := BlockPoller[any]{CurrentHeight: s.chain.FuelSequencerHeight, PollFunc: doPoll}
+	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	s.Require().NoError(err, "status not found in expected number of blocks")
 }

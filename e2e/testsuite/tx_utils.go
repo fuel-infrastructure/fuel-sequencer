@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 )
 
@@ -42,4 +43,11 @@ func decodeTx(txBytes []byte) (*sdktx.Tx, error) {
 		AuthInfo:   &authInfo,
 		Signatures: raw.Signatures,
 	}, nil
+}
+
+// AssertValidTxResponse verifies that an sdk.TxResponse has non-empty values.
+func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
+	errorMsg := fmt.Sprintf("%+v", resp)
+	s.Require().NotEmpty(resp.TxHash, errorMsg)
+	s.Require().Zero(resp.Code, errorMsg)
 }

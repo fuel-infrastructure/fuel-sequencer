@@ -66,6 +66,9 @@ const (
 
 	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
 	ethereumDockerImageTag  = "latest"
+
+	governanceVotingPeriod           = time.Second * 5
+	blocksToWaitForGovProposalToPass = uint64(10)
 )
 
 var (
@@ -112,6 +115,9 @@ type E2ETestSuite struct {
 	dockerNetwork *dockertest.Network
 	ethResource   *dockertest.Resource
 	valResources  []*dockertest.Resource
+
+	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
+	govProposalIdCounter int
 }
 
 func (s *E2ETestSuite) SetupTest() {
@@ -152,6 +158,8 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initRPCClient()
 	s.initEthereumRPCClient()
 	s.initSidecarClient()
+
+	s.govProposalIdCounter = 1
 }
 
 func (s *E2ETestSuite) TearDownTest() {
@@ -175,6 +183,8 @@ func (s *E2ETestSuite) TearDownTest() {
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
+
+	s.govProposalIdCounter = 1
 }
 
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
@@ -231,8 +241,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
 
 	// set short voting period to allow gov proposals in tests
-	seconds20 := time.Second * 20
-	govGenState.Params.VotingPeriod = &seconds20
+	votingPeriod := governanceVotingPeriod
+	govGenState.Params.VotingPeriod = &votingPeriod
 	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
 	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
 	bz, err := cdc.MarshalJSON(&govGenState)
@@ -450,15 +460,19 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 				"8080/tcp":  {{HostIP: "", HostPort: "8080"}},
 			}
 			runOpts.ExposedPorts = []string{"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp", "8080/tcp"}
-
-			val.hostRPCPort = "tcp://localhost:26657"
-			val.hostAPIPort = "tcp://localhost:1317"
-			val.hostGRPCPort = "localhost:9090"
-			val.sidecarGRPCPort = "localhost:8080"
 		}
 
 		resource, err := s.dockerPool.RunWithOptions(runOpts, noRestart)
 		s.Require().NoError(err)
+
+		port1317 := resource.Container.NetworkSettings.Ports["1317/tcp"][0].HostPort
+		val.hostAPIPort = fmt.Sprintf("tcp://localhost:%s", port1317)
+		port9090 := resource.Container.NetworkSettings.Ports["9090/tcp"][0].HostPort
+		val.hostGRPCPort = fmt.Sprintf("localhost:%s", port9090)
+		port26657 := resource.Container.NetworkSettings.Ports["26657/tcp"][0].HostPort
+		val.hostRPCPort = fmt.Sprintf("tcp://localhost:%s", port26657)
+		port8080 := resource.Container.NetworkSettings.Ports["8080/tcp"][0].HostPort
+		val.sidecarGRPCPort = fmt.Sprintf("localhost:%s", port8080)
 
 		s.valResources[i] = resource
 		s.T().Logf("started validator container: %s", resource.Container.ID)
