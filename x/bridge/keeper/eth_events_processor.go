@@ -25,7 +25,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	params := k.GetParams(ctx)
 
 	for _, event := range ethEventsTx.Events {
-		// Unmarshal event sent by sidecar to a parsedEvent
+		// Unmarshal event queried from Sidecar to a parsedEvent
 		parsedEvent, err := event.UnmarshalParsedEvent()
 		if err != nil {
 			// If an event cannot be unmarshalled to ParsedEvent ignore it and move on to the next event as there
