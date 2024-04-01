@@ -16,9 +16,7 @@ func (k msgServer) PostBlob(
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve sequencing parameters
-	params := k.GetParams(ctx)
-	maxBlobSizeBytes := params.MaxBlobSizeBytes
-	gasPerBlobSize := params.GasPerBlobByte
+	maxBlobSizeBytes := k.GetParams(ctx).MaxBlobSizeBytes
 
 	// Verify that the data satisfies a maximum transaction size (using MaxBlobSizeBytes)
 	msgLength := uint64(len(msg.Data))
@@ -84,10 +82,6 @@ func (k msgServer) PostBlob(
 		// Increment the topic order
 		topic.Order = nextTopicOrder
 	}
-
-	// Calculate the total gas to be consumed for the blob based on its size
-	totalGas := msgLength * gasPerBlobSize
-	ctx.GasMeter().ConsumeGas(totalGas, "PostBlob data size")
 
 	// Set the topic
 	k.SetTopic(ctx, topic)

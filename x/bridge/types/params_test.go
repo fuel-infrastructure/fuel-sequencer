@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
@@ -79,6 +81,59 @@ func TestVestingTimesFromVestingDuration(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tc.expStartTime, startTime)
 			require.Equal(t, tc.expEndTime, endTime)
+		})
+	}
+}
+
+func TestIsAuthorizedMessage(t *testing.T) {
+	testCases := []struct {
+		name      string
+		params    *types.Params
+		msg       sdk.Msg
+		expResult bool
+	}{
+		{
+			name: "returns true if message is authorized (messages allowed is not *)",
+			params: &types.Params{
+				AuthorizeMessagesAllowed: []string{"msg1", "msg2", sdk.MsgTypeURL(&banktypes.MsgSend{})},
+			},
+			msg: &banktypes.MsgSend{
+				FromAddress: "addr1",
+				ToAddress:   "addr2",
+				Amount:      nil,
+			},
+			expResult: true,
+		},
+		{
+			name: "returns true if message is authorized (messages allowed is *)",
+			params: &types.Params{
+				AuthorizeMessagesAllowed: []string{"*"},
+			},
+			msg: &banktypes.MsgSend{
+				FromAddress: "addr1",
+				ToAddress:   "addr2",
+				Amount:      nil,
+			},
+			expResult: true,
+		},
+		{
+			name: "returns false if message is not authorized",
+			params: &types.Params{
+				AuthorizeMessagesAllowed: []string{"msg1", "msg2", "msg3"},
+			},
+			msg: &banktypes.MsgSend{
+				FromAddress: "addr1",
+				ToAddress:   "addr2",
+				Amount:      nil,
+			},
+			expResult: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualResult := tc.params.IsAuthorizedMessage(tc.msg)
+			require.Equal(t, tc.expResult, actualResult)
 		})
 	}
 }

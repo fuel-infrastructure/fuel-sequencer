@@ -12,17 +12,16 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(maxBlobSizeBytes, gasPerBlobByte uint64) Params {
+func NewParams(maxBlobSizeBytes uint64) Params {
 	return Params{
 		MaxBlobSizeBytes: maxBlobSizeBytes,
-		GasPerBlobByte:   gasPerBlobByte,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	// TODO: consider setting more meaningful default params
-	return NewParams(0, 0)
+	return NewParams(0)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -34,8 +33,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 func (p Params) Validate() error {
 
 	// TODO: validate MaxBlobSizeBytes
-
-	// TODO: validate GasPerBlobByte
 
 	return nil
 }
