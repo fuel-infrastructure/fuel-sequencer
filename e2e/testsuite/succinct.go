@@ -90,7 +90,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 
 	s.T().Logf("SuccinctX operator request successful!")
 
-	// We only want 1 proof from the relayer
+	// We only want 1 proof from the operator
 	s.T().Logf("stopping SuccinctX operator container...")
 	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
 
@@ -119,9 +119,9 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 
 	proof := SuccinctXProof{
 		ChainId: 31337,
-		To:      GATEWAY_CONTRACT,
+		To:      FUEL_STREAM_X_CONTRACT,
 		// To create the signature, you can use "cast calldata "commitHeaderRange(uint64)" 6"
-		Calldata:   "0x89daae09" + cmbytes.HexBytes(targetBlockBytes).String(),
+		Calldata:   "0x89daae09" + cmbytes.HexBytes(padded32TargetBlockBytes).String(),
 		FunctionId: HEADER_RANGE_FUNCTION_ID,
 		Input:      "0x" + cmbytes.HexBytes(startBlockBytes).String() + latestHeaderHash.String() + cmbytes.HexBytes(targetBlockBytes).String(),
 		Proof:      "0xbaaaaa", // Can be anything, not used
@@ -165,16 +165,21 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	s.Require().NoError(err)
 
 	// Wait for the Relayer node to response
+	match := "Relayed successfully!"
 	s.Require().Eventually(
 		func() bool {
-			//logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
-			// TODO:
-			return false
+			logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
+
+			return strings.Contains(logs, match)
 		},
 		1*time.Minute,
 		10*time.Second,
 		"SuccinctX relayer failed to respond",
 	)
+
+	// We only want 1 proof submitted from the relayer
+	s.T().Logf("stopping SuccinctX operator container...")
+	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
 }
 
 // -------------- TEMP
