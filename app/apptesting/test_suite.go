@@ -37,9 +37,8 @@ type KeeperTestHelper struct {
 
 	App *app.FuelSequencerApp
 
-	QueryHelper  *baseapp.QueryServiceTestHelper
-	TestAccs     []sdk.AccAddress
-	DexChainAccs []sdk.AccAddress
+	QueryHelper *baseapp.QueryServiceTestHelper
+	TestAccs    []sdk.AccAddress
 }
 
 // Setup sets up basic environment for suite (App, Ctx, and test accounts) with Now() as block time

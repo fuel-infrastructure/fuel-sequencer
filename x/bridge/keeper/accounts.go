@@ -5,52 +5,36 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// vestingStartTimeDelay is a constant period of time during which tokens are completely locked.
-var vestingStartTimeDelay = time.Hour * 24 * 365
+// normaliseExistingAccount tries to extract EthOwnedAccountI from sdk.AccountI. If an 'EthOwned' account is found,
+// the account info is extracted untouched. Otherwise, we use the base account and wrap it as a EthOwnedBaseAccount.
+// If the existing account was a non-'EthOwned' vesting account, any vesting details are discarded.
+func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwnedAccountI {
 
-// blankBaseVestingAccount returns a blank base vesting account. We only need
-// the amounts from this struct, so we don't care about the other fields.
-func blankBaseVestingAccount() *vestingtypes.BaseVestingAccount {
-	return &vestingtypes.BaseVestingAccount{
-		OriginalVesting:  nil,
-		DelegatedFree:    nil,
-		DelegatedVesting: nil,
-	}
-}
-
-// detailsFromFromExistingAcc extracts the base account and base vesting account, if any, from a sdk.AccountI.
-// If a recognized account type is found, the base account and base vesting account are extracted untouched.
-// Otherwise, we extract just the base account and discard any existing vesting information.
-//
-// Practically speaking, the last case will happen if someone pre-creates an unrecognized vesting account type.
-// In this case any locked tokens in this pre-created vesting account will become liquid.
-func detailsFromFromExistingAcc(acc sdk.AccountI) (*authtypes.BaseAccount, *vestingtypes.BaseVestingAccount) {
-
-	// Try to parse into ContinuousVestingAccount.
-	if vacc, ok := acc.(*vestingtypes.ContinuousVestingAccount); ok {
-		return vacc.BaseVestingAccount.BaseAccount, vacc.BaseVestingAccount
+	// Try to parse into EthOwnedContinuousVestingAccount.
+	if vAcc, ok := acc.(*types.EthOwnedContinuousVestingAccount); ok {
+		return vAcc
 	}
 
-	// Try to parse into BaseAccount.
-	if baseAcc, ok := acc.(*authtypes.BaseAccount); ok {
-		return baseAcc, blankBaseVestingAccount()
+	// Try to parse into EthOwnedBaseAccount.
+	if baseAcc, ok := acc.(*types.EthOwnedBaseAccount); ok {
+		return baseAcc
 	}
 
-	// Backup: reconstruct details from sdk.AccountI. This will only happen if an unexpected type of vesting account
-	// was pre-created. Thus, the vesting details are not really important and any vesting tokens will become available.
+	// Backup: reconstruct details from sdk.AccountI. This will only happen if an unexpected type of account was
+	// pre-created. Thus, the vesting details are not really important and any vesting tokens will become available.
 	baseAcc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-	return baseAcc, blankBaseVestingAccount()
+	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress)
 }
 
-// generateSequencerAccountFromEthereumAddress gets or creates a Sequencer account for the specified Ethereum address.
+// generateSequencerAccountFromEthereumDeposit gets or creates a Sequencer account for the specified Ethereum address.
 // The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
-// to follow the specified vestingDuration, regardless of whether the account already existed in other forms.
-func (k Keeper) generateSequencerAccountFromEthereumAddress(
-	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, totalCoins sdk.Coins,
+// to follow the specified vestingDuration, unless an EthOwnedContinuousVestingAccount exists already, in which
+// case the newly specified vestingDuration will be ignored and new coins will assume the existing vesting schedule.
+func (k Keeper) generateSequencerAccountFromEthereumDeposit(
+	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, coins sdk.Coins,
 ) (sdk.AccAddress, error) {
 
 	accAddress, err := types.GenerateSequencerAddressFromEthereumAddress(ethAddress)
@@ -58,68 +42,37 @@ func (k Keeper) generateSequencerAccountFromEthereumAddress(
 		return nil, err
 	}
 
-	// Calculate vesting details.
-	var vestingStartTime time.Time
-	var vestingEndTime time.Time
-	vestingDone := true
-	if vestingDuration > 0 {
-		// The vesting start time delay is included in the vesting duration, so
-		// if the vesting duration is smaller, it cannot be considered as valid.
-		// We consider vestingDuration == vestingStartTimeDelay as invalid as well.
-		if vestingDuration <= vestingStartTimeDelay {
-			return nil, types.ErrInvalidVestingDuration.Wrapf(
-				"must be greater than vesting start time delay, got %s <= %s",
-				vestingDuration, vestingStartTimeDelay,
-			)
-		}
-		params := k.GetParams(ctx)
-		vestingStartTime = params.VestingStartTime.Add(vestingStartTimeDelay)
-		vestingEndTime = params.VestingStartTime.Add(vestingDuration)
-		vestingDone = ctx.BlockTime().Compare(vestingEndTime) >= 0 // block time is at or after vesting end time
-	}
-
-	var baseAcc *authtypes.BaseAccount
-	var baseVestingAcc *vestingtypes.BaseVestingAccount // we're only interested in the amounts
-
-	// If account already exists, use it, otherwise create one.
-	// We also extract the base account since we'll most likely use it.
+	// Get existing account, if any.
 	existingAcc := k.accountKeeper.GetAccount(ctx, accAddress)
 	createNewAcc := existingAcc == nil
+
+	// Normalise any existing account into EthOwnedAccountI or create a new one.
+	var acc types.EthOwnedAccountI
 	if createNewAcc {
-		baseAcc = authtypes.NewBaseAccountWithAddress(accAddress)
-		baseVestingAcc = blankBaseVestingAccount()
+		acc = types.NewEthOwnedBaseAccountWithAddress(accAddress, ethAddress)
 	} else {
-		baseAcc, baseVestingAcc = detailsFromFromExistingAcc(existingAcc)
+		acc = normaliseExistingAccount(existingAcc, ethAddress)
 	}
 
-	// If vesting done, ensure we use the base account. Otherwise, create a vesting account.
-	var newAcc sdk.AccountI
-	if vestingDone {
-		newAcc = baseAcc
-	} else {
-		vestingAcc := vestingtypes.NewContinuousVestingAccountRaw(
-			&vestingtypes.BaseVestingAccount{
-				BaseAccount:      baseAcc,
-				OriginalVesting:  baseVestingAcc.OriginalVesting.Add(totalCoins...),
-				DelegatedFree:    baseVestingAcc.DelegatedFree,
-				DelegatedVesting: baseVestingAcc.DelegatedVesting,
-				EndTime:          vestingEndTime.Unix(),
-			},
-			vestingStartTime.Unix(),
-		)
-		if err = vestingAcc.Validate(); err != nil {
+	// Update account with vesting details, if any.
+	if vestingDuration > 0 {
+		startTime, endTime, err := k.GetParams(ctx).VestingTimesFromVestingDuration(vestingDuration)
+		if err != nil {
 			return nil, err
 		}
 
-		newAcc = vestingAcc
+		acc, err = acc.AddVestingCoins(coins, startTime, endTime)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	// Get an account number if it's a new account.
-	// This assigns a new account sequence.
+	// Get an account number and account sequence if it's a new account.
+	accI := sdk.AccountI(acc)
 	if createNewAcc {
-		newAcc = k.accountKeeper.NewAccount(ctx, newAcc)
+		accI = k.accountKeeper.NewAccount(ctx, accI)
 	}
 
-	k.accountKeeper.SetAccount(ctx, newAcc)
+	k.accountKeeper.SetAccount(ctx, accI)
 	return accAddress, nil
 }

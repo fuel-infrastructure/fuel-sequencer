@@ -33,3 +33,6 @@ Testing and docs:
   - Terminal 1: `make install run-eth-docker-container run-sidecar`
   - Terminal 2: `make run-sequencer`
   - `make clean` once you're done.
+- [ ] Run E2E tests:
+  - `make build-eth-docker-image build-docker-image test-e2e`
+  - `make clean` once you're done.
