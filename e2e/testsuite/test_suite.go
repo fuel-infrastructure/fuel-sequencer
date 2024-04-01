@@ -157,10 +157,6 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initFuelSequencerNodes(MNEMONICS)
 	s.initEthereumNodes(MNEMONICS)
 
-	// run the eth container so that the contract addresses are available
-	// TODO: probably run this after sequencer since we would need the genesis headers from the sequencer in the smart contracts
-	s.runEthContainer()
-
 	// continue generating node genesis
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
@@ -173,6 +169,20 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initRPCClient()
 	s.initEthereumRPCClient()
 	s.initSidecarClient()
+
+	// We need the genesis header for solidity smart contracts
+	err = s.WaitForBlocks(s.Ctx(), 1, time.Minute)
+	s.Require().NoError(err)
+
+	// Get genesis header
+	block, err := s.GetBlockByHeight(s.Ctx(), 1)
+	s.Require().NoError(err)
+	block.Hash()
+	s.Require().Equal(sequencerHeight, uint64(block.Header.Height))
+
+	// run the eth container so that the contract addresses are available
+	// TODO: probably run this after sequencer since we would need the genesis headers from the sequencer in the smart contracts
+	s.runEthContainer()
 }
 
 func (s *E2ETestSuite) TearDownTest() {
