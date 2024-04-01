@@ -41,8 +41,8 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 			// issue occurs
 			k.processDeposit(ctx, pe)
 		case *sidecartypes.AuthorizeEvent:
-			// If an error occurs while processing an Authorize event we will not apply any state changes and move on to
-			// the next event.
+			// If an error occurs while processing an Authorize event we will move on to the next event without applying
+			// any state changes.
 			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 				err = k.processAuthorizeEvent(ctx, pe, &params)
 				return err
