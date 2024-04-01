@@ -132,16 +132,9 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "successfully processes msgs in AuthorizeTx if none error",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				From: testtypes.TestFrom3,
-				Message: testutils.MustHexDecodeString(
-					"0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656e" +
-						"636572317373796d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d76" +
-						"6739713365746a327171757a7261356e12346675656c73657175656e636572313633727376363574343839337432" +
-						"727a35726d646139736c79376c67646c71326a677233366d1a0b0a05756675656c120231300aae010a1c2f636f73" +
-						"6d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656e63657231737379" +
-						"6d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d766739713365746a" +
-						"327171757a7261356e12346675656c73657175656e636572313633727376363574343839337432727a35726d6461" +
-						"39736c79376c67646c71326a677233366d1a0b0a05756675656c12023130",
-				), // Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+
+				// Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
 			},
 			expFromBalance: sdkmath.NewInt(999980),
 			expToBalance:   sdkmath.NewInt(20),
@@ -158,16 +151,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "returns error if AuthorizeTx cannot be authenticated",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				From: testtypes.TestFrom2, // Invalid From to trigger an authentication error
-				Message: testutils.MustHexDecodeString(
-					"0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656e" +
-						"636572317373796d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d76" +
-						"6739713365746a327171757a7261356e12346675656c73657175656e636572313633727376363574343839337432" +
-						"727a35726d646139736c79376c67646c71326a677233366d1a0b0a05756675656c120231300aae010a1c2f636f73" +
-						"6d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656e63657231737379" +
-						"6d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d766739713365746a" +
-						"327171757a7261356e12346675656c73657175656e636572313633727376363574343839337432727a35726d6461" +
-						"39736c79376c67646c71326a677233366d1a0b0a05756675656c12023130",
-				), // Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+				// Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
 			},
 			expErrMsg: "could not authenticate AuthorizeTx",
 		},
@@ -175,13 +160,9 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "returns error if some messages cannot be validated",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				From: testtypes.TestFrom3,
-				Message: testutils.MustHexDecodeString(
-					"0abc010a2b2f6675656c73657175656e6365722e6272696467652e4d73675769746864726177546f457468657265756" +
-						"d128c010a486675656c73657175656e636572317373796d66356a796b61383967736a633966616d657a76326c63" +
-						"73656437756c646671327a38746b6d766739713365746a327171757a7261356e12346675656c73657175656e636" +
-						"572313633727376363574343839337432727a35726d646139736c79376c67646c71326a677233366d1a0a0a0575" +
-						"6675656c120130",
-				), // Message decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
+
+				// Message decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
+				Message: testutils.MustHexDecodeString(testtypes.TestMessage5),
 			},
 			expErrMsg: "could not validate msg",
 		},
@@ -189,18 +170,11 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "returns error if some messages fail execution",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				From: testtypes.TestFrom3,
-				Message: testutils.MustHexDecodeString(
-					"0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c73657175656e" +
-						"636572317373796d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d76" +
-						"6739713365746a327171757a7261356e12346675656c73657175656e636572313633727376363574343839337432" +
-						"727a35726d646139736c79376c67646c71326a677233366d1a0b0a05756675656c120231300ab4010a1c2f636f73" +
-						"6d6f732e62616e6b2e763162657461312e4d736753656e641293010a486675656c73657175656e63657231737379" +
-						"6d66356a796b61383967736a633966616d657a76326c6373656437756c646671327a38746b6d766739713365746a" +
-						"327171757a7261356e12346675656c73657175656e636572313633727376363574343839337432727a35726d6461" +
-						"39736c79376c67646c71326a677233366d1a110a05756675656c12083130303030303030",
-				), // Message decodes two MsgSends, one of 10 ufuel and another of 1000000 both from
-				// testtypes.TestFrom3Seq to testtypes.TestTo3. The second MsgSend should fail because
-				// testtypes.TestFrom3Seq originally should have 1000000 ufuel
+
+				// Message decodes two MsgSends, one of 10 ufuel and another of 1000000 both from testtypes.TestFrom3Seq
+				// to testtypes.TestTo3. The second MsgSend should fail because testtypes.TestFrom3Seq originally should
+				// have 1000000 ufuel
+				Message: testutils.MustHexDecodeString(testtypes.TestMessage6),
 			},
 			expErrMsg: "could not execute msg",
 		},
