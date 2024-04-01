@@ -39,7 +39,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		case *sidecartypes.SendToSequencerEvent:
 			// This doesn't error, so unless a panic occurs we will always be able to continue to the next event if some
 			// issue occurs
-			k.processSendToSequencerEvent(ctx, pe)
+			k.processDeposit(ctx, pe)
 		case *sidecartypes.AuthorizeEvent:
 			// If an error occurs while processing an Authorize event we will not apply any state changes and move on to
 			// the next event.
@@ -62,8 +62,8 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
 }
 
-// processSendToSequencerEvent attempts to process a SendToSequencerEvent
-func (k Keeper) processSendToSequencerEvent(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
+// processDeposit attempts to process a Deposit signalled by a SendToSequencerEvent
+func (k Keeper) processDeposit(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
 
 // processAuthorizeEvent attempts to process an AuthorizeEvent
 func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent, params *types.Params) error {
