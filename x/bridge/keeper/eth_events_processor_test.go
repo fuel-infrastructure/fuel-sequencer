@@ -3,10 +3,8 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
@@ -217,9 +215,6 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
 			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
 			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
-
-			// Check events emitted
-			s.AssertEventEmitted(processAuthorizeEventCtx, proto.MessageName(&types.EventAuthorizedTxExecuted{}), 1)
 		})
 	}
 }
@@ -339,15 +334,11 @@ func (s *KeeperTestSuite) TestExecuteMsg() {
 	amt := sdkmath.NewInt(1000000)
 	coinAmt := sdk.NewCoin("ufuel", amt)
 
-	expMsgSendResponse, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name                  string
 		msg                   sdk.Msg
 		expFromBalance        sdkmath.Int
 		expToBalance          sdkmath.Int
-		expResponse           *codectypes.Any
 		resetMsgServiceRouter bool
 		expErrMsg             string
 	}{
@@ -360,7 +351,6 @@ func (s *KeeperTestSuite) TestExecuteMsg() {
 			},
 			expFromBalance:        sdkmath.NewInt(999990),
 			expToBalance:          sdkmath.NewInt(10),
-			expResponse:           expMsgSendResponse,
 			resetMsgServiceRouter: false,
 		},
 		{
@@ -372,7 +362,6 @@ func (s *KeeperTestSuite) TestExecuteMsg() {
 			},
 			expFromBalance:        amt,
 			expToBalance:          sdkmath.ZeroInt(),
-			expResponse:           nil,
 			resetMsgServiceRouter: true, // No message will be registered
 			expErrMsg:             "invalid MsgHandler route",
 		},
@@ -389,13 +378,12 @@ func (s *KeeperTestSuite) TestExecuteMsg() {
 			// Fund accounts to be used so that we can execute messages
 			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
 
-			res, err := s.App.BridgeKeeper.ExecuteMsg(s.Ctx(), tc.msg)
+			err := s.App.BridgeKeeper.ExecuteMsg(s.Ctx(), tc.msg)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised
 				s.Require().Error(err)
 				s.Require().ErrorContains(err, tc.expErrMsg)
-				s.Require().Nil(res)
 
 				// Make sure that the balances are as expected
 				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
@@ -405,9 +393,6 @@ func (s *KeeperTestSuite) TestExecuteMsg() {
 				return
 			}
 			s.Require().NoError(err)
-
-			// Check that the message response was as expected
-			s.Require().Equal(tc.expResponse, res)
 
 			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvent was executed
 			// successfully

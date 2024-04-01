@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
@@ -83,11 +82,8 @@ func (k Keeper) processAuthorizeEvent(
 
 	// Execute every deserialized msg. If one of the messages errors during execution we will revert the state. i.e.
 	// either all messages get executed successfully or none at all.
-	txMsgData := &sdk.TxMsgData{
-		MsgResponses: make([]*codectypes.Any, len(msgs)),
-	}
 	err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		for index, msg := range msgs {
+		for _, msg := range msgs {
 
 			// Confirm that the message passes the necessary stateless checks
 			if m, ok := msg.(sdk.HasValidateBasic); ok {
@@ -96,21 +92,15 @@ func (k Keeper) processAuthorizeEvent(
 				}
 			}
 
-			// Execute message and store the response
-			msgResponse, err := k.executeMsg(ctx, msg)
+			// Execute message
+			err := k.executeMsg(ctx, msg)
 			if err != nil {
 				return fmt.Errorf("could not execute msg: msg %s, err: %w", msg.String(), err)
 			}
-			txMsgData.MsgResponses[index] = msgResponse
 		}
 
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	err = ctx.EventManager().EmitTypedEvent(&types.EventAuthorizedTxExecuted{MsgResponses: txMsgData.MsgResponses})
 	if err != nil {
 		return err
 	}
@@ -159,15 +149,15 @@ func (k Keeper) authenticateTx(sender string, msgs []sdk.Msg, messagesAllowed []
 }
 
 // ExecuteMsg attempts to execute an authorized message originating from Ethereum
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) error {
 	handler := k.router.Handler(msg)
 	if handler == nil {
-		return nil, types.ErrInvalidMsgHandlerRoute
+		return types.ErrInvalidMsgHandlerRoute
 	}
 
 	res, err := handler(ctx, msg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// The sdk msg handler creates a new EventManager, so events must be correctly propagated back to current context
@@ -176,8 +166,8 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error
 	// Each individual sdk.Result has exactly one Msg response.
 	msgResponse := res.MsgResponses[0]
 	if msgResponse == nil {
-		return nil, types.ErrNilMsgResponse.Wrapf("%s", sdk.MsgTypeURL(msg))
+		return types.ErrNilMsgResponse.Wrapf("%s", sdk.MsgTypeURL(msg))
 	}
 
-	return msgResponse, nil
+	return nil
 }

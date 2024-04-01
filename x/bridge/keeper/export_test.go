@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
@@ -22,7 +21,7 @@ func (k Keeper) AuthenticateTx(sender string, msgs []sdk.Msg, messagesAllowed []
 }
 
 // ExecuteMsg is an export of ExecuteMsg for testing.
-func (k Keeper) ExecuteMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
+func (k Keeper) ExecuteMsg(ctx sdk.Context, msg sdk.Msg) error {
 	return k.executeMsg(ctx, msg)
 }
 

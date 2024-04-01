@@ -43,10 +43,3 @@ message EventWithdrawToEthereumReported {
   // amount is the tokens being sent, which must be the expacted bridge token.
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
-
-message EventAuthorizedTxExecuted {
-
-  // msg_responses is the list of responses generated after executing every
-  // message in AuthorizeTx
-  repeated google.protobuf.Any msg_responses = 1;
-}
