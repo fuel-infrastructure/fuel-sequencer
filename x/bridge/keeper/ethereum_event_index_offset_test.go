@@ -32,3 +32,18 @@ func TestRemoveEthereumEventIndexOffset(t *testing.T) {
 	_, found := keeper.GetEthereumEventIndexOffset(ctx)
 	require.False(t, found)
 }
+
+func TestResetEthereumEventIndexOffset(t *testing.T) {
+	keeper, ctx := keepertest.BridgeKeeper(t)
+	value := math.NewInt(10)
+	zero := math.ZeroInt()
+
+	keeper.SetEthereumEventIndexOffset(ctx, value)
+	keeper.ResetEthereumEventIndexOffset(ctx)
+	rst, found := keeper.GetEthereumEventIndexOffset(ctx)
+	require.True(t, found)
+	require.Equal(t,
+		nullify.Fill(&rst),
+		nullify.Fill(&zero),
+	)
+}

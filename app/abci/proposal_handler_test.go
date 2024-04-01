@@ -32,11 +32,11 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
-	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTx)
-	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(testtypes.TestEthEventsTxPartial)
-	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTxWithoutEvents)
-	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(testtypes.TestEthEventsTxNoNewBlock)
-	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(testtypes.TestEthEventsTxSidecarErr)
+	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTx)
+	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxPartial)
+	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithoutEvents)
+	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxNoNewBlock)
+	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
@@ -444,13 +444,13 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
-	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTx)
-	encodedEthEventsTxWithDifferentEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTxWithDifferentEvents)
-	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(testtypes.TestEthEventsTxPartial)
-	encodedEthEventsTxWithEventsReduced := s.EncodeEthEventsTx(testtypes.TestEthEventsTxReduced)
-	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTxWithoutEvents)
-	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(testtypes.TestEthEventsTxNoNewBlock)
-	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(testtypes.TestEthEventsTxSidecarErr)
+	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTx)
+	encodedEthEventsTxWithDifferentEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithDifferentEvents)
+	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxPartial)
+	encodedEthEventsTxWithEventsReduced := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxReduced)
+	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithoutEvents)
+	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxNoNewBlock)
+	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
@@ -902,13 +902,13 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 }
 
 func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_SingleTransaction() {
-	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTx)
-	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(testtypes.TestEthEventsTxPartial)
-	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(testtypes.TestEthEventsTxWithoutEvents)
-	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(testtypes.TestEthEventsTxNoNewBlock)
-	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(testtypes.TestEthEventsTxSidecarErr)
+	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTx)
+	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxPartial)
+	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithoutEvents)
+	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxNoNewBlock)
+	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarErr)
 
-	ethEventsTxWithWrongBlock := *testtypes.TestEthEventsTx
+	ethEventsTxWithWrongBlock := testtypes.TestEthEventsTx
 	ethEventsTxWithWrongBlock.BlockNumber = sdkmath.NewInt(99)
 	encodedEthEventsTxWithWrongBlock := s.EncodeEthEventsTx(&ethEventsTxWithWrongBlock)
 
@@ -1019,18 +1019,13 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 	ethEventsTxNoNewBlock1 := testtypes.TestEthEventsTxNoNewBlock
 
 	// Set of events with block number set to 2
-	ethEventsTxWithEvents2 := &bridgetypes.EthEventsTx{}
-	ethEventsTxPartialBlock2 := &bridgetypes.EthEventsTx{}
-	ethEventsTxWithoutEvents2 := &bridgetypes.EthEventsTx{}
-	ethEventsTxNoNewBlock2 := &bridgetypes.EthEventsTx{}
-
-	*ethEventsTxWithEvents2 = *testtypes.TestEthEventsTx
+	ethEventsTxWithEvents2 := testtypes.TestEthEventsTx
+	ethEventsTxPartialBlock2 := testtypes.TestEthEventsTxPartial
+	ethEventsTxWithoutEvents2 := testtypes.TestEthEventsTxWithoutEvents
+	ethEventsTxNoNewBlock2 := testtypes.TestEthEventsTxNoNewBlock
 	ethEventsTxWithEvents2.BlockNumber = sdkmath.NewInt(2)
-	*ethEventsTxPartialBlock2 = *testtypes.TestEthEventsTxPartial
 	ethEventsTxPartialBlock2.BlockNumber = sdkmath.NewInt(2)
-	*ethEventsTxWithoutEvents2 = *testtypes.TestEthEventsTxWithoutEvents
 	ethEventsTxWithoutEvents2.BlockNumber = sdkmath.NewInt(2)
-	*ethEventsTxNoNewBlock2 = *testtypes.TestEthEventsTxNoNewBlock
 	ethEventsTxNoNewBlock2.BlockNumber = sdkmath.NewInt(2)
 
 	// Ensure that original block numbers are as expected, and unchanged
@@ -1043,7 +1038,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 
 	testCases := []struct {
 		name                            string
-		ethEventsTx                     []*bridgetypes.EthEventsTx
+		ethEventsTx                     []bridgetypes.EthEventsTx
 		expectEvents                    []bool
 		expectLastEthereumBlockSynced   []sdkmath.Int
 		expectEthereumEventsIndexOffset []sdkmath.Int
@@ -1052,7 +1047,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of Partial and Full
 		{
 			name: "Partial + Full => 0,1 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxPartialBlock1,
 				ethEventsTxWithEvents1, // from same block
 			},
@@ -1062,7 +1057,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		},
 		{
 			name: "Full + Partial => 1,1 synced and 0,N offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithEvents1,
 				ethEventsTxPartialBlock2, // from new block
 			},
@@ -1073,7 +1068,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of Partial and NoNewBlock
 		{
 			name: "Partial + NoNewBlock => ERR because we expect at least one new event",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxPartialBlock1,
 				ethEventsTxNoNewBlock1, // from same block
 			},
@@ -1087,7 +1082,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		},
 		{
 			name: "NoNewBlock + Partial => 0,0 synced and 0,N offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxNoNewBlock1,
 				ethEventsTxPartialBlock1, // from same block
 			},
@@ -1098,7 +1093,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of Partial and NoEvents
 		{
 			name: "Partial + NoEvents => ERR because we expect at least one new event",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxPartialBlock1,
 				ethEventsTxWithoutEvents1, // from same block
 			},
@@ -1112,7 +1107,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		},
 		{
 			name: "NoEvents + Partial => 1,1 synced and 0,N offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithoutEvents1,
 				ethEventsTxPartialBlock2, // from new block
 			},
@@ -1123,7 +1118,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of NoNewBlock and NoEvents
 		{
 			name: "NoNewBlock + NoEvents => 0,1 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxNoNewBlock1,
 				ethEventsTxWithoutEvents1, // from same block
 			},
@@ -1133,7 +1128,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		},
 		{
 			name: "NoEvents + NoNewBlock => 1,1 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithoutEvents1,
 				ethEventsTxNoNewBlock2, // from new block
 			},
@@ -1144,7 +1139,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of NoNewBlock and Full
 		{
 			name: "NoNewBlock + Full => 0,1 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxNoNewBlock1,
 				ethEventsTxWithEvents1, // from same block
 			},
@@ -1154,7 +1149,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		},
 		{
 			name: "Full + NoNewBlock => 1,1 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithEvents1,
 				ethEventsTxNoNewBlock2, // from new block
 			},
@@ -1165,7 +1160,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of NoEvents and Full
 		{
 			name: "NoEvents + Full => 1,2 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithoutEvents1,
 				ethEventsTxWithEvents2, // from new block
 			},
@@ -1175,7 +1170,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		},
 		{
 			name: "Full + NoEvents => 1,2 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithEvents1,
 				ethEventsTxWithoutEvents2, // from new block
 			},
@@ -1186,7 +1181,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of Full and Full
 		{
 			name: "Full + Full => 1,2 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithEvents1,
 				ethEventsTxWithEvents2, // from new block
 			},
@@ -1197,7 +1192,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of Partial and Partial
 		{
 			name: "Partial + Partial => 0,0 synced and N,2N offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxPartialBlock1,
 				ethEventsTxPartialBlock1, // from same block
 			},
@@ -1208,7 +1203,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of NoNewBlock and NoNewBlock
 		{
 			name: "NoNewBlock + NoNewBlock => 0,0 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxNoNewBlock1,
 				ethEventsTxNoNewBlock1, // from same block
 			},
@@ -1219,7 +1214,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 		// ---------------------------- Combinations of NoEvents and NoEvents
 		{
 			name: "NoEvents + NoEvents => 1,2 synced and 0,0 offset",
-			ethEventsTx: []*bridgetypes.EthEventsTx{
+			ethEventsTx: []bridgetypes.EthEventsTx{
 				ethEventsTxWithoutEvents1,
 				ethEventsTxWithoutEvents2, // from new block
 			},
@@ -1243,7 +1238,7 @@ func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
 			for i := 0; i < len(tc.ethEventsTx); i++ {
 
 				ethEventsTx := tc.ethEventsTx[i]
-				req := &abcitypes.RequestFinalizeBlock{Txs: [][]byte{s.EncodeEthEventsTx(ethEventsTx)}}
+				req := &abcitypes.RequestFinalizeBlock{Txs: [][]byte{s.EncodeEthEventsTx(&ethEventsTx)}}
 
 				_, err := propHandler.PreBlocker(s.Ctx(), req)
 				if tc.expectErrMsg != nil && tc.expectErrMsg[i] != "" {

@@ -120,11 +120,7 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 // It is very important to update this function if the EthEventsTx Size function gets updated, otherwise we might be
 // overestimating or underestimating the size of EthEventsTx and inject a suboptimal number of events.
 func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
-	if m == nil {
-		return 0
-	}
 	var l int
-	_ = l
 	if m.AdvanceSequencer {
 		n += 2
 	}

@@ -133,43 +133,43 @@ var (
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
 	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
 
-	TestEthEventsTx = &bridgetypes.EthEventsTx{
+	TestEthEventsTx = bridgetypes.EthEventsTx{
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestEthEventsTxWithDifferentEvents = &bridgetypes.EthEventsTx{
+	TestEthEventsTxWithDifferentEvents = bridgetypes.EthEventsTx{
 		Events:           TestEventsDifferent,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestEthEventsTxReduced = &bridgetypes.EthEventsTx{
+	TestEthEventsTxReduced = bridgetypes.EthEventsTx{
 		Events:           TestEventsReduced,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestEthEventsTxPartial = &bridgetypes.EthEventsTx{
+	TestEthEventsTxPartial = bridgetypes.EthEventsTx{
 		Events:           TestEventsReduced,
 		AdvanceSequencer: true,
 		NewEthereumBlock: false, // block was partially consumed
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestEthEventsTxWithoutEvents = &bridgetypes.EthEventsTx{
+	TestEthEventsTxWithoutEvents = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestEthEventsTxNoNewBlock = &bridgetypes.EthEventsTx{
+	TestEthEventsTxNoNewBlock = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: false,
 		BlockNumber:      sdkmath.OneInt(),
 	}
-	TestEthEventsTxSidecarErr = &bridgetypes.EthEventsTx{
+	TestEthEventsTxSidecarErr = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: false,
 		NewEthereumBlock: false,
