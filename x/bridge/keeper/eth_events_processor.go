@@ -44,8 +44,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 			// If an error occurs while processing an Authorize event we will move on to the next event without applying
 			// any state changes.
 			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				err = k.processAuthorizeEvent(ctx, pe, &params)
-				return err
+				return k.processAuthorizeEvent(ctx, pe, &params)
 			})
 			if err != nil {
 				k.Logger().Error("Bridge EndBlock: failed to process AuthorizeEvent", "event", pe.String(), "err", err)
