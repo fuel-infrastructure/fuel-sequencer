@@ -27,8 +27,10 @@ func (k Keeper) ExecuteMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error
 }
 
 // ProcessAuthorizeEvent is an export of ProcessAuthorizeEvent for testing.
-func (k Keeper) ProcessAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent) error {
-	return k.processAuthorizeEvent(ctx, event)
+func (k Keeper) ProcessAuthorizeEvent(
+	ctx sdk.Context, event *sidecartypes.AuthorizeEvent, messagesAllowed []string,
+) error {
+	return k.processAuthorizeEvent(ctx, event, messagesAllowed)
 }
 
 // SetRouter is a testing utility which takes the existing keeper, sets its MsgServiceRouter and returns the modified

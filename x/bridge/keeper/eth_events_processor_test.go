@@ -188,13 +188,14 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
 
 			// Authorize bank.MsgSend on Sequencer
+			messagesAllowed := []string{"*"}
 			err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
-				AuthorizeMessagesAllowed: []string{"*"},
+				AuthorizeMessagesAllowed: messagesAllowed,
 			})
 			s.Require().NoError(err)
 
 			processAuthorizeEventCtx := s.Ctx()
-			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(processAuthorizeEventCtx, tc.authorizeEvent)
+			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(processAuthorizeEventCtx, tc.authorizeEvent, messagesAllowed)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised

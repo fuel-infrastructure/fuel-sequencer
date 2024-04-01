@@ -22,6 +22,9 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		return
 	}
 
+	// Get the list of authorized messages on the Sequencer
+	messagesAllowed := k.GetParams(ctx).AuthorizeMessagesAllowed
+
 	for _, event := range ethEventsTx.Events {
 		// Unmarshal event sent by sidecar to a parsedEvent
 		parsedEvent, err := event.UnmarshalParsedEvent()
@@ -42,7 +45,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 			// If an error occurs while processing an Authorize event we will not apply any state changes and move on to
 			// the next event.
 			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				err = k.processAuthorizeEvent(ctx, pe)
+				err = k.processAuthorizeEvent(ctx, pe, messagesAllowed)
 				return err
 			})
 			if err != nil {
@@ -64,7 +67,9 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 func (k Keeper) processSendToSequencerEvent(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
 
 // processAuthorizeEvent attempts to process an AuthorizeEvent
-func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent) error {
+func (k Keeper) processAuthorizeEvent(
+	ctx sdk.Context, event *sidecartypes.AuthorizeEvent, messagesAllowed []string,
+) error {
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := k.DeserializeAuthorizeTx(k.cdc, event)
 	if err != nil {
@@ -72,7 +77,6 @@ func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.Autho
 	}
 
 	// Check whether AuthorizeTx is authorized on the Sequencer
-	messagesAllowed := k.GetParams(ctx).AuthorizeMessagesAllowed
 	if err = k.authenticateTx(event.From, msgs, messagesAllowed); err != nil {
 		return fmt.Errorf("could not authenticate AuthorizeTx: %w", err)
 	}
