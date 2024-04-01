@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -79,4 +80,20 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 	vestingStartTime := p.VestingStartTime.Add(vestingStartTimeDelay)
 	vestingEndTime := p.VestingStartTime.Add(duration)
 	return vestingStartTime, vestingEndTime, nil
+}
+
+// IsAuthorizedMessage returns true if the sdk.Msg TypeURL is present in messagesAllowed, otherwise false
+func IsAuthorizedMessage(messagesAllowed []string, msg sdk.Msg) bool {
+	// Check that wildcard * option for allowing all message types is the only string in the array, if so, return true
+	if len(messagesAllowed) == 1 && messagesAllowed[0] == AllowAllAuthorizeMessages {
+		return true
+	}
+
+	for _, messageAllowed := range messagesAllowed {
+		if messageAllowed == sdk.MsgTypeURL(msg) {
+			return true
+		}
+	}
+
+	return false
 }

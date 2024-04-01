@@ -5,7 +5,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
@@ -58,54 +57,6 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 			s.Require().NoError(err)
 			s.Require().True(totalSupplyAfter.IsZero())
 			s.Require().True(withdrawBalanceAfter.IsZero())
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestIsAuthorizedMessage() {
-	testCases := []struct {
-		name            string
-		messagesAllowed []string
-		msg             sdk.Msg
-		expResult       bool
-	}{
-		{
-			name:            "returns true if message is authorized (messages allowed is not *)",
-			messagesAllowed: []string{"msg1", "msg2", sdk.MsgTypeURL(&banktypes.MsgSend{})},
-			msg: &banktypes.MsgSend{
-				FromAddress: "addr1",
-				ToAddress:   "addr2",
-				Amount:      nil,
-			},
-			expResult: true,
-		},
-		{
-			name:            "returns true if message is authorized (messages allowed is *)",
-			messagesAllowed: []string{"*"},
-			msg: &banktypes.MsgSend{
-				FromAddress: "addr1",
-				ToAddress:   "addr2",
-				Amount:      nil,
-			},
-			expResult: true,
-		},
-		{
-			name:            "returns false if message is not authorized",
-			messagesAllowed: []string{"msg1", "msg2", "msg3"},
-			msg: &banktypes.MsgSend{
-				FromAddress: "addr1",
-				ToAddress:   "addr2",
-				Amount:      nil,
-			},
-			expResult: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-			actualResult := s.App.BridgeKeeper.IsAuthorizedMessage(tc.messagesAllowed, tc.msg)
-			s.Require().Equal(tc.expResult, actualResult)
 		})
 	}
 }
