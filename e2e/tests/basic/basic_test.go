@@ -15,9 +15,6 @@ import (
 func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 	s.Run("Bring up nodes and perform some queries and transactions", func() {
 
-		s.WaitForBlocks(s.Ctx(), 10, time.Minute)
-		s.RunSuccinctXRelayerMockApi("1", 1, 6)
-
 		// --------------------------------------- FuelSequencer queries
 
 		// Try getting module params (GRPC).

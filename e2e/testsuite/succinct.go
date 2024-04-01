@@ -102,12 +102,19 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	requestId string,
 	startBlock uint64,
 	targetBlock uint64,
+	latestHeaderHash cmbytes.HexBytes,
 ) {
 	// Re-create the proof output
 	commitment, err := s.chain.BridgeCommitment(s.Ctx(), startBlock, targetBlock)
 	s.Require().NoError(err)
 
-	targetBlockBytes, err := To32PaddedHexBytes(targetBlock)
+	startBlockBytes, err := To8PaddedHexBytes(startBlock)
+	s.Require().NoError(err)
+
+	targetBlockBytes, err := To8PaddedHexBytes(targetBlock)
+	s.Require().NoError(err)
+
+	padded32TargetBlockBytes, err := To32PaddedHexBytes(targetBlock)
 	s.Require().NoError(err)
 
 	proof := SuccinctXProof{
@@ -116,9 +123,9 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		// To create the signature, you can use "cast calldata "commitHeaderRange(uint64)" 6"
 		Calldata:   "0x89daae09" + cmbytes.HexBytes(targetBlockBytes).String(),
 		FunctionId: HEADER_RANGE_FUNCTION_ID,
-		Input:      "0xbbbbbb", // Can be anything, not used
+		Input:      "0x" + cmbytes.HexBytes(startBlockBytes).String() + latestHeaderHash.String() + cmbytes.HexBytes(targetBlockBytes).String(),
 		Proof:      "0xbaaaaa", // Can be anything, not used
-		Output:     "0x" + cmbytes.HexBytes(targetBlockBytes).String() + commitment.String(),
+		Output:     "0x" + cmbytes.HexBytes(padded32TargetBlockBytes).String() + commitment.String(),
 	}
 	proofBz, err := json.Marshal(proof)
 	s.Require().NoError(err)
@@ -206,6 +213,27 @@ func To32PaddedHexBytes(number uint64) ([]byte, error) {
 		return nil, hexErr
 	}
 	paddedBytes, padErr := padBytes(hexBytes, 32)
+	if padErr != nil {
+		return nil, padErr
+	}
+	return paddedBytes, nil
+}
+
+// To8PaddedHexBytes takes a number and returns its hex representation padded to 8 bytes.
+func To8PaddedHexBytes(number uint64) ([]byte, error) {
+	hexRepresentation := strconv.FormatUint(number, 16)
+	// Make sure hex representation has even length.
+	// The `strconv.FormatUint` can return odd length hex encodings.
+	// For example, `strconv.FormatUint(10, 16)` returns `a`.
+	// Thus, we need to pad it.
+	if len(hexRepresentation)%2 == 1 {
+		hexRepresentation = "0" + hexRepresentation
+	}
+	hexBytes, hexErr := hex.DecodeString(hexRepresentation)
+	if hexErr != nil {
+		return nil, hexErr
+	}
+	paddedBytes, padErr := padBytes(hexBytes, 8)
 	if padErr != nil {
 		return nil, padErr
 	}

@@ -184,6 +184,12 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// Deploy the contracts with the header
 	s.deployContracts(1, genesisBlockHeaderHash)
+
+	// Wait for some blocks to pass in the sequencer to generate a long enough *fake proof*
+	err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+	s.Require().NoError(err)
+
+	s.RunSuccinctXRelayerMockApi("1", 1, 6, genesisBlockHeaderHash)
 }
 
 func (s *E2ETestSuite) TearDownTest() {
