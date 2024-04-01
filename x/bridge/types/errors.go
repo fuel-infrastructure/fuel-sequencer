@@ -26,4 +26,5 @@ var (
 	ErrUnsupported           = sdkerrors.Register(ModuleName, 1108, "unsupported")
 	ErrInvalidAccountAddress = sdkerrors.Register(ModuleName, 1109, "invalid account address")
 	ErrAccountOwnerMismatch  = sdkerrors.Register(ModuleName, 1110, "account owner mismatch")
+	ErrParamsInvalid         = sdkerrors.Register(ModuleName, 1111, "params are invalid")
 )
