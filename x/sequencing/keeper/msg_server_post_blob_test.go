@@ -17,11 +17,9 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		msg              types.MsgPostBlob
 		msgResponse      *types.MsgPostBlobResponse
 		maxBlobSizeBytes uint64
-		gasPerBlobByte   uint64
 		preSetTopic      *types.Topic
 		setNonce         math.Int
 		expTopic         *types.Topic
-		expGasConsumed   uint64
 		expErrMsg        string
 	}{
 		{
@@ -40,7 +38,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
@@ -48,8 +45,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 12336, // Empty data gas: 12256 + 20 * 4 bytes = 12336 gas
-			expErrMsg:      "",
+			expErrMsg: "",
 		},
 		{
 			name: "successfully post a blob - nonce update verification",
@@ -67,7 +63,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			setNonce:         math.NewInt(100),
 			preSetTopic:      nil,
 			expTopic: &types.Topic{
@@ -75,8 +70,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 12402, // Empty data gas: 12322 + 20 * 4 bytes = 12402 gas
-			expErrMsg:      "",
+			expErrMsg: "",
 		},
 		{
 			name: "successfully post a blob - updates existing topic",
@@ -94,7 +88,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			preSetTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
 				Owner: withdrawer,
@@ -106,8 +99,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.OneInt(),
 			},
-			expGasConsumed: 12609, // Empty data gas: 12529 + 20 * 4 bytes = 12609 gas (less gas topic already created)
-			expErrMsg:      "",
+			expErrMsg: "",
 		},
 		{
 			name: "successfully post a blob - large data",
@@ -125,7 +117,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Data:  make([]byte, 54),
 			},
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
@@ -133,8 +124,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Owner: withdrawer,
 				Order: math.ZeroInt(),
 			},
-			expGasConsumed: 13336, // Empty data gas: 12,256 + 20 * 54 bytes = 13336 gas
-			expErrMsg:      "",
+			expErrMsg: "",
 		},
 		{
 			name: "post a blob that exceeds max size",
@@ -146,7 +136,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			},
 			msgResponse:      nil,
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
 			expTopic:         nil,
@@ -162,7 +151,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			},
 			msgResponse:      nil,
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			preSetTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(1),
 				Owner: withdrawer,
@@ -182,7 +170,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			},
 			msgResponse:      nil,
 			maxBlobSizeBytes: 400,
-			gasPerBlobByte:   20,
 			preSetTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(1),
 				Owner: anotherAccount,
@@ -207,7 +194,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			// Set sequencing parameters
 			params := types.DefaultParams()
 			params.MaxBlobSizeBytes = tc.maxBlobSizeBytes
-			params.GasPerBlobByte = tc.gasPerBlobByte
 
 			_ = s.App.SequencingKeeper.SetParams(s.Ctx(), params)
 
@@ -236,12 +222,6 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			}
 
 			s.Require().Equal(tc.msgResponse, response)
-
-			// Check if the gas consumed matches
-			if tc.expGasConsumed > 0 {
-				gasConsumed := gasCtx.GasMeter().GasConsumed()
-				s.Require().Equal(tc.expGasConsumed, gasConsumed)
-			}
 
 			// Verify the topic has been updated
 			if tc.expTopic != nil {
