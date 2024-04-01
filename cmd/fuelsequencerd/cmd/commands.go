@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/big"
 	"os"
+	"strconv"
 	"strings"
 
 	"cosmossdk.io/log"
@@ -252,23 +253,34 @@ func startSidecar(
 
 func querySidecarServerCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "query-sidecar-server-events",
-		Short: "Queries block events from the Sidecar service by block number",
-		RunE:  queryBlockEvents,
+		Use:     "query-sidecar-server-events [block-number]",
+		Short:   "Queries block events from the Sidecar service by block number",
+		Args:    cobra.ExactArgs(1),
+		RunE:    queryBlockEvents,
+		Aliases: []string{"qse"},
 	}
 
-	cmd.Flags().String("host", "localhost", "Host for the gRPC service to listen on")
-	cmd.Flags().String("port", "8080", "Port for the gRPC service to listen on")
-	cmd.Flags().String("blocknumber", "", "Block number to query events for")
-	_ = cmd.MarkFlagRequired("blocknumber")
+	cmd.Flags().String("host", "localhost", "host of the gRPC service to query")
+	cmd.Flags().String("port", "8080", "port of the gRPC service to query")
 
 	return cmd
 }
 
 func queryBlockEvents(cmd *cobra.Command, args []string) error {
-	host, _ := cmd.Flags().GetString("host")
-	port, _ := cmd.Flags().GetString("port")
-	blockNumber, _ := cmd.Flags().GetString("blocknumber")
+	host, err := cmd.Flags().GetString("host")
+	if err != nil {
+		return err
+	}
+	port, err := cmd.Flags().GetString("port")
+	if err != nil {
+		return err
+	}
+
+	blockNumber := args[0]
+	_, err = strconv.Atoi(blockNumber) // try parse
+	if err != nil {
+		return fmt.Errorf("could not parse block number: %s", err.Error())
+	}
 
 	url := fmt.Sprintf("%s:%s", host, port)
 	conn, err := grpc.Dial(url, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
