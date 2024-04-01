@@ -1,0 +1,10 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+// AuthorizeTx contains a list of sdk.Msg's. It should be used when sending
+// transactions from Ethereum to the Sequencer.
+message AuthorizeTx { repeated google.protobuf.Any messages = 1; }

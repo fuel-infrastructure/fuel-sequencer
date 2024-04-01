@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -11,7 +11,7 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 
 	withdrawer := s.TestAccs[0]
 	denom := "fuel"
-	amount := sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(200)))
+	amount := sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(200)))
 
 	testCases := []struct {
 		name         string

@@ -17,16 +17,15 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(maxBlobSizeBytes, gasPerBlobByte uint64) Params {
+func NewParams(maxBlobSizeBytes uint64) Params {
 	return Params{
 		MaxBlobSizeBytes: maxBlobSizeBytes,
-		GasPerBlobByte:   gasPerBlobByte,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultMaxBlobSize, 0)
+	return NewParams(DefaultMaxBlobSize)
 }
 
 // ParamSetPairs get the params.ParamSet

@@ -57,6 +57,8 @@ type SidecarImpl struct {
 	// nextQueryBlock is the next block to be queried for events.
 	// It also points to the block right after the latest one in state.
 	nextQueryBlock *big.Int
+	// maxQueryRange is the maximum number of Ethereum blocks per query.
+	maxQueryRange *big.Int
 
 	// --------------------- Cosmos Config ------------------------ //
 	bridgeQueryClient bridgetypes.QueryClient
@@ -72,6 +74,7 @@ func NewSidecar(
 	contractAddress common.Address,
 	contractAbi abi.ABI,
 	startQueryBlock *big.Int,
+	maxQueryRange *big.Int,
 	logger *zap.Logger,
 ) *SidecarImpl {
 	return &SidecarImpl{
@@ -81,6 +84,8 @@ func NewSidecar(
 		contractAddress:   contractAddress,
 		contractABI:       contractAbi,
 		startQueryBlock:   startQueryBlock,
+		nextQueryBlock:    nil, // initialised as soon as Sidecar starts
+		maxQueryRange:     maxQueryRange,
 		blocksMap:         make(map[string]*sidecartypes.EthereumBlock),
 		updateInterval:    10 * time.Second,
 		blockPruneBuffer:  10,
@@ -89,7 +94,14 @@ func NewSidecar(
 
 // Start begins the process of querying and storing events from the Ethereum blockchain.
 func (s *SidecarImpl) Start(ctx context.Context) error {
-	s.logger.Info("starting sidecar")
+	s.logger.Info(
+		"starting sidecar",
+		zap.String("contract_address", s.contractAddress.String()),
+		zap.Duration("update_interval", s.updateInterval),
+		zap.Uint64("block_prune_buffer", s.blockPruneBuffer),
+		zap.Uint64("start_query_block", s.startQueryBlock.Uint64()),
+		zap.Uint64("max_query_range", s.maxQueryRange.Uint64()),
+	)
 
 	// Initial check to verify Ethereum client connectivity and log fetching capability
 	query := ethereum.FilterQuery{
@@ -294,9 +306,17 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 		return
 	}
 
+	// Cap the range of blocks to query. We subtract 1 from maxQueryRange since otherwise we query an extra block.
+	// Example: if nextQueryBlock is 100 and maxQueryRange is 1, then the fromBlock and toBlock should both be 100.
+	toBlock := new(big.Int).SetUint64(currentBlockNumber)
+	maxToBlock := new(big.Int).Add(s.nextQueryBlock, new(big.Int).Sub(s.maxQueryRange, big.NewInt(1)))
+	if toBlock.Cmp(maxToBlock) > 0 {
+		toBlock = maxToBlock
+	}
+
 	logs, err := s.ethClient.FilterLogs(ctx, ethereum.FilterQuery{
 		FromBlock: s.nextQueryBlock,
-		ToBlock:   new(big.Int).SetUint64(currentBlockNumber),
+		ToBlock:   toBlock,
 		Addresses: []common.Address{s.contractAddress},
 	})
 	if err != nil {
@@ -316,10 +336,12 @@ func (s *SidecarImpl) fetchAndProcessLogs(ctx context.Context) {
 	// since we have now queried up to this block.
 	s.logger.Info("Processed logs from range of blocks",
 		zap.String("from_block", s.nextQueryBlock.String()),
-		zap.Uint64("to_block", currentBlockNumber),
+		zap.String("to_block", toBlock.String()),
 		zap.Int("no_of_events", len(logs)),
 	)
-	s.nextQueryBlock = new(big.Int).SetUint64(currentBlockNumber + 1)
+
+	// Next block to query will be the one after toBlock
+	s.nextQueryBlock = new(big.Int).Add(toBlock, big.NewInt(1))
 }
 
 // processLogs processes each log in a sequential order and stores it.
