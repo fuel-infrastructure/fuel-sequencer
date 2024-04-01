@@ -65,7 +65,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 // processDeposit attempts to process a Deposit signalled by a SendToSequencerEvent
 func (k Keeper) processDeposit(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
 
-// processAuthorizeEvent attempts to process an AuthorizeEvent
+// processAuthorizeEvent attempts to process an AuthorizeEvent by executing all of its messages
 func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent, params *types.Params) error {
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := types.DeserializeAuthorizeTx(k.cdc, event)
