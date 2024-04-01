@@ -13,6 +13,7 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -31,7 +32,8 @@ var (
 	ethNodeRPC         = flag.String("eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
 	cosmosNodeRPC      = flag.String("cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
 	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
-	ethStartBlockStr   = flag.String("eth_start_block", "0", "Ethereum start query block")
+	ethStartBlock      = flag.Int64("eth_start_block", 0, "Ethereum start query block")
+	ethMaxBlockRange   = flag.Int64("eth_max_block_range", 100, "max number of Ethereum blocks per query")
 	development        = flag.Bool("development", false, "Start logger in development mode")
 )
 
@@ -50,16 +52,17 @@ func main() {
 	// parse flags
 	flag.Parse()
 
-	// Validate required flags
-	if *ethNodeRPC == "" || *contractAddressHex == "" || *cosmosNodeRPC == "" {
-		log.Fatal("eth_node_rpc, cosmos_node_rpc and contract_address are required flags")
+	// Validate required flags that have no default
+	if *contractAddressHex == "" {
+		log.Fatal("contract_address is a required flag")
 	}
 
-	// Convert the ethStartBlock to big.Int
-	ethStartBlock := new(big.Int)
-	_, ok := ethStartBlock.SetString(*ethStartBlockStr, 10)
-	if !ok {
-		log.Fatalf("Invalid ethStartBlock value: %s", *ethStartBlockStr)
+	// Validate flag values
+	if *ethStartBlock < 0 {
+		log.Fatalf("ethereum start block must be >= 0, got: %d", *ethStartBlock)
+	}
+	if *ethMaxBlockRange < 1 {
+		log.Fatalf("ethereum max block range must be >= 1, got: %d", *ethMaxBlockRange)
 	}
 
 	// Connect to the ethereum client
@@ -78,6 +81,7 @@ func main() {
 	// Create a connection to the Cosmos gRPC server.
 	grpcConn, err := grpc.Dial(
 		*cosmosNodeRPC,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
 	)
 	if err != nil {
@@ -108,7 +112,8 @@ func main() {
 		bridgeClient,
 		contractAddr,
 		contractAbi,
-		ethStartBlock,
+		big.NewInt(*ethStartBlock),
+		big.NewInt(*ethMaxBlockRange),
 		logger,
 	)
 	if err != nil {
