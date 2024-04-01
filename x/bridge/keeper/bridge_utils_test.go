@@ -114,7 +114,7 @@ func (s *KeeperTestSuite) TestDeserializeAuthorizeTx() {
 	}
 }
 
-func (s *KeeperTestSuite) TestAuthorizedMessage() {
+func (s *KeeperTestSuite) TestIsAuthorizedMessage() {
 	testCases := []struct {
 		name            string
 		messagesAllowed []string
@@ -156,7 +156,7 @@ func (s *KeeperTestSuite) TestAuthorizedMessage() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.SetupTest()
-			actualResult := s.App.BridgeKeeper.AuthorizedMessage(tc.messagesAllowed, tc.msg)
+			actualResult := s.App.BridgeKeeper.IsAuthorizedMessage(tc.messagesAllowed, tc.msg)
 			s.Require().Equal(tc.expResult, actualResult)
 		})
 	}
