@@ -132,4 +132,3 @@ genesis:
     sequencing:
       params:
         max_blob_size_bytes: 1000
-        gas_per_blob_byte: 1000
