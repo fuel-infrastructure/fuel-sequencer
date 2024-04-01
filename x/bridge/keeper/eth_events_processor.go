@@ -70,7 +70,7 @@ func (k Keeper) processAuthorizeEvent(
 	ctx sdk.Context, event *sidecartypes.AuthorizeEvent, messagesAllowed []string,
 ) error {
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
-	msgs, err := k.DeserializeAuthorizeTx(k.cdc, event)
+	msgs, err := types.DeserializeAuthorizeTx(k.cdc, event)
 	if err != nil {
 		return fmt.Errorf("could not deserialize AuthorizeTx: %w", err)
 	}
