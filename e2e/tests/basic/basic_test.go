@@ -136,10 +136,9 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- PreBlocker
 
-		// TODO: Ensure that the Sequencer is synced up. (once we have PreBlocker logic)
-		//err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
-		//s.Require().NoError(err)
-		//lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
-		//s.Require().Equal(ethHeight2, lastEthereumBlockSynced)
+		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		s.Require().NoError(err)
+		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)
 	})
 }
