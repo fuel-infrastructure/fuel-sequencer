@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	types "github.com/cosmos/cosmos-sdk/types"
+	types0 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -47,6 +48,20 @@ func (m *MockAccountKeeper) GetAccount(arg0 context.Context, arg1 types.AccAddre
 func (mr *MockAccountKeeperMockRecorder) GetAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetAccount), arg0, arg1)
+}
+
+// GetModuleAddress mocks base method.
+func (m *MockAccountKeeper) GetModuleAddress(name string) types.AccAddress {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetModuleAddress", name)
+	ret0, _ := ret[0].(types.AccAddress)
+	return ret0
+}
+
+// GetModuleAddress indicates an expected call of GetModuleAddress.
+func (mr *MockAccountKeeperMockRecorder) GetModuleAddress(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetModuleAddress", reflect.TypeOf((*MockAccountKeeper)(nil).GetModuleAddress), name)
 }
 
 // NewAccount mocks base method.
@@ -194,6 +209,44 @@ func (m *MockBankKeeper) SpendableCoins(arg0 context.Context, arg1 types.AccAddr
 func (mr *MockBankKeeperMockRecorder) SpendableCoins(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoins", reflect.TypeOf((*MockBankKeeper)(nil).SpendableCoins), arg0, arg1)
+}
+
+// MockStakingKeeper is a mock of StakingKeeper interface.
+type MockStakingKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockStakingKeeperMockRecorder
+}
+
+// MockStakingKeeperMockRecorder is the mock recorder for MockStakingKeeper.
+type MockStakingKeeperMockRecorder struct {
+	mock *MockStakingKeeper
+}
+
+// NewMockStakingKeeper creates a new mock instance.
+func NewMockStakingKeeper(ctrl *gomock.Controller) *MockStakingKeeper {
+	mock := &MockStakingKeeper{ctrl: ctrl}
+	mock.recorder = &MockStakingKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockStakingKeeper) EXPECT() *MockStakingKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetAllValidators mocks base method.
+func (m *MockStakingKeeper) GetAllValidators(ctx context.Context) ([]types0.Validator, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllValidators", ctx)
+	ret0, _ := ret[0].([]types0.Validator)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllValidators indicates an expected call of GetAllValidators.
+func (mr *MockStakingKeeperMockRecorder) GetAllValidators(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllValidators", reflect.TypeOf((*MockStakingKeeper)(nil).GetAllValidators), ctx)
 }
 
 // MockParamSubspace is a mock of ParamSubspace interface.
