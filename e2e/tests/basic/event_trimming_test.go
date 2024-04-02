@@ -6,13 +6,16 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
+// TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
 func (s *BasicTestSuite) TestEventTrimming() {
 	s.Run("Bring up nodes and perform some queries and transactions", func() {
 
-		// The max block bytes is not just for transactions, and must consider an
-		// allocation for the header and other components that make up a block.
+		// Set a low max bytes for txs so that events are split across multiple blocks.
+		maxBytesForTransactions := int64(150)
+
+		// Calculate a max block size - this is not just for txs and must consider
+		// the max size of the header and other components that make up a block.
 		numberOfValidators := len(testsuite.MNEMONICS)
-		maxBytesForTransactions := int64(200)
 		maxBytes := maxBytesForTransactions +
 			cmtypes.MaxOverheadForBlock +
 			cmtypes.MaxHeaderBytes +
@@ -38,6 +41,19 @@ func (s *BasicTestSuite) TestEventTrimming() {
 		consensusParams = s.QueryConsensusParams(s.Ctx())
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
-		// TODO: submit events and check if trimmed
+		// Try generating some events via a transaction (RPC) - via authorize.
+		someBytes := []byte("some bytes")
+		authorizeData := testsuite.PackAuthorizeMulti(someBytes)
+		err := s.SendEthTransactionToProxyContract(authorizeData)
+		s.Require().NoError(err)
+
+		// 1st event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 1)
+		// 2nd event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 2)
+		// 3rd event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 3)
+		// 4th event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 0)
 	})
 }
