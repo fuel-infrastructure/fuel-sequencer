@@ -85,6 +85,219 @@ func TestVestingTimesFromVestingDuration(t *testing.T) {
 	}
 }
 
+func TestValidateBridgeDenom(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid denom", "ufuel", false},
+		{"Empty denom", "", true},
+		{"Non-string denom", 123, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateBridgeDenom(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateEthereumProxyContractAddress(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid address", "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853", false},
+		{"Invalid address", "0x123", true},
+		{"Non-string address", 12345, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateEthereumProxyContractAddress(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateAuthorizeMessagesAllowed(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid messages", []string{"message1", "message2"}, false},
+		{"Empty slice", []string{}, true},
+		{"Slice with empty message", []string{"message1", ""}, true},
+		{"Non-slice type", "not a slice", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateAuthorizeMessagesAllowed(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateSupplyDeltaPeriod(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid period", uint64(10), false},
+		{"Zero period", uint64(0), true},
+		{"Non-uint64 type", "not a uint64", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateSupplyDeltaPeriod(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateVestingStartTime(t *testing.T) {
+	validTime := time.Now()
+	zeroTime := time.Time{}
+
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid time", validTime, false},
+		{"Zero time", zeroTime, true},
+		{"Non-time type", "not a time", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateVestingStartTime(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestParams_Validate(t *testing.T) {
+	validBridgeDenom := "ufuel"
+	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	validAuthorizeMessagesAllowed := []string{"authorizeMessage1", "authorizeMessage2"}
+	validSupplyDeltaPeriod := uint64(10)
+	validVestingStartTime := time.Now()
+
+	// Creating an invalid ethereum proxy contract address for testing
+	invalidEthereumProxyContractAddress := "0xInvalidAddress"
+
+	testCases := []struct {
+		name      string
+		params    types.Params
+		expectErr bool
+	}{
+		{
+			name: "Valid parameters",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+			},
+			expectErr: false,
+		},
+		{
+			name: "Invalid bridge denom (empty)",
+			params: types.Params{
+				BridgeDenom:                  "",
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+			},
+			expectErr: true,
+		},
+		{
+			name: "Invalid ethereum proxy contract address",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: invalidEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+			},
+			expectErr: true,
+		},
+		{
+			name: "Empty authorize messages allowed",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     []string{},
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+			},
+			expectErr: true,
+		},
+		{
+			name: "Zero supply delta period",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            0,
+				VestingStartTime:             validVestingStartTime,
+			},
+			expectErr: true,
+		},
+		{
+			name: "Zero vesting start time",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             time.Time{},
+			},
+			expectErr: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.params.Validate()
+			if tc.expectErr {
+				require.Error(t, err, "Expected an error for test case: %s", tc.name)
+			} else {
+				require.NoError(t, err, "Expected no error for test case: %s", tc.name)
+			}
+		})
+	}
+}
+
 func TestIsAuthorizedMessage(t *testing.T) {
 	testCases := []struct {
 		name      string

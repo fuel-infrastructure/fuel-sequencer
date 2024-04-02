@@ -8636,12 +8636,6 @@ paths:
                       be submitted in
 
                       bytes.
-                  gas_per_blob_byte:
-                    type: string
-                    format: uint64
-                    description: >-
-                      gas_per_blob_byte is extra gas to be consumed per byte in
-                      submitted blobs.
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
@@ -12392,12 +12386,6 @@ definitions:
               submitted in
 
               bytes.
-          gas_per_blob_byte:
-            type: string
-            format: uint64
-            description: >-
-              gas_per_blob_byte is extra gas to be consumed per byte in
-              submitted blobs.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
   fuelsequencer.sequencing.MsgUpdateParamsResponse:
     type: object
@@ -12415,10 +12403,4 @@ definitions:
           in
 
           bytes.
-      gas_per_blob_byte:
-        type: string
-        format: uint64
-        description: >-
-          gas_per_blob_byte is extra gas to be consumed per byte in submitted
-          blobs.
     description: Params defines the parameters for the module.
