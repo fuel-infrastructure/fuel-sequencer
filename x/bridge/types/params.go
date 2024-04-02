@@ -108,8 +108,8 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	// ValidateBlockedAddress blocked addresses
-	if err := ValidateBlockedAddress(p.BlockedAddresses); err != nil {
+	// ValidateBlockedAddresses blocked addresses
+	if err := ValidateBlockedAddresses(p.BlockedAddresses); err != nil {
 		return err
 	}
 
@@ -179,7 +179,7 @@ func ValidateVestingStartTime(i interface{}) error {
 	return nil
 }
 
-func ValidateBlockedAddress(i interface{}) error {
+func ValidateBlockedAddresses(i interface{}) error {
 	blockedAddresses, ok := i.([]string)
 	if !ok {
 		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)

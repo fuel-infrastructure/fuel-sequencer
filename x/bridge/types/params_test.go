@@ -316,8 +316,7 @@ func TestParams_Validate(t *testing.T) {
 	}
 }
 
-func TestValidateBlockedAddress(t *testing.T) {
-	// Set up test cases
+func TestValidateBlockedAddresses(t *testing.T) {
 	testCases := []struct {
 		name        string
 		input       interface{}
@@ -354,11 +353,9 @@ func TestValidateBlockedAddress(t *testing.T) {
 			expectError: true,
 		},
 	}
-
-	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := types.ValidateBlockedAddress(tc.input)
+			err := types.ValidateBlockedAddresses(tc.input)
 			if tc.expectError {
 				require.Error(t, err, "Expected an error for test case: %s", tc.name)
 			} else {

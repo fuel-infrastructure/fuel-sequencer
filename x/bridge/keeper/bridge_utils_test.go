@@ -123,13 +123,13 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 	testCases := []struct {
 		name                     string
 		paramsBlockedAddresses   []string
-		noBlockedAddress         []string
+		notBlockedAddresses      []string
 		expectedBlockedAddresses []string
 	}{
 		{
 			name:                     "successfully retreived blocked addresses",
 			paramsBlockedAddresses:   []string{fromAccOne.String()},
-			noBlockedAddress:         []string{fromAccTwo.String()},
+			notBlockedAddresses:      []string{fromAccTwo.String()},
 			expectedBlockedAddresses: addressesToBlock,
 		},
 	}
@@ -159,7 +159,7 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 			}
 
 			// Verify that certain addresses are not blocked
-			for _, addr := range tc.noBlockedAddress {
+			for _, addr := range tc.notBlockedAddresses {
 				s.Require().False(blockedAddresses[addr], fmt.Sprintf("%s should not be blocked", addr))
 			}
 		})
