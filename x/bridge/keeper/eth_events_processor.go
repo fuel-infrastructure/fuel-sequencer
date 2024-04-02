@@ -120,7 +120,7 @@ func (k Keeper) processSendToSequencerEvent(
 	var sequencerAddr sdk.AccAddress
 	var err error
 
-	// If a `To` address was not specified send tokens to the `From` Ethereum Address.
+	// If a `To` address was not specified send tokens to the address mapped 1-to-1 fom the `From` Ethereum Address.
 	if len(strings.TrimSpace(sendEvent.To)) == 0 {
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, sendEvent.From, vesting, tokensToMint)
 		if err != nil {
