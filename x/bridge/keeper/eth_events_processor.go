@@ -22,10 +22,10 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	// Firstly retrieve the blockHeight we have last processed.
 	lastEthereumBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 
-	// Secondly retrieve the events and the last block height processed.
+	// Secondly retrieve the events from the last block height processed.
 	ethEventsTx, ok := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
 	if !ok {
-		// If no events are found that this block height then we can stop here.
+		// If no events are found at this block height then we can stop here.
 		return
 	}
 
