@@ -33,4 +33,11 @@ message Params {
   // that will be created through deposits from Ethereum.
   google.protobuf.Timestamp vesting_start_time = 5
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+
+  // blocked_addresses is a list of Cosmos SDK-based addresses that are
+  // explicitly disallowed from controlling or sending authorize messages within
+  // the sequencer system. This can include addresses of module accounts,
+  // validator operators, or any other addresses deemed necessary to protect
+  // from unauthorized control actions.
+  repeated string blocked_addresses = 6;
 }
