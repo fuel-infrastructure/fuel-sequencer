@@ -1128,10 +1128,11 @@ func (x *fastReflection_EventWithdrawToEthereumReported) ProtoMethods() *protoif
 }
 
 var (
-	md_EventSendToSequencerEventProcessed        protoreflect.MessageDescriptor
-	fd_EventSendToSequencerEventProcessed_from   protoreflect.FieldDescriptor
-	fd_EventSendToSequencerEventProcessed_to     protoreflect.FieldDescriptor
-	fd_EventSendToSequencerEventProcessed_amount protoreflect.FieldDescriptor
+	md_EventSendToSequencerEventProcessed          protoreflect.MessageDescriptor
+	fd_EventSendToSequencerEventProcessed_from     protoreflect.FieldDescriptor
+	fd_EventSendToSequencerEventProcessed_to       protoreflect.FieldDescriptor
+	fd_EventSendToSequencerEventProcessed_amount   protoreflect.FieldDescriptor
+	fd_EventSendToSequencerEventProcessed_duration protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -1140,6 +1141,7 @@ func init() {
 	fd_EventSendToSequencerEventProcessed_from = md_EventSendToSequencerEventProcessed.Fields().ByName("from")
 	fd_EventSendToSequencerEventProcessed_to = md_EventSendToSequencerEventProcessed.Fields().ByName("to")
 	fd_EventSendToSequencerEventProcessed_amount = md_EventSendToSequencerEventProcessed.Fields().ByName("amount")
+	fd_EventSendToSequencerEventProcessed_duration = md_EventSendToSequencerEventProcessed.Fields().ByName("duration")
 }
 
 var _ protoreflect.Message = (*fastReflection_EventSendToSequencerEventProcessed)(nil)
@@ -1225,6 +1227,12 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Range(f func(protore
 			return
 		}
 	}
+	if x.Duration != "" {
+		value := protoreflect.ValueOfString(x.Duration)
+		if !f(fd_EventSendToSequencerEventProcessed_duration, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -1246,6 +1254,8 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Has(fd protoreflect.
 		return x.To != ""
 	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
 		return x.Amount != nil
+	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+		return x.Duration != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
@@ -1268,6 +1278,8 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Clear(fd protoreflec
 		x.To = ""
 	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
 		x.Amount = nil
+	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+		x.Duration = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
@@ -1293,6 +1305,9 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Get(descriptor proto
 	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
 		value := x.Amount
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+		value := x.Duration
+		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
@@ -1319,6 +1334,8 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Set(fd protoreflect.
 		x.To = value.Interface().(string)
 	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
 		x.Amount = value.Message().Interface().(*v1beta1.Coin)
+	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+		x.Duration = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
@@ -1348,6 +1365,8 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Mutable(fd protorefl
 		panic(fmt.Errorf("field from of message fuelsequencer.bridge.EventSendToSequencerEventProcessed is not mutable"))
 	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
 		panic(fmt.Errorf("field to of message fuelsequencer.bridge.EventSendToSequencerEventProcessed is not mutable"))
+	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+		panic(fmt.Errorf("field duration of message fuelsequencer.bridge.EventSendToSequencerEventProcessed is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
@@ -1368,6 +1387,8 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) NewField(fd protoref
 	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
 		m := new(v1beta1.Coin)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
@@ -1449,6 +1470,10 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 			l = options.Size(x.Amount)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		l = len(x.Duration)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -1477,6 +1502,13 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Duration) > 0 {
+			i -= len(x.Duration)
+			copy(dAtA[i:], x.Duration)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Duration)))
+			i--
+			dAtA[i] = 0x22
 		}
 		if x.Amount != nil {
 			encoded, err := options.Marshal(x.Amount)
@@ -1655,6 +1687,38 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Duration = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1820,8 +1884,11 @@ type EventSendToSequencerEventProcessed struct {
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
-	// amount is the tokens being sent, which must be the expacted bridge token.
+	// amount is the tokens being sent, which must be the expected bridge token.
 	Amount *v1beta1.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	// vesting duration encoded in string to prevent loss of precision. Sign is
+	// also preserved
+	Duration string `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
 }
 
 func (x *EventSendToSequencerEventProcessed) Reset() {
@@ -1865,6 +1932,13 @@ func (x *EventSendToSequencerEventProcessed) GetAmount() *v1beta1.Coin {
 	return nil
 }
 
+func (x *EventSendToSequencerEventProcessed) GetDuration() string {
+	if x != nil {
+		return x.Duration
+	}
+	return ""
+}
+
 var File_fuelsequencer_bridge_events_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_bridge_events_proto_rawDesc = []byte{
@@ -1901,7 +1975,7 @@ var file_fuelsequencer_bridge_events_proto_rawDesc = []byte{
 	0x12, 0x37, 0x0a, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76,
 	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f,
-	0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x81, 0x01, 0x0a, 0x22, 0x45, 0x76,
+	0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x9d, 0x01, 0x0a, 0x22, 0x45, 0x76,
 	0x65, 0x6e, 0x74, 0x53, 0x65, 0x6e, 0x64, 0x54, 0x6f, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
 	0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x64,
 	0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
@@ -1909,20 +1983,22 @@ var file_fuelsequencer_bridge_events_proto_rawDesc = []byte{
 	0x52, 0x02, 0x74, 0x6f, 0x12, 0x37, 0x0a, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61,
 	0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42,
-	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0xbf, 0x01,
-	0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0b, 0x45, 0x76, 0x65, 0x6e,
-	0x74, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
-	0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65,
-	0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14,
-	0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72,
-	0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x1a, 0x0a,
+	0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0xbf, 0x01, 0x0a, 0x18, 0x63, 0x6f,
+	0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
+	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0b, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x50, 0x72,
+	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b,
+	0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46,
+	0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (

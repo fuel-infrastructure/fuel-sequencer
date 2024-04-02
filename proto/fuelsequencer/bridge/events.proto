@@ -53,4 +53,8 @@ message EventSendToSequencerEventProcessed {
 
   // amount is the tokens being sent, which must be the expected bridge token.
   cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+
+  // vesting duration encoded in string to prevent loss of precision. Sign is
+  // also preserved
+  string duration = 4;
 }

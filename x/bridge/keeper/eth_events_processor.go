@@ -166,39 +166,37 @@ func (k Keeper) processSendToSequencerEvent(
 
 	// Emit event once completed
 	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventProcessed{
-		From:   sendEvent.From,
-		To:     sequencerAddr.String(),
-		Amount: tokenToMint,
+		From:     sendEvent.From,
+		To:       sequencerAddr.String(),
+		Amount:   tokenToMint,
+		Duration: vesting.String(),
 	})
 	if err != nil {
 		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
 	}
 
-	k.Logger().Debug("Bridge EndBlock: Minted bridge tokens to account", "amount", tokenToMint.Amount, "address", sequencerAddr)
+	k.Logger().Debug(
+		"Bridge EndBlock: minted bridge tokens to account",
+		"amount", tokenToMint.Amount, "address", sequencerAddr,
+	)
 }
 
-// mintToGovernanceAddress mints to the governance address incase of an error in normal processing.
+// mintToGovernanceAddress mints to the governance address in case of an error in normal processing.
 func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, supplyDeltaInfo *types.SupplyDeltaInfo) {
 
 	// tokensToMint is the new coins that will be minted
 	tokensToMint := sdk.NewCoins(tokenToMint)
 
-	// Mint index tokens to module address.
-	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, tokensToMint)
+	// Mint bridged tokens to governance module address.
+	err := k.bankKeeper.MintCoins(ctx, govtypes.ModuleName, tokensToMint)
 	if err != nil {
-		panic(fmt.Errorf("failed to mint bridge tokens to bridge module account err: %s", err))
+		panic(fmt.Errorf("failed to mint bridge tokens to gov module account err: %s", err))
 	}
 
-	// Send the minted tokens from the module address to the governance module address.
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, govtypes.ModuleName, tokensToMint)
-	if err != nil {
-		panic(fmt.Errorf("failed to transfer minted tokens from module address to governance address %s, err: %s", govtypes.ModuleName, err))
-	}
-
-	// Update supply delta to reflect the minting to the community pool.
+	// Update supply delta to reflect the minting to the governance address.
 	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(tokenToMint.Amount)
 
-	// We have to save the supply delta here in case we panic at a later deposit.
+	// Save supply delta here after processing mints.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
 
 	// Emit event once completed
@@ -211,7 +209,7 @@ func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, s
 		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
 	}
 
-	k.Logger().Info("Minted bridge tokens to community pool", "amount", tokenToMint.Amount)
+	k.Logger().Warn("minted bridge tokens to governance address", "amount", tokenToMint.Amount)
 }
 
 // processAuthorizeEvent attempts to process an AuthorizeEvent by executing all of its messages
