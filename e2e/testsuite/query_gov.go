@@ -18,7 +18,7 @@ func (s *E2ETestSuite) QueryProposal(ctx context.Context, proposalID uint64) (go
 	return *res.Proposal, nil
 }
 
-// QueryGovVotingParams queries the on-chain governance voting params.
+// QueryGovVotingParams queries the on-Chain governance voting params.
 func (s *E2ETestSuite) QueryGovVotingParams(ctx context.Context) *govtypesv1.Params {
 	queryClient := s.getGRPCClients().GovQueryClient
 	res, err := queryClient.Params(ctx, &govtypesv1.QueryParamsRequest{
@@ -29,7 +29,7 @@ func (s *E2ETestSuite) QueryGovVotingParams(ctx context.Context) *govtypesv1.Par
 	return res.Params
 }
 
-// QueryGovDepositParams queries the on-chain governance deposit params.
+// QueryGovDepositParams queries the on-Chain governance deposit params.
 func (s *E2ETestSuite) QueryGovDepositParams(ctx context.Context) *govtypesv1.Params {
 	queryClient := s.getGRPCClients().GovQueryClient
 	res, err := queryClient.Params(ctx, &govtypesv1.QueryParamsRequest{
@@ -40,7 +40,7 @@ func (s *E2ETestSuite) QueryGovDepositParams(ctx context.Context) *govtypesv1.Pa
 	return res.Params
 }
 
-// QueryGovTallyParams queries the on-chain governance tally params.
+// QueryGovTallyParams queries the on-Chain governance tally params.
 func (s *E2ETestSuite) QueryGovTallyParams(ctx context.Context) *govtypesv1.Params {
 	queryClient := s.getGRPCClients().GovQueryClient
 	res, err := queryClient.Params(ctx, &govtypesv1.QueryParamsRequest{

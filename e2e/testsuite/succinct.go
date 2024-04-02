@@ -42,7 +42,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 		ExposedPorts: []string{},
 		Env: []string{
 			"ETHEREUM_RPC_URL=http://ethereum:8545",
-			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.chain.validators[0].instanceName()),
+			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.Chain.validators[0].instanceName()),
 			"SUCCINCT_RPC_URL=http://localhost:1234", // Can be anything
 			"SUCCINCT_API_KEY=",                      // Can be anything
 			"MOCK_SUCCINCT_SERVER=true",              // Mocking Succinct API server
@@ -108,7 +108,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	latestHeaderHash cmbytes.HexBytes,
 ) {
 	// Re-create the proof output
-	commitment, err := s.chain.BridgeCommitment(s.Ctx(), startBlock, targetBlock)
+	commitment, err := s.Chain.BridgeCommitment(s.Ctx(), startBlock, targetBlock)
 	s.Require().NoError(err)
 
 	startBlockBytes, err := To8PaddedHexBytes(startBlock)

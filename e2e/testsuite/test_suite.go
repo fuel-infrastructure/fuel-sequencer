@@ -120,7 +120,7 @@ type E2ETestSuite struct {
 
 	log *zap.Logger
 
-	chain         *chain
+	Chain         *chain
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
@@ -145,14 +145,14 @@ func (s *E2ETestSuite) SetupTest() {
 	s.log = zaptest.NewLogger(s.T(), LogLevel)
 
 	var err error
-	s.chain, err = newChain(len(MNEMONICS))
+	s.Chain, err = newChain(len(MNEMONICS))
 	s.Require().NoError(err)
 	s.dockerPool, err = dockertest.NewPool("")
 	s.Require().NoError(err)
-	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.chain.id))
+	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.Chain.id))
 	s.Require().NoError(err)
 
-	s.T().Logf("starting E2E infrastructure; chain-id: %s; datadir: %s", s.chain.id, s.chain.dataDir)
+	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.dataDir)
 
 	// initialization
 	s.initFuelSequencerNodes(MNEMONICS)
@@ -179,17 +179,11 @@ func (s *E2ETestSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	// Get genesis header
-	genesisBlockHeaderHash, err := s.chain.GetBlockHeaderHash(s.Ctx(), 1)
+	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
 	s.Require().NoError(err)
 
 	// Deploy the contracts with the header
 	s.deployContracts(1, genesisBlockHeaderHash)
-
-	// Wait for some blocks to pass in the sequencer to generate a long enough *fake proof*
-	err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
-	s.Require().NoError(err)
-
-	s.RunSuccinctXRelayerMockApi("1", 1, 6, genesisBlockHeaderHash)
 }
 
 func (s *E2ETestSuite) TearDownTest() {
@@ -205,7 +199,7 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.T().Log("tearing down e2e integration test suite...")
 
-	s.Require().NoError(os.RemoveAll(s.chain.dataDir))
+	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethResource))
 
 	for _, vc := range s.valResources {
@@ -218,18 +212,18 @@ func (s *E2ETestSuite) TearDownTest() {
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
 // It also sets up the genesis file using the first validator and copies it to all other validator nodes.
 func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
-	s.Require().NoError(s.chain.createAndInitFuelSequencerValidators(mnemonics))
+	s.Require().NoError(s.Chain.createAndInitFuelSequencerValidators(mnemonics))
 
 	// initialize a genesis file for the first validator
-	val0ConfigDir := s.chain.validators[0].configDir()
-	for _, val := range s.chain.validators {
+	val0ConfigDir := s.Chain.validators[0].configDir()
+	for _, val := range s.Chain.validators {
 		s.Require().NoError(
 			addGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.address()),
 		)
 	}
 
 	// copy the genesis file to the remaining validators
-	for _, val := range s.chain.validators[1:] {
+	for _, val := range s.Chain.validators[1:] {
 		err := copyFile(
 			filepath.Join(val0ConfigDir, "config", "genesis.json"),
 			filepath.Join(val.configDir(), "config", "genesis.json"),
@@ -245,7 +239,7 @@ func (s *E2ETestSuite) initEthereumNodes(mnemonics []string) {
 	// Determine whether to use mnemonics.
 	useMnemonics := len(mnemonics) > 0
 
-	for i, val := range s.chain.validators {
+	for i, val := range s.Chain.validators {
 		if useMnemonics {
 			s.Require().NoError(val.generateEthereumKeyFromMnemonic(mnemonics[i]))
 		} else {
@@ -258,8 +252,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
-	config.SetRoot(s.chain.validators[0].configDir())
-	config.Moniker = s.chain.validators[0].moniker
+	config.SetRoot(s.Chain.validators[0].configDir())
+	config.Moniker = s.Chain.validators[0].moniker
 
 	genFilePath := config.GenesisFile()
 	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
@@ -298,7 +292,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// TODO: genesis supply will be incorrect if we add more accounts
 	var bankGenState banktypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := int64(len(s.chain.validators) * initBalance)
+	genesisSupply := int64(len(s.Chain.validators) * initBalance)
 	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
 	bz, err = cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
@@ -316,8 +310,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
 
 	// generate genesis txs
-	genTxs := make([]json.RawMessage, len(s.chain.validators))
-	for i, val := range s.chain.validators {
+	genTxs := make([]json.RawMessage, len(s.Chain.validators))
+	for i, val := range s.Chain.validators {
 		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
 		s.Require().NoError(err)
 
@@ -346,13 +340,13 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 
 	// write the updated genesis file to each validator
-	for _, val := range s.chain.validators {
+	for _, val := range s.Chain.validators {
 		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
 	}
 }
 
 func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
-	for i, val := range s.chain.validators {
+	for i, val := range s.Chain.validators {
 		cmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
 
 		vpr := viper.New()
@@ -375,12 +369,12 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 
 		var peers []string
 
-		for j := 0; j < len(s.chain.validators); j++ {
+		for j := 0; j < len(s.Chain.validators); j++ {
 			if i == j {
 				continue
 			}
 
-			peer := s.chain.validators[j]
+			peer := s.Chain.validators[j]
 			peerID := fmt.Sprintf("%s@%s%d:26656", peer.nodeKey.ID(), peer.moniker, j)
 			peers = append(peers, peerID)
 		}
@@ -432,7 +426,7 @@ func (s *E2ETestSuite) runEthContainer() {
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 
-			balance, err := ethClient.BalanceAt(ctx, common.HexToAddress(s.chain.validators[0].ethereumKey.address), nil)
+			balance, err := ethClient.BalanceAt(ctx, common.HexToAddress(s.Chain.validators[0].ethereumKey.address), nil)
 			if err != nil {
 				s.T().Logf("error querying balance: %e", err)
 				return false
@@ -512,8 +506,8 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 	user, err := osuser.Current()
 	s.Require().NoError(err)
 
-	s.valResources = make([]*dockertest.Resource, len(s.chain.validators))
-	for i, val := range s.chain.validators {
+	s.valResources = make([]*dockertest.Resource, len(s.Chain.validators))
+	for i, val := range s.Chain.validators {
 		runOpts := &dockertest.RunOptions{
 			Name:       val.instanceName(),
 			NetworkID:  s.dockerNetwork.Network.ID,

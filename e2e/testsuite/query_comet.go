@@ -8,7 +8,7 @@ import (
 )
 
 func (s *E2ETestSuite) GetFuelSequencerHeight(ctx context.Context) (uint64, error) {
-	return s.chain.FuelSequencerHeight(ctx)
+	return s.Chain.FuelSequencerHeight(ctx)
 }
 
 // GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been
@@ -25,7 +25,7 @@ func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, height uint64) (*cm
 	return res.SdkBlock, nil
 }
 
-// GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
+// GetValidatorSetByHeight returns the validators of the given Chain at the specified height. The returned validators
 // are sorted by address.
 func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, height uint64) ([]*cmtservice.Validator, error) {
 	tmService := s.getGRPCClients().ConsensusServiceClient

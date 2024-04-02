@@ -3,6 +3,7 @@ package basic_test
 import (
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"math/big"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -158,13 +159,30 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
 
 		// --------------------------------------- Run Operator
+		currentHeight, err := s.Chain.FuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
 
-		//fulfillCallData := testsuite.PackFulfillCallDeposit(
-		//	testsuite.HEADER_RANGE_FUNCTION_ID,
-		//	[]byte("input can be anything"),
-		//)
-		//err = s.SendEthTransactionToProxyContract(authorizeData)
-		//s.Require().NoError(err)
+		requestId, startBlockString, targetBlockString := s.RunSuccinctXOperatorMockApi()
+		startBlock, err := strconv.Atoi(startBlockString)
+		s.Require().NoError(err)
+		targetBlock, err := strconv.Atoi(targetBlockString)
+		s.Require().NoError(err)
 
+		// Make sure the transaction is included in the BridgeCommitment
+		s.Require().GreaterOrEqual(targetBlock, currentHeight)
+
+		// --------------------------------------- Run Relayer
+
+		// Get genesis header
+		genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
+		s.Require().NoError(err)
+
+		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		s.Require().NoError(err)
+
+		s.RunSuccinctXRelayerMockApi(requestId, uint64(startBlock), uint64(targetBlock), genesisBlockHeaderHash)
+
+		// --------------------------------------- Make a withdrawal on Ethereum
+		// TODO:
 	})
 }

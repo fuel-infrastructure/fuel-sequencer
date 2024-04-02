@@ -116,7 +116,7 @@ func newChain(numNodes int) (*chain, error) {
 	}
 
 	return &chain{
-		id:       "chain-" + cmrand.NewRand().Str(6),
+		id:       "Chain-" + cmrand.NewRand().Str(6),
 		dataDir:  tmpDir,
 		numNodes: numNodes,
 	}, nil

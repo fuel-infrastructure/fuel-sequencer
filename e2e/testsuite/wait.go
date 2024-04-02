@@ -16,7 +16,7 @@ func (s *E2ETestSuite) Sleep(duration time.Duration) {
 // If a ChainHeighter does not monotonically increase the height, this function may block program execution indefinitely.
 func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
 
-	start, err := s.chain.FuelSequencerHeight(ctx)
+	start, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 	end := start + uint64(delta)
 
@@ -25,7 +25,7 @@ func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfte
 	go func() {
 		for {
 			time.Sleep(time.Second)
-			latest, err := s.chain.FuelSequencerHeight(ctx)
+			latest, err := s.Chain.FuelSequencerHeight(ctx)
 			s.Require().NoError(err)
 			if latest >= end {
 				close(done)
