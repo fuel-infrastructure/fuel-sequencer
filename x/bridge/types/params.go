@@ -36,12 +36,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// NewParams creates a new Params instance
+// NewParams creates a new Params instance.
 func NewParams(
 	bridgeDenom string,
 	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
+	blockedAddresses []string,
 ) Params {
 	return Params{
 		BridgeDenom:                  bridgeDenom,
@@ -49,16 +50,18 @@ func NewParams(
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
 		VestingStartTime:             time.Now().Local().UTC(),
+		BlockedAddresses:             blockedAddresses,
 	}
 }
 
-// DefaultParams returns a default set of parameters
+// DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
 	return NewParams(
 		DefaultBridgeDenom,
 		DefaultEthereumProxyContractAddress,
 		[]string{DefaultAllowAllAuthorizeMessage},
 		DefaultSupplyDeltaPeriod,
+		[]string{},
 	)
 }
 
