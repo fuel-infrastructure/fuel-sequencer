@@ -23,7 +23,7 @@ func TestValidateGenesisState(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-
+				Params: types.DefaultParams(),
 				TopicList: []types.Topic{
 					{
 						Id: utilstest.MockTopicIDHex(0),
@@ -38,12 +38,27 @@ func TestValidateGenesisState(t *testing.T) {
 		{
 			desc: "duplicated topic",
 			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
 				TopicList: []types.Topic{
 					{
 						Id: utilstest.MockTopicIDHex(0),
 					},
 					{
 						Id: utilstest.MockTopicIDHex(0),
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "params not set",
+			genState: &types.GenesisState{
+				TopicList: []types.Topic{
+					{
+						Id: utilstest.MockTopicIDHex(0),
+					},
+					{
+						Id: utilstest.MockTopicIDHex(1),
 					},
 				},
 			},
