@@ -274,6 +274,20 @@ func TestDetectEthEventsTxSizeChange(t *testing.T) {
 	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(465)) // just under enough
 }
 
+// TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.
+// This is important because we use the size to determine the number of events to trim, and the transaction selector
+// uses size of the marshalled transaction to determine whether to include the transaction in the block. If there is a
+// mismatch between these two, we can accidentally over-trim or under-trim the events from EthEventsTx.
+func TestCorrelationBetweenSizeAndMarshalling(t *testing.T) {
+
+	tx := testtypes.TestEthEventsTx
+	require.EqualValues(t, 466, tx.Size())
+
+	bz, err := tx.Marshal()
+	require.NoError(t, err)
+	require.EqualValues(t, 466, len(bz))
+}
+
 func TestEthEventsTx_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 	testCases := []struct {
