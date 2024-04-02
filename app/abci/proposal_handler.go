@@ -120,14 +120,15 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Trim events from tail to fit the block size allocated for events.
 		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
 		maxNumberOfEvents := uint64(ethEventsTx.NumberOfEventsWithMaxBytes(maxBytesForEvents))
+		originalNumberOfEvents := len(ethEventsTx.Events)
 		trimmed, err := ethEventsTx.KeepEventsFromHead(maxNumberOfEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to trim eth events tx tail: %w", err)
 		}
 		if trimmed > 0 {
 			ctx.Logger().Info(fmt.Sprintf(
-				"Skipped %d events because only %d could fit with max bytes %d",
-				trimmed, maxNumberOfEvents, maxBytesForEvents,
+				"Skipped %d/%d of remaining events from block %s because only %d could fit in max bytes %d",
+				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
 		}
 
@@ -273,6 +274,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// not have access to the max block size, so instead we assume that the proposer proposed an optimised block.
 		// TODO: consider adding access to max block size instead of assuming the optimal number of events were proposed
 		maxNumberOfEvents := uint64(len(injectedEthEventsTx.Events))
+		originalNumberOfEvents := len(ethEventsTx.Events)
 		trimmed, err := ethEventsTx.KeepEventsFromHead(maxNumberOfEvents)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -281,8 +283,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 		if trimmed > 0 {
 			ctx.Logger().Info(fmt.Sprintf(
-				"Skipped %d events because only %d were received from the proposer",
-				trimmed, maxNumberOfEvents,
+				"Skipped %d/%d of remaining events from block %s because only %d were received from the proposer",
+				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents,
 			))
 		}
 
