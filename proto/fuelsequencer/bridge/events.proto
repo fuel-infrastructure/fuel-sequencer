@@ -51,6 +51,6 @@ message EventSendToSequencerEventProcessed {
   // to is the user address on Ethereum that will be receiving the tokens.
   string to = 2;
 
-  // amount is the tokens being sent, which must be the expacted bridge token.
+  // amount is the tokens being sent, which must be the expected bridge token.
   cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
 }
