@@ -136,7 +136,10 @@ func (k Keeper) processSendToSequencerEvent(
 		// Otherwise process the To from a string to an AccAddress type.
 		sequencerAddr, err = sdk.AccAddressFromBech32(sendEvent.To)
 		if err != nil {
-			k.Logger().Error("Bridge EndBlock: to is not a valid Bech32 address", "err", err)
+			k.Logger().Error(
+				"Bridge EndBlock: to is not a valid Bech32 address - minting to gov address",
+				"event", sendEvent, "err", err,
+			)
 			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 			return
 		}
