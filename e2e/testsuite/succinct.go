@@ -1,9 +1,12 @@
 package testsuite
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -143,7 +146,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		NetworkID:    s.dockerNetwork.Network.ID,
 		PortBindings: map[docker.Port][]docker.PortBinding{},
 		ExposedPorts: []string{},
-		Cmd:          []string{"--", "--request-id", requestId},
+		Cmd:          []string{"tail", "-f", "/dev/null"},
 		Mounts: []string{
 			fmt.Sprintf("%s/:%s", dirPath, "/app/proofs"),
 		},
@@ -155,6 +158,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 			fmt.Sprintf("GATEWAY_ADDRESS=%s", GATEWAY_CONTRACT),
 			"LOCAL_PROVE_MODE=true",
 			"LOCAL_RELAY_MODE=true",
+			fmt.Sprintf("REQUEST_ID=%s", requestId),
 		},
 	}
 
@@ -164,13 +168,35 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	)
 	s.Require().NoError(err)
 
+	ethClient, err := ethclient.Dial(fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp")))
+	s.Require().NoError(err)
+
 	// Wait for the Relayer node to response
-	match := "Relayed successfully!"
 	s.Require().Eventually(
 		func() bool {
-			logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
+			logs := s.logsByContainerID(s.succinctRelayerResource.Container.ID)
 
-			return strings.Contains(logs, match)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			for _, logStr := range strings.Split(logs, "\n") {
+				re := regexp.MustCompile(`\[[^]]*] Proof relayed successfully! Transaction Hash: (0x[a-fA-F0-9]{64})`)
+
+				matches := re.FindStringSubmatch(logStr)
+				// The first element represents the string captures, the second is the tx hash
+				if matches != nil && len(matches) > 1 {
+					receipt, err := ethClient.TransactionReceipt(ctx, common.BytesToHash(common.FromHex(matches[1])))
+					if err != nil {
+						s.T().Logf("error retreiving transaction receipt %s", err)
+						return false
+					}
+					s.Require().NotNil(receipt.Logs)
+
+					return true
+				}
+			}
+
+			return false
 		},
 		1*time.Minute,
 		10*time.Second,
@@ -178,8 +204,8 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	)
 
 	// We only want 1 proof submitted from the relayer
-	s.T().Logf("stopping SuccinctX operator container...")
-	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
+	s.T().Logf("stopping SuccinctX relayer container...")
+	s.Require().NoError(s.dockerPool.Purge(s.succinctRelayerResource))
 }
 
 // -------------- TEMP

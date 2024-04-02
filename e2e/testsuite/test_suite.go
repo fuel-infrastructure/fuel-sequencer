@@ -502,7 +502,7 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 		"ethereum node failed to respond",
 	)
 
-	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+	s.T().Logf("deployed Ethereum contracts: %s", s.ethResource.Container.ID)
 }
 
 func (s *E2ETestSuite) runFuelSequencerValidators() {

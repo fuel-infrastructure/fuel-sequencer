@@ -274,18 +274,18 @@ func (c *chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.
 	return res.BlockID.Hash, nil
 }
 
-func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {
-	res, err := c.ethClient.BlockNumber(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("rpc client status: %w", err)
-	}
-	return res, nil
-}
-
 func (c *chain) BridgeCommitment(ctx context.Context, start, end uint64) (bytes.HexBytes, error) {
 	res, err := c.rpcClient.BridgeCommitment(ctx, start, end)
 	if err != nil {
 		return bytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
 	}
 	return res.BridgeCommitment, nil
+}
+
+func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {
+	res, err := c.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("rpc client status: %w", err)
+	}
+	return res, nil
 }
