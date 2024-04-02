@@ -73,8 +73,8 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 }
 
 // processSendToSequencerEvent processes the send to sequencer events queried from the sidecar.
-// Deposit message cannot fail. If a failure can occur, we should consider minting the tokens
-// anyway and storing them in the governance address. The only time it can fail is if
+// Deposit message cannot fail. If a failure can occur, we mint the tokens anyway
+// but we store them in the governance address. The only time it can fail is if
 // we cannot parse the `Amount` of tokens as we won't know how many tokens have been processed.
 func (k Keeper) processSendToSequencerEvent(
 	ctx sdk.Context,
