@@ -14119,3 +14119,15 @@ definitions:
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
+  fuelsequencer.sequencing.Params:
+    type: object
+    properties:
+      max_blob_size_bytes:
+        type: string
+        format: uint64
+        description: >-
+          max_blob_size_bytes is the maximum size of blob that can be submitted
+          in
+
+          bytes.
+    description: Params defines the parameters for the module.
