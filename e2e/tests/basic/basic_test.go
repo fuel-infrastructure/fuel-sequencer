@@ -134,7 +134,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 			Message: someBytes,
 		}))
 
-		// --------------------------------------- PreBlocker
+		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
 
 		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
