@@ -33,7 +33,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	params := k.GetParams(ctx)
 	supplyDelta := k.MustGetSupplyDeltaInfo(ctx)
 
-	// Otherwise we being processing these events according to event type.
+	// Otherwise we begin processing these events according to the event type.
 	for _, event := range ethEventsTx.Events {
 
 		// Unmarshal the parsed event if possible.
