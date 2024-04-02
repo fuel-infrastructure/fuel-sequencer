@@ -118,7 +118,8 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 // resembles the EthEventsTx Size function but only iterates over as many events as can fit into the specified maxBytes.
 //
 // It is very important to update this function if the EthEventsTx Size function gets updated, otherwise we might be
-// overestimating or underestimating the size of EthEventsTx and inject a suboptimal number of events.
+// overestimating or underestimating the size of EthEventsTx and inject a suboptimal number of events. If there is a
+// discrepancy, we expect at least one unit test to fail.
 func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 	var l int
 	if m.AdvanceSequencer {
