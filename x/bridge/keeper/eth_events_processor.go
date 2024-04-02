@@ -124,7 +124,10 @@ func (k Keeper) processSendToSequencerEvent(
 	if len(strings.TrimSpace(sendEvent.To)) == 0 {
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, sendEvent.From, vesting, tokensToMint)
 		if err != nil {
-			k.Logger().Error("Bridge EndBlock: failed to generate sequencer account from ethereum address", "err", err)
+			k.Logger().Error(
+				"Bridge EndBlock: failed to generate sequencer account from ethereum address - minting to gov address",
+				"event", sendEvent, "err", err,
+			)
 			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 			return
 		}
