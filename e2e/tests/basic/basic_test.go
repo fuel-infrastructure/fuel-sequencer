@@ -68,7 +68,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 1000)
 		s.Require().Error(err)
 
-		// --------------------------------------- Ethereum queries
+		// --------------------------------------- Ethereum queries and transactions
 
 		// Try getting height (RPC).
 		ethHeight1, err := s.GetEthereumHeight(s.Ctx())
