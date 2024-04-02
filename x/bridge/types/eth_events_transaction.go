@@ -150,18 +150,24 @@ func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 func (m *EthEventsTx) TrimEventsFromHead(numEventsToTrim uint64) error {
 	numEventsInTx := uint64(len(m.Events))
 
-	if numEventsInTx > 0 && numEventsInTx == numEventsToTrim {
-		return fmt.Errorf("cannot trim all %d events from EthEventsTx %s", numEventsInTx, m)
-	}
-
 	if numEventsToTrim == 0 {
+
 		return nil // trim nothing
+
+	} else if numEventsInTx > 0 && numEventsInTx == numEventsToTrim {
+
+		// If we trim all the events from the transaction this is a problem because if we retry
+		// at the next block, we expect the same to happen, and we will never inject the events.
+		return fmt.Errorf("cannot trim all %d events from EthEventsTx %s", numEventsInTx, m)
+
 	} else if numEventsToTrim > numEventsInTx {
+
+		// If we try to trim more events than there are, something is wrong.
 		return fmt.Errorf("insufficient no of events, expected at least %d got %d", numEventsToTrim, numEventsInTx)
-	} else {
-		m.Events = m.Events[numEventsToTrim:]
+
 	}
 
+	m.Events = m.Events[numEventsToTrim:]
 	return nil
 }
 
@@ -172,23 +178,28 @@ func (m *EthEventsTx) TrimEventsFromHead(numEventsToTrim uint64) error {
 func (m *EthEventsTx) KeepEventsFromHead(numEventsToKeep uint64) (trimmed uint64, err error) {
 	numEventsInTx := uint64(len(m.Events))
 
-	// If we cannot fit any events into the block this is a problem because if we retry at
-	// the next block, we expect the same to happen, and we will never inject the events.
-	if numEventsInTx > 0 && numEventsToKeep == 0 {
-		return 0, fmt.Errorf("cannot trim all %d events from EthEventsTx %s", numEventsInTx, m)
-	}
-
 	if numEventsInTx == numEventsToKeep {
+
 		return 0, nil // keep all
+
+	} else if numEventsInTx > 0 && numEventsToKeep == 0 {
+
+		// If we trim all the events from the transaction this is a problem because if we retry
+		// at the next block, we expect the same to happen, and we will never inject the events.
+		return 0, fmt.Errorf("cannot trim all %d events from EthEventsTx %s", numEventsInTx, m)
+
 	} else if numEventsInTx < numEventsToKeep {
+
+		// If we try to trim more events than there are, something is wrong.
 		return 0, fmt.Errorf("insufficient no of events, expected at least %d got %d", numEventsToKeep, numEventsInTx)
-	} else {
-		m.Events = m.Events[:numEventsToKeep]
-		m.NewEthereumBlock = false
 
-		// Note: changing NewEthereumBlock can affect the size of EthEventsTx. However, setting it to false will reduce
-		// the size, not increase it, so there is no risk of exceeding the maxBytes as a result of setting it to false.
-
-		return numEventsInTx - numEventsToKeep, nil
 	}
+
+	m.Events = m.Events[:numEventsToKeep]
+	m.NewEthereumBlock = false
+
+	// Note: changing NewEthereumBlock can affect the size of EthEventsTx. However, setting it to false will reduce
+	// the size, not increase it, so there is no risk of exceeding the maxBytes as a result of setting it to false.
+
+	return numEventsInTx - numEventsToKeep, nil
 }
