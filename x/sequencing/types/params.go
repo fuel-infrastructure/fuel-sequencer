@@ -64,7 +64,7 @@ func ValidateMaxBlobSizeBytes(i interface{}) error {
 	// If the MaxBlobSizeBytes is greater than the cometBFT MaxBlobSizeBytes we reject it.
 	if v > comettypes.MaxBlockSizeBytes {
 		return ErrParamsInvalid.Wrapf(
-			"maxBlobSizeBytes %d cannot be greater than cometbft max blob size %d",
+			"maxBlobSizeBytes %d cannot be greater than cometbft max block size %d",
 			v, comettypes.MaxBlockSizeBytes,
 		)
 	}
