@@ -21,6 +21,7 @@ type (
 		// Keepers
 		bankKeeper    types.BankKeeper
 		accountKeeper types.AccountKeeper
+		stakingKeeper types.StakingKeeper
 
 		// the address capable of executing a MsgUpdateParams message. Typically, this
 		// should be the x/gov module account.
@@ -37,6 +38,7 @@ func NewKeeper(
 	logger log.Logger,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
+	stakingKeeper types.StakingKeeper,
 	authority string,
 	router *baseapp.MsgServiceRouter,
 ) Keeper {
@@ -51,6 +53,7 @@ func NewKeeper(
 		logger:        logger,
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
+		stakingKeeper: stakingKeeper,
 		router:        router,
 	}
 }

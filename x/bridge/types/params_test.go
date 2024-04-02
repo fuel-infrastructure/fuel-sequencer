@@ -227,6 +227,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
+				BlockedAddresses:             []string{},
 			},
 			expectErr: false,
 		},
@@ -238,6 +239,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
+				BlockedAddresses:             []string{},
 			},
 			expectErr: true,
 		},
@@ -249,6 +251,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
+				BlockedAddresses:             []string{},
 			},
 			expectErr: true,
 		},
@@ -260,6 +263,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     []string{},
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
+				BlockedAddresses:             []string{},
 			},
 			expectErr: true,
 		},
@@ -271,6 +275,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            0,
 				VestingStartTime:             validVestingStartTime,
+				BlockedAddresses:             []string{},
 			},
 			expectErr: true,
 		},
@@ -282,6 +287,19 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
+				BlockedAddresses:             []string{},
+			},
+			expectErr: true,
+		},
+		{
+			name: "bad blocked address",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             time.Time{},
+				BlockedAddresses:             []string{"invalidBech32Address"},
 			},
 			expectErr: true,
 		},
@@ -290,6 +308,58 @@ func TestParams_Validate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.params.Validate()
 			if tc.expectErr {
+				require.Error(t, err, "Expected an error for test case: %s", tc.name)
+			} else {
+				require.NoError(t, err, "Expected no error for test case: %s", tc.name)
+			}
+		})
+	}
+}
+
+func TestValidateBlockedAddress(t *testing.T) {
+	// Set up test cases
+	testCases := []struct {
+		name        string
+		input       interface{}
+		expectError bool
+	}{
+		{
+			name:        "Valid account address",
+			input:       []string{"fuelsequencer1zkaa9906nckwl4m0ysunscuv5edma04n3u3u8r"},
+			expectError: false,
+		},
+		{
+			name:        "Valid validator address",
+			input:       []string{"fuelsequencervaloper1vau7m2y3wz43hpkxkmrc3jddueyvj8pswzv0zc"},
+			expectError: false,
+		},
+		{
+			name:        "Invalid Bech32 address",
+			input:       []string{"invalidBech32Address"},
+			expectError: true,
+		},
+		{
+			name:        "Empty address",
+			input:       []string{""},
+			expectError: true,
+		},
+		{
+			name:        "Invalid parameter type",
+			input:       "NotASliceOfString",
+			expectError: true,
+		},
+		{
+			name:        "Mixed valid and invalid addresses",
+			input:       []string{"fuelsequencer1zkaa9906nckwl4m0ysunscuv5edma04n3u3u8r", "invalidBech32Address"},
+			expectError: true,
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateBlockedAddress(tc.input)
+			if tc.expectError {
 				require.Error(t, err, "Expected an error for test case: %s", tc.name)
 			} else {
 				require.NoError(t, err, "Expected no error for test case: %s", tc.name)

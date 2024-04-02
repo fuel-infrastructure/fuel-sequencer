@@ -71,7 +71,7 @@ func DefaultParams() Params {
 		DefaultEthereumProxyContractAddress,
 		[]string{DefaultAllowAllAuthorizeMessage},
 		DefaultSupplyDeltaPeriod,
-		[]string{},
+		nil,
 	)
 }
 
@@ -107,6 +107,12 @@ func (p Params) Validate() error {
 	if err := ValidateVestingStartTime(p.VestingStartTime); err != nil {
 		return err
 	}
+
+	// ValidateBlockedAddress blocked addresses
+	if err := ValidateBlockedAddress(p.BlockedAddresses); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -168,6 +174,30 @@ func ValidateVestingStartTime(i interface{}) error {
 	// Ensure the time is not zero, which is the zero value for time.Time and represents an unset value.
 	if v.IsZero() {
 		return ErrParamsInvalid.Wrapf("vesting start time must be set and cannot be the zero value")
+	}
+
+	return nil
+}
+
+func ValidateBlockedAddress(i interface{}) error {
+	blockedAddresses, ok := i.([]string)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
+	}
+
+	for _, addr := range blockedAddresses {
+		if addr == "" {
+			return ErrParamsInvalid.Wrapf("blocked address cannot be empty")
+		}
+
+		// Attempt to decode the Bech32 address into an normal address
+		_, errAcc := sdk.AccAddressFromBech32(addr)
+		_, errVal := sdk.ValAddressFromBech32(addr)
+
+		// If both decodings fail, return an error for this address
+		if errAcc != nil && errVal != nil {
+			return ErrParamsInvalid.Wrapf("address %s is not a valid Bech32 encoded address", addr)
+		}
 	}
 
 	return nil

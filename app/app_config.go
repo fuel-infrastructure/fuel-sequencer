@@ -134,6 +134,10 @@ var (
 		// govtypes.ModuleName
 	}
 
+	// NOTE: we also keep a list of module accounts that we've blocked
+	// when executing messages from bridged ethereum events. Everytime a new module
+	// is added we must update the list found in `x/bridge/keeper/bridge_utils.go`
+
 	// appConfig application configuration (used by depinject)
 	appConfig = appconfig.Compose(&appv1alpha1.Config{
 		Modules: []*appv1alpha1.ModuleConfig{

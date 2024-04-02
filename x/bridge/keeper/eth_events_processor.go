@@ -24,6 +24,13 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	// Get the module params
 	params := k.GetParams(ctx)
 
+	// Get all the blocked addresses.
+	blockedAddressesMap, err := k.GetAllBlockedAddresses(ctx, params.BlockedAddresses)
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to retreive blocked addresses", "err", err)
+		return
+	}
+
 	for _, event := range ethEventsTx.Events {
 		// Unmarshal event queried from Sidecar to a parsedEvent
 		parsedEvent, err := event.UnmarshalParsedEvent()
@@ -44,7 +51,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 			// If an error occurs while processing an Authorize event we will move on to the next event without applying
 			// any state changes.
 			err = utils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return k.processAuthorizeEvent(ctx, pe, &params)
+				return k.processAuthorizeEvent(ctx, pe, &params, blockedAddressesMap)
 			})
 			if err != nil {
 				k.Logger().Error("Bridge EndBlock: failed to process AuthorizeEvent", "event", pe.String(), "err", err)
@@ -65,7 +72,12 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 func (k Keeper) processDeposit(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
 
 // processAuthorizeEvent attempts to process an AuthorizeEvent by executing all of its messages
-func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.AuthorizeEvent, params *types.Params) error {
+func (k Keeper) processAuthorizeEvent(
+	ctx sdk.Context,
+	event *sidecartypes.AuthorizeEvent,
+	params *types.Params,
+	blockedAddresses map[string]bool,
+) error {
 	// Deserialize AuthorizeEvent.Message into an array of sdk.Msg
 	msgs, err := types.DeserializeAuthorizeTx(k.cdc, event)
 	if err != nil {
@@ -73,7 +85,7 @@ func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.Autho
 	}
 
 	// Check whether AuthorizeTx is authorized on the Sequencer
-	if err = k.authenticateTx(event.From, msgs, params); err != nil {
+	if err = k.authenticateTx(event.From, msgs, params, blockedAddresses); err != nil {
 		return fmt.Errorf("could not authenticate AuthorizeTx: %w", err)
 	}
 
@@ -106,7 +118,9 @@ func (k Keeper) processAuthorizeEvent(ctx sdk.Context, event *sidecartypes.Autho
 }
 
 // authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
-func (k Keeper) authenticateTx(sender string, msgs []sdk.Msg, params *types.Params) error {
+func (k Keeper) authenticateTx(
+	sender string, msgs []sdk.Msg, params *types.Params, blockedAddresses map[string]bool,
+) error {
 
 	// Generate the Sequencer address from the Ethereum address
 	mappedSequencerAddr, err := types.GenerateSequencerAddressFromEthereumAddress(sender)
@@ -133,10 +147,19 @@ func (k Keeper) authenticateTx(sender string, msgs []sdk.Msg, params *types.Para
 
 		for _, signer := range signers {
 
-			// Make sure that the message signer is equivalent to the mapped Sequencer address of the sender on Ethereum
-			if mappedSequencerAddr.String() != sdk.AccAddress(signer).String() {
+			// Make sure that the message signer is equivalent to the mapped Sequencer address of the
+			// sender on Ethereum. We also make sure that the signer is not part of a list of blocked addresses.
+			signerAddress := sdk.AccAddress(signer).String()
+			if mappedSequencerAddr.String() != signerAddress {
 				return types.ErrInvalidSigner.Wrapf(
-					"expected %s, got %s", mappedSequencerAddr.String(), sdk.AccAddress(signer).String(),
+					"expected %s, got %s", mappedSequencerAddr.String(), signerAddress,
+				)
+			}
+
+			// Check if signer is a blocked address.
+			if blockedAddresses[signerAddress] {
+				return types.ErrInvalidSigner.Wrapf(
+					"signer %s is a blocked address ", signerAddress,
 				)
 			}
 		}

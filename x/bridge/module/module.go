@@ -193,6 +193,7 @@ type ModuleInputs struct {
 
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
+	StakingKeeper types.StakingKeeper
 
 	Router *baseapp.MsgServiceRouter
 }
@@ -216,6 +217,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Logger,
 		in.BankKeeper,
 		in.AccountKeeper,
+		in.StakingKeeper,
 		authority.String(),
 		in.Router,
 	)
