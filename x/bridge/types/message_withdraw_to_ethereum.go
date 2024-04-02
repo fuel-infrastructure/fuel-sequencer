@@ -1,7 +1,6 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,16 +19,16 @@ func NewMsgWithdrawToEthereum(from string, to string, amount sdk.Coin) *MsgWithd
 func (msg *MsgWithdrawToEthereum) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid from address (%s)", err)
 	}
 
 	// TODO: We might want to verify checksum of address
 	if !common.IsHexAddress(msg.To) {
-		return errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum to address format (%s)", msg.To)
+		return ErrInvalidEthAddress.Wrapf("invalid Ethereum to address format (%s)", msg.To)
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.Amount.IsZero() {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be a valid, non-zero value")
+		return sdkerrors.ErrInvalidCoins.Wrapf("amount must be a valid, non-zero value")
 	}
 
 	return nil

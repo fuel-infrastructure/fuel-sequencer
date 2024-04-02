@@ -30,6 +30,7 @@ var (
 	ErrNilMsgResponse              = sdkerrors.Register(ModuleName, 1112, "got nil msg response")
 	ErrUnsupported                 = sdkerrors.Register(ModuleName, 1113, "unsupported")
 	ErrInvalidAccountAddress       = sdkerrors.Register(ModuleName, 1114, "invalid account address")
+	ErrParamsInvalid               = sdkerrors.Register(ModuleName, 1115, "params are invalid")
 )
 
 // Some constant error strings used throughout the module

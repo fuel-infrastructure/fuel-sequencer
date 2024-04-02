@@ -2,8 +2,6 @@ package types
 
 import (
 	"encoding/hex"
-
-	errorsmod "cosmossdk.io/errors"
 )
 
 // DefaultIndex is the default global index
@@ -32,7 +30,7 @@ func (gs GenesisState) Validate() error {
 
 		// Verify topic is unique
 		if _, ok := uniqueTopics[topicIdHex]; ok {
-			return errorsmod.Wrapf(ErrTopicNotUnique, "topic not unique at id %s", topicIdHex)
+			return ErrTopicNotUnique.Wrapf("topic not unique at id %s", topicIdHex)
 		}
 
 		uniqueTopics[topicIdHex] = true
