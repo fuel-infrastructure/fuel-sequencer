@@ -108,7 +108,10 @@ func (k Keeper) processSendToSequencerEvent(
 
 	// Check that From is a valid hex address
 	if !common.IsHexAddress(sendEvent.From) {
-		k.Logger().Error("Bridge EndBlock: from is not a valid hex address")
+		k.Logger().Error(
+			"Bridge EndBlock: from address is not a valid hex address - minting to governance address instead",
+			"event", sendEvent,
+		)
 		k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
 		return
 	}
