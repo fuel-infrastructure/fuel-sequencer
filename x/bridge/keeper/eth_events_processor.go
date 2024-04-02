@@ -103,7 +103,7 @@ func (k Keeper) processSendToSequencerEvent(
 		return
 	}
 
-	// Convert to vesting duration
+	// Convert the duration in seconds to a vesting duration
 	vesting := time.Duration(eventDuration.Int64() * 1e9)
 
 	// Check that From is a valid hex address
