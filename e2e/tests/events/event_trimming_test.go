@@ -7,7 +7,7 @@ import (
 )
 
 // TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
-func (s *BasicTestSuite) TestEventTrimming() {
+func (s *EventsTestSuite) TestEventTrimming() {
 	s.Run("Bring up nodes and perform some queries and transactions", func() {
 
 		// Set a low max bytes for txs so that events are split across multiple blocks.
@@ -48,12 +48,12 @@ func (s *BasicTestSuite) TestEventTrimming() {
 		s.Require().NoError(err)
 
 		// 1st event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 1)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
 		// 2nd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 2)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 1, 2)
 		// 3rd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 3)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 1, 3)
 		// 4th event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 10, 0)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 1, 0)
 	})
 }

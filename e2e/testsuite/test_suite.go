@@ -5,37 +5,22 @@ package testsuite
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	osuser "os/user"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-	cmconfig "github.com/cometbft/cometbft/config"
-	cmjson "github.com/cometbft/cometbft/libs/json"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/cosmos/cosmos-sdk/server"
-	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -118,6 +103,10 @@ type E2ETestSuite struct {
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
+
+	// genesisOverrides are extra changes applied to genesis before the Sequencer is started. For these overrides to be
+	// applied, SetupTest needs to be overridden so that genesisOverrides can be changed before invoking SetupTest.
+	GenesisOverrides *ModifyGenesisFunc
 }
 
 func (s *E2ETestSuite) SetupTest() {
@@ -185,6 +174,7 @@ func (s *E2ETestSuite) TearDownTest() {
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
 
 	s.govProposalIdCounter = 1
+	s.GenesisOverrides = nil
 }
 
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
@@ -223,155 +213,6 @@ func (s *E2ETestSuite) initEthereumNodes(mnemonics []string) {
 		} else {
 			s.Require().NoError(val.generateEthereumKey())
 		}
-	}
-}
-
-func (s *E2ETestSuite) initFuelSequencerGenesis() {
-	serverCtx := server.NewDefaultContext()
-	config := serverCtx.Config
-
-	config.SetRoot(s.chain.validators[0].configDir())
-	config.Moniker = s.chain.validators[0].moniker
-
-	genFilePath := config.GenesisFile()
-	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
-	s.Require().NoError(err)
-
-	var govGenState govtypesv1.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
-
-	// set short voting period to allow gov proposals in tests
-	votingPeriod := governanceVotingPeriod
-	govGenState.Params.VotingPeriod = &votingPeriod
-	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	bz, err := cdc.MarshalJSON(&govGenState)
-	s.Require().NoError(err)
-	appGenState[govtypes.ModuleName] = bz
-
-	// set staking bond denom
-	var stakingGenState stakingtypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[stakingtypes.ModuleName], &stakingGenState))
-	bz, err = cdc.MarshalJSON(&stakingGenState)
-	s.Require().NoError(err)
-	appGenState[stakingtypes.ModuleName] = bz
-
-	// set mint denom
-	var mintGenState minttypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
-	mintGenState.Params.InflationMax = math.LegacyZeroDec()
-	mintGenState.Params.InflationMin = math.LegacyZeroDec()
-	mintGenState.Params.InflationRateChange = math.LegacyZeroDec()
-	mintGenState.Minter.Inflation = math.LegacyZeroDec()
-	bz, err = cdc.MarshalJSON(&mintGenState)
-	s.Require().NoError(err)
-	appGenState[minttypes.ModuleName] = bz
-
-	// TODO: genesis supply will be incorrect if we add more accounts
-	var bankGenState banktypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := int64(len(s.chain.validators) * initBalance)
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
-	bz, err = cdc.MarshalJSON(&bankGenState)
-	s.Require().NoError(err)
-	appGenState[banktypes.ModuleName] = bz
-
-	var bridgeGenState bridgetypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
-	bridgeGenState.Params.BridgeDenom = BridgeDenom
-	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
-	bz, err = cdc.MarshalJSON(&bridgeGenState)
-	s.Require().NoError(err)
-	appGenState[bridgetypes.ModuleName] = bz
-
-	var genUtilGenState genutiltypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
-
-	// generate genesis txs
-	genTxs := make([]json.RawMessage, len(s.chain.validators))
-	for i, val := range s.chain.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
-		s.Require().NoError(err)
-
-		signedTx, err := val.signMsg(createValmsg)
-		s.Require().NoError(err)
-
-		txRaw, err := cdc.MarshalJSON(signedTx)
-		s.Require().NoError(err)
-
-		genTxs[i] = txRaw
-	}
-
-	genUtilGenState.GenTxs = genTxs
-
-	bz, err = cdc.MarshalJSON(&genUtilGenState)
-	s.Require().NoError(err)
-	appGenState[genutiltypes.ModuleName] = bz
-
-	// serialize genesis state
-	bz, err = json.MarshalIndent(appGenState, "", "  ")
-	s.Require().NoError(err)
-
-	genDoc.AppState = bz
-
-	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
-	s.Require().NoError(err)
-
-	// write the updated genesis file to each validator
-	for _, val := range s.chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
-	}
-}
-
-func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
-	for i, val := range s.chain.validators {
-		cmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
-
-		vpr := viper.New()
-		vpr.SetConfigFile(cmCfgPath)
-		s.Require().NoError(vpr.ReadInConfig())
-
-		valConfig := &cmconfig.Config{}
-		s.Require().NoError(vpr.Unmarshal(valConfig))
-
-		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
-		valConfig.P2P.AddrBookStrict = false
-		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", val.instanceName(), 26656)
-		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
-		valConfig.StateSync.Enable = false
-		valConfig.LogLevel = "info"
-
-		// speed up blocks
-		valConfig.Consensus.TimeoutCommit = 1 * time.Second
-		valConfig.Consensus.TimeoutPropose = 1 * time.Second
-
-		var peers []string
-
-		for j := 0; j < len(s.chain.validators); j++ {
-			if i == j {
-				continue
-			}
-
-			peer := s.chain.validators[j]
-			peerID := fmt.Sprintf("%s@%s%d:26656", peer.nodeKey.ID(), peer.moniker, j)
-			peers = append(peers, peerID)
-		}
-
-		valConfig.P2P.PersistentPeers = strings.Join(peers, ",")
-
-		cmconfig.WriteConfigFile(cmCfgPath, valConfig)
-
-		// set application configuration
-		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
-
-		appConfig := srvconfig.DefaultConfig()
-		appConfig.API.Enable = true
-		appConfig.API.Address = "tcp://0.0.0.0:1317"
-		appConfig.GRPC.Address = "0.0.0.0:9090"
-		appConfig.Pruning = "nothing"
-		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
-
-		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
 }
 
