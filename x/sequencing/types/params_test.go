@@ -16,6 +16,7 @@ func TestValidateMaxBlobSizeBytes(t *testing.T) {
 		{"Valid input", uint64(1000), false},
 		{"Zero value", uint64(0), true},
 		{"Invalid type", "invalid", true},
+		{"Large input", uint64(104857601), true},
 	}
 
 	for _, c := range cases {

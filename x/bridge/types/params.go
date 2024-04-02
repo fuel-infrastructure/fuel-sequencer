@@ -3,7 +3,6 @@ package types
 import (
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,6 +20,9 @@ const (
 
 	// AllowAllAuthorizeMessages can be used if we want to allow
 	// all messages instead of specifying all of them one-by-one.
+	AllowAllAuthorizeMessages = "*"
+
+	// DefaultAllowAllAuthorizeMessage is the default messages we allow.
 	DefaultAllowAllAuthorizeMessage = "*"
 
 	// DefaultSupplyDeltaPeriod is the default frequency in block at which we report supply
@@ -43,12 +45,20 @@ func NewParams(
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
 ) Params {
+	// Setting a default start time.
+	t0, err := time.Parse(time.DateOnly, "2024-01-01")
+	if err != nil {
+
+		// Panic if we error here, because shouldn't.
+		panic(err)
+	}
+
 	return Params{
 		BridgeDenom:                  bridgeDenom,
 		EthereumProxyContractAddress: ethereumProxyContractAddress,
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
-		VestingStartTime:             time.Now().Local().UTC(),
+		VestingStartTime:             t0,
 	}
 }
 
@@ -100,10 +110,10 @@ func (p Params) Validate() error {
 func ValidateBridgeDenom(i interface{}) error {
 	v, ok := i.(string)
 	if !ok {
-		return errorsmod.Wrapf(ErrParamsInvalid, "invalid parameter type: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type: %T", i)
 	}
 	if v == "" {
-		return errorsmod.Wrapf(ErrParamsInvalid, "bridge denom cannot be empty")
+		return ErrParamsInvalid.Wrapf("bridge denom cannot be empty")
 	}
 	return nil
 }
@@ -111,10 +121,10 @@ func ValidateBridgeDenom(i interface{}) error {
 func ValidateEthereumProxyContractAddress(i interface{}) error {
 	v, ok := i.(string)
 	if !ok {
-		return errorsmod.Wrapf(ErrParamsInvalid, "invalid parameter type: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type: %T", i)
 	}
 	if !common.IsHexAddress(v) {
-		return errorsmod.Wrapf(ErrParamsInvalid, "ethereum proxy contract address is invalid: %s", v)
+		return ErrParamsInvalid.Wrapf("ethereum proxy contract address is invalid: %s", v)
 	}
 	return nil
 }
@@ -122,14 +132,14 @@ func ValidateEthereumProxyContractAddress(i interface{}) error {
 func ValidateAuthorizeMessagesAllowed(i interface{}) error {
 	messages, ok := i.([]string)
 	if !ok {
-		return errorsmod.Wrapf(ErrParamsInvalid, "invalid parameter type for authorizeMessagesAllowed: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
 	}
 	if len(messages) == 0 {
-		return errorsmod.Wrapf(ErrParamsInvalid, "authorize messages cannot be empty")
+		return ErrParamsInvalid.Wrapf("authorize messages cannot be empty")
 	}
 	for _, msg := range messages {
 		if msg == "" {
-			return errorsmod.Wrapf(ErrParamsInvalid, "authorize message cannot be empty")
+			return ErrParamsInvalid.Wrapf("authorize message cannot be empty")
 		}
 	}
 	return nil
@@ -138,10 +148,10 @@ func ValidateAuthorizeMessagesAllowed(i interface{}) error {
 func ValidateSupplyDeltaPeriod(i interface{}) error {
 	v, ok := i.(uint64)
 	if !ok {
-		return errorsmod.Wrapf(ErrParamsInvalid, "invalid parameter type for supplyDeltaPeriod: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type for supplyDeltaPeriod: %T", i)
 	}
 	if v == 0 {
-		return errorsmod.Wrapf(ErrParamsInvalid, "supply delta period cannot be 0")
+		return ErrParamsInvalid.Wrapf("supply delta period cannot be 0")
 	}
 	return nil
 }
@@ -149,12 +159,12 @@ func ValidateSupplyDeltaPeriod(i interface{}) error {
 func ValidateVestingStartTime(i interface{}) error {
 	v, ok := i.(time.Time)
 	if !ok {
-		return errorsmod.Wrapf(ErrParamsInvalid, "invalid parameter type for vestingStartTime: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type for vestingStartTime: %T", i)
 	}
 
 	// Ensure the time is not zero, which is the zero value for time.Time and represents an unset value.
 	if v.IsZero() {
-		return errorsmod.Wrapf(ErrParamsInvalid, "vesting start time must be set and cannot be the zero value")
+		return ErrParamsInvalid.Wrapf("vesting start time must be set and cannot be the zero value")
 	}
 
 	return nil
@@ -185,7 +195,7 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 // returns false
 func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
 	// Check that wildcard * option for allowing all message types is the only string in the array, if so, return true
-	if len(p.AuthorizeMessagesAllowed) == 1 && p.AuthorizeMessagesAllowed[0] == DefaultAllowAllAuthorizeMessage {
+	if len(p.AuthorizeMessagesAllowed) == 1 && p.AuthorizeMessagesAllowed[0] == AllowAllAuthorizeMessages {
 		return true
 	}
 

@@ -1,7 +1,7 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	comettypes "github.com/cometbft/cometbft/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -48,8 +48,7 @@ func (p Params) Validate() error {
 func ValidateMaxBlobSizeBytes(i interface{}) error {
 	v, ok := i.(uint64)
 	if !ok {
-		return errorsmod.Wrapf(
-			ErrParamsInvalid,
+		return ErrParamsInvalid.Wrapf(
 			"invalid parameter type for maxBlobSizeBytes: %T",
 			i,
 		)
@@ -57,9 +56,16 @@ func ValidateMaxBlobSizeBytes(i interface{}) error {
 
 	// Check that MaxBlobSizeBytes is greater than 0.
 	if v == 0 {
-		return errorsmod.Wrapf(
-			ErrParamsInvalid,
+		return ErrParamsInvalid.Wrapf(
 			"maxBlobSizeBytes must be greater than 0",
+		)
+	}
+
+	// If the MaxBlobSizeBytes is greater than the cometBFT MaxBlobSizeBytes we reject it.
+	if v > comettypes.MaxBlockSizeBytes {
+		return ErrParamsInvalid.Wrapf(
+			"maxBlobSizeBytes %d cannot be greater than cometbft max blob size %d",
+			v, comettypes.MaxBlockSizeBytes,
 		)
 	}
 
