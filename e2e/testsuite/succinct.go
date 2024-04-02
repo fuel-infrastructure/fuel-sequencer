@@ -41,7 +41,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 		PortBindings: map[docker.Port][]docker.PortBinding{},
 		ExposedPorts: []string{},
 		Env: []string{
-			"ETHEREUM_RPC_URL=http://ethereum:8545",
+			"RPC_URL=http://ethereum:8545",
 			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.Chain.validators[0].instanceName()),
 			"SUCCINCT_RPC_URL=http://localhost:1234", // Can be anything
 			"SUCCINCT_API_KEY=",                      // Can be anything
@@ -151,7 +151,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 			fmt.Sprintf("%s/:%s", dirPath, "/app/proofs"),
 		},
 		Env: []string{
-			"ETHEREUM_RPC_URL=http://ethereum:8545",
+			"RPC_URL=http://ethereum:8545",
 			"PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 			"SUCCINCT_RPC_URL=http://localhost:1234", // Can be anything
 			"SUCCINCT_API_KEY=",                      // Can be anything
