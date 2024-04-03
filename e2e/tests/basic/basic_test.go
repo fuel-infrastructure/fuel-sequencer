@@ -80,13 +80,13 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		amount1 := big.NewInt(200)
 		amount2 := big.NewInt(300)
 		depositData := testsuite.PackDeposit(amount1, toAddress, amount2)
-		err = s.SendEthTransactionToProxyContract(depositData)
+		err = s.SendEthTransactionToFuelStreamXContract(depositData)
 		s.Require().NoError(err)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		someBytes := []byte("some bytes")
 		authorizeData := testsuite.PackAuthorize(someBytes)
-		err = s.SendEthTransactionToProxyContract(authorizeData)
+		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events

@@ -15,6 +15,7 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
 
 		// --------------------------------------- User withdraws on the Sequencer
+
 		aliceWallet := testsuite.ADDRESSES[0]
 
 		withdrawMsg := bridgemoduletypes.NewMsgWithdrawToEthereum(
@@ -27,6 +28,7 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 		s.Require().Zero(res.Code)
 
 		// --------------------------------------- Run Operator
+
 		heightAfterWithdrawal, err := s.Chain.FuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 

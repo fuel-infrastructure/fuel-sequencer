@@ -47,7 +47,7 @@ const gatewayContractFulfillCallJSON = `
 ]
 `
 
-func PackFulfillCallDeposit(
+func PackFulfillCall(
 	functionId []byte,
 	input []byte,
 	output []byte,

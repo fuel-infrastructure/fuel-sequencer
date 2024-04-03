@@ -45,7 +45,7 @@ func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
 	return publicKeyECDSA
 }
 
-func (s *E2ETestSuite) SendEthTransactionToProxyContract(data []byte) error {
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) error {
 	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
