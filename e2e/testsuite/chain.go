@@ -1,10 +1,11 @@
 package testsuite
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"github.com/cometbft/cometbft/libs/bytes"
 	"os"
+	"time"
 
 	"cosmossdk.io/x/evidence"
 	"cosmossdk.io/x/upgrade"
@@ -172,7 +173,7 @@ func (c *chain) createFuelSequencerValidator(index int) *validator {
 }
 
 func (c *chain) clientContext(
-	nodeURI string, kb *keyring.Keyring, fromName string, fromAddr sdk.AccAddress,
+	nodeURI string, kb *keyring.Keyring, fromName string, fromAddr sdk.AccAddress, outputBuffer *bytes.Buffer,
 ) (*client.Context, error) { //nolint:unparam
 
 	// TODO: if anything goes wrong with unregistered types, might need to re-add some stuff to this function
@@ -194,7 +195,7 @@ func (c *chain) clientContext(
 		WithBroadcastMode(flags.BroadcastSync).
 		WithKeyring(*kb).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
-		WithOutputFormat("json").
+		WithOutput(outputBuffer).
 		WithFrom(fromName).
 		WithFromName(fromName).
 		WithFromAddress(fromAddr).
@@ -203,14 +204,20 @@ func (c *chain) clientContext(
 	return &clientContext, nil
 }
 
-func (c *chain) sendMsgs(clientCtx client.Context, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
+func (c *chain) sendMsgs(
+	clientCtx client.Context,
+	outputBuffer *bytes.Buffer,
+	msgs ...sdk.Msg,
+) (*sdk.TxResponse, error) {
+
 	txf := tx.Factory{}.
 		WithAccountRetriever(clientCtx.AccountRetriever).
 		WithChainID(c.id).
 		WithTxConfig(clientCtx.TxConfig).
 		WithGasAdjustment(1.2).
 		WithKeybase(clientCtx.Keyring).
-		WithGas(12345678).
+		WithGas(1000000).
+		WithGasPrices(fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)).
 		WithSignMode(signing.SignMode_SIGN_MODE_DIRECT)
 
 	fromAddr := clientCtx.GetFromAddress()
@@ -235,22 +242,18 @@ func (c *chain) sendMsgs(clientCtx client.Context, msgs ...sdk.Msg) (*sdk.TxResp
 		}
 	}
 
-	// TODO: make customisable
-	txf = txf.WithFees(fmt.Sprintf("246913560%s", BridgeDenom))
-
 	err := tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgs...)
 	if err != nil {
 		return nil, err
 	}
 
-	resBytes := []byte{}
-	_, err = clientCtx.Input.Read(resBytes)
-	if err != nil {
-		return nil, err
-	}
+	err = WaitForCondition(time.Second*30, time.Millisecond*500, func() (bool, error) {
+		return outputBuffer.Len() > 0, nil
+	})
+	resBytes := outputBuffer.Bytes()
 
 	var res sdk.TxResponse
-	err = cdc.Unmarshal(resBytes, &res)
+	err = cdc.UnmarshalJSON(resBytes, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -274,10 +277,10 @@ func (c *chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.
 	return res.BlockID.Hash, nil
 }
 
-func (c *chain) BridgeCommitment(ctx context.Context, start, end uint64) (bytes.HexBytes, error) {
+func (c *chain) BridgeCommitment(ctx context.Context, start, end uint64) (cmtbytes.HexBytes, error) {
 	res, err := c.rpcClient.BridgeCommitment(ctx, start, end)
 	if err != nil {
-		return bytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
+		return cmtbytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
 	}
 	return res.BridgeCommitment, nil
 }
