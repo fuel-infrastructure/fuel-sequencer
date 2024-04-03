@@ -53,6 +53,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 			"POST_DELAY_MINUTES=0", // No delays
 			"LOCAL_PROVE_MODE=false",
 			"LOCAL_RELAY_MODE=false",
+			"UPDATE_DELAY_BLOCKS=15",
 		},
 	}
 
