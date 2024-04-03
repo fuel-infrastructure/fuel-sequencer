@@ -1,12 +1,14 @@
 package basic_test
 
 import (
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -23,9 +25,9 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 			"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
 			sdk.NewInt64Coin(testsuite.BridgeDenom, 100),
 		)
-		res, err := s.SubmitMsgs(withdrawMsg)
+		withdrawalResponse, err := s.SubmitMsgs(withdrawMsg)
 		s.Require().NoError(err)
-		s.Require().Zero(res.Code)
+		s.Require().Zero(withdrawalResponse.Code)
 
 		// --------------------------------------- Run Operator
 
@@ -91,6 +93,44 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 		s.Require().EqualValues(expectedProofNonce, event.ProofNonce.Uint64())
 
 		// --------------------------------------- Make a withdrawal on Ethereum
-		// TODO:
+
+		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
+			s.Ctx(), withdrawalResponse.Height, 1, startBlock, targetBlock,
+		)
+		s.Require().NoError(err)
+
+		block, err := s.GetBlockByHeight(s.Ctx(), uint64(withdrawalResponse.Height))
+		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
+			Height:      big.NewInt(withdrawalResponse.Height),
+			DataHash:    common.BytesToHash(block.Header.DataHash),
+			ResultsHash: common.BytesToHash(block.Header.LastResultsHash),
+		}
+
+		proof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
+		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
+			SideNodes: []common.Hash{common.BytesToHash(proof.LeafHash)},
+			Key:       big.NewInt(proof.Index),
+			NumLeaves: big.NewInt(proof.Total),
+		}
+
+		txResultMarshalled, err := withdrawalResponse.Marshal()
+		s.Require().NoError(err)
+
+		proof = bridgeCommitmentInclusionProof.LastResultsMerkleProof
+		txResultProof := testsuite.BinaryMerkleProofForEthereum{
+			SideNodes: []common.Hash{common.BytesToHash(proof.LeafHash)},
+			Key:       big.NewInt(proof.Index),
+			NumLeaves: big.NewInt(proof.Total),
+		}
+
+		data := testsuite.PackProcessSequencerWithdrawalMessage(
+			event.ProofNonce,
+			bridgeCommitmentLeaf,
+			bridgeCommitmentLeafProof,
+			txResultMarshalled,
+			txResultProof,
+		)
+		err = s.SendEthTransactionToFuelStreamXContract(data)
+		s.Require().NoError(err)
 	})
 }
