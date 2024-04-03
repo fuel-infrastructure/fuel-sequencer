@@ -26,6 +26,8 @@ func packCall(abiString, method string, args []interface{}) []byte {
 	return abiEncodedCall
 }
 
+// GetEthPrivateKeyHex is expected to return 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+// unless the mnemonic has been changed.
 func (s *E2ETestSuite) GetEthPrivateKeyHex() string {
 	return s.Chain.validators[0].ethereumKey.privateKey
 }
