@@ -37,16 +37,21 @@ func (s *E2ETestSuite) GetBridgeCommitmentInclusionProof(
 
 // GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been
 // deprecated instead of res.SdkBlock to support backwards compatibility tests.
-func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, height uint64) (*cmtservice.Block, error) {
+func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, height int64) (*cmtservice.Block, error) {
 	tmService := s.getGRPCClients().ConsensusServiceClient
 	res, err := tmService.GetBlockByHeight(ctx, &cmtservice.GetBlockByHeightRequest{
-		Height: int64(height),
+		Height: height,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return res.SdkBlock, nil
+}
+
+func (s *E2ETestSuite) GetBlockResultsByHeight(ctx context.Context, height int64) (*coretypes.ResultBlockResults, error) {
+	client := s.getRPCClient()
+	return client.BlockResults(ctx, &height)
 }
 
 // GetValidatorSetByHeight returns the validators of the given Chain at the specified height. The returned validators

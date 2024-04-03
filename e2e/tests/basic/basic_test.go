@@ -32,7 +32,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Greater(sequencerHeight, uint64(1))
 
 		// Try querying block by height (GRPC).
-		block, err := s.GetBlockByHeight(s.Ctx(), sequencerHeight)
+		block, err := s.GetBlockByHeight(s.Ctx(), int64(sequencerHeight))
 		s.Require().NoError(err)
 		s.Require().Equal(sequencerHeight, uint64(block.Header.Height))
 

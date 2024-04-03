@@ -28,11 +28,6 @@ const processSequencerWithdrawalMessageABIJSON = `
             "internalType": "uint256"
           },
           {
-            "name": "dataHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
             "name": "resultsHash",
             "type": "bytes32",
             "internalType": "bytes32"
@@ -97,7 +92,6 @@ const processSequencerWithdrawalMessageABIJSON = `
 
 type BridgeCommitmentLeafForEthereum struct {
 	Height      *big.Int
-	DataHash    common.Hash
 	ResultsHash common.Hash
 }
 

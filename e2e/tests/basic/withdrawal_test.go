@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	cmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -94,15 +95,16 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		// --------------------------------------- Make a withdrawal on Ethereum
 
+		lastResultsHashHeight := withdrawalResponse.Height + 1 // withdrawal's result is included in h+1's result hash
+		txIndex := int64(1)                                    // block has 1 EthEventsTx followed by the withdrawal tx
 		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
-			s.Ctx(), withdrawalResponse.Height, 1, startBlock, targetBlock,
+			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
 		)
 		s.Require().NoError(err)
 
-		block, err := s.GetBlockByHeight(s.Ctx(), uint64(withdrawalResponse.Height))
+		block, err := s.GetBlockByHeight(s.Ctx(), lastResultsHashHeight)
 		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
 			Height:      big.NewInt(withdrawalResponse.Height),
-			DataHash:    common.BytesToHash(block.Header.DataHash),
 			ResultsHash: common.BytesToHash(block.Header.LastResultsHash),
 		}
 
@@ -113,7 +115,9 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 			NumLeaves: big.NewInt(proof.Total),
 		}
 
-		txResultMarshalled, err := withdrawalResponse.Marshal()
+		blockResults, err := s.GetBlockResultsByHeight(s.Ctx(), withdrawalResponse.Height)
+		abciResults := cmtypes.NewResults(blockResults.TxsResults)
+		txResultMarshalled, err := abciResults[txIndex].Marshal()
 		s.Require().NoError(err)
 
 		proof = bridgeCommitmentInclusionProof.LastResultsMerkleProof
