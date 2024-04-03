@@ -207,6 +207,10 @@ func (s *E2ETestSuite) TearDownTest() {
 		s.Require().NoError(s.dockerPool.Purge(vc))
 	}
 
+	// Operator and relayer should have been purged earlier, but purge just in case
+	_ = s.dockerPool.Purge(s.succinctOperatorResource)
+	_ = s.dockerPool.Purge(s.succinctRelayerResource)
+
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
 }
 
