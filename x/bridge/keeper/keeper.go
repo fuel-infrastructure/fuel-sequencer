@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -24,6 +25,9 @@ type (
 		// the address capable of executing a MsgUpdateParams message. Typically, this
 		// should be the x/gov module account.
 		authority string
+
+		// Msg server router
+		router *baseapp.MsgServiceRouter
 	}
 )
 
@@ -34,6 +38,7 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
 	authority string,
+	router *baseapp.MsgServiceRouter,
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
@@ -46,6 +51,7 @@ func NewKeeper(
 		logger:        logger,
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
+		router:        router,
 	}
 }
 

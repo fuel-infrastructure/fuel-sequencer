@@ -3,15 +3,20 @@ package testutil
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 func MustHexDecodeString(s string) []byte {
+	// Remove the "0x" prefix if present
+	s = strings.TrimPrefix(s, "0x")
+
 	decoded, err := hex.DecodeString(s)
 	if err != nil {
 		panic(fmt.Sprintf("MustDecodeString: invalid input %s", s))
 	}
+
 	return decoded
 }
 

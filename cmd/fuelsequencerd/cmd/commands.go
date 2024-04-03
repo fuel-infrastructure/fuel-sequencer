@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/big"
 	"os"
+	"strconv"
 	"strings"
 
 	"cosmossdk.io/log"
@@ -146,7 +147,8 @@ func startSidecarServerCmd() *cobra.Command {
 		ethNodeRPC         string
 		cosmosNodeRPC      string
 		contractAddressHex string
-		ethStartBlockStr   string
+		ethStartBlock      int64
+		ethMaxBlockRange   int64
 		development        bool
 	)
 
@@ -154,7 +156,9 @@ func startSidecarServerCmd() *cobra.Command {
 		Use:   "start-sidecar",
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlockStr, development)
+			return startSidecar(
+				host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlock, ethMaxBlockRange, development,
+			)
 		},
 	}
 
@@ -163,22 +167,33 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().StringVar(&ethNodeRPC, "eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
 	cmd.Flags().StringVar(&cosmosNodeRPC, "cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
 	cmd.Flags().StringVar(&contractAddressHex, "contract_address", "", "Contract address in hex format")
-	cmd.Flags().StringVar(&ethStartBlockStr, "eth_start_block", "0", "Ethereum start query block")
+	cmd.Flags().Int64Var(&ethStartBlock, "eth_start_block", 0, "Ethereum start query block")
+	cmd.Flags().Int64Var(&ethMaxBlockRange, "eth_max_block_range", 100, "max number of Ethereum blocks per query")
 	cmd.Flags().BoolVar(&development, "development", false, "Start logger in development mode")
 
 	return cmd
 }
 
-func startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlockStr string, development bool) error {
+func startSidecar(
+	host,
+	port,
+	ethNodeRPC,
+	cosmosNodeRPC,
+	contractAddressHex string,
+	ethStartBlock,
+	ethMaxBlockRange int64,
+	development bool,
+) error {
 	sigs := make(chan os.Signal, 1)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ethStartBlock := new(big.Int)
-	_, ok := ethStartBlock.SetString(ethStartBlockStr, 10)
-	if !ok {
-		return fmt.Errorf("invalid ethStartBlock value: %s", ethStartBlockStr)
+	if ethStartBlock < 0 {
+		return fmt.Errorf("ethereum start block must be >= 0, got: %d", ethStartBlock)
+	}
+	if ethMaxBlockRange < 1 {
+		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethMaxBlockRange)
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
@@ -212,7 +227,15 @@ func startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, eth
 		return fmt.Errorf("failed to create logger: %s", err)
 	}
 
-	sideCar := sidecar.NewSidecar(ethClient, bridgeClient, contractAddr, contractAbi, ethStartBlock, logger)
+	sideCar := sidecar.NewSidecar(
+		ethClient,
+		bridgeClient,
+		contractAddr,
+		contractAbi,
+		big.NewInt(ethStartBlock),
+		big.NewInt(ethMaxBlockRange),
+		logger,
+	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
 	go func() {
@@ -230,23 +253,34 @@ func startSidecar(host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, eth
 
 func querySidecarServerCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "query-sidecar-server-events",
-		Short: "Queries block events from the Sidecar service by block number",
-		RunE:  queryBlockEvents,
+		Use:     "query-sidecar-server-events [block-number]",
+		Short:   "Queries block events from the Sidecar service by block number",
+		Args:    cobra.ExactArgs(1),
+		RunE:    queryBlockEvents,
+		Aliases: []string{"qse"},
 	}
 
-	cmd.Flags().String("host", "localhost", "Host for the gRPC service to listen on")
-	cmd.Flags().String("port", "8080", "Port for the gRPC service to listen on")
-	cmd.Flags().String("blocknumber", "", "Block number to query events for")
-	_ = cmd.MarkFlagRequired("blocknumber")
+	cmd.Flags().String("host", "localhost", "host of the gRPC service to query")
+	cmd.Flags().String("port", "8080", "port of the gRPC service to query")
 
 	return cmd
 }
 
 func queryBlockEvents(cmd *cobra.Command, args []string) error {
-	host, _ := cmd.Flags().GetString("host")
-	port, _ := cmd.Flags().GetString("port")
-	blockNumber, _ := cmd.Flags().GetString("blocknumber")
+	host, err := cmd.Flags().GetString("host")
+	if err != nil {
+		return err
+	}
+	port, err := cmd.Flags().GetString("port")
+	if err != nil {
+		return err
+	}
+
+	blockNumber := args[0]
+	_, err = strconv.Atoi(blockNumber) // try parse
+	if err != nil {
+		return fmt.Errorf("could not parse block number: %s", err.Error())
+	}
 
 	url := fmt.Sprintf("%s:%s", host, port)
 	conn, err := grpc.Dial(url, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())

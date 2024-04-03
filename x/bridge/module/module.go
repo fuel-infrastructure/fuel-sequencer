@@ -9,6 +9,7 @@ import (
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -153,12 +154,13 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Reset SupplyDeltaProcessed in preparation for next block. It is important that SupplyDeltaProcessed is set to
-	// false even in the case of an error emerging from the EndBlock logic further below. This is important as otherwise
-	// we might have incorrect state for an upcoming supply delta update. At the time of writing,
-	// UpdateSupplyDeltaInfoWithNewDelta doesn't error, therefore, we don't need to add an ApplyFuncIfNoError function.
+	// Reset SupplyDeltaProcessed in preparation for next block.
 	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
 
+	// Process the Ethereum events injected at lastEthereumBlockSynced height.
+	am.keeper.ProcessEthereumEvents(ctx)
+
+	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
 
 	return nil
@@ -191,6 +193,8 @@ type ModuleInputs struct {
 
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
+
+	Router *baseapp.MsgServiceRouter
 }
 
 type ModuleOutputs struct {
@@ -213,6 +217,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.BankKeeper,
 		in.AccountKeeper,
 		authority.String(),
+		in.Router,
 	)
 	m := NewAppModule(
 		in.Cdc,
