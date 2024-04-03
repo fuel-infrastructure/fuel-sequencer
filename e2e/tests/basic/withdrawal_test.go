@@ -81,12 +81,12 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 		s.Require().EqualValues(targetBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
-		var event1 testsuite.DataCommitmentStoredEvent
-		err = fuelstreamxABI.UnpackIntoInterface(&event1, testsuite.DataCommitmentStoredEventName, eventData)
+		var event testsuite.DataCommitmentStoredEvent
+		err = fuelstreamxABI.UnpackIntoInterface(&event, testsuite.DataCommitmentStoredEventName, eventData)
 		s.Require().NoError(err)
 
 		expectedProofNonce := 1
-		s.Require().EqualValues(expectedProofNonce, event1.ProofNonce.Uint64())
+		s.Require().EqualValues(expectedProofNonce, event.ProofNonce.Uint64())
 
 		// --------------------------------------- Make a withdrawal on Ethereum
 		// TODO:
