@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cometbft/cometbft/crypto/merkle"
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -272,4 +273,13 @@ func To8PaddedHexBytes(number uint64) ([]byte, error) {
 		return nil, padErr
 	}
 	return paddedBytes, nil
+}
+
+// AuntsToHashes takes aunts from a Merkle proof and converts them to 32-byte hashes.
+func AuntsToHashes(proof merkle.Proof) (hashes []common.Hash) {
+	hashes = make([]common.Hash, len(proof.Aunts))
+	for i, aunt := range proof.Aunts {
+		hashes[i] = common.BytesToHash(aunt)
+	}
+	return
 }

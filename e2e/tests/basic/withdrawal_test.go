@@ -95,37 +95,57 @@ func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		// --------------------------------------- Make a withdrawal on Ethereum
 
-		lastResultsHashHeight := withdrawalResponse.Height + 1 // withdrawal's result is included in h+1's result hash
-		txIndex := int64(1)                                    // block has 1 EthEventsTx followed by the withdrawal tx
+		// Get BridgeCommitment inclusion proof
+		// - The 'last result hash' incorporating the withdrawal result is at h+1.
+		// - The withdrawal is assumed to be the second transaction in the block, following the EthEventsTx.
+
+		lastResultsHashHeight := withdrawalResponse.Height + 1 // h+1
+		txIndex := int64(1)                                    // second tx
 		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
 		)
 		s.Require().NoError(err)
 
+		// Construct BridgeCommitment leaf proof from the inclusion proof data.
+
+		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
+		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
+			SideNodes: testsuite.AuntsToHashes(bridgeCommitmentMerkleProof),
+			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
+			NumLeaves: big.NewInt(bridgeCommitmentMerkleProof.Total),
+		}
+
+		// Construct tx result proof from the inclusion proof data.
+
+		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsMerkleProof
+		txResultProof := testsuite.BinaryMerkleProofForEthereum{
+			SideNodes: testsuite.AuntsToHashes(lastResultsMerkleProof),
+			Key:       big.NewInt(lastResultsMerkleProof.Index),
+			NumLeaves: big.NewInt(lastResultsMerkleProof.Total),
+		}
+
+		// Construct BridgeCommitment leaf by getting block h+1, which contains the 'last results hash' of interest.
+
 		block, err := s.GetBlockByHeight(s.Ctx(), lastResultsHashHeight)
 		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
-			Height:      big.NewInt(withdrawalResponse.Height),
+			Height:      big.NewInt(lastResultsHashHeight),
 			ResultsHash: common.BytesToHash(block.Header.LastResultsHash),
 		}
 
-		proof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
-		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: []common.Hash{common.BytesToHash(proof.LeafHash)},
-			Key:       big.NewInt(proof.Index),
-			NumLeaves: big.NewInt(proof.Total),
-		}
+		// Construct marshalled tx result, which is one of the leaves of the results tree.
+		// Since the withdrawal happened at height h, the result will be at this height.
 
 		blockResults, err := s.GetBlockResultsByHeight(s.Ctx(), withdrawalResponse.Height)
 		abciResults := cmtypes.NewResults(blockResults.TxsResults)
 		txResultMarshalled, err := abciResults[txIndex].Marshal()
 		s.Require().NoError(err)
 
-		proof = bridgeCommitmentInclusionProof.LastResultsMerkleProof
-		txResultProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: []common.Hash{common.BytesToHash(proof.LeafHash)},
-			Key:       big.NewInt(proof.Index),
-			NumLeaves: big.NewInt(proof.Total),
-		}
+		// Check that the proof is able to verify the marshalled tx result.
+
+		err = lastResultsMerkleProof.Verify(block.Header.LastResultsHash, txResultMarshalled)
+		s.Require().NoError(err)
+
+		// Submit transaction to Ethereum to process the withdrawal.
 
 		data := testsuite.PackProcessSequencerWithdrawalMessage(
 			event.ProofNonce,
