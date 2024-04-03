@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 
 	cmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/ory/dockertest/v3"
@@ -53,7 +54,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 			"POST_DELAY_MINUTES=0", // No delays
 			"LOCAL_PROVE_MODE=false",
 			"LOCAL_RELAY_MODE=false",
-			"UPDATE_DELAY_BLOCKS=15",
+			"UPDATE_DELAY_BLOCKS=20",
 		},
 	}
 
@@ -107,7 +108,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	startBlock uint64,
 	targetBlock uint64,
 	latestHeaderHash cmbytes.HexBytes,
-) {
+) *ethereumtypes.Receipt {
 	// Re-create the proof output
 	commitment, err := s.Chain.BridgeCommitment(s.Ctx(), startBlock, targetBlock)
 	s.Require().NoError(err)
@@ -169,6 +170,8 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	)
 	s.Require().NoError(err)
 
+	var txReceipt *ethereumtypes.Receipt
+
 	// Wait for the Relayer node to response
 	s.Require().Eventually(
 		func() bool {
@@ -190,6 +193,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 					}
 					s.Require().NotNil(receipt.Logs)
 
+					txReceipt = receipt
 					return true
 				}
 			}
@@ -204,6 +208,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	// We only want 1 proof submitted from the relayer
 	s.T().Logf("stopping SuccinctX relayer container...")
 	s.Require().NoError(s.dockerPool.Purge(s.succinctRelayerResource))
+	return txReceipt
 }
 
 // -------------- TEMP

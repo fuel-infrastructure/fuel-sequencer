@@ -4,11 +4,35 @@ import (
 	"context"
 	"sort"
 
+	"github.com/cometbft/cometbft/libs/bytes"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 )
 
 func (s *E2ETestSuite) GetFuelSequencerHeight(ctx context.Context) (uint64, error) {
 	return s.Chain.FuelSequencerHeight(ctx)
+}
+
+func (s *E2ETestSuite) GetBridgeCommitment(ctx context.Context, start, end uint64) (bytes.HexBytes, error) {
+	client := s.getRPCClient()
+
+	res, err := client.BridgeCommitment(ctx, start, end)
+	if err != nil {
+		return nil, err
+	}
+	return res.BridgeCommitment, nil
+}
+
+func (s *E2ETestSuite) GetBridgeCommitmentInclusionProof(
+	ctx context.Context, height, txIndex int64, start, end uint64,
+) (*coretypes.ResultBridgeCommitmentInclusionProof, error) {
+	client := s.getRPCClient()
+
+	res, err := client.BridgeCommitmentInclusionProof(ctx, height, txIndex, start, end)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 // GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been

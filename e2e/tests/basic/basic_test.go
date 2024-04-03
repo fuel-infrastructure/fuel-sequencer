@@ -2,12 +2,13 @@ package basic_test
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
-	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
@@ -153,21 +154,21 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Zero(res.Code)
 
 		// --------------------------------------- Run Operator
-		currentHeight, err := s.Chain.FuelSequencerHeight(s.Ctx())
+		heightAfterWithdrawal, err := s.Chain.FuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 
 		// We need to wait some blocks so that we're at a height that is greater than UPDATE_DELAY_BLOCKS.
 		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		err = s.WaitForBlocks(s.Ctx(), 20, time.Minute)
 
 		requestId, startBlockString, targetBlockString := s.RunSuccinctXOperatorMockApi()
-		startBlock, err := strconv.Atoi(startBlockString)
+		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
 		s.Require().NoError(err)
-		targetBlock, err := strconv.Atoi(targetBlockString)
+		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
 		s.Require().NoError(err)
 
 		// Make sure the transaction is included in the BridgeCommitment
-		s.Require().GreaterOrEqual(uint64(targetBlock), currentHeight)
+		s.Require().GreaterOrEqual(targetBlock, heightAfterWithdrawal)
 
 		// --------------------------------------- Run Relayer
 
@@ -178,7 +179,41 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
 
-		s.RunSuccinctXRelayerMockApi(requestId, uint64(startBlock), uint64(targetBlock), genesisBlockHeaderHash)
+		receipt := s.RunSuccinctXRelayerMockApi(requestId, startBlock, targetBlock, genesisBlockHeaderHash)
+		s.Require().Len(receipt.Logs, 3) // The three events are: HeadUpdate, DataCommitmentStored, Call
+
+		// Extract log 1's topics and data
+		s.Require().Len(receipt.Logs[1].Topics, 4)
+		eventTopic0 := receipt.Logs[1].Topics[0].Hex()
+		eventTopic1 := receipt.Logs[1].Topics[1].Hex()
+		eventTopic2 := receipt.Logs[1].Topics[2].Hex()
+		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
+		eventData := receipt.Logs[1].Data
+
+		fuelstreamxABI, err := abi.JSON(strings.NewReader(testsuite.FUEL_STREAM_X_ABI))
+		s.Require().NoError(err)
+
+		// Check DataCommitmentStored event
+
+		expectedBridgeCommitment, err := s.GetBridgeCommitment(s.Ctx(), startBlock, targetBlock)
+		s.Require().NoError(err)
+
+		actualStartBlock, err := strconv.ParseUint(eventTopic1[2:], 16, 64) // hex to uint64
+		s.Require().NoError(err)
+		actualTargetBlock, err := strconv.ParseUint(eventTopic2[2:], 16, 64) // hex to uint64
+		s.Require().NoError(err)
+
+		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
+		s.Require().EqualValues(startBlock, actualStartBlock)
+		s.Require().EqualValues(targetBlock, actualTargetBlock)
+		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
+
+		var event1 testsuite.DataCommitmentStoredEvent
+		err = fuelstreamxABI.UnpackIntoInterface(&event1, testsuite.DataCommitmentStoredEventName, eventData)
+		s.Require().NoError(err)
+
+		expectedProofNonce := 1
+		s.Require().EqualValues(expectedProofNonce, event1.ProofNonce.Uint64())
 
 		// --------------------------------------- Make a withdrawal on Ethereum
 		// TODO:
