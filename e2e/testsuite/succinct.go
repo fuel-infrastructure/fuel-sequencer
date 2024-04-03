@@ -5,14 +5,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	cmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/ory/dockertest/v3"
@@ -152,7 +152,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		},
 		Env: []string{
 			"RPC_URL=http://ethereum:8545",
-			"PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
 			"SUCCINCT_RPC_URL=http://localhost:1234", // Can be anything
 			"SUCCINCT_API_KEY=",                      // Can be anything
 			fmt.Sprintf("GATEWAY_ADDRESS=%s", GATEWAY_CONTRACT),
@@ -166,9 +166,6 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 		&runOpts,
 		noRestart,
 	)
-	s.Require().NoError(err)
-
-	ethClient, err := ethclient.Dial(fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp")))
 	s.Require().NoError(err)
 
 	// Wait for the Relayer node to response
@@ -185,7 +182,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 				matches := re.FindStringSubmatch(logStr)
 				// The first element represents the string captures, the second is the tx hash
 				if matches != nil && len(matches) > 1 {
-					receipt, err := ethClient.TransactionReceipt(ctx, common.BytesToHash(common.FromHex(matches[1])))
+					receipt, err := s.Chain.ethClient.TransactionReceipt(ctx, common.BytesToHash(common.FromHex(matches[1])))
 					if err != nil {
 						s.T().Logf("error retreiving transaction receipt %s", err)
 						return false

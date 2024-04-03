@@ -26,8 +26,12 @@ func packCall(abiString, method string, args []interface{}) []byte {
 	return abiEncodedCall
 }
 
+func (s *E2ETestSuite) GetEthPrivateKeyHex() string {
+	return s.Chain.validators[0].ethereumKey.privateKey
+}
+
 func (s *E2ETestSuite) GetEthPrivateKey() *ecdsa.PrivateKey {
-	privateKey, err := crypto.HexToECDSA(s.Chain.validators[0].ethereumKey.privateKey[2:])
+	privateKey, err := crypto.HexToECDSA(s.GetEthPrivateKeyHex()[2:])
 	s.Require().NoError(err)
 
 	return privateKey

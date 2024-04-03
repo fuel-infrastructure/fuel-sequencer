@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	"math/big"
 	"os"
 	osuser "os/user"
@@ -16,6 +15,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	"cosmossdk.io/math"
 	cmconfig "github.com/cometbft/cometbft/config"
@@ -31,7 +33,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/ory/dockertest/v3"
@@ -457,7 +458,7 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 	execOptions := dockertest.ExecOptions{
 		Env: []string{
 			"ETHEREUM_RPC_URL=http://ethereum:8545",
-			"PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
 			"GUARDIAN_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // Can be anything
 			fmt.Sprintf("GENESIS_HEIGHT=%d", genesisHeight),
 			fmt.Sprintf("GENESIS_HEADER=%s", genesisHeaderHash.String()),
@@ -471,16 +472,13 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 	s.Require().NoError(err)
 	s.Require().Zero(exitCode)
 
-	ethClient, err := ethclient.Dial(fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp")))
-	s.Require().NoError(err)
-
 	// Wait for the Ethereum node to respond to a request
 	s.Require().Eventually(
 		func() bool {
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 
-			code, err := ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
+			code, err := s.Chain.ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
 			if err != nil {
 				s.T().Logf("error retreiving contract's code: %e", err)
 				return false
