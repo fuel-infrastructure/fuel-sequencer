@@ -179,11 +179,10 @@ make test-unit
 
 ### E2E tests
 
-You will need a Sequencer image and Ethereum image:
+You will need a Sequencer image, Ethereum image, and the FuelStreamX images:
 
 ```bash
-make build-docker-image
-make build-eth-docker-image
+make build-all-docker-images
 ```
 
 Then you can run E2E tests:

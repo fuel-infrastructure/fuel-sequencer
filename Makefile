@@ -8,6 +8,9 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
 ETH_DOCKER_CONTAINER_NAME := "ethereum"
 
+FSX_DOCKER_IMAGE_NAME_OPERATOR := "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
+FSX_DOCKER_IMAGE_NAME_RELAYER := "fuel-infrastructure/fuel-stream-x-relayer-docker-e2e"
+
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
@@ -291,7 +294,7 @@ test-all: test-unit test-e2e
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
 
-test-e2e: test-e2e-basic
+test-e2e: check-docker-image-exists check-eth-docker-image-exists check-fsx-docker-images-exist test-e2e-basic
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
@@ -361,6 +364,8 @@ follow-docker-logs:
 ###                                   E2E                                   ###
 ###############################################################################
 
+build-all-docker-images: build-docker-image build-eth-docker-image build-fsx-docker-images
+
 check-eth-docker-image-exists:
 ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
 	@echo "❌ Docker image ${ETH_DOCKER_IMAGE_NAME}:latest not found";
@@ -369,15 +374,35 @@ else
 	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
 endif
 
+check-fsx-docker-images-exist:
+ifeq (,$(shell docker images -q ${FSX_DOCKER_IMAGE_NAME_OPERATOR}:latest 2> /dev/null))
+	@echo "❌ Docker image ${FSX_DOCKER_IMAGE_NAME_OPERATOR}:latest not found";
+	@exit 1;
+else
+	@echo "✅ Found docker image ${FSX_DOCKER_IMAGE_NAME_OPERATOR}:latest"
+endif
+ifeq (,$(shell docker images -q ${FSX_DOCKER_IMAGE_NAME_RELAYER}:latest 2> /dev/null))
+	@echo "❌ Docker image ${FSX_DOCKER_IMAGE_NAME_RELAYER}:latest not found";
+	@exit 1;
+else
+	@echo "✅ Found docker image ${FSX_DOCKER_IMAGE_NAME_RELAYER}:latest"
+endif
+
+build-fsx-docker-images:
+	@echo "🤖 Updating git submodules (fuelstreamx)..."
+	@git submodule update --init --remote e2e/fuelstreamx
+	@(cd e2e/fuelstreamx && make build-all-docker-images)
+	@echo "🤖 Cleaning up git submodules (fuelstreamx)..."
+	@git submodule update --remote e2e/fuelstreamx
+	@echo "✅ Finished!"
+
 build-eth-docker-image:
-	@echo "🤖 Updating git submodules..."
-	@git submodule init # for the first time
-	@git submodule update --remote
-	@# No need to add echos here, since `make build` has its own.
+	@echo "🤖 Updating git submodules (test-contracts)..."
+	@git submodule update --init --remote e2e/test-contracts
 	@(cd e2e/test-contracts && make build)
-	@echo "🤖 Cleaning up git submodules..."
-	@git submodule update --remote
-	@echo "✅ Finished cleaning up git submodules!"
+	@echo "🤖 Cleaning up git submodules (test-contracts)..."
+	@git submodule update --remote e2e/test-contracts
+	@echo "✅ Finished!"
 
 run-eth-docker-container: check-eth-docker-image-exists
 	@echo "🤖 Running Docker image..."
@@ -404,7 +429,7 @@ remove-eth-docker-container:
 follow-eth-docker-logs:
 	@docker logs -f $(ETH_DOCKER_CONTAINER_NAME)
 
-test-e2e-basic: check-docker-image-exists check-eth-docker-image-exists
+test-e2e-basic:
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
 
 clean-e2e:
