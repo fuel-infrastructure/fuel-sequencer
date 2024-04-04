@@ -2,24 +2,9 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	evidencetypes "cosmossdk.io/x/evidence/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	sequencertypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 // BurnCoinsFromAddress first sends the coins from the given address to the bridge module and then burns the coins.
@@ -40,12 +25,14 @@ func (k Keeper) BurnCoinsFromAddress(ctx sdk.Context, address sdk.AccAddress, am
 }
 
 // GetAllBlockedAddresses retrieves all the blocked addresses made up of validator and module addresses.
-func (k Keeper) GetAllBlockedAddresses(ctx sdk.Context, paramsBlockedAddresses []string) (map[string]bool, error) {
-	blockedAddresses := make(map[string]bool)
+func (k Keeper) GetAllBlockedAddresses(
+	ctx sdk.Context,
+	paramsBlockedAddresses []string,
+) (map[string]bool, error) {
 
-	// Attemp to retrieve blocked addressed from params and set them as blocked.
+	// Attempt to retrieve blocked addressed from params and set them as blocked.
 	for _, paramsBlockedAddr := range paramsBlockedAddresses {
-		blockedAddresses[paramsBlockedAddr] = true
+		k.blockedAddresses[paramsBlockedAddr] = true
 	}
 
 	// Attempt to retrieve all the validators.
@@ -56,38 +43,12 @@ func (k Keeper) GetAllBlockedAddresses(ctx sdk.Context, paramsBlockedAddresses [
 
 	// Block all the validator addresses
 	for _, validator := range validators {
-		blockedAddresses[validator.GetOperator()] = true
-	}
-
-	// NOTE: These need to be up to date with the list of modules registered in app/app_config.go
-	modulesToBlock := []string{
-		authtypes.ModuleName,
-		authtypes.FeeCollectorName,
-		vestingtypes.ModuleName,
-		banktypes.ModuleName,
-		stakingtypes.ModuleName,
-		slashingtypes.ModuleName,
-		"tx",
-		genutiltypes.ModuleName,
-		authz.ModuleName,
-		upgradetypes.ModuleName,
-		distrtypes.ModuleName,
-		evidencetypes.ModuleName,
-		minttypes.ModuleName,
-		govtypes.ModuleName,
-		crisistypes.ModuleName,
-		consensustypes.ModuleName,
-		bridgetypes.ModuleName,
-		sequencertypes.ModuleName,
-	}
-
-	// Block all of the above module addresses
-	for _, moduleName := range modulesToBlock {
-		addr := k.accountKeeper.GetModuleAddress(moduleName)
-		if addr != nil {
-			blockedAddresses[addr.String()] = true
+		add, err := validator.GetConsAddr()
+		if err != nil {
+			return nil, err
 		}
+		k.blockedAddresses[sdk.AccAddress(add).String()] = true
 	}
 
-	return blockedAddresses, nil
+	return k.blockedAddresses, nil
 }

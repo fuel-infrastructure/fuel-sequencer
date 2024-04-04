@@ -6,24 +6,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	evidencetypes "cosmossdk.io/x/evidence/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	sequencertypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
@@ -85,34 +68,12 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 	// address to block
 	addressesToBlock := []string{}
 
-	// Block module addresses
-	modulesToBlock := []string{
-		authtypes.ModuleName,
-		authtypes.FeeCollectorName,
-		vestingtypes.ModuleName,
-		banktypes.ModuleName,
-		stakingtypes.ModuleName,
-		slashingtypes.ModuleName,
-		"tx",
-		genutiltypes.ModuleName,
-		authz.ModuleName,
-		upgradetypes.ModuleName,
-		distrtypes.ModuleName,
-		evidencetypes.ModuleName,
-		minttypes.ModuleName,
-		govtypes.ModuleName,
-		crisistypes.ModuleName,
-		consensustypes.ModuleName,
-		bridgetypes.ModuleName,
-		sequencertypes.ModuleName,
-	}
-
-	// Block all of the above module addresses
-	for _, moduleName := range modulesToBlock {
-		addr := s.App.AccountKeeper.GetModuleAddress(moduleName)
-		if addr != nil {
-			addressesToBlock = append(addressesToBlock, addr.String())
+	for _, permission := range s.App.AccountKeeper.GetModulePermissions() {
+		addrStr, err := s.App.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
+		if err != nil {
+			s.Require().NoError(err)
 		}
+		addressesToBlock = append(addressesToBlock, addrStr)
 	}
 
 	fromAccOne := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
@@ -127,7 +88,7 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 		expectedBlockedAddresses []string
 	}{
 		{
-			name:                     "successfully retreived blocked addresses",
+			name:                     "successfully retrieved blocked addresses",
 			paramsBlockedAddresses:   []string{fromAccOne.String()},
 			notBlockedAddresses:      []string{fromAccTwo.String()},
 			expectedBlockedAddresses: addressesToBlock,
@@ -147,7 +108,9 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 			s.Require().GreaterOrEqual(len(vals), 1)
 
 			for _, validator := range vals {
-				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, validator.GetOperator())
+				add, err := validator.GetConsAddr()
+				s.Require().NoError(err)
+				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, sdk.AccAddress(add).String())
 			}
 
 			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedAddresses(ctx, tc.paramsBlockedAddresses)

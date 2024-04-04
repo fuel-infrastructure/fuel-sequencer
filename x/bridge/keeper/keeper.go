@@ -27,6 +27,9 @@ type (
 		// should be the x/gov module account.
 		authority string
 
+		// blockedAddresses is the list of blocked addresses
+		blockedAddresses map[string]bool
+
 		// Msg server router
 		router *baseapp.MsgServiceRouter
 	}
@@ -40,6 +43,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	stakingKeeper types.StakingKeeper,
 	authority string,
+	blockedAddresses map[string]bool,
 	router *baseapp.MsgServiceRouter,
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
@@ -47,14 +51,15 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:           cdc,
-		storeService:  storeService,
-		authority:     authority,
-		logger:        logger,
-		bankKeeper:    bankKeeper,
-		accountKeeper: accountKeeper,
-		stakingKeeper: stakingKeeper,
-		router:        router,
+		cdc:              cdc,
+		storeService:     storeService,
+		authority:        authority,
+		logger:           logger,
+		bankKeeper:       bankKeeper,
+		accountKeeper:    accountKeeper,
+		stakingKeeper:    stakingKeeper,
+		blockedAddresses: blockedAddresses,
+		router:           router,
 	}
 }
 

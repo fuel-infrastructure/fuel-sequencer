@@ -25,7 +25,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	params := k.GetParams(ctx)
 
 	// Get all the blocked addresses.
-	blockedAddressesMap, err := k.GetAllBlockedAddresses(ctx, params.BlockedAddresses)
+	blockedAddressesMap, err := k.GetAllBlockedAddresses(ctx, params.AdditionalBlockedAddresses)
 	if err != nil {
 		k.Logger().Error("Bridge EndBlock: failed to retreive blocked addresses", "err", err)
 		return

@@ -227,7 +227,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				BlockedAddresses:             []string{},
+				AdditionalBlockedAddresses:   []string{},
 			},
 			expectErr: false,
 		},
@@ -239,7 +239,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				BlockedAddresses:             []string{},
+				AdditionalBlockedAddresses:   []string{},
 			},
 			expectErr: true,
 		},
@@ -251,7 +251,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				BlockedAddresses:             []string{},
+				AdditionalBlockedAddresses:   []string{},
 			},
 			expectErr: true,
 		},
@@ -263,7 +263,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     []string{},
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				BlockedAddresses:             []string{},
+				AdditionalBlockedAddresses:   []string{},
 			},
 			expectErr: true,
 		},
@@ -275,7 +275,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            0,
 				VestingStartTime:             validVestingStartTime,
-				BlockedAddresses:             []string{},
+				AdditionalBlockedAddresses:   []string{},
 			},
 			expectErr: true,
 		},
@@ -287,7 +287,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
-				BlockedAddresses:             []string{},
+				AdditionalBlockedAddresses:   []string{},
 			},
 			expectErr: true,
 		},
@@ -299,7 +299,7 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
-				BlockedAddresses:             []string{"invalidBech32Address"},
+				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
 			},
 			expectErr: true,
 		},
@@ -328,8 +328,8 @@ func TestValidateBlockedAddresses(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "Valid validator address",
-			input:       []string{"fuelsequencervaloper1vau7m2y3wz43hpkxkmrc3jddueyvj8pswzv0zc"},
+			name:        "Empty list is valid",
+			input:       []string{},
 			expectError: false,
 		},
 		{
@@ -363,6 +363,11 @@ func TestValidateBlockedAddresses(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidateBlockedAddresses_Nil(t *testing.T) {
+	err := types.ValidateBlockedAddresses(nil)
+	require.Error(t, err, "Expected an error")
 }
 
 func TestIsAuthorizedMessage(t *testing.T) {
