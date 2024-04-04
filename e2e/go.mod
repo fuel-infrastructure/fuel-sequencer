@@ -4,7 +4,7 @@ go 1.21
 
 replace (
 	// Include BridgeCommitment queries
-	github.com/cometbft/cometbft => github.com/migueldingli1997/cometbft v0.38.5-alpha-6-migueldingli1997
+	github.com/cometbft/cometbft => github.com/dferendo/cometbft v0.38.5-alpha-6
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
