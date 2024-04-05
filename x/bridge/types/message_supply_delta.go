@@ -1,7 +1,6 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -17,7 +16,7 @@ func NewMsgSupplyDelta(authority string) *MsgSupplyDelta {
 func (m *MsgSupplyDelta) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address (%s)", err)
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -123,11 +124,12 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 	coinAmt := sdk.NewCoin("ufuel", amt)
 
 	testCases := []struct {
-		name           string
-		authorizeEvent *sidecartypes.AuthorizeEvent
-		expFromBalance sdkmath.Int
-		expToBalance   sdkmath.Int
-		expErrMsg      string
+		name             string
+		authorizeEvent   *sidecartypes.AuthorizeEvent
+		blockedAddresses map[string]bool
+		expFromBalance   sdkmath.Int
+		expToBalance     sdkmath.Int
+		expErrMsg        string
 	}{
 		{
 			name: "successfully processes msgs in AuthorizeTx if none error",
@@ -137,8 +139,20 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				// Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
 				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
 			},
-			expFromBalance: sdkmath.NewInt(999980),
-			expToBalance:   sdkmath.NewInt(20),
+			blockedAddresses: map[string]bool{},
+			expFromBalance:   sdkmath.NewInt(999980),
+			expToBalance:     sdkmath.NewInt(20),
+		},
+		{
+			name: "returns error if sender address is blocked",
+			authorizeEvent: &sidecartypes.AuthorizeEvent{
+				From:    testtypes.TestFrom3,
+				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
+			},
+			blockedAddresses: map[string]bool{
+				fromAcc.String(): true,
+			},
+			expErrMsg: fmt.Sprintf("signer %s is a blocked address", fromAcc.String()),
 		},
 		{
 			name: "returns error if AuthorizeTx cannot be deserialized",
@@ -146,7 +160,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				From:    testtypes.TestFrom3,
 				Message: []byte("invalid-message"),
 			},
-			expErrMsg: "could not deserialize AuthorizeTx",
+			blockedAddresses: map[string]bool{},
+			expErrMsg:        "could not deserialize AuthorizeTx",
 		},
 		{
 			name: "returns error if AuthorizeTx cannot be authenticated",
@@ -155,7 +170,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				// Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
 				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
 			},
-			expErrMsg: "could not authenticate AuthorizeTx",
+			blockedAddresses: map[string]bool{},
+			expErrMsg:        "could not authenticate AuthorizeTx",
 		},
 		{
 			name: "returns error if some messages cannot be validated",
@@ -165,7 +181,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				// Message decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
 				Message: testutils.MustHexDecodeString(testtypes.TestMessage5),
 			},
-			expErrMsg: "could not validate msg",
+			blockedAddresses: map[string]bool{},
+			expErrMsg:        "could not validate msg",
 		},
 		{
 			name: "returns error if some messages fail execution",
@@ -177,7 +194,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				// have 1000000 ufuel
 				Message: testutils.MustHexDecodeString(testtypes.TestMessage6),
 			},
-			expErrMsg: "could not execute msg",
+			blockedAddresses: map[string]bool{},
+			expErrMsg:        "could not execute msg",
 		},
 	}
 
@@ -196,7 +214,9 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			s.Require().NoError(err)
 
 			processAuthorizeEventCtx := s.Ctx()
-			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(processAuthorizeEventCtx, tc.authorizeEvent, bridgeParams)
+			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(
+				processAuthorizeEventCtx, tc.authorizeEvent, bridgeParams, tc.blockedAddresses,
+			)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised
@@ -233,6 +253,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 		sender             string
 		msgs               []sdk.Msg
 		authorizedMessages []string
+		blockedAddresses   map[string]bool
 		expErrMsg          string
 	}{
 		{
@@ -250,7 +271,27 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 					Amount:      coinsAmt,
 				},
 			},
+			blockedAddresses:   map[string]bool{},
 			authorizedMessages: []string{"*"},
+		},
+		{
+			name:   "errors if signer address is blocked",
+			sender: testtypes.TestFrom1,
+			msgs: []sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo3,
+					Amount:      coinsAmt,
+				},
+				&banktypes.MsgSend{
+					FromAddress: testtypes.TestFrom1Seq,
+					ToAddress:   testtypes.TestTo2,
+					Amount:      coinsAmt,
+				},
+			},
+			blockedAddresses:   map[string]bool{testtypes.TestFrom1Seq: true},
+			authorizedMessages: []string{"*"},
+			expErrMsg:          fmt.Sprintf("signer %s is a blocked address", testtypes.TestFrom1Seq),
 		},
 		{
 			name:   "errors if sender cannot be mapped to its Sequencer address",
@@ -267,6 +308,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 					Amount:      coinsAmt,
 				},
 			},
+			blockedAddresses:   map[string]bool{},
 			authorizedMessages: []string{"*"},
 			expErrMsg:          "could not generate Sequencer address from Ethereum address",
 		},
@@ -283,6 +325,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 					Authority: testtypes.TestGovernanceAddress,
 				},
 			},
+			blockedAddresses:   map[string]bool{},
 			authorizedMessages: []string{sdk.MsgTypeURL(&banktypes.MsgSend{})},
 			expErrMsg:          "message not authorized on Sequencer",
 		},
@@ -299,6 +342,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 					Authority: testtypes.TestGovernanceAddress, // Message signer not equivalent to testtypes.TestFrom1
 				},
 			},
+			blockedAddresses:   map[string]bool{},
 			authorizedMessages: []string{sdk.MsgTypeURL(&banktypes.MsgSend{}), sdk.MsgTypeURL(&types.MsgSupplyDelta{})},
 			expErrMsg:          "invalid signer",
 		},
@@ -315,7 +359,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 			err := s.App.BridgeKeeper.SetParams(s.Ctx(), *bridgeParams)
 			s.Require().NoError(err)
 
-			err = s.App.BridgeKeeper.AuthenticateTx(tc.sender, tc.msgs, bridgeParams)
+			err = s.App.BridgeKeeper.AuthenticateTx(tc.sender, tc.msgs, bridgeParams, tc.blockedAddresses)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised

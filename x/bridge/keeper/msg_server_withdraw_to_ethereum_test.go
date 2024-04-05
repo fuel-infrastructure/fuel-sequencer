@@ -9,6 +9,7 @@ import (
 
 func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 	withdrawer := s.TestAccs[0].String()
+
 	receiver := "0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe6"
 	bridgeDenom := "fuel"
 	invalidDenom := "invalidDenom"

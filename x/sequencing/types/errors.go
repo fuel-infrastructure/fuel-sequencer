@@ -16,4 +16,5 @@ var (
 	ErrInvalidGenesis      = sdkerrors.Register(ModuleName, 1105, "invalid genesis")
 	ErrTopicNotUnique      = sdkerrors.Register(ModuleName, 1106, "duplicate topic found")
 	ErrTopicFailedValidate = sdkerrors.Register(ModuleName, 1107, "validate basic failed")
+	ErrParamsInvalid       = sdkerrors.Register(ModuleName, 1108, "params are invalid")
 )

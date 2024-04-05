@@ -3,16 +3,23 @@ package types
 import (
 	"context"
 
+	"cosmossdk.io/core/address"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // AccountKeeper defines the expected interface for the Account module.
 type AccountKeeper interface {
+	AddressCodec() address.Codec
+
 	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
+	GetModuleAddress(name string) sdk.AccAddress
 	NewAccount(context.Context, sdk.AccountI) sdk.AccountI
 	SetAccount(context.Context, sdk.AccountI)
 
-	GetModuleAddress(moduleName string) sdk.AccAddress
+	GetModulePermissions() map[string]authtypes.PermissionsForAddress
 	// Methods imported from account should be defined here
 }
 
@@ -27,6 +34,11 @@ type BankKeeper interface {
 	BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	// Methods imported from bank should be defined here
+}
+
+// StakingKeeper defines the expected interface for the Staking module.
+type StakingKeeper interface {
+	GetAllValidators(ctx context.Context) ([]stakingtypes.Validator, error)
 }
 
 // ParamSubspace defines the expected Subspace interface for parameters.
