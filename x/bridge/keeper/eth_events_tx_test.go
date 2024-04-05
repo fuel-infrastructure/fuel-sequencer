@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -23,7 +22,7 @@ func createTestEthEventsTx(keeper keeper.Keeper, ctx context.Context, blockHeigh
 		},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      math.NewInt(int64(blockHeight)),
+		BlockNumber:      blockHeight,
 	}
 	keeper.SetEthEventsTx(ctx, item)
 	return item

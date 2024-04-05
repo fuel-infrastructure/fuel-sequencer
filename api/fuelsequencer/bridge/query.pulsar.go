@@ -2807,8 +2807,8 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Interface() pro
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Block != "" {
-		value := protoreflect.ValueOfString(x.Block)
+	if x.Block != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Block)
 		if !f(fd_QueryGetLastEthereumBlockSyncedResponse_block, value) {
 			return
 		}
@@ -2829,7 +2829,7 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Range(f func(pr
 func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse.block":
-		return x.Block != ""
+		return x.Block != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse"))
@@ -2847,7 +2847,7 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Has(fd protoref
 func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse.block":
-		x.Block = ""
+		x.Block = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse"))
@@ -2866,7 +2866,7 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Get(descriptor 
 	switch descriptor.FullName() {
 	case "fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse.block":
 		value := x.Block
-		return protoreflect.ValueOfString(value)
+		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse"))
@@ -2888,7 +2888,7 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Get(descriptor 
 func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse.block":
-		x.Block = value.Interface().(string)
+		x.Block = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse"))
@@ -2925,7 +2925,7 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) Mutable(fd prot
 func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse.block":
-		return protoreflect.ValueOfString("")
+		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse"))
@@ -2995,9 +2995,8 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) ProtoMethods() 
 		var n int
 		var l int
 		_ = l
-		l = len(x.Block)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
+		if x.Block != 0 {
+			n += 1 + runtime.Sov(uint64(x.Block))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -3028,12 +3027,10 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) ProtoMethods() 
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Block) > 0 {
-			i -= len(x.Block)
-			copy(dAtA[i:], x.Block)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Block)))
+		if x.Block != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Block))
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x8
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -3085,10 +3082,10 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) ProtoMethods() 
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 2 {
+				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Block", wireType)
 				}
-				var stringLen uint64
+				x.Block = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -3098,24 +3095,11 @@ func (x *fastReflection_QueryGetLastEthereumBlockSyncedResponse) ProtoMethods() 
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					x.Block |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Block = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -3583,8 +3567,8 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Interface() pr
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Offset != "" {
-		value := protoreflect.ValueOfString(x.Offset)
+	if x.Offset != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Offset)
 		if !f(fd_QueryGetEthereumEventIndexOffsetResponse_offset, value) {
 			return
 		}
@@ -3605,7 +3589,7 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Range(f func(p
 func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse.offset":
-		return x.Offset != ""
+		return x.Offset != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse"))
@@ -3623,7 +3607,7 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Has(fd protore
 func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse.offset":
-		x.Offset = ""
+		x.Offset = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse"))
@@ -3642,7 +3626,7 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Get(descriptor
 	switch descriptor.FullName() {
 	case "fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse.offset":
 		value := x.Offset
-		return protoreflect.ValueOfString(value)
+		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse"))
@@ -3664,7 +3648,7 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Get(descriptor
 func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse.offset":
-		x.Offset = value.Interface().(string)
+		x.Offset = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse"))
@@ -3701,7 +3685,7 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) Mutable(fd pro
 func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse.offset":
-		return protoreflect.ValueOfString("")
+		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.QueryGetEthereumEventIndexOffsetResponse"))
@@ -3771,9 +3755,8 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) ProtoMethods()
 		var n int
 		var l int
 		_ = l
-		l = len(x.Offset)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
+		if x.Offset != 0 {
+			n += 1 + runtime.Sov(uint64(x.Offset))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -3804,12 +3787,10 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) ProtoMethods()
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Offset) > 0 {
-			i -= len(x.Offset)
-			copy(dAtA[i:], x.Offset)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Offset)))
+		if x.Offset != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Offset))
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x8
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -3861,10 +3842,10 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) ProtoMethods()
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 2 {
+				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
 				}
-				var stringLen uint64
+				x.Offset = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -3874,24 +3855,11 @@ func (x *fastReflection_QueryGetEthereumEventIndexOffsetResponse) ProtoMethods()
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					x.Offset |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Offset = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -6643,7 +6611,7 @@ type QueryGetLastEthereumBlockSyncedResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Block string `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Block uint64 `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
 }
 
 func (x *QueryGetLastEthereumBlockSyncedResponse) Reset() {
@@ -6666,11 +6634,11 @@ func (*QueryGetLastEthereumBlockSyncedResponse) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_query_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *QueryGetLastEthereumBlockSyncedResponse) GetBlock() string {
+func (x *QueryGetLastEthereumBlockSyncedResponse) GetBlock() uint64 {
 	if x != nil {
 		return x.Block
 	}
-	return ""
+	return 0
 }
 
 type QueryGetEthereumEventIndexOffsetRequest struct {
@@ -6704,7 +6672,7 @@ type QueryGetEthereumEventIndexOffsetResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Offset string `protobuf:"bytes,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Offset uint64 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
 }
 
 func (x *QueryGetEthereumEventIndexOffsetResponse) Reset() {
@@ -6727,11 +6695,11 @@ func (*QueryGetEthereumEventIndexOffsetResponse) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_query_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *QueryGetEthereumEventIndexOffsetResponse) GetOffset() string {
+func (x *QueryGetEthereumEventIndexOffsetResponse) GetOffset() uint64 {
 	if x != nil {
 		return x.Offset
 	}
-	return ""
+	return 0
 }
 
 // QueryGetEthEventsTxByBlockNumberRequest is the request type for the
@@ -6996,14 +6964,14 @@ var file_fuelsequencer_bridge_query_proto_rawDesc = []byte{
 	0x22, 0x3f, 0x0a, 0x27, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x73, 0x74,
 	0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x53, 0x79, 0x6e,
 	0x63, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x62,
-	0x6c, 0x6f, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x62, 0x6c, 0x6f, 0x63,
+	0x6c, 0x6f, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x05, 0x62, 0x6c, 0x6f, 0x63,
 	0x6b, 0x22, 0x29, 0x0a, 0x27, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x45, 0x74, 0x68,
 	0x65, 0x72, 0x65, 0x75, 0x6d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x4f,
 	0x66, 0x66, 0x73, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x42, 0x0a, 0x28,
 	0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d,
 	0x45, 0x76, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74,
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73,
-	0x65, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74,
+	0x65, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74,
 	0x22, 0x4c, 0x0a, 0x27, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x45, 0x74, 0x68, 0x45,
 	0x76, 0x65, 0x6e, 0x74, 0x73, 0x54, 0x78, 0x42, 0x79, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75,
 	0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x62,

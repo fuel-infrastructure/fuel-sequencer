@@ -23,8 +23,8 @@ func TestGenesis(t *testing.T) {
 		},
 
 		LastEthereumNonce:        math.NewInt(75),
-		LastEthereumBlockSynced:  math.NewInt(13),
-		EthereumEventIndexOffset: math.NewInt(55),
+		LastEthereumBlockSynced:  13,
+		EthereumEventIndexOffset: 55,
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 

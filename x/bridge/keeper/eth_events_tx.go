@@ -13,7 +13,7 @@ func (k Keeper) SetEthEventsTx(ctx context.Context, ethEventsTx types.EthEventsT
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthEventsTxPrefixKey)
 	b := k.cdc.MustMarshal(&ethEventsTx)
-	store.Set(types.EthEventsTxKey(ethEventsTx.BlockNumber.Uint64()), b)
+	store.Set(types.EthEventsTxKey(ethEventsTx.BlockNumber), b)
 }
 
 // GetEthEventsTx returns ethEventsTx.

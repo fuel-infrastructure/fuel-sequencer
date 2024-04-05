@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
@@ -12,7 +11,7 @@ import (
 
 func TestGetEthereumEventIndexOffset(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
-	value := math.NewInt(10)
+	value := uint64(10)
 
 	keeper.SetEthereumEventIndexOffset(ctx, value)
 	rst, found := keeper.GetEthereumEventIndexOffset(ctx)
@@ -25,7 +24,7 @@ func TestGetEthereumEventIndexOffset(t *testing.T) {
 
 func TestRemoveEthereumEventIndexOffset(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
-	value := math.NewInt(10)
+	value := uint64(10)
 
 	keeper.SetEthereumEventIndexOffset(ctx, value)
 	keeper.RemoveEthereumEventIndexOffset(ctx)
@@ -35,8 +34,8 @@ func TestRemoveEthereumEventIndexOffset(t *testing.T) {
 
 func TestResetEthereumEventIndexOffset(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
-	value := math.NewInt(10)
-	zero := math.ZeroInt()
+	value := uint64(10)
+	zero := uint64(0)
 
 	keeper.SetEthereumEventIndexOffset(ctx, value)
 	keeper.ResetEthereumEventIndexOffset(ctx)

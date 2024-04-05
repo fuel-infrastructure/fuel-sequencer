@@ -15,7 +15,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	lastEthereumBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 
 	// Get EthEventsTx at lastEthereumBlockSynced
-	ethEventsTx, found := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
+	ethEventsTx, found := k.GetEthEventsTx(ctx, lastEthereumBlockSynced)
 	if !found {
 		// If EthEventsTx is not found then either the block has already been processed or no new events where generated
 		return
@@ -65,7 +65,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		}
 	}
 
-	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
+	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced)
 }
 
 // processDeposit attempts to process a Deposit signalled by a SendToSequencerEvent

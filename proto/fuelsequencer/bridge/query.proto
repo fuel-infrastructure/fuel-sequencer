@@ -96,11 +96,11 @@ message QueryGetLastEthereumNonceResponse { string nonce = 1; }
 
 message QueryGetLastEthereumBlockSyncedRequest {}
 
-message QueryGetLastEthereumBlockSyncedResponse { string block = 1; }
+message QueryGetLastEthereumBlockSyncedResponse { uint64 block = 1; }
 
 message QueryGetEthereumEventIndexOffsetRequest {}
 
-message QueryGetEthereumEventIndexOffsetResponse { string offset = 1; }
+message QueryGetEthereumEventIndexOffsetResponse { uint64 offset = 1; }
 
 // QueryGetEthEventsTxByBlockNumberRequest is the request type for the
 // Query/EthEventsTxByBlockNumber RPC method.

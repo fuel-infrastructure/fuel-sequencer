@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				Events:           []*sidecartypes.Event{testtypes.TestEvent2, testtypes.TestEvent2},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expFromBalance: sdkmath.NewInt(999980),
 			expToBalance:   sdkmath.NewInt(20),
@@ -49,7 +49,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expFromBalance: sdkmath.NewInt(999990),
 			expToBalance:   sdkmath.NewInt(10),
@@ -68,7 +68,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expFromBalance: sdkmath.NewInt(999990),
 			expToBalance:   sdkmath.NewInt(10),
@@ -93,13 +93,13 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 
 			// Set EthEventsTx
 			s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *tc.ethEventsTx)
-			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber.Uint64())
+			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
 			s.Require().True(found)
 
 			s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
 
 			// Make sure that EthEventsTx has been removed
-			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber.Uint64())
+			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
 			s.Require().False(found)
 
 			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvents were

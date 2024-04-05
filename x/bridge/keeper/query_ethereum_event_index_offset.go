@@ -20,5 +20,5 @@ func (k Keeper) EthereumEventIndexOffset(goCtx context.Context, req *types.Query
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetEthereumEventIndexOffsetResponse{Offset: val.String()}, nil
+	return &types.QueryGetEthereumEventIndexOffsetResponse{Offset: val}, nil
 }

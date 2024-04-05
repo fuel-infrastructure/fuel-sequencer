@@ -3,10 +3,10 @@ package abci
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"cosmossdk.io/log"
-	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -101,9 +101,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Query the events of the next Ethereum block
-		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt())
+		ethBlockToQuery := lastEthereumBlockSynced + 1
 		response, err := h.sidecar.GetBlockEvents(
-			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery.String()},
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
 
 		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
@@ -112,7 +112,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Trim events from head to skip the events that were already processed.
-		err = ethEventsTx.TrimEventsFromHead(ethereumEventIndexOffset.Uint64())
+		err = ethEventsTx.TrimEventsFromHead(ethereumEventIndexOffset)
 		if err != nil {
 			return nil, fmt.Errorf("failed to trim eth events tx head: %w", err)
 		}
@@ -127,7 +127,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 		if trimmed > 0 {
 			ctx.Logger().Debug(fmt.Sprintf(
-				"Skipped %d/%d of remaining events from block %s because only %d could fit in max bytes %d",
+				"Skipped %d/%d of remaining events from block %d because only %d could fit in max bytes %d",
 				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
 		}
@@ -249,9 +249,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Query the events of the next Ethereum block
-		ethBlockToQuery := lastEthereumBlockSynced.Add(sdkmath.OneInt())
+		ethBlockToQuery := lastEthereumBlockSynced + 1
 		response, err := h.sidecar.GetBlockEvents(
-			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: ethBlockToQuery.String()},
+			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
@@ -263,7 +263,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Trim events from head to skip the events that were already processed.
-		err = ethEventsTx.TrimEventsFromHead(ethereumEventIndexOffset.Uint64())
+		err = ethEventsTx.TrimEventsFromHead(ethereumEventIndexOffset)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to trim eth events tx head: %w", err,
@@ -283,7 +283,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 		if trimmed > 0 {
 			ctx.Logger().Debug(fmt.Sprintf(
-				"Skipped %d/%d of remaining events from block %s because only %d were received from the proposer",
+				"Skipped %d/%d of remaining events from block %d because only %d were received from the proposer",
 				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents,
 			))
 		}
@@ -370,7 +370,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 // returned from the sidecar don't pass validation.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
-	blockNumber sdkmath.Int,
+	blockNumber uint64,
 	sidecarErr error,
 ) (*bridgetypes.EthEventsTx, error) {
 	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
@@ -533,7 +533,7 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
 	if !injectedEthEventsTx.NewEthereumBlock && len(injectedEthEventsTx.Events) > 0 {
-		newOffset := eventIndexOffset.AddRaw(int64(len(injectedEthEventsTx.Events)))
+		newOffset := eventIndexOffset + uint64(len(injectedEthEventsTx.Events))
 		h.bridgeKeeper.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	sdkmath "cosmossdk.io/math"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
@@ -66,7 +65,7 @@ func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
 
 	return m.AdvanceSequencer == e.AdvanceSequencer &&
 		m.NewEthereumBlock == e.NewEthereumBlock &&
-		m.BlockNumber.Equal(e.BlockNumber) &&
+		m.BlockNumber == e.BlockNumber &&
 		equalEventSlices, nil
 }
 
@@ -81,7 +80,7 @@ func (m *EthEventsTx) ValidateBasic() error {
 }
 
 // ValidateBeforeProcessing performs some state-based checks on EthEventsTx before it is officially processed.
-func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset sdkmath.Int) error {
+func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset uint64) error {
 
 	// We cannot process an EthEventsTx without advancing the sequencer.
 	if !m.AdvanceSequencer {
@@ -94,19 +93,19 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	// - New Ethereum block with no events ...but we know that the current Ethereum block still has more events.
 	// - No new Ethereum block ...but we know that the current Ethereum block exists and still has more events.
 	// - An error occurred and AdvanceSequencer is false ...but we know that this is no possible from the check above.
-	if eventIndexOffset.IsPositive() && len(m.Events) == 0 {
+	if eventIndexOffset > 0 && len(m.Events) == 0 {
 		return fmt.Errorf(
-			"expected at least 1 new event if offset is non-zero (%s), got EthEventsTx (%s)",
+			"expected at least 1 new event if offset is non-zero (%d), got EthEventsTx (%s)",
 			eventIndexOffset, m,
 		)
 	}
 
 	// BlockNumber must be LastEthereumBlockSynced+1 since otherwise we're getting data for an Ethereum block
 	// that we've already fully processed, or we're getting data for an Ethereum block that is in the future.
-	expectedBlockNumber := lastBlockSynced.Add(sdkmath.OneInt())
-	if !m.BlockNumber.Equal(expectedBlockNumber) {
+	expectedBlockNumber := lastBlockSynced + 1
+	if m.BlockNumber != expectedBlockNumber {
 		return fmt.Errorf(
-			"expected block number %s, got %s in EthEventsTx (%s)",
+			"expected block number %d, got %d in EthEventsTx (%s)",
 			expectedBlockNumber, m.BlockNumber, m,
 		)
 	}
@@ -128,8 +127,9 @@ func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 	if m.NewEthereumBlock {
 		n += 2
 	}
-	l = m.BlockNumber.Size()
-	n += 1 + l + sovEthEventsTransaction(uint64(l))
+	if m.BlockNumber != 0 {
+		n += 1 + sovEthEventsTransaction(uint64(m.BlockNumber))
+	}
 	if len(m.Events) > 0 {
 		for i, e := range m.Events {
 			l = e.Size()

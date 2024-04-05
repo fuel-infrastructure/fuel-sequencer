@@ -137,43 +137,43 @@ var (
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	TestEthEventsTxWithDifferentEvents = bridgetypes.EthEventsTx{
 		Events:           TestEventsDifferent,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	TestEthEventsTxReduced = bridgetypes.EthEventsTx{
 		Events:           TestEventsReduced,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	TestEthEventsTxPartial = bridgetypes.EthEventsTx{
 		Events:           TestEventsReduced,
 		AdvanceSequencer: true,
 		NewEthereumBlock: false, // block was partially consumed
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	TestEthEventsTxWithoutEvents = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	TestEthEventsTxNoNewBlock = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: true,
 		NewEthereumBlock: false,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	TestEthEventsTxSidecarErr = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
 		AdvanceSequencer: false,
 		NewEthereumBlock: false,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 
 	TestEmptySidecarResponse   = &sidecartypes.QueryBlockEventsResponse{Events: nil}

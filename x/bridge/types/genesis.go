@@ -19,8 +19,8 @@ func DefaultGenesis() *GenesisState {
 			Offset:     math.ZeroInt(),
 		},
 		LastEthereumNonce:        math.ZeroInt(),
-		LastEthereumBlockSynced:  math.ZeroInt(),
-		EthereumEventIndexOffset: math.ZeroInt(),
+		LastEthereumBlockSynced:  0,
+		EthereumEventIndexOffset: 0,
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }

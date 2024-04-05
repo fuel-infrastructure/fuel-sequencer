@@ -20,5 +20,5 @@ func (k Keeper) LastEthereumBlockSynced(goCtx context.Context, req *types.QueryG
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetLastEthereumBlockSyncedResponse{Block: val.String()}, nil
+	return &types.QueryGetLastEthereumBlockSyncedResponse{Block: val}, nil
 }

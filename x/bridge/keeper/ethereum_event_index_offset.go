@@ -3,31 +3,28 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // ResetEthereumEventIndexOffset resets ethereumEventIndexOffset in the store
 func (k Keeper) ResetEthereumEventIndexOffset(ctx context.Context) {
-	k.SetEthereumEventIndexOffset(ctx, math.ZeroInt())
+	k.SetEthereumEventIndexOffset(ctx, 0)
 }
 
 // SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store
-func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset math.Int) {
+func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
 
-	b, err := ethereumEventIndexOffset.Marshal()
-	if err != nil {
-		panic(err)
-	}
+	b := sdk.Uint64ToBigEndian(ethereumEventIndexOffset)
 	store.Set([]byte{0}, b)
 }
 
 // GetEthereumEventIndexOffset returns ethereumEventIndexOffset
-func (k Keeper) GetEthereumEventIndexOffset(ctx context.Context) (val math.Int, found bool) {
+func (k Keeper) GetEthereumEventIndexOffset(ctx context.Context) (val uint64, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
 
@@ -36,15 +33,11 @@ func (k Keeper) GetEthereumEventIndexOffset(ctx context.Context) (val math.Int, 
 		return val, false
 	}
 
-	err := val.Unmarshal(b)
-	if err != nil {
-		panic(err)
-	}
-	return val, true
+	return sdk.BigEndianToUint64(b), true
 }
 
 // MustGetEthereumEventIndexOffset returns ethereumEventIndexOffset and panics if it does't find it
-func (k Keeper) MustGetEthereumEventIndexOffset(ctx context.Context) math.Int {
+func (k Keeper) MustGetEthereumEventIndexOffset(ctx context.Context) uint64 {
 	val, found := k.GetEthereumEventIndexOffset(ctx)
 	if !found {
 		panic("expected to find EthereumEventIndexOffset")

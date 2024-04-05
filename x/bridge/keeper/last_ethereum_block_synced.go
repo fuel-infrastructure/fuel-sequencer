@@ -3,26 +3,23 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // SetLastEthereumBlockSynced sets lastEthereumBlockSynced in the store
-func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBlockSynced math.Int) {
+func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBlockSynced uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
 
-	b, err := lastEthereumBlockSynced.Marshal()
-	if err != nil {
-		panic(err)
-	}
+	b := sdk.Uint64ToBigEndian(lastEthereumBlockSynced)
 	store.Set([]byte{0}, b)
 }
 
 // GetLastEthereumBlockSynced returns lastEthereumBlockSynced
-func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val math.Int, found bool) {
+func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val uint64, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
 
@@ -31,15 +28,11 @@ func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val math.Int, f
 		return val, false
 	}
 
-	err := val.Unmarshal(b)
-	if err != nil {
-		panic(err)
-	}
-	return val, true
+	return sdk.BigEndianToUint64(b), true
 }
 
 // MustGetLastEthereumBlockSynced returns lastEthereumBlockSynced and panics if it does't find it
-func (k Keeper) MustGetLastEthereumBlockSynced(ctx context.Context) math.Int {
+func (k Keeper) MustGetLastEthereumBlockSynced(ctx context.Context) uint64 {
 	val, found := k.GetLastEthereumBlockSynced(ctx)
 	if !found {
 		panic("expected to find LastEthereumBlockSynced")

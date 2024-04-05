@@ -5,7 +5,6 @@ import (
 	"math"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -35,7 +34,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expectedEqual: true,
 		},
@@ -52,7 +51,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expectedEqual: false,
 		},
@@ -63,7 +62,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: false,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expectedEqual: false,
 		},
@@ -74,7 +73,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: false,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expectedEqual: false,
 		},
@@ -85,7 +84,7 @@ func TestEthEventsTx_Equal(t *testing.T) {
 				Events:           testtypes.TestEvents,
 				AdvanceSequencer: true,
 				NewEthereumBlock: false,
-				BlockNumber:      sdkmath.ZeroInt(),
+				BlockNumber:      0,
 			},
 			expectedEqual: false,
 		},
@@ -163,13 +162,13 @@ func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
 
 	// Calculate the LastEthereumBlockSynced that we expect when submitting TestEthEventsTx
 	blockNumber := testtypes.TestEthEventsTx.BlockNumber
-	previousBlock := blockNumber.Sub(sdkmath.OneInt())
+	previousBlock := blockNumber - 1
 
 	testCases := []struct {
 		name             string
 		eventTx          *types.EthEventsTx
-		lastBlockSynced  sdkmath.Int
-		eventIndexOffset sdkmath.Int
+		lastBlockSynced  uint64
+		eventIndexOffset uint64
 		expErrMsg        string
 	}{
 		// Valid transactions at the right height
@@ -177,44 +176,44 @@ func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
 			name:             "valid full tx at right height",
 			eventTx:          &testtypes.TestEthEventsTx,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.ZeroInt(),
+			eventIndexOffset: 0,
 		},
 		{
 			name:             "valid full tx at right height even if offset is non-zero",
 			eventTx:          &testtypes.TestEthEventsTx,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.NewInt(10),
+			eventIndexOffset: 10,
 		},
 		{
 			name:             "valid partial tx at right height",
 			eventTx:          &testtypes.TestEthEventsTxPartial,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.ZeroInt(),
+			eventIndexOffset: 0,
 		},
 		{
 			name:             "valid partial tx at right height even if offset is non-zero",
 			eventTx:          &testtypes.TestEthEventsTxPartial,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.NewInt(10),
+			eventIndexOffset: 10,
 		},
 		{
 			name:             "valid empty tx at right height",
 			eventTx:          &testtypes.TestEthEventsTxWithoutEvents,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.ZeroInt(),
+			eventIndexOffset: 0,
 		},
 		{
 			name:             "valid NoNewBlock tx at right height",
 			eventTx:          &testtypes.TestEthEventsTxNoNewBlock,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.ZeroInt(),
+			eventIndexOffset: 0,
 		},
 		// Invalid transactions with AdvanceSequencer false
 		{
 			name:             "invalid tx with AdvanceSequencer false",
 			eventTx:          &testtypes.TestEthEventsTxSidecarErr,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.ZeroInt(),
+			eventIndexOffset: 0,
 			expErrMsg:        "expected AdvanceSequencer to be true",
 		},
 		// Invalid transactions with no events when there's a non-zero offset
@@ -222,29 +221,29 @@ func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
 			name:             "invalid tx with no events when there's a non-zero offset",
 			eventTx:          &testtypes.TestEthEventsTxWithoutEvents,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.NewInt(10),
+			eventIndexOffset: 10,
 			expErrMsg:        "expected at least 1 new event if offset is non-zero (10)",
 		},
 		{
 			name:             "invalid tx with no new block when there's a non-zero offset",
 			eventTx:          &testtypes.TestEthEventsTxNoNewBlock,
 			lastBlockSynced:  previousBlock,
-			eventIndexOffset: sdkmath.NewInt(10),
+			eventIndexOffset: 10,
 			expErrMsg:        "expected at least 1 new event if offset is non-zero (10)",
 		},
 		// Invalid transactions with wrong height
 		{
 			name:             "invalid tx at height in the future",
 			eventTx:          &testtypes.TestEthEventsTx,
-			lastBlockSynced:  previousBlock.SubRaw(1),
-			eventIndexOffset: sdkmath.ZeroInt(),
+			lastBlockSynced:  previousBlock - 1,
+			eventIndexOffset: 0,
 			expErrMsg:        "expected block number 0, got 1 in EthEventsTx",
 		},
 		{
 			name:             "invalid tx at height in the past",
 			eventTx:          &testtypes.TestEthEventsTx,
-			lastBlockSynced:  previousBlock.AddRaw(1),
-			eventIndexOffset: sdkmath.ZeroInt(),
+			lastBlockSynced:  previousBlock + 1,
+			eventIndexOffset: 0,
 			expErrMsg:        "expected block number 2, got 1 in EthEventsTx",
 		},
 	}
@@ -269,9 +268,9 @@ func TestDetectEthEventsTxSizeChange(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 466, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(466)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(465)) // just under enough
+	require.EqualValues(t, 465, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(465)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(464)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.
@@ -281,11 +280,11 @@ func TestDetectEthEventsTxSizeChange(t *testing.T) {
 func TestCorrelationBetweenSizeAndMarshalling(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
-	require.EqualValues(t, 466, tx.Size())
+	require.EqualValues(t, 465, tx.Size())
 
 	bz, err := tx.Marshal()
 	require.NoError(t, err)
-	require.EqualValues(t, 466, len(bz))
+	require.EqualValues(t, 465, len(bz))
 }
 
 func TestEthEventsTx_NumberOfEventsWithMaxBytes(t *testing.T) {

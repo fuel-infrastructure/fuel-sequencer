@@ -3,7 +3,6 @@ package testsuite
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -16,15 +15,12 @@ func (s *E2ETestSuite) QueryBridgeParams(ctx context.Context) *bridgetypes.Param
 	return &res.Params
 }
 
-func (s *E2ETestSuite) QueryLastEthereumBlockSynced(ctx context.Context) int {
+func (s *E2ETestSuite) QueryLastEthereumBlockSynced(ctx context.Context) uint64 {
 	queryClient := s.getGRPCClients().BridgeQueryClient
 	res, err := queryClient.LastEthereumBlockSynced(ctx, &bridgetypes.QueryGetLastEthereumBlockSyncedRequest{})
 	s.Require().NoError(err)
 
-	block, err := strconv.Atoi(res.Block)
-	s.Require().NoError(err)
-
-	return block
+	return res.Block
 }
 
 func (s *E2ETestSuite) PollForEthereumEventIndexOffset(
@@ -42,8 +38,8 @@ func (s *E2ETestSuite) PollForEthereumEventIndexOffset(
 		if err != nil {
 			return nil, err
 		}
-		if offset.Offset != strconv.FormatUint(ethereumEventIndexOffset, 10) {
-			return nil, fmt.Errorf("offset (%s) does not match expected: (%d)", offset.Offset, ethereumEventIndexOffset)
+		if offset.Offset != ethereumEventIndexOffset {
+			return nil, fmt.Errorf("offset (%d) does not match expected: (%d)", offset.Offset, ethereumEventIndexOffset)
 		}
 		return nil, nil
 	}

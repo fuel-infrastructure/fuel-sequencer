@@ -34,20 +34,10 @@ message GenesisState {
 
   // last_ethereum_block_synced is the last Ethereum block synced.
   // In other words, the next block to be synced is this value +1.
-  bytes last_ethereum_block_synced = 4 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false,
-    (amino.dont_omitempty) = true
-  ];
+  uint64 last_ethereum_block_synced = 4;
 
   // ethereum_event_index_offset is the number of events to skip
   // from the next Ethereum block to query from the Sidecar. This
   // is used if queried events are larger than the maximum block size.
-  bytes ethereum_event_index_offset = 5 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false,
-    (amino.dont_omitempty) = true
-  ];
+  uint64 ethereum_event_index_offset = 5;
 }

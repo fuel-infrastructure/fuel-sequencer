@@ -8322,6 +8322,7 @@ paths:
                       partially consumed.
                   block_number:
                     type: string
+                    format: uint64
                     description: >-
                       block_number is the block that these events belong to.
                       This is expected to
@@ -8373,6 +8374,7 @@ paths:
             properties:
               offset:
                 type: string
+                format: uint64
         default:
           description: An unexpected error response.
           schema:
@@ -8405,6 +8407,7 @@ paths:
             properties:
               block:
                 type: string
+                format: uint64
         default:
           description: An unexpected error response.
           schema:
@@ -12647,6 +12650,7 @@ definitions:
           consumed.
       block_number:
         type: string
+        format: uint64
         description: >-
           block_number is the block that these events belong to. This is
           expected to
@@ -12761,6 +12765,7 @@ definitions:
               consumed.
           block_number:
             type: string
+            format: uint64
             description: >-
               block_number is the block that these events belong to. This is
               expected to
@@ -12775,11 +12780,13 @@ definitions:
     properties:
       offset:
         type: string
+        format: uint64
   fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
     type: object
     properties:
       block:
         type: string
+        format: uint64
   fuelsequencer.bridge.QueryGetLastEthereumNonceResponse:
     type: object
     properties:
