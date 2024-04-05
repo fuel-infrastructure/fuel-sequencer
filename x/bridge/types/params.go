@@ -10,6 +10,11 @@ import (
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
+var (
+	// DefaultAllowAllAuthorizeMessages is the default messages we allow.
+	DefaultAllowAllAuthorizeMessages = []string{AllowAllAuthorizeMessages}
+)
+
 const (
 	// DefaultBridgeDenom is the default token that will be bridged from Ethereum to the sequencer.
 	DefaultBridgeDenom = "ufuel"
@@ -21,9 +26,6 @@ const (
 	// AllowAllAuthorizeMessages can be used if we want to allow
 	// all messages instead of specifying all of them one-by-one.
 	AllowAllAuthorizeMessages = "*"
-
-	// DefaultAllowAllAuthorizeMessage is the default messages we allow.
-	DefaultAllowAllAuthorizeMessage = "*"
 
 	// DefaultSupplyDeltaPeriod is the default frequency in block at which we report supply
 	// delta info to Ethereum.
@@ -38,12 +40,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// NewParams creates a new Params instance
+// NewParams creates a new Params instance.
 func NewParams(
 	bridgeDenom string,
 	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
+	additionalBlockedAddresses []string,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -59,16 +62,18 @@ func NewParams(
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
 		VestingStartTime:             t0,
+		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 	}
 }
 
-// DefaultParams returns a default set of parameters
+// DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
 	return NewParams(
 		DefaultBridgeDenom,
 		DefaultEthereumProxyContractAddress,
-		[]string{DefaultAllowAllAuthorizeMessage},
+		DefaultAllowAllAuthorizeMessages,
 		DefaultSupplyDeltaPeriod,
+		nil,
 	)
 }
 
@@ -104,6 +109,12 @@ func (p Params) Validate() error {
 	if err := ValidateVestingStartTime(p.VestingStartTime); err != nil {
 		return err
 	}
+
+	// AdditionalBlockedAddresses blocked addresses
+	if err := ValidateBlockedAddresses(p.AdditionalBlockedAddresses); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -165,6 +176,29 @@ func ValidateVestingStartTime(i interface{}) error {
 	// Ensure the time is not zero, which is the zero value for time.Time and represents an unset value.
 	if v.IsZero() {
 		return ErrParamsInvalid.Wrapf("vesting start time must be set and cannot be the zero value")
+	}
+
+	return nil
+}
+
+func ValidateBlockedAddresses(i interface{}) error {
+	additionalBlockedAddresses, ok := i.([]string)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
+	}
+
+	for _, addr := range additionalBlockedAddresses {
+		if addr == "" {
+			return ErrParamsInvalid.Wrapf("blocked address cannot be empty")
+		}
+
+		// Attempt to decode the Bech32 address into an normal address
+		_, errAcc := sdk.AccAddressFromBech32(addr)
+
+		// If both decodings fail, return an error for this address
+		if errAcc != nil {
+			return ErrParamsInvalid.Wrapf("address %s is not a valid Bech32 encoded address", addr)
+		}
 	}
 
 	return nil
