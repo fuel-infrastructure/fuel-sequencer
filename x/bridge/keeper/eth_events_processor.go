@@ -31,6 +31,8 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 
 	// Get the params as they are needed for the denom.
 	params := k.GetParams(ctx)
+
+	// Get SupplyDeltaInfo.
 	supplyDelta := k.MustGetSupplyDeltaInfo(ctx)
 
 	// Otherwise we begin processing these events according to the event type.
@@ -50,7 +52,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		case *sidecartypes.SendToSequencerEvent:
 			// This doesn't error, so unless a panic occurs we will always be able to continue to the next event if some
 			// issue occurs
-			k.processSendToSequencerEvent(ctx, pe, params, &supplyDelta)
+			k.processSendToSequencerEvent(ctx, pe, &params, &supplyDelta)
 		case *sidecartypes.AuthorizeEvent:
 			// If an error occurs while processing an Authorize event we will move on to the next event without applying
 			// any state changes.
@@ -73,13 +75,14 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 }
 
 // processSendToSequencerEvent processes the send to sequencer events queried from the sidecar.
-// Deposit message cannot fail. If a failure can occur, we mint the tokens anyway
-// but we store them in the governance address. The only time it can fail is if
-// we cannot parse the `Amount` of tokens as we won't know how many tokens have been processed.
+// Deposits message cannot fail, so either the chain panics or we store the minted
+// tokens in the governance address. The only time processSendToSequencerEvent
+// can panic is if we cannot parse the `Amount` of tokens as we won't know how
+// many tokens have been processed.
 func (k Keeper) processSendToSequencerEvent(
 	ctx sdk.Context,
 	sendEvent *sidecartypes.SendToSequencerEvent,
-	params types.Params,
+	params *types.Params,
 	supplyDeltaInfo *types.SupplyDeltaInfo,
 ) {
 
@@ -98,7 +101,7 @@ func (k Keeper) processSendToSequencerEvent(
 	// Check that the Duration can be converted from a string to sdk.Int
 	eventDuration, success := sdkmath.NewIntFromString(sendEvent.Duration)
 	if !success {
-		k.Logger().Error("Bridge EndBlock: failed to process send to sequencer duration from string")
+		k.Logger().Error("Bridge EndBlock: could not unmarshal duration to int from string for duration %s", sendEvent.Duration)
 		k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
 		return
 	}
@@ -155,7 +158,14 @@ func (k Keeper) processSendToSequencerEvent(
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sequencerAddr, tokensToMint)
 	if err != nil {
 		k.Logger().Error("Bridge EndBlock: failed to send tokens from module to account", "err", err)
-		panic(err)
+
+		// Do not panic here because a receiver address could be blocked. Instead send the minted tokens to
+		// the governance account. If that fails we can then panic because it's a misconfiguration of the modules.
+		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, govtypes.ModuleName, tokensToMint)
+		if err != nil {
+			panic(fmt.Errorf("bridge endblock: failed to transfer bridge tokens to gov module account err: %s", err))
+		}
+
 	}
 
 	// Apply negative offset to supply delta offset

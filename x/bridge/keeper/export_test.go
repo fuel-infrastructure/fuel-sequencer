@@ -36,7 +36,7 @@ func (k Keeper) ProcessAuthorizeEvent(
 func (k Keeper) ProcessSendToSequencerEvent(
 	ctx sdk.Context,
 	sendEvent *sidecartypes.SendToSequencerEvent,
-	params types.Params,
+	params *types.Params,
 	supplyDeltaInfo *types.SupplyDeltaInfo,
 ) {
 	k.processSendToSequencerEvent(ctx, sendEvent, params, supplyDeltaInfo)

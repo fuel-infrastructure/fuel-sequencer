@@ -133,14 +133,15 @@ func (m *EventWithdrawToEthereumReported) GetAmount() types.Coin {
 }
 
 type EventSendToSequencerEventProcessed struct {
-	// from is the user address on FuelSequencer that is sending the tokens.
+	// from is the user address on Ethereum that is sending the tokens.
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
-	// amount is the tokens being sent, which must be the expected bridge token.
+	// amount is the tokens being sent, which must be denominated in the expected
+	// bridge token.
 	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
 	// vesting duration encoded in string to prevent loss of precision. Sign is
-	// also preserved
+	// also preserved. This can be zero if no duration is specified.
 	Duration string `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
 }
 
