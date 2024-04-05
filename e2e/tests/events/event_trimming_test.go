@@ -50,10 +50,10 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		// 1st event of 4 processed
 		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
 		// 2nd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 1, 2)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 2)
 		// 3rd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 1, 3)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 3)
 		// 4th event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 1, 0)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 	})
 }
