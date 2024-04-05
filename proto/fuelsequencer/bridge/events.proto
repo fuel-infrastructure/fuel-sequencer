@@ -58,3 +58,8 @@ message EventSendToSequencerEventProcessed {
   // also preserved
   string duration = 4;
 }
+
+message EventSendToSequencerEventFailed {
+  // event_details is the marshalled event that failed to be processed.
+  bytes event_details = 1;
+}

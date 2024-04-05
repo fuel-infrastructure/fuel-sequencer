@@ -99,7 +99,7 @@ func (k Keeper) processSendToSequencerEvent(
 	eventDuration, success := sdkmath.NewIntFromString(sendEvent.Duration)
 	if !success {
 		k.Logger().Error("Bridge EndBlock: failed to process send to sequencer duration from string")
-		k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
+		k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (k Keeper) processSendToSequencerEvent(
 			"Bridge EndBlock: from address is not a valid hex address - minting to governance address instead",
 			"event", sendEvent,
 		)
-		k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
+		k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
 		return
 	}
 
@@ -128,7 +128,7 @@ func (k Keeper) processSendToSequencerEvent(
 				"Bridge EndBlock: failed to generate sequencer account from ethereum address - minting to gov address",
 				"event", sendEvent, "err", err,
 			)
-			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
+			k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
 			return
 		}
 	} else {
@@ -140,7 +140,7 @@ func (k Keeper) processSendToSequencerEvent(
 				"Bridge EndBlock: to is not a valid Bech32 address - minting to gov address",
 				"event", sendEvent, "err", err,
 			)
-			k.mintToGovernanceAddress(ctx, tokenToMint, supplyDeltaInfo)
+			k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
 			return
 		}
 	}
@@ -182,7 +182,12 @@ func (k Keeper) processSendToSequencerEvent(
 }
 
 // mintToGovernanceAddress mints to the governance address in case of an error in normal processing.
-func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, supplyDeltaInfo *types.SupplyDeltaInfo) {
+func (k Keeper) mintToGovernanceAddress(
+	ctx sdk.Context,
+	tokenToMint sdk.Coin,
+	sendEvent *sidecartypes.SendToSequencerEvent,
+	supplyDeltaInfo *types.SupplyDeltaInfo,
+) {
 
 	// tokensToMint is the new coins that will be minted
 	tokensToMint := sdk.NewCoins(tokenToMint)
@@ -190,7 +195,7 @@ func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, s
 	// Mint bridged tokens to governance module address.
 	err := k.bankKeeper.MintCoins(ctx, govtypes.ModuleName, tokensToMint)
 	if err != nil {
-		panic(fmt.Errorf("failed to mint bridge tokens to gov module account err: %s", err))
+		panic(fmt.Errorf("bridge endblock: failed to mint bridge tokens to gov module account err: %s", err))
 	}
 
 	// Update supply delta to reflect the minting to the governance address.
@@ -199,12 +204,14 @@ func (k Keeper) mintToGovernanceAddress(ctx sdk.Context, tokenToMint sdk.Coin, s
 	// Save supply delta here after processing mints.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
 
-	// Emit event once completed
-	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventProcessed{
-		From:   types.ModuleName,
-		To:     govtypes.ModuleName,
-		Amount: tokenToMint,
-	})
+	// Marshal event details to bytes.
+	eventDetails, err := sendEvent.Marshal()
+	if err != nil {
+		panic(fmt.Errorf("bridge endblock: failed to marshal event details into bytes: %s", err))
+	}
+
+	// Emit event once completed.
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventFailed{EventDetails: eventDetails})
 	if err != nil {
 		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
 	}
