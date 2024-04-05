@@ -126,7 +126,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim eth events tx tail: %w", err)
 		}
 		if trimmed > 0 {
-			ctx.Logger().Info(fmt.Sprintf(
+			ctx.Logger().Debug(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %s because only %d could fit in max bytes %d",
 				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
@@ -282,7 +282,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 		if trimmed > 0 {
-			ctx.Logger().Info(fmt.Sprintf(
+			ctx.Logger().Debug(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %s because only %d were received from the proposer",
 				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents,
 			))
