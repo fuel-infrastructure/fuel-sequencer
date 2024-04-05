@@ -177,8 +177,6 @@ func (k Keeper) processSendToSequencerEvent(
 
 	// Apply negative offset to supply delta offset
 	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(amount)
-
-	// We have to save the supply delta here incase we panic at a later deposit.
 	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
 
 	// Emit event once completed
