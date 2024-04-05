@@ -10,8 +10,10 @@ import (
 )
 
 func (s *KeeperTestSuite) TestPostBlob() {
-	withdrawer := s.TestAccs[0].String()
+
+	sender := s.TestAccs[0].String()
 	anotherAccount := s.TestAccs[1].String()
+
 	testCases := []struct {
 		name             string
 		msg              types.MsgPostBlob
@@ -25,24 +27,23 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		{
 			name: "successfully post a blob - creates new topic",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
-			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
-				Owner: withdrawer,
+				Owner: sender,
 				Order: math.ZeroInt(),
 			},
 			expErrMsg: "",
@@ -50,24 +51,23 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		{
 			name: "successfully post a blob - nonce update verification",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(101),
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.NewInt(100),
-			preSetTopic:      nil,
 			expTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
-				Owner: withdrawer,
+				Owner: sender,
 				Order: math.ZeroInt(),
 			},
 			expErrMsg: "",
@@ -75,14 +75,14 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		{
 			name: "successfully post a blob - updates existing topic",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.OneInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.OneInt(),
 				Data:  make([]byte, 4),
@@ -90,13 +90,13 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			maxBlobSizeBytes: 400,
 			preSetTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
-				Owner: withdrawer,
+				Owner: sender,
 				Order: math.ZeroInt(),
 			},
 			setNonce: math.ZeroInt(),
 			expTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
-				Owner: withdrawer,
+				Owner: sender,
 				Order: math.OneInt(),
 			},
 			expErrMsg: "",
@@ -104,24 +104,23 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		{
 			name: "successfully post a blob - large data",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 54),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 54),
 			},
 			maxBlobSizeBytes: 400,
-			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
-				Owner: withdrawer,
+				Owner: sender,
 				Order: math.ZeroInt(),
 			},
 			expErrMsg: "",
@@ -129,46 +128,52 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		{
 			name: "post a blob that exceeds max size",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 500),
 			},
-			msgResponse:      nil,
 			maxBlobSizeBytes: 400,
-			preSetTopic:      nil,
 			setNonce:         math.ZeroInt(),
-			expTopic:         nil,
 			expErrMsg:        "message size 500 exceeds max blob size bytes 400",
 		},
 		{
 			name: "post a blob with incorrect order",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(1),
 				Order: math.NewInt(2),
 				Data:  []byte("data"),
 			},
-			msgResponse:      nil,
 			maxBlobSizeBytes: 400,
 			preSetTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(1),
-				Owner: withdrawer,
+				Owner: sender,
 				Order: math.ZeroInt(),
 			},
 			setNonce:  math.ZeroInt(),
-			expTopic:  nil,
 			expErrMsg: "msg order 2 doesn't match next topic order 1",
+		},
+		{
+			name: "post a new blob with non-zero order",
+			msg: types.MsgPostBlob{
+				From:  sender,
+				Topic: utilstest.MockTopicIDHex(0),
+				Order: math.OneInt(), // non-zero
+				Data:  make([]byte, 4),
+			},
+			maxBlobSizeBytes: 400,
+			setNonce:         math.ZeroInt(),
+			expErrMsg:        "msg order 1 expected to be 0 for new topics",
 		},
 		{
 			name: "post a blob with mismatching topic owner",
 			msg: types.MsgPostBlob{
-				From:  withdrawer,
+				From:  sender,
 				Topic: utilstest.MockTopicIDHex(1),
 				Order: math.OneInt(),
 				Data:  []byte("data"),
 			},
-			msgResponse:      nil,
 			maxBlobSizeBytes: 400,
 			preSetTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(1),
@@ -176,11 +181,22 @@ func (s *KeeperTestSuite) TestPostBlob() {
 				Order: math.ZeroInt(),
 			},
 			setNonce: math.ZeroInt(),
-			expTopic: nil,
 			expErrMsg: fmt.Sprintf(
 				"from address %s doesn't match topic owner %s",
-				withdrawer, anotherAccount,
+				sender, anotherAccount,
 			),
+		},
+		{
+			name: "post a blob with invalid topic owner",
+			msg: types.MsgPostBlob{
+				From:  "some-invalid-address", // invalid!
+				Topic: utilstest.MockTopicIDHex(1),
+				Order: math.ZeroInt(),
+				Data:  []byte("data"),
+			},
+			maxBlobSizeBytes: 400,
+			setNonce:         math.ZeroInt(),
+			expErrMsg:        fmt.Sprintf("invalid topic address: decoding bech32 failed"),
 		},
 	}
 
@@ -212,23 +228,20 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			if len(tc.expErrMsg) > 0 {
 				s.Require().Error(err)
 				s.Require().Contains(err.Error(), tc.expErrMsg)
-			} else {
-				s.Require().NoError(err)
-
-				// Verify Nonce was set
-				lastNonce := s.App.BridgeKeeper.MustGetLastEthereumNonce(s.Ctx())
-				s.Require().True(lastNonce.Equal(tc.msgResponse.Nonce))
-
+				s.Require().Nil(response)
+				return
 			}
-
+			s.Require().NoError(err)
 			s.Require().Equal(tc.msgResponse, response)
 
+			// Verify Nonce was set
+			lastNonce := s.App.BridgeKeeper.MustGetLastEthereumNonce(s.Ctx())
+			s.Require().True(lastNonce.Equal(tc.msgResponse.Nonce))
+
 			// Verify the topic has been updated
-			if tc.expTopic != nil {
-				topic, found := s.App.SequencingKeeper.GetTopic(s.Ctx(), tc.expTopic.Id)
-				s.Require().True(found)
-				s.Require().Equal(tc.expTopic, &topic)
-			}
+			topic, found := s.App.SequencingKeeper.GetTopic(s.Ctx(), tc.expTopic.Id)
+			s.Require().True(found)
+			s.Require().Equal(tc.expTopic, &topic)
 		})
 	}
 }

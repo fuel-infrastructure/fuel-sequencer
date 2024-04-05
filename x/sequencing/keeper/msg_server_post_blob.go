@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
@@ -21,11 +20,9 @@ func (k msgServer) PostBlob(
 	// Verify that the data satisfies a maximum transaction size (using MaxBlobSizeBytes)
 	msgLength := uint64(len(msg.Data))
 	if msgLength > maxBlobSizeBytes {
-		return nil, errorsmod.Wrapf(
-			types.ErrDataTooBig,
+		return nil, types.ErrDataTooBig.Wrapf(
 			"message size %d exceeds max blob size bytes %d",
-			msgLength,
-			maxBlobSizeBytes,
+			msgLength, maxBlobSizeBytes,
 		)
 	}
 
@@ -34,12 +31,10 @@ func (k msgServer) PostBlob(
 	if !found {
 
 		// Verify that the topic order from the message is 0
-		if !math.ZeroInt().Equal(msg.Order) {
-			return nil, errorsmod.Wrapf(
-				types.ErrOrderNotMatching,
-				"msg order %s doesn't match next topic order %s",
+		if !msg.Order.IsZero() {
+			return nil, types.ErrOrderNotMatching.Wrapf(
+				"msg order %s expected to be 0 for new topics",
 				msg.Order.String(),
-				math.ZeroInt().String(),
 			)
 		}
 
@@ -50,32 +45,25 @@ func (k msgServer) PostBlob(
 			Order: math.ZeroInt(),
 		}
 		if err := topic.ValidateBasic(); err != nil {
-			return nil, errorsmod.Wrapf(
-				types.ErrTopicFailedValidate,
-				"topic failed to validate basic",
-			)
+			return nil, types.ErrTopicFailedValidate.Wrapf("topic failed to validate basic: %s", err.Error())
 		}
 
 	} else {
 
 		// Verify if the topic owner matches that of msg from
 		if topic.Owner != msg.From {
-			return nil, errorsmod.Wrapf(
-				types.ErrSenderNotOwner,
+			return nil, types.ErrSenderNotOwner.Wrapf(
 				"from address %s doesn't match topic owner %s",
-				msg.From,
-				topic.Owner,
+				msg.From, topic.Owner,
 			)
 		}
 
 		// Verify order is the next expected order for the topic
 		nextTopicOrder := topic.Order.Add(math.OneInt())
 		if !nextTopicOrder.Equal(msg.Order) {
-			return nil, errorsmod.Wrapf(
-				types.ErrOrderNotMatching,
+			return nil, types.ErrOrderNotMatching.Wrapf(
 				"msg order %s doesn't match next topic order %s",
-				msg.Order.String(),
-				nextTopicOrder.String(),
+				msg.Order.String(), nextTopicOrder.String(),
 			)
 		}
 
