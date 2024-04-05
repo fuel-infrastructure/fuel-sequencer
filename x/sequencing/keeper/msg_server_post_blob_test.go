@@ -196,7 +196,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.ZeroInt(),
-			expErrMsg:        fmt.Sprintf("invalid topic address: decoding bech32 failed"),
+			expErrMsg:        "invalid topic address: decoding bech32 failed",
 		},
 	}
 
