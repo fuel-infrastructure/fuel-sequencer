@@ -108,9 +108,9 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 			s.Require().GreaterOrEqual(len(vals), 1)
 
 			for _, validator := range vals {
-				add, err := validator.GetConsAddr()
+				valAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
 				s.Require().NoError(err)
-				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, sdk.AccAddress(add).String())
+				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, sdk.AccAddress(valAddr.Bytes()).String())
 			}
 
 			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedAddresses(ctx, tc.paramsBlockedAddresses)

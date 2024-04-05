@@ -41,13 +41,14 @@ func (k Keeper) GetAllBlockedAddresses(
 		return nil, err
 	}
 
-	// Block all the validator addresses
+	// Block all the validator addresses.
 	for _, validator := range validators {
-		add, err := validator.GetConsAddr()
+		valAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
 		if err != nil {
 			return nil, err
 		}
-		k.blockedAddresses[sdk.AccAddress(add).String()] = true
+
+		k.blockedAddresses[sdk.AccAddress(valAddr.Bytes()).String()] = true
 	}
 
 	return k.blockedAddresses, nil
