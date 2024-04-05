@@ -33,6 +33,7 @@ var (
 	TestFrom1     = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 	TestFrom2     = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
 	TestFrom3     = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
+	TestFrom4     = "faulty-address"
 	TestFrom1Seq  = "fuelsequencer13hfdkxj5aeqzsll569mqreedkafp34ngcsjkqjmpq6prtgv80kcq83gttw"
 	TestFrom2Seq  = "fuelsequencer10xafxk7jmjpfeh6394mvysjaazcjhhtegz5hqlsswgurdqq0e75q9r9vmv"
 	TestFrom3Seq  = "fuelsequencer1ssymf5jyka89gsjc9famezv2lcsed7uldfq2z8tkmvg9q3etj2qquzra5n"
@@ -42,9 +43,12 @@ var (
 	TestTo1       = "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm"
 	TestTo2       = ""
 	TestTo3       = "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
-	TestDuration1 = "50"
-	TestDuration2 = "51"
-	TestDuration3 = "52"
+	TestTo4       = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
+	TestDuration1 = "31536050"
+	TestDuration2 = "31536051"
+	TestDuration3 = "31536052"
+	TestDuration4 = "abc"
+	TestDuration5 = "1"
 
 	// TestMessage1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1Eth. This was generated with the help
 	// of utils/proto_serialization_test.go.
@@ -112,6 +116,36 @@ var (
 		To:       TestTo3,
 		Duration: TestDuration3,
 	}
+	TestSendToSequencerEvent4 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount3,
+		To:       TestTo3,
+		Duration: TestDuration4,
+	}
+	TestSendToSequencerEvent5 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom4,
+		Amount:   TestAmount3,
+		To:       TestTo3,
+		Duration: TestDuration3,
+	}
+	TestSendToSequencerEvent6 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount3,
+		To:       TestTo2,
+		Duration: TestDuration5,
+	}
+	TestSendToSequencerEvent7 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount3,
+		To:       TestTo4,
+		Duration: TestDuration3,
+	}
+	TestSendToSequencerEvent8 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   "failed",
+		To:       TestTo4,
+		Duration: TestDuration3,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		From:    TestFrom1,
 		Message: testutils.MustHexDecodeString(TestMessage1),
@@ -127,6 +161,11 @@ var (
 	TestEvent1      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
 	TestEvent2      = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
 	TestEvent3      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
+	TestEvent4      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
+	TestEvent5      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
+	TestEvent6      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
+	TestEvent7      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
+	TestEvent8      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
 	TestEvents      = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEthEventsTx = &bridgetypes.EthEventsTx{
 		Events:           TestEvents,

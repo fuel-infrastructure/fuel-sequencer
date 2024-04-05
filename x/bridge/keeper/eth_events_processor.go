@@ -2,9 +2,15 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
+
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -12,18 +18,24 @@ import (
 
 // ProcessEthereumEvents processes the Ethereum events injected at lastEthereumBlockSynced
 func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
+
+	// Firstly retrieve the blockHeight we have last processed.
 	lastEthereumBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 
-	// Get EthEventsTx at lastEthereumBlockSynced
-	ethEventsTx, found := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
-	if !found {
-		// If EthEventsTx is not found then either the block has already been processed or no new events where generated
+	// Secondly retrieve the events from the last block height processed.
+	ethEventsTx, ok := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
+	if !ok {
+		// If no events are found at this block height then we can stop here.
 		return
 	}
 
-	// Get the module params
+	// Get the params as they are needed for events processing.
 	params := k.GetParams(ctx)
 
+	// Get SupplyDeltaInfo.
+	supplyDelta := k.MustGetSupplyDeltaInfo(ctx)
+
+	// Otherwise we begin processing these events according to the event type.
 	// Get all the blocked addresses.
 	blockedAddressesMap, err := k.GetAllBlockedAddresses(ctx, params.AdditionalBlockedAddresses)
 	if err != nil {
@@ -32,7 +44,8 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	}
 
 	for _, event := range ethEventsTx.Events {
-		// Unmarshal event queried from Sidecar to a parsedEvent
+
+		// Unmarshal the parsed event if possible.
 		parsedEvent, err := event.UnmarshalParsedEvent()
 		if err != nil {
 			// If an event cannot be unmarshalled to ParsedEvent ignore it and move on to the next event as there
@@ -46,7 +59,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		case *sidecartypes.SendToSequencerEvent:
 			// This doesn't error, so unless a panic occurs we will always be able to continue to the next event if some
 			// issue occurs
-			k.processDeposit(ctx, pe)
+			k.processSendToSequencerEvent(ctx, pe, &params, &supplyDelta)
 		case *sidecartypes.AuthorizeEvent:
 			// If an error occurs while processing an Authorize event we will move on to the next event without applying
 			// any state changes.
@@ -68,8 +81,158 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
 }
 
-// processDeposit attempts to process a Deposit signalled by a SendToSequencerEvent
-func (k Keeper) processDeposit(_ sdk.Context, _ *sidecartypes.SendToSequencerEvent) {}
+// processSendToSequencerEvent processes the send to sequencer events queried from the sidecar.
+// Deposits message cannot fail, so either the chain panics or we store the minted
+// tokens in the governance address. The only time processSendToSequencerEvent
+// can panic is if we cannot parse the `Amount` of tokens as we won't know how
+// many tokens have been processed.
+func (k Keeper) processSendToSequencerEvent(
+	ctx sdk.Context,
+	sendEvent *sidecartypes.SendToSequencerEvent,
+	params *types.Params,
+	supplyDeltaInfo *types.SupplyDeltaInfo,
+) {
+
+	// TODO: Check that the contract address matches the stored proxy contract address.
+
+	// Parse the data accordingly.
+	amount, success := sdkmath.NewIntFromString(sendEvent.Amount)
+	if !success {
+		// Panic if we've failed to unmarshal an amount, as something has gone wrong in the entire chain process.
+		k.Logger().Error("Bridge EndBlock: could not unmarshal amount to int from string")
+		panic("Bridge EndBlock: could not unmarshal amount to int from string")
+	}
+	tokenToMint := sdk.NewCoin(params.BridgeDenom, amount)
+	tokensToMint := sdk.NewCoins(tokenToMint)
+
+	// Check that the Duration can be converted from a string to sdk.Int
+	eventDuration, success := sdkmath.NewIntFromString(sendEvent.Duration)
+	if !success {
+		k.Logger().Error("Bridge EndBlock: could not unmarshal duration to int from string for duration %s", sendEvent.Duration)
+		k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
+		return
+	}
+
+	// Convert the duration in seconds to a vesting duration
+	vesting := time.Duration(eventDuration.Int64() * 1e9)
+
+	// Check that From is a valid hex address
+	if !common.IsHexAddress(sendEvent.From) {
+		k.Logger().Error(
+			"Bridge EndBlock: from address is not a valid hex address - minting to governance address instead",
+			"event", sendEvent,
+		)
+		k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
+		return
+	}
+
+	// sequencerAddr to be determined based on data provided in event.
+	var sequencerAddr sdk.AccAddress
+	var err error
+
+	// If a `To` address was not specified send tokens to the address mapped 1-to-1 fom the `From` Ethereum Address.
+	if len(strings.TrimSpace(sendEvent.To)) == 0 {
+		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, sendEvent.From, vesting, tokensToMint)
+		if err != nil {
+			k.Logger().Error(
+				"Bridge EndBlock: failed to generate sequencer account from ethereum address - minting to gov address",
+				"event", sendEvent, "err", err,
+			)
+			k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
+			return
+		}
+	} else {
+
+		// Otherwise process the To from a string to an AccAddress type.
+		sequencerAddr, err = sdk.AccAddressFromBech32(sendEvent.To)
+		if err != nil {
+			k.Logger().Error(
+				"Bridge EndBlock: to is not a valid Bech32 address - minting to gov address",
+				"event", sendEvent, "err", err,
+			)
+			k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
+			return
+		}
+	}
+
+	// Otherwise mint and send the coins to the specified user.
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, tokensToMint)
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to mint tokens to module", "err", err)
+		panic(err)
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sequencerAddr, tokensToMint)
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to send tokens from module to account", "err", err)
+
+		// Do not panic here because a receiver address could be blocked. Instead send the minted tokens to
+		// the governance account. If that fails we can then panic because it's a misconfiguration of the modules.
+		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, govtypes.ModuleName, tokensToMint)
+		if err != nil {
+			panic(fmt.Errorf("bridge endblock: failed to transfer bridge tokens to gov module account err: %s", err))
+		}
+
+	}
+
+	// Apply negative offset to supply delta offset
+	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(amount)
+	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
+
+	// Emit event once completed
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventProcessed{
+		From:     sendEvent.From,
+		To:       sequencerAddr.String(),
+		Amount:   tokenToMint,
+		Duration: vesting.String(),
+	})
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
+	}
+
+	k.Logger().Debug(
+		"Bridge EndBlock: minted bridge tokens to account",
+		"amount", tokenToMint.Amount, "address", sequencerAddr,
+	)
+}
+
+// mintToGovernanceAddress mints to the governance address in case of an error in normal processing.
+func (k Keeper) mintToGovernanceAddress(
+	ctx sdk.Context,
+	tokenToMint sdk.Coin,
+	sendEvent *sidecartypes.SendToSequencerEvent,
+	supplyDeltaInfo *types.SupplyDeltaInfo,
+) {
+
+	// tokensToMint is the new coins that will be minted
+	tokensToMint := sdk.NewCoins(tokenToMint)
+
+	// Mint bridged tokens to governance module address.
+	err := k.bankKeeper.MintCoins(ctx, govtypes.ModuleName, tokensToMint)
+	if err != nil {
+		panic(fmt.Errorf("bridge endblock: failed to mint bridge tokens to gov module account err: %s", err))
+	}
+
+	// Update supply delta to reflect the minting to the governance address.
+	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(tokenToMint.Amount)
+
+	// Save supply delta here after processing mints.
+	k.SetSupplyDeltaInfo(ctx, *supplyDeltaInfo)
+
+	// Marshal event details to bytes.
+	eventDetails, err := sendEvent.Marshal()
+	if err != nil {
+		panic(fmt.Errorf("bridge endblock: failed to marshal event details into bytes: %s", err))
+	}
+
+	// Emit event once completed.
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSendToSequencerEventFailed{EventDetails: eventDetails})
+	if err != nil {
+		k.Logger().Error("Bridge EndBlock: failed to emit event send to sequencer", "err", err)
+	}
+
+	k.Logger().Warn("minted bridge tokens to governance address", "amount", tokenToMint.Amount)
+}
 
 // processAuthorizeEvent attempts to process an AuthorizeEvent by executing all of its messages
 func (k Keeper) processAuthorizeEvent(

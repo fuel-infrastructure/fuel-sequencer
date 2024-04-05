@@ -19,7 +19,7 @@ message SendToSequencerEvent {
   string to = 3;
 
   // vesting duration encoded in string to prevent loss of precision. Sign is
-  // also preserved
+  // also preserved. This can be zero if no duration is specified.
   string duration = 4;
 }
 

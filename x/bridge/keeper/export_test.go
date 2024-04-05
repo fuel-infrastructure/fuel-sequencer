@@ -33,6 +33,15 @@ func (k Keeper) ProcessAuthorizeEvent(
 	return k.processAuthorizeEvent(ctx, event, bridgeParams, blockedAddresses)
 }
 
+func (k Keeper) ProcessSendToSequencerEvent(
+	ctx sdk.Context,
+	sendEvent *sidecartypes.SendToSequencerEvent,
+	params *types.Params,
+	supplyDeltaInfo *types.SupplyDeltaInfo,
+) {
+	k.processSendToSequencerEvent(ctx, sendEvent, params, supplyDeltaInfo)
+}
+
 // SetRouter is a testing utility which takes the existing keeper, sets its MsgServiceRouter and returns the modified
 // keeper
 func SetRouter(k Keeper, router *baseapp.MsgServiceRouter) Keeper {
