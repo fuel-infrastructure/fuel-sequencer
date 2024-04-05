@@ -193,6 +193,7 @@ type ModuleInputs struct {
 
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
+	StakingKeeper types.StakingKeeper
 
 	Router *baseapp.MsgServiceRouter
 }
@@ -205,6 +206,20 @@ type ModuleOutputs struct {
 }
 
 func ProvideModule(in ModuleInputs) ModuleOutputs {
+
+	// NOTE: The below implementation was taken from the code below:
+	// https://github.com/cosmos/cosmos-sdk/blob/main/x/bank/depinject.go#L48
+	// Default behavior for blockedModuleAddresses is to regard any module mentioned in
+	// AccountKeeper's module account permissions as blocked.
+	blockedModuleAddresses := make(map[string]bool)
+	for _, permission := range in.AccountKeeper.GetModulePermissions() {
+		addrStr, err := in.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
+		if err != nil {
+			panic(err)
+		}
+		blockedModuleAddresses[addrStr] = true
+	}
+
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	if in.Config.Authority != "" {
@@ -216,7 +231,9 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Logger,
 		in.BankKeeper,
 		in.AccountKeeper,
+		in.StakingKeeper,
 		authority.String(),
+		blockedModuleAddresses,
 		in.Router,
 	)
 	m := NewAppModule(
