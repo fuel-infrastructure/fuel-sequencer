@@ -1139,7 +1139,7 @@ type SendToSequencerEvent struct {
 	// recipient Ethereum address in hex format
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// vesting duration encoded in string to prevent loss of precision. Sign is
-	// also preserved
+	// also preserved. This can be zero if no duration is specified.
 	Duration string `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
 }
 

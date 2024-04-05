@@ -268,9 +268,9 @@ func TestDetectEthEventsTxSizeChange(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 465, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(465)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(464)) // just under enough
+	require.EqualValues(t, 477, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(477)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(476)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.
@@ -280,11 +280,11 @@ func TestDetectEthEventsTxSizeChange(t *testing.T) {
 func TestCorrelationBetweenSizeAndMarshalling(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
-	require.EqualValues(t, 465, tx.Size())
 
 	bz, err := tx.Marshal()
 	require.NoError(t, err)
-	require.EqualValues(t, 465, len(bz))
+
+	require.EqualValues(t, tx.Size(), len(bz))
 }
 
 func TestEthEventsTx_NumberOfEventsWithMaxBytes(t *testing.T) {

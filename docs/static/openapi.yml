@@ -8880,13 +8880,15 @@ paths:
               from:
                 type: string
                 description: >-
-                  from is the user address on FuelSequencer that is sending the
+                  from is the user address on Ethereum that is sending the
                   tokens.
               to:
                 type: string
                 description: >-
-                  to is the user address on Ethereum that will be receiving the
-                  tokens.
+                  to is the user address on FuelSequencer that will be receiving
+                  the tokens.
+
+                  Can be empty if no address is specified.
               amount:
                 description: >-
                   amount is the tokens being sent, which must be the expacted
@@ -8925,13 +8927,15 @@ paths:
               from:
                 type: string
                 description: >-
-                  from is the user address on FuelSequencer that is sending the
+                  from is the user address on Ethereum that is sending the
                   tokens.
               to:
                 type: string
                 description: >-
-                  to is the user address on Ethereum that will be receiving the
-                  tokens.
+                  to is the user address on FuelSequencer that will be receiving
+                  the tokens.
+
+                  Can be empty if no address is specified.
               amount:
                 description: >-
                   amount is the tokens being sent, which must be the expacted
@@ -13045,10 +13049,14 @@ definitions:
     properties:
       from:
         type: string
-        description: from is the user address on FuelSequencer that is sending the tokens.
+        description: from is the user address on Ethereum that is sending the tokens.
       to:
         type: string
-        description: to is the user address on Ethereum that will be receiving the tokens.
+        description: >-
+          to is the user address on FuelSequencer that will be receiving the
+          tokens.
+
+          Can be empty if no address is specified.
       amount:
         description: >-
           amount is the tokens being sent, which must be the expacted bridge
@@ -13067,10 +13075,14 @@ definitions:
         description: nonce uniquely identifies any message that we send to Ethereum.
       from:
         type: string
-        description: from is the user address on FuelSequencer that is sending the tokens.
+        description: from is the user address on Ethereum that is sending the tokens.
       to:
         type: string
-        description: to is the user address on Ethereum that will be receiving the tokens.
+        description: >-
+          to is the user address on FuelSequencer that will be receiving the
+          tokens.
+
+          Can be empty if no address is specified.
       amount:
         description: >-
           amount is the tokens being sent, which must be the expacted bridge

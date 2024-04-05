@@ -70,9 +70,10 @@ var xxx_messageInfo_EventSupplyDeltaReported proto.InternalMessageInfo
 type EventWithdrawToEthereumReported struct {
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce cosmossdk_io_math.Int `protobuf:"bytes,1,opt,name=nonce,proto3,customtype=cosmossdk.io/math.Int" json:"nonce"`
-	// from is the user address on FuelSequencer that is sending the tokens.
+	// from is the user address on Ethereum that is sending the tokens.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the user address on Ethereum that will be receiving the tokens.
+	// to is the user address on FuelSequencer that will be receiving the tokens.
+	// Can be empty if no address is specified.
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be the expacted bridge token.
 	Amount types.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount"`
@@ -132,40 +133,167 @@ func (m *EventWithdrawToEthereumReported) GetAmount() types.Coin {
 	return types.Coin{}
 }
 
+type EventSendToSequencerEventProcessed struct {
+	// from is the user address on Ethereum that is sending the tokens.
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// to is the user address on FuelSequencer that will be receiving the tokens.
+	// Can be empty if no address is specified.
+	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	// amount is the tokens being sent, which must be denominated in the expected
+	// bridge token.
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+	// vesting duration encoded in string to prevent loss of precision. Sign is
+	// also preserved. This can be zero if no duration is specified.
+	Duration string `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
+}
+
+func (m *EventSendToSequencerEventProcessed) Reset()         { *m = EventSendToSequencerEventProcessed{} }
+func (m *EventSendToSequencerEventProcessed) String() string { return proto.CompactTextString(m) }
+func (*EventSendToSequencerEventProcessed) ProtoMessage()    {}
+func (*EventSendToSequencerEventProcessed) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7fe1bf01b286796a, []int{2}
+}
+func (m *EventSendToSequencerEventProcessed) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventSendToSequencerEventProcessed) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventSendToSequencerEventProcessed.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventSendToSequencerEventProcessed) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventSendToSequencerEventProcessed.Merge(m, src)
+}
+func (m *EventSendToSequencerEventProcessed) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventSendToSequencerEventProcessed) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventSendToSequencerEventProcessed.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventSendToSequencerEventProcessed proto.InternalMessageInfo
+
+func (m *EventSendToSequencerEventProcessed) GetFrom() string {
+	if m != nil {
+		return m.From
+	}
+	return ""
+}
+
+func (m *EventSendToSequencerEventProcessed) GetTo() string {
+	if m != nil {
+		return m.To
+	}
+	return ""
+}
+
+func (m *EventSendToSequencerEventProcessed) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
+func (m *EventSendToSequencerEventProcessed) GetDuration() string {
+	if m != nil {
+		return m.Duration
+	}
+	return ""
+}
+
+type EventSendToSequencerEventFailed struct {
+	// event_details is the marshalled event that failed to be processed.
+	EventDetails []byte `protobuf:"bytes,1,opt,name=event_details,json=eventDetails,proto3" json:"event_details,omitempty"`
+}
+
+func (m *EventSendToSequencerEventFailed) Reset()         { *m = EventSendToSequencerEventFailed{} }
+func (m *EventSendToSequencerEventFailed) String() string { return proto.CompactTextString(m) }
+func (*EventSendToSequencerEventFailed) ProtoMessage()    {}
+func (*EventSendToSequencerEventFailed) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7fe1bf01b286796a, []int{3}
+}
+func (m *EventSendToSequencerEventFailed) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventSendToSequencerEventFailed) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventSendToSequencerEventFailed.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventSendToSequencerEventFailed) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventSendToSequencerEventFailed.Merge(m, src)
+}
+func (m *EventSendToSequencerEventFailed) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventSendToSequencerEventFailed) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventSendToSequencerEventFailed.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventSendToSequencerEventFailed proto.InternalMessageInfo
+
+func (m *EventSendToSequencerEventFailed) GetEventDetails() []byte {
+	if m != nil {
+		return m.EventDetails
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*EventSupplyDeltaReported)(nil), "fuelsequencer.bridge.EventSupplyDeltaReported")
 	proto.RegisterType((*EventWithdrawToEthereumReported)(nil), "fuelsequencer.bridge.EventWithdrawToEthereumReported")
+	proto.RegisterType((*EventSendToSequencerEventProcessed)(nil), "fuelsequencer.bridge.EventSendToSequencerEventProcessed")
+	proto.RegisterType((*EventSendToSequencerEventFailed)(nil), "fuelsequencer.bridge.EventSendToSequencerEventFailed")
 }
 
 func init() { proto.RegisterFile("fuelsequencer/bridge/events.proto", fileDescriptor_7fe1bf01b286796a) }
 
 var fileDescriptor_7fe1bf01b286796a = []byte{
-	// 395 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xbf, 0x6e, 0xd4, 0x40,
-	0x10, 0xc6, 0xbd, 0xc7, 0x11, 0x89, 0x0d, 0xa2, 0xb0, 0x82, 0xe4, 0xa4, 0xf0, 0x85, 0x54, 0x91,
-	0x50, 0x76, 0x15, 0x28, 0x68, 0x68, 0x38, 0x48, 0x91, 0x86, 0xc2, 0x20, 0x90, 0x68, 0xa2, 0xb5,
-	0x3d, 0xfe, 0x23, 0xec, 0x1d, 0xb3, 0x3b, 0x1b, 0xb8, 0xb7, 0xe0, 0x45, 0xe8, 0x78, 0x01, 0xba,
-	0x94, 0x11, 0x15, 0xa2, 0x88, 0xd0, 0xdd, 0x8b, 0x20, 0x7b, 0x7d, 0x77, 0xa2, 0x24, 0xdd, 0xcc,
-	0x37, 0xdf, 0xcc, 0xfc, 0xa4, 0x19, 0xfe, 0xa8, 0x70, 0xd0, 0x58, 0xf8, 0xe4, 0x40, 0x67, 0x60,
-	0x64, 0x6a, 0xea, 0xbc, 0x04, 0x09, 0x97, 0xa0, 0xc9, 0x8a, 0xce, 0x20, 0x61, 0xb8, 0xf7, 0x8f,
-	0x45, 0x78, 0xcb, 0xc1, 0x5e, 0x89, 0x25, 0x0e, 0x06, 0xd9, 0x47, 0xde, 0x7b, 0xb0, 0x9f, 0xa1,
-	0x6d, 0xd1, 0x5e, 0xf8, 0x82, 0x4f, 0xc6, 0x52, 0xec, 0x33, 0x99, 0x2a, 0x0b, 0xf2, 0xf2, 0x34,
-	0x05, 0x52, 0xa7, 0x32, 0xc3, 0x5a, 0xaf, 0x5b, 0x4b, 0xc4, 0xb2, 0x01, 0x39, 0x64, 0xa9, 0x2b,
-	0xa4, 0xd2, 0x0b, 0x5f, 0x3a, 0xfa, 0xc6, 0x78, 0x74, 0xd6, 0x23, 0xbd, 0x71, 0x5d, 0xd7, 0x2c,
-	0x5e, 0x41, 0x43, 0x2a, 0x81, 0x0e, 0x0d, 0x41, 0x1e, 0xbe, 0xe6, 0xf7, 0xed, 0x20, 0x5f, 0xe4,
-	0xbd, 0x1e, 0xb1, 0x43, 0x76, 0x7c, 0x6f, 0xfe, 0xf8, 0xea, 0x66, 0x16, 0xfc, 0xbe, 0x99, 0x3d,
-	0xf4, 0x5b, 0x6d, 0xfe, 0x51, 0xd4, 0x28, 0x5b, 0x45, 0x95, 0x38, 0xd7, 0xf4, 0xf3, 0xfb, 0x09,
-	0x1f, 0xe1, 0xce, 0x35, 0x25, 0xbb, 0x76, 0x3b, 0x37, 0x7c, 0xc1, 0xef, 0x6a, 0xd4, 0x19, 0x44,
-	0x93, 0xff, 0x1f, 0xe4, 0x3b, 0x8f, 0x7e, 0x30, 0x3e, 0x1b, 0x78, 0xdf, 0xd7, 0x54, 0xe5, 0x46,
-	0x7d, 0x7e, 0x8b, 0x67, 0x54, 0x81, 0x01, 0xd7, 0x6e, 0xb0, 0x37, 0x6b, 0xd8, 0x6d, 0xd7, 0x84,
-	0x21, 0x9f, 0x16, 0x06, 0x5b, 0x0f, 0x9a, 0x0c, 0x71, 0xf8, 0x80, 0x4f, 0x08, 0xa3, 0x3b, 0x83,
-	0x32, 0x21, 0x0c, 0x9f, 0xf1, 0x1d, 0xd5, 0xa2, 0xd3, 0x14, 0x4d, 0x0f, 0xd9, 0xf1, 0xee, 0x93,
-	0x7d, 0x31, 0xce, 0xe9, 0xcf, 0x20, 0xc6, 0x33, 0x88, 0x97, 0x58, 0xeb, 0xf9, 0xb4, 0x47, 0x48,
-	0x46, 0xfb, 0xfc, 0xdd, 0xd5, 0x32, 0x66, 0xd7, 0xcb, 0x98, 0xfd, 0x59, 0xc6, 0xec, 0xeb, 0x2a,
-	0x0e, 0xae, 0x57, 0x71, 0xf0, 0x6b, 0x15, 0x07, 0x1f, 0x9e, 0x97, 0x35, 0x55, 0x2e, 0x15, 0x19,
-	0xb6, 0xb2, 0x7f, 0x8d, 0x93, 0x5a, 0x17, 0x46, 0x59, 0x32, 0x2e, 0x23, 0x67, 0xc0, 0x6b, 0xdb,
-	0x97, 0xfa, 0xb2, 0x7e, 0x2a, 0x5a, 0x74, 0x60, 0xd3, 0x9d, 0xe1, 0xa4, 0x4f, 0xff, 0x06, 0x00,
-	0x00, 0xff, 0xff, 0xb0, 0x38, 0x73, 0x68, 0x79, 0x02, 0x00, 0x00,
+	// 477 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xbf, 0x6e, 0x13, 0x41,
+	0x10, 0xc6, 0xbd, 0x4e, 0x88, 0xc8, 0xc6, 0x50, 0x9c, 0x82, 0xe4, 0xb8, 0x38, 0x07, 0xd3, 0x44,
+	0x42, 0xb9, 0x55, 0xa0, 0xa0, 0xa1, 0xc1, 0x24, 0x91, 0xd2, 0x20, 0x74, 0x89, 0x40, 0xa2, 0xb1,
+	0xf6, 0x6e, 0xc7, 0xe7, 0x15, 0x77, 0x3b, 0x66, 0xff, 0x04, 0xfc, 0x16, 0xbc, 0x00, 0x8f, 0x40,
+	0xc7, 0x0b, 0xd0, 0xa5, 0x8c, 0xa8, 0x10, 0x45, 0x84, 0xec, 0x17, 0x41, 0xb7, 0x7b, 0x76, 0x84,
+	0x48, 0x13, 0xba, 0x9d, 0x6f, 0xbe, 0x9d, 0xf9, 0x69, 0x67, 0x87, 0x3e, 0x1c, 0x3b, 0x28, 0x0d,
+	0x7c, 0x70, 0xa0, 0x72, 0xd0, 0x2c, 0xd3, 0x52, 0x14, 0xc0, 0xe0, 0x1c, 0x94, 0x35, 0xc9, 0x54,
+	0xa3, 0xc5, 0x68, 0xfb, 0x2f, 0x4b, 0x12, 0x2c, 0xbd, 0xed, 0x02, 0x0b, 0xf4, 0x06, 0x56, 0x9f,
+	0x82, 0xb7, 0xb7, 0x93, 0xa3, 0xa9, 0xd0, 0x8c, 0x42, 0x22, 0x04, 0x4d, 0x2a, 0x0e, 0x11, 0xcb,
+	0xb8, 0x01, 0x76, 0x7e, 0x90, 0x81, 0xe5, 0x07, 0x2c, 0x47, 0xa9, 0x96, 0x57, 0x0b, 0xc4, 0xa2,
+	0x04, 0xe6, 0xa3, 0xcc, 0x8d, 0x19, 0x57, 0xb3, 0x90, 0x1a, 0x7c, 0x25, 0xb4, 0x7b, 0x54, 0x23,
+	0x9d, 0xba, 0xe9, 0xb4, 0x9c, 0x1d, 0x42, 0x69, 0x79, 0x0a, 0x53, 0xd4, 0x16, 0x44, 0xf4, 0x8a,
+	0x76, 0x8c, 0x97, 0x47, 0xa2, 0xd6, 0xbb, 0x64, 0x97, 0xec, 0x6d, 0x0e, 0x1f, 0x5f, 0x5c, 0xf5,
+	0x5b, 0xbf, 0xae, 0xfa, 0x0f, 0x42, 0x57, 0x23, 0xde, 0x27, 0x12, 0x59, 0xc5, 0xed, 0x24, 0x39,
+	0x51, 0xf6, 0xc7, 0xb7, 0x7d, 0xda, 0xc0, 0x9d, 0x28, 0x9b, 0x6e, 0x99, 0xeb, 0xba, 0xd1, 0x0b,
+	0x7a, 0x47, 0xa1, 0xca, 0xa1, 0xdb, 0xbe, 0x7d, 0xa1, 0x70, 0x73, 0xf0, 0x9d, 0xd0, 0xbe, 0xe7,
+	0x7d, 0x2b, 0xed, 0x44, 0x68, 0xfe, 0xf1, 0x0c, 0x8f, 0xec, 0x04, 0x34, 0xb8, 0x6a, 0x85, 0xbd,
+	0x6a, 0x43, 0xfe, 0xb7, 0x4d, 0x14, 0xd1, 0xf5, 0xb1, 0xc6, 0x2a, 0x80, 0xa6, 0xfe, 0x1c, 0xdd,
+	0xa7, 0x6d, 0x8b, 0xdd, 0x35, 0xaf, 0xb4, 0x2d, 0x46, 0xcf, 0xe8, 0x06, 0xaf, 0xd0, 0x29, 0xdb,
+	0x5d, 0xdf, 0x25, 0x7b, 0x5b, 0x4f, 0x76, 0x92, 0xa6, 0x4e, 0x3d, 0x86, 0xa4, 0x19, 0x43, 0xf2,
+	0x12, 0xa5, 0x1a, 0xae, 0xd7, 0x08, 0x69, 0x63, 0x1f, 0x7c, 0x21, 0x74, 0x10, 0xde, 0x1c, 0x94,
+	0x38, 0xc3, 0xd3, 0xe5, 0xfc, 0xbd, 0xf6, 0x5a, 0x63, 0x0e, 0xc6, 0x80, 0x58, 0x31, 0x90, 0x7f,
+	0x18, 0xda, 0x37, 0x30, 0xac, 0xdd, 0x8a, 0x21, 0xea, 0xd1, 0xbb, 0xc2, 0x69, 0x6e, 0x25, 0x2a,
+	0x8f, 0xbf, 0x99, 0xae, 0xe2, 0xc1, 0x71, 0xf3, 0xc4, 0x37, 0xe1, 0x1d, 0x73, 0x59, 0x82, 0x88,
+	0x1e, 0xd1, 0x7b, 0xfe, 0x23, 0x8f, 0x04, 0x58, 0x2e, 0x4b, 0xe3, 0x21, 0x3b, 0x69, 0xc7, 0x8b,
+	0x87, 0x41, 0x1b, 0xbe, 0xb9, 0x98, 0xc7, 0xe4, 0x72, 0x1e, 0x93, 0xdf, 0xf3, 0x98, 0x7c, 0x5e,
+	0xc4, 0xad, 0xcb, 0x45, 0xdc, 0xfa, 0xb9, 0x88, 0x5b, 0xef, 0x9e, 0x17, 0xd2, 0x4e, 0x5c, 0x96,
+	0xe4, 0x58, 0xb1, 0x7a, 0x05, 0xf6, 0xa5, 0x1a, 0x6b, 0x6e, 0xac, 0x76, 0xb9, 0x75, 0x1a, 0x82,
+	0x76, 0xbd, 0x3a, 0x9f, 0x96, 0xcb, 0x63, 0x67, 0x53, 0x30, 0xd9, 0x86, 0xff, 0xba, 0x4f, 0xff,
+	0x04, 0x00, 0x00, 0xff, 0xff, 0x9a, 0x77, 0x23, 0x84, 0x61, 0x03, 0x00, 0x00,
 }
 
 func (m *EventSupplyDeltaReported) Marshal() (dAtA []byte, err error) {
@@ -268,6 +396,90 @@ func (m *EventWithdrawToEthereumReported) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
+func (m *EventSendToSequencerEventProcessed) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventSendToSequencerEventProcessed) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventSendToSequencerEventProcessed) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Duration) > 0 {
+		i -= len(m.Duration)
+		copy(dAtA[i:], m.Duration)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Duration)))
+		i--
+		dAtA[i] = 0x22
+	}
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.To) > 0 {
+		i -= len(m.To)
+		copy(dAtA[i:], m.To)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.To)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventSendToSequencerEventFailed) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventSendToSequencerEventFailed) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventSendToSequencerEventFailed) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.EventDetails) > 0 {
+		i -= len(m.EventDetails)
+		copy(dAtA[i:], m.EventDetails)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.EventDetails)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -310,6 +522,42 @@ func (m *EventWithdrawToEthereumReported) Size() (n int) {
 	}
 	l = m.Amount.Size()
 	n += 1 + l + sovEvents(uint64(l))
+	return n
+}
+
+func (m *EventSendToSequencerEventProcessed) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.To)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = len(m.Duration)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventSendToSequencerEventFailed) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.EventDetails)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
 	return n
 }
 
@@ -595,6 +843,269 @@ func (m *EventWithdrawToEthereumReported) Unmarshal(dAtA []byte) error {
 			}
 			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventSendToSequencerEventProcessed) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventSendToSequencerEventProcessed: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventSendToSequencerEventProcessed: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.To = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Duration = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventSendToSequencerEventFailed) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventSendToSequencerEventFailed: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventSendToSequencerEventFailed: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EventDetails", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EventDetails = append(m.EventDetails[:0], dAtA[iNdEx:postIndex]...)
+			if m.EventDetails == nil {
+				m.EventDetails = []byte{}
 			}
 			iNdEx = postIndex
 		default:
