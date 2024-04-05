@@ -29,10 +29,12 @@ Testing and docs:
 - [ ] `make lint` to ensure linting rules satisfied.
 - [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
 - [ ] Run a local E2E setup to ensure the chain runs:
+  - Ensure you have correct variables at `e2e/test-contracts/.env`
   - `make build-eth-docker-image` to build the latest Ethereum image.
   - Terminal 1: `make install run-eth-docker-container run-sidecar`
   - Terminal 2: `make run-sequencer`
   - `make clean` once you're done.
 - [ ] Run E2E tests:
+  - Ensure you have correct variables at `e2e/test-contracts/.env`
   - `make build-eth-docker-image build-docker-image test-e2e`
   - `make clean` once you're done.
