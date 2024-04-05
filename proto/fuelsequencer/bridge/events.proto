@@ -34,10 +34,11 @@ message EventWithdrawToEthereumReported {
     (gogoproto.nullable) = false
   ];
 
-  // from is the user address on FuelSequencer that is sending the tokens.
+  // from is the user address on Ethereum that is sending the tokens.
   string from = 2;
 
-  // to is the user address on Ethereum that will be receiving the tokens.
+  // to is the user address on FuelSequencer that will be receiving the tokens.
+  // Can be empty if no address is specified.
   string to = 3;
 
   // amount is the tokens being sent, which must be the expacted bridge token.
@@ -48,7 +49,8 @@ message EventSendToSequencerEventProcessed {
   // from is the user address on Ethereum that is sending the tokens.
   string from = 1;
 
-  // to is the user address on Ethereum that will be receiving the tokens.
+  // to is the user address on FuelSequencer that will be receiving the tokens.
+  // Can be empty if no address is specified.
   string to = 2;
 
   // amount is the tokens being sent, which must be denominated in the expected

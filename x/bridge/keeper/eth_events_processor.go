@@ -29,7 +29,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		return
 	}
 
-	// Get the params as they are needed for the denom.
+	// Get the params as they are needed for events processing.
 	params := k.GetParams(ctx)
 
 	// Get SupplyDeltaInfo.

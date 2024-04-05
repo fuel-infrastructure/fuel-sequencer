@@ -70,9 +70,10 @@ var xxx_messageInfo_EventSupplyDeltaReported proto.InternalMessageInfo
 type EventWithdrawToEthereumReported struct {
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce cosmossdk_io_math.Int `protobuf:"bytes,1,opt,name=nonce,proto3,customtype=cosmossdk.io/math.Int" json:"nonce"`
-	// from is the user address on FuelSequencer that is sending the tokens.
+	// from is the user address on Ethereum that is sending the tokens.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the user address on Ethereum that will be receiving the tokens.
+	// to is the user address on FuelSequencer that will be receiving the tokens.
+	// Can be empty if no address is specified.
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be the expacted bridge token.
 	Amount types.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount"`
@@ -135,7 +136,8 @@ func (m *EventWithdrawToEthereumReported) GetAmount() types.Coin {
 type EventSendToSequencerEventProcessed struct {
 	// from is the user address on Ethereum that is sending the tokens.
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the user address on Ethereum that will be receiving the tokens.
+	// to is the user address on FuelSequencer that will be receiving the tokens.
+	// Can be empty if no address is specified.
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be denominated in the expected
 	// bridge token.
