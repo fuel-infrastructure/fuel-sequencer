@@ -18,7 +18,6 @@ func (k Keeper) ResetEthereumEventIndexOffset(ctx context.Context) {
 func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
-
 	b := sdk.Uint64ToBigEndian(ethereumEventIndexOffset)
 	store.Set([]byte{0}, b)
 }
