@@ -261,10 +261,10 @@ func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
 	}
 }
 
-// TestDetectEthEventsTxSizeChange ensures that if the size of testtypes.TestEthEventsTx changes, we get a failed test.
-// If this test fails, it is very important to re-evaluate whether the NumberOfEventsWithMaxBytes function is still
-// correctly implemented since this should mirror the Size function.
-func TestDetectEthEventsTxSizeChange(t *testing.T) {
+// TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize ensures that if the size of testtypes.TestEthEventsTx
+// changes, we get a failed test. If this test fails, it is very important to re-evaluate whether the
+// NumberOfEventsWithMaxBytes function is still correctly implemented since this should mirror the Size function.
+func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
