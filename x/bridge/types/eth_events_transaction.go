@@ -94,7 +94,7 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	// - New Ethereum block with no events - but since the offset is non-zero, we know that the current Ethereum block
 	//   being synced still has more events for us to consume, so this case is invalid.
 	// - No new Ethereum block - but since the offset is non-zero, we know that the current Ethereum block exists, and
-	//   we expect to receive the remaining events. We know that there is a new Ethereum block, so this case is invalid.
+	//   we expect to receive the remaining events. The current block is a new Ethereum block, so this case is invalid.
 	// - An error occurred and AdvanceSequencer is false - but we know that AdvanceSequencer is true because we checked
 	//   it above. If AdvanceSequencer was false we would not have an EthEventsTx, so this case is invalid.
 	if eventIndexOffset > 0 && len(m.Events) == 0 {
