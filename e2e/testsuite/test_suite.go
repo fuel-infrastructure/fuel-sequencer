@@ -5,7 +5,6 @@ package testsuite
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -15,21 +14,12 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-	cmjson "github.com/cometbft/cometbft/libs/json"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/suite"
@@ -48,7 +38,7 @@ func init() {
 const (
 	BridgeDenom       = "ufuel"
 	minGasPrices      = "0.01"
-	SupplyDeltaPeriod = uint64(99999) // TODO: make customisable // TODO
+	SupplyDeltaPeriod = uint64(99999) // TODO: make customisable
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
@@ -267,101 +257,6 @@ func (s *E2ETestSuite) initEthereumNodes(mnemonics []string) {
 		} else {
 			s.Require().NoError(val.generateEthereumKey())
 		}
-	}
-}
-
-func (s *E2ETestSuite) initFuelSequencerGenesis() {
-	serverCtx := server.NewDefaultContext()
-	config := serverCtx.Config
-
-	config.SetRoot(s.Chain.validators[0].configDir())
-	config.Moniker = s.Chain.validators[0].moniker
-
-	genFilePath := config.GenesisFile()
-	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
-	s.Require().NoError(err)
-
-	// set short voting period to allow gov proposals in tests
-	var govGenState govtypesv1.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
-	votingPeriod := governanceVotingPeriod
-	govGenState.Params.VotingPeriod = &votingPeriod
-	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	bz, err := cdc.MarshalJSON(&govGenState)
-	s.Require().NoError(err)
-	appGenState[govtypes.ModuleName] = bz
-
-	// set mint denom
-	var mintGenState minttypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
-	mintGenState.Params.InflationMax = math.LegacyZeroDec()
-	mintGenState.Params.InflationMin = math.LegacyZeroDec()
-	mintGenState.Params.InflationRateChange = math.LegacyZeroDec()
-	mintGenState.Minter.Inflation = math.LegacyZeroDec()
-	bz, err = cdc.MarshalJSON(&mintGenState)
-	s.Require().NoError(err)
-	appGenState[minttypes.ModuleName] = bz
-
-	// TODO: genesis supply will be incorrect if we add more accounts
-	var bankGenState banktypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := int64(len(s.Chain.validators) * initBalance)
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
-	bz, err = cdc.MarshalJSON(&bankGenState)
-	s.Require().NoError(err)
-	appGenState[banktypes.ModuleName] = bz
-
-	var bridgeGenState bridgetypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
-	bridgeGenState.Params.BridgeDenom = BridgeDenom
-	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
-	bz, err = cdc.MarshalJSON(&bridgeGenState)
-	s.Require().NoError(err)
-	appGenState[bridgetypes.ModuleName] = bz
-
-	var genUtilGenState genutiltypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
-
-	// generate genesis txs
-	genTxs := make([]json.RawMessage, len(s.Chain.validators))
-	for i, val := range s.Chain.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
-		s.Require().NoError(err)
-
-		signedTx, err := val.signMsg(createValmsg)
-		s.Require().NoError(err)
-
-		txRaw, err := cdc.MarshalJSON(signedTx)
-		s.Require().NoError(err)
-
-		genTxs[i] = txRaw
-	}
-
-	genUtilGenState.GenTxs = genTxs
-
-	bz, err = cdc.MarshalJSON(&genUtilGenState)
-	s.Require().NoError(err)
-	appGenState[genutiltypes.ModuleName] = bz
-
-	// Apply any genesis overrides
-	if s.GenesisOverrides != nil {
-		err = (*s.GenesisOverrides)(cdc, appGenState)
-		s.Require().NoError(err)
-	}
-
-	// serialize genesis state
-	bz, err = json.MarshalIndent(appGenState, "", "  ")
-	s.Require().NoError(err)
-
-	genDoc.AppState = bz
-
-	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
-	s.Require().NoError(err)
-
-	// write the updated genesis file to each validator
-	for _, val := range s.Chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
 	}
 }
 

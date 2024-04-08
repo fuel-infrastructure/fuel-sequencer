@@ -26,13 +26,13 @@ func (s *E2ETestSuite) QueryLastEthereumBlockSynced(ctx context.Context) uint64 
 func (s *E2ETestSuite) PollForEthereumEventIndexOffset(
 	ctx context.Context, deltaBlocks uint64, ethereumEventIndexOffset uint64,
 ) {
-	h, err := s.chain.FuelSequencerHeight(ctx)
+	h, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 
 	s.T().Log(fmt.Sprintf("Polling for Ethereum event index offset %d", ethereumEventIndexOffset))
 
 	doPoll := func(ctx context.Context, height uint64) (any, error) {
-		offset, err := s.chain.grpcClients.BridgeQueryClient.EthereumEventIndexOffset(ctx,
+		offset, err := s.Chain.grpcClients.BridgeQueryClient.EthereumEventIndexOffset(ctx,
 			&bridgetypes.QueryGetEthereumEventIndexOffsetRequest{},
 		)
 		if err != nil {
@@ -44,7 +44,7 @@ func (s *E2ETestSuite) PollForEthereumEventIndexOffset(
 		return nil, nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.chain.FuelSequencerHeight, PollFunc: doPoll}
+	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "exact offset not found in expected number of blocks")
 }

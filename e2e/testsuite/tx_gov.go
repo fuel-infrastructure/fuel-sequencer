@@ -41,7 +41,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
 	s.govProposalIdCounter += 1
 
 	// Vote yes from all validators
-	for _, val := range s.chain.validators {
+	for _, val := range s.Chain.validators {
 		msgVote := govtypesv1.NewMsgVote(val.address(), proposalId, govtypesv1.VoteOption_VOTE_OPTION_YES, "")
 		resp, err = s.SubmitMsgsFrom(val, msgVote)
 		s.Require().NoError(err)

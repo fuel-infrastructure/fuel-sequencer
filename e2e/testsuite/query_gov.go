@@ -62,7 +62,7 @@ func (s *E2ETestSuite) QueryGovTallyParams(ctx context.Context) *govtypesv1.Para
 func (s *E2ETestSuite) PollForProposalStatus(
 	ctx context.Context, deltaBlocks uint64, proposalID uint64, status govtypesv1.ProposalStatus,
 ) {
-	h, err := s.chain.FuelSequencerHeight(ctx)
+	h, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 
 	s.T().Log(fmt.Sprintf("Polling for status %s of proposal %d", status, proposalID))
@@ -79,7 +79,7 @@ func (s *E2ETestSuite) PollForProposalStatus(
 		return nil, nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.chain.FuelSequencerHeight, PollFunc: doPoll}
+	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "status not found in expected number of blocks")
 }
