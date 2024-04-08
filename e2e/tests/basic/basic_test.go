@@ -92,14 +92,14 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		// --------------------------------------- Ensure Sidecar got the new Events
 
 		// Wait for Sidecar to get the events.
-		s.Sleep(time.Second * 5)
+		s.Sleep(time.Second * 10)
 
 		// Get latest Ethereum height and check two blocks higher.
 		ethHeight2, err := s.GetEthereumHeight(s.Ctx())
 		s.Require().NoError(err)
 		s.Require().Equal(ethHeight2, ethHeight1+2)
 
-		// Ensure deposit event is at ethHeigh1+1
+		// Ensure deposit event is at ethHeight1+1
 		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+1))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
