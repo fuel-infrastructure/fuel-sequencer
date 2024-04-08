@@ -38,7 +38,7 @@ func init() {
 const (
 	BridgeDenom       = "ufuel"
 	minGasPrices      = "0.01"
-	SupplyDeltaPeriod = uint64(99999) // TODO: make customisable
+	SupplyDeltaPeriod = uint64(10)
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
