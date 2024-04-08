@@ -178,7 +178,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
-	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
+	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz

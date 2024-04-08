@@ -38,7 +38,7 @@ func init() {
 const (
 	BridgeDenom       = "ufuel"
 	minGasPrices      = "0.01"
-	SupplyDeltaPeriod = uint64(10)
+	supplyDeltaPeriod = uint64(10) // default - can be overridden
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
@@ -53,7 +53,7 @@ const (
 	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
 	ethereumDockerImageTag  = "latest"
 
-	governanceVotingPeriod           = time.Second * 5
+	governanceVotingPeriod           = time.Second * 5 // default - can be overridden
 	blocksToWaitForGovProposalToPass = uint64(10)
 
 	succinctXOperatorDockerImageRepo = "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
