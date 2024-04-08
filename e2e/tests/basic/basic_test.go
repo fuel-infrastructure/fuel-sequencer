@@ -68,7 +68,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 1000)
 		s.Require().Error(err)
 
-		// --------------------------------------- Ethereum queries
+		// --------------------------------------- Ethereum queries and transactions
 
 		// Try getting height (RPC).
 		ethHeight1, err := s.GetEthereumHeight(s.Ctx())
@@ -134,12 +134,11 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 			Message: someBytes,
 		}))
 
-		// --------------------------------------- PreBlocker
+		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
 
-		// TODO: Ensure that the Sequencer is synced up. (once we have PreBlocker logic)
-		//err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
-		//s.Require().NoError(err)
-		//lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
-		//s.Require().Equal(ethHeight2, lastEthereumBlockSynced)
+		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		s.Require().NoError(err)
+		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)
 	})
 }

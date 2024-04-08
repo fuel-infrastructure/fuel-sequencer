@@ -12,21 +12,21 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestQueryLastEthereumBlockSynced(t *testing.T) {
+func TestQueryEthereumEventIndexOffset(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := uint64(10)
 
-	keeper.SetLastEthereumBlockSynced(ctx, value)
+	keeper.SetEthereumEventIndexOffset(ctx, value)
 	tests := []struct {
 		desc     string
-		request  *types.QueryGetLastEthereumBlockSyncedRequest
-		response *types.QueryGetLastEthereumBlockSyncedResponse
+		request  *types.QueryGetEthereumEventIndexOffsetRequest
+		response *types.QueryGetEthereumEventIndexOffsetResponse
 		err      error
 	}{
 		{
 			desc:     "ValidRequest",
-			request:  &types.QueryGetLastEthereumBlockSyncedRequest{},
-			response: &types.QueryGetLastEthereumBlockSyncedResponse{Block: value},
+			request:  &types.QueryGetEthereumEventIndexOffsetRequest{},
+			response: &types.QueryGetEthereumEventIndexOffsetResponse{Offset: value},
 		},
 		{
 			desc: "InvalidRequest",
@@ -35,7 +35,7 @@ func TestQueryLastEthereumBlockSynced(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.LastEthereumBlockSynced(ctx, tc.request)
+			response, err := keeper.EthereumEventIndexOffset(ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {

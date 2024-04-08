@@ -14,7 +14,7 @@ import (
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *BasicTestSuite) TestWithdrawalWithMockedSuccinct() {
+func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
 
 		// --------------------------------------- User withdraws on the Sequencer

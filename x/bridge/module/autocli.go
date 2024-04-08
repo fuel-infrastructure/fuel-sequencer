@@ -43,6 +43,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "show-supply-delta-processed",
 					Short:     "show supply-delta-processed",
 				},
+				{
+					RpcMethod: "EthereumEventIndexOffset",
+					Use:       "show-ethereum-event-index-offset",
+					Short:     "show ethereum-event-index-offset",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

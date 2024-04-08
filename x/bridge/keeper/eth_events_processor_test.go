@@ -37,7 +37,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				Events:           []*sidecartypes.Event{testtypes.TestEvent2, testtypes.TestEvent2},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expFromBalance: sdkmath.NewInt(999980),
 			expToBalance:   sdkmath.NewInt(20),
@@ -51,7 +51,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expFromBalance: sdkmath.NewInt(999990),
 			expToBalance:   sdkmath.NewInt(10),
@@ -70,7 +70,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			expFromBalance: sdkmath.NewInt(999990),
 			expToBalance:   sdkmath.NewInt(10),
@@ -95,13 +95,13 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 
 			// Set EthEventsTx
 			s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *tc.ethEventsTx)
-			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber.Uint64())
+			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
 			s.Require().True(found)
 
 			s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
 
 			// Make sure that EthEventsTx has been removed
-			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber.Uint64())
+			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
 			s.Require().False(found)
 
 			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvents were
@@ -481,7 +481,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -501,7 +501,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -520,7 +520,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccTwo,
 			toAcc:          nil,
@@ -540,7 +540,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccTwo,
 			toAcc:          nil,
@@ -559,7 +559,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -578,7 +578,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -597,7 +597,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          nil,
@@ -616,7 +616,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
-				BlockNumber:      sdkmath.OneInt(),
+				BlockNumber:      1,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -646,13 +646,13 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 
 			// Set EthEventsTx
 			s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *tc.ethEventsTx)
-			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber.Uint64())
+			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
 			s.Require().True(found)
 
 			s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
 
 			// Make sure that EthEventsTx has been removed
-			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber.Uint64())
+			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
 			s.Require().False(found)
 
 			// Confirm that the balances were changed as specified. This indicates that the AuthorizedEvents were
@@ -688,7 +688,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent_AmountPa
 		},
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
 	s.SetupTest() // Reset the test suite
 
@@ -705,7 +705,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent_AmountPa
 
 	// Set the malformed EthEventsTx
 	s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *ethEventsTx)
-	_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), ethEventsTx.BlockNumber.Uint64())
+	_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), ethEventsTx.BlockNumber)
 	s.Require().True(found)
 
 	// Trigger the processing of the Ethereum events

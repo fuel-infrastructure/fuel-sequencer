@@ -196,7 +196,7 @@ func (s *SidecarImpl) fetchLastSyncedEthereumBlock(ctx context.Context) (*big.In
 	}
 
 	lastSyncedBlock := new(big.Int)
-	lastSyncedBlock.SetString(resp.Block, 10)
+	lastSyncedBlock.SetUint64(resp.Block)
 
 	return lastSyncedBlock, nil
 }

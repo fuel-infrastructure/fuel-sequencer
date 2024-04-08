@@ -22,6 +22,7 @@ const (
 	Query_Params_FullMethodName                              = "/fuelsequencer.bridge.Query/Params"
 	Query_LastEthereumNonce_FullMethodName                   = "/fuelsequencer.bridge.Query/LastEthereumNonce"
 	Query_LastEthereumBlockSynced_FullMethodName             = "/fuelsequencer.bridge.Query/LastEthereumBlockSynced"
+	Query_EthereumEventIndexOffset_FullMethodName            = "/fuelsequencer.bridge.Query/EthereumEventIndexOffset"
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.Query/SupplyDeltaInfo"
 	Query_EthEventsTxByBlockNumber_FullMethodName            = "/fuelsequencer.bridge.Query/EthEventsTxByBlockNumber"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.Query/SequencerAddressFromEthereumAddress"
@@ -38,6 +39,8 @@ type QueryClient interface {
 	LastEthereumNonce(ctx context.Context, in *QueryGetLastEthereumNonceRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumNonceResponse, error)
 	// Queries the LastEthereumBlockSynced.
 	LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error)
+	// Queries the EthereumEventIndexOffset.
+	EthereumEventIndexOffset(ctx context.Context, in *QueryGetEthereumEventIndexOffsetRequest, opts ...grpc.CallOption) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
 	// EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
@@ -77,6 +80,15 @@ func (c *queryClient) LastEthereumNonce(ctx context.Context, in *QueryGetLastEth
 func (c *queryClient) LastEthereumBlockSynced(ctx context.Context, in *QueryGetLastEthereumBlockSyncedRequest, opts ...grpc.CallOption) (*QueryGetLastEthereumBlockSyncedResponse, error) {
 	out := new(QueryGetLastEthereumBlockSyncedResponse)
 	err := c.cc.Invoke(ctx, Query_LastEthereumBlockSynced_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) EthereumEventIndexOffset(ctx context.Context, in *QueryGetEthereumEventIndexOffsetRequest, opts ...grpc.CallOption) (*QueryGetEthereumEventIndexOffsetResponse, error) {
+	out := new(QueryGetEthereumEventIndexOffsetResponse)
+	err := c.cc.Invoke(ctx, Query_EthereumEventIndexOffset_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -129,6 +141,8 @@ type QueryServer interface {
 	LastEthereumNonce(context.Context, *QueryGetLastEthereumNonceRequest) (*QueryGetLastEthereumNonceResponse, error)
 	// Queries the LastEthereumBlockSynced.
 	LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error)
+	// Queries the EthereumEventIndexOffset.
+	EthereumEventIndexOffset(context.Context, *QueryGetEthereumEventIndexOffsetRequest) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
 	// EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
@@ -152,6 +166,9 @@ func (UnimplementedQueryServer) LastEthereumNonce(context.Context, *QueryGetLast
 }
 func (UnimplementedQueryServer) LastEthereumBlockSynced(context.Context, *QueryGetLastEthereumBlockSyncedRequest) (*QueryGetLastEthereumBlockSyncedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthereumBlockSynced not implemented")
+}
+func (UnimplementedQueryServer) EthereumEventIndexOffset(context.Context, *QueryGetEthereumEventIndexOffsetRequest) (*QueryGetEthereumEventIndexOffsetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EthereumEventIndexOffset not implemented")
 }
 func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaInfo not implemented")
@@ -228,6 +245,24 @@ func _Query_LastEthereumBlockSynced_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).LastEthereumBlockSynced(ctx, req.(*QueryGetLastEthereumBlockSyncedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_EthereumEventIndexOffset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetEthereumEventIndexOffsetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).EthereumEventIndexOffset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_EthereumEventIndexOffset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).EthereumEventIndexOffset(ctx, req.(*QueryGetEthereumEventIndexOffsetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -322,6 +357,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LastEthereumBlockSynced",
 			Handler:    _Query_LastEthereumBlockSynced_Handler,
+		},
+		{
+			MethodName: "EthereumEventIndexOffset",
+			Handler:    _Query_EthereumEventIndexOffset_Handler,
 		},
 		{
 			MethodName: "SupplyDeltaInfo",

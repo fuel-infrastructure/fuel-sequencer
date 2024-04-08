@@ -14,12 +14,13 @@ const (
 )
 
 var (
-	ParamsKey                  = []byte("p_bridge")
-	EthEventsTxPrefixKey       = []byte("eth_events_tx")
-	SupplyDeltaInfoKey         = []byte("supply_delta_info")
-	LastEthereumNonceKey       = []byte("LastEthereumNonce")
-	LastEthereumBlockSyncedKey = []byte("LastEthereumBlockSynced")
-	SupplyDeltaProcessedKey    = []byte("SupplyDeltaProcessed")
+	ParamsKey                   = []byte("p_bridge")
+	EthEventsTxPrefixKey        = []byte("eth_events_tx")
+	SupplyDeltaInfoKey          = []byte("supply_delta_info")
+	LastEthereumNonceKey        = []byte("LastEthereumNonce")
+	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
+	EthereumEventIndexOffsetKey = []byte("EthereumEventIndexOffset")
+	SupplyDeltaProcessedKey     = []byte("SupplyDeltaProcessed")
 )
 
 func KeyPrefix(p string) []byte {

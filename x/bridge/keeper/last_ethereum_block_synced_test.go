@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
@@ -12,7 +11,7 @@ import (
 
 func TestGetLastEthereumBlockSynced(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
-	value := math.NewInt(10)
+	value := uint64(10)
 
 	keeper.SetLastEthereumBlockSynced(ctx, value)
 	rst, found := keeper.GetLastEthereumBlockSynced(ctx)
@@ -25,7 +24,7 @@ func TestGetLastEthereumBlockSynced(t *testing.T) {
 
 func TestRemoveLastEthereumBlockSynced(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
-	value := math.NewInt(10)
+	value := uint64(10)
 
 	keeper.SetLastEthereumBlockSynced(ctx, value)
 	keeper.RemoveLastEthereumBlockSynced(ctx)
