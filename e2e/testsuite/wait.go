@@ -16,7 +16,7 @@ func (s *E2ETestSuite) Sleep(duration time.Duration) {
 // If a ChainHeighter does not monotonically increase the height, this function may block program execution indefinitely.
 func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
 
-	start, err := s.chain.FuelSequencerHeight(ctx)
+	start, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 	end := start + uint64(delta)
 
@@ -25,7 +25,7 @@ func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfte
 	go func() {
 		for {
 			time.Sleep(time.Second)
-			latest, err := s.chain.FuelSequencerHeight(ctx)
+			latest, err := s.Chain.FuelSequencerHeight(ctx)
 			s.Require().NoError(err)
 			if latest >= end {
 				close(done)
@@ -40,5 +40,26 @@ func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfte
 		return errors.New(fmt.Sprintf("timed out waiting for %d blocks", delta))
 	case <-done:
 		return nil
+	}
+}
+
+func WaitForCondition(timeoutAfter, pollingInterval time.Duration, fn func() (bool, error)) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("failed waiting for condition after %f seconds", timeoutAfter.Seconds())
+		case <-time.After(pollingInterval):
+			reachedCondition, err := fn()
+			if err != nil {
+				return fmt.Errorf("error occurred while waiting for condition: %s", err)
+			}
+
+			if reachedCondition {
+				return nil
+			}
+		}
 	}
 }

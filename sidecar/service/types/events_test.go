@@ -3,11 +3,23 @@ package types_test
 import (
 	"testing"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/stretchr/testify/require"
 )
+
+func TestEventHashFnsAreAsExpected(t *testing.T) {
+
+	expect := crypto.Keccak256Hash([]byte("SendToSequencerEvent(address,uint256,string,uint256)")).Hex()
+	actual := types.SendToSequencerEventHashFn
+	require.Equal(t, expect, actual)
+
+	expect = crypto.Keccak256Hash([]byte("AuthorizeEvent(address,bytes)")).Hex()
+	actual = types.AuthorizeEventHashFn
+	require.Equal(t, expect, actual)
+}
 
 func TestParsedEvent_Equal(t *testing.T) {
 	var nilSendToSequencerEvent *types.SendToSequencerEvent = nil
