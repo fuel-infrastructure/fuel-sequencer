@@ -23,7 +23,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
 			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod),
+			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
@@ -33,10 +33,21 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
 			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod * 4),
+			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod * 4), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
+		},
+		{
+			name:              "invalid MsgSupplyDelta - block height not at the right height",
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			lastEthereumNonce: testtypes.TestLastEthereumNonce,
+			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
+			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod + 1), // height % period != 0
+			msg: &bridgetypes.MsgSupplyDelta{
+				Authority: testtypes.TestGovernanceAddress,
+			},
+			expErrMsg: "MsgSupplyDelta cannot be submitted at height 101",
 		},
 		{
 			name:              "invalid MsgSupplyDelta - invalid authority",
