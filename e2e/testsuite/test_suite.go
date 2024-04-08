@@ -1089,7 +1089,7 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 
 	execOptions := dockertest.ExecOptions{
 		Env: []string{
-			"ETHEREUM_RPC_URL=http://ethereum:8545",
+			"RPC_URL=http://ethereum:8545",
 			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
 			"GUARDIAN_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // Can be anything
 			fmt.Sprintf("GENESIS_HEIGHT=%d", genesisHeight),
