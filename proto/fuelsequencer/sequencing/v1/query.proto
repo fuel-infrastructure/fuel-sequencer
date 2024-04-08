@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package fuelsequencer.sequencing;
+package fuelsequencer.sequencing.v1;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
@@ -17,19 +17,19 @@ service Query {
 
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/fuelsequencer/sequencing/params";
+    option (google.api.http).get = "/fuelsequencer/sequencing/v1/params";
   }
 
   // Queries a Topic by Id.
   rpc Topic(QueryGetTopicRequest) returns (QueryGetTopicResponse) {
     option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/sequencing/topic/{id}";
+        "/fuel-infrastructure/fuel-sequencer/sequencing/v1/topic/{id}";
   }
 
   // Queries all Topics.
   rpc TopicAll(QueryAllTopicRequest) returns (QueryAllTopicResponse) {
     option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/sequencing/topic";
+        "/fuel-infrastructure/fuel-sequencer/sequencing/v1/topic";
   }
 }
 

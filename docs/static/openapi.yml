@@ -8262,10 +8262,10 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
-  /fuel-infrastructure/fuel-sequencer/bridge/eth_events_tx/{block_number}:
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/eth_events_tx/{block_number}:
     get:
       summary: EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
-      operationId: FuelsequencerBridgeQuery_EthEventsTxByBlockNumber
+      operationId: FuelsequencerBridgeV1Query_EthEventsTxByBlockNumber
       responses:
         '200':
           description: A successful response.
@@ -8350,10 +8350,10 @@ paths:
           type: string
       tags:
         - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced:
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/last_ethereum_block_synced:
     get:
       summary: Queries the LastEthereumBlockSynced.
-      operationId: FuelsequencerBridgeQuery_LastEthereumBlockSynced
+      operationId: FuelsequencerBridgeV1Query_LastEthereumBlockSynced
       responses:
         '200':
           description: A successful response.
@@ -8382,10 +8382,10 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce:
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/last_ethereum_nonce:
     get:
       summary: Queries the LastEthereumNonce.
-      operationId: FuelsequencerBridgeQuery_LastEthereumNonce
+      operationId: FuelsequencerBridgeV1Query_LastEthereumNonce
       responses:
         '200':
           description: A successful response.
@@ -8414,10 +8414,10 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/sequencer_address_from_ethereum_address/{ethereum_address}:
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/sequencer_address_from_ethereum_address/{ethereum_address}:
     get:
       summary: Queries a list of SequencerAddressFromEthereumAddress items.
-      operationId: FuelsequencerBridgeQuery_SequencerAddressFromEthereumAddress
+      operationId: FuelsequencerBridgeV1Query_SequencerAddressFromEthereumAddress
       responses:
         '200':
           description: A successful response.
@@ -8451,10 +8451,10 @@ paths:
           type: string
       tags:
         - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info:
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_info:
     get:
       summary: Queries the SupplyDeltaInfo.
-      operationId: FuelsequencerBridgeQuery_SupplyDeltaInfo
+      operationId: FuelsequencerBridgeV1Query_SupplyDeltaInfo
       responses:
         '200':
           description: A successful response.
@@ -8510,10 +8510,10 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/supply_delta_processed:
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed:
     get:
       summary: Queries a SupplyDeltaProcessed by index.
-      operationId: FuelsequencerBridgeQuery_SupplyDeltaProcessed
+      operationId: FuelsequencerBridgeV1Query_SupplyDeltaProcessed
       responses:
         '200':
           description: A successful response.
@@ -8545,10 +8545,10 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuelsequencer/bridge/params:
+  /fuelsequencer/bridge/v1/params:
     get:
       summary: Parameters queries the parameters of the module.
-      operationId: FuelsequencerBridgeQuery_Params
+      operationId: FuelsequencerBridgeV1Query_Params
       responses:
         '200':
           description: A successful response.
@@ -8643,12 +8643,12 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuelsequencer.bridge.Msg/SupplyDelta:
+  /fuelsequencer.bridge.v1.Msg/SupplyDelta:
     post:
       summary: |-
         SupplyDelta defines an operation for submitting a report to Ethereum
         about changes in supply of the bridged token.
-      operationId: FuelsequencerBridgeMsg_SupplyDelta
+      operationId: FuelsequencerBridgeV1Msg_SupplyDelta
       responses:
         '200':
           description: A successful response.
@@ -8699,12 +8699,12 @@ paths:
                   signer.
       tags:
         - Msg
-  /fuelsequencer.bridge.Msg/UpdateParams:
+  /fuelsequencer.bridge.v1.Msg/UpdateParams:
     post:
       summary: |-
         UpdateParams defines a (governance) operation for updating the module
         parameters. The authority defaults to the x/gov module account.
-      operationId: FuelsequencerBridgeMsg_UpdateParams
+      operationId: FuelsequencerBridgeV1Msg_UpdateParams
       responses:
         '200':
           description: A successful response.
@@ -8816,10 +8816,10 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
-  /fuelsequencer.bridge.Msg/WithdrawToEthereum:
+  /fuelsequencer.bridge.v1.Msg/WithdrawToEthereum:
     post:
       summary: WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
-      operationId: FuelsequencerBridgeMsg_WithdrawToEthereum
+      operationId: FuelsequencerBridgeV1Msg_WithdrawToEthereum
       responses:
         '200':
           description: A successful response.
@@ -8902,12 +8902,12 @@ paths:
                     type: string
       tags:
         - Msg
-  /fuelsequencer.sequencing.Msg/PostBlob:
+  /fuelsequencer.sequencing.v1.Msg/PostBlob:
     post:
       summary: >-
         PostBlob defines an operation for posting ordered data at a specific
         topic.
-      operationId: FuelsequencerSequencingMsg_PostBlob
+      operationId: FuelsequencerSequencingV1Msg_PostBlob
       responses:
         '200':
           description: A successful response.
@@ -8978,12 +8978,12 @@ paths:
                 description: data is the blob data bytes.
       tags:
         - Msg
-  /fuelsequencer.sequencing.Msg/UpdateParams:
+  /fuelsequencer.sequencing.v1.Msg/UpdateParams:
     post:
       summary: |-
         UpdateParams defines a (governance) operation for updating the module
         parameters. The authority defaults to the x/gov module account.
-      operationId: FuelsequencerSequencingMsg_UpdateParams
+      operationId: FuelsequencerSequencingV1Msg_UpdateParams
       responses:
         '200':
           description: A successful response.
@@ -12663,7 +12663,37 @@ definitions:
 
           from unauthorized control actions.
     description: Params defines the parameters for the module.
-  fuelsequencer.bridge.QueryGetEthEventsTxByBlockNumberResponse:
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      last_supply:
+        type: string
+        description: last_supply is the last supply recorded for the bridge token.
+      delta:
+        type: string
+        description: >-
+          delta is the amount of bridge tokens that should be minted (positive)
+          or
+
+          burned (negative) on Ethereum.
+      offset:
+        type: string
+        title: >-
+          offset is used to account for changes in supply that we do not want to
+          post
+
+          to Ethereum, including deposits and withdrawals, because Ethereum will
+          know
+
+          about these anyways. Note that offset can be positive (to account for
+
+          unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.SupplyDeltaProcessed:
+    type: object
+    properties:
+      processed:
+        type: boolean
+  fuelsequencer.bridge.v1.QueryGetEthEventsTxByBlockNumberResponse:
     type: object
     properties:
       eth_events_tx:
@@ -12709,17 +12739,17 @@ definitions:
     description: |-
       QueryGetEthEventsTxByBlockNumberResponse is the response type for the
       Query/EthEventsTxByBlockNumber RPC method.
-  fuelsequencer.bridge.QueryGetLastEthereumBlockSyncedResponse:
+  fuelsequencer.bridge.v1.QueryGetLastEthereumBlockSyncedResponse:
     type: object
     properties:
       block:
         type: string
-  fuelsequencer.bridge.QueryGetLastEthereumNonceResponse:
+  fuelsequencer.bridge.v1.QueryGetLastEthereumNonceResponse:
     type: object
     properties:
       nonce:
         type: string
-  fuelsequencer.bridge.QueryGetSupplyDeltaInfoResponse:
+  fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
     type: object
     properties:
       SupplyDeltaInfo:
@@ -12748,7 +12778,7 @@ definitions:
               for
 
               unreported burn) or negative (to account for unreported mint)
-  fuelsequencer.bridge.QueryGetSupplyDeltaProcessedResponse:
+  fuelsequencer.bridge.v1.QueryGetSupplyDeltaProcessedResponse:
     type: object
     properties:
       SupplyDeltaProcessed:
@@ -12756,7 +12786,7 @@ definitions:
         properties:
           processed:
             type: boolean
-  fuelsequencer.bridge.QueryParamsResponse:
+  fuelsequencer.bridge.v1.QueryParamsResponse:
     type: object
     properties:
       params:
@@ -12824,41 +12854,11 @@ definitions:
 
               from unauthorized control actions.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  fuelsequencer.bridge.QuerySequencerAddressFromEthereumAddressResponse:
+  fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressResponse:
     type: object
     properties:
       sequencer_address:
         type: string
-  fuelsequencer.bridge.SupplyDeltaInfo:
-    type: object
-    properties:
-      last_supply:
-        type: string
-        description: last_supply is the last supply recorded for the bridge token.
-      delta:
-        type: string
-        description: >-
-          delta is the amount of bridge tokens that should be minted (positive)
-          or
-
-          burned (negative) on Ethereum.
-      offset:
-        type: string
-        title: >-
-          offset is used to account for changes in supply that we do not want to
-          post
-
-          to Ethereum, including deposits and withdrawals, because Ethereum will
-          know
-
-          about these anyways. Note that offset can be positive (to account for
-
-          unreported burn) or negative (to account for unreported mint)
-  fuelsequencer.bridge.SupplyDeltaProcessed:
-    type: object
-    properties:
-      processed:
-        type: boolean
   fuelsequencer.service.v1.Event:
     type: object
     properties:
@@ -12868,13 +12868,13 @@ definitions:
         type: string
         format: byte
     description: Event stores the event data and type queried from Ethereum.
-  fuelsequencer.bridge.MsgSupplyDelta:
+  fuelsequencer.bridge.v1.MsgSupplyDelta:
     type: object
     properties:
       authority:
         type: string
         description: authority a placeholder to satisfy the requirement of having a signer.
-  fuelsequencer.bridge.MsgSupplyDeltaResponse:
+  fuelsequencer.bridge.v1.MsgSupplyDeltaResponse:
     type: object
     properties:
       nonce:
@@ -12887,7 +12887,7 @@ definitions:
           mints
 
           and burns.
-  fuelsequencer.bridge.MsgUpdateParams:
+  fuelsequencer.bridge.v1.MsgUpdateParams:
     type: object
     properties:
       authority:
@@ -12962,12 +12962,12 @@ definitions:
 
               from unauthorized control actions.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
-  fuelsequencer.bridge.MsgUpdateParamsResponse:
+  fuelsequencer.bridge.v1.MsgUpdateParamsResponse:
     type: object
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
-  fuelsequencer.bridge.MsgWithdrawToEthereum:
+  fuelsequencer.bridge.v1.MsgWithdrawToEthereum:
     type: object
     properties:
       from:
@@ -12990,7 +12990,7 @@ definitions:
             type: string
           amount:
             type: string
-  fuelsequencer.bridge.MsgWithdrawToEthereumResponse:
+  fuelsequencer.bridge.v1.MsgWithdrawToEthereumResponse:
     type: object
     properties:
       nonce:
@@ -13016,7 +13016,19 @@ definitions:
             type: string
           amount:
             type: string
-  fuelsequencer.sequencing.MsgPostBlob:
+  fuelsequencer.sequencing.Params:
+    type: object
+    properties:
+      max_blob_size_bytes:
+        type: string
+        format: uint64
+        description: >-
+          max_blob_size_bytes is the maximum size of blob that can be submitted
+          in
+
+          bytes.
+    description: Params defines the parameters for the module.
+  fuelsequencer.sequencing.v1.MsgPostBlob:
     type: object
     properties:
       from:
@@ -13033,7 +13045,7 @@ definitions:
         type: string
         format: byte
         description: data is the blob data bytes.
-  fuelsequencer.sequencing.MsgPostBlobResponse:
+  fuelsequencer.sequencing.v1.MsgPostBlobResponse:
     type: object
     properties:
       nonce:
@@ -13053,7 +13065,7 @@ definitions:
         type: string
         format: byte
         description: data is the blob data bytes.
-  fuelsequencer.sequencing.MsgUpdateParams:
+  fuelsequencer.sequencing.v1.MsgUpdateParams:
     type: object
     properties:
       authority:
@@ -13076,20 +13088,8 @@ definitions:
 
               bytes.
     description: MsgUpdateParams is the Msg/UpdateParams request type.
-  fuelsequencer.sequencing.MsgUpdateParamsResponse:
+  fuelsequencer.sequencing.v1.MsgUpdateParamsResponse:
     type: object
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
-  fuelsequencer.sequencing.Params:
-    type: object
-    properties:
-      max_blob_size_bytes:
-        type: string
-        format: uint64
-        description: >-
-          max_blob_size_bytes is the maximum size of blob that can be submitted
-          in
-
-          bytes.
-    description: Params defines the parameters for the module.

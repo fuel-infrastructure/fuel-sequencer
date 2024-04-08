@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: fuelsequencer/sequencing/tx.proto
+// source: fuelsequencer/sequencing/v1/tx.proto
 
-package sequencing
+package sequencingv1
 
 import (
 	context "context"
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_UpdateParams_FullMethodName = "/fuelsequencer.sequencing.Msg/UpdateParams"
-	Msg_PostBlob_FullMethodName     = "/fuelsequencer.sequencing.Msg/PostBlob"
+	Msg_UpdateParams_FullMethodName = "/fuelsequencer.sequencing.v1.Msg/UpdateParams"
+	Msg_PostBlob_FullMethodName     = "/fuelsequencer.sequencing.v1.Msg/PostBlob"
 )
 
 // MsgClient is the client API for Msg service.
@@ -135,7 +135,7 @@ func _Msg_PostBlob_Handler(srv interface{}, ctx context.Context, dec func(interf
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Msg_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "fuelsequencer.sequencing.Msg",
+	ServiceName: "fuelsequencer.sequencing.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -148,5 +148,5 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "fuelsequencer/sequencing/tx.proto",
+	Metadata: "fuelsequencer/sequencing/v1/tx.proto",
 }

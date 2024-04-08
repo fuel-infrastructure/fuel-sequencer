@@ -3,7 +3,7 @@ package bridge
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 
-	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bridge"
+	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bridge/v1"
 )
 
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
