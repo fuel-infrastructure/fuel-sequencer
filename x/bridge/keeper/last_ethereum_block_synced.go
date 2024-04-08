@@ -13,7 +13,6 @@ import (
 func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBlockSynced uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
-
 	b := sdk.Uint64ToBigEndian(lastEthereumBlockSynced)
 	store.Set([]byte{0}, b)
 }
