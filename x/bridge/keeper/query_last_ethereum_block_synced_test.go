@@ -26,7 +26,7 @@ func TestQueryLastEthereumBlockSynced(t *testing.T) {
 		{
 			desc:     "ValidRequest",
 			request:  &types.QueryGetLastEthereumBlockSyncedRequest{},
-			response: &types.QueryGetLastEthereumBlockSyncedResponse{Block: 10},
+			response: &types.QueryGetLastEthereumBlockSyncedResponse{Block: value},
 		},
 		{
 			desc: "InvalidRequest",

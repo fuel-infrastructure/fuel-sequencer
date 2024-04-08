@@ -26,7 +26,7 @@ func TestQueryEthereumEventIndexOffset(t *testing.T) {
 		{
 			desc:     "ValidRequest",
 			request:  &types.QueryGetEthereumEventIndexOffsetRequest{},
-			response: &types.QueryGetEthereumEventIndexOffsetResponse{Offset: 10},
+			response: &types.QueryGetEthereumEventIndexOffsetResponse{Offset: value},
 		},
 		{
 			desc: "InvalidRequest",

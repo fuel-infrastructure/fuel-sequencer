@@ -113,7 +113,7 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	return nil
 }
 
-// NumberOfEventsWithMaxBytes calculates the number of event that can fit into the specified maxBytes. This closely
+// NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This closely
 // resembles the EthEventsTx Size function but only iterates over as many events as can fit into the specified maxBytes.
 //
 // It is very important to update this function if the EthEventsTx Size function gets updated, otherwise we might be
