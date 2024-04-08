@@ -47,13 +47,13 @@ func (s *E2ETestSuite) QueryBankSendEnabled(ctx context.Context) []*banktypes.Se
 func (s *E2ETestSuite) PollForBalance(
 	ctx context.Context, deltaBlocks uint64, address string, balance sdk.Coin,
 ) {
-	h, err := s.chain.FuelSequencerHeight(ctx)
+	h, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 
 	s.T().Log(fmt.Sprintf("Polling for balance %s of %s", balance.String(), address))
 
 	doPoll := func(ctx context.Context, height uint64) (any, error) {
-		bal, err := s.chain.grpcClients.BankQueryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
+		bal, err := s.Chain.grpcClients.BankQueryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
 			Address: address,
 			Denom:   balance.Denom,
 		})
@@ -66,7 +66,7 @@ func (s *E2ETestSuite) PollForBalance(
 		return nil, nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.chain.FuelSequencerHeight, PollFunc: doPoll}
+	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "balance not found in expected number of blocks")
 }
@@ -76,13 +76,13 @@ func (s *E2ETestSuite) PollForBalance(
 func (s *E2ETestSuite) PollForExactBalance(
 	ctx context.Context, deltaBlocks uint64, address string, balances sdk.Coins,
 ) {
-	h, err := s.chain.FuelSequencerHeight(ctx)
+	h, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 
 	s.T().Log(fmt.Sprintf("Polling for all balance %s of %s", balances.String(), address))
 
 	doPoll := func(ctx context.Context, height uint64) (any, error) {
-		bal, err := s.chain.grpcClients.BankQueryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		bal, err := s.Chain.grpcClients.BankQueryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: address,
 		})
 		if err != nil {
@@ -94,7 +94,7 @@ func (s *E2ETestSuite) PollForExactBalance(
 		return nil, nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.chain.FuelSequencerHeight, PollFunc: doPoll}
+	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "exact balance not found in expected number of blocks")
 }
@@ -104,13 +104,13 @@ func (s *E2ETestSuite) PollForExactBalance(
 func (s *E2ETestSuite) PollForMultipleBalances(
 	ctx context.Context, deltaBlocks uint64, address string, balances sdk.Coins,
 ) {
-	h, err := s.chain.FuelSequencerHeight(ctx)
+	h, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 
 	s.T().Log(fmt.Sprintf("Polling for multiple balances %s of %s", balances.String(), address))
 
 	doPoll := func(ctx context.Context, height uint64) (any, error) {
-		bal, err := s.chain.grpcClients.BankQueryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		bal, err := s.Chain.grpcClients.BankQueryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: address,
 		})
 		if err != nil {
@@ -124,7 +124,7 @@ func (s *E2ETestSuite) PollForMultipleBalances(
 		return nil, nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.chain.FuelSequencerHeight, PollFunc: doPoll}
+	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "matching balances not found in expected number of blocks")
 }

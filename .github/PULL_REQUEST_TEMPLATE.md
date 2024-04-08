@@ -36,5 +36,5 @@ Testing and docs:
   - `make clean` once you're done.
 - [ ] Run E2E tests:
   - Ensure you have correct variables at `e2e/test-contracts/.env`
-  - `make build-eth-docker-image build-docker-image test-e2e`
+  - `make build-all-docker-images test-e2e`
   - `make clean` once you're done.

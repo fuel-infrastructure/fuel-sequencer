@@ -26,8 +26,14 @@ func packCall(abiString, method string, args []interface{}) []byte {
 	return abiEncodedCall
 }
 
+// GetEthPrivateKeyHex is expected to return 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+// unless the mnemonic has been changed.
+func (s *E2ETestSuite) GetEthPrivateKeyHex() string {
+	return s.Chain.validators[0].ethereumKey.privateKey
+}
+
 func (s *E2ETestSuite) GetEthPrivateKey() *ecdsa.PrivateKey {
-	privateKey, err := crypto.HexToECDSA(s.chain.validators[0].ethereumKey.privateKey[2:])
+	privateKey, err := crypto.HexToECDSA(s.GetEthPrivateKeyHex()[2:])
 	s.Require().NoError(err)
 
 	return privateKey
@@ -41,8 +47,8 @@ func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
 	return publicKeyECDSA
 }
 
-func (s *E2ETestSuite) SendEthTransactionToProxyContract(data []byte) error {
-	return s.SendEthTransaction(common.HexToAddress(CONTRACT), data)
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) error {
+	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
 func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) error {
@@ -51,14 +57,14 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 	publicKey := s.GetEthPublicKey()
 
 	fromAddress := crypto.PubkeyToAddress(*publicKey)
-	nonce, err := s.chain.ethClient.PendingNonceAt(context.Background(), fromAddress)
+	nonce, err := s.Chain.ethClient.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
 		return err
 	}
 
 	value := big.NewInt(0)
 	gasLimit := uint64(1000000)
-	gasPrice, err := s.chain.ethClient.SuggestGasPrice(context.Background())
+	gasPrice, err := s.Chain.ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
 		return err
 	}
@@ -72,7 +78,7 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 		Data:     data,
 	})
 
-	chainID, err := s.chain.ethClient.NetworkID(context.Background())
+	chainID, err := s.Chain.ethClient.NetworkID(context.Background())
 	if err != nil {
 		return err
 	}
@@ -82,7 +88,7 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 		return err
 	}
 
-	err = s.chain.ethClient.SendTransaction(context.Background(), signedTx)
+	err = s.Chain.ethClient.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		return err
 	}

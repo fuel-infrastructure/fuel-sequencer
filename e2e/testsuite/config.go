@@ -12,7 +12,7 @@ import (
 )
 
 func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
-	for i, val := range s.chain.validators {
+	for i, val := range s.Chain.validators {
 		cmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
 
 		vpr := viper.New()
@@ -35,12 +35,12 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 
 		var peers []string
 
-		for j := 0; j < len(s.chain.validators); j++ {
+		for j := 0; j < len(s.Chain.validators); j++ {
 			if i == j {
 				continue
 			}
 
-			peer := s.chain.validators[j]
+			peer := s.Chain.validators[j]
 			peerID := fmt.Sprintf("%s@%s%d:26656", peer.nodeKey.ID(), peer.moniker, j)
 			peers = append(peers, peerID)
 		}

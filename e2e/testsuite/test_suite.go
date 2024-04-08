@@ -5,6 +5,7 @@ package testsuite
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -14,11 +15,21 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmjson "github.com/cometbft/cometbft/libs/json"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/suite"
@@ -37,7 +48,7 @@ func init() {
 const (
 	BridgeDenom       = "ufuel"
 	minGasPrices      = "0.01"
-	SupplyDeltaPeriod = uint64(10)
+	SupplyDeltaPeriod = uint64(99999) // TODO: make customisable // TODO
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
@@ -54,6 +65,12 @@ const (
 
 	governanceVotingPeriod           = time.Second * 5
 	blocksToWaitForGovProposalToPass = uint64(10)
+
+	succinctXOperatorDockerImageRepo = "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
+	succinctXOperatorDockerImageTag  = "latest"
+
+	succinctXRelayerDockerImageRepo = "fuel-infrastructure/fuel-stream-x-relayer-docker-e2e"
+	succinctXRelayerDockerImageTag  = "latest"
 )
 
 var (
@@ -82,8 +99,17 @@ var (
 		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 	}
 
-	// CONTRACT is the address of the contract that generates events, deployed on the Ethereum node.
-	CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
+	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	// GATEWAY_CONTRACT is a contract by Succinct that does ZK proof verification.
+	GATEWAY_CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+
+	// Circuits
+	NEXT_HEADER_FUNCTION_ID  = "0xbc40fbf4394cd00f78fae9763b0c2c71b21ea442c42fdadc5b720537240ebac1"
+	HEADER_RANGE_FUNCTION_ID = "0xa3c1274aadd82e4d12c8004c33fb244ca686dad4fcc8957fc5668588c11d9502"
+
+	// ABI
+	FUEL_STREAM_X_ABI = `[{"type":"constructor","inputs":[{"name":"_params","type":"tuple","internalType":"structFuelStreamX.InitParameters","components":[{"name":"guardian","type":"address","internalType":"address"},{"name":"gateway","type":"address","internalType":"address"},{"name":"height","type":"uint64","internalType":"uint64"},{"name":"header","type":"bytes32","internalType":"bytes32"},{"name":"nextHeaderFunctionId","type":"bytes32","internalType":"bytes32"},{"name":"headerRangeFunctionId","type":"bytes32","internalType":"bytes32"}]}],"stateMutability":"nonpayable"},{"type":"function","name":"Authorize","inputs":[{"name":"_message","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"BRIDGE_COMMITMENT_MAX","inputs":[],"outputs":[{"name":"","type":"uint64","internalType":"uint64"}],"stateMutability":"view"},{"type":"function","name":"VERSION","inputs":[],"outputs":[{"name":"","type":"string","internalType":"string"}],"stateMutability":"pure"},{"type":"function","name":"blockHeightToHeaderHash","inputs":[{"name":"","type":"uint64","internalType":"uint64"}],"outputs":[{"name":"","type":"bytes32","internalType":"bytes32"}],"stateMutability":"view"},{"type":"function","name":"commitHeaderRange","inputs":[{"name":"_targetBlock","type":"uint64","internalType":"uint64"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"commitNextHeader","inputs":[{"name":"_trustedBlock","type":"uint64","internalType":"uint64"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"deposit","inputs":[{"name":"_amount","type":"uint256","internalType":"uint256"},{"name":"_to","type":"string","internalType":"string"},{"name":"_duration","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"frozen","inputs":[],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"gateway","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"headerRangeFunctionId","inputs":[],"outputs":[{"name":"","type":"bytes32","internalType":"bytes32"}],"stateMutability":"view"},{"type":"function","name":"latestBlock","inputs":[],"outputs":[{"name":"","type":"uint64","internalType":"uint64"}],"stateMutability":"view"},{"type":"function","name":"nextHeaderFunctionId","inputs":[],"outputs":[{"name":"","type":"bytes32","internalType":"bytes32"}],"stateMutability":"view"},{"type":"function","name":"processSequencerWithdrawalMessage","inputs":[{"name":"_proofNonce","type":"uint256","internalType":"uint256"},{"name":"bridgeCommitmentLeaf","type":"tuple","internalType":"structFuelStreamX.BridgeCommitmentLeaf","components":[{"name":"height","type":"uint256","internalType":"uint256"},{"name":"resultsHash","type":"bytes32","internalType":"bytes32"}]},{"name":"bridgeCommitmentLeafProof","type":"tuple","internalType":"structBinaryMerkleProof","components":[{"name":"sideNodes","type":"bytes32[]","internalType":"bytes32[]"},{"name":"key","type":"uint256","internalType":"uint256"},{"name":"numLeaves","type":"uint256","internalType":"uint256"}]},{"name":"txResultMarshalled","type":"bytes","internalType":"bytes"},{"name":"txResultProof","type":"tuple","internalType":"structBinaryMerkleProof","components":[{"name":"sideNodes","type":"bytes32[]","internalType":"bytes32[]"},{"name":"key","type":"uint256","internalType":"uint256"},{"name":"numLeaves","type":"uint256","internalType":"uint256"}]}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"requestHeaderRange","inputs":[{"name":"_targetBlock","type":"uint64","internalType":"uint64"}],"outputs":[],"stateMutability":"payable"},{"type":"function","name":"requestNextHeader","inputs":[],"outputs":[],"stateMutability":"payable"},{"type":"function","name":"setBridgeCommitmentRoot","inputs":[{"name":"nonce","type":"uint256","internalType":"uint256"},{"name":"bridgeCommitmentRoot","type":"bytes32","internalType":"bytes32"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"state_dataCommitments","inputs":[{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bytes32","internalType":"bytes32"}],"stateMutability":"view"},{"type":"function","name":"state_proofNonce","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"updateFreeze","inputs":[{"name":"_freeze","type":"bool","internalType":"bool"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"updateFunctionIds","inputs":[{"name":"_headerRangeFunctionId","type":"bytes32","internalType":"bytes32"},{"name":"_nextHeaderFunctionId","type":"bytes32","internalType":"bytes32"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"updateGateway","inputs":[{"name":"_gateway","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"updateGenesisState","inputs":[{"name":"_height","type":"uint32","internalType":"uint32"},{"name":"_header","type":"bytes32","internalType":"bytes32"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"withdrawalNoncesExecuted","inputs":[{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"event","name":"AuthorizeEvent","inputs":[{"name":"_from","type":"address","indexed":true,"internalType":"address"},{"name":"_message","type":"bytes","indexed":false,"internalType":"bytes"}],"anonymous":false},{"type":"event","name":"DataCommitmentStored","inputs":[{"name":"proofNonce","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"startBlock","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"endBlock","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"dataCommitment","type":"bytes32","indexed":true,"internalType":"bytes32"}],"anonymous":false},{"type":"event","name":"HeadUpdate","inputs":[{"name":"blockNumber","type":"uint64","indexed":false,"internalType":"uint64"},{"name":"headerHash","type":"bytes32","indexed":false,"internalType":"bytes32"}],"anonymous":false},{"type":"event","name":"HeaderRangeRequested","inputs":[{"name":"trustedBlock","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"trustedHeader","type":"bytes32","indexed":true,"internalType":"bytes32"},{"name":"targetBlock","type":"uint64","indexed":true,"internalType":"uint64"}],"anonymous":false},{"type":"event","name":"NextHeaderRequested","inputs":[{"name":"trustedBlock","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"trustedHeader","type":"bytes32","indexed":true,"internalType":"bytes32"}],"anonymous":false},{"type":"event","name":"SendToSequencerEvent","inputs":[{"name":"_from","type":"address","indexed":true,"internalType":"address"},{"name":"_amount","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"_to","type":"string","indexed":false,"internalType":"string"},{"name":"_duration","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"error","name":"ContractFrozen","inputs":[]},{"type":"error","name":"DataCommitmentNotFound","inputs":[]},{"type":"error","name":"LatestHeaderNotFound","inputs":[]},{"type":"error","name":"TargetBlockNotInRange","inputs":[]},{"type":"error","name":"TrustedBlockMismatch","inputs":[]},{"type":"error","name":"TrustedHeaderNotFound","inputs":[]}]`
 )
 
 var (
@@ -95,11 +121,19 @@ type E2ETestSuite struct {
 
 	log *zap.Logger
 
-	chain         *chain
+	Chain         *chain
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
-	ethResource   *dockertest.Resource
-	valResources  []*dockertest.Resource
+
+	// Ethereum
+	ethResource *dockertest.Resource
+
+	// Sequencer
+	valResources []*dockertest.Resource
+
+	// SuccinctX
+	succinctOperatorResource *dockertest.Resource
+	succinctRelayerResource  *dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -119,20 +153,20 @@ func (s *E2ETestSuite) SetupTest() {
 	s.log = zaptest.NewLogger(s.T(), LogLevel)
 
 	var err error
-	s.chain, err = newChain(len(MNEMONICS))
+	s.Chain, err = newChain(len(MNEMONICS))
 	s.Require().NoError(err)
 	s.dockerPool, err = dockertest.NewPool("")
 	s.Require().NoError(err)
-	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.chain.id))
+	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.Chain.id))
 	s.Require().NoError(err)
 
-	s.T().Logf("starting E2E infrastructure; chain-id: %s; datadir: %s", s.chain.id, s.chain.dataDir)
+	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.dataDir)
 
 	// initialization
 	s.initFuelSequencerNodes(MNEMONICS)
 	s.initEthereumNodes(MNEMONICS)
 
-	// run the eth container so that the contract addresses are available
+	// Run the eth container, no contracts deployed yet just anvil
 	s.runEthContainer()
 
 	// continue generating node genesis
@@ -148,6 +182,18 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initEthereumRPCClient()
 	s.initSidecarClient()
 
+	// We need the genesis header for solidity smart contracts
+	err = s.WaitForBlocks(s.Ctx(), 1, time.Minute)
+	s.Require().NoError(err)
+
+	// Get genesis header
+	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
+	s.Require().NoError(err)
+
+	// Deploy the contracts with the header
+	s.deployContracts(1, genesisBlockHeaderHash)
+
+	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
 }
 
@@ -164,11 +210,19 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.T().Log("tearing down e2e integration test suite...")
 
-	s.Require().NoError(os.RemoveAll(s.chain.dataDir))
+	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethResource))
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
+	}
+
+	// Operator and relayer should have been purged earlier, but purge just in case
+	if s.succinctOperatorResource != nil {
+		_ = s.dockerPool.Purge(s.succinctOperatorResource)
+	}
+	if s.succinctRelayerResource != nil {
+		_ = s.dockerPool.Purge(s.succinctRelayerResource)
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
@@ -180,18 +234,18 @@ func (s *E2ETestSuite) TearDownTest() {
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
 // It also sets up the genesis file using the first validator and copies it to all other validator nodes.
 func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
-	s.Require().NoError(s.chain.createAndInitFuelSequencerValidators(mnemonics))
+	s.Require().NoError(s.Chain.createAndInitFuelSequencerValidators(mnemonics))
 
 	// initialize a genesis file for the first validator
-	val0ConfigDir := s.chain.validators[0].configDir()
-	for _, val := range s.chain.validators {
+	val0ConfigDir := s.Chain.validators[0].configDir()
+	for _, val := range s.Chain.validators {
 		s.Require().NoError(
 			addGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.address()),
 		)
 	}
 
 	// copy the genesis file to the remaining validators
-	for _, val := range s.chain.validators[1:] {
+	for _, val := range s.Chain.validators[1:] {
 		err := copyFile(
 			filepath.Join(val0ConfigDir, "config", "genesis.json"),
 			filepath.Join(val.configDir(), "config", "genesis.json"),
@@ -207,12 +261,107 @@ func (s *E2ETestSuite) initEthereumNodes(mnemonics []string) {
 	// Determine whether to use mnemonics.
 	useMnemonics := len(mnemonics) > 0
 
-	for i, val := range s.chain.validators {
+	for i, val := range s.Chain.validators {
 		if useMnemonics {
 			s.Require().NoError(val.generateEthereumKeyFromMnemonic(mnemonics[i]))
 		} else {
 			s.Require().NoError(val.generateEthereumKey())
 		}
+	}
+}
+
+func (s *E2ETestSuite) initFuelSequencerGenesis() {
+	serverCtx := server.NewDefaultContext()
+	config := serverCtx.Config
+
+	config.SetRoot(s.Chain.validators[0].configDir())
+	config.Moniker = s.Chain.validators[0].moniker
+
+	genFilePath := config.GenesisFile()
+	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
+	s.Require().NoError(err)
+
+	// set short voting period to allow gov proposals in tests
+	var govGenState govtypesv1.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
+	votingPeriod := governanceVotingPeriod
+	govGenState.Params.VotingPeriod = &votingPeriod
+	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
+	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
+	bz, err := cdc.MarshalJSON(&govGenState)
+	s.Require().NoError(err)
+	appGenState[govtypes.ModuleName] = bz
+
+	// set mint denom
+	var mintGenState minttypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
+	mintGenState.Params.InflationMax = math.LegacyZeroDec()
+	mintGenState.Params.InflationMin = math.LegacyZeroDec()
+	mintGenState.Params.InflationRateChange = math.LegacyZeroDec()
+	mintGenState.Minter.Inflation = math.LegacyZeroDec()
+	bz, err = cdc.MarshalJSON(&mintGenState)
+	s.Require().NoError(err)
+	appGenState[minttypes.ModuleName] = bz
+
+	// TODO: genesis supply will be incorrect if we add more accounts
+	var bankGenState banktypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
+	genesisSupply := int64(len(s.Chain.validators) * initBalance)
+	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
+	bz, err = cdc.MarshalJSON(&bankGenState)
+	s.Require().NoError(err)
+	appGenState[banktypes.ModuleName] = bz
+
+	var bridgeGenState bridgetypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
+	bridgeGenState.Params.BridgeDenom = BridgeDenom
+	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
+	bz, err = cdc.MarshalJSON(&bridgeGenState)
+	s.Require().NoError(err)
+	appGenState[bridgetypes.ModuleName] = bz
+
+	var genUtilGenState genutiltypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
+
+	// generate genesis txs
+	genTxs := make([]json.RawMessage, len(s.Chain.validators))
+	for i, val := range s.Chain.validators {
+		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
+		s.Require().NoError(err)
+
+		signedTx, err := val.signMsg(createValmsg)
+		s.Require().NoError(err)
+
+		txRaw, err := cdc.MarshalJSON(signedTx)
+		s.Require().NoError(err)
+
+		genTxs[i] = txRaw
+	}
+
+	genUtilGenState.GenTxs = genTxs
+
+	bz, err = cdc.MarshalJSON(&genUtilGenState)
+	s.Require().NoError(err)
+	appGenState[genutiltypes.ModuleName] = bz
+
+	// Apply any genesis overrides
+	if s.GenesisOverrides != nil {
+		err = (*s.GenesisOverrides)(cdc, appGenState)
+		s.Require().NoError(err)
+	}
+
+	// serialize genesis state
+	bz, err = json.MarshalIndent(appGenState, "", "  ")
+	s.Require().NoError(err)
+
+	genDoc.AppState = bz
+
+	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
+	s.Require().NoError(err)
+
+	// write the updated genesis file to each validator
+	for _, val := range s.Chain.validators {
+		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
 	}
 }
 
@@ -245,7 +394,7 @@ func (s *E2ETestSuite) runEthContainer() {
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 
-			balance, err := ethClient.BalanceAt(ctx, common.HexToAddress(s.chain.validators[0].ethereumKey.address), nil)
+			balance, err := ethClient.BalanceAt(ctx, common.HexToAddress(s.Chain.validators[0].ethereumKey.address), nil)
 			if err != nil {
 				s.T().Logf("error querying balance: %e", err)
 				return false
@@ -262,12 +411,57 @@ func (s *E2ETestSuite) runEthContainer() {
 
 			return true
 		},
-		5*time.Minute,
-		10*time.Second,
+		1*time.Minute,
+		1*time.Second,
 		"ethereum node failed to respond",
 	)
 
 	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+}
+
+func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash cmtbytes.HexBytes) {
+	s.T().Log("deploying Ethereum contracts...")
+
+	execOptions := dockertest.ExecOptions{
+		Env: []string{
+			"RPC_URL=http://ethereum:8545",
+			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
+			"GUARDIAN_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // Can be anything
+			fmt.Sprintf("GENESIS_HEIGHT=%d", genesisHeight),
+			fmt.Sprintf("GENESIS_HEADER=%s", genesisHeaderHash.String()),
+		},
+	}
+
+	exitCode, err := s.ethResource.Exec(
+		[]string{"bash", "scripts/deploy_contract.sh"},
+		execOptions,
+	)
+	s.Require().NoError(err)
+	s.Require().Zero(exitCode)
+
+	// Wait for the Ethereum node to respond to a request
+	s.Require().Eventually(
+		func() bool {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+
+			code, err := s.Chain.ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
+			if err != nil {
+				s.T().Logf("error retreiving contract's code: %e", err)
+				return false
+			} else if len(code) == 0 {
+				s.T().Logf("error retreiving contract's code, contract not depeloyed")
+				return false
+			}
+
+			return true
+		},
+		1*time.Minute,
+		2*time.Second,
+		"ethereum node failed to respond",
+	)
+
+	s.T().Logf("deployed Ethereum contracts: %s", s.ethResource.Container.ID)
 }
 
 func (s *E2ETestSuite) runFuelSequencerValidators() {
@@ -277,8 +471,8 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 	user, err := osuser.Current()
 	s.Require().NoError(err)
 
-	s.valResources = make([]*dockertest.Resource, len(s.chain.validators))
-	for i, val := range s.chain.validators {
+	s.valResources = make([]*dockertest.Resource, len(s.Chain.validators))
+	for i, val := range s.Chain.validators {
 		runOpts := &dockertest.RunOptions{
 			Name:       val.instanceName(),
 			NetworkID:  s.dockerNetwork.Network.ID,
@@ -373,6 +567,7 @@ func (s *E2ETestSuite) logsByContainerID(id string) string {
 		docker.LogsOptions{
 			Container:    id,
 			OutputStream: &containerLogsBuf,
+			ErrorStream:  &containerLogsBuf,
 			Stdout:       true,
 			Stderr:       true,
 		},

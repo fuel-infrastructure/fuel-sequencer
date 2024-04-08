@@ -47,7 +47,7 @@ type GRPCClients struct {
 
 // initGRPCClients establishes GRPC clients using the first validator.
 func (s *E2ETestSuite) initGRPCClients() {
-	addr := s.chain.validators[0].hostGRPCPort
+	addr := s.Chain.validators[0].hostGRPCPort
 
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
@@ -57,11 +57,11 @@ func (s *E2ETestSuite) initGRPCClients() {
 	s.Require().NoError(err)
 	s.T().Cleanup(func() {
 		if err := grpcConn.Close(); err != nil {
-			s.T().Logf("failed closing GRPC connection to chain %s: %s", s.chain.id, err)
+			s.T().Logf("failed closing GRPC connection to Chain %s: %s", s.Chain.id, err)
 		}
 	})
 
-	s.chain.grpcClients = &GRPCClients{
+	s.Chain.grpcClients = &GRPCClients{
 		GovQueryClient:          govtypesv1.NewQueryClient(grpcConn),
 		GroupsQueryClient:       grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:       paramsproposaltypes.NewQueryClient(grpcConn),
@@ -77,12 +77,12 @@ func (s *E2ETestSuite) initGRPCClients() {
 }
 
 func (s *E2ETestSuite) getGRPCClients() *GRPCClients {
-	return s.chain.grpcClients
+	return s.Chain.grpcClients
 }
 
 // initRPCClient establishes an RPC client using the first validator.
 func (s *E2ETestSuite) initRPCClient() {
-	addr := s.chain.validators[0].hostRPCPort
+	addr := s.Chain.validators[0].hostRPCPort
 
 	httpClient, err := libclient.DefaultHTTPClient(addr)
 	if err != nil {
@@ -95,11 +95,11 @@ func (s *E2ETestSuite) initRPCClient() {
 		panic(err)
 	}
 
-	s.chain.rpcClient = rpcClient
+	s.Chain.rpcClient = rpcClient
 }
 
 func (s *E2ETestSuite) getRPCClient() *rpchttp.HTTP {
-	return s.chain.rpcClient
+	return s.Chain.rpcClient
 }
 
 // initEthereumRPCClient establishes an RPC client to the Ethereum node.
@@ -109,16 +109,16 @@ func (s *E2ETestSuite) initEthereumRPCClient() {
 	ethClient, err := ethclient.Dial(url)
 	s.Require().NoError(err)
 
-	s.chain.ethClient = ethClient
+	s.Chain.ethClient = ethClient
 }
 
 func (s *E2ETestSuite) getEthereumRPCClient() *ethclient.Client {
-	return s.chain.ethClient
+	return s.Chain.ethClient
 }
 
 // initSidecarClient establishes a Sidecar client using the first validator.
 func (s *E2ETestSuite) initSidecarClient() {
-	addr := s.chain.validators[0].sidecarGRPCPort
+	addr := s.Chain.validators[0].sidecarGRPCPort
 
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
@@ -132,9 +132,9 @@ func (s *E2ETestSuite) initSidecarClient() {
 		}
 	})
 
-	s.chain.sidecarClient = sidecartypes.NewSidecarClient(grpcConn)
+	s.Chain.sidecarClient = sidecartypes.NewSidecarClient(grpcConn)
 }
 
 func (s *E2ETestSuite) getSidecarClient() sidecartypes.SidecarClient {
-	return s.chain.sidecarClient
+	return s.Chain.sidecarClient
 }

@@ -3,10 +3,12 @@ package testsuite
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 )
 
 func decodeTx(txBytes []byte) (*sdktx.Tx, error) {
@@ -54,7 +56,7 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 }
 
 func (s *E2ETestSuite) SubmitMsgs(msgs ...sdk.Msg) (*sdk.TxResponse, error) {
-	return s.SubmitMsgsFrom(s.chain.validators[0], msgs...)
+	return s.SubmitMsgsFrom(s.Chain.validators[0], msgs...)
 }
 
 func (s *E2ETestSuite) SubmitMsgsFrom(val *validator, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
@@ -64,8 +66,25 @@ func (s *E2ETestSuite) SubmitMsgsFrom(val *validator, msgs ...sdk.Msg) (*sdk.TxR
 	addr := val.hostRPCPort
 
 	outputBuffer := &bytes.Buffer{} // TODO: consider reusing this buffer with a reset in between each use
-	clientCtx, err := s.chain.clientContext(addr, &kr, validatorKeyName, val.address(), outputBuffer)
+	clientCtx, err := s.Chain.clientContext(addr, &kr, validatorKeyName, val.address(), outputBuffer)
 	s.Require().NoError(err)
 
-	return s.chain.sendMsgs(*clientCtx, outputBuffer, msgs...)
+	respWithTxHash, err := s.Chain.sendMsgs(*clientCtx, outputBuffer, msgs...)
+	s.Require().NoError(err)
+
+	var resp *sdk.TxResponse
+	err = WaitForCondition(time.Second*30, time.Millisecond*500, func() (bool, error) {
+		resp, err = authtx.QueryTx(*clientCtx, respWithTxHash.TxHash)
+		if err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		// If we fail to query the tx, it means an error occurred with the original message broadcast.
+		// We can return the original response instead.
+		return respWithTxHash, nil
+	}
+
+	return resp, nil
 }
