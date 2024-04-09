@@ -132,8 +132,9 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 			eventTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					{
-						EventType: sidecartypes.SendToSequencerEventName,
-						Data:      []byte("invalid-data"),
+						EventType:       sidecartypes.SendToSequencerEventName,
+						ContractAddress: testtypes.TestEthereumProxyContractAddress,
+						Data:            []byte("invalid-data"),
 					},
 					testtypes.TestEvent1,
 					testtypes.TestEvent2,
@@ -268,9 +269,9 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 477, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(477)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(476)) // just under enough
+	require.EqualValues(t, 609, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(609)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(608)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.

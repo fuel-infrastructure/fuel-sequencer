@@ -157,7 +157,7 @@ func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 		n += 2
 	}
 	if m.BlockNumber != 0 {
-		n += 1 + sovEthEventsTransaction(uint64(m.BlockNumber))
+		n += 1 + sovEthEventsTransaction(m.BlockNumber)
 	}
 	if len(m.Events) > 0 {
 		for i, e := range m.Events {

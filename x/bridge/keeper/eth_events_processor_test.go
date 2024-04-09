@@ -62,10 +62,13 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				Events: []*sidecartypes.Event{
 					// Event that sends 10 ufuel from a sequencer address that has no funds. We expect this to fail,
 					// demonstrating that other events still get processed successfully
-					testutils.MustGetSidecarEventFromParsedEvent(&sidecartypes.AuthorizeEvent{
-						From:    testtypes.TestFrom2,
-						Message: testutils.MustHexDecodeString(testtypes.TestMessage2),
-					}),
+					testutils.MustGetSidecarEventFromParsedEvent(
+						&sidecartypes.AuthorizeEvent{
+							From:    testtypes.TestFrom2,
+							Message: testutils.MustHexDecodeString(testtypes.TestMessage2),
+						},
+						testtypes.TestEthereumProxyContractAddress,
+					),
 					testtypes.TestEvent2, // valid AuthorizeEvent
 				},
 				AdvanceSequencer: true,
