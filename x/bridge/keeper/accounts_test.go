@@ -2,16 +2,22 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
+
+func TestSomething(t *testing.T) {
+	fmt.Println(authtypes.NewModuleAddress(govtypes.ModuleName).String())
+}
 
 func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 

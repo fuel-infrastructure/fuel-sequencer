@@ -35,3 +35,6 @@ release/
 
 # Build directory
 build/
+
+# Manual E2E
+temp-proposal.json
