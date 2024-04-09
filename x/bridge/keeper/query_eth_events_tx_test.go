@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -26,7 +25,7 @@ func TestQueryEthEventsTxByBlockNumber(t *testing.T) {
 		Events:           events,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      math.NewInt(10),
+		BlockNumber:      10,
 	}
 
 	keeper.SetEthEventsTx(ctx, ethEventsTx)

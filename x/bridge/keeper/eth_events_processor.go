@@ -23,7 +23,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 	lastEthereumBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 
 	// Secondly retrieve the events from the last block height processed.
-	ethEventsTx, ok := k.GetEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
+	ethEventsTx, ok := k.GetEthEventsTx(ctx, lastEthereumBlockSynced)
 	if !ok {
 		// If no events are found at this block height then we can stop here.
 		return
@@ -78,7 +78,7 @@ func (k Keeper) ProcessEthereumEvents(ctx sdk.Context) {
 		}
 	}
 
-	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced.Uint64())
+	k.RemoveEthEventsTx(ctx, lastEthereumBlockSynced)
 }
 
 // processSendToSequencerEvent processes the send to sequencer events queried from the sidecar.

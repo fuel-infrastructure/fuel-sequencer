@@ -36,6 +36,13 @@ service Query {
                                    "v1/last_ethereum_block_synced";
   }
 
+  // Queries the EthereumEventIndexOffset.
+  rpc EthereumEventIndexOffset(QueryGetEthereumEventIndexOffsetRequest)
+      returns (QueryGetEthereumEventIndexOffsetResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "ethereum_event_index_offset";
+  }
+
   // Queries the SupplyDeltaInfo.
   rpc SupplyDeltaInfo(QueryGetSupplyDeltaInfoRequest)
       returns (QueryGetSupplyDeltaInfoResponse) {
@@ -89,7 +96,11 @@ message QueryGetLastEthereumNonceResponse { string nonce = 1; }
 
 message QueryGetLastEthereumBlockSyncedRequest {}
 
-message QueryGetLastEthereumBlockSyncedResponse { string block = 1; }
+message QueryGetLastEthereumBlockSyncedResponse { uint64 block = 1; }
+
+message QueryGetEthereumEventIndexOffsetRequest {}
+
+message QueryGetEthereumEventIndexOffsetResponse { uint64 offset = 1; }
 
 // QueryGetEthEventsTxByBlockNumberRequest is the request type for the
 // Query/EthEventsTxByBlockNumber RPC method.

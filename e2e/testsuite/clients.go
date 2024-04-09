@@ -10,6 +10,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
@@ -35,6 +36,7 @@ type GRPCClients struct {
 	AuthZQueryClient        authz.QueryClient
 	BankQueryClient         banktypes.QueryClient
 	DistributionQueryClient distributiontypes.QueryClient
+	ConsensusQueryClient    consensustypes.QueryClient
 
 	// Custom query clients
 	BridgeQueryClient     bridgetypes.QueryClient
@@ -67,6 +69,7 @@ func (s *E2ETestSuite) initGRPCClients() {
 		AuthZQueryClient:        authz.NewQueryClient(grpcConn),
 		BankQueryClient:         banktypes.NewQueryClient(grpcConn),
 		DistributionQueryClient: distributiontypes.NewQueryClient(grpcConn),
+		ConsensusQueryClient:    consensustypes.NewQueryClient(grpcConn),
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),

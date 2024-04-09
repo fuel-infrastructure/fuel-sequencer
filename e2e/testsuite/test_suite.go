@@ -5,39 +5,23 @@ package testsuite
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	osuser "os/user"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-	"github.com/ethereum/go-ethereum/ethclient"
-
-	"cosmossdk.io/math"
-	cmconfig "github.com/cometbft/cometbft/config"
-	cmjson "github.com/cometbft/cometbft/libs/json"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/cosmos/cosmos-sdk/server"
-	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -54,7 +38,7 @@ func init() {
 const (
 	BridgeDenom       = "ufuel"
 	minGasPrices      = "0.01"
-	SupplyDeltaPeriod = uint64(99999) // TODO: make customisable
+	supplyDeltaPeriod = uint64(10) // default - can be overridden
 
 	// Balance and staked amount per validator
 	initBalance = 210000000000 // per validator
@@ -68,6 +52,9 @@ const (
 
 	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
 	ethereumDockerImageTag  = "latest"
+
+	governanceVotingPeriod           = time.Second * 5 // default - can be overridden
+	blocksToWaitForGovProposalToPass = uint64(10)
 
 	succinctXOperatorDockerImageRepo = "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
 	succinctXOperatorDockerImageTag  = "latest"
@@ -137,6 +124,13 @@ type E2ETestSuite struct {
 	// SuccinctX
 	succinctOperatorResource *dockertest.Resource
 	succinctRelayerResource  *dockertest.Resource
+
+	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
+	govProposalIdCounter int
+
+	// genesisOverrides are extra changes applied to genesis before the Sequencer is started. For these overrides to be
+	// applied, SetupTest needs to be overridden so that genesisOverrides can be changed before invoking SetupTest.
+	GenesisOverrides *ModifyGenesisFunc
 }
 
 func (s *E2ETestSuite) SetupTest() {
@@ -188,6 +182,9 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// Deploy the contracts with the header
 	s.deployContracts(1, genesisBlockHeaderHash)
+
+	// Reset the proposal counter since we're starting a new chain.
+	s.govProposalIdCounter = 1
 }
 
 func (s *E2ETestSuite) TearDownTest() {
@@ -219,6 +216,9 @@ func (s *E2ETestSuite) TearDownTest() {
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
+
+	s.govProposalIdCounter = 1
+	s.GenesisOverrides = nil
 }
 
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
@@ -257,155 +257,6 @@ func (s *E2ETestSuite) initEthereumNodes(mnemonics []string) {
 		} else {
 			s.Require().NoError(val.generateEthereumKey())
 		}
-	}
-}
-
-func (s *E2ETestSuite) initFuelSequencerGenesis() {
-	serverCtx := server.NewDefaultContext()
-	config := serverCtx.Config
-
-	config.SetRoot(s.Chain.validators[0].configDir())
-	config.Moniker = s.Chain.validators[0].moniker
-
-	genFilePath := config.GenesisFile()
-	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
-	s.Require().NoError(err)
-
-	var govGenState govtypesv1.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
-
-	// set short voting period to allow gov proposals in tests
-	seconds20 := time.Second * 20
-	govGenState.Params.VotingPeriod = &seconds20
-	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	bz, err := cdc.MarshalJSON(&govGenState)
-	s.Require().NoError(err)
-	appGenState[govtypes.ModuleName] = bz
-
-	// set staking bond denom
-	var stakingGenState stakingtypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[stakingtypes.ModuleName], &stakingGenState))
-	bz, err = cdc.MarshalJSON(&stakingGenState)
-	s.Require().NoError(err)
-	appGenState[stakingtypes.ModuleName] = bz
-
-	// set mint denom
-	var mintGenState minttypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
-	mintGenState.Params.InflationMax = math.LegacyZeroDec()
-	mintGenState.Params.InflationMin = math.LegacyZeroDec()
-	mintGenState.Params.InflationRateChange = math.LegacyZeroDec()
-	mintGenState.Minter.Inflation = math.LegacyZeroDec()
-	bz, err = cdc.MarshalJSON(&mintGenState)
-	s.Require().NoError(err)
-	appGenState[minttypes.ModuleName] = bz
-
-	// TODO: genesis supply will be incorrect if we add more accounts
-	var bankGenState banktypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := int64(len(s.Chain.validators) * initBalance)
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
-	bz, err = cdc.MarshalJSON(&bankGenState)
-	s.Require().NoError(err)
-	appGenState[banktypes.ModuleName] = bz
-
-	var bridgeGenState bridgetypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
-	bridgeGenState.Params.BridgeDenom = BridgeDenom
-	bridgeGenState.Params.SupplyDeltaPeriod = SupplyDeltaPeriod
-	bz, err = cdc.MarshalJSON(&bridgeGenState)
-	s.Require().NoError(err)
-	appGenState[bridgetypes.ModuleName] = bz
-
-	var genUtilGenState genutiltypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
-
-	// generate genesis txs
-	genTxs := make([]json.RawMessage, len(s.Chain.validators))
-	for i, val := range s.Chain.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
-		s.Require().NoError(err)
-
-		signedTx, err := val.signMsg(createValmsg)
-		s.Require().NoError(err)
-
-		txRaw, err := cdc.MarshalJSON(signedTx)
-		s.Require().NoError(err)
-
-		genTxs[i] = txRaw
-	}
-
-	genUtilGenState.GenTxs = genTxs
-
-	bz, err = cdc.MarshalJSON(&genUtilGenState)
-	s.Require().NoError(err)
-	appGenState[genutiltypes.ModuleName] = bz
-
-	// serialize genesis state
-	bz, err = json.MarshalIndent(appGenState, "", "  ")
-	s.Require().NoError(err)
-
-	genDoc.AppState = bz
-
-	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
-	s.Require().NoError(err)
-
-	// write the updated genesis file to each validator
-	for _, val := range s.Chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
-	}
-}
-
-func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
-	for i, val := range s.Chain.validators {
-		cmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
-
-		vpr := viper.New()
-		vpr.SetConfigFile(cmCfgPath)
-		s.Require().NoError(vpr.ReadInConfig())
-
-		valConfig := &cmconfig.Config{}
-		s.Require().NoError(vpr.Unmarshal(valConfig))
-
-		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
-		valConfig.P2P.AddrBookStrict = false
-		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", val.instanceName(), 26656)
-		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
-		valConfig.StateSync.Enable = false
-		valConfig.LogLevel = "info"
-
-		// speed up blocks
-		valConfig.Consensus.TimeoutCommit = 1 * time.Second
-		valConfig.Consensus.TimeoutPropose = 1 * time.Second
-
-		var peers []string
-
-		for j := 0; j < len(s.Chain.validators); j++ {
-			if i == j {
-				continue
-			}
-
-			peer := s.Chain.validators[j]
-			peerID := fmt.Sprintf("%s@%s%d:26656", peer.nodeKey.ID(), peer.moniker, j)
-			peers = append(peers, peerID)
-		}
-
-		valConfig.P2P.PersistentPeers = strings.Join(peers, ",")
-
-		cmconfig.WriteConfigFile(cmCfgPath, valConfig)
-
-		// set application configuration
-		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
-
-		appConfig := srvconfig.DefaultConfig()
-		appConfig.API.Enable = true
-		appConfig.API.Address = "tcp://0.0.0.0:1317"
-		appConfig.GRPC.Address = "0.0.0.0:9090"
-		appConfig.Pruning = "nothing"
-		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
-
-		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
 }
 
@@ -539,15 +390,19 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 				"8080/tcp":  {{HostIP: "", HostPort: "8080"}},
 			}
 			runOpts.ExposedPorts = []string{"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp", "8080/tcp"}
-
-			val.hostRPCPort = "tcp://localhost:26657"
-			val.hostAPIPort = "tcp://localhost:1317"
-			val.hostGRPCPort = "localhost:9090"
-			val.sidecarGRPCPort = "localhost:8080"
 		}
 
 		resource, err := s.dockerPool.RunWithOptions(runOpts, noRestart)
 		s.Require().NoError(err)
+
+		port1317 := resource.Container.NetworkSettings.Ports["1317/tcp"][0].HostPort
+		val.hostAPIPort = fmt.Sprintf("tcp://localhost:%s", port1317)
+		port9090 := resource.Container.NetworkSettings.Ports["9090/tcp"][0].HostPort
+		val.hostGRPCPort = fmt.Sprintf("localhost:%s", port9090)
+		port26657 := resource.Container.NetworkSettings.Ports["26657/tcp"][0].HostPort
+		val.hostRPCPort = fmt.Sprintf("tcp://localhost:%s", port26657)
+		port8080 := resource.Container.NetworkSettings.Ports["8080/tcp"][0].HostPort
+		val.sidecarGRPCPort = fmt.Sprintf("localhost:%s", port8080)
 
 		s.valResources[i] = resource
 		s.T().Logf("started validator container: %s", resource.Container.ID)

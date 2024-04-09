@@ -13,18 +13,17 @@ message EthEventsTx {
 
   // advance_sequencer is a boolean which indicates whether the Sequencer should
   // generate a new block. This is used to advance the Sequencer in cases where
-  // the Sidecar errors specifically due to no new blocks generated on Ethereum
+  // the Sidecar errors specifically due to no new blocks generated on Ethereum.
   bool advance_sequencer = 2;
 
   // new_ethereum_block is a boolean which indicates whether a new Ethereum
-  // block has been detected by the Sidecar. This is needed to determine when
-  // LastEthereumBlockSynced should be incremented by the PreBlocker.
+  // block has been queried from the Sidecar and that the events from it were
+  // fully consumed by the Sequencer. This is needed to determine when
+  // LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
+  // false but the events list is not empty, the block was partially consumed.
   bool new_ethereum_block = 3;
 
-  // block_number is the block that these events belong to.
-  string block_number = 4 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
+  // block_number is the block that these events belong to. This is expected to
+  // be LastEthereumBlockSynced+1, since the events are from the next block.
+  uint64 block_number = 4;
 }

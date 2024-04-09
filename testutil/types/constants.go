@@ -157,20 +157,64 @@ var (
 		From:    TestFrom3,
 		Message: testutils.MustHexDecodeString(TestMessage3),
 	}
-	TestEvent1      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
-	TestEvent2      = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
-	TestEvent3      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
-	TestEvent4      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
-	TestEvent5      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
-	TestEvent6      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
-	TestEvent7      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
-	TestEvent8      = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
-	TestEvents      = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
-	TestEthEventsTx = &bridgetypes.EthEventsTx{
+
+	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
+	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
+	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
+	TestEvent4 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
+	TestEvent5 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
+	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
+	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
+	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
+
+	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
+	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+
+	TestEthEventsTx = bridgetypes.EthEventsTx{
 		Events:           TestEvents,
 		AdvanceSequencer: true,
 		NewEthereumBlock: true,
-		BlockNumber:      sdkmath.OneInt(),
+		BlockNumber:      1,
 	}
-	TestSidecarResponse = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestEthEventsTxWithDifferentEvents = bridgetypes.EthEventsTx{
+		Events:           TestEventsDifferent,
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      1,
+	}
+	TestEthEventsTxReduced = bridgetypes.EthEventsTx{
+		Events:           TestEventsReduced,
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      1,
+	}
+	TestEthEventsTxPartial = bridgetypes.EthEventsTx{
+		Events:           TestEventsReduced,
+		AdvanceSequencer: true,
+		NewEthereumBlock: false, // block was partially consumed
+		BlockNumber:      1,
+	}
+	TestEthEventsTxWithoutEvents = bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: true,
+		BlockNumber:      1,
+	}
+	TestEthEventsTxNoNewBlock = bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: true,
+		NewEthereumBlock: false,
+		BlockNumber:      1,
+	}
+	TestEthEventsTxSidecarErr = bridgetypes.EthEventsTx{
+		Events:           []*sidecartypes.Event{},
+		AdvanceSequencer: false,
+		NewEthereumBlock: false,
+		BlockNumber:      1,
+	}
+
+	TestEmptySidecarResponse   = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse        = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
 )

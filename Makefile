@@ -294,7 +294,7 @@ test-all: test-unit test-e2e
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
 
-test-e2e: check-docker-image-exists check-eth-docker-image-exists check-fsx-docker-images-exist test-e2e-basic
+test-e2e: check-docker-image-exists check-eth-docker-image-exists check-fsx-docker-images-exist test-e2e-basic test-e2e-withdrawals test-e2e-events
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
@@ -431,6 +431,12 @@ follow-eth-docker-logs:
 
 test-e2e-basic:
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
+
+test-e2e-events:
+	@cd e2e/tests && go test -mod=readonly -race -v ./events/... --test.timeout 0
+
+test-e2e-withdrawals:
+	@cd e2e/tests && go test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
