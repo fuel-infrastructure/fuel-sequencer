@@ -163,6 +163,13 @@ func (am AppModule) EndBlock(goCtx context.Context) error {
 	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
 
+	// FOR TESTNET - fast-forward LastEthereumBlockSynced
+	lastEthereumBlockSynced := am.keeper.MustGetLastEthereumBlockSynced(ctx)
+	if lastEthereumBlockSynced < 5660500 {
+		ctx.Logger().Warn("FAST-FORWARDING LAST ETHEREUM BLOCK SYNCED TO 5660500")
+		am.keeper.SetLastEthereumBlockSynced(ctx, 5660500)
+	}
+
 	return nil
 }
 
