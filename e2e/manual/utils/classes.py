@@ -510,6 +510,9 @@ class CosmosChain:
     def query_proposal(self, proposal_id: str):
         return self.query(f"gov proposal {proposal_id}")
 
+    def query_account(self, address: str):
+        return self.query(f"auth account {address}")
+
     def query_grants_by_grantee(self, grantee_addr: str):
         return self.query(f"authz grants-by-grantee {grantee_addr}")
 
