@@ -30,8 +30,9 @@ func TestUnmarshalParsedEvent(t *testing.T) {
 		{
 			name: "Unknown event type",
 			event: &types.Event{
-				EventType: "invalid-event",
-				Data:      []byte{},
+				EventType:       "invalid-event",
+				Data:            []byte{},
+				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			expErrMsg: "unknown event type: invalid-event",
 		},
@@ -97,6 +98,14 @@ func TestEvent_Equal(t *testing.T) {
 			expectedEqual: false,
 		},
 		{
+			name:   "Unequal events - events belonging to a different contract",
+			event1: testtypes.TestEvent1,
+			event2: testutils.MustGetSidecarEventFromParsedEvent(
+				testtypes.TestSendToSequencerEvent3, "different-contract-address",
+			),
+			expectedEqual: false,
+		},
+		{
 			name: "Error - event1 cannot be unmarshalled",
 			event1: &types.Event{
 				EventType:       types.AuthorizeEventName,
@@ -158,6 +167,15 @@ func TestEvent_ValidateBasic(t *testing.T) {
 			name:      "Invalid event - nil",
 			event:     nilEvent,
 			expErrMsg: "event is nil",
+		},
+		{
+			name: "Invalid event - contract address not in the right format",
+
+			// Ethereum addresses are strictly 40 chars long. Adding more characters should make ValidateBasic error.
+			event: testutils.MustGetSidecarEventFromParsedEvent(
+				testtypes.TestAuthorizeEvent3, testtypes.TestEthereumProxyContractAddress+"Ab",
+			),
+			expErrMsg: "contract_address is not a valid hex address",
 		},
 		{
 			name: "Invalid event - SendToSequencerEvent cannot be unmarshalled",
