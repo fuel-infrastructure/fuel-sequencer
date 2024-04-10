@@ -204,6 +204,8 @@ func (s *SidecarImpl) fetchLastSyncedEthereumBlock(ctx context.Context) (*big.In
 // queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
 func (s *SidecarImpl) queryAndStoreEvents(ctx context.Context) {
 
+	// Query the genesis file from the cometBFT RPC
+
 	// The first block to be queried is the startQueryBlock.
 	s.nextQueryBlock = s.startQueryBlock
 

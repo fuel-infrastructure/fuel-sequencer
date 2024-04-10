@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"math/big"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -27,14 +29,15 @@ import (
 )
 
 var (
-	host               = flag.String("host", "localhost", "host for the grpc-service to listen on")
-	port               = flag.String("port", "8080", "port for the grpc-service to listen on")
-	ethNodeRPC         = flag.String("eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
-	cosmosNodeRPC      = flag.String("cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
-	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
-	ethStartBlock      = flag.Int64("eth_start_block", 0, "Ethereum start query block")
-	ethMaxBlockRange   = flag.Int64("eth_max_block_range", 100, "max number of Ethereum blocks per query")
-	development        = flag.Bool("development", false, "Start logger in development mode")
+	host                = flag.String("host", "localhost", "host for the grpc-service to listen on")
+	port                = flag.String("port", "8080", "port for the grpc-service to listen on")
+	ethNodeRPC          = flag.String("eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
+	cosmosNodeRPC       = flag.String("cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
+	tendermintNodeRPC   = flag.String("tendermint_node_rpc", "http://127.0.0.1:26657", "Tendermint node RPC endpoint")
+	contractAddressHex  = flag.String("contract_address", "", "Contract address in hex format")
+	unsafeEthereumBlock = flag.Int64("unsafe_ethereum_block", 0, "Ethereum start query block")
+	ethMaxBlockRange    = flag.Int64("eth_max_block_range", 100, "max number of Ethereum blocks per query")
+	development         = flag.Bool("development", false, "Start logger in development mode")
 )
 
 // start the sidecar-grpc server + sidecar process, cancel on interrupt or terminate.
@@ -58,11 +61,44 @@ func main() {
 	}
 
 	// Validate flag values
-	if *ethStartBlock < 0 {
-		log.Fatalf("ethereum start block must be >= 0, got: %d", *ethStartBlock)
+	if *unsafeEthereumBlock < 0 {
+		log.Fatalf("ethereum start block must be >= 0, got: %d", *unsafeEthereumBlock)
 	}
 	if *ethMaxBlockRange < 1 {
 		log.Fatalf("ethereum max block range must be >= 1, got: %d", *ethMaxBlockRange)
+	}
+
+	// Check if the unsafeEthereumBlock is provided and use it instead of querying the genesis.
+	var lastEthereumBlockSynced *big.Int
+	if *unsafeEthereumBlock > 0 {
+		lastEthereumBlockSynced = big.NewInt(*unsafeEthereumBlock)
+	} else {
+		// Otherwise query the genesis file for the up to date last ethereum block synced.
+
+		// Check if the tendermintNodeRPC is not empty
+		if *tendermintNodeRPC == "" {
+			log.Fatal("tendermint node rpc url is required")
+		}
+
+		// Append `/genesis?` to the tendermintNodeRPC URL
+		genesisURL := fmt.Sprintf("%s/genesis?", *tendermintNodeRPC)
+
+		// Query the genesis file
+		resp, err := http.Get(genesisURL)
+		if err != nil {
+			log.Fatalf("Failed to make request to the tendermint node rpc %s: %v", genesisURL, err)
+		}
+		defer resp.Body.Close()
+
+		// Read the response body
+		genbz, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Failed to read the response body of the genesis file from tendermint node rpc %s: %v", genesisURL, err)
+		}
+
+		// Get the lasts ethereum block synced from genesis or stop.
+		lastEthereumBlockSyncedUint := sidecar.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
+		lastEthereumBlockSynced = big.NewInt(int64(lastEthereumBlockSyncedUint))
 	}
 
 	// Connect to the ethereum client
@@ -112,7 +148,7 @@ func main() {
 		bridgeClient,
 		contractAddr,
 		contractAbi,
-		big.NewInt(*ethStartBlock),
+		lastEthereumBlockSynced,
 		big.NewInt(*ethMaxBlockRange),
 		logger,
 	)

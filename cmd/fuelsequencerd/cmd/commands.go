@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -142,14 +143,15 @@ func txCommand() *cobra.Command {
 
 func startSidecarServerCmd() *cobra.Command {
 	var (
-		host               string
-		port               string
-		ethNodeRPC         string
-		cosmosNodeRPC      string
-		contractAddressHex string
-		ethStartBlock      int64
-		ethMaxBlockRange   int64
-		development        bool
+		host                string
+		port                string
+		ethNodeRPC          string
+		cosmosNodeRPC       string
+		tendermintNodeRPC   string
+		contractAddressHex  string
+		unsafeEthereumBlock int64
+		ethMaxBlockRange    int64
+		development         bool
 	)
 
 	cmd := &cobra.Command{
@@ -157,7 +159,7 @@ func startSidecarServerCmd() *cobra.Command {
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return startSidecar(
-				host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlock, ethMaxBlockRange, development,
+				host, port, ethNodeRPC, cosmosNodeRPC, tendermintNodeRPC, contractAddressHex, unsafeEthereumBlock, ethMaxBlockRange, development,
 			)
 		},
 	}
@@ -166,8 +168,9 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().StringVar(&port, "port", "8080", "port for the grpc-service to listen on")
 	cmd.Flags().StringVar(&ethNodeRPC, "eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
 	cmd.Flags().StringVar(&cosmosNodeRPC, "cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
+	cmd.Flags().StringVar(&tendermintNodeRPC, "tendermint_node_rpc", "http://127.0.0.1:26657", "Tendermint node RPC endpoint")
 	cmd.Flags().StringVar(&contractAddressHex, "contract_address", "", "Contract address in hex format")
-	cmd.Flags().Int64Var(&ethStartBlock, "eth_start_block", 0, "Ethereum start query block")
+	cmd.Flags().Int64Var(&unsafeEthereumBlock, "unsafe_ethereum_block", 0, "Ethereum start query block")
 	cmd.Flags().Int64Var(&ethMaxBlockRange, "eth_max_block_range", 100, "max number of Ethereum blocks per query")
 	cmd.Flags().BoolVar(&development, "development", false, "Start logger in development mode")
 
@@ -179,8 +182,9 @@ func startSidecar(
 	port,
 	ethNodeRPC,
 	cosmosNodeRPC,
+	tendermintNodeRPC,
 	contractAddressHex string,
-	ethStartBlock,
+	unsafeEthereumBlock,
 	ethMaxBlockRange int64,
 	development bool,
 ) error {
@@ -189,11 +193,61 @@ func startSidecar(
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if ethStartBlock < 0 {
-		return fmt.Errorf("ethereum start block must be >= 0, got: %d", ethStartBlock)
+	var logger *zap.Logger
+	var err error
+	if development {
+		logger, err = zap.NewDevelopment()
+	} else {
+		logger, err = zap.NewProduction()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to create logger: %s", err)
+	}
+
+	if unsafeEthereumBlock < 0 {
+		return fmt.Errorf("ethereum start block must be >= 0, got: %d", unsafeEthereumBlock)
 	}
 	if ethMaxBlockRange < 1 {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethMaxBlockRange)
+	}
+
+	// Check if the unsafeEthereumBlock is provided and use it instead of querying the genesis.
+	var lastEthereumBlockSynced *big.Int
+	if unsafeEthereumBlock > 0 {
+		lastEthereumBlockSynced = big.NewInt(unsafeEthereumBlock)
+		logger.Info(
+			"Last ethereum blocked synced used from unsafeEthereumBlock",
+			zap.String("lastEthereumBlockSynced", lastEthereumBlockSynced.String()),
+		)
+	} else {
+		// Otherwise query the genesis file for the up to date last ethereum block synced.
+
+		// Check if the tendermintNodeRPC is not empty
+		if tendermintNodeRPC == "" {
+			return fmt.Errorf("tendermint node rpc url is required")
+		}
+
+		// Append `/genesis?` to the tendermintNodeRPC URL
+		genesisURL := fmt.Sprintf("%s/genesis?", tendermintNodeRPC)
+
+		// Query the genesis file
+		resp, err := http.Get(genesisURL)
+		if err != nil {
+			return fmt.Errorf("failed to make request to the tendermint node rpc %s: %v", genesisURL, err)
+		}
+		defer resp.Body.Close()
+
+		// Read the response body
+		genbz, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read the response body of the genesis file from tendermint node rpc %s: %v", genesisURL, err)
+		}
+
+		// Get the lasts ethereum block synced from genesis or stop.
+		lastEthereumBlockSyncedUint := sidecar.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
+		lastEthereumBlockSynced = big.NewInt(int64(lastEthereumBlockSyncedUint))
+		logger.Info("Last ethereum blocked synced used from genesis",
+			zap.String("lastEthereumBlockSynced", lastEthereumBlockSynced.String()))
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
@@ -217,22 +271,12 @@ func startSidecar(
 	// This creates a gRPC client to query the x/bridge service.
 	bridgeClient := bridgetypes.NewQueryClient(grpcConn)
 
-	var logger *zap.Logger
-	if development {
-		logger, err = zap.NewDevelopment()
-	} else {
-		logger, err = zap.NewProduction()
-	}
-	if err != nil {
-		return fmt.Errorf("failed to create logger: %s", err)
-	}
-
 	sideCar := sidecar.NewSidecar(
 		ethClient,
 		bridgeClient,
 		contractAddr,
 		contractAbi,
-		big.NewInt(ethStartBlock),
+		lastEthereumBlockSynced,
 		big.NewInt(ethMaxBlockRange),
 		logger,
 	)
