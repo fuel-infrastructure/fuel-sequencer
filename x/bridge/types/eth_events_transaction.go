@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
@@ -89,14 +88,11 @@ func (m *EthEventsTx) ValidateStateful(ethereumProxyContractAddress string) erro
 
 	// Error if one of the events does not belong to the Ethereum Proxy Contract
 	for _, event := range m.Events {
-		if strings.ToLower(event.ContractAddress) != strings.ToLower(ethereumProxyContractAddress) {
-			return errors.New(
-				fmt.Sprintf(
-					"event contract_address does not match expected ethereum_proxy_contract_address; "+
-						"got %s, expected %s",
-					event.ContractAddress,
-					ethereumProxyContractAddress,
-				),
+		if event.ContractAddress != ethereumProxyContractAddress {
+			return fmt.Errorf(
+				"event contract_address does not match expected ethereum_proxy_contract_address; got %s, expected %s",
+				event.ContractAddress,
+				ethereumProxyContractAddress,
 			)
 		}
 	}
