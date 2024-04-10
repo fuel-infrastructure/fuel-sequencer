@@ -12,6 +12,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
+	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/golang/mock/gomock"
@@ -253,13 +254,37 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg:                    "could not get Ethereum event index offset from state",
 		},
 		{
-			name:                      "returns error if EthEventsTx cannot be generated",
+			name:                      "returns error if EthEventsTx cannot be generated - ValidateBasic error",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{Events: []*sidecartypes.Event{
 					{EventType: "invalid-event", Data: nil},
 				}},
+				Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: 0,
+				Txs:        nil,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg:                    "failed to generate eth events tx",
+		},
+		{
+			name:                      "returns error if EthEventsTx cannot be generated - ValidateStateful error",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: &sidecartypes.QueryBlockEventsResponse{
+					Events: []*sidecartypes.Event{
+						testutils.MustGetSidecarEventFromParsedEvent(
+							testtypes.TestAuthorizeEvent1, "invalid-ethereum-proxy-contract-address",
+						),
+					},
+				},
 				Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
@@ -656,13 +681,36 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "could not get Ethereum event index offset from state",
 		},
 		{
-			name:                      "returns error if EthEventsTx cannot be generated",
+			name:                      "returns error if EthEventsTx cannot be generated - ValidateBasic error",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{Events: []*sidecartypes.Event{
 					{EventType: "invalid-event", Data: nil},
 				}},
+				Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
+				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg:                    "failed to generate eth events tx",
+		},
+		{
+			name:                      "returns error if EthEventsTx cannot be generated - ValidateStateful error",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: &sidecartypes.QueryBlockEventsResponse{
+					Events: []*sidecartypes.Event{
+						testutils.MustGetSidecarEventFromParsedEvent(
+							testtypes.TestAuthorizeEvent1, "invalid-ethereum-proxy-contract-address",
+						),
+					},
+				},
 				Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
