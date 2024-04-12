@@ -18,9 +18,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sync"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 )
 
 const DefaultServerShutdownTimeout = 3 * time.Second
@@ -37,7 +36,7 @@ type SidecarServer struct { //nolint
 	types.UnimplementedSidecarServer
 
 	// expected implementation of the sidecar
-	s sidecar.Sidecar
+	s sidecar.SidecarService
 
 	// underlying grpc-server -- serves all grpc requests
 	grpcSrv *grpc.Server
@@ -48,115 +47,87 @@ type SidecarServer struct { //nolint
 	// underlying http server
 	httpSrv *http.Server
 
-	// closer to handle graceful closures from multiple go-routines
-	*sync.Closer
-
 	// logger to log incoming requests
 	logger *zap.Logger
+
+	shutdownCh chan struct{}
 }
 
 // NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
-func NewSidecarServer(s sidecar.Sidecar, logger *zap.Logger) *SidecarServer {
+func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServer {
 	logger = logger.With(zap.String("server", "sidecar"))
 
 	ss := &SidecarServer{
-		s:      s,
-		logger: logger,
+		s:          s,
+		logger:     logger,
+		shutdownCh: make(chan struct{}),
 	}
-	ss.Closer = sync.NewCloser().WithCallback(func() {
-		// if the server has been started, close it
-		if ss.httpSrv != nil {
-			ctx, cf := context.WithTimeout(context.Background(), DefaultServerShutdownTimeout)
-			_ = ss.httpSrv.Shutdown(ctx)
-			ss.grpcSrv.Stop()
-			cf()
-		}
-	})
 
 	return ss
 }
 
-// routeRequest determines if the incoming http request is a grpc or http request and routes to the proper handler.
-func (ss *SidecarServer) routeRequest(w http.ResponseWriter, r *http.Request) {
-	if r.ProtoMajor == 2 && strings.HasPrefix(
-		r.Header.Get("Content-Type"), "application/grpc") {
-
-		ss.grpcSrv.ServeHTTP(w, r)
-	} else {
-		ss.gatewayMux.ServeHTTP(w, r)
-	}
-}
-
-// StartServer starts the sidecar gRPC server on the given host and port. The server is killed on any errors from the listener, or if ctx is cancelled.
-// This method returns an error via any failure from the listener. This is a blocking call, i.e until the server is closed or the server errors,
-// this method will block.
-func (ss *SidecarServer) StartServer(ctx context.Context, host, port string) error {
+func (ss *SidecarServer) InitializeServer(host, port string) error {
 	serverEndpoint := fmt.Sprintf("%s:%s", host, port)
 	ss.httpSrv = &http.Server{
 		Addr:              serverEndpoint,
 		ReadHeaderTimeout: DefaultServerShutdownTimeout,
+		Handler:           h2c.NewHandler(http.NewServeMux(), &http2.Server{}),
 	}
-	// create grpc server
+
 	ss.grpcSrv = grpc.NewServer()
-	// register sidecar server
 	types.RegisterSidecarServer(ss.grpcSrv, ss)
 
-	// register the grpc-gateway
-	// it handles the http request and dials the server endpoint with the grpc request
-	ss.gatewayMux = runtime.NewServeMux(
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &gateway.JSONPb{
-			EmitDefaults: true,
-			Indent:       "",
-			OrigName:     true,
-		}),
-	)
+	ss.gatewayMux = runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &gateway.JSONPb{
+		EmitDefaults: true,
+		Indent:       "",
+		OrigName:     true,
+	}))
+
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err := types.RegisterSidecarHandlerFromEndpoint(ctx, ss.gatewayMux, serverEndpoint, opts)
-	if err != nil {
+	if err := types.RegisterSidecarHandlerFromEndpoint(context.Background(), ss.gatewayMux, serverEndpoint, opts); err != nil {
 		return err
 	}
 
-	router := http.NewServeMux()
-	router.HandleFunc("/", ss.routeRequest)
+	ss.httpSrv.Handler = http.HandlerFunc(ss.routeRequest)
+	return nil
+}
 
-	ss.httpSrv.Handler = h2c.NewHandler(router, &http2.Server{})
-
+func (ss *SidecarServer) StartServer(ctx context.Context) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
-	// listen for ctx cancellation
 	eg.Go(func() error {
-		// if the context is closed, close the server + sidecar
 		<-ctx.Done()
-		ss.logger.Info("context cancelled, closing sidecar")
-
-		_ = ss.Close()
-		return nil
+		return ss.ShutdownServer()
 	})
 
-	// start the sidecar, return error if it fails
 	eg.Go(func() error {
-		return ss.s.Start(ctx)
+		return ss.s.StartFetching(ctx)
 	})
 
-	// start the server
 	eg.Go(func() error {
-		// serve, and return any errors
-		ss.logger.Info(
-			"starting grpc server",
-			zap.String("host", host),
-			zap.String("port", port),
-		)
-
-		err = ss.httpSrv.ListenAndServe()
-		if err != nil {
-			return fmt.Errorf("[grpc server]: error serving: %w", err)
+		ss.logger.Info("starting HTTP/2 server", zap.String("address", ss.httpSrv.Addr))
+		if err := ss.httpSrv.ListenAndServe(); err != http.ErrServerClosed {
+			return fmt.Errorf("HTTP server ListenAndServe: %w", err)
 		}
-
 		return nil
 	})
 
-	// wait for everything to finish
 	return eg.Wait()
+}
+
+func (ss *SidecarServer) ShutdownServer() error {
+	ss.logger.Info("shutting down server")
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultServerShutdownTimeout)
+	defer cancel()
+
+	if err := ss.httpSrv.Shutdown(ctx); err != nil {
+		ss.logger.Error("error during server shutdown", zap.Error(err))
+		return err
+	}
+
+	ss.grpcSrv.GracefulStop()
+	ss.logger.Info("server shutdown completed")
+	return nil
 }
 
 func (ss *SidecarServer) GetBlockEvents(
@@ -171,7 +142,7 @@ func (ss *SidecarServer) GetBlockEvents(
 	ss.logger.Info("received request for block events", zap.String("blockNumber", req.BlockNumber))
 
 	// Check that sidecar is running
-	if !ss.s.IsRunning() {
+	if ss.s.IsStopped() {
 		ss.logger.Error("sidecar not running")
 		return nil, errors.New("sidecar not running")
 	}
@@ -223,14 +194,13 @@ func (ss *SidecarServer) GetBlockEvents(
 	}
 }
 
-// Close closes the underlying sidecar server, and blocks until all open requests have been satisfied.
-func (ss *SidecarServer) Close() error {
-	// close + close server if necessary
-	ss.Closer.Close()
-	return nil
-}
+// routeRequest determines if the incoming http request is a grpc or http request and routes to the proper handler.
+func (ss *SidecarServer) routeRequest(w http.ResponseWriter, r *http.Request) {
+	if r.ProtoMajor == 2 && strings.HasPrefix(
+		r.Header.Get("Content-Type"), "application/grpc") {
 
-// Done returns a channel that is closed when the sidecar server is closed.
-func (ss *SidecarServer) Done() <-chan struct{} {
-	return ss.Closer.Done()
+		ss.grpcSrv.ServeHTTP(w, r)
+	} else {
+		ss.gatewayMux.ServeHTTP(w, r)
+	}
 }

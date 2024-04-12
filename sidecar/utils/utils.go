@@ -1,7 +1,8 @@
-package sidecar
+package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -13,8 +14,8 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
-// processLog decodes an Ethereum log into a specific event struct.
-func processLog(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error) {
+// ExtractLogDataToEvent decodes an Ethereum log into a specific event struct.
+func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error) {
 	var genericEvent sidecartypes.Event
 	var err error
 
@@ -94,4 +95,40 @@ func MustGetLastEthereumBlockSyncedFromGenesis(genbz []byte) uint64 {
 	}
 
 	return lastEthereumBlockSyncedUint
+}
+
+// ValidateIsLogSequential checks if the log is sequential based on TxIndex and LogIndex.
+func ValidateIsLogSequential(vLog types.Log, lastBlockNumber *uint64, lastTxIndex, lastLogIndex *int) error {
+	currentBlockNumber := vLog.BlockNumber
+	currentTxIndex := int(vLog.TxIndex)
+	currentLogIndex := int(vLog.Index)
+
+	// Initial verification to ascertain that the current block's number sequentially follows the last processed block's number.
+	if currentBlockNumber != *lastBlockNumber {
+		if currentBlockNumber < *lastBlockNumber {
+			return fmt.Errorf(
+				"non-sequential block detected: current block number %d precedes last processed block number %d",
+				currentBlockNumber, *lastBlockNumber,
+			)
+		}
+
+		// Resetting indices for the new block, acknowledging the transition to a subsequent block in the sequence.
+		*lastTxIndex = -1
+		*lastLogIndex = -1
+	}
+
+	// Ensuring within-block log sequentiality by comparing the current log's indices against the last processed log's indices.
+	if currentTxIndex < *lastTxIndex || currentLogIndex <= *lastLogIndex {
+		return fmt.Errorf(
+			"log sequentiality violation within block %d: currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d",
+			currentBlockNumber, currentTxIndex, *lastTxIndex, currentLogIndex, *lastLogIndex,
+		)
+	}
+
+	// Upon successful validation, updating tracking variables to reflect the most recent log's indices.
+	*lastBlockNumber = currentBlockNumber
+	*lastTxIndex = currentTxIndex
+	*lastLogIndex = currentLogIndex
+
+	return nil
 }

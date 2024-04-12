@@ -39,12 +39,16 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
+	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
+	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
+	sidecarutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 )
 
 func initRootCmd(
@@ -244,7 +248,7 @@ func startSidecar(
 		}
 
 		// Get the lasts ethereum block synced from genesis or stop.
-		lastEthereumBlockSyncedUint := sidecar.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
+		lastEthereumBlockSyncedUint := sidecarutils.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
 		lastEthereumBlockSynced = big.NewInt(int64(lastEthereumBlockSyncedUint))
 		logger.Info("Last ethereum blocked synced used from genesis",
 			zap.String("lastEthereumBlockSynced", lastEthereumBlockSynced.String()))
@@ -268,17 +272,20 @@ func startSidecar(
 		return err
 	}
 
-	// This creates a gRPC client to query the x/bridge service.
-	bridgeClient := bridgetypes.NewQueryClient(grpcConn)
+	// Create the sidecar ethereum client
+	scEthClient := scethclient.NewClient(ethClient, contractAddr, contractAbi)
+
+	// Create the sequencer client
+	scsequencerclient := scsequencerclient.NewClient(grpcConn)
+
+	// Create the store
+	eventStore := scstore.NewEventStore(lastEthereumBlockSynced, nil, big.NewInt(ethMaxBlockRange))
 
 	sideCar := sidecar.NewSidecar(
-		ethClient,
-		bridgeClient,
-		contractAddr,
-		contractAbi,
-		lastEthereumBlockSynced,
-		big.NewInt(ethMaxBlockRange),
 		logger,
+		scEthClient,
+		scsequencerclient,
+		eventStore,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
@@ -288,7 +295,11 @@ func startSidecar(
 		cancel()
 	}()
 
-	if err := srv.StartServer(ctx, host, port); err != nil {
+	if err := srv.InitializeServer(host, port); err != nil {
+		logger.Error("Failed to initialize the server", zap.Error(err))
+	}
+
+	if err := srv.StartServer(ctx); err != nil {
 		logger.Error("Stopping server", zap.Error(err))
 	}
 
