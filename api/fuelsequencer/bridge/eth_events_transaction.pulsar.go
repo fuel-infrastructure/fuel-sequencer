@@ -687,7 +687,10 @@ type EthEventsTx struct {
 	Events []*v1.Event `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
 	// advance_sequencer is a boolean which indicates whether the Sequencer should
 	// generate a new block. This is used to advance the Sequencer in cases where
-	// the Sidecar errors specifically due to no new blocks generated on Ethereum.
+	// the Sidecar errors and the error doesn't warrant the Sequencer to halt the
+	// block production. This is specifically used when the next Ethereum block to
+	// query is not yet generated, and when the Sidecar is out-of-sync with Ethereum
+	// for very few blocks.
 	AdvanceSequencer bool `protobuf:"varint,2,opt,name=advance_sequencer,json=advanceSequencer,proto3" json:"advance_sequencer,omitempty"`
 	// new_ethereum_block is a boolean which indicates whether a new Ethereum
 	// block has been queried from the Sidecar and that the events from it were
