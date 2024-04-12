@@ -150,6 +150,7 @@ func startSidecarServerCmd() *cobra.Command {
 		ethStartBlock      int64
 		ethMaxBlockRange   int64
 		development        bool
+		acceptableDelay    uint64
 	)
 
 	cmd := &cobra.Command{
@@ -157,7 +158,15 @@ func startSidecarServerCmd() *cobra.Command {
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return startSidecar(
-				host, port, ethNodeRPC, cosmosNodeRPC, contractAddressHex, ethStartBlock, ethMaxBlockRange, development,
+				host,
+				port,
+				ethNodeRPC,
+				cosmosNodeRPC,
+				contractAddressHex,
+				ethStartBlock,
+				ethMaxBlockRange,
+				development,
+				acceptableDelay,
 			)
 		},
 	}
@@ -170,6 +179,12 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&ethStartBlock, "eth_start_block", 0, "Ethereum start query block")
 	cmd.Flags().Int64Var(&ethMaxBlockRange, "eth_max_block_range", 100, "max number of Ethereum blocks per query")
 	cmd.Flags().BoolVar(&development, "development", false, "Starts the sidecar in development mode")
+	cmd.Flags().Uint64Var(
+		&acceptableDelay,
+		"unsafe_acceptable_delay",
+		1,
+		"the amount of blocks the sidecar can be out-of-sync with Ethereum",
+	)
 
 	return cmd
 }
@@ -183,6 +198,7 @@ func startSidecar(
 	ethStartBlock,
 	ethMaxBlockRange int64,
 	development bool,
+	acceptableDelay uint64,
 ) error {
 	sigs := make(chan os.Signal, 1)
 
@@ -194,6 +210,9 @@ func startSidecar(
 	}
 	if ethMaxBlockRange < 1 {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethMaxBlockRange)
+	}
+	if acceptableDelay > 10 {
+		return fmt.Errorf("acceptable delay is too large, must be <= 10, got: %d", acceptableDelay)
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
@@ -236,6 +255,7 @@ func startSidecar(
 		big.NewInt(ethMaxBlockRange),
 		logger,
 		development,
+		acceptableDelay,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 

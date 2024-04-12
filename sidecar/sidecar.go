@@ -71,6 +71,10 @@ type SidecarImpl struct {
 	// mode. Ex. net_peerCount method is not available on anvil nodes, so logic around it needs to be bypassed in
 	// development mode.
 	development bool
+
+	// acceptableDelay is the number of blocks that the Sidecar can be out-of-sync with Ethereum. When this occurs the
+	// sidecar returns a special error message if a block which has not been processed yet is queried.
+	acceptableDelay uint64
 }
 
 // NewSidecar creates a new Sidecar instance.
@@ -83,6 +87,7 @@ func NewSidecar(
 	maxQueryRange *big.Int,
 	logger *zap.Logger,
 	development bool,
+	acceptableDelay uint64,
 ) *SidecarImpl {
 	return &SidecarImpl{
 		logger:            logger,
@@ -97,6 +102,7 @@ func NewSidecar(
 		updateInterval:    10 * time.Second,
 		blockPruneBuffer:  10,
 		development:       development,
+		acceptableDelay:   acceptableDelay,
 	}
 }
 
@@ -203,7 +209,35 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
 		}
 
-		// Otherwise this block was not yet processed
+		// Compute the highest known height of the network.
+		var networkHeight *big.Int
+		if !isEthereumNodeSynced {
+
+			// If the Ethereum node is not synced, then get the alleged network height from the SyncProgress object.
+			networkHeight = new(big.Int).SetUint64(syncProgress.HighestBlock)
+		} else {
+
+			// If the Ethereum node is synced, then the network height is equivalent to the last synced height
+			networkHeight = new(big.Int).SetUint64(ethHeight)
+		}
+
+		// Sidecar height is the height of the sidecar's next block to query minus 1
+		sidecarHeight := new(big.Int).Sub(s.nextQueryBlock, big.NewInt(1))
+
+		// If the delay is acceptable, return a special error for possibly different handling in the Sequencer.
+		delay := new(big.Int).Sub(networkHeight, sidecarHeight)
+		threshold := new(big.Int).SetUint64(s.acceptableDelay)
+		if delay.Cmp(threshold) <= 0 {
+			return nil, fmt.Errorf(
+				"%s; sidecar height %s, Ethereum height %s",
+				sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay,
+				sidecarHeight.String(),
+				networkHeight.String(),
+			)
+		}
+
+		// Otherwise, return a block was not yet processed error. This signals that the sidecar is severely out-of-sync
+		// with Ethereum
 		return nil, fmt.Errorf("block not yet processed %s", blockNumber)
 	}
 

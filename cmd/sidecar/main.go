@@ -35,6 +35,11 @@ var (
 	ethStartBlock      = flag.Int64("eth_start_block", 0, "Ethereum start query block")
 	ethMaxBlockRange   = flag.Int64("eth_max_block_range", 100, "max number of Ethereum blocks per query")
 	development        = flag.Bool("development", false, "Starts the sidecar in development mode")
+	acceptableDelay    = flag.Uint64(
+		"unsafe_acceptable_delay",
+		1,
+		"the amount of blocks the sidecar can be out-of-sync with Ethereum",
+	)
 )
 
 // start the sidecar-grpc server + sidecar process, cancel on interrupt or terminate.
@@ -63,6 +68,9 @@ func main() {
 	}
 	if *ethMaxBlockRange < 1 {
 		log.Fatalf("ethereum max block range must be >= 1, got: %d", *ethMaxBlockRange)
+	}
+	if *acceptableDelay > 10 {
+		log.Fatalf("acceptable delay is too large, must be <= 10, got: %d", acceptableDelay)
 	}
 
 	// Connect to the ethereum client
@@ -116,6 +124,7 @@ func main() {
 		big.NewInt(*ethMaxBlockRange),
 		logger,
 		*development,
+		*acceptableDelay,
 	)
 	if err != nil {
 		logger.Error("failed to create sidecar", zap.Error(err))
