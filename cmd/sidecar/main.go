@@ -34,7 +34,7 @@ var (
 	contractAddressHex = flag.String("contract_address", "", "Contract address in hex format")
 	ethStartBlock      = flag.Int64("eth_start_block", 0, "Ethereum start query block")
 	ethMaxBlockRange   = flag.Int64("eth_max_block_range", 100, "max number of Ethereum blocks per query")
-	development        = flag.Bool("development", false, "Start logger in development mode")
+	development        = flag.Bool("development", false, "Starts the sidecar in development mode")
 )
 
 // start the sidecar-grpc server + sidecar process, cancel on interrupt or terminate.
@@ -115,6 +115,7 @@ func main() {
 		big.NewInt(*ethStartBlock),
 		big.NewInt(*ethMaxBlockRange),
 		logger,
+		*development,
 	)
 	if err != nil {
 		logger.Error("failed to create sidecar", zap.Error(err))

@@ -65,6 +65,12 @@ type SidecarImpl struct {
 
 	// running is the current status of the main sidecar process (running or not).
 	running atomic.Bool
+
+	// development is a boolean variable which indicates whether the sidecar should be run in development mode. If true
+	// the sidecar will possess a development logger and will bypass some logic which is not available in development
+	// mode. Ex. net_peerCount method is not available on anvil nodes, so logic around it needs to be bypassed in
+	// development mode.
+	development bool
 }
 
 // NewSidecar creates a new Sidecar instance.
@@ -76,6 +82,7 @@ func NewSidecar(
 	startQueryBlock *big.Int,
 	maxQueryRange *big.Int,
 	logger *zap.Logger,
+	development bool,
 ) *SidecarImpl {
 	return &SidecarImpl{
 		logger:            logger,
@@ -89,6 +96,7 @@ func NewSidecar(
 		blocksMap:         make(map[string]*sidecartypes.EthereumBlock),
 		updateInterval:    10 * time.Second,
 		blockPruneBuffer:  10,
+		development:       development,
 	}
 }
 
@@ -160,6 +168,20 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 		// Example: if start block is 90 then we know that we do not have the data for 89 and before.
 		if s.startQueryBlock != nil && blockNumber.Cmp(s.startQueryBlock) < 0 {
 			return nil, fmt.Errorf("block %d was pruned or never fetched", blockNumber)
+		}
+
+		// Check the number of peers on the Ethereum node if we are not in development mode (net_peerCount not available
+		// on anvil). We need to error if the Ethereum node has zero peers as it means that it can't sync up with the
+		// network.
+		if !s.development {
+			peerCount, err := s.ethClient.PeerCount(ctx)
+			if err != nil {
+				s.logger.Error(fmt.Sprintf("err is %s", err.Error()))
+				return nil, errors.New("could not get number of peers from node")
+			}
+			if peerCount == 0 {
+				return nil, errors.New("detected zero peers; Ethereum node is not connected to the network")
+			}
 		}
 
 		syncProgress, err := s.ethClient.SyncProgress(ctx)

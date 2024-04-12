@@ -169,7 +169,7 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().StringVar(&contractAddressHex, "contract_address", "", "Contract address in hex format")
 	cmd.Flags().Int64Var(&ethStartBlock, "eth_start_block", 0, "Ethereum start query block")
 	cmd.Flags().Int64Var(&ethMaxBlockRange, "eth_max_block_range", 100, "max number of Ethereum blocks per query")
-	cmd.Flags().BoolVar(&development, "development", false, "Start logger in development mode")
+	cmd.Flags().BoolVar(&development, "development", false, "Starts the sidecar in development mode")
 
 	return cmd
 }
@@ -235,6 +235,7 @@ func startSidecar(
 		big.NewInt(ethStartBlock),
 		big.NewInt(ethMaxBlockRange),
 		logger,
+		development,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
