@@ -134,6 +134,7 @@ func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyn
 	store.mu.Lock()
 	defer store.mu.Unlock()
 
+	// Last synced block is nil do not continue.
 	if lastSyncedBlock == nil {
 		return
 	}

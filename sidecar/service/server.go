@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	gateway "github.com/cosmos/gogogateway"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.uber.org/zap"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -50,6 +51,7 @@ type SidecarServer struct { //nolint
 	// logger to log incoming requests
 	logger *zap.Logger
 
+	// shutdownCh to process any shutdown signals
 	shutdownCh chan struct{}
 }
 
@@ -71,43 +73,51 @@ func (ss *SidecarServer) InitializeServer(host, port string) error {
 	ss.httpSrv = &http.Server{
 		Addr:              serverEndpoint,
 		ReadHeaderTimeout: DefaultServerShutdownTimeout,
-		Handler:           h2c.NewHandler(http.NewServeMux(), &http2.Server{}),
 	}
 
 	ss.grpcSrv = grpc.NewServer()
 	types.RegisterSidecarServer(ss.grpcSrv, ss)
 
-	ss.gatewayMux = runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &gateway.JSONPb{
-		EmitDefaults: true,
-		Indent:       "",
-		OrigName:     true,
-	}))
+	ss.gatewayMux = runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &gateway.JSONPb{
+			EmitDefaults: true,
+			Indent:       "",
+			OrigName:     true,
+		}),
+	)
 
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	if err := types.RegisterSidecarHandlerFromEndpoint(context.Background(), ss.gatewayMux, serverEndpoint, opts); err != nil {
 		return err
 	}
 
-	ss.httpSrv.Handler = http.HandlerFunc(ss.routeRequest)
+	router := http.NewServeMux()
+	router.HandleFunc("/", ss.routeRequest)
+
+	ss.httpSrv.Handler = h2c.NewHandler(router, &http2.Server{})
+
 	return nil
 }
 
 func (ss *SidecarServer) StartServer(ctx context.Context) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
+	// Listen for context cancellation to stop server.
 	eg.Go(func() error {
 		<-ctx.Done()
+		ss.logger.Info("context cancelled, closing sidecar")
 		return ss.ShutdownServer()
 	})
 
+	// Start processing events from the sidecar.
 	eg.Go(func() error {
 		return ss.s.StartFetching(ctx)
 	})
 
 	eg.Go(func() error {
-		ss.logger.Info("starting HTTP/2 server", zap.String("address", ss.httpSrv.Addr))
+		ss.logger.Info("starting grpc server", zap.String("address", ss.httpSrv.Addr))
 		if err := ss.httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-			return fmt.Errorf("HTTP server ListenAndServe: %w", err)
+			return fmt.Errorf("[grpc server] server ListenAndServe: %w", err)
 		}
 		return nil
 	})

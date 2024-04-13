@@ -128,6 +128,8 @@ func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
 func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
+	s.logger.Debug("Querying Block Events ", zap.String("block_number", blockNumber.String()))
+
 	// Validate the blockNumber
 	if blockNumber.Sign() < 0 {
 		return nil, errors.New("block number cannot be negative")
