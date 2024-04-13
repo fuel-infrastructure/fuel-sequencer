@@ -40,7 +40,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
-	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethclient"
+	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"

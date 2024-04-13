@@ -10,7 +10,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethclient"
+	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 
@@ -22,7 +22,7 @@ type Sidecar struct {
 	logger *zap.Logger
 
 	// Ethereum client used for querying data from an Ethereum node.
-	ethClient *ethclient.EthClient
+	ethClient *ethclient.EthWrappedClient
 
 	// SequencerClient is used for querying data from a Sequencer node.
 	sequencerClient *sequencerclient.SequencerClient
@@ -39,7 +39,7 @@ type Sidecar struct {
 // NewSidecar initializes a new Sidecar instance.
 func NewSidecar(
 	logger *zap.Logger,
-	ethClient *ethclient.EthClient,
+	ethClient *ethclient.EthWrappedClient,
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
 ) *Sidecar {
@@ -62,8 +62,6 @@ func (s *Sidecar) StartFetching(ctx context.Context) error {
 		s.logger.Error("Failed to fetch logs for initial check", zap.Error(err))
 		return err
 	}
-
-	// TODO initial check to verify Sequencer client connectivity
 
 	go s.queryAndStoreEvents(ctx)
 

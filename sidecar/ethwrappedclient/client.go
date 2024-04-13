@@ -17,24 +17,24 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
-// EthClient wraps the Ethereum client, with extra functionality.
-type EthClient struct {
+// EthWrappedClient wraps the Ethereum client, with extra functionality.
+type EthWrappedClient struct {
 
-	// client is the ethereum client.
+	// ethClient is the direct ethereum client, we'll be interacting with.
 	ethClient *ethclient.Client
-	// contractAddress is the address
+	// contractAddress is the address of the contract we'll be querying.
 	contractAddress common.Address
-	// contractABI is the contract ABI we are querying
+	// contractABI is the contract ABI of the contract address we're querying.
 	contractABI abi.ABI
 }
 
-// NewClient creates a new Client instance.
+// NewClient creates a new EthWrappedClient instance.
 func NewClient(
 	ethClient *ethclient.Client,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
-) *EthClient {
-	return &EthClient{
+) *EthWrappedClient {
+	return &EthWrappedClient{
 		ethClient:       ethClient,
 		contractAddress: contractAddress,
 		contractABI:     contractAbi,
@@ -42,7 +42,7 @@ func NewClient(
 }
 
 // FilterLogs wraps the FilterLogs call to the Ethereum client.
-func (ec *EthClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]types.Log, error) {
+func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]types.Log, error) {
 
 	// Create the ethereum query for the set contract.
 	query := ethereum.FilterQuery{
@@ -55,12 +55,12 @@ func (ec *EthClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int
 }
 
 // BlockNumber wraps the BlockNumber call to get the current block number.
-func (ec *EthClient) BlockNumber(ctx context.Context) (uint64, error) {
+func (ec *EthWrappedClient) BlockNumber(ctx context.Context) (uint64, error) {
 	return ec.ethClient.BlockNumber(ctx)
 }
 
 // CheckEthereumNodeSync checks if the Ethereum node is synced.
-func (ec *EthClient) CheckEthereumNodeSync(ctx context.Context) (bool, error) {
+func (ec *EthWrappedClient) CheckEthereumNodeSync(ctx context.Context) (bool, error) {
 	progress, err := ec.ethClient.SyncProgress(ctx)
 	if err != nil {
 		return false, errors.New("could not get syncing status from Ethereum node")
@@ -71,7 +71,7 @@ func (ec *EthClient) CheckEthereumNodeSync(ctx context.Context) (bool, error) {
 }
 
 // FetchAndProcessLogs fetches the logs from the blockchain and processes them.
-func (ec *EthClient) FetchAndProcessLogs(
+func (ec *EthWrappedClient) FetchAndProcessLogs(
 	ctx context.Context,
 	logger *zap.Logger,
 	nextQueryBlock, maxQueryRange *big.Int,
@@ -125,7 +125,7 @@ func (ec *EthClient) FetchAndProcessLogs(
 }
 
 // processLogs processes each log in a sequential order and stores it.
-func (ec *EthClient) processLogs(
+func (ec *EthWrappedClient) processLogs(
 	logger *zap.Logger,
 	logs []types.Log,
 	nextQueryBlock *big.Int,
