@@ -129,7 +129,7 @@ genesis:
           - "*"  # allow all
         supply_delta_period: 100
       last_ethereum_nonce: "0"
-      last_ethereum_block_synced: "5702656"  # sepolia testnet
+      last_ethereum_block_synced: "1351365"  # holesky testnet
     sequencing:
       params:
         max_blob_size_bytes: 1000
