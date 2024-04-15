@@ -571,6 +571,9 @@ class FuelSequencerChain(CosmosChain):
             f"bridge sequencer-address-from-ethereum-address {seq_address}"
         ))['sequencer_address']
 
+    def withdraw(self, to: str, amount: str) -> str:
+        return self.tx(f"bridge withdraw-to-ethereum {to} {amount}")
+
 
 class EthereumChain(Web3):
 

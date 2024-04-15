@@ -98,6 +98,12 @@ ETH.deposit(100, to, 0)  # duration must be greater than start time delay
 to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
 ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
 
+# Perform a withdrawal on Sequencer
+SEQ.query_balance_by_key_name(SEQ.key_name)  # check balance
+to = ETH_acc_address                         # recipient
+SEQ.withdraw(to, f"100{SEQ.fee_token}")      # withdraw
+SEQ.query_balance_by_key_name(SEQ.key_name)  # check balance
+
 # --------------------------------------------------------------- MISC TOOLS
 
 # Submit gov proposal to update client after expiry
