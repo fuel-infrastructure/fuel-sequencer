@@ -3,7 +3,7 @@ package types
 import "strings"
 
 const ErrBlockDoesNotExist = "block does not exist yet"
-const ErrSidecarFallenBehindWithAcceptableDelay = "Sidecar has fallen behind the network with acceptable delay"
+const ErrSidecarFallenBehindWithAcceptableDelay = "sidecar has fallen behind the network with acceptable delay"
 
 // IsErrorFatal is a helper which determines whether the error raised by the Sidecar should halt the block production
 // on the Sequencer. If true is returned, the Sequencer should halt block production, otherwise, the Sequencer can
