@@ -120,6 +120,7 @@ genesis:
     staking:
       params:
         bond_denom: "utest"
+        max_validators: 10
     bridge:
       params:
         bridge_denom: "utest"
