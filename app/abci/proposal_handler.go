@@ -379,12 +379,7 @@ func (h *FuelSequencerProposalHandler) getAdvanceSequencer(sidecarErr error) boo
 // getNewEthereumBlock returns the value for EthEventsTx.NewEthereumBlock. NewEthereumBlock should be true iff the
 // Sidecar didn't error.
 func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) bool {
-	// If no error has occurred, AdvanceSequencer should be true.
-	if sidecarErr == nil {
-		return true
-	}
-
-	return false
+	return sidecarErr == nil
 }
 
 // generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
