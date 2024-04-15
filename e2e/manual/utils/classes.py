@@ -592,14 +592,33 @@ class EthereumChain(Web3):
         self.acc_address = acc_address
         self.acc_private_key = acc_private_key
 
-
+    # noinspection PyTypeChecker
     def deposit(self, amount: int, to: str, duration: int):
         contract = self.eth.contract(
             address=self.fuelstreamx_address,
             abi=self.fuelstreamx_abi,
         )
+        # NB: function name is case-sensitive.
         txn = contract.functions.deposit(
             amount, to, duration
+        ).build_transaction({
+            'nonce': self.eth.get_transaction_count(self.acc_address),
+        })
+
+        signed_txn = self.eth.account.sign_transaction(
+            txn, private_key=self.acc_private_key,
+        )
+        return self.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+    # noinspection PyTypeChecker
+    def authorize(self, hex_bytes: str):
+        contract = self.eth.contract(
+            address=self.fuelstreamx_address,
+            abi=self.fuelstreamx_abi,
+        )
+        # NB: function name is case-sensitive.
+        txn = contract.functions.Authorize(
+            hex_bytes,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
         })
