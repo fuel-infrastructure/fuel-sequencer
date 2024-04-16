@@ -33,7 +33,7 @@ type EthEventsTx struct {
 	// the Sidecar errors and the error doesn't warrant the Sequencer to halt the
 	// block production. This is specifically used when the next Ethereum block to
 	// query is not yet generated, and when the Sidecar is out-of-sync with
-	// Ethereum for very few blocks.
+	// Ethereum for a small number of blocks (configured on the Sidecar).
 	AdvanceSequencer bool `protobuf:"varint,2,opt,name=advance_sequencer,json=advanceSequencer,proto3" json:"advance_sequencer,omitempty"`
 	// new_ethereum_block is a boolean which indicates whether a new Ethereum
 	// block has been queried from the Sidecar and that the events from it were

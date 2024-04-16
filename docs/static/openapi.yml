@@ -8310,7 +8310,8 @@ paths:
                       query is not yet generated, and when the Sidecar is
                       out-of-sync with
 
-                      Ethereum for very few blocks.
+                      Ethereum for a small number of blocks (configured on the
+                      Sidecar).
                   new_ethereum_block:
                     type: boolean
                     description: >-
@@ -12651,7 +12652,7 @@ definitions:
 
           query is not yet generated, and when the Sidecar is out-of-sync with
 
-          Ethereum for very few blocks.
+          Ethereum for a small number of blocks (configured on the Sidecar).
       new_ethereum_block:
         type: boolean
         description: >-
@@ -12773,7 +12774,7 @@ definitions:
               query is not yet generated, and when the Sidecar is out-of-sync
               with
 
-              Ethereum for very few blocks.
+              Ethereum for a small number of blocks (configured on the Sidecar).
           new_ethereum_block:
             type: boolean
             description: >-
