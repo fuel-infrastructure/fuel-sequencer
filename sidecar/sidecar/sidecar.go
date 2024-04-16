@@ -133,7 +133,7 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 		return nil, errors.New("block number cannot be negative")
 	}
 
-	events, exists := s.eventStore.QueryEvents(blockNumber)
+	events, exists := s.eventStore.GetStoredEvents(blockNumber)
 	if !exists {
 
 		startQueryBlock := s.eventStore.GetStartQueryBlock()

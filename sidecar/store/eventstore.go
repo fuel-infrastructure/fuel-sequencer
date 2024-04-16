@@ -68,8 +68,8 @@ func (store *EventStore) AddEvents(eventsMap *map[uint64][]sidecartypes.Event) {
 	}
 }
 
-// QueryEvents returns events for a given block number.
-func (store *EventStore) QueryEvents(blockNumber *big.Int) ([]sidecartypes.Event, bool) {
+// GetStoredEvents returns events for a given block number.
+func (store *EventStore) GetStoredEvents(blockNumber *big.Int) ([]sidecartypes.Event, bool) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
 

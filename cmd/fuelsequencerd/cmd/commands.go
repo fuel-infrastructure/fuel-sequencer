@@ -216,20 +216,27 @@ func startSidecar(
 	}
 
 	// Check if the unsafeEthereumBlock is provided and use it instead of querying the genesis.
-	var lastEthereumBlockSynced *big.Int
+	var startBlock *big.Int
 	if unsafeEthereumBlock > 0 {
-		lastEthereumBlockSynced = big.NewInt(unsafeEthereumBlock)
+		startBlock = big.NewInt(unsafeEthereumBlock)
 		logger.Info(
 			"Last ethereum blocked synced used from unsafeEthereumBlock",
-			zap.String("lastEthereumBlockSynced", lastEthereumBlockSynced.String()),
+			zap.String("startBlock", startBlock.String()),
 		)
-	} else {
-		// Otherwise query the genesis file for the up to date last ethereum block synced.
+	}
 
-		// Check if the tendermintNodeRPC is not empty
-		if tendermintNodeRPC == "" {
-			return fmt.Errorf("tendermint node rpc url is required")
-		}
+	// Create a connection to the Cosmos gRPC server.
+	grpcConn, err := grpc.Dial(cosmosNodeRPC, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return err
+	}
+
+	// Create the sequencer client
+	scsequencerclient := scsequencerclient.NewClient(grpcConn)
+
+	// If the tendermintNodeRPC is specified and the unsafeEthereumBlock is not then we proceed to attempt
+	// to query the genesis file.
+	if tendermintNodeRPC != "" && unsafeEthereumBlock == 0 {
 
 		// Append `/genesis?` to the tendermintNodeRPC URL
 		genesisURL := fmt.Sprintf("%s/genesis?", tendermintNodeRPC)
@@ -237,21 +244,35 @@ func startSidecar(
 		// Query the genesis file
 		resp, err := http.Get(genesisURL)
 		if err != nil {
-			return fmt.Errorf("failed to make request to the tendermint node rpc %s: %v", genesisURL, err)
-		}
-		defer resp.Body.Close()
+			logger.Error("Failed to make request to the tendermint node RPC",
+				zap.String("url", genesisURL),
+				zap.Error(err))
+		} else {
+			defer resp.Body.Close()
 
-		// Read the response body
-		genbz, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read the response body of the genesis file from tendermint node rpc %s: %v", genesisURL, err)
-		}
+			// Read the response body
+			genbz, err := io.ReadAll(resp.Body)
+			if err != nil {
+				logger.Error("Failed to read the response body of the genesis file",
+					zap.String("url", genesisURL),
+					zap.Error(err))
+			} else {
+				lastEthereumBlockSyncedUint := sidecarutils.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
+				startBlock = big.NewInt(int64(lastEthereumBlockSyncedUint + 1))
+				logger.Info("Last ethereum block synced used from genesis",
+					zap.String("startBlock", startBlock.String()))
 
-		// Get the lasts ethereum block synced from genesis or stop.
-		lastEthereumBlockSyncedUint := sidecarutils.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
-		lastEthereumBlockSynced = big.NewInt(int64(lastEthereumBlockSyncedUint))
-		logger.Info("Last ethereum blocked synced used from genesis",
-			zap.String("lastEthereumBlockSynced", lastEthereumBlockSynced.String()))
+				lastSyncedSeqeuncerEthereumBlock, err := scsequencerclient.FetchLastSyncedEthereumBlock(ctx)
+				if err != nil {
+					logger.Error("Failed to query the last synced block from the sequencer",
+						zap.Error(err))
+				} else {
+					if lastSyncedSeqeuncerEthereumBlock.Cmp(startBlock) > 0 {
+						startBlock = lastSyncedSeqeuncerEthereumBlock
+					}
+				}
+			}
+		}
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
@@ -266,20 +287,11 @@ func startSidecar(
 		return err
 	}
 
-	// Create a connection to the Cosmos gRPC server.
-	grpcConn, err := grpc.Dial(cosmosNodeRPC, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return err
-	}
-
 	// Create the sidecar ethereum client
 	scEthClient := scethclient.NewClient(ethClient, contractAddr, contractAbi)
 
-	// Create the sequencer client
-	scsequencerclient := scsequencerclient.NewClient(grpcConn)
-
 	// Create the store
-	eventStore := scstore.NewEventStore(lastEthereumBlockSynced, nil, big.NewInt(ethMaxBlockRange))
+	eventStore := scstore.NewEventStore(startBlock, nil, big.NewInt(ethMaxBlockRange))
 
 	sideCar := sidecar.NewSidecar(
 		logger,

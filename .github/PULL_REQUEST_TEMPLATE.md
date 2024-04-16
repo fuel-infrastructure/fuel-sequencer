@@ -31,8 +31,8 @@ Testing and docs:
 - [ ] Run a local E2E setup to ensure the chain runs:
   - Ensure you have correct variables at `e2e/test-contracts/.env`
   - `make build-eth-docker-image` to build the latest Ethereum image.
-  - Terminal 1: `make install run-eth-docker-container run-sidecar`
-  - Terminal 2: `make run-sequencer`
+  - Terminal 1: `make install run-eth-docker-container run-sequencer`
+  - Terminal 2: `make run-sidecar`
   - `make clean` once you're done.
 - [ ] Run E2E tests:
   - Ensure you have correct variables at `e2e/test-contracts/.env`
