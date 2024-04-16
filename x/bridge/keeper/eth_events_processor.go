@@ -143,10 +143,10 @@ func (k Keeper) processSendToSequencerEvent(
 		}
 	} else {
 
-		// If To is an Ethereum address, map it to a Sequencer address, otherwise, generate the sdk.AccAddress from the
+		// If To is an Ethereum address map it to a Sequencer address, otherwise, generate the sdk.AccAddress from the
 		// Bech32 string
 		if common.IsHexAddress(sendEvent.To) {
-			sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, sendEvent.To, vesting, tokensToMint)
+			sequencerAddr, err = k.GenerateSequencerAddressFromEthereumAddress(sendEvent.To)
 		} else {
 			sequencerAddr, err = sdk.AccAddressFromBech32(sendEvent.To)
 		}
