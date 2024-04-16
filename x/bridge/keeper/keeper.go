@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -66,6 +67,11 @@ func NewKeeper(
 // GetAuthority returns the module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// GetAddressCodec returns the module's AccountKeeper.AddressCodec.
+func (k Keeper) GetAddressCodec() address.Codec {
+	return k.accountKeeper.AddressCodec()
 }
 
 // Logger returns a module-specific logger.

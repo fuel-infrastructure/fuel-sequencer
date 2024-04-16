@@ -3,8 +3,10 @@ package keeper
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -29,6 +31,18 @@ func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwne
 	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress)
 }
 
+// GenerateSequencerAddressFromEthereumAddress uses the App address codec to generate a Sequencer address from an
+// Ethereum one. It uses the underlying StringToBytes which trims the 0x prefix from an Ethereum address, if any, and
+// decodes the Ethereum address into bytes.
+func (k Keeper) GenerateSequencerAddressFromEthereumAddress(ethAddress string) (sdk.AccAddress, error) {
+	// TODO: We might want to verify checksum of address
+	if !common.IsHexAddress(ethAddress) {
+		return nil, errorsmod.Wrapf(types.ErrInvalidEthAddress, "invalid Ethereum address format (%s)", ethAddress)
+	}
+
+	return k.GetAddressCodec().StringToBytes(ethAddress)
+}
+
 // generateSequencerAccountFromEthereumDeposit gets or creates a Sequencer account for the specified Ethereum address.
 // The resultant address is a deterministic 1-1 mapping from the Ethereum address, and the account is guaranteed
 // to follow the specified vestingDuration, unless an EthOwnedContinuousVestingAccount exists already, in which
@@ -37,7 +51,7 @@ func (k Keeper) generateSequencerAccountFromEthereumDeposit(
 	ctx sdk.Context, ethAddress string, vestingDuration time.Duration, coins sdk.Coins,
 ) (sdk.AccAddress, error) {
 
-	accAddress, err := types.GenerateSequencerAddressFromEthereumAddress(ethAddress)
+	accAddress, err := k.GenerateSequencerAddressFromEthereumAddress(ethAddress)
 	if err != nil {
 		return nil, err
 	}
