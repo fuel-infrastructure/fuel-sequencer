@@ -229,7 +229,7 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 		threshold := new(big.Int).SetUint64(s.acceptableDelay)
 		if delay.Cmp(threshold) <= 0 {
 			return nil, fmt.Errorf(
-				"%s; sidecar height %s, Ethereum height %s",
+				"%s; Sidecar height %s, Ethereum height %s",
 				sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay,
 				sidecarHeight.String(),
 				networkHeight.String(),
