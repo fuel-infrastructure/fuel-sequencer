@@ -182,7 +182,7 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 		if !s.development {
 			peerCount, err := s.ethClient.PeerCount(ctx)
 			if err != nil {
-				s.logger.Error(fmt.Sprintf("err is %s", err.Error()))
+				s.logger.Error(fmt.Sprintf("err when fetching peer count: %s", err.Error()))
 				return nil, errors.New("could not get number of peers from node")
 			}
 			if peerCount == 0 {
