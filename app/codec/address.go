@@ -47,10 +47,3 @@ func (c FuelSequencerAddressCodec) StringToBytes(text string) ([]byte, error) {
 	// Otherwise default to the Cosmos SDK default implementation (bech32)
 	return c.Bech32Codec.StringToBytes(text)
 }
-
-// BytesToString decodes bytes to text
-func (c FuelSequencerAddressCodec) BytesToString(bz []byte) (string, error) {
-
-	// Bytes will always be decoded to bech32
-	return c.Bech32Codec.BytesToString(bz)
-}
