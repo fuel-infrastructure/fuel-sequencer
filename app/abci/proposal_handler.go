@@ -100,7 +100,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, errors.New("could not get Ethereum event index offset from state")
 		}
 
-		// Query the events of the next Ethereum block
+		// Query the events of the next Ethereum block.
+		// NOTE: We are not ignoring the error here. In fact, the error is passed to generateEthEventsTx in order to
+		// perform dedicated error handling.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
 		response, err := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
@@ -248,7 +250,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Query the events of the next Ethereum block
+		// Query the events of the next Ethereum block.
+		// NOTE: We are not ignoring the error here. In fact, the error is passed to generateEthEventsTx in order to
+		// perform dedicated error handling.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
 		response, err := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
