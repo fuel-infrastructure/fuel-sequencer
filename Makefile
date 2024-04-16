@@ -152,25 +152,7 @@ build-fuelsequencerd:
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
 	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
 
-build-sidecar:
-	@$(eval MAIN := ./cmd/sidecar/main.go)
-	@echo "🔧 Building sidecar-$(VERSION)-linux-amd64..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-linux-amd64 $(MAIN)
-	@echo "🔧 Building sidecar-$(VERSION)-linux-arm64..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-linux-arm64 $(MAIN)
-	@echo "🔧 Building sidecar-$(VERSION)-darwin-amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-darwin-amd64 $(MAIN)
-
-build-client:
-	@$(eval MAIN := ./cmd/client/main.go)
-	@echo "🔧 Building client-$(VERSION)-linux-amd64..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-linux-amd64 $(MAIN)
-	@echo "🔧 Building client-$(VERSION)-linux-arm64..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-linux-arm64 $(MAIN)
-	@echo "🔧 Building client-$(VERSION)-darwin-amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-darwin-amd64 $(MAIN)
-
-build-all: clean build-fuelsequencerd build-sidecar build-client
+build-all: clean build-fuelsequencerd
 	@echo "✅ Finished building all!"
 
 do-checksum:
