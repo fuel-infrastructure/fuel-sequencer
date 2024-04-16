@@ -65,6 +65,16 @@ type SidecarImpl struct {
 
 	// running is the current status of the main sidecar process (running or not).
 	running atomic.Bool
+
+	// development is a boolean variable which indicates whether the sidecar should be run in development mode. If true
+	// the sidecar will possess a development logger and will bypass some logic which is not available in development
+	// mode. Ex. net_peerCount method is not available on anvil nodes, so logic around it needs to be bypassed in
+	// development mode.
+	development bool
+
+	// acceptableDelay is the number of blocks that the Sidecar can be out-of-sync with Ethereum. When this occurs the
+	// sidecar returns a special error message if a block which has not been processed yet is queried.
+	acceptableDelay uint64
 }
 
 // NewSidecar creates a new Sidecar instance.
@@ -76,6 +86,8 @@ func NewSidecar(
 	startQueryBlock *big.Int,
 	maxQueryRange *big.Int,
 	logger *zap.Logger,
+	development bool,
+	acceptableDelay uint64,
 ) *SidecarImpl {
 	return &SidecarImpl{
 		logger:            logger,
@@ -89,6 +101,8 @@ func NewSidecar(
 		blocksMap:         make(map[string]*sidecartypes.EthereumBlock),
 		updateInterval:    10 * time.Second,
 		blockPruneBuffer:  10,
+		development:       development,
+		acceptableDelay:   acceptableDelay,
 	}
 }
 
@@ -162,6 +176,20 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 			return nil, fmt.Errorf("block %d was pruned or never fetched", blockNumber)
 		}
 
+		// Check the number of peers on the Ethereum node if we are not in development mode (net_peerCount not available
+		// on anvil). We need to error if the Ethereum node has zero peers as it means that it can't sync up with the
+		// network.
+		if !s.development {
+			peerCount, err := s.ethClient.PeerCount(ctx)
+			if err != nil {
+				s.logger.Error(fmt.Sprintf("err when fetching peer count: %s", err.Error()))
+				return nil, errors.New("could not get number of peers from node")
+			}
+			if peerCount == 0 {
+				return nil, errors.New("detected zero peers; Ethereum node is not connected to the network")
+			}
+		}
+
 		syncProgress, err := s.ethClient.SyncProgress(ctx)
 		if err != nil {
 			return nil, errors.New("could not get syncing status from Ethereum node")
@@ -181,7 +209,35 @@ func (s *SidecarImpl) QueryBlockEvents(ctx context.Context, blockNumber *big.Int
 			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
 		}
 
-		// Otherwise this block was not yet processed
+		// Compute the highest known height of the network.
+		var networkHeight *big.Int
+		if !isEthereumNodeSynced {
+
+			// If the Ethereum node is not synced, then get the alleged network height from the SyncProgress object.
+			networkHeight = new(big.Int).SetUint64(syncProgress.HighestBlock)
+		} else {
+
+			// If the Ethereum node is synced, then the network height is equivalent to the last synced height
+			networkHeight = new(big.Int).SetUint64(ethHeight)
+		}
+
+		// Sidecar height is the height of the sidecar's next block to query minus 1
+		sidecarHeight := new(big.Int).Sub(s.nextQueryBlock, big.NewInt(1))
+
+		// If the delay is acceptable, return a special error for possibly different handling in the Sequencer.
+		delay := new(big.Int).Sub(networkHeight, sidecarHeight)
+		threshold := new(big.Int).SetUint64(s.acceptableDelay)
+		if delay.Cmp(threshold) <= 0 {
+			return nil, fmt.Errorf(
+				"%s; Sidecar height %s, Ethereum height %s",
+				sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay,
+				sidecarHeight.String(),
+				networkHeight.String(),
+			)
+		}
+
+		// Otherwise, return a block was not yet processed error. This signals that the sidecar is severely out-of-sync
+		// with Ethereum
 		return nil, fmt.Errorf("block not yet processed %s", blockNumber)
 	}
 
