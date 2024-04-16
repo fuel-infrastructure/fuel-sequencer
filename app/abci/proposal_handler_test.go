@@ -35,6 +35,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxPartial)
 	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithoutEvents)
 	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxNoNewBlock)
+	encodedEthEventsTxSidecarDelay := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarDelay)
 	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
@@ -147,6 +148,29 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: [][]byte{
 					encodedEthEventsTxNoNewBlock,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				},
+			},
+		},
+		{
+			name:                      "returns injected eth tx and other txs if sidecar not fallen behind by too much",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: nil, Error: fmt.Errorf("%s 1", sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay),
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:       totalTxsGas,
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: [][]byte{
+					encodedEthEventsTxSidecarDelay,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
@@ -449,6 +473,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	encodedEthEventsTxWithEventsReduced := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxReduced)
 	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithoutEvents)
 	encodedEthEventsTxNoNewBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxNoNewBlock)
+	encodedEthEventsTxSidecarDelay := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarDelay)
 	encodedEthEventsTxSidecarErr := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
@@ -473,6 +498,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	}
 	validTxsNoNewBlock := [][]byte{
 		encodedEthEventsTxNoNewBlock, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+	}
+	ValidTxsSidecarDelay := [][]byte{
+		encodedEthEventsTxSidecarDelay, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	}
 	validTxsSidecarErr := [][]byte{
 		encodedEthEventsTxSidecarErr, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
@@ -559,6 +587,20 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:    validTxsNoNewBlock,
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			maxBlockGas:       totalTxsGas,
+		},
+		{
+			name:                      "accepts block if matches EthEventsTx indicating Sidecar delay",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: nil, Error: fmt.Errorf("%s 1", sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay),
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    ValidTxsSidecarDelay,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
