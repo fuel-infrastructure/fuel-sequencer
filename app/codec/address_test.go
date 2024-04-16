@@ -33,5 +33,6 @@ func TestStringToBytes_ComputesExpectedBytesForBech32(t *testing.T) {
 
 	// If the operation is reversed, the bytes should compute to the original Sequencer address
 	actualSequencerAddress, err := codec.BytesToString(bz)
+	require.NoError(t, err)
 	require.Equal(t, testtypes.TestSeqAddr1Str, actualSequencerAddress)
 }
