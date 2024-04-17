@@ -91,9 +91,6 @@ func (k Keeper) processSendToSequencerEvent(
 	params *types.Params,
 	supplyDeltaInfo *types.SupplyDeltaInfo,
 ) {
-
-	// TODO: Check that the contract address matches the stored proxy contract address.
-
 	// Parse the data accordingly.
 	amount, success := sdkmath.NewIntFromString(sendEvent.Amount)
 	if !success {
