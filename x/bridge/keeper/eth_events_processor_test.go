@@ -17,9 +17,10 @@ import (
 )
 
 func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
-	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed via the AuthorizeEvent
+	// These accounts correspond to the from and to addresses of the bank. MsgSend to be executed via the AuthorizeEvent
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
-	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
 	// This is the amount to be funded to the fromAcc
 	amt := sdkmath.NewInt(1000000)
@@ -117,7 +118,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 	// These accounts correspond to the from and to addresses of the bank.MsgSends to be executed via the AuthorizeEvent
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
-	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
 	// This is the amount to be funded to the fromAcc
 	amt := sdkmath.NewInt(1000000)
@@ -376,7 +378,8 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 func (s *KeeperTestSuite) TestExecuteMsg() {
 	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom2Seq)
-	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
 	// This is the amount to be funded to the fromAcc
 	amt := sdkmath.NewInt(1000000)
@@ -457,11 +460,12 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 	blockTime, _ := time.Parse(time.DateOnly, "2024-01-01")
 	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
-	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed via the AuthorizeEvent
-	fromAccOne, _ := types.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom3)
-	toAccOne := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	// These accounts correspond to the from and to addresses of the SendToSequencerEvent
+	fromAccOne, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom3)
+	toAccOne, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
-	fromAccTwo, _ := types.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom2)
+	fromAccTwo, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom2)
 
 	testCases := []struct {
 		name           string
@@ -519,10 +523,31 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "successful - send to sequencer - mint to to address To == From",
+			name: "successful - send to sequencer - mint to address To == From",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
-					testtypes.TestEvent9,
+					testtypes.TestEvent10,
+				},
+				AdvanceSequencer: true,
+				NewEthereumBlock: true,
+				BlockNumber:      1,
+			},
+			fromAcc:        &fromAccOne,
+			toAcc:          &fromAccOne,
+			expFromBalance: sdkmath.NewInt(100), // Same balance From == To
+			expToBalance:   sdkmath.NewInt(100),
+			expSupplyDelta: &types.SupplyDeltaInfo{
+				Offset: sdkmath.NewInt(-100),
+			},
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   true,
+			isFromEthOwned: true,
+		},
+		{
+			name: "successful - send to sequencer - mint to address To == Sequencer(From)",
+			ethEventsTx: &types.EthEventsTx{
+				Events: []*sidecartypes.Event{
+					testtypes.TestEvent11,
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
