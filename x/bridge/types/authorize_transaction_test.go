@@ -34,7 +34,7 @@ func TestDeserializeAuthorizeTx(t *testing.T) {
 			event: testtypes.TestAuthorizeEvent1,
 			expMsgs: []sdk.Msg{
 				&banktypes.MsgSend{
-					FromAddress: testtypes.TestFrom1Seq,
+					FromAddress: testtypes.TestFrom1,
 					ToAddress:   testtypes.TestTo3,
 					Amount: []sdk.Coin{
 						{Denom: "ufuel", Amount: amt},
