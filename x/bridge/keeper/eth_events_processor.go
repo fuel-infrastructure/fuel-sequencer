@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -131,10 +130,10 @@ func (k Keeper) processSendToSequencerEvent(
 	var err error
 
 	// Generate a potential sequencer address from the Ethereum 'From' address.
-	potentialSequencerAddr, seqErr := types.GenerateSequencerAddressFromEthereumAddress(sendEvent.From)
+	potentialSequencerAddr, seqErr := k.GenerateSequencerAddressFromEthereumAddress(sendEvent.From)
 
 	// If a `To` address was not specified send tokens to the address mapped 1-to-1 fom the `From` Ethereum Address.
-	if len(strings.TrimSpace(sendEvent.To)) == 0 || (seqErr == nil && sendEvent.To == potentialSequencerAddr.String()) {
+	if isDestinationOwnedBySender(sendEvent.From, sendEvent.To, potentialSequencerAddr.String(), seqErr) {
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, sendEvent.From, vesting, tokensToMint)
 		if err != nil {
 			k.Logger().Error(

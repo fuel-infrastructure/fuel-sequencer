@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -29,6 +30,13 @@ func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwne
 	// pre-created. Thus, the vesting details are not really important and any vesting tokens will become available.
 	baseAcc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress)
+}
+
+// destinationAccountOwnedBySender determines whether the SendToSequencerEvent.From owns SendToSequencerEvent.To on the
+// Sequencer. An account is owned by the sender iff To is not specified or To is equivalent to From (eth addresses) or
+// To is equivalent to the mapping of From as a Sequencer address.
+func isDestinationOwnedBySender(from, to, fromSeq string, seqMappingErr error) bool {
+	return len(strings.TrimSpace(to)) == 0 || to == from || (seqMappingErr == nil && to == fromSeq)
 }
 
 // GenerateSequencerAddressFromEthereumAddress uses the App address codec to generate a Sequencer address from an

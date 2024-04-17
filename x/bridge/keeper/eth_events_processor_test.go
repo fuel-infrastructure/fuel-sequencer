@@ -523,10 +523,31 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "successful - send to sequencer - mint to to address To == From",
+			name: "successful - send to sequencer - mint to address To == From",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
-					testtypes.TestEvent9,
+					testtypes.TestEvent10,
+				},
+				AdvanceSequencer: true,
+				NewEthereumBlock: true,
+				BlockNumber:      1,
+			},
+			fromAcc:        &fromAccOne,
+			toAcc:          &fromAccOne,
+			expFromBalance: sdkmath.NewInt(100), // Same balance From == To
+			expToBalance:   sdkmath.NewInt(100),
+			expSupplyDelta: &types.SupplyDeltaInfo{
+				Offset: sdkmath.NewInt(-100),
+			},
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   true,
+			isFromEthOwned: true,
+		},
+		{
+			name: "successful - send to sequencer - mint to address To == Sequencer(From)",
+			ethEventsTx: &types.EthEventsTx{
+				Events: []*sidecartypes.Event{
+					testtypes.TestEvent11,
 				},
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,

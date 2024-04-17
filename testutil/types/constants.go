@@ -152,6 +152,12 @@ var (
 		To:       TestFrom3,
 		Duration: TestDuration1,
 	}
+	TestSendToSequencerEvent11 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount1,
+		To:       TestFrom3Seq,
+		Duration: TestDuration1,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		From:    TestFrom1,
 		Message: testutils.MustHexDecodeString(TestMessage1),
@@ -165,16 +171,17 @@ var (
 		Message: testutils.MustHexDecodeString(TestMessage3),
 	}
 
-	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
-	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
-	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
-	TestEvent4 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
-	TestEvent5 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
-	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
-	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
-	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
-	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent9)
+	TestEvent1  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
+	TestEvent2  = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
+	TestEvent3  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
+	TestEvent4  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
+	TestEvent5  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
+	TestEvent6  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
+	TestEvent7  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
+	TestEvent8  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
+	TestEvent9  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent9)
 	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent10)
+	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent11)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
