@@ -74,12 +74,12 @@ func (m *SendToSequencerEvent) ValidateBasic() error {
 		return errors.New("from is not a valid hex address")
 	}
 
-	// Check that To is a valid Cosmos address. Note that To is optional.
+	// Check that To is either a valid Sequencer or hex address. Note that To is optional.
 	if len(strings.TrimSpace(m.To)) != 0 {
 
 		_, err := sdk.AccAddressFromBech32(m.To)
-		if err != nil {
-			return fmt.Errorf("to is not a valid Bech32 address: %w", err)
+		if err != nil && !common.IsHexAddress(m.To) {
+			return fmt.Errorf("to is not a valid Bech32 or Hex address")
 		}
 	}
 
