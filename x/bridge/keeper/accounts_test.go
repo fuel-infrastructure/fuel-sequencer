@@ -13,6 +13,13 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumAddress() {
+	accAddress, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testutiltypes.TestEthAddr1Str)
+	s.Require().NoError(err)
+
+	s.Require().Equal(testutiltypes.TestSeqAddr1Str, accAddress.String())
+}
+
 func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 
 	// The first account number depends on the number of module accounts created.

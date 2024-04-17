@@ -14,14 +14,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -43,6 +46,20 @@ func NewRootCmd() *cobra.Command {
 		depinject.Configs(app.AppConfig(),
 			depinject.Supply(
 				log.NewNopLogger(),
+				func() address.Codec {
+					return appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(
+						app.AccountAddressPrefix))
+				},
+				func() runtime.ValidatorAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valoper"),
+					)
+				},
+				func() runtime.ConsensusAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valcons"),
+					)
+				},
 			),
 			depinject.Provide(
 				ProvideClientContext,
