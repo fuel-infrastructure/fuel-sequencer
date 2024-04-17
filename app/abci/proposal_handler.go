@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -372,6 +371,23 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 	}
 }
 
+// getAdvanceSequencer returns the value for EthEventsTx.AdvanceSequencer. AdvanceSequencer should be true iff the
+// Sidecar didn't return a fatal error, otherwise, it should be false.
+func (h *FuelSequencerProposalHandler) getAdvanceSequencer(sidecarErr error) bool {
+	// If no error has occurred, AdvanceSequencer should be true.
+	if sidecarErr == nil {
+		return true
+	}
+
+	return !sidecartypes.IsErrorFatal(sidecarErr)
+}
+
+// getNewEthereumBlock returns the value for EthEventsTx.NewEthereumBlock. NewEthereumBlock should be true iff the
+// Sidecar didn't error.
+func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) bool {
+	return sidecarErr == nil
+}
+
 // generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
 // returned from the sidecar don't pass validation.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
@@ -380,31 +396,18 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarErr error,
 	ethereumProxyContractAddress string,
 ) (*bridgetypes.EthEventsTx, error) {
-	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
-	// when it errors.
+	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
+	// Context: Sidecar returns a nil response when it errors.
 	var events []*sidecartypes.Event
 	if sidecarResponse != nil {
 		events = sidecarResponse.Events
 	}
 
-	newEthereumBlock := true
-	advanceSequencer := true
-	if sidecarErr != nil {
-		// If the sidecar errored newEthereumBlock must be set to false as this means that the sidecar failed to query
-		// the next Ethereum block, therefore, we can't account for it
-		newEthereumBlock = false
-
-		// Set advanceSequencer to false if sidecar error is not due to block generation
-		if !strings.Contains(sidecarErr.Error(), sidecartypes.ErrBlockDoesNotExist) {
-			advanceSequencer = false
-		}
-	}
-
 	// Perform stateless validation
 	ethEventsTx := bridgetypes.EthEventsTx{
 		Events:           events,
-		NewEthereumBlock: newEthereumBlock,
-		AdvanceSequencer: advanceSequencer,
+		NewEthereumBlock: h.getNewEthereumBlock(sidecarErr),
+		AdvanceSequencer: h.getAdvanceSequencer(sidecarErr),
 		BlockNumber:      blockNumber,
 	}
 	if err := ethEventsTx.ValidateBasic(); err != nil {
