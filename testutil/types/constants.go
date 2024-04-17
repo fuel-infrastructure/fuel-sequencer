@@ -146,6 +146,12 @@ var (
 		To:       "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
 		Duration: TestDuration2,
 	}
+	TestSendToSequencerEvent10 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount1,
+		To:       TestFrom3,
+		Duration: TestDuration1,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		From:    TestFrom1,
 		Message: testutils.MustHexDecodeString(TestMessage1),
@@ -167,6 +173,8 @@ var (
 	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
 	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
 	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
+	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent9)
+	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent10)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
