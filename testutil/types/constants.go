@@ -163,7 +163,9 @@ var (
 	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestSendToSequencerEvent3, TestEthereumProxyContractAddress,
 	)
-	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3, TestEthereumProxyContractAddress)
+	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent3, TestEthereumProxyContractAddress,
+	)
 	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestSendToSequencerEvent2, TestEthereumProxyContractAddress,
 	)
