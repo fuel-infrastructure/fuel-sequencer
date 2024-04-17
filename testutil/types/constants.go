@@ -196,15 +196,15 @@ var (
 	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestSendToSequencerEvent8, TestEthereumProxyContractAddress,
 	)
-	TestEvent9  = testutils.MustGetSidecarEventFromParsedEvent(
+	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestSendToSequencerEvent9, TestEthereumProxyContractAddress,
-		)
+	)
 	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestSendToSequencerEvent10, TestEthereumProxyContractAddress,
-		)
+	)
 	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestSendToSequencerEvent11, TestEthereumProxyContractAddress,
-		)
+	)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
