@@ -49,7 +49,6 @@ var (
 	TestDuration3 = "31536052"
 	TestDuration4 = "abc"
 	TestDuration5 = "1"
-
 	// TestMessage1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1Eth. This was generated with the help
 	// of utils/proto_serialization_test.go.
 	TestMessage1 = "0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656c7365717565" +
@@ -146,6 +145,12 @@ var (
 		To:       TestTo4,
 		Duration: TestDuration3,
 	}
+	TestSendToSequencerEvent9 = &sidecartypes.SendToSequencerEvent{
+		From:     TestFrom3,
+		Amount:   TestAmount1,
+		To:       TestFrom3Seq,
+		Duration: TestDuration1,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		From:    TestFrom1,
 		Message: testutils.MustHexDecodeString(TestMessage1),
@@ -167,6 +172,7 @@ var (
 	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
 	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
 	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
+	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent9)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
