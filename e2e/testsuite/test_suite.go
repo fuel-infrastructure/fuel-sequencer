@@ -89,6 +89,23 @@ var (
 		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 	}
 
+	// ETH_ADDRESSES are the Ethereum addresses derived from the above MNEMONICS.
+	ETH_ADDRESSES = []string{
+		// first validator
+		"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+		// alice
+		"0xe53e6e952cf156b9f58a2a82da5ea537102ba484",
+		// bob
+		"0x8fe6350f77cf9be08bbac2c8156caba4d47e756b",
+	}
+
+	// ETH_ADDRESS_SEQ are the mapped addresses in ETH_ADDRESSES on the Sequencer
+	ETH_ADDRESS_SEQ = []string{
+		"fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz",
+		"fuelsequencer1u5lxa9fv79ttnav292pd5h49xugzhfyyzgs97h",
+		"fuelsequencer13lnr2rmhe7d7pza6ctyp2m9t5n28uattwk7kr8",
+	}
+
 	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
 	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	// GATEWAY_CONTRACT is a contract by Succinct that does ZK proof verification.

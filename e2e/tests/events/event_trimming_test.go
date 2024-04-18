@@ -1,4 +1,4 @@
-package basic_test
+package events_test
 
 import (
 	cmtypes "github.com/cometbft/cometbft/types"

@@ -1,4 +1,4 @@
-package withdrawals_test
+package authorize_transactions_test
 
 import (
 	"encoding/json"
@@ -10,16 +10,16 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type WithdrawalsTestSuite struct {
+type AuthorizeTransactionsTestSuite struct {
 	e2etestsuite.E2ETestSuite
 }
 
-func TestWithdrawalsTestSuite(t *testing.T) {
-	suite.Run(t, new(WithdrawalsTestSuite))
+func TestAuthorizeTransactionsTestSuite(t *testing.T) {
+	suite.Run(t, new(AuthorizeTransactionsTestSuite))
 }
 
-// SetupTest sets a high supply delta period so that we can really focus on Ethereum events.
-func (s *WithdrawalsTestSuite) SetupTest() {
+// SetupTest sets a high supply delta period so that we can really focus on Authorized Ethereum events.
+func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 
 	setHighSupplyDeltaPeriod := e2etestsuite.ModifyGenesisFunc(
 		func(cdc codec.Codec, genesisState map[string]json.RawMessage) error {
