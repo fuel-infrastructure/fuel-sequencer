@@ -17,15 +17,16 @@ var (
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
-	FirstAccountSequence  = uint64(0)
-	TestToken             = "token"
-	TestGovernanceAddress = authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	TestSupplyDeltaPeriod = uint64(100)
-	TestLastEthereumNonce = sdkmath.NewInt(50)
-	TestLastSupply        = sdkmath.NewInt(100000000)
-	TestDelta             = sdkmath.NewInt(5000000)
-	TestOffset            = sdkmath.NewInt(-2000000)
-	TestSupplyDeltaInfo   = bridgetypes.SupplyDeltaInfo{
+	FirstAccountSequence             = uint64(0)
+	TestToken                        = "token"
+	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	TestSupplyDeltaPeriod            = uint64(100)
+	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	TestLastEthereumNonce            = sdkmath.NewInt(50)
+	TestLastSupply                   = sdkmath.NewInt(100000000)
+	TestDelta                        = sdkmath.NewInt(5000000)
+	TestOffset                       = sdkmath.NewInt(-2000000)
+	TestSupplyDeltaInfo              = bridgetypes.SupplyDeltaInfo{
 		LastSupply: TestLastSupply,
 		Delta:      TestDelta,
 		Offset:     TestOffset,
@@ -171,17 +172,39 @@ var (
 		Message: testutils.MustHexDecodeString(TestMessage3),
 	}
 
-	TestEvent1  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
-	TestEvent2  = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
-	TestEvent3  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
-	TestEvent4  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
-	TestEvent5  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
-	TestEvent6  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
-	TestEvent7  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
-	TestEvent8  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
-	TestEvent9  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent9)
-	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent10)
-	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent11)
+	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent3, TestEthereumProxyContractAddress,
+	)
+	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent3, TestEthereumProxyContractAddress,
+	)
+	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent2, TestEthereumProxyContractAddress,
+	)
+	TestEvent4 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent4, TestEthereumProxyContractAddress,
+	)
+	TestEvent5 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent5, TestEthereumProxyContractAddress,
+	)
+	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent6, TestEthereumProxyContractAddress,
+	)
+	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent7, TestEthereumProxyContractAddress,
+	)
+	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent8, TestEthereumProxyContractAddress,
+	)
+	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent9, TestEthereumProxyContractAddress,
+	)
+	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent10, TestEthereumProxyContractAddress,
+	)
+	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent11, TestEthereumProxyContractAddress,
+	)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
