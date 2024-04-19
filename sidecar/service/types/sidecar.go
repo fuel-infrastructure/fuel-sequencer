@@ -72,6 +72,11 @@ func (m *Event) Equal(e *Event) (bool, error) {
 		return false, nil
 	}
 
+	// If two events do not originate from the same contract then they are not equal
+	if m.ContractAddress != e.ContractAddress {
+		return false, nil
+	}
+
 	// Get parsed event from the first event
 	event1, err := m.UnmarshalParsedEvent()
 	if err != nil {
@@ -93,6 +98,11 @@ func (m *Event) ValidateBasic() error {
 	// Error if the receiver is nil
 	if m == nil {
 		return errors.New("event is nil")
+	}
+
+	// Error if the ContractAddress is not a valid Ethereum hex address
+	if !common.IsHexAddress(m.ContractAddress) {
+		return errors.New("contract_address is not a valid hex address")
 	}
 
 	// Get parsed event

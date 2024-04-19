@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: fuelsequencer/bridge/query.proto
+// source: fuelsequencer/bridge/v1/query.proto
 
-package bridge
+package bridgev1
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName                              = "/fuelsequencer.bridge.Query/Params"
-	Query_LastEthereumNonce_FullMethodName                   = "/fuelsequencer.bridge.Query/LastEthereumNonce"
-	Query_LastEthereumBlockSynced_FullMethodName             = "/fuelsequencer.bridge.Query/LastEthereumBlockSynced"
-	Query_EthereumEventIndexOffset_FullMethodName            = "/fuelsequencer.bridge.Query/EthereumEventIndexOffset"
-	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.Query/SupplyDeltaInfo"
-	Query_EthEventsTxByBlockNumber_FullMethodName            = "/fuelsequencer.bridge.Query/EthEventsTxByBlockNumber"
-	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.Query/SequencerAddressFromEthereumAddress"
-	Query_SupplyDeltaProcessed_FullMethodName                = "/fuelsequencer.bridge.Query/SupplyDeltaProcessed"
+	Query_Params_FullMethodName                              = "/fuelsequencer.bridge.v1.Query/Params"
+	Query_LastEthereumNonce_FullMethodName                   = "/fuelsequencer.bridge.v1.Query/LastEthereumNonce"
+	Query_LastEthereumBlockSynced_FullMethodName             = "/fuelsequencer.bridge.v1.Query/LastEthereumBlockSynced"
+	Query_EthereumEventIndexOffset_FullMethodName            = "/fuelsequencer.bridge.v1.Query/EthereumEventIndexOffset"
+	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo"
+	Query_EthEventsTxByBlockNumber_FullMethodName            = "/fuelsequencer.bridge.v1.Query/EthEventsTxByBlockNumber"
+	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress"
+	Query_SupplyDeltaProcessed_FullMethodName                = "/fuelsequencer.bridge.v1.Query/SupplyDeltaProcessed"
 )
 
 // QueryClient is the client API for Query service.
@@ -343,7 +343,7 @@ func _Query_SupplyDeltaProcessed_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Query_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "fuelsequencer.bridge.Query",
+	ServiceName: "fuelsequencer.bridge.v1.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -380,5 +380,5 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "fuelsequencer/bridge/query.proto",
+	Metadata: "fuelsequencer/bridge/v1/query.proto",
 }

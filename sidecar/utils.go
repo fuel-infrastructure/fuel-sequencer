@@ -34,6 +34,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error
 
 		// Fill up the generic event with fields
 		genericEvent.EventType = sidecartypes.SendToSequencerEventName
+		genericEvent.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		genericEvent.Data, err = sequencerEvent.Marshal()
 
 	case sidecartypes.AuthorizeEventHashFn:
@@ -54,6 +55,7 @@ func processLog(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error
 
 		// Fillup the generic event with fields
 		genericEvent.EventType = sidecartypes.AuthorizeEventName
+		genericEvent.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		genericEvent.Data, err = sequencerEvent.Marshal()
 	default:
 		return nil, nil

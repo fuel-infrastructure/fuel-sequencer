@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: fuelsequencer/bridge/tx.proto
+// source: fuelsequencer/bridge/v1/tx.proto
 
-package bridge
+package bridgev1
 
 import (
 	context "context"
@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_UpdateParams_FullMethodName       = "/fuelsequencer.bridge.Msg/UpdateParams"
-	Msg_SupplyDelta_FullMethodName        = "/fuelsequencer.bridge.Msg/SupplyDelta"
-	Msg_WithdrawToEthereum_FullMethodName = "/fuelsequencer.bridge.Msg/WithdrawToEthereum"
+	Msg_UpdateParams_FullMethodName       = "/fuelsequencer.bridge.v1.Msg/UpdateParams"
+	Msg_SupplyDelta_FullMethodName        = "/fuelsequencer.bridge.v1.Msg/SupplyDelta"
+	Msg_WithdrawToEthereum_FullMethodName = "/fuelsequencer.bridge.v1.Msg/WithdrawToEthereum"
 )
 
 // MsgClient is the client API for Msg service.
@@ -172,7 +172,7 @@ func _Msg_WithdrawToEthereum_Handler(srv interface{}, ctx context.Context, dec f
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Msg_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "fuelsequencer.bridge.Msg",
+	ServiceName: "fuelsequencer.bridge.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -189,5 +189,5 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "fuelsequencer/bridge/tx.proto",
+	Metadata: "fuelsequencer/bridge/v1/tx.proto",
 }

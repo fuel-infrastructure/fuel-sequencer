@@ -198,8 +198,9 @@ func (ss *SidecarServer) GetBlockEvents(
 		// Convert blockchain events to protobuf `Event` type
 		for _, be := range blockchainEvents {
 			events = append(events, &types.Event{
-				EventType: be.EventType,
-				Data:      be.Data,
+				EventType:       be.EventType,
+				ContractAddress: be.ContractAddress,
+				Data:            be.Data,
 			})
 		}
 

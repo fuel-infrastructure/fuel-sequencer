@@ -17,15 +17,16 @@ var (
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
-	FirstAccountSequence  = uint64(0)
-	TestToken             = "token"
-	TestGovernanceAddress = authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	TestSupplyDeltaPeriod = uint64(100)
-	TestLastEthereumNonce = sdkmath.NewInt(50)
-	TestLastSupply        = sdkmath.NewInt(100000000)
-	TestDelta             = sdkmath.NewInt(5000000)
-	TestOffset            = sdkmath.NewInt(-2000000)
-	TestSupplyDeltaInfo   = bridgetypes.SupplyDeltaInfo{
+	FirstAccountSequence             = uint64(0)
+	TestToken                        = "token"
+	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	TestSupplyDeltaPeriod            = uint64(100)
+	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	TestLastEthereumNonce            = sdkmath.NewInt(50)
+	TestLastSupply                   = sdkmath.NewInt(100000000)
+	TestDelta                        = sdkmath.NewInt(5000000)
+	TestOffset                       = sdkmath.NewInt(-2000000)
+	TestSupplyDeltaInfo              = bridgetypes.SupplyDeltaInfo{
 		LastSupply: TestLastSupply,
 		Delta:      TestDelta,
 		Offset:     TestOffset,
@@ -79,9 +80,9 @@ var (
 
 	// TestMessage5 corresponds to a MsgWithdrawToEthereum of 0 ufuel from TestFrom3. This was generated with the help
 	// of utils/proto_serialization_test.go.
-	TestMessage5 = "0a670a2b2f6675656c73657175656e6365722e6272696467652e4d73675769746864726177546f457468657265756d123" +
-		"80a2a3078443132323041306366343763374239426537413245364241383946343239373632653762396144621a0a0a05756675656c1" +
-		"20130"
+	TestMessage5 = "0a6a0a2e2f6675656c73657175656e6365722e6272696467652e76312e4d73675769746864726177546f4574686572657" +
+		"56d12380a2a3078443132323041306366343763374239426537413245364241383946343239373632653762396144621a0a0a0575667" +
+		"5656c120130"
 
 	// TestMessage6 corresponds to one 10 ufuel and another 1000000ufuel bank send from TestFrom3 to TestTo3. This was
 	// generated with the help of utils/proto_serialization_test.go.
@@ -171,17 +172,39 @@ var (
 		Message: testutils.MustHexDecodeString(TestMessage3),
 	}
 
-	TestEvent1  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent3)
-	TestEvent2  = testutils.MustGetSidecarEventFromParsedEvent(TestAuthorizeEvent3)
-	TestEvent3  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent2)
-	TestEvent4  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent4)
-	TestEvent5  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent5)
-	TestEvent6  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent6)
-	TestEvent7  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent7)
-	TestEvent8  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent8)
-	TestEvent9  = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent9)
-	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent10)
-	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(TestSendToSequencerEvent11)
+	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent3, TestEthereumProxyContractAddress,
+	)
+	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent3, TestEthereumProxyContractAddress,
+	)
+	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent2, TestEthereumProxyContractAddress,
+	)
+	TestEvent4 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent4, TestEthereumProxyContractAddress,
+	)
+	TestEvent5 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent5, TestEthereumProxyContractAddress,
+	)
+	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent6, TestEthereumProxyContractAddress,
+	)
+	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent7, TestEthereumProxyContractAddress,
+	)
+	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent8, TestEthereumProxyContractAddress,
+	)
+	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent9, TestEthereumProxyContractAddress,
+	)
+	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent10, TestEthereumProxyContractAddress,
+	)
+	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestSendToSequencerEvent11, TestEthereumProxyContractAddress,
+	)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
