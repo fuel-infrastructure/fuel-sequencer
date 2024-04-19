@@ -101,15 +101,14 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Query the events of the next Ethereum block.
-		// NOTE: We are not ignoring the error here. In fact, the error is passed to generateEthEventsTx in order to
-		// perform dedicated error handling.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
-		response, err := h.sidecar.GetBlockEvents(
+		response, sidecarErr := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
+		// NOTE: sidecar error is passed to generateEthEventsTx to perform dedicated error handling. It is not ignored.
 
 		ethEventsTx, err := h.generateEthEventsTx(
-			response, ethBlockToQuery, err, bridgeParams.EthereumProxyContractAddress,
+			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
@@ -253,17 +252,16 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Query the events of the next Ethereum block.
-		// NOTE: We are not ignoring the error here. In fact, the error is passed to generateEthEventsTx in order to
-		// perform dedicated error handling.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
-		response, err := h.sidecar.GetBlockEvents(
+		response, sidecarErr := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
+		// NOTE: sidecar error is passed to generateEthEventsTx to perform dedicated error handling. It is not ignored.
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 		ethEventsTx, err := h.generateEthEventsTx(
-			response, ethBlockToQuery, err, bridgeParams.EthereumProxyContractAddress,
+			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
 		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -299,8 +297,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Reject block if the sequencer should not proceed with block generation
 		if !ethEventsTx.AdvanceSequencer {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"generated eth events tx implies block rejection",
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"generated eth events tx implies block rejection likely due to sidecar error: %s", sidecarErr.Error(),
 			)
 		}
 
@@ -400,6 +398,7 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarErr error,
 	ethereumProxyContractAddress string,
 ) (*bridgetypes.EthEventsTx, error) {
+
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
 	// Context: Sidecar returns a nil response when it errors.
 	var events []*sidecartypes.Event
