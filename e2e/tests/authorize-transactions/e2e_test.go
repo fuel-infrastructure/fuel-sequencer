@@ -2,9 +2,13 @@ package authorize_transactions_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/suite"
@@ -18,11 +22,13 @@ func TestAuthorizeTransactionsTestSuite(t *testing.T) {
 	suite.Run(t, new(AuthorizeTransactionsTestSuite))
 }
 
-// SetupTest sets a high supply delta period so that we can really focus on Authorized Ethereum events.
+// SetupTest modifies the genesis file as required by AuthorizeTransactionsTestSuite
 func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 
-	setHighSupplyDeltaPeriod := e2etestsuite.ModifyGenesisFunc(
+	genesisModifier := e2etestsuite.ModifyGenesisFunc(
 		func(cdc codec.Codec, genesisState map[string]json.RawMessage) error {
+
+			// ------ Add a high SupplyDeltaPeriod so that we don't have to worry about supply delta messages
 
 			var bridgeGenState bridgetypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[bridgetypes.ModuleName], &bridgeGenState))
@@ -33,10 +39,46 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			s.Require().NoError(err)
 			genesisState[bridgetypes.ModuleName] = bz
 
+			// ----- Define accounts on the Sequencer for the following test Ethereum addresses so that we can execute
+			// authorized Transactions
+
+			var accountsGenState authtypes.GenesisState
+			s.Require().NoError(cdc.UnmarshalJSON(genesisState[authtypes.ModuleName], &accountsGenState))
+
+			accs, err := authtypes.UnpackAccounts(accountsGenState.Accounts)
+			if err != nil {
+				panic(fmt.Errorf("failed to get accounts from any: %w", err))
+			}
+
+			for _, address := range e2etestsuite.ETH_ADDRESS_SEQ {
+				account := authtypes.NewBaseAccount(sdk.MustAccAddressFromBech32(address), nil, 0, 0)
+				accs = append(accs, account)
+			}
+
+			accs = authtypes.SanitizeGenesisAccounts(accs)
+
+			genAccs, err := authtypes.PackAccounts(accs)
+			if err != nil {
+				panic(fmt.Errorf("failed to convert accounts into any's: %w", err))
+			}
+
+			accountsGenState.Accounts = genAccs
+
+			bz, err = cdc.MarshalJSON(&accountsGenState)
+			s.Require().NoError(err)
+			genesisState[authtypes.ModuleName] = bz
+
+			// ----- Define balances on the Sequencer for the following test Ethereum addresses so that we can execute
+			// authorized Transactions
+
+			bankGenState := banktypes.GetGenesisStateFromAppState(cdc, appState)
+			bankGenState.Balances = append(bankGenState.Balances, balances)
+			bankGenState.Balances = banktypes.SanitizeGenesisBalances(bankGenState.Balances)
+
 			return nil
 		},
 	)
-	s.GenesisOverrides = &setHighSupplyDeltaPeriod
+	s.GenesisOverrides = &genesisModifier
 
 	s.E2ETestSuite.SetupTest()
 }
