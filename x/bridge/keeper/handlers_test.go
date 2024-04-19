@@ -18,6 +18,8 @@ func (s *KeeperTestSuite) TestQueriesRegisteredWithCorrectPath() {
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/LastEthereumBlockSynced")
 	s.Require().NotNil(handler)
+	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/EthereumEventIndexOffset")
+	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo")
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/EthEventsTxByBlockNumber")

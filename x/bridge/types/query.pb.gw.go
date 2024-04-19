@@ -650,7 +650,7 @@ var (
 
 	pattern_Query_LastEthereumBlockSynced_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "last_ethereum_block_synced"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_EthereumEventIndexOffset_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "ethereum_event_index_offset"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_EthereumEventIndexOffset_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "ethereum_event_index_offset"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_SupplyDeltaInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "supply_delta_info"}, "", runtime.AssumeColonVerbOpt(false)))
 

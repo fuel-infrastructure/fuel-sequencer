@@ -40,7 +40,7 @@ service Query {
   rpc EthereumEventIndexOffset(QueryGetEthereumEventIndexOffsetRequest)
       returns (QueryGetEthereumEventIndexOffsetResponse) {
     option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
-                                   "ethereum_event_index_offset";
+                                   "v1/ethereum_event_index_offset";
   }
 
   // Queries the SupplyDeltaInfo.
