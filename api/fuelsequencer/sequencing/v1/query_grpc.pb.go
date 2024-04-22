@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: fuelsequencer/sequencing/query.proto
+// source: fuelsequencer/sequencing/v1/query.proto
 
-package sequencing
+package sequencingv1
 
 import (
 	context "context"
@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName   = "/fuelsequencer.sequencing.Query/Params"
-	Query_Topic_FullMethodName    = "/fuelsequencer.sequencing.Query/Topic"
-	Query_TopicAll_FullMethodName = "/fuelsequencer.sequencing.Query/TopicAll"
+	Query_Params_FullMethodName   = "/fuelsequencer.sequencing.v1.Query/Params"
+	Query_Topic_FullMethodName    = "/fuelsequencer.sequencing.v1.Query/Topic"
+	Query_TopicAll_FullMethodName = "/fuelsequencer.sequencing.v1.Query/TopicAll"
 )
 
 // QueryClient is the client API for Query service.
@@ -168,7 +168,7 @@ func _Query_TopicAll_Handler(srv interface{}, ctx context.Context, dec func(inte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Query_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "fuelsequencer.sequencing.Query",
+	ServiceName: "fuelsequencer.sequencing.v1.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -185,5 +185,5 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "fuelsequencer/sequencing/query.proto",
+	Metadata: "fuelsequencer/sequencing/v1/query.proto",
 }

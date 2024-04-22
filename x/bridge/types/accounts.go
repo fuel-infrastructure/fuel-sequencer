@@ -9,12 +9,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/ethereum/go-ethereum/common"
 	"gopkg.in/yaml.v2"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -42,27 +40,6 @@ type ethOwnedAccountPretty struct {
 	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
 	Sequence      uint64         `json:"sequence" yaml:"sequence"`
 	AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
-}
-
-// GenerateSequencerAddressFromEthereumAddress trims the 0x prefix from an Ethereum address, if any,
-// and decodes it into bytes before passing it to GenerateSequencerAddressFromEthereumAddressFromBz.
-func GenerateSequencerAddressFromEthereumAddress(ethAddress string) (sdk.AccAddress, error) {
-	// TODO: We might want to verify checksum of address
-	if !common.IsHexAddress(ethAddress) {
-		return nil, errorsmod.Wrapf(ErrInvalidEthAddress, "invalid Ethereum address format (%s)", ethAddress)
-	}
-
-	return GenerateSequencerAddressFromEthereumAddressFromBz(common.FromHex(ethAddress))
-}
-
-// GenerateSequencerAddressFromEthereumAddressFromBz derives a Sequencer address from the module name and
-// the specified Ethereum address. The module name ensures we do not overlap with other modules' addresses.
-func GenerateSequencerAddressFromEthereumAddressFromBz(ethAddress []byte) (sdk.AccAddress, error) {
-	if len(ethAddress) != common.AddressLength {
-		return nil, ErrInvalidEthAddressLength.Wrapf("got %d", len(ethAddress))
-	}
-
-	return sdkaddress.Module(ModuleName, ethAddress), nil
 }
 
 // --------------------- EthOwnedBaseAccount

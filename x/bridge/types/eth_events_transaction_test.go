@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
@@ -132,8 +133,9 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 			eventTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					{
-						EventType: sidecartypes.SendToSequencerEventName,
-						Data:      []byte("invalid-data"),
+						EventType:       sidecartypes.SendToSequencerEventName,
+						ContractAddress: testtypes.TestEthereumProxyContractAddress,
+						Data:            []byte("invalid-data"),
 					},
 					testtypes.TestEvent1,
 					testtypes.TestEvent2,
@@ -148,6 +150,61 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.eventTx.ValidateBasic()
+			if len(tc.expErrMsg) > 0 {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestEthEventsTx_ValidateStateful(t *testing.T) {
+	var nilEthEventsTx *types.EthEventsTx = nil
+
+	testCases := []struct {
+		name                         string
+		eventTx                      *types.EthEventsTx
+		ethereumProxyContractAddress string
+		expErrMsg                    string
+	}{
+		{
+			name:                         "Valid events tx",
+			eventTx:                      &testtypes.TestEthEventsTx,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+		},
+		{
+			name:                         "Invalid events tx - nil",
+			eventTx:                      nilEthEventsTx,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg:                    "EthEventsTx is nil",
+		},
+		{
+			name: "Invalid events tx - event with unexpected contract address in list",
+			eventTx: &types.EthEventsTx{
+				Events: []*sidecartypes.Event{
+					testtypes.TestEvent1,
+					testutils.MustGetSidecarEventFromParsedEvent(
+						testtypes.TestSendToSequencerEvent2, "invalid-ethereum-proxy-contract-address",
+					),
+					testtypes.TestEvent2,
+				},
+				AdvanceSequencer: true,
+				NewEthereumBlock: true,
+			},
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg: fmt.Sprintf(
+				"event contract_address does not match expected ethereum_proxy_contract_address; got %s, expected %s",
+				"invalid-ethereum-proxy-contract-address",
+				testtypes.TestEthereumProxyContractAddress,
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.eventTx.ValidateStateful(tc.ethereumProxyContractAddress)
 			if len(tc.expErrMsg) > 0 {
 				require.Error(t, err)
 				require.ErrorContains(t, err, tc.expErrMsg)
@@ -268,9 +325,9 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 477, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(477)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(476)) // just under enough
+	require.EqualValues(t, 558, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(558)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(557)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.

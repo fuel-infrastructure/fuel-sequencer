@@ -68,8 +68,9 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		supplyDeltaPeriod := h.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
+		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
 		if supplyDeltaPeriod == 0 {
 			return nil, errors.New("SupplyDeltaPeriod cannot be zero")
 		}
@@ -99,13 +100,17 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, errors.New("could not get Ethereum event index offset from state")
 		}
 
-		// Query the events of the next Ethereum block
+		// Query the events of the next Ethereum block.
+		// NOTE: We are not ignoring the error here. In fact, the error is passed to generateEthEventsTx in order to
+		// perform dedicated error handling.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
 		response, err := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
 
-		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
+		ethEventsTx, err := h.generateEthEventsTx(
+			response, ethBlockToQuery, err, bridgeParams.EthereumProxyContractAddress,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
 		}
@@ -247,14 +252,19 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Query the events of the next Ethereum block
+		// Query the events of the next Ethereum block.
+		// NOTE: We are not ignoring the error here. In fact, the error is passed to generateEthEventsTx in order to
+		// perform dedicated error handling.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
 		response, err := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		ethEventsTx, err := h.generateEthEventsTx(
+			response, ethBlockToQuery, err, bridgeParams.EthereumProxyContractAddress,
+		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to generate eth events tx: %w", err,
@@ -308,7 +318,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		supplyDeltaPeriod := h.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
+		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
 		if supplyDeltaPeriod == 0 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
 				"SupplyDeltaPeriod cannot be zero",
@@ -388,6 +398,7 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
+	ethereumProxyContractAddress string,
 ) (*bridgetypes.EthEventsTx, error) {
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
 	// Context: Sidecar returns a nil response when it errors.
@@ -396,6 +407,7 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 		events = sidecarResponse.Events
 	}
 
+	// Perform stateless validation
 	ethEventsTx := bridgetypes.EthEventsTx{
 		Events:           events,
 		NewEthereumBlock: h.getNewEthereumBlock(sidecarErr),
@@ -403,6 +415,11 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 		BlockNumber:      blockNumber,
 	}
 	if err := ethEventsTx.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	// Perform stateful validation
+	if err := ethEventsTx.ValidateStateful(ethereumProxyContractAddress); err != nil {
 		return nil, err
 	}
 

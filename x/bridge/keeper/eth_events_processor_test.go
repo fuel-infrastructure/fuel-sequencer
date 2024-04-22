@@ -17,9 +17,10 @@ import (
 )
 
 func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
-	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed via the AuthorizeEvent
+	// These accounts correspond to the from and to addresses of the bank. MsgSend to be executed via the AuthorizeEvent
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
-	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
 	// This is the amount to be funded to the fromAcc
 	amt := sdkmath.NewInt(1000000)
@@ -62,10 +63,13 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 				Events: []*sidecartypes.Event{
 					// Event that sends 10 ufuel from a sequencer address that has no funds. We expect this to fail,
 					// demonstrating that other events still get processed successfully
-					testutils.MustGetSidecarEventFromParsedEvent(&sidecartypes.AuthorizeEvent{
-						From:    testtypes.TestFrom2,
-						Message: testutils.MustHexDecodeString(testtypes.TestMessage2),
-					}),
+					testutils.MustGetSidecarEventFromParsedEvent(
+						&sidecartypes.AuthorizeEvent{
+							From:    testtypes.TestFrom2,
+							Message: testutils.MustHexDecodeString(testtypes.TestMessage2),
+						},
+						testtypes.TestEthereumProxyContractAddress,
+					),
 					testtypes.TestEvent2, // valid AuthorizeEvent
 				},
 				AdvanceSequencer: true,
@@ -117,7 +121,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 	// These accounts correspond to the from and to addresses of the bank.MsgSends to be executed via the AuthorizeEvent
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
-	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
 	// This is the amount to be funded to the fromAcc
 	amt := sdkmath.NewInt(1000000)
@@ -376,7 +381,8 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 func (s *KeeperTestSuite) TestExecuteMsg() {
 	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed
 	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom2Seq)
-	toAcc := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
 	// This is the amount to be funded to the fromAcc
 	amt := sdkmath.NewInt(1000000)
@@ -457,11 +463,12 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 	blockTime, _ := time.Parse(time.DateOnly, "2024-01-01")
 	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
-	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed via the AuthorizeEvent
-	fromAccOne, _ := types.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom3)
-	toAccOne := sdk.MustAccAddressFromBech32(testtypes.TestTo3)
+	// These accounts correspond to the from and to addresses of the SendToSequencerEvent
+	fromAccOne, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom3)
+	toAccOne, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+	s.Require().NoError(err)
 
-	fromAccTwo, _ := types.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom2)
+	fromAccTwo, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom2)
 
 	testCases := []struct {
 		name           string
@@ -472,6 +479,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 		expToBalance   sdkmath.Int
 		expSupplyDelta *types.SupplyDeltaInfo
 		expGovBal      sdkmath.Int
+		isToEthOwned   bool
+		isFromEthOwned bool
 	}{
 		{
 			name: "successful - send to sequencer - mint to To address",
@@ -490,7 +499,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-102),
 			},
-			expGovBal: sdkmath.ZeroInt(),
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
 		},
 		{
 			name: "successful - send to sequencer - mint to To address twice",
@@ -510,7 +521,51 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-204),
 			},
-			expGovBal: sdkmath.ZeroInt(),
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
+		},
+		{
+			name: "successful - send to sequencer - mint to address To == From",
+			ethEventsTx: &types.EthEventsTx{
+				Events: []*sidecartypes.Event{
+					testtypes.TestEvent10,
+				},
+				AdvanceSequencer: true,
+				NewEthereumBlock: true,
+				BlockNumber:      1,
+			},
+			fromAcc:        &fromAccOne,
+			toAcc:          &fromAccOne,
+			expFromBalance: sdkmath.NewInt(100), // Same balance From == To
+			expToBalance:   sdkmath.NewInt(100),
+			expSupplyDelta: &types.SupplyDeltaInfo{
+				Offset: sdkmath.NewInt(-100),
+			},
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   true,
+			isFromEthOwned: true,
+		},
+		{
+			name: "successful - send to sequencer - mint to address To == Sequencer(From)",
+			ethEventsTx: &types.EthEventsTx{
+				Events: []*sidecartypes.Event{
+					testtypes.TestEvent11,
+				},
+				AdvanceSequencer: true,
+				NewEthereumBlock: true,
+				BlockNumber:      1,
+			},
+			fromAcc:        &fromAccOne,
+			toAcc:          &fromAccOne,
+			expFromBalance: sdkmath.NewInt(100), // Same balance From == To
+			expToBalance:   sdkmath.NewInt(100),
+			expSupplyDelta: &types.SupplyDeltaInfo{
+				Offset: sdkmath.NewInt(-100),
+			},
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   true,
+			isFromEthOwned: true,
 		},
 		{
 			name: "successful - send to sequencer - mint to From address",
@@ -529,7 +584,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-101),
 			},
-			expGovBal: sdkmath.ZeroInt(),
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   false,
+			isFromEthOwned: true,
 		},
 		{
 			name: "successful - send to sequencer - mint to From address twice",
@@ -549,7 +606,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-202),
 			},
-			expGovBal: sdkmath.ZeroInt(),
+			expGovBal:      sdkmath.ZeroInt(),
+			isToEthOwned:   false,
+			isFromEthOwned: true,
 		},
 		{
 			name: "failure - send to sequencer - duration failed to parse - mint to governance",
@@ -568,7 +627,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-102),
 			},
-			expGovBal: sdkmath.NewInt(102),
+			expGovBal:      sdkmath.NewInt(102),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
 		},
 		{
 			name: "failure - send to sequencer - from address failed to parse - mint to governance",
@@ -587,7 +648,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-102),
 			},
-			expGovBal: sdkmath.NewInt(102),
+			expGovBal:      sdkmath.NewInt(102),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
 		},
 		{
 			name: "failure - send to sequencer - bad vesting duration - mint to governance",
@@ -606,7 +669,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-102),
 			},
-			expGovBal: sdkmath.NewInt(102),
+			expGovBal:      sdkmath.NewInt(102),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
 		},
 		{
 			name: "failure - send to sequencer - bad to bech32 address - mint to governance",
@@ -625,7 +690,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-102),
 			},
-			expGovBal: sdkmath.NewInt(102),
+			expGovBal:      sdkmath.NewInt(102),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
 		},
 	}
 
@@ -660,10 +727,20 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			if tc.fromAcc != nil {
 				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), *tc.fromAcc, "ufuel")
 				s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
+
+				// Verify if the account is ETH owned
+				account := s.App.AccountKeeper.GetAccount(s.Ctx(), *tc.fromAcc)
+				_, ok := account.(types.EthOwnedAccountI)
+				s.Require().Equal(tc.isFromEthOwned, ok)
 			}
 			if tc.toAcc != nil {
 				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), *tc.toAcc, "ufuel")
 				s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
+
+				// Verify if the account is ETH owned
+				account := s.App.AccountKeeper.GetAccount(s.Ctx(), *tc.toAcc)
+				_, ok := account.(types.EthOwnedAccountI)
+				s.Require().Equal(tc.isToEthOwned, ok)
 			}
 
 			// Verify the supply delta info was updated
@@ -671,6 +748,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 				actualSupplyDelta := s.App.BridgeKeeper.MustGetSupplyDeltaInfo(s.Ctx())
 				s.Require().Equal(tc.expSupplyDelta.Offset, actualSupplyDelta.Offset)
 			}
+
 			// Verify the governance address balance is as expected
 			actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, "ufuel")
 			s.Require().Equal(tc.expGovBal, actualGovBal.Amount)

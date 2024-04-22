@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	_ "cosmossdk.io/api/cosmos/tx/config/v1" // import for side-effects
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -19,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -57,6 +59,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
@@ -197,7 +200,9 @@ func NewFuelSequencerApp(
 				// By default the auth module uses a Bech32 address codec,
 				// with the prefix defined in the auth module configuration.
 				//
-				// func() address.Codec { return <- custom address codec type -> }
+				func() address.Codec {
+					return appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(AccountAddressPrefix))
+				},
 
 				//
 				// STAKING
@@ -207,8 +212,16 @@ func NewFuelSequencerApp(
 				// and appends "valoper" and "valcons" for validator and consensus addresses respectively.
 				// When providing a custom address codec in auth, custom address codecs must be provided here as well.
 				//
-				// func() runtime.ValidatorAddressCodec { return <- custom validator address codec type -> }
-				// func() runtime.ConsensusAddressCodec { return <- custom consensus address codec type -> }
+				func() runtime.ValidatorAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(AccountAddressPrefix + "valoper"),
+					)
+				},
+				func() runtime.ConsensusAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(AccountAddressPrefix + "valcons"),
+					)
+				},
 
 				//
 				// MINT

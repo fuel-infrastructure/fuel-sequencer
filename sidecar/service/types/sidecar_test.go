@@ -30,8 +30,9 @@ func TestUnmarshalParsedEvent(t *testing.T) {
 		{
 			name: "Unknown event type",
 			event: &types.Event{
-				EventType: "invalid-event",
-				Data:      []byte{},
+				EventType:       "invalid-event",
+				Data:            []byte{},
+				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			expErrMsg: "unknown event type: invalid-event",
 		},
@@ -69,15 +70,19 @@ func TestEvent_Equal(t *testing.T) {
 			expectedEqual: true,
 		},
 		{
-			name:          "Equal events - SendToSequencer",
-			event1:        testtypes.TestEvent1,
-			event2:        testutils.MustGetSidecarEventFromParsedEvent(testtypes.TestSendToSequencerEvent3),
+			name:   "Equal events - SendToSequencer",
+			event1: testtypes.TestEvent1,
+			event2: testutils.MustGetSidecarEventFromParsedEvent(
+				testtypes.TestSendToSequencerEvent3, testtypes.TestEthereumProxyContractAddress,
+			),
 			expectedEqual: true,
 		},
 		{
-			name:          "Equal events - AuthorizeEvent",
-			event1:        testtypes.TestEvent2,
-			event2:        testutils.MustGetSidecarEventFromParsedEvent(testtypes.TestAuthorizeEvent3),
+			name:   "Equal events - AuthorizeEvent",
+			event1: testtypes.TestEvent2,
+			event2: testutils.MustGetSidecarEventFromParsedEvent(
+				testtypes.TestAuthorizeEvent3, testtypes.TestEthereumProxyContractAddress,
+			),
 			expectedEqual: true,
 		},
 		{
@@ -93,10 +98,19 @@ func TestEvent_Equal(t *testing.T) {
 			expectedEqual: false,
 		},
 		{
+			name:   "Unequal events - events belonging to a different contract",
+			event1: testtypes.TestEvent1,
+			event2: testutils.MustGetSidecarEventFromParsedEvent(
+				testtypes.TestSendToSequencerEvent3, "different-contract-address",
+			),
+			expectedEqual: false,
+		},
+		{
 			name: "Error - event1 cannot be unmarshalled",
 			event1: &types.Event{
-				EventType: types.AuthorizeEventName,
-				Data:      []byte("invalid-data"),
+				EventType:       types.AuthorizeEventName,
+				Data:            []byte("invalid-data"),
+				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			event2:    testtypes.TestEvent2,
 			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
@@ -105,8 +119,9 @@ func TestEvent_Equal(t *testing.T) {
 			name:   "Error - event2 cannot be unmarshalled",
 			event1: testtypes.TestEvent2,
 			event2: &types.Event{
-				EventType: types.AuthorizeEventName,
-				Data:      []byte("invalid-data"),
+				EventType:       types.AuthorizeEventName,
+				Data:            []byte("invalid-data"),
+				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
 		},
@@ -154,18 +169,29 @@ func TestEvent_ValidateBasic(t *testing.T) {
 			expErrMsg: "event is nil",
 		},
 		{
+			name: "Invalid event - contract address not in the right format",
+
+			// Ethereum addresses are strictly 40 chars long. Adding more characters should make ValidateBasic error.
+			event: testutils.MustGetSidecarEventFromParsedEvent(
+				testtypes.TestAuthorizeEvent3, testtypes.TestEthereumProxyContractAddress+"Ab",
+			),
+			expErrMsg: "contract_address is not a valid hex address",
+		},
+		{
 			name: "Invalid event - SendToSequencerEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType: types.SendToSequencerEventName,
-				Data:      []byte("invalid-data"),
+				EventType:       types.SendToSequencerEventName,
+				Data:            []byte("invalid-data"),
+				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.SendToSequencerEventName),
 		},
 		{
 			name: "Invalid event - AuthorizeEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType: types.AuthorizeEventName,
-				Data:      []byte("invalid-data"),
+				EventType:       types.AuthorizeEventName,
+				Data:            []byte("invalid-data"),
+				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
 		},

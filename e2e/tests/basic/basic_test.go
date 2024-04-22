@@ -99,7 +99,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().NoError(err)
 		s.Require().Equal(ethHeight2, ethHeight1+2)
 
-		// Ensure deposit event is at ethHeight+1
+		// Ensure deposit event is at ethHeight1+1
 		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+1))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
