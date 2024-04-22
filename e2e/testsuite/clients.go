@@ -14,7 +14,9 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -37,6 +39,8 @@ type GRPCClients struct {
 	BankQueryClient         banktypes.QueryClient
 	DistributionQueryClient distributiontypes.QueryClient
 	ConsensusQueryClient    consensustypes.QueryClient
+	StakingQueryClient      stakingtypes.QueryClient
+	MintQueryClient         minttypes.QueryClient
 
 	// Custom query clients
 	BridgeQueryClient     bridgetypes.QueryClient
@@ -73,6 +77,8 @@ func (s *E2ETestSuite) initGRPCClients() {
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
+		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
+		MintQueryClient:         minttypes.NewQueryClient(grpcConn),
 	}
 }
 

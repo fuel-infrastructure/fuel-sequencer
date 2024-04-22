@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/suite"
@@ -85,6 +86,15 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			bz, err = cdc.MarshalJSON(&bankGenState)
 			s.Require().NoError(err)
 			genesisState[banktypes.ModuleName] = bz
+
+			// ----- Set a non-zero inflation rate to generate staking rewards. This is required to test out an
+			// authorized MsgWithdrawDelegatorReward
+
+			var mintGenState minttypes.GenesisState
+			s.Require().NoError(cdc.UnmarshalJSON(genesisState[minttypes.ModuleName], &mintGenState))
+
+			// TODO: Set inflation_rate_change, inflation_max and inflation_min. Understand what these parameters
+			//     : actually mean
 
 			return nil
 		},

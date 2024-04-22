@@ -91,11 +91,8 @@ var (
 
 	// ETH_ADDRESSES are the Ethereum addresses derived from the above MNEMONICS.
 	ETH_ADDRESSES = []string{
-		// first validator
 		"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-		// alice
 		"0xe53e6e952cf156b9f58a2a82da5ea537102ba484",
-		// bob
 		"0x8fe6350f77cf9be08bbac2c8156caba4d47e756b",
 	}
 
