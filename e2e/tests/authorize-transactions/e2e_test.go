@@ -71,9 +71,20 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			// ----- Define balances on the Sequencer for the following test Ethereum addresses so that we can execute
 			// authorized Transactions
 
-			bankGenState := banktypes.GetGenesisStateFromAppState(cdc, appState)
-			bankGenState.Balances = append(bankGenState.Balances, balances)
+			var bankGenState banktypes.GenesisState
+			s.Require().NoError(cdc.UnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenState))
+
+			for _, address := range e2etestsuite.ETH_ADDRESS_SEQ {
+				balances := banktypes.Balance{Address: address, Coins: sdk.NewCoins(e2etestsuite.InitBalanceCoin)}
+				bankGenState.Balances = append(bankGenState.Balances, balances)
+				bankGenState.Supply = bankGenState.Supply.Add(balances.Coins...)
+			}
+
 			bankGenState.Balances = banktypes.SanitizeGenesisBalances(bankGenState.Balances)
+
+			bz, err = cdc.MarshalJSON(&bankGenState)
+			s.Require().NoError(err)
+			genesisState[banktypes.ModuleName] = bz
 
 			return nil
 		},
