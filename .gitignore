@@ -34,3 +34,4 @@ tmp-swagger-gen/
 
 # Manual E2E
 temp-proposal.json
+__pycache__
