@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -78,6 +79,19 @@ func (s *E2ETestSuite) GenerateMsgWithdrawToEthereumBz(from, to string, amount s
 			From:   from,
 			To:     to,
 			Amount: amount,
+		},
+	)
+}
+
+func (s *E2ETestSuite) GenerateMsgVoteBz(
+	proposalId uint64, voter, metadata string, option govtypesv1.VoteOption,
+) []byte {
+	return s.generateMsgBz(
+		&govtypesv1.MsgVote{
+			ProposalId: proposalId,
+			Voter:      voter,
+			Option:     option,
+			Metadata:   metadata,
 		},
 	)
 }

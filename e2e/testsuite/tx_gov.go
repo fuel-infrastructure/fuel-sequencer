@@ -7,11 +7,10 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
-// ExecuteGovProposal submits a governance proposal using the provided message and uses
-// all validators to vote yes on the proposal. It ensures the proposal successfully passes.
+// SubmitGovProposal submits a governance proposal using the provided message. It also returns the proposal's ID.
 //
-// Forked from https://github.com/cosmos/ibc-go/blob/3a04e955f24332da39a86d3968fba7b47710b9e8
-func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
+// Inspired from https://github.com/cosmos/ibc-go/blob/3a04e955f24332da39a86d3968fba7b47710b9e8
+func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
 	sender, err := sdk.AccAddressFromBech32(ADDRESSES[0])
 	s.Require().NoError(err)
 
@@ -40,10 +39,21 @@ func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
 	proposalId := uint64(s.govProposalIdCounter)
 	s.govProposalIdCounter += 1
 
+	return proposalId
+}
+
+// ExecuteGovProposal submits a governance proposal using the provided message and uses
+// all validators to vote yes on the proposal. It ensures the proposal successfully passes.
+//
+// Inspired from https://github.com/cosmos/ibc-go/blob/3a04e955f24332da39a86d3968fba7b47710b9e8
+func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
+	// Submit proposal and get its ID
+	proposalId := s.SubmitGovProposal(msg)
+
 	// Vote yes from all validators
 	for _, val := range s.Chain.validators {
 		msgVote := govtypesv1.NewMsgVote(val.address(), proposalId, govtypesv1.VoteOption_VOTE_OPTION_YES, "")
-		resp, err = s.SubmitMsgsFrom(val, msgVote)
+		resp, err := s.SubmitMsgsFrom(val, msgVote)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(*resp)
 	}
