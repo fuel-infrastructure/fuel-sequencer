@@ -298,7 +298,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Reject block if the sequencer should not proceed with block generation
 		if !ethEventsTx.AdvanceSequencer {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"generated eth events tx implies block rejection likely due to sidecar error: %s", sidecarErr.Error(),
+				"generated eth events tx implies block rejection",
 			)
 		}
 
@@ -420,6 +420,11 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	// Perform stateful validation
 	if err := ethEventsTx.ValidateStateful(ethereumProxyContractAddress); err != nil {
 		return nil, err
+	}
+
+	// Log error if it's fatal.
+	if sidecartypes.IsErrorFatal(sidecarErr) {
+		h.logger.Error("encountered fatal sidecar error", "err", sidecarErr)
 	}
 
 	return &ethEventsTx, nil
