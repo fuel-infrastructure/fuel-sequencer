@@ -67,7 +67,8 @@ func NewClient(
 		return nil, fmt.Errorf("logger cannot be nil")
 	}
 
-	if _, err := url.ParseRequestURI(address); err != nil {
+	// Prepending a "//" allows addresses without a scheme.
+	if _, err := url.Parse("//" + address); err != nil {
 		return nil, fmt.Errorf("invalid Sidecar address: %w", err)
 	}
 

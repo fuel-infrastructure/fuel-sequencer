@@ -78,7 +78,7 @@ func InitAppConfig() (string, interface{}) {
 # This dictates whether the Sidecar will be queried.
 enabled = true
 # This defines the Sidecar server to listen to.
-address = "http://localhost:8080"
+address = "localhost:8080"
 # This defines how long the client should wait for responses.
 timeout = "5s"`
 
