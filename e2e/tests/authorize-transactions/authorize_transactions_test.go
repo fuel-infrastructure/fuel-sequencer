@@ -173,6 +173,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 		// TODO: Submit a new proposal, hopefully manage to vote in due time by sending an authorize msgvote and check
 		//     : that the vote went through by checking the list of votes. We might need to increase the voting period
 		//     : in genesis if needed
+		// TODO: Tomorrow use query_gov and tx_go to formulate tests and finish spec.
 
 		//withdrawerAddress := testsuite.ETH_ADDRESSES[0]
 		//
