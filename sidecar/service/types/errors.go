@@ -9,6 +9,12 @@ const ErrSidecarFallenBehindWithAcceptableDelay = "sidecar has fallen behind the
 // on the Sequencer. If true is returned, the Sequencer should halt block production, otherwise, the Sequencer can
 // proceed with block production.
 func IsErrorFatal(err error) bool {
+
+	// No error means error is not fatal.
+	if err == nil {
+		return false
+	}
+
 	// This is a list of Sidecar errors that are not fatal.
 	acceptableErrors := []string{
 
