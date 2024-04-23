@@ -297,7 +297,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Reject block if the sequencer should not proceed with block generation
 		if !ethEventsTx.AdvanceSequencer {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
 				"generated eth events tx implies block rejection",
 			)
 		}
