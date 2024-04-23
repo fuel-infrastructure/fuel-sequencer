@@ -8902,7 +8902,7 @@ paths:
                   tokens.
               amount:
                 description: >-
-                  amount is the tokens being sent, which must be the expacted
+                  amount is the tokens being sent, which must be the expected
                   bridge token.
                 type: object
                 properties:
@@ -8949,7 +8949,7 @@ paths:
                   tokens.
               amount:
                 description: >-
-                  amount is the tokens being sent, which must be in the expacted
+                  amount is the tokens being sent, which must be in the expected
                   bridge
 
                   token.
@@ -13099,7 +13099,7 @@ definitions:
         description: to is the user address on Ethereum that will be receiving the tokens.
       amount:
         description: |-
-          amount is the tokens being sent, which must be in the expacted bridge
+          amount is the tokens being sent, which must be in the expected bridge
           token.
         type: object
         properties:
@@ -13125,7 +13125,7 @@ definitions:
         description: to is the user address on Ethereum that will be receiving the tokens.
       amount:
         description: >-
-          amount is the tokens being sent, which must be the expacted bridge
+          amount is the tokens being sent, which must be the expected bridge
           token.
         type: object
         properties:

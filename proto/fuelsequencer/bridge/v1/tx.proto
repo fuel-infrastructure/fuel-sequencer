@@ -83,7 +83,7 @@ message MsgWithdrawToEthereum {
   // to is the user address on Ethereum that will be receiving the tokens.
   string to = 2;
 
-  // amount is the tokens being sent, which must be in the expacted bridge
+  // amount is the tokens being sent, which must be in the expected bridge
   // token.
   cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
 }
@@ -104,6 +104,6 @@ message MsgWithdrawToEthereumResponse {
   // to is the user address on Ethereum that will be receiving the tokens.
   string to = 3;
 
-  // amount is the tokens being sent, which must be the expacted bridge token.
+  // amount is the tokens being sent, which must be the expected bridge token.
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }

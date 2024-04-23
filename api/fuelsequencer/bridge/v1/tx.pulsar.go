@@ -3147,7 +3147,7 @@ type MsgWithdrawToEthereum struct {
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
-	// amount is the tokens being sent, which must be in the expacted bridge
+	// amount is the tokens being sent, which must be in the expected bridge
 	// token.
 	Amount *v1beta1.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 }
@@ -3205,7 +3205,7 @@ type MsgWithdrawToEthereumResponse struct {
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
-	// amount is the tokens being sent, which must be the expacted bridge token.
+	// amount is the tokens being sent, which must be the expected bridge token.
 	Amount *v1beta1.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
 }
 
