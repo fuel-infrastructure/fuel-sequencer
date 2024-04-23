@@ -76,14 +76,15 @@ message MsgSupplyDeltaResponse {
 message MsgWithdrawToEthereum {
   option (cosmos.msg.v1.signer) = "from";
 
-  // from is the user address on Ethereum that is sending the tokens.
+  // from is the user address that is withdrawing the tokens from the Sequencer.
+  // can be in Hex or Bech32 format.
   string from = 1;
 
-  // to is the user address on FuelSequencer that will be receiving the tokens.
-  // Can be empty if no address is specified.
+  // to is the user address on Ethereum that will be receiving the tokens.
   string to = 2;
 
-  // amount is the tokens being sent, which must be the expacted bridge token.
+  // amount is the tokens being sent, which must be in the expacted bridge
+  // token.
   cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
 }
 
@@ -96,11 +97,11 @@ message MsgWithdrawToEthereumResponse {
     (gogoproto.nullable) = false
   ];
 
-  // from is the user address on Ethereum that is sending the tokens.
+  // from is the user address that is withdrawing the tokens from the Sequencer.
+  // can be in Hex or Bech32 format.
   string from = 2;
 
-  // to is the user address on FuelSequencer that will be receiving the tokens.
-  // Can be empty if no address is specified.
+  // to is the user address on Ethereum that will be receiving the tokens.
   string to = 3;
 
   // amount is the tokens being sent, which must be the expacted bridge token.

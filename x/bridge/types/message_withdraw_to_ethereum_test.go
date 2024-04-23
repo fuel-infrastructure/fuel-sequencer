@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
+	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
@@ -18,10 +18,18 @@ func TestMsgWithdrawToEthereum_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "valid msg withdraw to ethereum",
+			name: "valid msg withdraw to ethereum - from is bech32",
 			msg: types.MsgWithdrawToEthereum{
-				From:   sample.AccAddress(),
-				To:     "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5",
+				From:   testtypes.TestFrom1Seq,
+				To:     testtypes.TestTo1,
+				Amount: sdk.NewCoin("fuel", math.NewInt(200)),
+			},
+		},
+		{
+			name: "valid msg withdraw to ethereum - from is Hex",
+			msg: types.MsgWithdrawToEthereum{
+				From:   testtypes.TestFrom1,
+				To:     testtypes.TestTo1,
 				Amount: sdk.NewCoin("fuel", math.NewInt(200)),
 			},
 		},
@@ -35,7 +43,7 @@ func TestMsgWithdrawToEthereum_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid to address",
 			msg: types.MsgWithdrawToEthereum{
-				From: sample.AccAddress(),
+				From: testtypes.TestFrom1,
 				To:   "0xZYXb5d4c32345ced77393b3530b1eed0f346429d",
 			},
 			err: types.ErrInvalidEthAddress,
@@ -43,16 +51,16 @@ func TestMsgWithdrawToEthereum_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid amount",
 			msg: types.MsgWithdrawToEthereum{
-				From: sample.AccAddress(),
-				To:   "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5",
+				From: testtypes.TestFrom1,
+				To:   testtypes.TestTo1,
 			},
 			err: sdkerrors.ErrInvalidCoins,
 		},
 		{
 			name: "invalid zero amount",
 			msg: types.MsgWithdrawToEthereum{
-				From:   sample.AccAddress(),
-				To:     "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5",
+				From:   testtypes.TestFrom1,
+				To:     testtypes.TestTo1,
 				Amount: sdk.NewCoin("fuel", math.ZeroInt()),
 			},
 			err: sdkerrors.ErrInvalidCoins,

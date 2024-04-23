@@ -8891,15 +8891,15 @@ paths:
               from:
                 type: string
                 description: >-
-                  from is the user address on Ethereum that is sending the
-                  tokens.
+                  from is the user address that is withdrawing the tokens from
+                  the Sequencer.
+
+                  can be in Hex or Bech32 format.
               to:
                 type: string
                 description: >-
-                  to is the user address on FuelSequencer that will be receiving
-                  the tokens.
-
-                  Can be empty if no address is specified.
+                  to is the user address on Ethereum that will be receiving the
+                  tokens.
               amount:
                 description: >-
                   amount is the tokens being sent, which must be the expacted
@@ -8938,19 +8938,21 @@ paths:
               from:
                 type: string
                 description: >-
-                  from is the user address on Ethereum that is sending the
-                  tokens.
+                  from is the user address that is withdrawing the tokens from
+                  the Sequencer.
+
+                  can be in Hex or Bech32 format.
               to:
                 type: string
                 description: >-
-                  to is the user address on FuelSequencer that will be receiving
-                  the tokens.
-
-                  Can be empty if no address is specified.
+                  to is the user address on Ethereum that will be receiving the
+                  tokens.
               amount:
                 description: >-
-                  amount is the tokens being sent, which must be the expacted
-                  bridge token.
+                  amount is the tokens being sent, which must be in the expacted
+                  bridge
+
+                  token.
                 type: object
                 properties:
                   denom:
@@ -13087,17 +13089,17 @@ definitions:
     properties:
       from:
         type: string
-        description: from is the user address on Ethereum that is sending the tokens.
+        description: >-
+          from is the user address that is withdrawing the tokens from the
+          Sequencer.
+
+          can be in Hex or Bech32 format.
       to:
         type: string
-        description: >-
-          to is the user address on FuelSequencer that will be receiving the
-          tokens.
-
-          Can be empty if no address is specified.
+        description: to is the user address on Ethereum that will be receiving the tokens.
       amount:
-        description: >-
-          amount is the tokens being sent, which must be the expacted bridge
+        description: |-
+          amount is the tokens being sent, which must be in the expacted bridge
           token.
         type: object
         properties:
@@ -13113,14 +13115,14 @@ definitions:
         description: nonce uniquely identifies any message that we send to Ethereum.
       from:
         type: string
-        description: from is the user address on Ethereum that is sending the tokens.
+        description: >-
+          from is the user address that is withdrawing the tokens from the
+          Sequencer.
+
+          can be in Hex or Bech32 format.
       to:
         type: string
-        description: >-
-          to is the user address on FuelSequencer that will be receiving the
-          tokens.
-
-          Can be empty if no address is specified.
+        description: to is the user address on Ethereum that will be receiving the tokens.
       amount:
         description: >-
           amount is the tokens being sent, which must be the expacted bridge
