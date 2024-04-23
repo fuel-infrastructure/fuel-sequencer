@@ -93,8 +93,13 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			var mintGenState minttypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[minttypes.ModuleName], &mintGenState))
 
-			// TODO: Set inflation_rate_change, inflation_max and inflation_min. Understand what these parameters
-			//     : actually mean
+			mintGenState.Params.InflationRateChange = e2etestsuite.InflationRateChange
+			mintGenState.Params.InflationMax = e2etestsuite.InflationMax
+			mintGenState.Params.InflationMin = e2etestsuite.InflationMin
+
+			bz, err = cdc.MarshalJSON(&mintGenState)
+			s.Require().NoError(err)
+			genesisState[minttypes.ModuleName] = bz
 
 			return nil
 		},

@@ -2,7 +2,6 @@ package authorize_transactions_test
 
 import (
 	"fmt"
-	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,11 +73,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions() {
 		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
-		err = s.WaitForBlocks(s.Ctx(), 10, time.Minute)
-
 		// Confirm that the delegation went through and is as expected.
-		delegation := s.QueryDelegation(s.Ctx(), delegatorAddress, validator1Address)
-		s.Require().Equal(delegateCoin, delegation.Balance)
+		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
 
 		// ----------------------------------- Test MsgRedelegate
 
@@ -98,11 +94,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions() {
 		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
-		err = s.WaitForBlocks(s.Ctx(), 10, time.Minute)
-
 		// Confirm that the redelegation to validator2 went through and was executed as expected.
-		delegation = s.QueryDelegation(s.Ctx(), delegatorAddress, validator2Address)
-		s.Require().Equal(delegateCoin, delegation.Balance)
+		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
 
 		// Make sure that there are no delegations to validator1.
 		delegationRaw, err = s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validator1Address)
@@ -114,20 +107,34 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions() {
 
 		// ----------------------------------- Test MsgWithdrawDelegatorReward
 
-		// TODO: Problem with rewards staying 0
-
-		withdrawAddress := s.QueryDelegatorWithdrawAddress(s.Ctx(), delegatorAddress)
-		fmt.Println(withdrawAddress)
-
-		balance, err = s.QueryAllBalances(s.Ctx(), delegatorAddress, nil)
-		fmt.Println(balance)
-
 		// Make sure that rewards have accrued.
 		rewards := s.QueryDelegationRewards(s.Ctx(), delegatorAddress, validator2Address)
-		fmt.Println(rewards)
+		s.Require().NotZero(rewards.AmountOf(testsuite.BridgeDenom))
+
+		// Generate Authorize event wrapping a MsgWithdrawDelegatorReward.
+		msgWithdrawDelegatorRewardBz := s.E2ETestSuite.GenerateMsgWithdrawDelegatorRewardBytes(
+			delegatorAddress, validator2Address,
+		)
+		authorizeData = testsuite.PackAuthorize(msgWithdrawDelegatorRewardBz)
+		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// To make sure that the rewards withdrawal went through make sure that the rewards balance resets to zero/
+		zeroRewards := sdk.NewDecCoins(sdk.NewDecCoin(testsuite.BridgeDenom, sdkmath.ZeroInt()))
+		s.PollForDelegationRewards(s.Ctx(), 10, delegatorAddress, validator2Address, zeroRewards)
 
 		// ----------------------------------- Test MsgUndelegate
 
-		// TODO: Optimize with poll for delegation query instead of waiting for 10 blocks every time
+		// Make sure that the delegation is still as originally set.
+		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
+
+		// Generate Authorize event wrapping a MsgUndelegate.
+		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBytes(delegatorAddress, validator2Address, delegateCoin)
+		authorizeData = testsuite.PackAuthorize(msgUndelegateBz)
+		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// To make sure that the execution of MsgUndelegate went through check that all funds where withdrawn.
+		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
 	})
 }
