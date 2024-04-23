@@ -8,7 +8,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions() {
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 	s.Run("Submit an authorized MsgSend from Ethereum and check execution results on Sequencer", func() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]
 		receiverAddress := testsuite.ETH_ADDRESSES[1]
@@ -38,7 +38,9 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions() {
 		s.PollForBalance(s.Ctx(), 10, senderAddress, expectedInitBalance.Sub(sendCoin))
 		s.PollForBalance(s.Ctx(), 10, receiverAddress, expectedInitBalance.Add(sendCoin))
 	})
+}
 
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOperations() {
 	s.Run("Submit authorized delegation messages from Ethereum and check execution results on Sequencer", func() {
 		validator1Acc, err := sdk.AccAddressFromBech32(testsuite.ADDRESSES[0])
 		s.Require().NoError(err)
