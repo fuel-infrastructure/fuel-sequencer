@@ -10,7 +10,7 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *E2ETestSuite) generateMsgBytes(msg sdk.Msg) []byte {
+func (s *E2ETestSuite) generateMsgBz(msg sdk.Msg) []byte {
 	anyMsgSend, err := codectypes.NewAnyWithValue(msg)
 	s.Require().NoError(err)
 
@@ -20,8 +20,8 @@ func (s *E2ETestSuite) generateMsgBytes(msg sdk.Msg) []byte {
 	return bz
 }
 
-func (s *E2ETestSuite) GenerateMsgSendBytes(fromAddress, toAddress string, amount []sdk.Coin) []byte {
-	return s.generateMsgBytes(
+func (s *E2ETestSuite) GenerateMsgSendBz(fromAddress, toAddress string, amount []sdk.Coin) []byte {
+	return s.generateMsgBz(
 		&banktypes.MsgSend{
 			FromAddress: fromAddress,
 			ToAddress:   toAddress,
@@ -30,8 +30,8 @@ func (s *E2ETestSuite) GenerateMsgSendBytes(fromAddress, toAddress string, amoun
 	)
 }
 
-func (s *E2ETestSuite) GenerateMsgDelegateBytes(delegatorAddress, validatorAddress string, amount sdk.Coin) []byte {
-	return s.generateMsgBytes(
+func (s *E2ETestSuite) GenerateMsgDelegateBz(delegatorAddress, validatorAddress string, amount sdk.Coin) []byte {
+	return s.generateMsgBz(
 		&stakingtypes.MsgDelegate{
 			DelegatorAddress: delegatorAddress,
 			ValidatorAddress: validatorAddress,
@@ -40,10 +40,10 @@ func (s *E2ETestSuite) GenerateMsgDelegateBytes(delegatorAddress, validatorAddre
 	)
 }
 
-func (s *E2ETestSuite) GenerateMsgBeginRedelegateBytes(
+func (s *E2ETestSuite) GenerateMsgBeginRedelegateBz(
 	delegatorAddress, validatorSrcAddress, validatorDstAddress string, amount sdk.Coin,
 ) []byte {
-	return s.generateMsgBytes(
+	return s.generateMsgBz(
 		&stakingtypes.MsgBeginRedelegate{
 			DelegatorAddress:    delegatorAddress,
 			ValidatorSrcAddress: validatorSrcAddress,
@@ -53,8 +53,8 @@ func (s *E2ETestSuite) GenerateMsgBeginRedelegateBytes(
 	)
 }
 
-func (s *E2ETestSuite) GenerateMsgWithdrawDelegatorRewardBytes(delegatorAddress, validatorAddress string) []byte {
-	return s.generateMsgBytes(
+func (s *E2ETestSuite) GenerateMsgWithdrawDelegatorRewardBz(delegatorAddress, validatorAddress string) []byte {
+	return s.generateMsgBz(
 		&distributiontypes.MsgWithdrawDelegatorReward{
 			DelegatorAddress: delegatorAddress,
 			ValidatorAddress: validatorAddress,
@@ -62,12 +62,22 @@ func (s *E2ETestSuite) GenerateMsgWithdrawDelegatorRewardBytes(delegatorAddress,
 	)
 }
 
-func (s *E2ETestSuite) GenerateMsgUndelegateBytes(delegatorAddress, validatorAddress string, amount sdk.Coin) []byte {
-	return s.generateMsgBytes(
+func (s *E2ETestSuite) GenerateMsgUndelegateBz(delegatorAddress, validatorAddress string, amount sdk.Coin) []byte {
+	return s.generateMsgBz(
 		&stakingtypes.MsgUndelegate{
 			DelegatorAddress: delegatorAddress,
 			ValidatorAddress: validatorAddress,
 			Amount:           amount,
+		},
+	)
+}
+
+func (s *E2ETestSuite) GenerateMsgWithdrawToEthereumBz(from, to string, amount sdk.Coin) []byte {
+	return s.generateMsgBz(
+		&bridgetypes.MsgWithdrawToEthereum{
+			From:   from,
+			To:     to,
+			Amount: amount,
 		},
 	)
 }

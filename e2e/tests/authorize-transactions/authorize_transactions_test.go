@@ -29,7 +29,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBytes(senderAddress, receiverAddress, sendCoins)
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(senderAddress, receiverAddress, sendCoins)
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
 		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
@@ -70,7 +70,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		delegateAmount, ok := sdkmath.NewIntFromString("110000000000")
 		s.Require().True(ok)
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBytes(delegatorAddress, validator1Address, delegateCoin)
+		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
 		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
 		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
@@ -89,7 +89,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		)
 
 		// Generate Authorize event wrapping a MsgBeginRedelegate to validator2.
-		msgBeginRedelegateBz := s.E2ETestSuite.GenerateMsgBeginRedelegateBytes(
+		msgBeginRedelegateBz := s.E2ETestSuite.GenerateMsgBeginRedelegateBz(
 			delegatorAddress, validator1Address, validator2Address, delegateCoin,
 		)
 		authorizeData = testsuite.PackAuthorize(msgBeginRedelegateBz)
@@ -114,7 +114,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		s.Require().NotZero(rewards.AmountOf(testsuite.BridgeDenom))
 
 		// Generate Authorize event wrapping a MsgWithdrawDelegatorReward.
-		msgWithdrawDelegatorRewardBz := s.E2ETestSuite.GenerateMsgWithdrawDelegatorRewardBytes(
+		msgWithdrawDelegatorRewardBz := s.E2ETestSuite.GenerateMsgWithdrawDelegatorRewardBz(
 			delegatorAddress, validator2Address,
 		)
 		authorizeData = testsuite.PackAuthorize(msgWithdrawDelegatorRewardBz)
@@ -131,12 +131,39 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
 
 		// Generate Authorize event wrapping a MsgUndelegate.
-		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBytes(delegatorAddress, validator2Address, delegateCoin)
+		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBz(delegatorAddress, validator2Address, delegateCoin)
 		authorizeData = testsuite.PackAuthorize(msgUndelegateBz)
 		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
 		// To make sure that the execution of MsgUndelegate went through check that all funds where withdrawn.
 		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
+	})
+}
+
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawToEthereum() {
+	s.Run("Submit authorized withdraw to Ethereum from Ethereum and check execution results on Sequencer", func() {
+		withdrawerAddress := testsuite.ETH_ADDRESSES[0]
+
+		// Make sure that the withdrawer's balance is as expected.
+		expectedInitWithdrawerBalance := testsuite.InitBalanceCoin
+		balance, err := s.QueryAllBalances(s.Ctx(), withdrawerAddress, nil)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedInitWithdrawerBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
+
+		// Generate Authorize event wrapping a MsgWithdrawToEthereum.
+		withdrawAmount, ok := sdkmath.NewIntFromString("110000000000")
+		s.Require().True(ok)
+		withdrawCoin := sdk.NewCoin(testsuite.BridgeDenom, withdrawAmount)
+		msgWithdrawToEthereumBz := s.E2ETestSuite.GenerateMsgWithdrawToEthereumBz(
+			withdrawerAddress, withdrawerAddress, withdrawCoin,
+		)
+		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
+		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Make sure that the withdrawal was executed by checking the withdrawers' balance
+		postWithdrawalBalance := expectedInitWithdrawerBalance.Sub(withdrawCoin)
+		s.PollForBalance(s.Ctx(), 10, withdrawerAddress, postWithdrawalBalance)
 	})
 }
