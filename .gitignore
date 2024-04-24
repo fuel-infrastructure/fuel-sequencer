@@ -38,4 +38,5 @@ build/
 
 # Manual E2E
 temp-proposal.json
+temp-msg.json
 __pycache__

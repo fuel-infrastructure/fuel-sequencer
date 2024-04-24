@@ -115,6 +115,17 @@ to = ETH_acc_address  # recipient
 SEQ.withdraw(to, f"100{SEQ.fee_token}")  # withdraw
 pretty(SEQ.query_balance_by_key_name(SEQ.key_name))  # check balance
 
+# Post a blob on Sequencer
+pretty(SEQ.query_topics())  # check current topics
+sender = SEQ.address_alice
+topic = "HtVb07/Iu14356N1DLt/uPNNCbxmRTHtKIpul6AV1po="  # decodes to 32 bytes
+order = "0"  # should be set to the current order plus 1 (0 if it's a new topic)
+data = "aGVsbG8gd29ybGQ="
+gas = "1000000"
+fee = [{"amount": "25000", "denom": SEQ.fee_token}]
+SEQ.post_blob(sender, topic, order, data, gas, fee)
+pretty(SEQ.query_topic(topic))  # check topics again
+
 # --------------------------------------------------------------- MISC TOOLS
 
 # Submit gov proposal to update client after expiry
