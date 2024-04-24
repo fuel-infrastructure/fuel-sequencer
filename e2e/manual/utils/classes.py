@@ -407,6 +407,13 @@ class CosmosChain:
     def query_block(self, height: int):
         return self.query(f"block {height} --type=height")
 
+    def query_block_results(self, height: int):
+        return self.query(f"block-results {height}")
+
+    def query_tx_result(self, height: int, tx_index: int):
+        block_results = json.loads(self.query_block_results(height))
+        return block_results['txs_results'][tx_index]
+
     def query_balance_by_key_name(self, key_name: str) -> str:
         output = self.keys(f"show {key_name} -a")
         return self.query(f"bank balances {output}")
