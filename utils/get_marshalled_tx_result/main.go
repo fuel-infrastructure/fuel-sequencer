@@ -7,80 +7,96 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cometbft/cometbft/libs/bytes"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	libclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/cometbft/cometbft/types"
 )
 
+func exit(format string, a ...any) {
+	fmt.Fprintf(os.Stderr, format, a)
+	os.Exit(1)
+}
+
 func main() {
-	if len(os.Args) != 6 {
-		fmt.Fprintf(os.Stderr, "Expected exactly 3 args: [node] [height] [tx-index] [start-block] [end-block]")
-		os.Exit(1)
+	expectedArgs := 6
+	if len(os.Args) != expectedArgs {
+		exit("Expected exactly %d args: [node] [height] [tx-index] [start-block] [end-block]", expectedArgs)
 	}
 
 	node := os.Args[1]
 	height, err := strconv.ParseInt(os.Args[2], 10, 64)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 	txIndex, err := strconv.ParseInt(os.Args[3], 10, 64)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 	startBlock, err := strconv.ParseUint(os.Args[4], 10, 64)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 	endBlock, err := strconv.ParseUint(os.Args[5], 10, 64)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 
-	fmt.Printf("Establishing connection to %s to query tx %d @ block %d...\n", node, txIndex, height)
+	fmt.Printf("Configuration: "+
+		"height=%d, "+
+		"tx-index=%d, "+
+		"start-block=%d, "+
+		"end-block=%d\n",
+		height, txIndex, startBlock, endBlock,
+	)
+	fmt.Printf("Establishing connection to %s...\n", node)
 
 	httpClient, err := libclient.DefaultHTTPClient(node)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 
 	httpClient.Timeout = 10 * time.Second
 	rpcClient, err := rpchttp.NewWithClient(node, "/websocket", httpClient)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 
-	result, err := rpcClient.BlockResults(context.Background(), &height)
+	// ---------------------------- Get txResultMarshalled...
+
+	blockResults, err := rpcClient.BlockResults(context.Background(), &height)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
 
-	deterministicExecTxResults := types.NewResults(result.TxsResults)
+	deterministicExecTxResults := types.NewResults(blockResults.TxsResults)
 	if txIndex >= int64(len(deterministicExecTxResults)) {
-		panic(fmt.Sprintf("block only has %d txs; cannot get tx at index %d", len(deterministicExecTxResults), txIndex))
+		exit("block only has %d txs; cannot get tx at index %d", len(deterministicExecTxResults), txIndex)
 	}
 
-	marshalled, err := deterministicExecTxResults[txIndex].Marshal()
+	txResultMarshalled, err := deterministicExecTxResults[txIndex].Marshal()
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
+	fmt.Println("\ntxResultMarshalled: ")
+	fmt.Printf("%X\n", txResultMarshalled)
 
-	marshalledHexBytes := bytes.HexBytes(marshalled)
-	fmt.Println(marshalledHexBytes.String())
+	// ---------------------------- Get txResultProof...
 
 	proofs, err := rpcClient.BridgeCommitmentInclusionProof(context.Background(), height+1, txIndex, startBlock, endBlock)
 	if err != nil {
-		panic(err)
+		exit(err.Error())
 	}
-	fmt.Printf("txResultProof: \n")
+	fmt.Println("\ntxResultProof: ")
 	for _, aunt := range proofs.LastResultsMerkleProof.Aunts {
-		auntBytes := bytes.HexBytes(aunt)
-		fmt.Println(auntBytes.String())
+		fmt.Printf("%X\n", aunt)
 	}
+	// Alternative: proofs.LastResultsMerkleProof.String()
 
-	fmt.Printf("bridgeCommitmentLeafProof: \n")
+	// ---------------------------- Get bridgeCommitmentLeafProof...
+
+	fmt.Println("\nbridgeCommitmentLeafProof: ")
 	for _, aunt := range proofs.BridgeCommitmentMerkleProof.Aunts {
-		auntBytes := bytes.HexBytes(aunt)
-		fmt.Println(auntBytes.String())
+		fmt.Printf("%X\n", aunt)
 	}
+	// Alternative: proofs.BridgeCommitmentMerkleProof.String()
 }
