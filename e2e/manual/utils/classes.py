@@ -2,11 +2,12 @@ import base64
 import json
 import subprocess
 import time
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union, Type
 
 import requests
 from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
+from web3.contract import Contract
 
 
 class CosmosChain:
@@ -162,7 +163,9 @@ class CosmosChain:
         json_output = json.loads(output)
         events = json_output["events"]
         submit_prop = [e for e in events if e["type"] == "submit_proposal"][0]
-        proposal_id = [a for a in submit_prop["attributes"] if a["key"] == "proposal_id"][0]["value"]
+        proposal_id = \
+        [a for a in submit_prop["attributes"] if a["key"] == "proposal_id"][0][
+            "value"]
         print(f"PROPOSAL ID: {proposal_id}")
 
         if not vote:
@@ -593,37 +596,37 @@ class EthereumChain(Web3):
         self.acc_private_key = acc_private_key
 
     # noinspection PyTypeChecker
-    def deposit(self, amount: int, to: str, duration: int):
-        contract = self.eth.contract(
+    def _contract(self) -> Union[Type[Contract], Contract]:
+        return self.eth.contract(
             address=self.fuelstreamx_address,
             abi=self.fuelstreamx_abi,
         )
+
+    def _sign_tx(self, txn):
+        return self.eth.account.sign_transaction(
+            txn, private_key=self.acc_private_key,
+        )
+
+    # noinspection PyTypeChecker
+    def deposit(self, amount: int, to: str, duration: int):
         # NB: function name is case-sensitive.
-        txn = contract.functions.deposit(
+        txn = self._contract.functions.deposit(
             amount, to, duration
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
         })
 
-        signed_txn = self.eth.account.sign_transaction(
-            txn, private_key=self.acc_private_key,
-        )
+        signed_txn = self._sign_tx(txn)
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
 
     # noinspection PyTypeChecker
     def authorize(self, hex_bytes: str):
-        contract = self.eth.contract(
-            address=self.fuelstreamx_address,
-            abi=self.fuelstreamx_abi,
-        )
         # NB: function name is case-sensitive.
-        txn = contract.functions.Authorize(
+        txn = self._contract.functions.Authorize(
             hex_bytes,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
         })
 
-        signed_txn = self.eth.account.sign_transaction(
-            txn, private_key=self.acc_private_key,
-        )
+        signed_txn = self._sign_tx(txn)
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
