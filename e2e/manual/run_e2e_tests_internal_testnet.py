@@ -1,27 +1,27 @@
+from json import dumps, loads
+
 import requests
 from web3 import Web3
 
-from proposals_gov.set_bridge_module_params import \
-    get_update_bridge_module_params_proposal
 from proposals_gov.community_pool_spend import \
     get_community_pool_spend_proposal
 from proposals_gov.grant_authorisation import \
     get_grant_authorisation_proposal as get_grant_authorisation_proposal_by_gov
+from proposals_gov.set_bridge_module_params import \
+    get_update_bridge_module_params_proposal
 from proposals_gov.set_voting_period_low import \
     get_set_voting_period_low_proposal
 from proposals_gov.software_upgrade import get_software_upgrade_proposal
 from utils.classes import FuelSequencerChain, EthereumChain
 from utils.constants import *
-from utils.helpers import *
 
 
 # Helper function to print JSON in a pretty way
 def pretty(in_json: str):
-    print(json.dumps(json.loads(in_json), indent=2))
+    print(dumps(loads(in_json), indent=2))
 
 
-SEQ_host = "80.64.208.225"
-SEQ_port = "26657"
+SEQ_node = "tcp://80.64.208.225:26657"
 SEQ_chain = "fuelsequencer-test-2"
 SEQ_bin = "fuelsequencerd"
 
@@ -38,7 +38,7 @@ ETH_acc_address_alt = "0xe53E6E952cf156b9f58A2A82da5ea537102Ba484"
 
 SEQ = FuelSequencerChain(
     binary=SEQ_bin,
-    node=f"tcp://{SEQ_host}:{SEQ_port}",
+    node=SEQ_node,
     chain_id=SEQ_chain,
     key_name=key_name_alice,
     voting_period=10,
@@ -106,8 +106,8 @@ ETH.authorize(data)
 
 # Perform a withdrawal on Sequencer
 SEQ.query_balance_by_key_name(SEQ.key_name)  # check balance
-to = ETH_acc_address                         # recipient
-SEQ.withdraw(to, f"100{SEQ.fee_token}")      # withdraw
+to = ETH_acc_address  # recipient
+SEQ.withdraw(to, f"100{SEQ.fee_token}")  # withdraw
 SEQ.query_balance_by_key_name(SEQ.key_name)  # check balance
 
 # --------------------------------------------------------------- MISC TOOLS
