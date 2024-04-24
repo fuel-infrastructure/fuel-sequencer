@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 4 {
-		fmt.Fprintf(os.Stderr, "Expected exactly 3 args: [node] [height] [tx-index]")
+	if len(os.Args) != 6 {
+		fmt.Fprintf(os.Stderr, "Expected exactly 3 args: [node] [height] [tx-index] [start-block] [end-block]")
 		os.Exit(1)
 	}
 
@@ -25,6 +25,14 @@ func main() {
 		panic(err)
 	}
 	txIndex, err := strconv.ParseInt(os.Args[3], 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	startBlock, err := strconv.ParseUint(os.Args[4], 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	endBlock, err := strconv.ParseUint(os.Args[5], 10, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -59,4 +67,20 @@ func main() {
 
 	marshalledHexBytes := bytes.HexBytes(marshalled)
 	fmt.Println(marshalledHexBytes.String())
+
+	proofs, err := rpcClient.BridgeCommitmentInclusionProof(context.Background(), height+1, txIndex, startBlock, endBlock)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("txResultProof: \n")
+	for _, aunt := range proofs.LastResultsMerkleProof.Aunts {
+		auntBytes := bytes.HexBytes(aunt)
+		fmt.Println(auntBytes.String())
+	}
+
+	fmt.Printf("bridgeCommitmentLeafProof: \n")
+	for _, aunt := range proofs.BridgeCommitmentMerkleProof.Aunts {
+		auntBytes := bytes.HexBytes(aunt)
+		fmt.Println(auntBytes.String())
+	}
 }
