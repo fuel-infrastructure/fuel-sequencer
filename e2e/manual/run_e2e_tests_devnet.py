@@ -18,7 +18,10 @@ from utils.constants import *
 
 # Helper function to print JSON in a pretty way
 def pretty(in_json: str):
-    print(dumps(loads(in_json), indent=2))
+    try:
+        print(dumps(loads(in_json), indent=2))
+    except ValueError:
+        return in_json  # in case in_json is not json
 
 
 SEQ_node = "https://rpc-seq.simplystaking.xyz"
@@ -68,7 +71,7 @@ SEQ.add_keys(
 )
 
 # Alice's current balance
-SEQ.query_balance_by_key_name(key_name_alice)
+pretty(SEQ.query_balance_by_key_name(key_name_alice))
 
 # Submit gov proposal to lower voting period to 10s (ONLY IF NECESSARY)
 SEQ.submit_param_change_proposal_legacy(get_set_voting_period_low_proposal())
@@ -92,10 +95,12 @@ SEQ.submit_gov_proposal(get_update_bridge_module_params_proposal(
 
 # Perform a deposit on Ethereum without vesting
 to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
+pretty(SEQ.query_account(to))  # check current account on the sequencer side
 ETH.deposit(100, to, 0)  # duration must be greater than start time delay
 
 # Perform a deposit on Ethereum with vesting duration
 to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
+pretty(SEQ.query_account(to))  # check current account on the sequencer side
 ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
 
 # Perform an authorize on Ethereum. This is a MsgSend of 10 TEST from
@@ -105,10 +110,10 @@ data = "0x0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d
 ETH.authorize(data)
 
 # Perform a withdrawal on Sequencer
-SEQ.query_balance_by_key_name(SEQ.key_name)  # check balance
+pretty(SEQ.query_balance_by_key_name(SEQ.key_name))  # check balance
 to = ETH_acc_address  # recipient
 SEQ.withdraw(to, f"100{SEQ.fee_token}")  # withdraw
-SEQ.query_balance_by_key_name(SEQ.key_name)  # check balance
+pretty(SEQ.query_balance_by_key_name(SEQ.key_name))  # check balance
 
 # --------------------------------------------------------------- MISC TOOLS
 
