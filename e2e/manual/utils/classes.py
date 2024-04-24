@@ -610,7 +610,7 @@ class EthereumChain(Web3):
     # noinspection PyTypeChecker
     def deposit(self, amount: int, to: str, duration: int):
         # NB: function name is case-sensitive.
-        txn = self._contract.functions.deposit(
+        txn = self._contract().functions.deposit(
             amount, to, duration
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
@@ -622,7 +622,7 @@ class EthereumChain(Web3):
     # noinspection PyTypeChecker
     def authorize(self, hex_bytes: str):
         # NB: function name is case-sensitive.
-        txn = self._contract.functions.Authorize(
+        txn = self._contract().functions.Authorize(
             hex_bytes,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
