@@ -26,7 +26,7 @@ accounts:
 - name: eve
   coins:
     - 200000000utest
-  address: fuelsequencer13hfdkxj5aeqzsll569mqreedkafp34ngcsjkqjmpq6prtgv80kcq83gttw
+  address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
   # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
 client:
   openapi:
@@ -93,13 +93,13 @@ validators:
       address: localhost:8080
       timeout: 5s
 genesis:
-  chain_id: "fuelsequencer-1"
+  chain_id: "fuelsequencer-test-1"
+  consensus:
+    params:
+      block:
+        max_bytes: 22020096
+        max_gas: 300000000
   app_state:
-    consensus:
-      params:
-        block:
-          max_bytes: 22020096
-          max_gas: 300000000
     crisis:
       constant_fee:
         amount: "1000"

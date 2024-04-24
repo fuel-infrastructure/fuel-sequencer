@@ -2,7 +2,6 @@ package ethclient
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -60,14 +59,13 @@ func (ec *EthWrappedClient) BlockNumber(ctx context.Context) (uint64, error) {
 }
 
 // CheckEthereumNodeSync checks if the Ethereum node is synced.
-func (ec *EthWrappedClient) CheckEthereumNodeSync(ctx context.Context) (bool, error) {
-	progress, err := ec.ethClient.SyncProgress(ctx)
-	if err != nil {
-		return false, errors.New("could not get syncing status from Ethereum node")
-	}
+func (ec *EthWrappedClient) CheckEthereumNodeSync(ctx context.Context) (*ethereum.SyncProgress, error) {
+	return ec.ethClient.SyncProgress(ctx)
+}
 
-	// nil progress means it's synced
-	return progress == nil, nil
+// CheckEthereumNodePeerCount checks if the peer count of the Ethereum node.
+func (ec *EthWrappedClient) CheckEthereumNodePeerCount(ctx context.Context) (uint64, error) {
+	return ec.ethClient.PeerCount(ctx)
 }
 
 // FetchAndProcessLogs fetches the logs from the blockchain and processes them.

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package fuelsequencer.bridge;
+package fuelsequencer.bridge.v1;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
@@ -19,42 +19,42 @@ service Query {
 
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/fuelsequencer/bridge/params";
+    option (google.api.http).get = "/fuelsequencer/bridge/v1/params";
   }
 
   // Queries the LastEthereumNonce.
   rpc LastEthereumNonce(QueryGetLastEthereumNonceRequest)
       returns (QueryGetLastEthereumNonceResponse) {
     option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_nonce";
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/last_ethereum_nonce";
   }
 
   // Queries the LastEthereumBlockSynced.
   rpc LastEthereumBlockSynced(QueryGetLastEthereumBlockSyncedRequest)
       returns (QueryGetLastEthereumBlockSyncedResponse) {
-    option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/last_ethereum_block_synced";
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "v1/last_ethereum_block_synced";
   }
 
   // Queries the EthereumEventIndexOffset.
   rpc EthereumEventIndexOffset(QueryGetEthereumEventIndexOffsetRequest)
       returns (QueryGetEthereumEventIndexOffsetResponse) {
     option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
-                                   "ethereum_event_index_offset";
+                                   "v1/ethereum_event_index_offset";
   }
 
   // Queries the SupplyDeltaInfo.
   rpc SupplyDeltaInfo(QueryGetSupplyDeltaInfoRequest)
       returns (QueryGetSupplyDeltaInfoResponse) {
     option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_info";
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_info";
   }
 
   // EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
   rpc EthEventsTxByBlockNumber(QueryGetEthEventsTxByBlockNumberRequest)
       returns (QueryGetEthEventsTxByBlockNumberResponse) {
     option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
-                                   "eth_events_tx/{block_number}";
+                                   "v1/eth_events_tx/{block_number}";
   }
 
   // Queries a list of SequencerAddressFromEthereumAddress items.
@@ -62,7 +62,7 @@ service Query {
       QuerySequencerAddressFromEthereumAddressRequest)
       returns (QuerySequencerAddressFromEthereumAddressResponse) {
     option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/"
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/"
         "sequencer_address_from_ethereum_address/{ethereum_address}";
   }
 
@@ -70,7 +70,7 @@ service Query {
   rpc SupplyDeltaProcessed(QueryGetSupplyDeltaProcessedRequest)
       returns (QueryGetSupplyDeltaProcessedResponse) {
     option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/supply_delta_processed";
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed";
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.

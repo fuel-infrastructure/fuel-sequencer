@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -92,9 +91,6 @@ func (k Keeper) processSendToSequencerEvent(
 	params *types.Params,
 	supplyDeltaInfo *types.SupplyDeltaInfo,
 ) {
-
-	// TODO: Check that the contract address matches the stored proxy contract address.
-
 	// Parse the data accordingly.
 	amount, success := sdkmath.NewIntFromString(sendEvent.Amount)
 	if !success {
@@ -130,8 +126,11 @@ func (k Keeper) processSendToSequencerEvent(
 	var sequencerAddr sdk.AccAddress
 	var err error
 
+	// Generate a potential sequencer address from the Ethereum 'From' address.
+	potentialSequencerAddr, seqErr := k.GenerateSequencerAddressFromEthereumAddress(sendEvent.From)
+
 	// If a `To` address was not specified send tokens to the address mapped 1-to-1 fom the `From` Ethereum Address.
-	if len(strings.TrimSpace(sendEvent.To)) == 0 {
+	if isDestinationOwnedBySender(sendEvent.From, sendEvent.To, potentialSequencerAddr.String(), seqErr) {
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, sendEvent.From, vesting, tokensToMint)
 		if err != nil {
 			k.Logger().Error(
@@ -143,11 +142,17 @@ func (k Keeper) processSendToSequencerEvent(
 		}
 	} else {
 
-		// Otherwise process the To from a string to an AccAddress type.
-		sequencerAddr, err = sdk.AccAddressFromBech32(sendEvent.To)
+		// If To is an Ethereum address map it to a Sequencer address, otherwise, generate the sdk.AccAddress from the
+		// Bech32 string
+		if common.IsHexAddress(sendEvent.To) {
+			sequencerAddr, err = k.GenerateSequencerAddressFromEthereumAddress(sendEvent.To)
+		} else {
+			sequencerAddr, err = sdk.AccAddressFromBech32(sendEvent.To)
+		}
+
 		if err != nil {
 			k.Logger().Error(
-				"Bridge EndBlock: to is not a valid Bech32 address - minting to gov address",
+				"Bridge EndBlock: to is not a valid Bech32 or Hex address - minting to gov address",
 				"event", sendEvent, "err", err,
 			)
 			k.mintToGovernanceAddress(ctx, tokenToMint, sendEvent, supplyDeltaInfo)
@@ -286,7 +291,7 @@ func (k Keeper) authenticateTx(
 ) error {
 
 	// Generate the Sequencer address from the Ethereum address
-	mappedSequencerAddr, err := types.GenerateSequencerAddressFromEthereumAddress(sender)
+	mappedSequencerAddr, err := k.GenerateSequencerAddressFromEthereumAddress(sender)
 	if err != nil {
 		return types.ErrCouldNotGenerateSequencerAddress.Wrapf("%v", err)
 	}

@@ -53,8 +53,8 @@ const (
 	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
 	ethereumDockerImageTag  = "latest"
 
-	governanceVotingPeriod           = time.Second * 5 // default - can be overridden
-	blocksToWaitForGovProposalToPass = uint64(10)
+	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
+	blocksToWaitForGovProposalToPass = uint64(25)
 
 	succinctXOperatorDockerImageRepo = "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
 	succinctXOperatorDockerImageTag  = "latest"

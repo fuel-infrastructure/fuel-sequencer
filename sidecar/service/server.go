@@ -178,8 +178,9 @@ func (ss *SidecarServer) GetBlockEvents(
 		// Convert blockchain events to protobuf `Event` type
 		for _, be := range blockchainEvents {
 			events = append(events, &types.Event{
-				EventType: be.EventType,
-				Data:      be.Data,
+				EventType:       be.EventType,
+				ContractAddress: be.ContractAddress,
+				Data:            be.Data,
 			})
 		}
 
@@ -193,12 +194,17 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, context.Canceled
 	case resp := <-resCh:
 		if resp.Err != nil {
-			// Distinguish between a block not existing and any other error.
-			if strings.Contains(resp.Err.Error(), types.ErrBlockDoesNotExist) {
+
+			// If the error is not fatal, return the error message so that it can be handled accordingly on the
+			// Sequencer
+			if !types.IsErrorFatal(resp.Err) {
 				return nil, resp.Err
 			}
+
+			// Otherwise, return a fatal error
 			return nil, errors.New("failed to get block events")
 		}
+
 		return resp.Response, nil
 	}
 }

@@ -72,7 +72,8 @@ func (cfg *SidecarConfig) ValidateBasic() error {
 		return nil
 	}
 
-	if _, err := url.ParseRequestURI(cfg.Address); err != nil {
+	// Prepending a "//" allows addresses without a scheme.
+	if _, err := url.Parse("//" + cfg.Address); err != nil {
 		return fmt.Errorf("sidecar address must be valid: %w", err)
 	}
 

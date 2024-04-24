@@ -20,7 +20,9 @@ func MustHexDecodeString(s string) []byte {
 	return decoded
 }
 
-func MustGetSidecarEventFromParsedEvent(parsedEvent sidecartypes.ParsedEvent) *sidecartypes.Event {
+func MustGetSidecarEventFromParsedEvent(
+	parsedEvent sidecartypes.ParsedEvent, ethereumProxyContractAddress string,
+) *sidecartypes.Event {
 	// Marshal the data
 	data, err := parsedEvent.Marshal()
 	if err != nil {
@@ -39,8 +41,9 @@ func MustGetSidecarEventFromParsedEvent(parsedEvent sidecartypes.ParsedEvent) *s
 	}
 
 	event := &sidecartypes.Event{
-		EventType: eventType,
-		Data:      data,
+		EventType:       eventType,
+		ContractAddress: ethereumProxyContractAddress,
+		Data:            data,
 	}
 
 	return event

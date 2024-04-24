@@ -22,6 +22,11 @@ State and params:
 Messages:
 
 - [ ] Register new messages in `codec.go`
+- [ ] Added new messages to `handlers_test.go`
+
+Queries:
+
+- [ ] Added new queries to `handlers_test.go`
 
 Testing and docs:
 

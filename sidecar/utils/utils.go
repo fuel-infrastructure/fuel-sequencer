@@ -40,6 +40,7 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 
 		// Fill up the generic event with fields
 		genericEvent.EventType = sidecartypes.SendToSequencerEventName
+		genericEvent.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		genericEvent.Data, err = sequencerEvent.Marshal()
 
 	case sidecartypes.AuthorizeEventHashFn:
@@ -60,6 +61,7 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 
 		// Fillup the generic event with fields
 		genericEvent.EventType = sidecartypes.AuthorizeEventName
+		genericEvent.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		genericEvent.Data, err = sequencerEvent.Marshal()
 	default:
 		return nil, nil

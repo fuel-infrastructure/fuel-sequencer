@@ -26,7 +26,7 @@ accounts:
 - name: eve
   coins:
     - 200000000ufuel
-  address: fuelsequencer13hfdkxj5aeqzsll569mqreedkafp34ngcsjkqjmpq6prtgv80kcq83gttw
+  address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
   # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
 client:
   openapi:
@@ -123,7 +123,7 @@ genesis:
     bridge:
       params:
         bridge_denom: "ufuel"
-        ethereum_proxy_contract_address: "0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9"  # just an example
+        ethereum_proxy_contract_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"  # just an example
         authorize_messages_allowed:
           - "*"  # allow all
         supply_delta_period: 100

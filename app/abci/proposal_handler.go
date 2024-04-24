@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -69,8 +68,9 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		supplyDeltaPeriod := h.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
+		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
 		if supplyDeltaPeriod == 0 {
 			return nil, errors.New("SupplyDeltaPeriod cannot be zero")
 		}
@@ -100,13 +100,16 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, errors.New("could not get Ethereum event index offset from state")
 		}
 
-		// Query the events of the next Ethereum block
+		// Query the events of the next Ethereum block.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
-		response, err := h.sidecar.GetBlockEvents(
+		response, sidecarErr := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
+		// NOTE: sidecar error is passed to generateEthEventsTx to perform dedicated error handling. It is not ignored.
 
-		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
+		ethEventsTx, err := h.generateEthEventsTx(
+			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
 		}
@@ -248,14 +251,18 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Query the events of the next Ethereum block
+		// Query the events of the next Ethereum block.
 		ethBlockToQuery := lastEthereumBlockSynced + 1
-		response, err := h.sidecar.GetBlockEvents(
+		response, sidecarErr := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
+		// NOTE: sidecar error is passed to generateEthEventsTx to perform dedicated error handling. It is not ignored.
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		ethEventsTx, err := h.generateEthEventsTx(response, ethBlockToQuery, err)
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		ethEventsTx, err := h.generateEthEventsTx(
+			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
+		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to generate eth events tx: %w", err,
@@ -309,7 +316,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		supplyDeltaPeriod := h.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
+		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
 		if supplyDeltaPeriod == 0 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
 				"SupplyDeltaPeriod cannot be zero",
@@ -366,41 +373,58 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 	}
 }
 
+// getAdvanceSequencer returns the value for EthEventsTx.AdvanceSequencer. AdvanceSequencer should be true iff the
+// Sidecar didn't return a fatal error, otherwise, it should be false.
+func (h *FuelSequencerProposalHandler) getAdvanceSequencer(sidecarErr error) bool {
+	// If no error has occurred, AdvanceSequencer should be true.
+	if sidecarErr == nil {
+		return true
+	}
+
+	return !sidecartypes.IsErrorFatal(sidecarErr)
+}
+
+// getNewEthereumBlock returns the value for EthEventsTx.NewEthereumBlock. NewEthereumBlock should be true iff the
+// Sidecar didn't error.
+func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) bool {
+	return sidecarErr == nil
+}
+
 // generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
 // returned from the sidecar don't pass validation.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
+	ethereumProxyContractAddress string,
 ) (*bridgetypes.EthEventsTx, error) {
-	// If sidecar response is nil set the events to nil to avoid null pointer dereference. Context: Sidecar returns nil
-	// when it errors.
+
+	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
+	// Context: Sidecar returns a nil response when it errors.
 	var events []*sidecartypes.Event
 	if sidecarResponse != nil {
 		events = sidecarResponse.Events
 	}
 
-	newEthereumBlock := true
-	advanceSequencer := true
-	if sidecarErr != nil {
-		// If the sidecar errored newEthereumBlock must be set to false as this means that the sidecar failed to query
-		// the next Ethereum block, therefore, we can't account for it
-		newEthereumBlock = false
-
-		// Set advanceSequencer to false if sidecar error is not due to block generation
-		if !strings.Contains(sidecarErr.Error(), sidecartypes.ErrBlockDoesNotExist) {
-			advanceSequencer = false
-		}
-	}
-
+	// Perform stateless validation
 	ethEventsTx := bridgetypes.EthEventsTx{
 		Events:           events,
-		NewEthereumBlock: newEthereumBlock,
-		AdvanceSequencer: advanceSequencer,
+		NewEthereumBlock: h.getNewEthereumBlock(sidecarErr),
+		AdvanceSequencer: h.getAdvanceSequencer(sidecarErr),
 		BlockNumber:      blockNumber,
 	}
 	if err := ethEventsTx.ValidateBasic(); err != nil {
 		return nil, err
+	}
+
+	// Perform stateful validation
+	if err := ethEventsTx.ValidateStateful(ethereumProxyContractAddress); err != nil {
+		return nil, err
+	}
+
+	// Log error if it's fatal.
+	if sidecartypes.IsErrorFatal(sidecarErr) {
+		h.logger.Error("encountered fatal sidecar error", "err", sidecarErr)
 	}
 
 	return &ethEventsTx, nil
