@@ -79,7 +79,7 @@ func MustGetLastEthereumBlockSyncedFromGenesis(genbz []byte) uint64 {
 		log.Fatalf("failed to unmarshal genesis file: %v", err)
 	}
 
-	lastEthereumBlockSynced, err := dyno.Get(g, "result", "genesis", "app_state", "bridge", "last_ethereum_block_synced")
+	lastEthereumBlockSynced, err := dyno.Get(g, "bridge", "last_ethereum_block_synced")
 	if err != nil {
 		log.Fatalf("failed to extract last ethereum block synced from genesis file: %v", err)
 	}

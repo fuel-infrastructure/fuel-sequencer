@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -39,13 +38,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	cometutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/cometutils"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
-	sidecarutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
@@ -231,11 +230,11 @@ func startSidecar(
 	}
 
 	// Check if the unsafeEthereumBlock is provided and use it instead of querying the genesis.
-	var startBlock *big.Int
+	startBlock := big.NewInt(0)
 	if unsafeEthereumBlock > 0 {
 		startBlock = big.NewInt(unsafeEthereumBlock)
 		logger.Info(
-			"Last ethereum blocked synced used from unsafeEthereumBlock",
+			"ethereum start block set to unsafe-ethereum-block",
 			zap.String("startBlock", startBlock.String()),
 		)
 	}
@@ -253,41 +252,34 @@ func startSidecar(
 	// to query the genesis file.
 	if tendermintNodeRPC != "" && unsafeEthereumBlock == 0 {
 
-		// Append `/genesis?` to the tendermintNodeRPC URL
-		genesisURL := fmt.Sprintf("%s/genesis?", tendermintNodeRPC)
-
-		// Query the genesis file
-		resp, err := http.Get(genesisURL)
+		lastEthereumBlockSyncedUint, err := cometutils.QueryCometGenesisForLastEthereumBlockSynced(ctx, tendermintNodeRPC)
 		if err != nil {
-			logger.Error("Failed to make request to the tendermint node RPC",
-				zap.String("url", genesisURL),
+			logger.Error("Failed to read the response body of the genesis file",
+				zap.String("url", tendermintNodeRPC),
 				zap.Error(err))
 		} else {
-			defer resp.Body.Close()
+			startBlock = big.NewInt(int64(lastEthereumBlockSyncedUint + 1))
+			logger.Info("Last ethereum block synced used from genesis",
+				zap.String("startBlock", startBlock.String()))
+		}
 
-			// Read the response body
-			genbz, err := io.ReadAll(resp.Body)
-			if err != nil {
-				logger.Error("Failed to read the response body of the genesis file",
-					zap.String("url", genesisURL),
-					zap.Error(err))
-			} else {
-				lastEthereumBlockSyncedUint := sidecarutils.MustGetLastEthereumBlockSyncedFromGenesis(genbz)
-				startBlock = big.NewInt(int64(lastEthereumBlockSyncedUint + 1))
-				logger.Info("Last ethereum block synced used from genesis",
+		lastSyncedSequencerEthereumBlock, err := scsequencerclient.FetchLastSyncedEthereumBlock(ctx)
+		if err != nil {
+			logger.Error("Failed to query the last synced block from the sequencer",
+				zap.Error(err))
+		} else {
+			nextBlockToStartQueryAt := big.NewInt(lastSyncedSequencerEthereumBlock.Int64() + 1)
+			if nextBlockToStartQueryAt.Cmp(startBlock) > 0 {
+				startBlock = nextBlockToStartQueryAt
+				logger.Info("start block overwritten by last synced ethereum block query now using",
 					zap.String("startBlock", startBlock.String()))
-
-				lastSyncedSequencerEthereumBlock, err := scsequencerclient.FetchLastSyncedEthereumBlock(ctx)
-				if err != nil {
-					logger.Error("Failed to query the last synced block from the sequencer",
-						zap.Error(err))
-				} else {
-					if lastSyncedSequencerEthereumBlock.Cmp(startBlock) > 0 {
-						startBlock = lastSyncedSequencerEthereumBlock
-					}
-				}
 			}
 		}
+	}
+
+	// If the startblock is 0 that means we've failed to set it through genesis or querying the sequencer therefore we don't start.
+	if startBlock.Cmp(big.NewInt(0)) == 0 {
+		panic("start block cannot be 0, something is wrong with the sequencer")
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
