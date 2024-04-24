@@ -9,6 +9,8 @@ from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 
+from raw_msgs.msg_post_blob import get_msg_post_blob
+
 
 class CosmosChain:
     def __init__(
@@ -71,7 +73,7 @@ class CosmosChain:
             output = output[:-1]
         return output
 
-    def tx(self, command: str, signer_key: str = ""):
+    def tx(self, command: str, signer_key: str = "", wait_for_txs=True):
         if signer_key == "":
             signer_key = self.key_name
         tx = self._run_command(
@@ -86,11 +88,19 @@ class CosmosChain:
             f"--gas-adjustment={self.gas_adjustment} "
             f"--gas-prices={self.gas_prices} "
             "-y")
-        if self.broadcast_mode == 'block' or not self.wait_for_txs:
+        if (self.broadcast_mode == 'block' or
+                not self.wait_for_txs or
+                not wait_for_txs):
             return tx
         else:
             tx_hash = json.loads(tx)["txhash"]
             return self.wait_for_tx(tx_hash)
+
+    def sign(self, file: str):
+        return self.tx(f"sign {file} --output-document={file}", wait_for_txs=False)
+
+    def broadcast(self, file: str):
+        return self.tx(f"broadcast {file}")
 
     def keys(self, command: str):
         return self._run_command(
@@ -574,8 +584,32 @@ class FuelSequencerChain(CosmosChain):
             f"bridge sequencer-address-from-ethereum-address {seq_address}"
         ))['sequencer_address']
 
+    def query_topics(self) -> str:
+        return self.query("sequencing list-topic")
+
+    def query_topic(self, topic_id: str) -> str:
+        return self.query(f"sequencing show-topic {topic_id}")
+
     def withdraw(self, to: str, amount: str) -> str:
         return self.tx(f"bridge withdraw-to-ethereum {to} {amount}")
+
+    def post_blob(
+            self,
+            sender: str,
+            topic: str,
+            order: str,
+            data: str,
+            gas: str,
+            fee: List
+    ):
+        msg = get_msg_post_blob(sender, topic, order, data, gas, fee)
+        temp_json_file = "temp-msg.json"
+        with open(temp_json_file, 'w') as f:
+            json.dump(msg, f)
+
+        self.sign(temp_json_file)
+        return self.broadcast(temp_json_file)
+
 
 
 class EthereumChain(Web3):
