@@ -5,11 +5,10 @@ import time
 from typing import List, Optional, Dict, Union, Type
 
 import requests
+from raw_msgs.msg_post_blob import get_msg_post_blob
 from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
-
-from raw_msgs.msg_post_blob import get_msg_post_blob
 
 
 class CosmosChain:
@@ -97,7 +96,10 @@ class CosmosChain:
             return self.wait_for_tx(tx_hash)
 
     def sign(self, file: str):
-        return self.tx(f"sign {file} --output-document={file}", wait_for_txs=False)
+        return self.tx(
+            f"sign {file} --output-document={file}",
+            wait_for_txs=False,
+        )
 
     def broadcast(self, file: str):
         return self.tx(f"broadcast {file}")
@@ -173,9 +175,9 @@ class CosmosChain:
         json_output = json.loads(output)
         events = json_output["events"]
         submit_prop = [e for e in events if e["type"] == "submit_proposal"][0]
-        proposal_id = \
-        [a for a in submit_prop["attributes"] if a["key"] == "proposal_id"][0][
-            "value"]
+        proposal_id = [
+            a for a in submit_prop["attributes"] if a["key"] == "proposal_id"
+        ][0]["value"]
         print(f"PROPOSAL ID: {proposal_id}")
 
         if not vote:
@@ -459,21 +461,11 @@ class CosmosChain:
 
         return new_events
 
-    def get_block(self, height: int):
-        while True:
-            output = self.get_json(f'/block?height={height}')
-            if 'error' in output and 'height' in output['error']['data']:
-                time.sleep(1)
-            else:
-                break
-
-        return output['result']
-
-    def get_last_block_height(self) -> int:
+    def query_last_block_height(self) -> int:
         abci_info = self.get_json('/abci_info')
         return int(abci_info['result']['response']['last_block_height'])
 
-    def get_block_events(self, height: int):
+    def query_block_events(self, height: int):
         if height <= 0:
             raise Exception("height must be > 0")
 
@@ -593,6 +585,28 @@ class FuelSequencerChain(CosmosChain):
     def query_topic(self, topic_id: str) -> str:
         return self.query(f"sequencing show-topic {topic_id}")
 
+    def query_bridge_commitment(self, start: int, end: int):
+        output = self.get_json(
+            f'/bridge_commitment?start={start}&end={end}'
+        )
+        if 'error' in output:
+            return output['error']
+        else:
+            return output['result']['bridge_commitment']
+
+    def query_bridge_commitment_inclusion_proof(
+            self,
+            height: int,
+            tx_index: int,
+            start: int,
+            end: int
+    ):
+        output = self.get_json(
+            '/bridge_commitment_inclusion_proof?'
+            f'height={height}&tx_index={tx_index}&start={start}&end={end}'
+        )
+        return output['result'] if 'error' not in output else output['error']
+
     def withdraw(self, to: str, amount: str) -> str:
         return self.tx(f"bridge withdraw-to-ethereum {to} {amount}")
 
@@ -612,7 +626,6 @@ class FuelSequencerChain(CosmosChain):
 
         self.sign(temp_json_file)
         return self.broadcast(temp_json_file)
-
 
 
 class EthereumChain(Web3):
