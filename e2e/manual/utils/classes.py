@@ -402,6 +402,9 @@ class CosmosChain:
     def query_tx(self, tx_hash: str):
         return self.query(f"tx {tx_hash}")
 
+    def query_block(self, height: int):
+        return self.query(f"block {height} --type=height")
+
     def query_balance_by_key_name(self, key_name: str) -> str:
         output = self.keys(f"show {key_name} -a")
         return self.query(f"bank balances {output}")
