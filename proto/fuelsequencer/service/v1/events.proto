@@ -15,7 +15,7 @@ message SendToSequencerEvent {
   // also preserved
   string amount = 2;
 
-  // recipient address in hex or bech32 format
+  // recipient address in hex or bech32 format. This is optional.
   string to = 3;
 
   // vesting duration encoded in string to prevent loss of precision. Sign is
