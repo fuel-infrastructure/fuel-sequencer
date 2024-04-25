@@ -220,7 +220,7 @@ func startSidecar(
 	}
 
 	if unsafeEthereumBlock < 0 {
-		return fmt.Errorf("unsafe ethereum start block must be >= 0, got: %d", unsafeEthereumBlock)
+		return fmt.Errorf("unsafe ethereum block must be >= 0, got: %d", unsafeEthereumBlock)
 	}
 	if ethMaxBlockRange < 1 {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethMaxBlockRange)
