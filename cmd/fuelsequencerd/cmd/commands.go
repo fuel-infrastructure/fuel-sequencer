@@ -248,19 +248,22 @@ func startSidecar(
 	// Create the sequencer client
 	scsequencerclient := scsequencerclient.NewClient(grpcConn)
 
-	// If the tendermintNodeRPC is specified and the unsafeEthereumBlock is not then we proceed to attempt
-	// to query the genesis file.
-	if tendermintNodeRPC != "" && unsafeEthereumBlock == 0 {
+	// If the unsafeEthereumBlock is not set then we attempt to query the 
+	// last Ethereum block synced from the genesis file and the Sequencer.
+	if unsafeEthereumBlock == 0 {
 
-		lastEthereumBlockSyncedUint, err := cometutils.QueryCometGenesisForLastEthereumBlockSynced(ctx, tendermintNodeRPC)
-		if err != nil {
-			logger.Error("Failed to read the response body of the genesis file",
-				zap.String("url", tendermintNodeRPC),
-				zap.Error(err))
-		} else {
-			startBlock = big.NewInt(int64(lastEthereumBlockSyncedUint + 1))
-			logger.Info("Last ethereum block synced used from genesis",
-				zap.String("startBlock", startBlock.String()))
+		// Only query the genesis file if the tendermintNodeRPC was specified.
+		if tendermintNodeRPC != "" {
+			lastEthereumBlockSyncedUint, err := cometutils.QueryCometGenesisForLastEthereumBlockSynced(ctx, tendermintNodeRPC)
+			if err != nil {
+				logger.Error("Failed to read the response body of the genesis file",
+					zap.String("url", tendermintNodeRPC),
+					zap.Error(err))
+			} else {
+				startBlock = big.NewInt(int64(lastEthereumBlockSyncedUint + 1))
+				logger.Info("Last ethereum block synced used from genesis",
+					zap.String("startBlock", startBlock.String()))
+			}
 		}
 
 		lastSyncedSequencerEthereumBlock, err := scsequencerclient.FetchLastSyncedEthereumBlock(ctx)
@@ -279,7 +282,7 @@ func startSidecar(
 
 	// If the startblock is 0 that means we've failed to set it through genesis or querying the sequencer therefore we don't start.
 	if startBlock.Cmp(big.NewInt(0)) == 0 {
-		panic("start block cannot be 0, something is wrong with the sequencer")
+		panic("start block cannot be 0; ensure you have a connection to the Sequencer")
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
