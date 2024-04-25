@@ -81,19 +81,19 @@ func MustGetLastEthereumBlockSyncedFromGenesis(genbz []byte) uint64 {
 
 	lastEthereumBlockSynced, err := dyno.Get(g, "bridge", "last_ethereum_block_synced")
 	if err != nil {
-		log.Fatalf("failed to extract last ethereum block synced from genesis file: %v", err)
+		log.Fatalf("failed to extract LastEthereumBlockSynced from genesis file: %v", err)
 	}
 
 	// Convert the last ethereum block synced from interface to string.
 	num, ok := lastEthereumBlockSynced.(string)
 	if !ok {
-		log.Fatalf("failed to convert last ethereum block synced interface to string")
+		log.Fatalf("failed to convert LastEthereumBlockSynced interface to string")
 	}
 
 	// Convert the string into uint64 and return.
 	lastEthereumBlockSyncedUint, err := strconv.ParseUint(num, 10, 64)
 	if err != nil {
-		log.Fatalf("failed to convert last ethereum block synced from string to uint64: %v", err)
+		log.Fatalf("failed to convert LastEthereumBlockSynced from string to uint64: %v", err)
 	}
 
 	return lastEthereumBlockSyncedUint

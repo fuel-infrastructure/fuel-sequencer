@@ -73,7 +73,7 @@ func (s *Sidecar) StartFetching(ctx context.Context) error {
 	// Initial check to verify Ethereum client connectivity and log fetching capability.
 	_, err := s.ethClient.FilterLogs(ctx, s.eventStore.GetStartQueryBlock(), s.eventStore.GetStartQueryBlock())
 	if err != nil {
-		s.logger.Error("Failed to fetch logs for initial check", zap.Error(err))
+		s.logger.Error("failed to fetch logs for initial check", zap.Error(err))
 		return err
 	}
 
@@ -106,17 +106,21 @@ func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
 				return
 			}
 
-			s.logger.Info("Processing from block", zap.Uint64("block", s.eventStore.GetNextQueryBlock().Uint64()))
+			s.logger.Info("processing from block", zap.Uint64("block", s.eventStore.GetNextQueryBlock().Uint64()))
 
 			// Fetch the last synced Ethereum block before querying for new logs
-			lastSyncedBlock, err := s.sequencerClient.FetchLastSyncedEthereumBlock(ctx)
-			s.logger.Debug("Querying LastSyncedEthereumBlock: ", zap.String("last synced block", lastSyncedBlock.String()))
+			lastSyncedBlock, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
 			if err != nil {
 				// Log the error if the last synced Ethereum block is not obtained.
 				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
 				// is skipped the Sequencer will not be able to produce the first block and the sidecar would not be
 				// able to query the Sequencer, causing a deadlock.
-				s.logger.Error("failed to obtain last synced block from Sequencer", zap.Error(err))
+				s.logger.Error("failed to obtain LastEthereumBlockSynced from Sequencer", zap.Error(err))
+			} else {
+				s.logger.Debug(
+					"queried LastEthereumBlockSynced from Sequencer",
+					zap.String("last_ethereum_block_synced", lastSyncedBlock.String()),
+				)
 			}
 
 			// Prune any old events that are no longer necessary to keep.
@@ -140,7 +144,7 @@ func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
 func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
-	s.logger.Debug("Querying Block Events ", zap.String("block_number", blockNumber.String()))
+	s.logger.Debug("querying block events", zap.String("block_number", blockNumber.String()))
 
 	// Validate the blockNumber
 	if blockNumber.Sign() < 0 {
@@ -171,9 +175,9 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 		// on anvil). We need to error if the Ethereum node has zero peers as it means that it can't sync up with the
 		// network.
 		if !s.development {
-			peerCount, err := s.ethClient.CheckEthereumNodePeerCount(ctx)
+			peerCount, err := s.ethClient.PeerCount(ctx)
 			if err != nil {
-				s.logger.Error(fmt.Sprintf("err when fetching peer count: %s", err.Error()))
+				s.logger.Error("error when fetching peer count", zap.Error(err))
 				return nil, errors.New("could not get number of peers from node")
 			}
 			if peerCount == 0 {
@@ -182,7 +186,7 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 		}
 
 		// Check if the Ethereum node is synced.
-		syncProgress, err := s.ethClient.CheckEthereumNodeSync(ctx)
+		syncProgress, err := s.ethClient.SyncProgress(ctx)
 		if err != nil {
 			return nil, errors.New("could not get syncing status from Ethereum node")
 		}

@@ -146,16 +146,16 @@ func txCommand() *cobra.Command {
 
 func startSidecarServerCmd() *cobra.Command {
 	var (
-		host                string
-		port                string
-		ethNodeRPC          string
-		cosmosNodeRPC       string
-		tendermintNodeRPC   string
-		contractAddressHex  string
-		unsafeEthereumBlock int64
-		ethMaxBlockRange    int64
-		development         bool
-		acceptableDelay     uint64
+		host                  string
+		port                  string
+		ethNodeRPC            string
+		cosmosNodeRPC         string
+		tendermintNodeRPC     string
+		contractAddressHex    string
+		unsafeEthereumBlock   int64
+		ethMaxBlockRange      int64
+		development           bool
+		unsafeAcceptableDelay uint64
 	)
 
 	cmd := &cobra.Command{
@@ -172,7 +172,7 @@ func startSidecarServerCmd() *cobra.Command {
 				unsafeEthereumBlock,
 				ethMaxBlockRange,
 				development,
-				acceptableDelay,
+				unsafeAcceptableDelay,
 			)
 		},
 	}
@@ -186,7 +186,7 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&unsafeEthereumBlock, "unsafe_ethereum_block", 0, "Ethereum start query block")
 	cmd.Flags().Int64Var(&ethMaxBlockRange, "eth_max_block_range", 100, "max number of Ethereum blocks per query")
 	cmd.Flags().BoolVar(&development, "development", false, "Starts the sidecar in development mode")
-	cmd.Flags().Uint64Var(&acceptableDelay, "unsafe_acceptable_delay", 1, "the amount of blocks the sidecar can be out-of-sync with Ethereum")
+	cmd.Flags().Uint64Var(&unsafeAcceptableDelay, "unsafe_acceptable_delay", 1, "the amount of blocks the sidecar can be out-of-sync with Ethereum")
 
 	return cmd
 }
@@ -201,7 +201,7 @@ func startSidecar(
 	unsafeEthereumBlock,
 	ethMaxBlockRange int64,
 	development bool,
-	acceptableDelay uint64,
+	unsafeAcceptableDelay uint64,
 ) error {
 	sigs := make(chan os.Signal, 1)
 
@@ -220,13 +220,13 @@ func startSidecar(
 	}
 
 	if unsafeEthereumBlock < 0 {
-		return fmt.Errorf("ethereum start block must be >= 0, got: %d", unsafeEthereumBlock)
+		return fmt.Errorf("unsafe ethereum start block must be >= 0, got: %d", unsafeEthereumBlock)
 	}
 	if ethMaxBlockRange < 1 {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethMaxBlockRange)
 	}
-	if acceptableDelay > 10 {
-		return fmt.Errorf("acceptable delay is too large, must be <= 10, got: %d", acceptableDelay)
+	if unsafeAcceptableDelay > 10 {
+		return fmt.Errorf("unsafe acceptable delay is too large, must be <= 10, got: %d", unsafeAcceptableDelay)
 	}
 
 	// Check if the unsafeEthereumBlock is provided and use it instead of querying the genesis.
@@ -235,7 +235,7 @@ func startSidecar(
 		startBlock = big.NewInt(unsafeEthereumBlock)
 		logger.Info(
 			"ethereum start block set to unsafe-ethereum-block",
-			zap.String("startBlock", startBlock.String()),
+			zap.String("start_block", startBlock.String()),
 		)
 	}
 
@@ -246,43 +246,64 @@ func startSidecar(
 	}
 
 	// Create the sequencer client
-	scsequencerclient := scsequencerclient.NewClient(grpcConn)
+	scSequencerClient := scsequencerclient.NewClient(grpcConn)
 
-	// If the unsafeEthereumBlock is not set then we attempt to query the 
+	// If the unsafeEthereumBlock is not set then we attempt to query the
 	// last Ethereum block synced from the genesis file and the Sequencer.
 	if unsafeEthereumBlock == 0 {
 
-		// Only query the genesis file if the tendermintNodeRPC was specified.
+		// Only try quering the genesis file if the tendermintNodeRPC was specified.
 		if tendermintNodeRPC != "" {
-			lastEthereumBlockSyncedUint, err := cometutils.QueryCometGenesisForLastEthereumBlockSynced(ctx, tendermintNodeRPC)
+			lastEthereumBlockSynced, err := cometutils.QuerySequencerGenesisForLastEthereumBlockSynced(
+				ctx, tendermintNodeRPC,
+			)
 			if err != nil {
-				logger.Error("Failed to read the response body of the genesis file",
-					zap.String("url", tendermintNodeRPC),
-					zap.Error(err))
+				logger.Error(
+					"failed to read the response body of the genesis file",
+					zap.String("tendermint_node_rpc", tendermintNodeRPC),
+					zap.Error(err),
+				)
 			} else {
-				startBlock = big.NewInt(int64(lastEthereumBlockSyncedUint + 1))
-				logger.Info("Last ethereum block synced used from genesis",
-					zap.String("startBlock", startBlock.String()))
+				startBlock = big.NewInt(int64(lastEthereumBlockSynced + 1))
+				logger.Info(
+					"ethereum start block set to LastEthereumBlockSynced+1 from genesis",
+					zap.String("start_block", startBlock.String()),
+				)
 			}
 		}
 
-		lastSyncedSequencerEthereumBlock, err := scsequencerclient.FetchLastSyncedEthereumBlock(ctx)
+		// Try querying the last Ethereum block synced from the Sequencer.
+		lastEthereumBlockSynced, err := scSequencerClient.FetchLastEthereumBlockSynced(ctx)
 		if err != nil {
-			logger.Error("Failed to query the last synced block from the sequencer",
-				zap.Error(err))
+			logger.Warn(
+				"failed to query LastEthereumBlockSynced from Sequencer, but maybe Sequencer hasn't started",
+				zap.String("cosmos_node_rpc", cosmosNodeRPC),
+				zap.Error(err),
+			)
 		} else {
-			nextBlockToStartQueryAt := big.NewInt(lastSyncedSequencerEthereumBlock.Int64() + 1)
-			if nextBlockToStartQueryAt.Cmp(startBlock) > 0 {
-				startBlock = nextBlockToStartQueryAt
-				logger.Info("start block overwritten by last synced ethereum block query now using",
-					zap.String("startBlock", startBlock.String()))
+			newStartBlock := new(big.Int).Add(lastEthereumBlockSynced, big.NewInt(1))
+			if newStartBlock.Cmp(startBlock) > 0 {
+				startBlock = newStartBlock
+				logger.Info(
+					"ethereum start block set to LastEthereumBlockSynced+1 from Sequencer state",
+					zap.String("start_block", startBlock.String()),
+				)
+			} else {
+				logger.Warn(
+					"ignoring LastEthereumBlockSynced from Sequencer because it is too small",
+					zap.String("last_ethereum_block_synced", lastEthereumBlockSynced.String()),
+					zap.String("start_block", startBlock.String()),
+				)
 			}
 		}
 	}
 
-	// If the startblock is 0 that means we've failed to set it through genesis or querying the sequencer therefore we don't start.
+	// If the startBlock is 0, we've failed to set it through the various attempts (unsafe flag / genesis / node).
 	if startBlock.Cmp(big.NewInt(0)) == 0 {
-		panic("start block cannot be 0; ensure you have a connection to the Sequencer")
+		panic(fmt.Sprintf(
+			"did not find a start block; ensure Sequencer is available at cosmos_node_rpc=%s, tendermint_node_rpc=%s",
+			cosmosNodeRPC, tendermintNodeRPC,
+		))
 	}
 
 	ethClient, err := ethclient.Dial(ethNodeRPC)
@@ -306,25 +327,25 @@ func startSidecar(
 	sideCar := sidecar.NewSidecar(
 		logger,
 		scEthClient,
-		scsequencerclient,
+		scSequencerClient,
 		eventStore,
 		development,
-		acceptableDelay,
+		unsafeAcceptableDelay,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
 	go func() {
 		<-sigs
-		logger.Info("Received interrupt or terminate signal, closing sidecar")
+		logger.Info("received interrupt or terminate signal, closing sidecar")
 		cancel()
 	}()
 
 	if err := srv.InitializeServer(host, port); err != nil {
-		logger.Error("Failed to initialize the server", zap.Error(err))
+		logger.Error("failed to initialize the server", zap.Error(err))
 	}
 
 	if err := srv.StartServer(ctx); err != nil {
-		logger.Error("Stopping server", zap.Error(err))
+		logger.Error("stopping server", zap.Error(err))
 	}
 
 	return nil
@@ -368,9 +389,12 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	}
 	defer conn.Close()
 
-	client := types.NewSidecarClient(conn)
+	sidecarClient := types.NewSidecarClient(conn)
 
-	resp, err := client.GetBlockEvents(context.Background(), &types.QueryBlockEventsRequest{BlockNumber: blockNumber})
+	resp, err := sidecarClient.GetBlockEvents(
+		context.Background(),
+		&types.QueryBlockEventsRequest{BlockNumber: blockNumber},
+	)
 	if err != nil {
 		return fmt.Errorf("could not get block events: %v", err)
 	}

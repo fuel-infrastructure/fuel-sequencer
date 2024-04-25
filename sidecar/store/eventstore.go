@@ -163,7 +163,7 @@ func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyn
 		// Prune if there's anything to prune
 		if len(store.blocksMap) > 0 && pruneUntil > pruneFrom {
 
-			logger.Info("Pruning state",
+			logger.Info("pruning state",
 				zap.Uint64("from_block", pruneFrom),
 				zap.Uint64("to_block", pruneUntil),
 			)

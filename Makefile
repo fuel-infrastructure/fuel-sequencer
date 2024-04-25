@@ -215,6 +215,9 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 run-sequencer: proto-go-gen serve
 
 run-sidecar:
+	@$(eval HOST ?= "0.0.0.0")
+	@$(eval COSMOS_NODE_RPC ?= "127.0.0.1:9090")
+	@$(eval TENDERMINT_NODE_RPC ?= "http://127.0.0.1:26657")
 	@$(eval ETH_RPC ?= "http://localhost:8545")
 	@$(eval CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
@@ -223,6 +226,9 @@ run-sidecar:
 	    sleep 1; \
 	done
 	@fuelsequencerd start-sidecar \
+		--host "$(HOST)" \
+		--cosmos_node_rpc "$(COSMOS_NODE_RPC)" \
+		--tendermint_node_rpc "$(TENDERMINT_NODE_RPC)" \
 		--eth_node_rpc "$(ETH_RPC)" \
 		--contract_address "$(CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \

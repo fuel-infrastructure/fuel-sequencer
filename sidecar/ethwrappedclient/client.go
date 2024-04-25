@@ -58,13 +58,13 @@ func (ec *EthWrappedClient) BlockNumber(ctx context.Context) (uint64, error) {
 	return ec.ethClient.BlockNumber(ctx)
 }
 
-// CheckEthereumNodeSync checks if the Ethereum node is synced.
-func (ec *EthWrappedClient) CheckEthereumNodeSync(ctx context.Context) (*ethereum.SyncProgress, error) {
+// SyncProgress checks if the Ethereum node is synced.
+func (ec *EthWrappedClient) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error) {
 	return ec.ethClient.SyncProgress(ctx)
 }
 
-// CheckEthereumNodePeerCount checks if the peer count of the Ethereum node.
-func (ec *EthWrappedClient) CheckEthereumNodePeerCount(ctx context.Context) (uint64, error) {
+// PeerCount checks if the peer count of the Ethereum node.
+func (ec *EthWrappedClient) PeerCount(ctx context.Context) (uint64, error) {
 	return ec.ethClient.PeerCount(ctx)
 }
 
@@ -78,13 +78,13 @@ func (ec *EthWrappedClient) FetchAndProcessLogs(
 	// Determine the range of blocks to query.
 	currentBlockNumber, err := ec.ethClient.BlockNumber(ctx)
 	if err != nil {
-		logger.Error("Error fetching current Ethereum block number", zap.Error(err))
+		logger.Error("error fetching current Ethereum block number", zap.Error(err))
 		return nil, nextQueryBlock
 	}
 
 	// Return if there is no update for the ETH block height.
 	if currentBlockNumber < nextQueryBlock.Uint64() {
-		logger.Info("No new blocks", zap.Uint64("current_block_number", currentBlockNumber))
+		logger.Info("no new blocks", zap.Uint64("current_block_number", currentBlockNumber))
 		return nil, nextQueryBlock
 	}
 
@@ -99,20 +99,20 @@ func (ec *EthWrappedClient) FetchAndProcessLogs(
 	// Filter the logs from the next query block to the to block.
 	logs, err := ec.FilterLogs(ctx, nextQueryBlock, toBlock)
 	if err != nil {
-		logger.Error("Error fetching logs", zap.Error(err))
+		logger.Error("error fetching logs", zap.Error(err))
 		return nil, nextQueryBlock
 	}
 
 	// Process the logs if any are found.
 	eventsMap, err := ec.processLogs(logger, logs, nextQueryBlock)
 	if err != nil {
-		logger.Error("Failed to process logs", zap.Error(err))
+		logger.Error("failed to process logs", zap.Error(err))
 		return nil, nextQueryBlock
 	}
 
 	// Regardless of whether logs were found, update the last queried block to the current block number,
 	// since we have now queried up to this block.
-	logger.Info("Processed logs from range of blocks",
+	logger.Info("processed logs from range of blocks",
 		zap.String("from_block", nextQueryBlock.String()),
 		zap.String("to_block", toBlock.String()),
 		zap.Int("no_of_events", len(logs)),
@@ -145,30 +145,30 @@ func (ec *EthWrappedClient) processLogs(
 		currentBlockNumber := vLog.BlockNumber
 
 		if vLog.Removed {
-			logger.Debug("Processed a removed log, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
+			logger.Debug("processed a removed log, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
 			continue
 		}
 
 		if err := utils.ValidateIsLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex); err != nil {
-			logger.Error("Failed sequential validation", zap.Error(err))
+			logger.Error("failed sequential validation", zap.Error(err))
 			return nil, err
 		}
 
 		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI)
 		if err != nil {
-			logger.Error("Error processing log", zap.Error(err))
+			logger.Error("error processing log", zap.Error(err))
 			return nil, fmt.Errorf("error processing log %s", err)
 		}
 
 		// If the event is nil it means we've processed an unknown event and we can skip it.
 		if event == nil {
-			logger.Debug("Processed unknown event, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
+			logger.Debug("processed unknown event, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
 			continue
 		}
 
 		// Add the event to the temporary block map
 		tempBlocks[currentBlockNumber] = append(tempBlocks[currentBlockNumber], *event)
-		logger.Debug("Processed a log successfully",
+		logger.Debug("processed a log successfully",
 			zap.Uint64("block", vLog.BlockNumber),
 			zap.Uint("tx_index", vLog.TxIndex),
 			zap.Uint("index", vLog.Index),

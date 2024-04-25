@@ -26,14 +26,14 @@ func NewClient(
 	}
 }
 
-// FetchLastSyncedEthereumBlock fetches the last ethereum synced block from the bridge module.
-func (sc *SequencerClient) FetchLastSyncedEthereumBlock(ctx context.Context) (*big.Int, error) {
+// FetchLastEthereumBlockSynced fetches the last ethereum synced block from the bridge module.
+func (sc *SequencerClient) FetchLastEthereumBlockSynced(ctx context.Context) (*big.Int, error) {
 	resp, err := sc.bridgeQueryClient.LastEthereumBlockSynced(
 		ctx,
 		&bridgetypes.QueryGetLastEthereumBlockSyncedRequest{},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch last synced Ethereum block from fuel sequencer: %v", err)
+		return nil, fmt.Errorf("failed to fetch LastEthereumBlockSynced from Sequencer: %v", err)
 	}
 
 	lastSyncedBlock := new(big.Int)

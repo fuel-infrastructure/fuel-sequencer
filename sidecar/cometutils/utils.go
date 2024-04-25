@@ -9,9 +9,9 @@ import (
 	sidecarutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 )
 
-// QueryCometGenesisForLastEthereumBlockSynced queries the comet genesis through an rpc client and parses it to extract
-// the last ethereum block synced.
-func QueryCometGenesisForLastEthereumBlockSynced(ctx context.Context, tendermintNodeRPC string) (uint64, error) {
+// QuerySequencerGenesisForLastEthereumBlockSynced queries the Sequencer genesis through a Tendermint RPC client and
+// parses it to extract the LastEthereumBlockSynced.
+func QuerySequencerGenesisForLastEthereumBlockSynced(ctx context.Context, tendermintNodeRPC string) (uint64, error) {
 
 	httpClient, err := libclient.DefaultHTTPClient(tendermintNodeRPC)
 	if err != nil {
