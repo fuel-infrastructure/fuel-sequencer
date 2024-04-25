@@ -5,6 +5,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
@@ -170,32 +172,33 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawT
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 	s.Run("Submit authorized vote from Ethereum and check execution results on Sequencer", func() {
-		// TODO: Submit a new proposal, hopefully manage to vote in due time by sending an authorize msgvote and check
-		//     : that the vote went through by checking the list of votes. We might need to increase the voting period
-		//     : in genesis if needed
-		// TODO: Tomorrow use query_gov and tx_go to formulate tests and finish spec.
+		voter := testsuite.ETH_ADDRESSES[0]
 
-		//withdrawerAddress := testsuite.ETH_ADDRESSES[0]
-		//
-		//// Make sure that the withdrawer's balance is as expected.
-		//expectedInitWithdrawerBalance := testsuite.InitBalanceCoin
-		//balance, err := s.QueryAllBalances(s.Ctx(), withdrawerAddress, nil)
-		//s.Require().NoError(err)
-		//s.Require().Equal(expectedInitWithdrawerBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
-		//
-		//// Generate Authorize event wrapping a MsgWithdrawToEthereum.
-		//withdrawAmount, ok := sdkmath.NewIntFromString("110000000000")
-		//s.Require().True(ok)
-		//withdrawCoin := sdk.NewCoin(testsuite.BridgeDenom, withdrawAmount)
-		//msgWithdrawToEthereumBz := s.E2ETestSuite.GenerateMsgWithdrawToEthereumBz(
-		//	withdrawerAddress, withdrawerAddress, withdrawCoin,
-		//)
-		//authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		//err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
-		//s.Require().NoError(err)
-		//
-		//// Make sure that the withdrawal was executed by checking the withdrawers' balance
-		//postWithdrawalBalance := expectedInitWithdrawerBalance.Sub(withdrawCoin)
-		//s.PollForBalance(s.Ctx(), 10, withdrawerAddress, postWithdrawalBalance)
+		// Create a new dummy proposal to vote on
+		consensusParams := s.QueryConsensusParams(s.Ctx())
+		msgUpdateParams := consensustypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Block:     consensusParams.Block,
+			Evidence:  consensusParams.Evidence,
+			Validator: consensusParams.Validator,
+			Abci:      consensusParams.Abci,
+		}
+		proposalId := s.SubmitGovProposal(&msgUpdateParams)
+
+		// Make sure that the voting period started
+		s.PollForProposalStatus(s.Ctx(), 10, proposalId, govtypesv1.ProposalStatus_PROPOSAL_STATUS_VOTING_PERIOD)
+
+		// Confirm that the proposal has no votes yet
+		votes := s.QueryVotes(s.Ctx(), proposalId)
+		s.Require().Empty(votes)
+
+		// Generate Authorize event wrapping a MsgVote.
+		msgVoteBz := s.E2ETestSuite.GenerateMsgVoteBz(proposalId, voter, "", govtypesv1.VoteOption_VOTE_OPTION_YES)
+		authorizeData := testsuite.PackAuthorize(msgVoteBz)
+		err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Make sure that the vote gets submitted by checking that the votes tally has increased from 0 to 1
+		s.PollForNumberOfVotes(s.Ctx(), 10, proposalId, 1)
 	})
 }

@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -100,6 +103,17 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			bz, err = cdc.MarshalJSON(&mintGenState)
 			s.Require().NoError(err)
 			genesisState[minttypes.ModuleName] = bz
+
+			// ----- Increase the voting period substantially to allow for authorized MsgVote to go through comfortably
+			var govGenState govtypesv1.GenesisState
+			s.Require().NoError(cdc.UnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState))
+
+			oneHour := time.Hour
+			govGenState.Params.VotingPeriod = &oneHour
+
+			bz, err = cdc.MarshalJSON(&govGenState)
+			s.Require().NoError(err)
+			genesisState[govtypes.ModuleName] = bz
 
 			return nil
 		},
