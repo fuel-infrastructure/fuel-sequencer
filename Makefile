@@ -225,6 +225,10 @@ run-sidecar:
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \
 	done
+	@echo "Waiting for Sequencer node $(TENDERMINT_NODE_RPC) to start..."
+	@while ! curl -s -X GET --max-time 1 "$(TENDERMINT_NODE_RPC)" | grep -q "result"; do \
+		sleep 1; \
+	done
 	@fuelsequencerd start-sidecar \
 		--host "$(HOST)" \
 		--cosmos_node_rpc "$(COSMOS_NODE_RPC)" \
