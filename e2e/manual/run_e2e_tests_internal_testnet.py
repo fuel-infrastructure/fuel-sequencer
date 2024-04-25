@@ -103,11 +103,13 @@ to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
 pretty(SEQ.query_account(to))  # check current account on the sequencer side
 ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
 
-# Perform an authorize on Ethereum. This is a MsgSend of 10 TEST from
-# fuelsequencer1ax2rewnyqpmr0ekz6xwmjatg6tkuntu6ucmse3anzdvnw6u64s5q3hlfs2
-# to fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m.
+# Perform an authorize on Ethereum. This is a MsgSend of 10 TEST:
+# From: fuelsequencer1ax2rewnyqpmr0ekz6xwmjatg6tkuntu6ucmse3anzdvnw6u64s5q3hlfs2
+# To: fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m.
+# The sender maps from Eth address 0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8.
 data = "0x0aae010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64128d010a486675656C73657175656E636572316178327265776E7971706D7230656B7A3678776D6A61746736746B756E74753675636D736533616E7A64766E773675363473357133686C66733212346675656c73657175656e636572313633727376363574343839337432727a35726d646139736c79376c67646c71326a677233366d1a0b0a05757465737412023130"
 ETH.authorize(data)
+# TODO: update this to use new Eth->Seq mapping once we update internal testnet.
 
 # Perform a withdrawal on Sequencer
 pretty(SEQ.query_balance_by_key_name(SEQ.key_name))  # check balance
