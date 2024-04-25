@@ -31,7 +31,7 @@ type SendToSequencerEvent struct {
 	// the amount sent encoded as string to prevent loss of precision. Sign is
 	// also preserved
 	Amount string `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// recipient Ethereum address in hex or bech32 format
+	// recipient address in hex or bech32 format
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// vesting duration encoded in string to prevent loss of precision. Sign is
 	// also preserved. This can be zero if no duration is specified.
