@@ -1,4 +1,4 @@
-package basic_test
+package withdrawals_test
 
 import (
 	"encoding/json"
