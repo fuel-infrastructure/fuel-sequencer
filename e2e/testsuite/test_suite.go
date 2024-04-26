@@ -97,7 +97,7 @@ var (
 		"0x8fe6350f77cf9be08bbac2c8156caba4d47e756b",
 	}
 
-	// ETH_ADDRESS_SEQ are the mapped addresses in ETH_ADDRESSES on the Sequencer
+	// ETH_ADDRESS_SEQ are the addresses mapped from ETH_ADDRESSES on the Sequencer
 	ETH_ADDRESS_SEQ = []string{
 		"fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz",
 		"fuelsequencer1u5lxa9fv79ttnav292pd5h49xugzhfyyzgs97h",
