@@ -35,9 +35,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		heightAfterWithdrawal, err := s.Chain.FuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 
-		// We need to wait some blocks so that we're at a height that is greater than UPDATE_DELAY_BLOCKS.
+		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
 		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitForBlocks(s.Ctx(), 20, time.Minute)
+		err = s.WaitForSequencerBlocks(s.Ctx(), 20, time.Minute)
 
 		requestId, startBlockString, targetBlockString := s.RunSuccinctXOperatorMockApi()
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
@@ -45,8 +45,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
 		s.Require().NoError(err)
 
-		// Make sure the transaction is included in the BridgeCommitment
-		s.Require().GreaterOrEqual(targetBlock, heightAfterWithdrawal)
+		// Make sure the transaction is included in the BridgeCommitment.
+		// Since the target block is exclusive, it has to be > not >=.
+		s.Require().Greater(targetBlock, heightAfterWithdrawal)
 
 		// --------------------------------------- Run Relayer
 
@@ -54,7 +55,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
 		s.Require().NoError(err)
 
-		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
 
 		receipt := s.RunSuccinctXRelayerMockApi(requestId, startBlock, targetBlock, genesisBlockHeaderHash)

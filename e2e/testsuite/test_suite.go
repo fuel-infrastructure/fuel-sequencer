@@ -193,7 +193,7 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initSidecarClient()
 
 	// We need the genesis header for solidity smart contracts
-	err = s.WaitForBlocks(s.Ctx(), 1, time.Minute)
+	err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
 	s.Require().NoError(err)
 
 	// Get genesis header
