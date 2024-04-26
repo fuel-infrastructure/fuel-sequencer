@@ -13,7 +13,7 @@ import (
 )
 
 func exit(format string, a ...any) {
-	fmt.Fprintf(os.Stderr, format, a)
+	fmt.Fprintf(os.Stderr, format, a...)
 	os.Exit(1)
 }
 
