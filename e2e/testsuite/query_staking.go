@@ -41,10 +41,7 @@ func (s *E2ETestSuite) PollForDelegationBalance(
 	))
 
 	doPoll := func(ctx context.Context, height uint64) (any, error) {
-		res, err := s.Chain.grpcClients.StakingQueryClient.Delegation(ctx, &stakingtypes.QueryDelegationRequest{
-			DelegatorAddr: delegatorAddress,
-			ValidatorAddr: validatorAddress,
-		})
+		res, err := s.QueryDelegationRaw(ctx, delegatorAddress, validatorAddress)
 		if err != nil {
 			return nil, err
 		}
