@@ -48,7 +48,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Zero(res.Code)
 
 		// Wait for blocks (RPC).
-		err = s.WaitForSequencerBlocks(s.Ctx(), 2, time.Minute)
+		err = s.WaitForBlocks(s.Ctx(), 2, time.Minute)
 		s.Require().NoError(err)
 
 		// Ensure balance was reduced (GRPC)
@@ -136,7 +136,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
 
-		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
+		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
 		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
 		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)

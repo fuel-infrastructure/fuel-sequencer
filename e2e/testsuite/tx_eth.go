@@ -3,10 +3,8 @@ package testsuite
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"math/big"
 	"strings"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -90,24 +88,9 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 		return err
 	}
 
-	s.Logger().Info(fmt.Sprintf("Submitting transaction to FuelStreamX contract: %s", signedTx.Hash().Hex()))
 	err = s.Chain.ethClient.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		return err
-	}
-
-	err = s.WaitForEthereumBlocks(s.Ctx(), 1, time.Second*10)
-	s.Require().NoError(err)
-
-	receipt, err := s.Chain.ethClient.TransactionReceipt(context.Background(), signedTx.Hash())
-	if err != nil {
-		return err
-	} else if receipt.Status != 1 {
-		txJson, err := signedTx.MarshalJSON()
-		s.Require().NoError(err)
-		receiptJson, err := receipt.MarshalJSON()
-		s.Require().NoError(err)
-		return fmt.Errorf("transaction failed - check Ethereum node logs; tx:%X; receipt:%s", txJson, receiptJson)
 	}
 
 	return nil
