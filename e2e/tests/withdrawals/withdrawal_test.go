@@ -30,14 +30,14 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		s.Require().NoError(err)
 		s.Require().Zero(withdrawalResponse.Code)
 
-		// --------------------------------------- Run Operator
+		// The LastResultsHash is generated at the block right after the withdrawal
+		lastResultsHashHeight := withdrawalResponse.Height + 1
 
-		heightAfterWithdrawal, err := s.Chain.FuelSequencerHeight(s.Ctx())
-		s.Require().NoError(err)
+		// --------------------------------------- Run Operator
 
 		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
 		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitForSequencerBlocks(s.Ctx(), 20, time.Minute)
+		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
 
 		requestId, startBlockString, targetBlockString := s.RunSuccinctXOperatorMockApi()
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
@@ -45,9 +45,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
 		s.Require().NoError(err)
 
-		// Make sure the transaction is included in the BridgeCommitment.
+		// Make sure the LastResultsHash due to the transaction is included in the BridgeCommitment.
 		// Since the target block is exclusive, it has to be > not >=.
-		s.Require().Greater(targetBlock, heightAfterWithdrawal)
+		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
 		// --------------------------------------- Run Relayer
 
@@ -100,8 +100,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
 		// - The withdrawal is assumed to be the second transaction in the block, following the EthEventsTx.
 
-		lastResultsHashHeight := withdrawalResponse.Height + 1 // h+1
-		txIndex := int64(1)                                    // second tx
+		txIndex := int64(1) // second tx
 		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
 		)

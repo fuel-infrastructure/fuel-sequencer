@@ -108,6 +108,8 @@ var (
 	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	// GATEWAY_CONTRACT is a contract by Succinct that does ZK proof verification.
 	GATEWAY_CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
+	UPDATE_DELAY_BLOCKS = 25
 
 	// Circuits
 	NEXT_HEADER_FUNCTION_ID  = "0xbc40fbf4394cd00f78fae9763b0c2c71b21ea442c42fdadc5b720537240ebac1"
