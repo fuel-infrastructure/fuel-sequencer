@@ -2241,12 +2241,12 @@ type EventWithdrawToEthereumReported struct {
 
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce string `protobuf:"bytes,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	// from is the user address on Ethereum that is sending the tokens.
+	// from is the user address that is withdrawing the tokens from the Sequencer.
+	// can be in Hex or Bech32 format.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the user address on FuelSequencer that will be receiving the tokens.
-	// Can be empty if no address is specified.
+	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
-	// amount is the tokens being sent, which must be the expacted bridge token.
+	// amount is the tokens being sent, which must be the expected bridge token.
 	Amount *v1beta1.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
 }
 
@@ -2303,10 +2303,9 @@ type EventSendToSequencerEventProcessed struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// from is the user address on Ethereum that is sending the tokens.
+	// the sending Ethereum address in hex format
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	// to is the user address on FuelSequencer that will be receiving the tokens.
-	// Can be empty if no address is specified.
+	// recipient Ethereum address in hex or bech32 format
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be denominated in the expected
 	// bridge token.

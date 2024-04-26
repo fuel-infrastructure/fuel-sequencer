@@ -32,7 +32,10 @@ func (k msgServer) WithdrawToEthereum(
 	}
 
 	// Burn the user's bridge tokens
-	withdrawerAccAddress := sdk.MustAccAddressFromBech32(msg.From)
+	withdrawerAccAddress, err := k.GetAddressCodec().StringToBytes(msg.From)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to decode from address")
+	}
 	if err := k.BurnCoinsFromAddress(ctx, withdrawerAccAddress, sdk.NewCoins(msg.Amount)); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to burn bridge tokens")
 	}
@@ -47,7 +50,7 @@ func (k msgServer) WithdrawToEthereum(
 	k.SetLastEthereumNonce(ctx, nonce)
 
 	// Emit event
-	err := ctx.EventManager().EmitTypedEvent(
+	err = ctx.EventManager().EmitTypedEvent(
 		&types.EventWithdrawToEthereumReported{
 			Nonce:  nonce,
 			From:   msg.From,
