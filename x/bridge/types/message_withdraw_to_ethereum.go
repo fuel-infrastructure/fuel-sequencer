@@ -20,7 +20,7 @@ func (msg *MsgWithdrawToEthereum) ValidateBasic() error {
 	// Check that From is either a valid Sequencer or hex address.
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil && !common.IsHexAddress(msg.From) {
-		return sdkerrors.ErrInvalidAddress.Wrapf("from is not a valid Bech32 or Hex address")
+		return sdkerrors.ErrInvalidAddress.Wrapf("from is not a valid Bech32 or Hex address (%s)", msg.From)
 	}
 
 	// TODO: We might want to verify checksum of address
