@@ -12,9 +12,10 @@ func (s *E2ETestSuite) Sleep(duration time.Duration) {
 	time.Sleep(duration)
 }
 
-// WaitForBlocks blocks until all chains reach a block height delta equal to or greater than the delta argument.
-// If a ChainHeighter does not monotonically increase the height, this function may block program execution indefinitely.
-func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
+// WaitForSequencerBlocks blocks until Sequencer reaches a block height delta greater or equal to the delta argument.
+func (s *E2ETestSuite) WaitForSequencerBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
+
+	s.Logger().Info(fmt.Sprintf("Waiting for %d Sequencer block/s", delta))
 
 	start, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
@@ -26,6 +27,38 @@ func (s *E2ETestSuite) WaitForBlocks(ctx context.Context, delta int, timeoutAfte
 		for {
 			time.Sleep(time.Second)
 			latest, err := s.Chain.FuelSequencerHeight(ctx)
+			s.Require().NoError(err)
+			if latest >= end {
+				close(done)
+				return
+			}
+		}
+	}()
+
+	// Wait for blocks and timeout if it takes too long.
+	select {
+	case <-time.After(timeoutAfter):
+		return errors.New(fmt.Sprintf("timed out waiting for %d blocks", delta))
+	case <-done:
+		return nil
+	}
+}
+
+// WaitForEthereumBlocks blocks until Ethereum reaches a block height delta greater or equal to the delta argument.
+func (s *E2ETestSuite) WaitForEthereumBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
+
+	s.Logger().Info(fmt.Sprintf("Waiting for %d Ethereum block/s", delta))
+
+	start, err := s.Chain.EthereumHeight(ctx)
+	s.Require().NoError(err)
+	end := start + uint64(delta)
+
+	// Poll every 1 second until the target height is reached.
+	done := make(chan struct{}, 1)
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			latest, err := s.Chain.EthereumHeight(ctx)
 			s.Require().NoError(err)
 			if latest >= end {
 				close(done)

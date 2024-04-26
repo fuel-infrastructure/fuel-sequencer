@@ -32,7 +32,7 @@ func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
 	s.AssertValidTxResponse(*resp)
 
 	// Prevent account sequence mismatches by waiting 1 block
-	err = s.WaitForBlocks(s.Ctx(), 1, time.Minute)
+	err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
 	s.Require().NoError(err)
 
 	// Get and increment proposal ID counter
