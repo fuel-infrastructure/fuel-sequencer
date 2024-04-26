@@ -55,8 +55,9 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			}
 
 			for _, address := range e2etestsuite.ETH_ADDRESS_SEQ {
-				account := authtypes.NewBaseAccount(sdk.MustAccAddressFromBech32(address), nil, 0, 0)
-				accs = append(accs, account)
+				baseAccount := authtypes.NewBaseAccount(sdk.MustAccAddressFromBech32(address), nil, 0, 0)
+				ethOwnedBaseAccount := bridgetypes.NewEthOwnedBaseAccount(baseAccount, address)
+				accs = append(accs, ethOwnedBaseAccount)
 			}
 
 			accs = authtypes.SanitizeGenesisAccounts(accs)
