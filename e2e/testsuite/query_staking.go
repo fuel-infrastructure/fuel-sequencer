@@ -11,11 +11,7 @@ import (
 func (s *E2ETestSuite) QueryDelegation(
 	ctx context.Context, delegatorAddr, validatorAddr string,
 ) *stakingtypes.DelegationResponse {
-	queryClient := s.getGRPCClients().StakingQueryClient
-	res, err := queryClient.Delegation(ctx, &stakingtypes.QueryDelegationRequest{
-		DelegatorAddr: delegatorAddr,
-		ValidatorAddr: validatorAddr,
-	})
+	res, err := s.QueryDelegationRaw(ctx, delegatorAddr, validatorAddr)
 	s.Require().NoError(err)
 
 	return res.DelegationResponse
