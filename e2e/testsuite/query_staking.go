@@ -8,15 +8,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func (s *E2ETestSuite) QueryDelegation(
-	ctx context.Context, delegatorAddr, validatorAddr string,
-) *stakingtypes.DelegationResponse {
-	res, err := s.QueryDelegationRaw(ctx, delegatorAddr, validatorAddr)
-	s.Require().NoError(err)
-
-	return res.DelegationResponse
-}
-
 func (s *E2ETestSuite) QueryDelegationRaw(
 	ctx context.Context, delegatorAddr, validatorAddr string,
 ) (*stakingtypes.QueryDelegationResponse, error) {
@@ -24,6 +15,15 @@ func (s *E2ETestSuite) QueryDelegationRaw(
 		DelegatorAddr: delegatorAddr,
 		ValidatorAddr: validatorAddr,
 	})
+}
+
+func (s *E2ETestSuite) QueryDelegation(
+	ctx context.Context, delegatorAddr, validatorAddr string,
+) *stakingtypes.DelegationResponse {
+	res, err := s.QueryDelegationRaw(ctx, delegatorAddr, validatorAddr)
+	s.Require().NoError(err)
+
+	return res.DelegationResponse
 }
 
 // PollForDelegationBalance polls until the delegation balance matches
