@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	cmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -110,7 +109,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
 		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(bridgeCommitmentMerkleProof),
+			SideNodes: testsuite.AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
 			NumLeaves: big.NewInt(bridgeCommitmentMerkleProof.Total),
 		}
@@ -119,30 +118,23 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsMerkleProof
 		txResultProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(lastResultsMerkleProof),
+			SideNodes: testsuite.AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(lastResultsMerkleProof.Index),
 			NumLeaves: big.NewInt(lastResultsMerkleProof.Total),
 		}
 
-		// Construct BridgeCommitment leaf by getting block h+1, which contains the 'last results hash' of interest.
+		// Construct BridgeCommitmentLeaf from the inclusion proof data.
 
-		block, err := s.GetBlockByHeight(s.Ctx(), lastResultsHashHeight)
 		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
-			Height:      big.NewInt(lastResultsHashHeight),
-			ResultsHash: common.BytesToHash(block.Header.LastResultsHash),
+			Height:      big.NewInt(int64(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.Height)),
+			ResultsHash: common.BytesToHash(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash),
 		}
-
-		// Construct marshalled tx result, which is one of the leaves of the results tree.
-		// Since the withdrawal happened at height h, the result will be at this height.
-
-		blockResults, err := s.GetBlockResultsByHeight(s.Ctx(), withdrawalResponse.Height)
-		abciResults := cmtypes.NewResults(blockResults.TxsResults)
-		txResultMarshalled, err := abciResults[txIndex].Marshal()
-		s.Require().NoError(err)
 
 		// Check that the proof is able to verify the marshalled tx result.
 
-		err = lastResultsMerkleProof.Verify(block.Header.LastResultsHash, txResultMarshalled)
+		lastResultsHash := bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash
+		txResultMarshalled := bridgeCommitmentInclusionProof.TxResultMarshalled
+		err = lastResultsMerkleProof.ToMerkleProof().Verify(lastResultsHash, txResultMarshalled)
 		s.Require().NoError(err)
 
 		// Submit transaction to Ethereum to process the withdrawal.
