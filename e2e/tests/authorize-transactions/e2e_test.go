@@ -72,7 +72,7 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			s.Require().NoError(err)
 			genesisState[authtypes.ModuleName] = bz
 
-			// ----- Define balances on the Sequencer for the following test Ethereum addresses so that we can execute
+			// ----- Define balances on the Sequencer for the test Ethereum addresses so that we can execute
 			// authorized Transactions
 
 			var bankGenState banktypes.GenesisState
