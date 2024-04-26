@@ -43,8 +43,8 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			s.Require().NoError(err)
 			genesisState[bridgetypes.ModuleName] = bz
 
-			// ----- Define accounts on the Sequencer for the test Ethereum addresses so that we can execute
-			// authorized Transactions
+			// ----- Define accounts on the Sequencer for the test Ethereum addresses so that we can execute authorized
+			// Transactions
 
 			var accountsGenState authtypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[authtypes.ModuleName], &accountsGenState))
