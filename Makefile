@@ -152,25 +152,7 @@ build-fuelsequencerd:
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
 	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
 
-build-sidecar:
-	@$(eval MAIN := ./cmd/sidecar/main.go)
-	@echo "🔧 Building sidecar-$(VERSION)-linux-amd64..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-linux-amd64 $(MAIN)
-	@echo "🔧 Building sidecar-$(VERSION)-linux-arm64..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-linux-arm64 $(MAIN)
-	@echo "🔧 Building sidecar-$(VERSION)-darwin-amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/sidecar-$(VERSION)-darwin-amd64 $(MAIN)
-
-build-client:
-	@$(eval MAIN := ./cmd/client/main.go)
-	@echo "🔧 Building client-$(VERSION)-linux-amd64..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-linux-amd64 $(MAIN)
-	@echo "🔧 Building client-$(VERSION)-linux-arm64..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-linux-arm64 $(MAIN)
-	@echo "🔧 Building client-$(VERSION)-darwin-amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/client-$(VERSION)-darwin-amd64 $(MAIN)
-
-build-all: clean build-fuelsequencerd build-sidecar build-client
+build-all: clean build-fuelsequencerd
 	@echo "✅ Finished building all!"
 
 do-checksum:
@@ -233,6 +215,9 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 run-sequencer: proto-go-gen serve
 
 run-sidecar:
+	@$(eval HOST ?= "0.0.0.0")
+	@$(eval COSMOS_NODE_RPC ?= "127.0.0.1:9090")
+	@$(eval TENDERMINT_NODE_RPC ?= "http://127.0.0.1:26657")
 	@$(eval ETH_RPC ?= "http://localhost:8545")
 	@$(eval CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
@@ -240,7 +225,14 @@ run-sidecar:
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \
 	done
+	@echo "Waiting for Sequencer node $(TENDERMINT_NODE_RPC) to start..."
+	@while ! curl -s -X GET --max-time 1 "$(TENDERMINT_NODE_RPC)" | grep -q "result"; do \
+		sleep 1; \
+	done
 	@fuelsequencerd start-sidecar \
+		--host "$(HOST)" \
+		--cosmos_node_rpc "$(COSMOS_NODE_RPC)" \
+		--tendermint_node_rpc "$(TENDERMINT_NODE_RPC)" \
 		--eth_node_rpc "$(ETH_RPC)" \
 		--contract_address "$(CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \

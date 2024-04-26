@@ -137,7 +137,7 @@ func (c *GRPCClient) Stop() error {
 	}
 
 	err := c.conn.Close()
-	c.logger.Info("Sidecar client stopped", "err", err)
+	c.logger.Info("sidecar client stopped", "err", err)
 
 	return err
 }
