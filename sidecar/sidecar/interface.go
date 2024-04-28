@@ -14,10 +14,10 @@ type SidecarService interface {
 	// IsStopped checks if the sidecar has been stopped.
 	IsStopped() bool
 
-	// QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
+	// QueryBlockEvents queries state for events associated with a specific block number.
 	QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error)
 
-	// StartFetching begins the process of querying and storing events from the Ethereum blockchain.
+	// StartFetching starts listening for and storing events from Ethereum.
 	StartFetching(ctx context.Context) error
 
 	// ShutDown signals the sidecar to stop.
