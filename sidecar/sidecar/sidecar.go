@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math/big"
 	"sync/atomic"
+	"time"
 
-	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"go.uber.org/zap"
 
 	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
@@ -29,6 +29,8 @@ type Sidecar struct {
 
 	// eventStore stores all the necessary information needed to run the sidecar.
 	eventStore *store.EventStore
+
+	updateInterval time.Duration
 
 	// stopped indicates if the main process of the sidecar has been stopped or not.
 	stopped atomic.Bool
@@ -58,6 +60,7 @@ func NewSidecar(
 		ethClient:       ethClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
+		updateInterval:  10 * time.Second,
 		development:     development,
 		acceptableDelay: acceptableDelay,
 	}
@@ -81,35 +84,29 @@ func (s *Sidecar) StartFetching(ctx context.Context) error {
 
 // queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
 func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
+
+	// The first block to be queried is the startQueryBlock.
+	s.eventStore.SetNextQueryBlock(s.eventStore.GetStartQueryBlock())
+
 	s.stopped.Store(false)
 	defer s.stopped.Store(true)
 
-	ch := make(chan *ethereumtypes.Header)
-
-	s.logger.Info("subscribing to new headers", zap.Uint64("start_block", s.eventStore.GetStartQueryBlock().Uint64()))
-	sub, err := s.ethClient.SubscribeNewHead(ctx, ch)
-	if err != nil {
-		s.logger.Error("error when subscribing to logs", zap.Error(err))
-		return
-	}
-	defer sub.Unsubscribe()
+	ticker := time.NewTicker(s.updateInterval)
+	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			s.ShutDown()
 			s.logger.Info("sidecar stopped via context")
-		case err := <-sub.Err():
-			s.logger.Error("observed error from subscription to logs", zap.Error(err))
-			// TODO: are there cases where we want to recreate the subscription here?
-		case header := <-ch:
+		case <-ticker.C:
 
 			// If the sidecar has been stopped exit.
 			if s.IsStopped() {
 				return
 			}
 
-			s.logger.Info("detected block", zap.Uint64("block", header.Number.Uint64()))
+			s.logger.Info("processing from block", zap.Uint64("block", s.eventStore.GetNextQueryBlock().Uint64()))
 
 			// Fetch the last synced Ethereum block before querying for new logs
 			lastSyncedBlock, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
@@ -127,20 +124,27 @@ func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
 			}
 
 			// Prune any old events that are no longer necessary to keep.
-			s.eventStore.PruneLogs(s.logger, lastSyncedBlock)
+			s.eventStore.CalibrateBlocksAndPruneLogs(s.logger, lastSyncedBlock)
 
-			// Process and store log.
-			event, err := s.ethClient.ProcessLog(log)
-			s.eventStore.AddEvent(log.BlockNumber, event)
+			// Fetch and process logs based the next query block and the max range.
+			eventsMap, nextQueryBlock := s.ethClient.FetchAndProcessLogs(
+				ctx, s.logger, s.eventStore.GetNextQueryBlock(), s.eventStore.GetMaxQueryRange(),
+			)
 
-			// TODO: add concept of block finalization to determine which block number we've extracted up until, and what can be returned to clients.
+			// Store the newly fetched events and logs if they exist
+			if eventsMap != nil {
+				s.eventStore.AddEvents(eventsMap)
+			}
+
+			// Update the next query block
+			s.eventStore.SetNextQueryBlock(nextQueryBlock)
 		}
 	}
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
 func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
-	s.logger.Debug("processing block events query", zap.String("block", blockNumber.String()))
+	s.logger.Debug("querying block events", zap.String("block_number", blockNumber.String()))
 
 	// Validate the blockNumber
 	if blockNumber.Sign() < 0 {
@@ -151,6 +155,15 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 	if !exists {
 
 		startQueryBlock := s.eventStore.GetStartQueryBlock()
+		nextQueryBlock := s.eventStore.GetNextQueryBlock()
+
+		// If the queried block is in the range of blocks saved in state but no events were found, return an empty list.
+		// Example: if start block is 90 and next query block is 101, if there is no blocksMap entry for a query between
+		//          90 and 100, this means that the queried block had no events.
+		if (startQueryBlock != nil && nextQueryBlock != nil) &&
+			(blockNumber.Cmp(startQueryBlock) >= 0 && blockNumber.Cmp(nextQueryBlock) < 0) {
+			return []sidecartypes.Event{}, nil
+		}
 
 		// If the queried block is before the range of blocks saved in state, the state has been pruned.
 		// Example: if start block is 90 then we know that we do not have the data for 89 and before.
@@ -178,10 +191,45 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 			return nil, errors.New("could not get syncing status from Ethereum node")
 		}
 
-		// If the Ethereum node is synced, then it must be that the height being queried does not exist yet.
+		ethHeight, err := s.ethClient.BlockNumber(ctx)
+		if err != nil {
+			return nil, errors.New("could not get latest height from Ethereum node")
+		}
+
+		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must
+		// be that the height being queried does not exist yet.
 		isEthereumNodeSynced := syncProgress == nil
-		if isEthereumNodeSynced {
+		nextEthereumBlock := new(big.Int).SetUint64(ethHeight + 1)
+		sidecarSyncedWithEthereum := nextQueryBlock.Cmp(nextEthereumBlock) == 0
+		if isEthereumNodeSynced && sidecarSyncedWithEthereum {
 			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
+		}
+
+		// Compute the highest known height of the network.
+		var networkHeight *big.Int
+		if !isEthereumNodeSynced {
+
+			// If the Ethereum node is not synced, then get the alleged network height from the SyncProgress object.
+			networkHeight = new(big.Int).SetUint64(syncProgress.HighestBlock)
+		} else {
+
+			// If the Ethereum node is synced, then the network height is equivalent to the last synced height
+			networkHeight = new(big.Int).SetUint64(ethHeight)
+		}
+
+		// Sidecar height is the height of the sidecar's next block to query minus 1
+		sidecarHeight := new(big.Int).Sub(nextQueryBlock, big.NewInt(1))
+
+		// If the delay is acceptable, return a special error for possibly different handling in the Sequencer.
+		delay := new(big.Int).Sub(networkHeight, sidecarHeight)
+		threshold := new(big.Int).SetUint64(s.acceptableDelay)
+		if delay.Cmp(threshold) <= 0 {
+			return nil, fmt.Errorf(
+				"%s; Sidecar height %s, Ethereum height %s",
+				sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay,
+				sidecarHeight.String(),
+				networkHeight.String(),
+			)
 		}
 
 		// Otherwise this block was not yet processed

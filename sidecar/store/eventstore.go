@@ -2,6 +2,7 @@ package store
 
 import (
 	"math/big"
+	"strconv"
 	"sync"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -11,40 +12,58 @@ import (
 // EventStore holds and manages Ethereum events.
 type EventStore struct {
 	mu        sync.Mutex
-	blocksMap map[uint64]*sidecartypes.EthereumBlock
+	blocksMap map[string]*sidecartypes.EthereumBlock
 
 	// startQueryBlock is the block at which we started querying for events.
-	// It also indicates the oldest block that we might have in state.
+	// It also indicates the first block that we have in state.
+	// If startQueryBlock >= nextQueryBlock then we have no blocks in state.
 	startQueryBlock *big.Int
+
+	// nextQueryBlock is the next block to be queried for events.
+	// It also points to the block right after the latest one in state.
+	nextQueryBlock *big.Int
 
 	// blockPruneBuffer is the number of blocks of events to keep even if state is pruned.
 	// Example: if we know the Sequencer only needs from block 100, we still keep block 90+.
 	blockPruneBuffer uint64
+
+	// maxQueryRange is the maximum number of Ethereum blocks per query.
+	maxQueryRange *big.Int
 }
 
 // NewEventStore creates a new EventStore instance.
-func NewEventStore(startQueryBlock *big.Int) *EventStore {
+func NewEventStore(
+	startQueryBlock *big.Int,
+	nextQueryBlock *big.Int,
+	maxQueryRange *big.Int,
+) *EventStore {
 	return &EventStore{
-		blocksMap:        make(map[uint64]*sidecartypes.EthereumBlock),
+		blocksMap:        make(map[string]*sidecartypes.EthereumBlock),
 		startQueryBlock:  startQueryBlock,
+		nextQueryBlock:   nextQueryBlock,
+		maxQueryRange:    maxQueryRange,
 		blockPruneBuffer: 10,
 	}
 }
 
-// AddEvent adds a new event to the store at the specified block.
-func (store *EventStore) AddEvent(blockNumber uint64, event *sidecartypes.Event) {
+// AddEvents adds a map of events to the store.
+func (store *EventStore) AddEvents(eventsMap *map[uint64][]sidecartypes.Event) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
 
-	block, exists := store.blocksMap[blockNumber]
-	if exists {
-		// If an entry exists for the block, append the new events to the existing events slice.
-		block.Events = append(block.Events, *event)
-	} else {
-		// If an entry does not exist for the block, create a new entry and initialise with one event.
-		store.blocksMap[blockNumber] = &sidecartypes.EthereumBlock{
-			BlockNumber: new(big.Int).SetUint64(blockNumber),
-			Events:      []sidecartypes.Event{*event},
+	for blockNumber, events := range *eventsMap {
+
+		blockNumStr := strconv.FormatUint(blockNumber, 10)
+
+		if block, exists := store.blocksMap[blockNumStr]; exists {
+			// If block exists, append the new events to the existing slice
+			block.Events = append(block.Events, events...)
+		} else {
+			// If block does not exist, create a new block and set its events
+			store.blocksMap[blockNumStr] = &sidecartypes.EthereumBlock{
+				BlockNumber: new(big.Int).SetUint64(blockNumber),
+				Events:      events,
+			}
 		}
 	}
 }
@@ -54,7 +73,7 @@ func (store *EventStore) GetStoredEvents(blockNumber *big.Int) ([]sidecartypes.E
 	store.mu.Lock()
 	defer store.mu.Unlock()
 
-	block, exists := store.blocksMap[blockNumber.Uint64()]
+	block, exists := store.blocksMap[blockNumber.String()]
 	if !exists {
 		return nil, false
 	}
@@ -78,15 +97,55 @@ func (store *EventStore) GetStartQueryBlock() *big.Int {
 	return new(big.Int).Set(store.startQueryBlock)
 }
 
-// PruneLogs prunes state based on the last synced block so that we avoid storing logs unnecessarily.
-// If pruning takes place, startQueryBlock is updated to reflect the first (i.e. oldest) block we have in state.
-func (store *EventStore) PruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int) {
+// SetNextQueryBlock safely sets the value of nextQueryBlock.
+func (store *EventStore) SetNextQueryBlock(blockNumber *big.Int) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+	store.nextQueryBlock = new(big.Int).Set(blockNumber)
+}
+
+// GetNextQueryBlock returns the nextQueryBlock safely.
+func (store *EventStore) GetNextQueryBlock() *big.Int {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	// Return a copy to avoid external modification.
+	if store.nextQueryBlock == nil {
+		return nil
+	}
+	return new(big.Int).Set(store.nextQueryBlock)
+}
+
+// GetMaxQueryRange returns the nextQueryBlock safely.
+func (store *EventStore) GetMaxQueryRange() *big.Int {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	// Return a copy to avoid external modification.
+	if store.maxQueryRange == nil {
+		return nil
+	}
+	return new(big.Int).Set(store.maxQueryRange)
+}
+
+// CalibrateBlocksAndPruneLogs narrows down the startQueryBlock and nextQueryBlock so that we avoid
+// storing logs unnecessarily, and we fast-forward the sidecar if it's lagging behind for any reason.
+func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
 
 	// Last synced block is nil do not continue.
 	if lastSyncedBlock == nil {
 		return
+	}
+
+	// The next block to be queried should be greater than the last synced block.
+	// If the Sequencer is ahead, fast-forward the next query block to the last synced block + 1.
+	//
+	// Example: if last synced is 100 and next query is 90, next query will become 101.
+	// Example: if last synced is 100 and next query is 100, next query will become 101.
+	if lastSyncedBlock.Cmp(store.nextQueryBlock) >= 0 {
+		store.nextQueryBlock = new(big.Int).Add(lastSyncedBlock, big.NewInt(1))
 	}
 
 	// If we're storing blocks that the Sequencer does not need, update the start query block
@@ -109,7 +168,7 @@ func (store *EventStore) PruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int)
 				zap.Uint64("to_block", pruneUntil),
 			)
 			for i := pruneFrom; i <= pruneUntil; i++ {
-				delete(store.blocksMap, i)
+				delete(store.blocksMap, strconv.FormatUint(i, 10))
 			}
 
 			store.startQueryBlock = new(big.Int).SetUint64(pruneUntil + 1)

@@ -148,7 +148,7 @@ func startSidecarServerCmd() *cobra.Command {
 	var (
 		host                  string
 		port                  string
-		ethNodeWS             string
+		ethNodeRPC            string
 		cosmosNodeRPC         string
 		tendermintNodeRPC     string
 		contractAddressHex    string
@@ -165,7 +165,7 @@ func startSidecarServerCmd() *cobra.Command {
 			return startSidecar(
 				host,
 				port,
-				ethNodeWS,
+				ethNodeRPC,
 				cosmosNodeRPC,
 				tendermintNodeRPC,
 				contractAddressHex,
@@ -179,7 +179,7 @@ func startSidecarServerCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&host, "host", "localhost", "host for the grpc-service to listen on")
 	cmd.Flags().StringVar(&port, "port", "8080", "port for the grpc-service to listen on")
-	cmd.Flags().StringVar(&ethNodeWS, "eth_node_websocket", "ws://127.0.0.1:8545/", "Ethereum node WebSocket endpoint")
+	cmd.Flags().StringVar(&ethNodeRPC, "eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
 	cmd.Flags().StringVar(&cosmosNodeRPC, "cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
 	cmd.Flags().StringVar(&tendermintNodeRPC, "tendermint_node_rpc", "http://127.0.0.1:26657", "Tendermint node RPC endpoint")
 	cmd.Flags().StringVar(&contractAddressHex, "contract_address", "", "Contract address in hex format")
@@ -194,7 +194,7 @@ func startSidecarServerCmd() *cobra.Command {
 func startSidecar(
 	host,
 	port,
-	ethNodeWS,
+	ethNodeRPC,
 	cosmosNodeRPC,
 	tendermintNodeRPC,
 	contractAddressHex string,
@@ -306,7 +306,7 @@ func startSidecar(
 		))
 	}
 
-	ethClient, err := ethclient.Dial(ethNodeWS)
+	ethClient, err := ethclient.Dial(ethNodeRPC)
 	if err != nil {
 		return err
 	}
@@ -319,10 +319,10 @@ func startSidecar(
 	}
 
 	// Create the sidecar ethereum client
-	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi)
+	scEthClient := scethclient.NewClient(ethClient, contractAddr, contractAbi)
 
 	// Create the store
-	eventStore := scstore.NewEventStore(startBlock)
+	eventStore := scstore.NewEventStore(startBlock, nil, big.NewInt(ethMaxBlockRange))
 
 	sideCar := sidecar.NewSidecar(
 		logger,
