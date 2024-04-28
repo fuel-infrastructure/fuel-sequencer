@@ -33,6 +33,7 @@ type Sidecar struct {
 	eventStore *store.EventStore
 
 	// updateInterval is the wait between each extraction of logs when doing successive extractions in a short time.
+	// TODO: improve use of updateInterval
 	updateInterval time.Duration
 
 	// stopped indicates if the main process of the sidecar has been stopped or not.
@@ -51,6 +52,8 @@ type Sidecar struct {
 	// fetchAndStoreLock makes fetching and storing of logs sequential to prevent duplicate queries if multiple blocks
 	// are received rapidly, since the last synced block value from the previous fetch would not have been updated yet.
 	fetchAndStoreLock sync.Mutex
+
+	// TODO: add consideration of block finality
 }
 
 // NewSidecar initializes a new Sidecar instance.
