@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 	"sync/atomic"
 	"time"
 
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"go.uber.org/zap"
 
 	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
@@ -30,6 +32,7 @@ type Sidecar struct {
 	// eventStore stores all the necessary information needed to run the sidecar.
 	eventStore *store.EventStore
 
+	// updateInterval is the wait between each extraction of logs when doing successive extractions in a short time.
 	updateInterval time.Duration
 
 	// stopped indicates if the main process of the sidecar has been stopped or not.
@@ -44,6 +47,10 @@ type Sidecar struct {
 	// acceptableDelay is the number of blocks that the Sidecar can be out-of-sync with Ethereum. When this occurs the
 	// sidecar returns a special error message if a block which has not been processed yet is queried.
 	acceptableDelay uint64
+
+	// fetchAndStoreLock makes fetching and storing of logs sequential to prevent duplicate queries if multiple blocks
+	// are received rapidly, since the last synced block value from the previous fetch would not have been updated yet.
+	fetchAndStoreLock sync.Mutex
 }
 
 // NewSidecar initializes a new Sidecar instance.
@@ -77,39 +84,65 @@ func (s *Sidecar) StartFetching(ctx context.Context) error {
 		return err
 	}
 
-	go s.queryAndStoreEvents(ctx)
+	go s.startFetching(ctx)
 
 	return nil
 }
 
-// queryAndStoreEvents continuously fetches logs from the Ethereum blockchain and processes them.
-func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
-
-	// The first block to be queried is the startQueryBlock.
-	s.eventStore.SetNextQueryBlock(s.eventStore.GetStartQueryBlock())
-
+// startFetching continuously fetches logs from the Ethereum blockchain and processes them.
+func (s *Sidecar) startFetching(ctx context.Context) {
 	s.stopped.Store(false)
 	defer s.stopped.Store(true)
 
-	ticker := time.NewTicker(s.updateInterval)
-	defer ticker.Stop()
+	ethHeightUint64, err := s.ethClient.BlockNumber(ctx)
+	if err != nil {
+		s.logger.Error("could not get latest height from Ethereum node", zap.Error(err))
+		return
+	}
+	ethHeight := new(big.Int).SetUint64(ethHeightUint64)
+
+	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
+	if ethHeight.Cmp(lastSyncedBlock) > 0 {
+		s.logger.Info("catching up with ethereum",
+			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
+			zap.Uint64("eth_height", ethHeightUint64),
+		)
+
+		s.fetchAndStoreLogsUptoBlock(ctx, ethHeight)
+	}
+
+	s.logger.Info("subscribing to new headers", zap.Uint64("from_block", s.eventStore.GetNextQueryBlock().Uint64()))
+
+	// Set up channel to listen for new block headers.
+	ch := make(chan *ethereumtypes.Header)
+	sub, err := s.ethClient.SubscribeNewHead(ctx, ch)
+	if err != nil {
+		s.logger.Error("error when subscribing to logs", zap.Error(err))
+		return
+	}
+	defer sub.Unsubscribe()
 
 	for {
 		select {
 		case <-ctx.Done():
 			s.ShutDown()
 			s.logger.Info("sidecar stopped via context")
-		case <-ticker.C:
+		case err := <-sub.Err():
+			s.logger.Error("error from logs subscription", zap.Error(err))
+			// TODO: are there cases where we want to recreate the subscription here?
+		case header := <-ch:
 
 			// If the sidecar has been stopped exit.
 			if s.IsStopped() {
 				return
 			}
 
-			s.logger.Info("processing from block", zap.Uint64("block", s.eventStore.GetNextQueryBlock().Uint64()))
+			// Fetch and store events
+			s.logger.Info("detected new block", zap.Uint64("block", header.Number.Uint64()))
+			s.fetchAndStoreLogsUptoBlock(ctx, header.Number)
 
 			// Fetch the last synced Ethereum block before querying for new logs
-			lastSyncedBlock, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
+			lastSyncedBlockBySequencer, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
 			if err != nil {
 				// Log the error if the last synced Ethereum block is not obtained.
 				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
@@ -119,32 +152,46 @@ func (s *Sidecar) queryAndStoreEvents(ctx context.Context) {
 			} else {
 				s.logger.Debug(
 					"queried LastEthereumBlockSynced from Sequencer",
-					zap.String("last_ethereum_block_synced", lastSyncedBlock.String()),
+					zap.String("block", lastSyncedBlockBySequencer.String()),
 				)
 			}
 
 			// Prune any old events that are no longer necessary to keep.
-			s.eventStore.CalibrateBlocksAndPruneLogs(s.logger, lastSyncedBlock)
+			s.eventStore.PruneLogs(s.logger, lastSyncedBlockBySequencer)
+		}
+	}
+}
 
-			// Fetch and process logs based the next query block and the max range.
-			eventsMap, nextQueryBlock := s.ethClient.FetchAndProcessLogs(
-				ctx, s.logger, s.eventStore.GetNextQueryBlock(), s.eventStore.GetMaxQueryRange(),
-			)
+// fetchAndProcessLogs fetches and processes logs based on the next query, latest block, and the query max range.
+func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.Int) {
+	s.fetchAndStoreLock.Lock()
+	defer s.fetchAndStoreLock.Unlock()
 
-			// Store the newly fetched events and logs if they exist
-			if eventsMap != nil {
-				s.eventStore.AddEvents(eventsMap)
-			}
+	for {
+		eventsMap, newLastSyncedBlock, err := s.ethClient.FetchAndProcessLogs(
+			ctx, s.eventStore.GetNextQueryBlock(), toBlock, s.eventStore.GetMaxQueryRange(),
+		)
+		if err != nil {
+			s.logger.Error("error fetching logs", zap.Error(err))
+			return
+		}
 
-			// Update the next query block
-			s.eventStore.SetNextQueryBlock(nextQueryBlock)
+		// Store the newly fetched events and update the last synced block.
+		s.eventStore.AddEvents(eventsMap)
+		s.eventStore.SetLastSyncedBlock(newLastSyncedBlock)
+
+		if newLastSyncedBlock.Cmp(toBlock) == 0 {
+			return
+		} else {
+			s.logger.Debug("sleeping between log extractions", zap.Duration("duration", s.updateInterval))
+			time.Sleep(s.updateInterval)
 		}
 	}
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
 func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
-	s.logger.Debug("querying block events", zap.String("block_number", blockNumber.String()))
+	s.logger.Debug("querying block events", zap.String("block", blockNumber.String()))
 
 	// Validate the blockNumber
 	if blockNumber.Sign() < 0 {
@@ -188,12 +235,12 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 		// Check if the Ethereum node is synced.
 		syncProgress, err := s.ethClient.SyncProgress(ctx)
 		if err != nil {
-			return nil, errors.New("could not get syncing status from Ethereum node")
+			return nil, fmt.Errorf("could not get syncing status from Ethereum node: %s", err.Error())
 		}
 
 		ethHeight, err := s.ethClient.BlockNumber(ctx)
 		if err != nil {
-			return nil, errors.New("could not get latest height from Ethereum node")
+			return nil, fmt.Errorf("could not get latest height from Ethereum node: %s", err.Error())
 		}
 
 		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must

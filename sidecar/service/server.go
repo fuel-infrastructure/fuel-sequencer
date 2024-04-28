@@ -56,8 +56,6 @@ type SidecarServer struct { //nolint
 
 // NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
 func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServer {
-	logger = logger.With(zap.String("server", "sidecar"))
-
 	ss := &SidecarServer{
 		s:          s,
 		logger:     logger,
@@ -148,7 +146,7 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, errors.New("nil request")
 	}
 
-	ss.logger.Info("received request for block events", zap.String("blockNumber", req.BlockNumber))
+	ss.logger.Info("received request for events", zap.String("block", req.BlockNumber))
 
 	// Check that sidecar is running
 	if ss.s.IsStopped() {
