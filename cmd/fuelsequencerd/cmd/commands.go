@@ -216,9 +216,10 @@ func startSidecar(
 		logger, err = zap.NewDevelopment()
 	} else {
 		config := zap.NewProductionConfig()
-		config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
-		config.EncoderConfig.CallerKey = "" // do not output file and line number of caller
-		config.Encoding = "console"         // more readable compared to JSON
+		config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		config.EncoderConfig.CallerKey = zapcore.OmitKey // do not output file and line number of caller
+		config.Encoding = "console"                      // more readable compared to JSON
 		logger, err = config.Build()
 	}
 	if err != nil {

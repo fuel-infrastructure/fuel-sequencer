@@ -145,7 +145,7 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 			}
 
 			// Fetch and store events
-			s.logger.Info("detected new block", zap.Uint64("block", header.Number.Uint64()))
+			s.logger.Info("detected new block header", zap.Uint64("block", header.Number.Uint64()))
 			s.fetchAndStoreLogsUptoBlock(ctx, header.Number)
 
 			// Fetch the last synced Ethereum block before querying for new logs
