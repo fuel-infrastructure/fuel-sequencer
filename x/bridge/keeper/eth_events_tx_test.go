@@ -20,7 +20,6 @@ func createTestEthEventsTx(keeper keeper.Keeper, ctx context.Context, blockHeigh
 				Data:      []byte("auth"),
 			},
 		},
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      blockHeight,
 	}

@@ -23,7 +23,6 @@ func TestQueryEthEventsTxByBlockNumber(t *testing.T) {
 	}
 	ethEventsTx := types.EthEventsTx{
 		Events:           events,
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      10,
 	}
