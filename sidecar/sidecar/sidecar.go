@@ -78,7 +78,7 @@ func NewSidecar(
 
 // StartFetching begins the sidecar's operation.
 func (s *Sidecar) StartFetching(ctx context.Context) error {
-	s.logger.Info("starting sidecar")
+	s.logger.Info("starting data fetching")
 
 	// Initial check to verify Ethereum client connectivity and log fetching capability.
 	_, err := s.ethClient.FilterLogs(ctx, s.eventStore.GetStartQueryBlock(), s.eventStore.GetStartQueryBlock())
@@ -97,6 +97,7 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 	s.stopped.Store(false)
 	defer s.stopped.Store(true)
 
+	// Get the current Ethereum height to determine if we already need to sync up.
 	ethHeightUint64, err := s.ethClient.BlockNumber(ctx)
 	if err != nil {
 		s.logger.Error("could not get latest height from Ethereum node", zap.Error(err))
@@ -104,6 +105,9 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 	}
 	ethHeight := new(big.Int).SetUint64(ethHeightUint64)
 
+	// If we're behind, fetch the logs up till the current Ethereum height.
+	// Note: in the meantime, more Ethereum blocks will be created, but
+	// these can be detected and fetched in the main data fetching loop.
 	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
 	if ethHeight.Cmp(lastSyncedBlock) > 0 {
 		s.logger.Info("catching up with ethereum",
@@ -114,9 +118,9 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 		s.fetchAndStoreLogsUptoBlock(ctx, ethHeight)
 	}
 
-	s.logger.Info("subscribing to new headers", zap.Uint64("from_block", s.eventStore.GetNextQueryBlock().Uint64()))
+	s.logger.Info("subscribing to new ethereum block headers")
 
-	// Set up channel to listen for new block headers.
+	// Subscribe to new Ethereum block headers.
 	ch := make(chan *ethereumtypes.Header)
 	sub, err := s.ethClient.SubscribeNewHead(ctx, ch)
 	if err != nil {
@@ -135,7 +139,7 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 			// TODO: are there cases where we want to recreate the subscription here?
 		case header := <-ch:
 
-			// If the sidecar has been stopped exit.
+			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
 				return
 			}

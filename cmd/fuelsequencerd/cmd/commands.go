@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
@@ -34,6 +35,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -213,7 +215,11 @@ func startSidecar(
 	if development {
 		logger, err = zap.NewDevelopment()
 	} else {
-		logger, err = zap.NewProduction()
+		config := zap.NewProductionConfig()
+		config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
+		config.EncoderConfig.CallerKey = "" // do not output file and line number of caller
+		config.Encoding = "console"         // more readable compared to JSON
+		logger, err = config.Build()
 	}
 	if err != nil {
 		return fmt.Errorf("failed to create logger: %s", err)
@@ -233,7 +239,7 @@ func startSidecar(
 	startBlock := big.NewInt(0)
 	if unsafeEthereumBlock > 0 {
 		startBlock = big.NewInt(unsafeEthereumBlock)
-		logger.Info(
+		logger.Warn(
 			"ethereum start block set to unsafe-ethereum-block",
 			zap.String("start_block", startBlock.String()),
 		)

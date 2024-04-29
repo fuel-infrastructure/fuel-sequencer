@@ -109,7 +109,7 @@ func (ec *EthWrappedClient) FetchAndProcessLogs(
 
 	// Regardless of whether logs were found, update the last queried block to the current block number,
 	// since we have now queried up to this block.
-	ec.logger.Info("processed logs from range of blocks",
+	ec.logger.Info("processed logs from range",
 		zap.String("from_block", fromBlock.String()),
 		zap.String("to_block", toBlock.String()),
 		zap.Int("num_events", len(logs)),
