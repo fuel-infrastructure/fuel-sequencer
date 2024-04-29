@@ -197,7 +197,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 }
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
-func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
+func (s *Sidecar) QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error) {
 	s.logger.Debug("processing block events query", zap.String("block", blockNumber.String()))
 
 	// Validate the blockNumber
@@ -222,72 +222,11 @@ func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([
 		// If the queried block is before the range of blocks saved in state, the state has been pruned.
 		// Example: if start block is 90 then we know that we do not have the data for 89 and before.
 		if startQueryBlock != nil && blockNumber.Cmp(startQueryBlock) < 0 {
-			return nil, fmt.Errorf("block %d was pruned or never fetched", blockNumber)
-		}
-
-		// Check the number of peers on the Ethereum node if we are not in development mode (net_peerCount not available
-		// on anvil). We need to error if the Ethereum node has zero peers as it means that it can't sync up with the
-		// network.
-		if !s.development {
-			peerCount, err := s.ethClient.PeerCount(ctx)
-			if err != nil {
-				s.logger.Error("error when fetching peer count", zap.Error(err))
-				return nil, errors.New("could not get number of peers from node")
-			}
-			if peerCount == 0 {
-				return nil, errors.New("detected zero peers; Ethereum node is not connected to the network")
-			}
-		}
-
-		// Check if the Ethereum node is synced.
-		syncProgress, err := s.ethClient.SyncProgress(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("could not get syncing status from Ethereum node: %s", err.Error())
-		}
-
-		ethHeight, err := s.ethClient.BlockNumber(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("could not get latest height from Ethereum node: %s", err.Error())
-		}
-
-		// If the sidecar is synced with Ethereum, and it processed the current Ethereum height already, then it must
-		// be that the height being queried does not exist yet.
-		isEthereumNodeSynced := syncProgress == nil
-		nextEthereumBlock := new(big.Int).SetUint64(ethHeight + 1)
-		sidecarSyncedWithEthereum := nextQueryBlock.Cmp(nextEthereumBlock) == 0
-		if isEthereumNodeSynced && sidecarSyncedWithEthereum {
-			return nil, fmt.Errorf("%s %s", sidecartypes.ErrBlockDoesNotExist, blockNumber)
-		}
-
-		// Compute the highest known height of the network.
-		var networkHeight *big.Int
-		if !isEthereumNodeSynced {
-
-			// If the Ethereum node is not synced, then get the alleged network height from the SyncProgress object.
-			networkHeight = new(big.Int).SetUint64(syncProgress.HighestBlock)
-		} else {
-
-			// If the Ethereum node is synced, then the network height is equivalent to the last synced height
-			networkHeight = new(big.Int).SetUint64(ethHeight)
-		}
-
-		// Sidecar height is the height of the sidecar's next block to query minus 1
-		sidecarHeight := new(big.Int).Sub(nextQueryBlock, big.NewInt(1))
-
-		// If the delay is acceptable, return a special error for possibly different handling in the Sequencer.
-		delay := new(big.Int).Sub(networkHeight, sidecarHeight)
-		threshold := new(big.Int).SetUint64(s.acceptableDelay)
-		if delay.Cmp(threshold) <= 0 {
-			return nil, fmt.Errorf(
-				"%s; Sidecar height %s, Ethereum height %s",
-				sidecartypes.ErrSidecarFallenBehindWithAcceptableDelay,
-				sidecarHeight.String(),
-				networkHeight.String(),
-			)
+			return nil, fmt.Errorf("block %s was pruned or never fetched", blockNumber.String())
 		}
 
 		// Otherwise this block was not yet processed
-		return nil, fmt.Errorf("block not yet processed %s", blockNumber)
+		return nil, fmt.Errorf("block %s not yet processed", blockNumber.String())
 	}
 
 	return events, nil

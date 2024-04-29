@@ -246,15 +246,9 @@ var (
 		NewEthereumBlock: false,
 		BlockNumber:      1,
 	}
-	TestEthEventsTxSidecarDelay = bridgetypes.EthEventsTx{
-		Events:           []*sidecartypes.Event{},
-		AdvanceSequencer: true,
-		NewEthereumBlock: false,
-		BlockNumber:      1,
-	}
 	TestEthEventsTxSidecarErr = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
-		AdvanceSequencer: false,
+		AdvanceSequencer: true,
 		NewEthereumBlock: false,
 		BlockNumber:      1,
 	}

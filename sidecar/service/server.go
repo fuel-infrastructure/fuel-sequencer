@@ -166,7 +166,7 @@ func (ss *SidecarServer) GetBlockEvents(
 	go func() {
 		var events []*types.Event
 
-		blockchainEvents, err := ss.s.QueryBlockEvents(ctx, blockNumber)
+		blockchainEvents, err := ss.s.QueryBlockEvents(blockNumber)
 		if err != nil {
 			ss.logger.Error("error processing events query", zap.Error(err))
 			resCh <- &queryBlockEventsResponseWithError{Response: nil, Err: err}
@@ -192,17 +192,8 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, context.Canceled
 	case resp := <-resCh:
 		if resp.Err != nil {
-
-			// If the error is not fatal, return the error message so that it can be handled accordingly on the
-			// Sequencer
-			if !types.IsErrorFatal(resp.Err) {
-				return nil, resp.Err
-			}
-
-			// Otherwise, return a fatal error
-			return nil, errors.New("failed to get block events")
+			return nil, resp.Err
 		}
-
 		return resp.Response, nil
 	}
 }

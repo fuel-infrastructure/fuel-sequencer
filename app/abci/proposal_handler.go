@@ -373,15 +373,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 	}
 }
 
-// getAdvanceSequencer returns the value for EthEventsTx.AdvanceSequencer. AdvanceSequencer should be true iff the
-// Sidecar didn't return a fatal error, otherwise, it should be false.
-func (h *FuelSequencerProposalHandler) getAdvanceSequencer(sidecarErr error) bool {
-	// If no error has occurred, AdvanceSequencer should be true.
-	if sidecarErr == nil {
-		return true
-	}
-
-	return !sidecartypes.IsErrorFatal(sidecarErr)
+// getAdvanceSequencer returns the value for EthEventsTx.AdvanceSequencer.
+func (h *FuelSequencerProposalHandler) getAdvanceSequencer(_ error) bool {
+	return true
 }
 
 // getNewEthereumBlock returns the value for EthEventsTx.NewEthereumBlock. NewEthereumBlock should be true iff the
@@ -420,11 +414,6 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	// Perform stateful validation
 	if err := ethEventsTx.ValidateStateful(ethereumProxyContractAddress); err != nil {
 		return nil, err
-	}
-
-	// Log error if it's fatal.
-	if sidecartypes.IsErrorFatal(sidecarErr) {
-		h.logger.Error("encountered fatal sidecar error", "err", sidecarErr)
 	}
 
 	return &ethEventsTx, nil

@@ -265,14 +265,6 @@ func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
 			lastBlockSynced:  previousBlock,
 			eventIndexOffset: 0,
 		},
-		// Invalid transactions with AdvanceSequencer false
-		{
-			name:             "invalid tx with AdvanceSequencer false",
-			eventTx:          &testtypes.TestEthEventsTxSidecarErr,
-			lastBlockSynced:  previousBlock,
-			eventIndexOffset: 0,
-			expErrMsg:        "expected AdvanceSequencer to be true",
-		},
 		// Invalid transactions with no events when there's a non-zero offset
 		{
 			name:             "invalid tx with no events when there's a non-zero offset",

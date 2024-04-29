@@ -15,7 +15,7 @@ type SidecarService interface {
 	IsStopped() bool
 
 	// QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
-	QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error)
+	QueryBlockEvents(blockNumber *big.Int) ([]sidecartypes.Event, error)
 
 	// StartFetching begins the process of querying and storing events from the Ethereum blockchain.
 	StartFetching(ctx context.Context) error
