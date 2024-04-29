@@ -168,7 +168,7 @@ func (ss *SidecarServer) GetBlockEvents(
 
 		blockchainEvents, err := ss.s.QueryBlockEvents(ctx, blockNumber)
 		if err != nil {
-			ss.logger.Error("error querying block events", zap.Error(err))
+			ss.logger.Error("error processing block events query", zap.Error(err))
 			resCh <- &queryBlockEventsResponseWithError{Response: nil, Err: err}
 			return
 		}

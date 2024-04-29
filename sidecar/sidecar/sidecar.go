@@ -198,7 +198,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 
 // QueryBlockEvents queries the `blocksMap` for events associated with a specific block number.
 func (s *Sidecar) QueryBlockEvents(ctx context.Context, blockNumber *big.Int) ([]sidecartypes.Event, error) {
-	s.logger.Debug("querying block events", zap.String("block", blockNumber.String()))
+	s.logger.Debug("processing block events query", zap.String("block", blockNumber.String()))
 
 	// Validate the blockNumber
 	if blockNumber.Sign() < 0 {
