@@ -7,7 +7,9 @@ import (
 	"math/big"
 	"sync"
 	"sync/atomic"
+	"time"
 
+	"github.com/cenkalti/backoff"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
@@ -30,7 +32,7 @@ type Sidecar struct {
 	// eventStore stores all the necessary information needed to run the sidecar.
 	eventStore *store.EventStore
 
-	// stopped indicates if the main process of the sidecar has been stopped or not.
+	// stopped indicates if the main process of the sidecar has been stopped or not. By default, this is false.
 	stopped atomic.Bool
 
 	// development is a boolean variable which indicates whether the sidecar should be run in development mode. If true
@@ -61,9 +63,11 @@ func NewSidecar(
 	}
 }
 
-// StartFetching begins the sidecar's operation.
-func (s *Sidecar) StartFetching(ctx context.Context) error {
-	s.logger.Info("starting data fetching")
+// Start begins the sidecar's operation of fetching Ethereum logs, with an initial connectivity check.
+func (s *Sidecar) Start(ctx context.Context) error {
+	defer s.ShutDown()
+
+	s.logger.Info("starting log fetching")
 
 	// Initial check to verify Ethereum client connectivity and log subscription capability.
 	// Note: if a non-websocket URL is provided, this check will fail as well.
@@ -74,21 +78,53 @@ func (s *Sidecar) StartFetching(ctx context.Context) error {
 	}
 	sub.Unsubscribe()
 
-	go s.startFetching(ctx)
+	return s.startFetchingLogs(ctx)
+}
+
+// startFetchingLogs fetches logs from Ethereum and processes them, with a catch-up process to sync historical logs.
+func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
+
+	// Configure backoff for Ethereum logs subscription.
+	backOff := backoff.NewExponentialBackOff()
+	backOff.InitialInterval = time.Second
+	backOff.MaxInterval = 5 * time.Second
+	backOff.RandomizationFactor = 0 // no funny business
+	backOff.Reset()
+
+	// Set up the operation to fetch logs from Ethereum.
+	// Note: returning an error inside means we should retry.
+	operation := backoff.Operation(func() error {
+		if err := s.catchUpWithEthereumLogs(ctx); err != nil {
+			return err
+		}
+		if err, retry := s.subscribeToNewEthereumLogs(ctx); retry {
+			return err
+		}
+		return nil
+	})
+
+	// Set up a notify function to log the retry.
+	notify := backoff.Notify(func(err error, duration time.Duration) {
+		s.logger.Debug("retrying after backoff delay", zap.Duration("delay", duration))
+	})
+
+	// Run the operation with the configured backoff.
+	err := backoff.RetryNotify(operation, backOff, notify)
+	if err != nil {
+		s.logger.Error("error from backoff retry", zap.Error(err))
+	}
 
 	return nil
 }
 
-// startFetching continuously fetches logs from the Ethereum blockchain and processes them.
-func (s *Sidecar) startFetching(ctx context.Context) {
-	s.stopped.Store(false)
-	defer s.stopped.Store(true)
+// catchUpWithEthereumLogs syncs logs from the last synced block up to the latest Ethereum block.
+func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context) error {
 
 	// Get the current Ethereum height to determine if we already need to sync up.
 	ethHeightUint64, err := s.ethClient.BlockNumber(ctx)
 	if err != nil {
 		s.logger.Error("could not get latest height from Ethereum node", zap.Error(err))
-		return
+		return err
 	}
 	ethHeight := new(big.Int).SetUint64(ethHeightUint64)
 
@@ -100,40 +136,52 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 		s.logger.Info("catching up with ethereum",
 			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
 			zap.Uint64("eth_height", ethHeightUint64),
+			zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 		)
 
-		s.fetchAndStoreLogsUptoBlock(ctx, ethHeight)
+		return s.fetchAndStoreLogsUptoBlock(ctx, ethHeight)
 	}
 
-	s.logger.Info("subscribing to new ethereum block headers")
+	return nil
+}
+
+// subscribeToNewEthereumLogs syncs logs from newly created Ethereum blocks.
+func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, retry bool) {
+	s.logger.Info("subscribing to new ethereum block headers",
+		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
+	)
 
 	// Subscribe to new Ethereum block headers.
 	ch := make(chan *ethereumtypes.Header)
 	sub, err := s.ethClient.SubscribeNewHead(ctx, ch)
 	if err != nil {
 		s.logger.Error("error when subscribing to logs", zap.Error(err))
-		return
+		return err, true // retry
 	}
-	defer sub.Unsubscribe()
 
 	for {
 		select {
 		case <-ctx.Done():
-			s.ShutDown()
-			s.logger.Info("sidecar stopped via context")
+			s.logger.Warn("sidecar stopped via context", zap.Error(ctx.Err()))
+			sub.Unsubscribe()
+			return ctx.Err(), false // no retry
 		case err := <-sub.Err():
 			s.logger.Error("error from logs subscription", zap.Error(err))
-			// TODO: are there cases where we want to recreate the subscription here?
+			sub.Unsubscribe()
+			return err, true // retry
 		case header := <-ch:
 
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
-				return
+				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
 			}
 
 			// Fetch and store events
 			s.logger.Info("detected new block header", zap.Uint64("block", header.Number.Uint64()))
-			s.fetchAndStoreLogsUptoBlock(ctx, header.Number)
+			err = s.fetchAndStoreLogsUptoBlock(ctx, header.Number)
+			if err != nil {
+				return err, true // retry
+			}
 
 			// Fetch the last synced Ethereum block before querying for new logs
 			lastSyncedBlockBySequencer, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
@@ -157,7 +205,7 @@ func (s *Sidecar) startFetching(ctx context.Context) {
 }
 
 // fetchAndProcessLogs fetches and processes logs based on the next query, latest block, and the query max range.
-func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.Int) {
+func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.Int) error {
 	s.fetchAndStoreLock.Lock()
 	defer s.fetchAndStoreLock.Unlock()
 
@@ -168,7 +216,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 		)
 		if err != nil {
 			s.logger.Error("error fetching logs", zap.Error(err))
-			return
+			return err
 		}
 
 		// Store the newly fetched events and update the last synced block.
@@ -177,7 +225,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 
 		// If we've reached the requested block, we can return.
 		if newLastSyncedBlock.Cmp(toBlock) == 0 {
-			return
+			return nil
 		}
 	}
 }

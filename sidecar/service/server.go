@@ -107,7 +107,7 @@ func (ss *SidecarServer) StartServer(ctx context.Context) error {
 
 	// Start processing events from the sidecar.
 	eg.Go(func() error {
-		return ss.s.StartFetching(ctx)
+		return ss.s.Start(ctx)
 	})
 
 	eg.Go(func() error {

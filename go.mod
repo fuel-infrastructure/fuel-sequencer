@@ -23,6 +23,7 @@ require (
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.30.0
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
