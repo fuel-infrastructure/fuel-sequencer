@@ -55,7 +55,8 @@ func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *
 
 	// Wait for the rate limiter to let us through.
 	if !ec.logsQueryRateLimiter.Allow() {
-		ec.logger.Debug("waiting for logs rate limiter", zap.Float64("limit", float64(ec.logsQueryRateLimiter.Limit())))
+		maxWaitSeconds := 1 / float64(ec.logsQueryRateLimiter.Limit())
+		ec.logger.Debug("waiting for logs rate limiter", zap.Float64("max_wait_seconds", maxWaitSeconds))
 		if err := ec.logsQueryRateLimiter.Wait(ctx); err != nil {
 			return nil, fmt.Errorf("error when waiting for logs rate limiter: %s", err.Error())
 		}
