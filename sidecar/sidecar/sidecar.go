@@ -75,6 +75,7 @@ func (s *Sidecar) StartFetching(ctx context.Context) error {
 	s.logger.Info("starting data fetching")
 
 	// Initial check to verify Ethereum client connectivity and log subscription capability.
+	// Note: if a non-websocket URL is provided, this check will fail as well.
 	sub, err := s.ethClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
 	if err != nil {
 		s.logger.Error("failed initial Ethereum subscription check", zap.Error(err))
