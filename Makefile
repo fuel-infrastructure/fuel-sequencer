@@ -169,9 +169,26 @@ run-client-binary:
 	@$(BUILDDIR)/client-$(VERSION)-$(ARCH) -blocknumber $(BLOCK_NUMBER)
 
 run-sidecar-binary:
+	@$(eval SIDECAR_HOST ?= "0.0.0.0")
+	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
+	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
+	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
+	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
+	@$(eval DEVELOPMENT ?= "true")
 	@$(eval ARCH ?= linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
-	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_ws="$(ETH_NODE_WS)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --cosmos_node_rpc="$(COSMOS_NODE_RPC)" --development="$(DEVELOPMENT)"
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) \
+		--host "$(SIDECAR_HOST)" \
+		--port "$(SIDECAR_PORT)" \
+		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
+		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--eth_ws_url "$(ETH_WS_URL)" \
+		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
+		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
+		--development "$(DEVELOPMENT)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
@@ -215,28 +232,32 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 run-sequencer: proto-go-gen serve
 
 run-sidecar:
-	@$(eval HOST ?= "0.0.0.0")
-	@$(eval COSMOS_NODE_RPC ?= "127.0.0.1:9090")
-	@$(eval TENDERMINT_NODE_RPC ?= "http://127.0.0.1:26657")
-	@$(eval ETH_WS ?= "ws://localhost:8545")
-	@$(eval CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval SIDECAR_HOST ?= "0.0.0.0")
+	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
+	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
+	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
+	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
-	@echo "Waiting for Ethereum node $(ETH_WS) to start..."
-	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_WS) | grep -q "result"; do \
+	@$(eval DEVELOPMENT ?= "true")
+	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
+	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
 	done
-	@echo "Waiting for Sequencer node $(TENDERMINT_NODE_RPC) to start..."
-	@while ! curl -s -X GET --max-time 1 "$(TENDERMINT_NODE_RPC)" | grep -q "result"; do \
+	@echo "Waiting for Sequencer node $(SEQUENCER_RPC_URL) to start..."
+	@while ! curl -s -X GET --max-time 1 "$(SEQUENCER_RPC_URL)" | grep -q "result"; do \
 		sleep 1; \
 	done
 	@fuelsequencerd start-sidecar \
-		--host "$(HOST)" \
-		--cosmos_node_rpc "$(COSMOS_NODE_RPC)" \
-		--tendermint_node_rpc "$(TENDERMINT_NODE_RPC)" \
-		--eth_node_ws "$(ETH_WS)" \
-		--contract_address "$(CONTRACT_ADDRESS)" \
+		--host "$(SIDECAR_HOST)" \
+		--port "$(SIDECAR_PORT)" \
+		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
+		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--eth_ws_url "$(ETH_WS_URL)" \
+		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
-		--development=true
+		--development "$(DEVELOPMENT)"
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger

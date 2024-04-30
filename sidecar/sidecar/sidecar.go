@@ -45,10 +45,6 @@ type Sidecar struct {
 	// development mode.
 	development bool
 
-	// acceptableDelay is the number of blocks that the Sidecar can be out-of-sync with Ethereum. When this occurs the
-	// sidecar returns a special error message if a block which has not been processed yet is queried.
-	acceptableDelay uint64
-
 	// fetchAndStoreLock makes fetching and storing of logs sequential to prevent duplicate queries if multiple blocks
 	// are received rapidly, since the last synced block value from the previous fetch would not have been updated yet.
 	fetchAndStoreLock sync.Mutex
@@ -63,7 +59,6 @@ func NewSidecar(
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
 	development bool,
-	acceptableDelay uint64,
 ) *Sidecar {
 	return &Sidecar{
 		logger:          logger,
@@ -72,7 +67,6 @@ func NewSidecar(
 		eventStore:      eventStore,
 		updateInterval:  10 * time.Second,
 		development:     development,
-		acceptableDelay: acceptableDelay,
 	}
 }
 
@@ -80,12 +74,13 @@ func NewSidecar(
 func (s *Sidecar) StartFetching(ctx context.Context) error {
 	s.logger.Info("starting data fetching")
 
-	// Initial check to verify Ethereum client connectivity and log fetching capability.
-	_, err := s.ethClient.FilterLogs(ctx, s.eventStore.GetStartQueryBlock(), s.eventStore.GetStartQueryBlock())
+	// Initial check to verify Ethereum client connectivity and log subscription capability.
+	sub, err := s.ethClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
 	if err != nil {
-		s.logger.Error("failed to fetch logs for initial check", zap.Error(err))
+		s.logger.Error("failed initial Ethereum subscription check", zap.Error(err))
 		return err
 	}
+	sub.Unsubscribe()
 
 	go s.startFetching(ctx)
 
