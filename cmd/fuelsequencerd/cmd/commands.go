@@ -190,18 +190,21 @@ func startSidecar(
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var logger *zap.Logger
-	var err error
+	// Configure logger.
+	var loggerCfg zap.Config
 	if scrCfg.development {
-		logger, err = zap.NewDevelopment()
+		loggerCfg = zap.NewDevelopmentConfig()
+
 	} else {
-		config := zap.NewProductionConfig()
-		config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		config.EncoderConfig.CallerKey = zapcore.OmitKey // do not output file and line number of caller
-		config.Encoding = "console"                      // more readable compared to JSON
-		logger, err = config.Build()
+		loggerCfg = zap.NewProductionConfig()
+		loggerCfg.EncoderConfig.CallerKey = zapcore.OmitKey // do not output file and line number of caller
 	}
+	loggerCfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
+	loggerCfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	loggerCfg.Encoding = "console" // more readable compared to JSON
+
+	// Build logger based on config.
+	logger, err := loggerCfg.Build()
 	if err != nil {
 		return fmt.Errorf("failed to create logger: %s", err)
 	}
