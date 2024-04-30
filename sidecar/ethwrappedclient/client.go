@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -12,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 	"go.uber.org/zap"
+	"golang.org/x/time/rate"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
@@ -26,6 +28,9 @@ type EthWrappedClient struct {
 	contractAddress common.Address
 	// contractABI is the contract ABI of the contract address we're querying.
 	contractABI abi.ABI
+
+	// logsQueryRateLimiter limits how many queries for logs we can perform in a time interval.
+	logsQueryRateLimiter *rate.Limiter
 }
 
 // NewClient creates a new EthWrappedClient instance.
@@ -34,17 +39,27 @@ func NewClient(
 	ethClient *ethclient.Client,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
+	logsQueryInterval time.Duration,
 ) *EthWrappedClient {
 	return &EthWrappedClient{
-		logger:          logger,
-		ethClient:       ethClient,
-		contractAddress: contractAddress,
-		contractABI:     contractAbi,
+		logger:               logger,
+		ethClient:            ethClient,
+		contractAddress:      contractAddress,
+		contractABI:          contractAbi,
+		logsQueryRateLimiter: rate.NewLimiter(rate.Every(logsQueryInterval), 1), // max 1 request per interval
 	}
 }
 
-// FilterLogs wraps the FilterLogs call to the Ethereum client.
+// FilterLogs wraps and rate-limits the FilterLogs call to the Ethereum client.
 func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]ethereumtypes.Log, error) {
+
+	// Wait for the rate limiter to let us through.
+	if !ec.logsQueryRateLimiter.Allow() {
+		ec.logger.Debug("waiting for logs rate limiter", zap.Float64("limit", float64(ec.logsQueryRateLimiter.Limit())))
+		if err := ec.logsQueryRateLimiter.Wait(ctx); err != nil {
+			return nil, fmt.Errorf("error when waiting for logs rate limiter: %s", err.Error())
+		}
+	}
 
 	// Create the ethereum query for the set contract.
 	query := ethereum.FilterQuery{
@@ -95,7 +110,7 @@ func (ec *EthWrappedClient) FetchAndProcessLogs(
 		toBlock = maxToBlock
 	}
 
-	// Filter the logs from the next query block to the to block.
+	// Filter the logs from the next query block to the to block (note: this is rate-limited under the hood).
 	logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
 	if err != nil {
 		return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())

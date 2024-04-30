@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"go.uber.org/zap"
@@ -32,10 +31,6 @@ type Sidecar struct {
 	// eventStore stores all the necessary information needed to run the sidecar.
 	eventStore *store.EventStore
 
-	// updateInterval is the wait between each extraction of logs when doing successive extractions in a short time.
-	// TODO: improve use of updateInterval
-	updateInterval time.Duration
-
 	// stopped indicates if the main process of the sidecar has been stopped or not.
 	stopped atomic.Bool
 
@@ -48,8 +43,6 @@ type Sidecar struct {
 	// fetchAndStoreLock makes fetching and storing of logs sequential to prevent duplicate queries if multiple blocks
 	// are received rapidly, since the last synced block value from the previous fetch would not have been updated yet.
 	fetchAndStoreLock sync.Mutex
-
-	// TODO: add consideration of block finality
 }
 
 // NewSidecar initializes a new Sidecar instance.
@@ -65,7 +58,6 @@ func NewSidecar(
 		ethClient:       ethClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
-		updateInterval:  10 * time.Second,
 		development:     development,
 	}
 }
@@ -171,6 +163,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 	defer s.fetchAndStoreLock.Unlock()
 
 	for {
+		// Fetch logs (note: this is rate-limited under the hood)
 		eventsMap, newLastSyncedBlock, err := s.ethClient.FetchAndProcessLogs(
 			ctx, s.eventStore.GetNextQueryBlock(), toBlock, s.eventStore.GetMaxQueryRange(),
 		)
@@ -183,11 +176,9 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 		s.eventStore.AddEvents(eventsMap)
 		s.eventStore.SetLastSyncedBlock(newLastSyncedBlock)
 
+		// If we've reached the requested block, we can return.
 		if newLastSyncedBlock.Cmp(toBlock) == 0 {
 			return
-		} else {
-			s.logger.Debug("sleeping between log extractions", zap.Duration("duration", s.updateInterval))
-			time.Sleep(s.updateInterval)
 		}
 	}
 }

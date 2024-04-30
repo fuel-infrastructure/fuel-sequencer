@@ -1,17 +1,20 @@
 package cmd
 
+import "time"
+
 const (
 	// Sidecar flags
 
-	FlagSidecarHost              = "host"
-	FlagSidecarPort              = "port"
-	FlagSidecarDevelopment       = "development"
-	FlagEthereumWebSocketUrl     = "eth_ws_url"
-	FlagEthereumContractAddrHex  = "eth_contract_address"
-	FlagEthereumMaxBlockRange    = "eth_max_block_range"
-	FlagEthereumUnsafeStartBlock = "unsafe_eth_start_block"
-	FlagSequencerGrpcUrl         = "sequencer_grpc_url"
-	FlagSequencerRpcUrl          = "sequencer_rpc_url"
+	FlagSidecarHost                  = "host"
+	FlagSidecarPort                  = "port"
+	FlagSidecarDevelopment           = "development"
+	FlagEthereumWebSocketUrl         = "eth_ws_url"
+	FlagEthereumContractAddrHex      = "eth_contract_address"
+	FlagEthereumMaxBlockRange        = "eth_max_block_range"
+	FlagEthereumLogsMinQueryInterval = "eth_logs_min_query_interval"
+	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
+	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
+	FlagSequencerRpcUrl              = "sequencer_rpc_url"
 
 	// Sidecar client flags
 
@@ -30,8 +33,9 @@ type sequencerConfig struct {
 }
 
 type ethereumConfig struct {
-	webSocketUrl     string
-	contractAddrHex  string
-	maxBlockRange    int64
-	unsafeStartBlock int64
+	webSocketUrl         string
+	contractAddrHex      string
+	maxBlockRange        int64
+	logsMinQueryInterval time.Duration
+	unsafeStartBlock     int64
 }
