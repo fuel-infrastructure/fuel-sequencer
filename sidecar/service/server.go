@@ -10,6 +10,8 @@ import (
 	"time"
 
 	gateway "github.com/cosmos/gogogateway"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -17,9 +19,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 )
 
 const DefaultServerShutdownTimeout = 3 * time.Second
