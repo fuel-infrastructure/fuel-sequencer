@@ -11,7 +11,7 @@ const (
 	FlagEthereumWebSocketUrl         = "eth_ws_url"
 	FlagEthereumContractAddrHex      = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
-	FlagEthereumLogsMinQueryInterval = "eth_logs_min_query_interval"
+	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
 	FlagSequencerRpcUrl              = "sequencer_rpc_url"
@@ -36,6 +36,6 @@ type ethereumConfig struct {
 	webSocketUrl         string
 	contractAddrHex      string
 	maxBlockRange        int64
-	logsMinQueryInterval time.Duration
+	minLogsQueryInterval time.Duration
 	unsafeStartBlock     int64
 }

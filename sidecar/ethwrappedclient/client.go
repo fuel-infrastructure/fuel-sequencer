@@ -29,8 +29,8 @@ type EthWrappedClient struct {
 	// contractABI is the contract ABI of the contract address we're querying.
 	contractABI abi.ABI
 
-	// logsQueryRateLimiter limits how many queries for logs we can perform in a time interval.
-	logsQueryRateLimiter *rate.Limiter
+	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.
+	logsQueryLimiter *rate.Limiter
 }
 
 // NewClient creates a new EthWrappedClient instance.
@@ -39,14 +39,14 @@ func NewClient(
 	ethClient *ethclient.Client,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
-	logsQueryInterval time.Duration,
+	minLogsQueryInterval time.Duration,
 ) *EthWrappedClient {
 	return &EthWrappedClient{
-		logger:               logger,
-		ethClient:            ethClient,
-		contractAddress:      contractAddress,
-		contractABI:          contractAbi,
-		logsQueryRateLimiter: rate.NewLimiter(rate.Every(logsQueryInterval), 1), // max 1 request per interval
+		logger:           logger,
+		ethClient:        ethClient,
+		contractAddress:  contractAddress,
+		contractABI:      contractAbi,
+		logsQueryLimiter: rate.NewLimiter(rate.Every(minLogsQueryInterval), 1), // max 1 request per interval
 	}
 }
 
@@ -54,10 +54,10 @@ func NewClient(
 func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]ethereumtypes.Log, error) {
 
 	// Wait for the rate limiter to let us through.
-	if !ec.logsQueryRateLimiter.Allow() {
-		maxWaitSeconds := 1 / float64(ec.logsQueryRateLimiter.Limit())
+	if !ec.logsQueryLimiter.Allow() {
+		maxWaitSeconds := 1 / float64(ec.logsQueryLimiter.Limit())
 		ec.logger.Debug("waiting for logs rate limiter", zap.Float64("max_wait_seconds", maxWaitSeconds))
-		if err := ec.logsQueryRateLimiter.Wait(ctx); err != nil {
+		if err := ec.logsQueryLimiter.Wait(ctx); err != nil {
 			return nil, fmt.Errorf("error when waiting for logs rate limiter: %s", err.Error())
 		}
 	}

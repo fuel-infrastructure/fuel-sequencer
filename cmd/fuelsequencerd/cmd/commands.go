@@ -170,7 +170,7 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "Ethereum node WebSocket endpoint")
 	cmd.Flags().StringVar(&ethCfg.contractAddrHex, FlagEthereumContractAddrHex, "", "address in hex format of the contract to monitor for logs")
 	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of Ethereum blocks queried at one go")
-	cmd.Flags().DurationVar(&ethCfg.logsMinQueryInterval, FlagEthereumLogsMinQueryInterval, time.Second*10, "minimum wait between successive queries for logs")
+	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*10, "minimum wait between successive queries for logs")
 	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the Ethereum block to start querying from")
 
 	// Sequencer
@@ -305,7 +305,7 @@ func startSidecar(
 	}
 
 	// Create the sidecar ethereum client
-	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.logsMinQueryInterval)
+	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
 
 	// Create the store
 	eventStore := scstore.NewEventStore(startBlock, big.NewInt(ethCfg.maxBlockRange))

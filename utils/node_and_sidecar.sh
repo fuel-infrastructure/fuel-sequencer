@@ -8,6 +8,7 @@ SEQUENCER_RPC_URL="http://127.0.0.1:26657"
 ETH_WS_URL="ws://ethereum:8545"
 ETH_CONTRACT_ADDRESS="0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 ETH_MAX_BLOCK_RANGE="100"
+ETH_MIN_LOGS_QUERY_INTERVAL="10s"
 ETH_UNSAFE_START_BLOCK="1"
 DEVELOPMENT="true"
 
@@ -27,6 +28,7 @@ fuelsequencerd start-sidecar \
   --eth_ws_url "$ETH_WS_URL" \
   --eth_contract_address "$ETH_CONTRACT_ADDRESS" \
   --eth_max_block_range "$ETH_MAX_BLOCK_RANGE" \
+  --eth_min_logs_query_interval "$ETH_MIN_LOGS_QUERY_INTERVAL" \
   --unsafe_eth_start_block "$ETH_UNSAFE_START_BLOCK" \
   --development "$DEVELOPMENT" \
   &
