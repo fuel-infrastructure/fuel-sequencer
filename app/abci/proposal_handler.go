@@ -105,7 +105,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		response, sidecarErr := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
-		// NOTE: sidecar error is passed to generateEthEventsTx to perform dedicated error handling. It is not ignored.
+		if sidecarErr != nil {
+			ctx.Logger().Warn("observed sidecar error", "err", sidecarErr)
+			// This error is also passed to generateEthEventsTx to perform dedicated error handling.
+		}
 
 		ethEventsTx, err := h.generateEthEventsTx(
 			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
@@ -256,7 +259,10 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		response, sidecarErr := h.sidecar.GetBlockEvents(
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
-		// NOTE: sidecar error is passed to generateEthEventsTx to perform dedicated error handling. It is not ignored.
+		if sidecarErr != nil {
+			ctx.Logger().Warn("observed sidecar error", "err", sidecarErr)
+			// This error is also passed to generateEthEventsTx to perform dedicated error handling.
+		}
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
