@@ -28,7 +28,7 @@ fuelsequencerd start-sidecar \
   --eth_contract_address "$ETH_CONTRACT_ADDRESS" \
   --eth_max_block_range "$ETH_MAX_BLOCK_RANGE" \
   --unsafe_eth_start_block "$ETH_UNSAFE_START_BLOCK" \
-  --development "$DEVELOPMENT"
+  --development "$DEVELOPMENT" \
   &
 
 # Wait for all background jobs to finish
