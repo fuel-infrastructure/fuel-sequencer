@@ -27,7 +27,7 @@ fuelsequencerd start-sidecar \
   --eth_ws_url "$ETH_WS_URL" \
   --eth_contract_address "$ETH_CONTRACT_ADDRESS" \
   --eth_max_block_range "$ETH_MAX_BLOCK_RANGE" \
-  --unsafe_ethereum_block "$ETH_UNSAFE_START_BLOCK" \
+  --unsafe_eth_start_block "$ETH_UNSAFE_START_BLOCK" \
   --development "$DEVELOPMENT"
   &
 
