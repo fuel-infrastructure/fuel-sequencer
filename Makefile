@@ -262,6 +262,9 @@ run-sidecar:
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
 
+serve-force-reset:
+	ignite chain serve -v --force-reset --skip-proto --build.tags ledger
+
 keys:
 	@echo "🤖 Generating keys..."
 
