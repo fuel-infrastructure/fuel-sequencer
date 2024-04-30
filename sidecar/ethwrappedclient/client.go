@@ -164,7 +164,7 @@ func (ec *EthWrappedClient) processLogs(
 
 		// Add the event to the temporary block map
 		tempBlocks[currentBlockNumber] = append(tempBlocks[currentBlockNumber], *event)
-		ec.logger.Debug("processed log",
+		ec.logger.Debug("processed log from block",
 			zap.Uint64("block", vLog.BlockNumber),
 			zap.Uint("tx_index", vLog.TxIndex),
 			zap.Uint("index", vLog.Index),
