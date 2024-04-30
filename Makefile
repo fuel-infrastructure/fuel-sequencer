@@ -433,6 +433,14 @@ test-e2e-withdrawals:
 test-e2e-authorize-transactions:
 	@cd e2e/tests && go test -mod=readonly -race -v ./authorize-transactions/... --test.timeout 0
 
+deploy-and-call-eth-contract:
+	@$(eval ETH_RPC ?= "http://localhost:8545")
+	@echo "Waiting for Ethereum node $(ETH_RPC) to start..."
+	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
+	    sleep 1; \
+	done
+	@(cd e2e/test-contracts && export $(cat .env | xargs) && make deploy-contract call-contract)
+
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
 	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker stop

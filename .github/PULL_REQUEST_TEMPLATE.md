@@ -42,7 +42,5 @@ Testing and docs:
    2. `make build-eth-docker-image` to build the latest Ethereum image.
    3. Terminal 1: `make install run-eth-docker-container run-sequencer`
    4. Terminal 2: `make run-sidecar`
-   5. Terminal 3:
-      - `(cd e2e/test-contracts && export $(cat .env | xargs) && make deploy-contract)`
-      - `(cd e2e/test-contracts && export $(cat .env | xargs) && make call-contract)`
+   5. Terminal 3: `make deploy-and-call-eth-contract`
    6. `make clean` once you're done.
