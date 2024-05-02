@@ -241,9 +241,9 @@ run-sidecar:
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
-	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
-	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
-	@$(eval DEVELOPMENT ?= "true")
+	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
+	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
+	@$(eval DEVELOPMENT ?= "false")
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
@@ -260,8 +260,7 @@ run-sidecar:
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
-		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
-		--development "$(DEVELOPMENT)"
+		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)"
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger

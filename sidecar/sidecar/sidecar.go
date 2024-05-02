@@ -199,7 +199,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, re
 			}
 
 			// Prune any old events that are no longer necessary to keep.
-			s.eventStore.PruneLogs(s.logger, lastSyncedBlockBySequencer)
+			s.eventStore.CalibrateBlocksAndPruneLogs(s.logger, lastSyncedBlockBySequencer)
 		}
 	}
 }

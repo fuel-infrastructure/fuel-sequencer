@@ -127,9 +127,10 @@ func (store *EventStore) GetMaxQueryRange() *big.Int {
 	return new(big.Int).Set(store.maxQueryRange)
 }
 
-// PruneLogs prunes state based on the last block synced by the Sequencer, so that we avoid storing logs unnecessarily.
-// If pruning takes place, startQueryBlock is updated to reflect the first (i.e. oldest) block we have in state.
-func (store *EventStore) PruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int) {
+// CalibrateBlocksAndPruneLogs prunes state based on the last block synced by the Sequencer, so that we avoid storing
+// logs unnecessarily. If pruning takes place, startQueryBlock is updated to reflect the first (i.e. oldest) block we
+// have in state. Additionally, if the Sequencer is ahead, fast-forward the lastSyncedBlock to match the Sequencer.
+func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
 
@@ -139,6 +140,7 @@ func (store *EventStore) PruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int)
 	}
 
 	// If the Sequencer is ahead, fast-forward the last synced block to that of the Sequencer.
+	// Example: if last synced of the Sequencer is 100, last synced of the Sidecar will become 100.
 	if lastSyncedBlock.Cmp(store.lastSyncedBlock) > 0 {
 		store.lastSyncedBlock = lastSyncedBlock
 	}
