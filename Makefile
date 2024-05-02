@@ -439,7 +439,7 @@ deploy-and-call-eth-contract:
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
 	    sleep 1; \
 	done
-	@(cd e2e/test-contracts && export $(cat .env | xargs) && make deploy-contract call-contract)
+	@(cd e2e/test-contracts && source .env && echo $(PRIVATE_KEY) && make deploy-contract call-contract)
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
