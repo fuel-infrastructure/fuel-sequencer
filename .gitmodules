@@ -1,7 +1,7 @@
 [submodule "e2e/test-contracts"]
 	path = e2e/test-contracts
 	url = https://github.com/fuel-infrastructure/test-contracts
-	branch = set-block-time-for-anvil
+	branch = main
 [submodule "e2e/fuelstreamx"]
 	path = e2e/fuelstreamx
 	url = https://github.com/fuel-infrastructure/fuelstreamx
