@@ -94,6 +94,10 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		// Wait for Sidecar to get the events.
 		s.Sleep(time.Second * 10)
 
+		// Get latest Ethereum height.
+		ethHeight2, err := s.GetEthereumHeight(s.Ctx())
+		s.Require().NoError(err)
+
 		// Ensure deposit event is at the expected height.
 		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(depositTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
@@ -131,9 +135,9 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
 
-		lastEthereumBlockSynced1 := s.QueryLastEthereumBlockSynced(s.Ctx())
 		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
-		lastEthereumBlockSynced2 := s.QueryLastEthereumBlockSynced(s.Ctx())
-		s.Require().Greater(lastEthereumBlockSynced2, lastEthereumBlockSynced1)
+		s.Require().NoError(err)
+		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)
 	})
 }

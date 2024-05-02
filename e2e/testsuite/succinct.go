@@ -90,7 +90,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 			return false
 		},
 		1*time.Minute,
-		10*time.Second,
+		1*time.Second,
 		"SuccinctX operator failed to respond",
 	)
 
@@ -202,7 +202,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 			return false
 		},
 		1*time.Minute,
-		10*time.Second,
+		1*time.Second,
 		"SuccinctX relayer failed to respond",
 	)
 
