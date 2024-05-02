@@ -49,11 +49,11 @@ func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
 	return publicKeyECDSA
 }
 
-func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) error {
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*ethereumtypes.Receipt, error) {
 	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
-func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) error {
+func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
 
 	privateKey := s.GetEthPrivateKey()
 	publicKey := s.GetEthPublicKey()
@@ -61,14 +61,14 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 	fromAddress := crypto.PubkeyToAddress(*publicKey)
 	nonce, err := s.Chain.ethClient.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	value := big.NewInt(0)
 	gasLimit := uint64(1000000)
 	gasPrice, err := s.Chain.ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tx := ethereumtypes.NewTx(&ethereumtypes.LegacyTx{
@@ -82,33 +82,34 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 
 	chainID, err := s.Chain.ethClient.NetworkID(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	signedTx, err := ethereumtypes.SignTx(tx, ethereumtypes.NewEIP155Signer(chainID), privateKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	s.Logger().Info(fmt.Sprintf("Submitting transaction to FuelStreamX contract: %s", signedTx.Hash().Hex()))
 	err = s.Chain.ethClient.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Sleep for some time to ensure Ethereum transaction went through.
-	s.Sleep(time.Second * 2)
+	// Ensure transaction went through by waiting 1 block.
+	err = s.WaitForEthereumBlocks(s.Ctx(), 1, time.Second*10)
+	s.Require().NoError(err)
 
 	receipt, err := s.Chain.ethClient.TransactionReceipt(context.Background(), signedTx.Hash())
 	if err != nil {
-		return err
+		return nil, err
 	} else if receipt.Status != 1 {
 		txJson, err := signedTx.MarshalJSON()
 		s.Require().NoError(err)
 		receiptJson, err := receipt.MarshalJSON()
 		s.Require().NoError(err)
-		return fmt.Errorf("transaction failed - check Ethereum node logs; tx:%X; receipt:%s", txJson, receiptJson)
+		return nil, fmt.Errorf("transaction failed - check Ethereum node logs; tx:%X; receipt:%s", txJson, receiptJson)
 	}
 
-	return nil
+	return receipt, nil
 }

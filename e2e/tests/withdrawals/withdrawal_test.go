@@ -146,7 +146,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 			txResultMarshalled,
 			txResultProof,
 		)
-		err = s.SendEthTransactionToFuelStreamXContract(data)
+		_, err = s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 	})
 }
