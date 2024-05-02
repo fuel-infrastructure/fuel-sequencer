@@ -372,7 +372,7 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 			return true
 		},
 		1*time.Minute,
-		2*time.Second,
+		1*time.Second,
 		"ethereum node failed to respond",
 	)
 
@@ -464,7 +464,7 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 			return true
 		},
 		10*time.Minute,
-		15*time.Second,
+		1*time.Second,
 		"validator node failed to produce blocks",
 	)
 }
