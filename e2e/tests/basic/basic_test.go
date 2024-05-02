@@ -119,7 +119,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 			Duration: amount2.String(),
 		}))
 
-		// Ensure authorize event is at ethHeigh1+2
+		// Ensure authorize event is at ethHeight1+2
 		authorizeEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+2))
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
