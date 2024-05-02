@@ -96,9 +96,8 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 		return nil, err
 	}
 
-	// Ensure transaction went through by waiting 1 block.
-	err = s.WaitForEthereumBlocks(s.Ctx(), 1, time.Second*10)
-	s.Require().NoError(err)
+	// Sleep for some time to ensure Ethereum transaction went through.
+	s.Sleep(time.Second * 2)
 
 	receipt, err := s.Chain.ethClient.TransactionReceipt(context.Background(), signedTx.Hash())
 	if err != nil {
