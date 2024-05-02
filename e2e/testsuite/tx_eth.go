@@ -97,6 +97,7 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 	}
 
 	// Sleep for some time to ensure Ethereum transaction went through.
+	// TODO: this can be replaced with a wait for Ethereum block once we change anvil to generate blocks.
 	s.Sleep(time.Second * 2)
 
 	receipt, err := s.Chain.ethClient.TransactionReceipt(context.Background(), signedTx.Hash())
