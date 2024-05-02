@@ -15,7 +15,7 @@ func (s *E2ETestSuite) Sleep(duration time.Duration) {
 // WaitForSequencerBlocks blocks until Sequencer reaches a block height delta greater or equal to the delta argument.
 func (s *E2ETestSuite) WaitForSequencerBlocks(ctx context.Context, delta int, timeoutAfter time.Duration) error {
 
-	s.Logger().Info(fmt.Sprintf("Waiting for %d Sequencer block/s", delta))
+	s.Logger().Info(fmt.Sprintf("Waiting for %d Sequencer block(s)", delta))
 
 	start, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
