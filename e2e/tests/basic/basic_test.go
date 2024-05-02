@@ -100,7 +100,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Equal(ethHeight2, ethHeight1+2)
 
 		// Ensure deposit event is at ethHeight1+1
-		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+1))
+		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Minute/2, int(ethHeight1+1))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
 		s.Require().Equal(sidecartypes.SendToSequencerEventName, depositEvents[0].EventType)
@@ -120,7 +120,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		}))
 
 		// Ensure authorize event is at ethHeight1+2
-		authorizeEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+2))
+		authorizeEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Minute/2, int(ethHeight1+2))
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
 		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
