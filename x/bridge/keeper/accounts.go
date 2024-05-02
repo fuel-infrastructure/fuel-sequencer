@@ -32,9 +32,9 @@ func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwne
 	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress)
 }
 
-// destinationAccountOwnedBySender determines whether the SendToSequencerEvent.From owns SendToSequencerEvent.To on the
-// Sequencer. An account is owned by the sender iff To is not specified or To is equivalent to From (eth addresses) or
-// To is equivalent to the mapping of From as a Sequencer address.
+// destinationAccountOwnedBySender determines whether the DepositEvent.Depositor owns DepositEvent.Recipient on the
+// Sequencer. An account is owned by the sender iff Recipient is not specified or Recipient is equivalent to Depositor (eth addresses) or
+// Recipient is equivalent to the mapping of Depositor as a Sequencer address.
 func isDestinationOwnedBySender(from, to, fromSeq string, seqMappingErr error) bool {
 	return len(strings.TrimSpace(to)) == 0 || to == from || (seqMappingErr == nil && to == fromSeq)
 }

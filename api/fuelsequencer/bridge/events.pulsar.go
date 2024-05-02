@@ -1128,31 +1128,31 @@ func (x *fastReflection_EventWithdrawToEthereumReported) ProtoMethods() *protoif
 }
 
 var (
-	md_EventSendToSequencerEventProcessed          protoreflect.MessageDescriptor
-	fd_EventSendToSequencerEventProcessed_from     protoreflect.FieldDescriptor
-	fd_EventSendToSequencerEventProcessed_to       protoreflect.FieldDescriptor
-	fd_EventSendToSequencerEventProcessed_amount   protoreflect.FieldDescriptor
-	fd_EventSendToSequencerEventProcessed_duration protoreflect.FieldDescriptor
+	md_EventDepositEventProcessed        protoreflect.MessageDescriptor
+	fd_EventDepositEventProcessed_from   protoreflect.FieldDescriptor
+	fd_EventDepositEventProcessed_to     protoreflect.FieldDescriptor
+	fd_EventDepositEventProcessed_amount protoreflect.FieldDescriptor
+	fd_EventDepositEventProcessed_lockup protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_events_proto_init()
-	md_EventSendToSequencerEventProcessed = File_fuelsequencer_bridge_events_proto.Messages().ByName("EventSendToSequencerEventProcessed")
-	fd_EventSendToSequencerEventProcessed_from = md_EventSendToSequencerEventProcessed.Fields().ByName("from")
-	fd_EventSendToSequencerEventProcessed_to = md_EventSendToSequencerEventProcessed.Fields().ByName("to")
-	fd_EventSendToSequencerEventProcessed_amount = md_EventSendToSequencerEventProcessed.Fields().ByName("amount")
-	fd_EventSendToSequencerEventProcessed_duration = md_EventSendToSequencerEventProcessed.Fields().ByName("duration")
+	md_EventDepositEventProcessed = File_fuelsequencer_bridge_events_proto.Messages().ByName("EventDepositEventProcessed")
+	fd_EventDepositEventProcessed_from = md_EventDepositEventProcessed.Fields().ByName("from")
+	fd_EventDepositEventProcessed_to = md_EventDepositEventProcessed.Fields().ByName("to")
+	fd_EventDepositEventProcessed_amount = md_EventDepositEventProcessed.Fields().ByName("amount")
+	fd_EventDepositEventProcessed_lockup = md_EventDepositEventProcessed.Fields().ByName("lockup")
 }
 
-var _ protoreflect.Message = (*fastReflection_EventSendToSequencerEventProcessed)(nil)
+var _ protoreflect.Message = (*fastReflection_EventDepositEventProcessed)(nil)
 
-type fastReflection_EventSendToSequencerEventProcessed EventSendToSequencerEventProcessed
+type fastReflection_EventDepositEventProcessed EventDepositEventProcessed
 
-func (x *EventSendToSequencerEventProcessed) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_EventSendToSequencerEventProcessed)(x)
+func (x *EventDepositEventProcessed) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_EventDepositEventProcessed)(x)
 }
 
-func (x *EventSendToSequencerEventProcessed) slowProtoReflect() protoreflect.Message {
+func (x *EventDepositEventProcessed) slowProtoReflect() protoreflect.Message {
 	mi := &file_fuelsequencer_bridge_events_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1164,43 +1164,43 @@ func (x *EventSendToSequencerEventProcessed) slowProtoReflect() protoreflect.Mes
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_EventSendToSequencerEventProcessed_messageType fastReflection_EventSendToSequencerEventProcessed_messageType
-var _ protoreflect.MessageType = fastReflection_EventSendToSequencerEventProcessed_messageType{}
+var _fastReflection_EventDepositEventProcessed_messageType fastReflection_EventDepositEventProcessed_messageType
+var _ protoreflect.MessageType = fastReflection_EventDepositEventProcessed_messageType{}
 
-type fastReflection_EventSendToSequencerEventProcessed_messageType struct{}
+type fastReflection_EventDepositEventProcessed_messageType struct{}
 
-func (x fastReflection_EventSendToSequencerEventProcessed_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_EventSendToSequencerEventProcessed)(nil)
+func (x fastReflection_EventDepositEventProcessed_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_EventDepositEventProcessed)(nil)
 }
-func (x fastReflection_EventSendToSequencerEventProcessed_messageType) New() protoreflect.Message {
-	return new(fastReflection_EventSendToSequencerEventProcessed)
+func (x fastReflection_EventDepositEventProcessed_messageType) New() protoreflect.Message {
+	return new(fastReflection_EventDepositEventProcessed)
 }
-func (x fastReflection_EventSendToSequencerEventProcessed_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_EventSendToSequencerEventProcessed
+func (x fastReflection_EventDepositEventProcessed_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_EventDepositEventProcessed
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Descriptor() protoreflect.MessageDescriptor {
-	return md_EventSendToSequencerEventProcessed
+func (x *fastReflection_EventDepositEventProcessed) Descriptor() protoreflect.MessageDescriptor {
+	return md_EventDepositEventProcessed
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Type() protoreflect.MessageType {
-	return _fastReflection_EventSendToSequencerEventProcessed_messageType
+func (x *fastReflection_EventDepositEventProcessed) Type() protoreflect.MessageType {
+	return _fastReflection_EventDepositEventProcessed_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_EventSendToSequencerEventProcessed) New() protoreflect.Message {
-	return new(fastReflection_EventSendToSequencerEventProcessed)
+func (x *fastReflection_EventDepositEventProcessed) New() protoreflect.Message {
+	return new(fastReflection_EventDepositEventProcessed)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Interface() protoreflect.ProtoMessage {
-	return (*EventSendToSequencerEventProcessed)(x)
+func (x *fastReflection_EventDepositEventProcessed) Interface() protoreflect.ProtoMessage {
+	return (*EventDepositEventProcessed)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -1208,28 +1208,28 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Interface() protoref
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_EventDepositEventProcessed) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.From != "" {
 		value := protoreflect.ValueOfString(x.From)
-		if !f(fd_EventSendToSequencerEventProcessed_from, value) {
+		if !f(fd_EventDepositEventProcessed_from, value) {
 			return
 		}
 	}
 	if x.To != "" {
 		value := protoreflect.ValueOfString(x.To)
-		if !f(fd_EventSendToSequencerEventProcessed_to, value) {
+		if !f(fd_EventDepositEventProcessed_to, value) {
 			return
 		}
 	}
 	if x.Amount != nil {
 		value := protoreflect.ValueOfMessage(x.Amount.ProtoReflect())
-		if !f(fd_EventSendToSequencerEventProcessed_amount, value) {
+		if !f(fd_EventDepositEventProcessed_amount, value) {
 			return
 		}
 	}
-	if x.Duration != "" {
-		value := protoreflect.ValueOfString(x.Duration)
-		if !f(fd_EventSendToSequencerEventProcessed_duration, value) {
+	if x.Lockup != "" {
+		value := protoreflect.ValueOfString(x.Lockup)
+		if !f(fd_EventDepositEventProcessed_lockup, value) {
 			return
 		}
 	}
@@ -1246,21 +1246,21 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Range(f func(protore
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_EventDepositEventProcessed) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.from":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.from":
 		return x.From != ""
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.to":
 		return x.To != ""
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.amount":
 		return x.Amount != nil
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
-		return x.Duration != ""
+	case "fuelsequencer.bridge.EventDepositEventProcessed.lockup":
+		return x.Lockup != ""
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventProcessed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventProcessed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventProcessed does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -1270,21 +1270,21 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Has(fd protoreflect.
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_EventDepositEventProcessed) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.from":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.from":
 		x.From = ""
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.to":
 		x.To = ""
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.amount":
 		x.Amount = nil
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
-		x.Duration = ""
+	case "fuelsequencer.bridge.EventDepositEventProcessed.lockup":
+		x.Lockup = ""
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventProcessed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventProcessed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventProcessed does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -1294,25 +1294,25 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Clear(fd protoreflec
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EventDepositEventProcessed) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.from":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.from":
 		value := x.From
 		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.to":
 		value := x.To
 		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.amount":
 		value := x.Amount
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
-		value := x.Duration
+	case "fuelsequencer.bridge.EventDepositEventProcessed.lockup":
+		value := x.Lockup
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventProcessed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventProcessed does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventProcessed does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -1326,21 +1326,21 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Get(descriptor proto
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_EventDepositEventProcessed) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.from":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.from":
 		x.From = value.Interface().(string)
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.to":
 		x.To = value.Interface().(string)
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.amount":
 		x.Amount = value.Message().Interface().(*v1beta1.Coin)
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
-		x.Duration = value.Interface().(string)
+	case "fuelsequencer.bridge.EventDepositEventProcessed.lockup":
+		x.Lockup = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventProcessed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventProcessed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventProcessed does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -1354,56 +1354,56 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) Set(fd protoreflect.
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventProcessed) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EventDepositEventProcessed) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.amount":
 		if x.Amount == nil {
 			x.Amount = new(v1beta1.Coin)
 		}
 		return protoreflect.ValueOfMessage(x.Amount.ProtoReflect())
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.from":
-		panic(fmt.Errorf("field from of message fuelsequencer.bridge.EventSendToSequencerEventProcessed is not mutable"))
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
-		panic(fmt.Errorf("field to of message fuelsequencer.bridge.EventSendToSequencerEventProcessed is not mutable"))
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
-		panic(fmt.Errorf("field duration of message fuelsequencer.bridge.EventSendToSequencerEventProcessed is not mutable"))
+	case "fuelsequencer.bridge.EventDepositEventProcessed.from":
+		panic(fmt.Errorf("field from of message fuelsequencer.bridge.EventDepositEventProcessed is not mutable"))
+	case "fuelsequencer.bridge.EventDepositEventProcessed.to":
+		panic(fmt.Errorf("field to of message fuelsequencer.bridge.EventDepositEventProcessed is not mutable"))
+	case "fuelsequencer.bridge.EventDepositEventProcessed.lockup":
+		panic(fmt.Errorf("field lockup of message fuelsequencer.bridge.EventDepositEventProcessed is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventProcessed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventProcessed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventProcessed does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_EventSendToSequencerEventProcessed) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EventDepositEventProcessed) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.from":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.from":
 		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.to":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.to":
 		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.amount":
 		m := new(v1beta1.Coin)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	case "fuelsequencer.bridge.EventSendToSequencerEventProcessed.duration":
+	case "fuelsequencer.bridge.EventDepositEventProcessed.lockup":
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventProcessed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventProcessed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventProcessed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventProcessed does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_EventSendToSequencerEventProcessed) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_EventDepositEventProcessed) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EventSendToSequencerEventProcessed", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EventDepositEventProcessed", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -1411,7 +1411,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) WhichOneof(d protore
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_EventSendToSequencerEventProcessed) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_EventDepositEventProcessed) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -1422,7 +1422,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) GetUnknown() protore
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventProcessed) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_EventDepositEventProcessed) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -1434,7 +1434,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) SetUnknown(fields pr
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_EventSendToSequencerEventProcessed) IsValid() bool {
+func (x *fastReflection_EventDepositEventProcessed) IsValid() bool {
 	return x != nil
 }
 
@@ -1444,9 +1444,9 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_EventDepositEventProcessed) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*EventSendToSequencerEventProcessed)
+		x := input.Message.Interface().(*EventDepositEventProcessed)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -1470,7 +1470,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 			l = options.Size(x.Amount)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		l = len(x.Duration)
+		l = len(x.Lockup)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
@@ -1484,7 +1484,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*EventSendToSequencerEventProcessed)
+		x := input.Message.Interface().(*EventDepositEventProcessed)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -1503,10 +1503,10 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Duration) > 0 {
-			i -= len(x.Duration)
-			copy(dAtA[i:], x.Duration)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Duration)))
+		if len(x.Lockup) > 0 {
+			i -= len(x.Lockup)
+			copy(dAtA[i:], x.Lockup)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Lockup)))
 			i--
 			dAtA[i] = 0x22
 		}
@@ -1549,7 +1549,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*EventSendToSequencerEventProcessed)
+		x := input.Message.Interface().(*EventDepositEventProcessed)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -1581,10 +1581,10 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventSendToSequencerEventProcessed: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventDepositEventProcessed: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventSendToSequencerEventProcessed: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventDepositEventProcessed: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -1689,7 +1689,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 				iNdEx = postIndex
 			case 4:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Lockup", wireType)
 				}
 				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
@@ -1717,7 +1717,7 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Duration = string(dAtA[iNdEx:postIndex])
+				x.Lockup = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -1755,25 +1755,25 @@ func (x *fastReflection_EventSendToSequencerEventProcessed) ProtoMethods() *prot
 }
 
 var (
-	md_EventSendToSequencerEventFailed               protoreflect.MessageDescriptor
-	fd_EventSendToSequencerEventFailed_event_details protoreflect.FieldDescriptor
+	md_EventDepositEventFailed               protoreflect.MessageDescriptor
+	fd_EventDepositEventFailed_event_details protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_events_proto_init()
-	md_EventSendToSequencerEventFailed = File_fuelsequencer_bridge_events_proto.Messages().ByName("EventSendToSequencerEventFailed")
-	fd_EventSendToSequencerEventFailed_event_details = md_EventSendToSequencerEventFailed.Fields().ByName("event_details")
+	md_EventDepositEventFailed = File_fuelsequencer_bridge_events_proto.Messages().ByName("EventDepositEventFailed")
+	fd_EventDepositEventFailed_event_details = md_EventDepositEventFailed.Fields().ByName("event_details")
 }
 
-var _ protoreflect.Message = (*fastReflection_EventSendToSequencerEventFailed)(nil)
+var _ protoreflect.Message = (*fastReflection_EventDepositEventFailed)(nil)
 
-type fastReflection_EventSendToSequencerEventFailed EventSendToSequencerEventFailed
+type fastReflection_EventDepositEventFailed EventDepositEventFailed
 
-func (x *EventSendToSequencerEventFailed) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_EventSendToSequencerEventFailed)(x)
+func (x *EventDepositEventFailed) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_EventDepositEventFailed)(x)
 }
 
-func (x *EventSendToSequencerEventFailed) slowProtoReflect() protoreflect.Message {
+func (x *EventDepositEventFailed) slowProtoReflect() protoreflect.Message {
 	mi := &file_fuelsequencer_bridge_events_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1785,43 +1785,43 @@ func (x *EventSendToSequencerEventFailed) slowProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_EventSendToSequencerEventFailed_messageType fastReflection_EventSendToSequencerEventFailed_messageType
-var _ protoreflect.MessageType = fastReflection_EventSendToSequencerEventFailed_messageType{}
+var _fastReflection_EventDepositEventFailed_messageType fastReflection_EventDepositEventFailed_messageType
+var _ protoreflect.MessageType = fastReflection_EventDepositEventFailed_messageType{}
 
-type fastReflection_EventSendToSequencerEventFailed_messageType struct{}
+type fastReflection_EventDepositEventFailed_messageType struct{}
 
-func (x fastReflection_EventSendToSequencerEventFailed_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_EventSendToSequencerEventFailed)(nil)
+func (x fastReflection_EventDepositEventFailed_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_EventDepositEventFailed)(nil)
 }
-func (x fastReflection_EventSendToSequencerEventFailed_messageType) New() protoreflect.Message {
-	return new(fastReflection_EventSendToSequencerEventFailed)
+func (x fastReflection_EventDepositEventFailed_messageType) New() protoreflect.Message {
+	return new(fastReflection_EventDepositEventFailed)
 }
-func (x fastReflection_EventSendToSequencerEventFailed_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_EventSendToSequencerEventFailed
+func (x fastReflection_EventDepositEventFailed_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_EventDepositEventFailed
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_EventSendToSequencerEventFailed) Descriptor() protoreflect.MessageDescriptor {
-	return md_EventSendToSequencerEventFailed
+func (x *fastReflection_EventDepositEventFailed) Descriptor() protoreflect.MessageDescriptor {
+	return md_EventDepositEventFailed
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_EventSendToSequencerEventFailed) Type() protoreflect.MessageType {
-	return _fastReflection_EventSendToSequencerEventFailed_messageType
+func (x *fastReflection_EventDepositEventFailed) Type() protoreflect.MessageType {
+	return _fastReflection_EventDepositEventFailed_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_EventSendToSequencerEventFailed) New() protoreflect.Message {
-	return new(fastReflection_EventSendToSequencerEventFailed)
+func (x *fastReflection_EventDepositEventFailed) New() protoreflect.Message {
+	return new(fastReflection_EventDepositEventFailed)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_EventSendToSequencerEventFailed) Interface() protoreflect.ProtoMessage {
-	return (*EventSendToSequencerEventFailed)(x)
+func (x *fastReflection_EventDepositEventFailed) Interface() protoreflect.ProtoMessage {
+	return (*EventDepositEventFailed)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -1829,10 +1829,10 @@ func (x *fastReflection_EventSendToSequencerEventFailed) Interface() protoreflec
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_EventSendToSequencerEventFailed) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_EventDepositEventFailed) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if len(x.EventDetails) != 0 {
 		value := protoreflect.ValueOfBytes(x.EventDetails)
-		if !f(fd_EventSendToSequencerEventFailed_event_details, value) {
+		if !f(fd_EventDepositEventFailed_event_details, value) {
 			return
 		}
 	}
@@ -1849,15 +1849,15 @@ func (x *fastReflection_EventSendToSequencerEventFailed) Range(f func(protorefle
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_EventSendToSequencerEventFailed) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_EventDepositEventFailed) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventFailed.event_details":
+	case "fuelsequencer.bridge.EventDepositEventFailed.event_details":
 		return len(x.EventDetails) != 0
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventFailed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventFailed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventFailed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventFailed does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -1867,15 +1867,15 @@ func (x *fastReflection_EventSendToSequencerEventFailed) Has(fd protoreflect.Fie
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventFailed) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_EventDepositEventFailed) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventFailed.event_details":
+	case "fuelsequencer.bridge.EventDepositEventFailed.event_details":
 		x.EventDetails = nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventFailed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventFailed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventFailed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventFailed does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -1885,16 +1885,16 @@ func (x *fastReflection_EventSendToSequencerEventFailed) Clear(fd protoreflect.F
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_EventSendToSequencerEventFailed) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EventDepositEventFailed) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventFailed.event_details":
+	case "fuelsequencer.bridge.EventDepositEventFailed.event_details":
 		value := x.EventDetails
 		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventFailed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventFailed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventFailed does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventFailed does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -1908,15 +1908,15 @@ func (x *fastReflection_EventSendToSequencerEventFailed) Get(descriptor protoref
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventFailed) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_EventDepositEventFailed) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventFailed.event_details":
+	case "fuelsequencer.bridge.EventDepositEventFailed.event_details":
 		x.EventDetails = value.Bytes()
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventFailed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventFailed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventFailed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventFailed does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -1930,40 +1930,40 @@ func (x *fastReflection_EventSendToSequencerEventFailed) Set(fd protoreflect.Fie
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventFailed) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EventDepositEventFailed) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventFailed.event_details":
-		panic(fmt.Errorf("field event_details of message fuelsequencer.bridge.EventSendToSequencerEventFailed is not mutable"))
+	case "fuelsequencer.bridge.EventDepositEventFailed.event_details":
+		panic(fmt.Errorf("field event_details of message fuelsequencer.bridge.EventDepositEventFailed is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventFailed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventFailed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventFailed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventFailed does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_EventSendToSequencerEventFailed) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EventDepositEventFailed) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EventSendToSequencerEventFailed.event_details":
+	case "fuelsequencer.bridge.EventDepositEventFailed.event_details":
 		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventSendToSequencerEventFailed"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EventDepositEventFailed"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EventSendToSequencerEventFailed does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EventDepositEventFailed does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_EventSendToSequencerEventFailed) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_EventDepositEventFailed) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EventSendToSequencerEventFailed", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EventDepositEventFailed", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -1971,7 +1971,7 @@ func (x *fastReflection_EventSendToSequencerEventFailed) WhichOneof(d protorefle
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_EventSendToSequencerEventFailed) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_EventDepositEventFailed) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -1982,7 +1982,7 @@ func (x *fastReflection_EventSendToSequencerEventFailed) GetUnknown() protorefle
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventSendToSequencerEventFailed) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_EventDepositEventFailed) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -1994,7 +1994,7 @@ func (x *fastReflection_EventSendToSequencerEventFailed) SetUnknown(fields proto
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_EventSendToSequencerEventFailed) IsValid() bool {
+func (x *fastReflection_EventDepositEventFailed) IsValid() bool {
 	return x != nil
 }
 
@@ -2004,9 +2004,9 @@ func (x *fastReflection_EventSendToSequencerEventFailed) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_EventSendToSequencerEventFailed) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_EventDepositEventFailed) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*EventSendToSequencerEventFailed)
+		x := input.Message.Interface().(*EventDepositEventFailed)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2032,7 +2032,7 @@ func (x *fastReflection_EventSendToSequencerEventFailed) ProtoMethods() *protoif
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*EventSendToSequencerEventFailed)
+		x := input.Message.Interface().(*EventDepositEventFailed)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2069,7 +2069,7 @@ func (x *fastReflection_EventSendToSequencerEventFailed) ProtoMethods() *protoif
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*EventSendToSequencerEventFailed)
+		x := input.Message.Interface().(*EventDepositEventFailed)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2101,10 +2101,10 @@ func (x *fastReflection_EventSendToSequencerEventFailed) ProtoMethods() *protoif
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventSendToSequencerEventFailed: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventDepositEventFailed: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventSendToSequencerEventFailed: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventDepositEventFailed: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -2298,7 +2298,7 @@ func (x *EventWithdrawToEthereumReported) GetAmount() *v1beta1.Coin {
 	return nil
 }
 
-type EventSendToSequencerEventProcessed struct {
+type EventDepositEventProcessed struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -2312,11 +2312,11 @@ type EventSendToSequencerEventProcessed struct {
 	Amount *v1beta1.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// vesting duration encoded in string to prevent loss of precision. Sign is
 	// also preserved. This can be zero if no duration is specified.
-	Duration string `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
+	Lockup string `protobuf:"bytes,4,opt,name=lockup,proto3" json:"lockup,omitempty"`
 }
 
-func (x *EventSendToSequencerEventProcessed) Reset() {
-	*x = EventSendToSequencerEventProcessed{}
+func (x *EventDepositEventProcessed) Reset() {
+	*x = EventDepositEventProcessed{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fuelsequencer_bridge_events_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2324,46 +2324,46 @@ func (x *EventSendToSequencerEventProcessed) Reset() {
 	}
 }
 
-func (x *EventSendToSequencerEventProcessed) String() string {
+func (x *EventDepositEventProcessed) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EventSendToSequencerEventProcessed) ProtoMessage() {}
+func (*EventDepositEventProcessed) ProtoMessage() {}
 
-// Deprecated: Use EventSendToSequencerEventProcessed.ProtoReflect.Descriptor instead.
-func (*EventSendToSequencerEventProcessed) Descriptor() ([]byte, []int) {
+// Deprecated: Use EventDepositEventProcessed.ProtoReflect.Descriptor instead.
+func (*EventDepositEventProcessed) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_events_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *EventSendToSequencerEventProcessed) GetFrom() string {
+func (x *EventDepositEventProcessed) GetFrom() string {
 	if x != nil {
 		return x.From
 	}
 	return ""
 }
 
-func (x *EventSendToSequencerEventProcessed) GetTo() string {
+func (x *EventDepositEventProcessed) GetTo() string {
 	if x != nil {
 		return x.To
 	}
 	return ""
 }
 
-func (x *EventSendToSequencerEventProcessed) GetAmount() *v1beta1.Coin {
+func (x *EventDepositEventProcessed) GetAmount() *v1beta1.Coin {
 	if x != nil {
 		return x.Amount
 	}
 	return nil
 }
 
-func (x *EventSendToSequencerEventProcessed) GetDuration() string {
+func (x *EventDepositEventProcessed) GetLockup() string {
 	if x != nil {
-		return x.Duration
+		return x.Lockup
 	}
 	return ""
 }
 
-type EventSendToSequencerEventFailed struct {
+type EventDepositEventFailed struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -2372,8 +2372,8 @@ type EventSendToSequencerEventFailed struct {
 	EventDetails []byte `protobuf:"bytes,1,opt,name=event_details,json=eventDetails,proto3" json:"event_details,omitempty"`
 }
 
-func (x *EventSendToSequencerEventFailed) Reset() {
-	*x = EventSendToSequencerEventFailed{}
+func (x *EventDepositEventFailed) Reset() {
+	*x = EventDepositEventFailed{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fuelsequencer_bridge_events_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2381,18 +2381,18 @@ func (x *EventSendToSequencerEventFailed) Reset() {
 	}
 }
 
-func (x *EventSendToSequencerEventFailed) String() string {
+func (x *EventDepositEventFailed) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EventSendToSequencerEventFailed) ProtoMessage() {}
+func (*EventDepositEventFailed) ProtoMessage() {}
 
-// Deprecated: Use EventSendToSequencerEventFailed.ProtoReflect.Descriptor instead.
-func (*EventSendToSequencerEventFailed) Descriptor() ([]byte, []int) {
+// Deprecated: Use EventDepositEventFailed.ProtoReflect.Descriptor instead.
+func (*EventDepositEventFailed) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_events_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *EventSendToSequencerEventFailed) GetEventDetails() []byte {
+func (x *EventDepositEventFailed) GetEventDetails() []byte {
 	if x != nil {
 		return x.EventDetails
 	}
@@ -2435,36 +2435,35 @@ var file_fuelsequencer_bridge_events_proto_rawDesc = []byte{
 	0x12, 0x37, 0x0a, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76,
 	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f,
-	0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x9d, 0x01, 0x0a, 0x22, 0x45, 0x76,
-	0x65, 0x6e, 0x74, 0x53, 0x65, 0x6e, 0x64, 0x54, 0x6f, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x64,
-	0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
-	0x66, 0x72, 0x6f, 0x6d, 0x12, 0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x02, 0x74, 0x6f, 0x12, 0x37, 0x0a, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61,
-	0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42,
-	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x1a, 0x0a,
-	0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x46, 0x0a, 0x1f, 0x45, 0x76, 0x65,
-	0x6e, 0x74, 0x53, 0x65, 0x6e, 0x64, 0x54, 0x6f, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x46, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x12, 0x23, 0x0a, 0x0d,
-	0x65, 0x76, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0c, 0x52, 0x0c, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c,
-	0x73, 0x42, 0xe0, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0b,
-	0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x46, 0x67,
-	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69,
-	0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75,
-	0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
-	0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46,
-	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72,
-	0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x00, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x91, 0x01, 0x0a, 0x1a, 0x45, 0x76,
+	0x65, 0x6e, 0x74, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x50,
+	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12, 0x0e, 0x0a, 0x02,
+	0x74, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x74, 0x6f, 0x12, 0x37, 0x0a, 0x06,
+	0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x61,
+	0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6c, 0x6f, 0x63, 0x6b, 0x75, 0x70, 0x18,
+	0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6c, 0x6f, 0x63, 0x6b, 0x75, 0x70, 0x22, 0x3e, 0x0a,
+	0x17, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x45, 0x76, 0x65,
+	0x6e, 0x74, 0x46, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x12, 0x23, 0x0a, 0x0d, 0x65, 0x76, 0x65, 0x6e,
+	0x74, 0x5f, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x0c, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0xe0, 0x01,
+	0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0b, 0x45, 0x76, 0x65, 0x6e,
+	0x74, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61,
+	0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73,
+	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65,
+	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02,
+	0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42,
+	0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73,
+	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2481,15 +2480,15 @@ func file_fuelsequencer_bridge_events_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bridge_events_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_fuelsequencer_bridge_events_proto_goTypes = []interface{}{
-	(*EventSupplyDeltaReported)(nil),           // 0: fuelsequencer.bridge.EventSupplyDeltaReported
-	(*EventWithdrawToEthereumReported)(nil),    // 1: fuelsequencer.bridge.EventWithdrawToEthereumReported
-	(*EventSendToSequencerEventProcessed)(nil), // 2: fuelsequencer.bridge.EventSendToSequencerEventProcessed
-	(*EventSendToSequencerEventFailed)(nil),    // 3: fuelsequencer.bridge.EventSendToSequencerEventFailed
-	(*v1beta1.Coin)(nil),                       // 4: cosmos.base.v1beta1.Coin
+	(*EventSupplyDeltaReported)(nil),        // 0: fuelsequencer.bridge.EventSupplyDeltaReported
+	(*EventWithdrawToEthereumReported)(nil), // 1: fuelsequencer.bridge.EventWithdrawToEthereumReported
+	(*EventDepositEventProcessed)(nil),      // 2: fuelsequencer.bridge.EventDepositEventProcessed
+	(*EventDepositEventFailed)(nil),         // 3: fuelsequencer.bridge.EventDepositEventFailed
+	(*v1beta1.Coin)(nil),                    // 4: cosmos.base.v1beta1.Coin
 }
 var file_fuelsequencer_bridge_events_proto_depIdxs = []int32{
 	4, // 0: fuelsequencer.bridge.EventWithdrawToEthereumReported.amount:type_name -> cosmos.base.v1beta1.Coin
-	4, // 1: fuelsequencer.bridge.EventSendToSequencerEventProcessed.amount:type_name -> cosmos.base.v1beta1.Coin
+	4, // 1: fuelsequencer.bridge.EventDepositEventProcessed.amount:type_name -> cosmos.base.v1beta1.Coin
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -2528,7 +2527,7 @@ func file_fuelsequencer_bridge_events_proto_init() {
 			}
 		}
 		file_fuelsequencer_bridge_events_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EventSendToSequencerEventProcessed); i {
+			switch v := v.(*EventDepositEventProcessed); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2540,7 +2539,7 @@ func file_fuelsequencer_bridge_events_proto_init() {
 			}
 		}
 		file_fuelsequencer_bridge_events_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EventSendToSequencerEventFailed); i {
+			switch v := v.(*EventDepositEventFailed); i {
 			case 0:
 				return &v.state
 			case 1:

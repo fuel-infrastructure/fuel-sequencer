@@ -9,22 +9,21 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+)
+
+var (
+	// Hash function signatures used to identify events
+
+	DepositEventHashFn   = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,uint256)")).Hex()
+	AuthorizeEventHashFn = crypto.Keccak256Hash([]byte("Authorize(address,bytes)")).Hex()
 )
 
 const (
-	// Hash function signatures used to identify events
+	// Event names used when parsing log data to events
 
-	// SendToSequencerEventHashFn Hash function signatures used to identify events
-	// crypto.Keccak256Hash([]byte("SendToSequencerEvent(address,uint256,string,uint256)")).Hex()
-	SendToSequencerEventHashFn = "0x5dee65305d37f37b03a10fb088c878b533e94440a61a4ad4f99cb82821398f98"
-
-	// AuthorizeEventHashFn Hash function signatures used to identify events
-	// crypto.Keccak256Hash([]byte("AuthorizeEvent(address,bytes)")).Hex()
-	AuthorizeEventHashFn = "0x0de3682d77bb5d715a5dba2f9da0d61c2afa6d0e32190e6873a3790e03c5965a"
-
-	// Event names
-	SendToSequencerEventName = "SendToSequencerEvent"
-	AuthorizeEventName       = "AuthorizeEvent"
+	DepositEventName   = "Deposit"
+	AuthorizeEventName = "Authorize"
 )
 
 // ParsedEvent is a common interface for parsed Ethereum events.
@@ -35,10 +34,10 @@ type ParsedEvent interface {
 	Unmarshal(dAtA []byte) error
 }
 
-// Equal attempts to compare two SendToSequencerEvent structs for equality
-func (m *SendToSequencerEvent) Equal(e ParsedEvent) bool {
+// Equal attempts to compare two DepositEvent structs for equality
+func (m *DepositEvent) Equal(e ParsedEvent) bool {
 	// Structs are not equal if they are of different type
-	other, ok := e.(*SendToSequencerEvent)
+	other, ok := e.(*DepositEvent)
 	if !ok {
 		return false
 	}
@@ -53,38 +52,38 @@ func (m *SendToSequencerEvent) Equal(e ParsedEvent) bool {
 		return false
 	}
 
-	// Two SendToSequencerEvents are equal if all their elements are equal
-	return m.From == other.From &&
-		m.To == other.To &&
-		m.Duration == other.Duration &&
+	// Two DepositEvents are equal if all their elements are equal
+	return m.Depositor == other.Depositor &&
+		m.Recipient == other.Recipient &&
+		m.Lockup == other.Lockup &&
 		m.Amount == other.Amount
 }
 
-// ValidateBasic performs some sanity checks on the SendToSequencerEvent
-func (m *SendToSequencerEvent) ValidateBasic() error {
+// ValidateBasic performs some sanity checks on the DepositEvent
+func (m *DepositEvent) ValidateBasic() error {
 	// TODO: More checks can be added in the future
 
 	// Error if the receiver is nil
 	if m == nil {
-		return errors.New("SendToSequencerEvent is nil")
+		return errors.New("DepositEvent is nil")
 	}
 
-	// Check that From is a valid hex address
-	if !common.IsHexAddress(m.From) {
-		return errors.New("from is not a valid hex address")
+	// Check that Depositor is a valid hex address
+	if !common.IsHexAddress(m.Depositor) {
+		return errors.New("depositor is not a valid hex address")
 	}
 
-	// Check that To is either a valid Sequencer or hex address. Note that To is optional.
-	if len(strings.TrimSpace(m.To)) != 0 {
+	// Check that Recipient is either a valid Sequencer or hex address. Note that Recipient is optional.
+	if len(strings.TrimSpace(m.Recipient)) != 0 {
 
-		_, err := sdk.AccAddressFromBech32(m.To)
-		if err != nil && !common.IsHexAddress(m.To) {
-			return fmt.Errorf("to is not a valid Bech32 or Hex address")
+		_, err := sdk.AccAddressFromBech32(m.Recipient)
+		if err != nil && !common.IsHexAddress(m.Recipient) {
+			return fmt.Errorf("recipient is not a valid Bech32 or Hex address")
 		}
 	}
 
-	// Check that the Duration can be converted from a string to sdk.Int
-	if _, success := sdkmath.NewIntFromString(m.Duration); !success {
+	// Check that the Lockup can be converted from a string to sdk.Int
+	if _, success := sdkmath.NewIntFromString(m.Lockup); !success {
 		return errors.New("could not convert duration to a valid sdk.Int")
 	}
 
@@ -119,7 +118,7 @@ func (m *AuthorizeEvent) Equal(e ParsedEvent) bool {
 	}
 
 	// Two AuthorizeEvents are equal if all their elements are equal
-	return m.From == other.From && bytes.Equal(m.Message, other.Message)
+	return m.Sender == other.Sender && bytes.Equal(m.Data, other.Data)
 }
 
 func (m *AuthorizeEvent) ValidateBasic() error {
@@ -130,9 +129,9 @@ func (m *AuthorizeEvent) ValidateBasic() error {
 		return errors.New("AuthorizeEvent is nil")
 	}
 
-	// Check that From is a valid hex address
-	if !common.IsHexAddress(m.From) {
-		return errors.New("from is not a valid hex address")
+	// Check that Sender is a valid hex address
+	if !common.IsHexAddress(m.Sender) {
+		return errors.New("sender is not a valid hex address")
 	}
 
 	return nil

@@ -133,7 +133,7 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 			eventTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					{
-						EventType:       sidecartypes.SendToSequencerEventName,
+						EventType:       sidecartypes.DepositEventName,
 						ContractAddress: testtypes.TestEthereumProxyContractAddress,
 						Data:            []byte("invalid-data"),
 					},
@@ -143,7 +143,7 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", sidecartypes.SendToSequencerEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", sidecartypes.DepositEventName),
 		},
 	}
 
@@ -186,7 +186,7 @@ func TestEthEventsTx_ValidateStateful(t *testing.T) {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent1,
 					testutils.MustGetSidecarEventFromParsedEvent(
-						testtypes.TestSendToSequencerEvent2, "invalid-ethereum-proxy-contract-address",
+						testtypes.TestDepositEvent2, "invalid-ethereum-proxy-contract-address",
 					),
 					testtypes.TestEvent2,
 				},
@@ -325,9 +325,9 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 558, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(558)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(557)) // just under enough
+	require.EqualValues(t, 527, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(527)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(526)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.

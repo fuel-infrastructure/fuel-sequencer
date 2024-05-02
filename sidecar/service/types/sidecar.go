@@ -9,21 +9,19 @@ import (
 )
 
 type (
-	// EthSendToSequencerEvent represents a SendToSequencerEvent event raised by the bridge contract. This represents
-	// the structure on Ethereum, so it should be used as an intermediary type to convert into the event expected by
-	// the Sequencer.
-	EthSendToSequencerEvent struct {
-		From     common.Address
-		Amount   *big.Int
-		To       string
-		Duration *big.Int
+	// EthDepositEvent represents a DepositEvent event raised by the proxy contract. This represents the structure on
+	// Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
+	// Note: Depositor and Recipient are indexed, so they will show up as a vLog topics instead of fields here.
+	EthDepositEvent struct {
+		Amount *big.Int `json:"amount"`
+		Lockup *big.Int `json:"lockup"`
 	}
 
 	// EthAuthorizeEvent represents a AuthorizeEvent event raised by the bridge contract. This represents the structure
 	// on Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
+	// Note: Sender is indexed, so it will show up as a vLog topic instead of a field here.
 	EthAuthorizeEvent struct {
-		From    common.Address
-		Message []byte
+		Data []byte `json:"data"`
 	}
 
 	// EthereumBlock stores events associated with a block.
@@ -36,11 +34,11 @@ type (
 // UnmarshalParsedEvent attempts to unmarshal a parsed Ethereum event from the Event sent by the sidecar
 func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 	switch m.EventType {
-	case SendToSequencerEventName:
-		var eventData SendToSequencerEvent
+	case DepositEventName:
+		var eventData DepositEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", SendToSequencerEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", DepositEventName, err)
 		}
 		return &eventData, nil
 	case AuthorizeEventName:

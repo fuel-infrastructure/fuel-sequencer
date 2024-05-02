@@ -32,8 +32,8 @@ func MustGetSidecarEventFromParsedEvent(
 	// Get event type
 	var eventType string
 	switch parsedEvent.(type) {
-	case *sidecartypes.SendToSequencerEvent:
-		eventType = sidecartypes.SendToSequencerEventName
+	case *sidecartypes.DepositEvent:
+		eventType = sidecartypes.DepositEventName
 	case *sidecartypes.AuthorizeEvent:
 		eventType = sidecartypes.AuthorizeEventName
 	default:

@@ -93,117 +93,117 @@ var (
 		"239614462122a3078643434373036366138626139636231356138363261306636646539363166323762653836666330611a100a05756" +
 		"675656c120731303030303030"
 
-	TestSendToSequencerEvent1 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom1,
-		Amount:   TestAmount1,
-		To:       TestTo1,
-		Duration: TestDuration1,
+	TestDepositEvent1 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom1,
+		Recipient: TestTo1,
+		Amount:    TestAmount1,
+		Lockup:    TestDuration1,
 	}
-	TestSendToSequencerEvent2 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom2,
-		Amount:   TestAmount2,
-		To:       TestTo2,
-		Duration: TestDuration2,
+	TestDepositEvent2 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom2,
+		Recipient: TestTo2,
+		Amount:    TestAmount2,
+		Lockup:    TestDuration2,
 	}
-	TestSendToSequencerEvent3 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo3,
-		Duration: TestDuration3,
+	TestDepositEvent3 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo3,
+		Amount:    TestAmount3,
+		Lockup:    TestDuration3,
 	}
-	TestSendToSequencerEvent4 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo3,
-		Duration: TestDuration4,
+	TestDepositEvent4 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo3,
+		Amount:    TestAmount3,
+		Lockup:    TestDuration4,
 	}
-	TestSendToSequencerEvent5 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom4,
-		Amount:   TestAmount3,
-		To:       TestTo3,
-		Duration: TestDuration3,
+	TestDepositEvent5 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom4,
+		Recipient: TestTo3,
+		Amount:    TestAmount3,
+		Lockup:    TestDuration3,
 	}
-	TestSendToSequencerEvent6 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo2,
-		Duration: TestDuration5,
+	TestDepositEvent6 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo2,
+		Amount:    TestAmount3,
+		Lockup:    TestDuration5,
 	}
-	TestSendToSequencerEvent7 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo4,
-		Duration: TestDuration3,
+	TestDepositEvent7 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo4,
+		Amount:    TestAmount3,
+		Lockup:    TestDuration3,
 	}
-	TestSendToSequencerEvent8 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   "failed",
-		To:       TestTo4,
-		Duration: TestDuration3,
+	TestDepositEvent8 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo4,
+		Amount:    "failed",
+		Lockup:    TestDuration3,
 	}
-	TestSendToSequencerEvent9 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom2,
-		Amount:   TestAmount2,
-		To:       "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
-		Duration: TestDuration2,
+	TestDepositEvent9 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom2,
+		Recipient: "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+		Amount:    TestAmount2,
+		Lockup:    TestDuration2,
 	}
-	TestSendToSequencerEvent10 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount1,
-		To:       TestFrom3,
-		Duration: TestDuration1,
+	TestDepositEvent10 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestFrom3,
+		Amount:    TestAmount1,
+		Lockup:    TestDuration1,
 	}
-	TestSendToSequencerEvent11 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount1,
-		To:       TestFrom3Seq,
-		Duration: TestDuration1,
+	TestDepositEvent11 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestFrom3Seq,
+		Amount:    TestAmount1,
+		Lockup:    TestDuration1,
 	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
-		From:    TestFrom1,
-		Message: testutils.MustHexDecodeString(TestMessage1),
+		Sender: TestFrom1,
+		Data:   testutils.MustHexDecodeString(TestMessage1),
 	}
 	TestAuthorizeEvent2 = &sidecartypes.AuthorizeEvent{
-		From:    TestFrom2,
-		Message: testutils.MustHexDecodeString(TestMessage2),
+		Sender: TestFrom2,
+		Data:   testutils.MustHexDecodeString(TestMessage2),
 	}
 	TestAuthorizeEvent3 = &sidecartypes.AuthorizeEvent{
-		From:    TestFrom3,
-		Message: testutils.MustHexDecodeString(TestMessage3),
+		Sender: TestFrom3,
+		Data:   testutils.MustHexDecodeString(TestMessage3),
 	}
 
 	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent3, TestEthereumProxyContractAddress,
+		TestDepositEvent3, TestEthereumProxyContractAddress,
 	)
 	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestAuthorizeEvent3, TestEthereumProxyContractAddress,
 	)
 	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent2, TestEthereumProxyContractAddress,
+		TestDepositEvent2, TestEthereumProxyContractAddress,
 	)
 	TestEvent4 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent4, TestEthereumProxyContractAddress,
+		TestDepositEvent4, TestEthereumProxyContractAddress,
 	)
 	TestEvent5 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent5, TestEthereumProxyContractAddress,
+		TestDepositEvent5, TestEthereumProxyContractAddress,
 	)
 	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent6, TestEthereumProxyContractAddress,
+		TestDepositEvent6, TestEthereumProxyContractAddress,
 	)
 	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent7, TestEthereumProxyContractAddress,
+		TestDepositEvent7, TestEthereumProxyContractAddress,
 	)
 	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent8, TestEthereumProxyContractAddress,
+		TestDepositEvent8, TestEthereumProxyContractAddress,
 	)
 	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent9, TestEthereumProxyContractAddress,
+		TestDepositEvent9, TestEthereumProxyContractAddress,
 	)
 	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent10, TestEthereumProxyContractAddress,
+		TestDepositEvent10, TestEthereumProxyContractAddress,
 	)
 	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent11, TestEthereumProxyContractAddress,
+		TestDepositEvent11, TestEthereumProxyContractAddress,
 	)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}

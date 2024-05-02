@@ -103,20 +103,20 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(ethHeight1+1))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
-		s.Require().Equal(sidecartypes.SendToSequencerEventName, depositEvents[0].EventType)
+		s.Require().Equal(sidecartypes.DepositEventName, depositEvents[0].EventType)
 
 		publicKey := s.GetEthPublicKey()
 		fromAddress := crypto.PubkeyToAddress(*publicKey).String()
 
 		// Check deposit event data is as expected
-		var depositEventData sidecartypes.SendToSequencerEvent
+		var depositEventData sidecartypes.DepositEvent
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(depositEventData.Equal(&sidecartypes.SendToSequencerEvent{
-			From:     fromAddress,
-			Amount:   amount1.String(),
-			To:       toAddress,
-			Duration: amount2.String(),
+		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
+			Depositor: fromAddress,
+			Recipient: toAddress,
+			Amount:    amount1.String(),
+			Lockup:    amount2.String(),
 		}))
 
 		// Ensure authorize event is at ethHeigh1+2
@@ -130,8 +130,8 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
-			From:    fromAddress,
-			Message: someBytes,
+			Sender: fromAddress,
+			Data:   someBytes,
 		}))
 
 		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced

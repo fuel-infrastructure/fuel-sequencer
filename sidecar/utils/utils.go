@@ -16,32 +16,32 @@ import (
 
 // ExtractLogDataToEvent decodes an Ethereum log into a specific event struct.
 func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error) {
-	var genericEvent sidecartypes.Event
+	var event sidecartypes.Event
 	var err error
 
 	switch vLog.Topics[0].Hex() {
-	case sidecartypes.SendToSequencerEventHashFn:
-		var sequencerEvent sidecartypes.SendToSequencerEvent
+	case sidecartypes.DepositEventHashFn:
+		var sequencerEvent sidecartypes.DepositEvent
 
-		// Process the SendToSequencerEvent
-		var ethEvent sidecartypes.EthSendToSequencerEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.SendToSequencerEventName, vLog.Data)
+		// Process the DepositEvent
+		var ethEvent sidecartypes.EthDepositEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.DepositEventName, vLog.Data)
 		if err != nil {
 			return nil, err
 		}
 
-		// From is indexed, so extract it from Topics
-		sequencerEvent.From = common.HexToAddress(vLog.Topics[1].Hex()).String()
+		// Depositor is indexed, so extract it from Topics
+		sequencerEvent.Depositor = common.HexToAddress(vLog.Topics[1].Hex()).String()
 
 		// Convert the rest of the fields as required
-		sequencerEvent.To = ethEvent.To
-		sequencerEvent.Duration = ethEvent.Duration.String()
+		sequencerEvent.Recipient = common.HexToAddress(vLog.Topics[2].Hex()).String()
+		sequencerEvent.Lockup = ethEvent.Lockup.String()
 		sequencerEvent.Amount = ethEvent.Amount.String()
 
 		// Fill up the generic event with fields
-		genericEvent.EventType = sidecartypes.SendToSequencerEventName
-		genericEvent.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		genericEvent.Data, err = sequencerEvent.Marshal()
+		event.EventType = sidecartypes.DepositEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = sequencerEvent.Marshal()
 
 	case sidecartypes.AuthorizeEventHashFn:
 		var sequencerEvent sidecartypes.AuthorizeEvent
@@ -53,21 +53,21 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 			return nil, err
 		}
 
-		// From is indexed, so extract it from Topics
-		sequencerEvent.From = common.HexToAddress(vLog.Topics[1].Hex()).String()
+		// Sender is indexed, so extract it from Topics
+		sequencerEvent.Sender = common.HexToAddress(vLog.Topics[1].Hex()).String()
 
 		// Convert the rest of the fields as required
-		sequencerEvent.Message = ethEvent.Message
+		sequencerEvent.Data = ethEvent.Data
 
 		// Fillup the generic event with fields
-		genericEvent.EventType = sidecartypes.AuthorizeEventName
-		genericEvent.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		genericEvent.Data, err = sequencerEvent.Marshal()
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = sequencerEvent.Marshal()
 	default:
 		return nil, nil
 	}
 
-	return &genericEvent, err
+	return &event, err
 }
 
 // MustGetLastEthereumBlockSyncedFromGenesis processes the genesis from an http response and returns
