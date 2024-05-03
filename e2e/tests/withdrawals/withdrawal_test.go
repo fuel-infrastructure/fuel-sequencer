@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	cmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -30,14 +29,14 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		s.Require().NoError(err)
 		s.Require().Zero(withdrawalResponse.Code)
 
+		// The LastResultsHash is generated at the block right after the withdrawal
+		lastResultsHashHeight := withdrawalResponse.Height + 1
+
 		// --------------------------------------- Run Operator
 
-		heightAfterWithdrawal, err := s.Chain.FuelSequencerHeight(s.Ctx())
-		s.Require().NoError(err)
-
-		// We need to wait some blocks so that we're at a height that is greater than UPDATE_DELAY_BLOCKS.
+		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
 		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitForBlocks(s.Ctx(), 20, time.Minute)
+		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
 
 		requestId, startBlockString, targetBlockString := s.RunSuccinctXOperatorMockApi()
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
@@ -45,8 +44,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
 		s.Require().NoError(err)
 
-		// Make sure the transaction is included in the BridgeCommitment
-		s.Require().GreaterOrEqual(targetBlock, heightAfterWithdrawal)
+		// Make sure the LastResultsHash due to the transaction is included in the BridgeCommitment.
+		// Since the target block is exclusive, it has to be > not >=.
+		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
 		// --------------------------------------- Run Relayer
 
@@ -54,7 +54,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
 		s.Require().NoError(err)
 
-		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
 
 		receipt := s.RunSuccinctXRelayerMockApi(requestId, startBlock, targetBlock, genesisBlockHeaderHash)
@@ -99,8 +99,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
 		// - The withdrawal is assumed to be the second transaction in the block, following the EthEventsTx.
 
-		lastResultsHashHeight := withdrawalResponse.Height + 1 // h+1
-		txIndex := int64(1)                                    // second tx
+		txIndex := int64(1) // second tx
 		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
 		)
@@ -110,7 +109,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
 		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(bridgeCommitmentMerkleProof),
+			SideNodes: testsuite.AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
 			NumLeaves: big.NewInt(bridgeCommitmentMerkleProof.Total),
 		}
@@ -119,30 +118,23 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsMerkleProof
 		txResultProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(lastResultsMerkleProof),
+			SideNodes: testsuite.AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(lastResultsMerkleProof.Index),
 			NumLeaves: big.NewInt(lastResultsMerkleProof.Total),
 		}
 
-		// Construct BridgeCommitment leaf by getting block h+1, which contains the 'last results hash' of interest.
+		// Construct BridgeCommitmentLeaf from the inclusion proof data.
 
-		block, err := s.GetBlockByHeight(s.Ctx(), lastResultsHashHeight)
 		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
-			Height:      big.NewInt(lastResultsHashHeight),
-			ResultsHash: common.BytesToHash(block.Header.LastResultsHash),
+			Height:      big.NewInt(int64(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.Height)),
+			ResultsHash: common.BytesToHash(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash),
 		}
-
-		// Construct marshalled tx result, which is one of the leaves of the results tree.
-		// Since the withdrawal happened at height h, the result will be at this height.
-
-		blockResults, err := s.GetBlockResultsByHeight(s.Ctx(), withdrawalResponse.Height)
-		abciResults := cmtypes.NewResults(blockResults.TxsResults)
-		txResultMarshalled, err := abciResults[txIndex].Marshal()
-		s.Require().NoError(err)
 
 		// Check that the proof is able to verify the marshalled tx result.
 
-		err = lastResultsMerkleProof.Verify(block.Header.LastResultsHash, txResultMarshalled)
+		lastResultsHash := bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash
+		txResultMarshalled := bridgeCommitmentInclusionProof.TxResultMarshalled
+		err = lastResultsMerkleProof.ToMerkleProof().Verify(lastResultsHash, txResultMarshalled)
 		s.Require().NoError(err)
 
 		// Submit transaction to Ethereum to process the withdrawal.
@@ -154,7 +146,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 			txResultMarshalled,
 			txResultProof,
 		)
-		err = s.SendEthTransactionToFuelStreamXContract(data)
+		_, err = s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 	})
 }
