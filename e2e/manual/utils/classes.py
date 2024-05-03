@@ -396,6 +396,18 @@ class CosmosChain:
         return self.tx(
             f"bank send {self.key_name} {receiver_addr} {amount}")
 
+    def delegate(self, validator_addr: str, amount: str) -> str:
+        return self.tx(
+            f"staking delegate {validator_addr} {amount}")
+
+    def unbond(self, validator_addr: str, amount: str) -> str:
+        return self.tx(
+            f"staking unbond {validator_addr} {amount}")
+
+    def redelegate(self, src_validator_addr: str, dst_validator_addr: str, amount: str) -> str:
+        return self.tx(
+            f"staking redelegate {src_validator_addr} {dst_validator_addr} {amount}")
+
     def ibc_transfer(self, channel_id: str, receiver_addr: str,
                      amount: str) -> str:
         return self.tx(
