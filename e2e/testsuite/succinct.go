@@ -31,7 +31,7 @@ type SuccinctXProof struct {
 	Output     string `json:"output"`
 }
 
-// Note: The operator is only active for 1 proof generation
+// RunSuccinctXOperatorMockApi runs the operator for 1 proof generation.
 func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 	s.T().Log("starting SuccinctX operator container...")
 	var err error
@@ -55,7 +55,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 			"POST_DELAY_MINUTES=0", // No delays
 			"LOCAL_PROVE_MODE=false",
 			"LOCAL_RELAY_MODE=false",
-			"UPDATE_DELAY_BLOCKS=20",
+			fmt.Sprintf("UPDATE_DELAY_BLOCKS=%d", UPDATE_DELAY_BLOCKS),
 		},
 	}
 
@@ -103,7 +103,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 	return requestId, startBlock, targetBlock
 }
 
-// Note: The relayer only submits 1 proof to Ethereum
+// RunSuccinctXRelayerMockApi runs the relayer to submit 1 proof to Ethereum.
 func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	requestId string,
 	startBlock uint64,
@@ -187,7 +187,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 				matches := re.FindStringSubmatch(logStr)
 				// The first element represents the string captures, the second is the tx hash
 				if matches != nil && len(matches) > 1 {
-					receipt, err := s.Chain.ethClient.TransactionReceipt(ctx, common.BytesToHash(common.FromHex(matches[1])))
+					receipt, err := s.Chain.ethClient.TransactionReceipt(ctx, common.HexToHash(matches[1]))
 					if err != nil {
 						s.T().Logf("error retreiving transaction receipt %s", err)
 						return false

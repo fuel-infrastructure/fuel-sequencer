@@ -3,8 +3,10 @@ package testsuite
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -47,11 +49,11 @@ func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
 	return publicKeyECDSA
 }
 
-func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) error {
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*ethereumtypes.Receipt, error) {
 	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
-func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) error {
+func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
 
 	privateKey := s.GetEthPrivateKey()
 	publicKey := s.GetEthPublicKey()
@@ -59,14 +61,14 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 	fromAddress := crypto.PubkeyToAddress(*publicKey)
 	nonce, err := s.Chain.ethClient.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	value := big.NewInt(0)
 	gasLimit := uint64(1000000)
 	gasPrice, err := s.Chain.ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tx := ethereumtypes.NewTx(&ethereumtypes.LegacyTx{
@@ -80,18 +82,34 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 
 	chainID, err := s.Chain.ethClient.NetworkID(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	signedTx, err := ethereumtypes.SignTx(tx, ethereumtypes.NewEIP155Signer(chainID), privateKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	s.Logger().Info(fmt.Sprintf("Submitting transaction to FuelStreamX contract: %s", signedTx.Hash().Hex()))
 	err = s.Chain.ethClient.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	// Sleep for some time to ensure Ethereum transaction went through.
+	// TODO: this can be replaced with a wait for Ethereum block once we change anvil to generate blocks.
+	s.Sleep(time.Second * 2)
+
+	receipt, err := s.Chain.ethClient.TransactionReceipt(context.Background(), signedTx.Hash())
+	if err != nil {
+		return nil, err
+	} else if receipt.Status != 1 {
+		txJson, err := signedTx.MarshalJSON()
+		s.Require().NoError(err)
+		receiptJson, err := receipt.MarshalJSON()
+		s.Require().NoError(err)
+		return nil, fmt.Errorf("transaction failed - check Ethereum node logs; tx:%X; receipt:%s", txJson, receiptJson)
+	}
+
+	return receipt, nil
 }

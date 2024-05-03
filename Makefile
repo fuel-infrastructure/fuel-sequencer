@@ -436,6 +436,7 @@ test-e2e-authorize-transactions:
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
 	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker stop
+	@docker ps -aq --filter "name=succinctX-relayer" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
@@ -443,6 +444,7 @@ clean-e2e:
 
 	@echo "🧹 Removing Docker containers..."
 	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker rm
+	@docker ps -aq --filter "name=succinctX-relayer" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
