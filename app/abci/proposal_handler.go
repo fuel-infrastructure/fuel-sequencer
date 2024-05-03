@@ -106,7 +106,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
 		if sidecarErr != nil {
-			ctx.Logger().Warn("observed sidecar error", "err", sidecarErr)
+			ctx.Logger().Warn("observed sidecar error at PrepareProposal", "err", sidecarErr)
 			// This error is also passed to generateEthEventsTx to perform dedicated error handling.
 		}
 
@@ -260,7 +260,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 		)
 		if sidecarErr != nil {
-			ctx.Logger().Warn("observed sidecar error", "err", sidecarErr)
+			ctx.Logger().Warn("observed sidecar error at ProcessProposal", "err", sidecarErr)
 			// This error is also passed to generateEthEventsTx to perform dedicated error handling.
 		}
 
