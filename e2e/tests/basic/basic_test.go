@@ -48,7 +48,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Zero(res.Code)
 
 		// Wait for blocks (RPC).
-		err = s.WaitForBlocks(s.Ctx(), 2, time.Minute)
+		err = s.WaitForSequencerBlocks(s.Ctx(), 2, time.Minute)
 		s.Require().NoError(err)
 
 		// Ensure balance was reduced (GRPC)
@@ -71,36 +71,32 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		// --------------------------------------- Ethereum queries and transactions
 
 		// Try getting height (RPC).
-		ethHeight1, err := s.GetEthereumHeight(s.Ctx())
+		ethHeight, err := s.GetEthereumHeight(s.Ctx())
 		s.Require().NoError(err)
-		s.Require().Greater(ethHeight1, uint64(1))
+		s.Require().Greater(ethHeight, uint64(1))
 
 		// Try generating some events via a transaction (RPC) - via deposit.
 		toAddress := testsuite.ADDRESSES[1]
 		amount1 := big.NewInt(200)
 		amount2 := big.NewInt(300)
 		depositData := testsuite.PackDeposit(amount1, toAddress, amount2)
-		err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(depositData)
 		s.Require().NoError(err)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		someBytes := []byte("some bytes")
 		authorizeData := testsuite.PackAuthorize(someBytes)
-		err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		authorizeTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events
 
-		// Wait for Sidecar to get the events.
-		s.Sleep(time.Second * 10)
-
-		// Get latest Ethereum height and check two blocks higher.
+		// Get latest Ethereum height.
 		ethHeight2, err := s.GetEthereumHeight(s.Ctx())
 		s.Require().NoError(err)
-		s.Require().Equal(ethHeight2, ethHeight1+2)
 
-		// Ensure deposit event is at ethHeight1+1
-		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Minute/2, int(ethHeight1+1))
+		// Ensure deposit event is at the expected height.
+		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(depositTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
 		s.Require().Equal(sidecartypes.SendToSequencerEventName, depositEvents[0].EventType)
@@ -119,8 +115,8 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 			Duration: amount2.String(),
 		}))
 
-		// Ensure authorize event is at ethHeight1+2
-		authorizeEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Minute/2, int(ethHeight1+2))
+		// Ensure authorize event is at the expected height.
+		authorizeEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(authorizeTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
 		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
@@ -136,7 +132,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
 
-		err = s.WaitForBlocks(s.Ctx(), 5, time.Minute)
+		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
 		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
 		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)
