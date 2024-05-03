@@ -61,7 +61,7 @@ validators:
     sidecar:
       enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
       address: localhost:8080
-      timeout: 5s
+      timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
 - name: bob
   bonded: 50000000ufuel
   config:
