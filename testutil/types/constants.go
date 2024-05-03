@@ -42,7 +42,7 @@ var (
 	TestAmount2   = "101"
 	TestAmount3   = "102"
 	TestTo1       = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
-	TestTo2       = ""
+	TestTo2       = "0x0000000000000000000000000000000000000000" // the null Ethereum address
 	TestTo3       = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
 	TestTo4       = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
 	TestDuration1 = "31536050"

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,9 +10,16 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/stretchr/testify/require"
 )
+
+// Ref: https://etherscan.io/address/0x0000000000000000000000000000000000000000
+func TestNullAddressIsAsExpected(t *testing.T) {
+	require.Equal(t, keeper.NullEthereumAddress, "0x0000000000000000000000000000000000000000")
+}
 
 func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumAddress() {
 	accAddress, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testutiltypes.TestEthAddr1Str)

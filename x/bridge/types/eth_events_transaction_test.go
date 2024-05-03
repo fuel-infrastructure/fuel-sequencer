@@ -325,9 +325,9 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 527, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(527)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(526)) // just under enough
+	require.EqualValues(t, 572, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(572)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(571)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.

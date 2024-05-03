@@ -129,8 +129,8 @@ func (k Keeper) processDepositEvent(
 	// Generate a potential sequencer address from the Ethereum 'Depositor' address.
 	potentialSequencerAddr, seqErr := k.GenerateSequencerAddressFromEthereumAddress(depositEvent.Depositor)
 
-	// If a `Recipient` address was not specified send tokens to the address mapped 1-to-1 fom the `Depositor` Ethereum Address.
-	if isDestinationOwnedBySender(depositEvent.Depositor, depositEvent.Recipient, potentialSequencerAddr.String(), seqErr) {
+	// If Recipient is owned by Depositor, send tokens to the address mapped 1-to-1 fom the Depositor Ethereum address.
+	if isRecipientOwnedByDepositor(depositEvent.Depositor, depositEvent.Recipient, potentialSequencerAddr.String(), seqErr) {
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, depositEvent.Depositor, vesting, tokensToMint)
 		if err != nil {
 			k.Logger().Error(
