@@ -65,12 +65,12 @@ func (s *E2ETestSuite) PollForLastEthereumBlockSynced(
 			return nil, err
 		}
 		if resp.Block != block {
-			return nil, fmt.Errorf("last block synced (%d) does not match expected: (%d)", resp.Block, block)
+			return nil, fmt.Errorf("last Ethereum block synced (%d) does not match expected: (%d)", resp.Block, block)
 		}
 		return nil, nil
 	}
 
 	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
-	s.Require().NoError(err, fmt.Errorf("exact last block synced %d not found in expected number of blocks", block))
+	s.Require().NoError(err, fmt.Errorf("last Ethereum block synced %d not found in expected number of blocks", block))
 }
