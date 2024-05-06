@@ -13,6 +13,9 @@ Dependencies:
 - proto-builder
     - https://ghcr.io/cosmos/proto-builder
     - Preferred version: `0.14.0`
+- go
+    - https://go.dev/doc/install
+    - Preferred version: `1.21`
 
 To run the FuelSequencer with enabled Sidecar and an Ethereum node:
 
