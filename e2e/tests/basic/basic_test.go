@@ -91,15 +91,12 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- Ensure Sidecar got the new Events
 
-		// Wait for Sidecar to get the events.
-		s.Sleep(time.Second * 10)
-
 		// Get latest Ethereum height.
 		ethHeight2, err := s.GetEthereumHeight(s.Ctx())
 		s.Require().NoError(err)
 
 		// Ensure deposit event is at the expected height.
-		depositEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(depositTxReceipt.BlockNumber.Int64()))
+		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(depositTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
 		s.Require().Equal(sidecartypes.SendToSequencerEventName, depositEvents[0].EventType)
@@ -119,7 +116,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		}))
 
 		// Ensure authorize event is at the expected height.
-		authorizeEvents, err := s.QuerySidecarBlockEvents(s.Ctx(), int(authorizeTxReceipt.BlockNumber.Int64()))
+		authorizeEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(authorizeTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
 		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
