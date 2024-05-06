@@ -243,7 +243,7 @@ run-sidecar:
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
-	@$(eval DEVELOPMENT ?= "false")
+	@$(eval DEVELOPMENT ?= "true")
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
