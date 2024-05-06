@@ -235,7 +235,7 @@ func startSidecar(
 	// Create the sequencer client
 	scSequencerClient := scsequencerclient.NewClient(grpcConn)
 
-	// If the unsafeEthereumBlock is not set then we attempt to query the
+	// If the unsafe start block is not set then we attempt to query the
 	// last Ethereum block synced from the genesis file and the Sequencer.
 	if ethCfg.unsafeStartBlock == 0 {
 
