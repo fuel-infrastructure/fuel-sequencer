@@ -194,7 +194,6 @@ func startSidecar(
 	var loggerCfg zap.Config
 	if scrCfg.development {
 		loggerCfg = zap.NewDevelopmentConfig()
-
 	} else {
 		loggerCfg = zap.NewProductionConfig()
 		loggerCfg.EncoderConfig.CallerKey = zapcore.OmitKey // do not output file and line number of caller
