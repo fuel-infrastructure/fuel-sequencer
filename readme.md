@@ -22,10 +22,10 @@ make run-sidecar                                     # terminal 2
 make clean                                           # once you're done
 ```
 
-To run the FuelSequencer on its own, you need to disable the Sidecar in `config.yml` and then:
+To run the FuelSequencer on its own, you can run a version with disabled Sidecar:
 
 ```bash
-make run-sequencer
+make run-sequencer-no-sidecar
 make clean # once you're done
 ```
 

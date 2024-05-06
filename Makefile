@@ -214,6 +214,8 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 
 run-sequencer: proto-go-gen serve
 
+run-sequencer-no-sidecar: proto-go-gen serve-no-sidecar
+
 run-sidecar:
 	@$(eval HOST ?= "0.0.0.0")
 	@$(eval COSMOS_NODE_RPC ?= "127.0.0.1:9090")
@@ -240,6 +242,9 @@ run-sidecar:
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
+
+serve-no-sidecar:
+	ignite chain serve -v --reset-once --skip-proto --build.tags ledger --config config-no-sidecar.yml
 
 keys:
 	@echo "🤖 Generating keys..."
