@@ -36,7 +36,7 @@ func (s *E2ETestSuite) PollForSidecarBlockEvents(
 	doPoll := func(ctx context.Context, now time.Time) (any, error) {
 		res, err := s.QuerySidecarBlockEvents(ctx, blockNumber)
 		if err != nil {
-			return nil, fmt.Errorf("events not found at block %d: %s", blockNumber, err.Error())
+			return nil, fmt.Errorf("error querying sidecar block events at height %d: %s", blockNumber, err.Error())
 		}
 		return res, nil
 	}
