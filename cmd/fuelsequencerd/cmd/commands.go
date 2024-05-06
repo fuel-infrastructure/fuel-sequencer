@@ -220,13 +220,13 @@ func startSidecar(
 	if ethCfg.unsafeStartBlock > 0 {
 		startBlock = big.NewInt(ethCfg.unsafeStartBlock)
 		logger.Warn(
-			"ethereum start block set to unsafe_eth_start_block value",
+			fmt.Sprintf("ethereum start block set to %s flag value", FlagEthereumUnsafeStartBlock),
 			zap.String("start_block", startBlock.String()),
 		)
 	}
 
 	// Create a connection to the Cosmos gRPC server.
-	logger.Info("dialling Sequencer node", zap.String("rpc_url", seqCfg.grpcUrl))
+	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
 	grpcConn, err := grpc.Dial(seqCfg.grpcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
@@ -247,7 +247,7 @@ func startSidecar(
 			if err != nil {
 				logger.Error(
 					"failed to read the response body of the genesis file",
-					zap.String("sequencer_rpc_url", seqCfg.rpcUrl),
+					zap.String("rpc_url", seqCfg.rpcUrl),
 					zap.Error(err),
 				)
 			} else {
@@ -264,7 +264,7 @@ func startSidecar(
 		if err != nil {
 			logger.Warn(
 				"failed to query LastEthereumBlockSynced from Sequencer, but maybe Sequencer hasn't started",
-				zap.String("sequencer_grpc_url", seqCfg.grpcUrl),
+				zap.String("grpc_url", seqCfg.grpcUrl),
 				zap.Error(err),
 			)
 		} else {
