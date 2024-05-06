@@ -41,8 +41,8 @@ func (s *E2ETestSuite) PollForSidecarBlockEvents(
 		return res, nil
 	}
 
-	bp := TimePoller[any]{PollFunc: doPoll}
-	res, err := bp.DoPoll(ctx, time.Now().Add(deltaTime))
+	tp := TimePoller[any]{PollFunc: doPoll}
+	res, err := tp.DoPoll(ctx, time.Now().Add(deltaTime))
 	if err != nil {
 		return nil, err
 	} else {
