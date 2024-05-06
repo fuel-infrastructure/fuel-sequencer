@@ -348,12 +348,17 @@ func querySidecarServerCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "Sidecar's gRPC URL")
+	cmd.Flags().DurationP(FlagQueryTimeout, "t", time.Second*5, "how long to wait before timing out")
 
 	return cmd
 }
 
 func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	sidecarGrpcUrl, err := cmd.Flags().GetString(FlagSidecarGrpcUrl)
+	if err != nil {
+		return err
+	}
+	queryTimeout, err := cmd.Flags().GetDuration(FlagQueryTimeout)
 	if err != nil {
 		return err
 	}
@@ -377,7 +382,7 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 
 	sidecarClient := types.NewSidecarClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
 	resp, err := sidecarClient.GetBlockEvents(ctx, &types.QueryBlockEventsRequest{BlockNumber: blockNumber})

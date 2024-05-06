@@ -19,6 +19,7 @@ const (
 	// Sidecar client flags
 
 	FlagSidecarGrpcUrl = "sidecar_grpc_url"
+	FlagQueryTimeout   = "query_timeout"
 )
 
 type sidecarConfig struct {
