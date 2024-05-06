@@ -13,6 +13,9 @@ Dependencies:
 - proto-builder
     - https://ghcr.io/cosmos/proto-builder
     - Preferred version: `0.14.0`
+- go
+    - https://go.dev/doc/install
+    - Preferred version: `1.21`
 
 To run the FuelSequencer with enabled Sidecar and an Ethereum node:
 
@@ -22,10 +25,10 @@ make run-sidecar                                     # terminal 2
 make clean                                           # once you're done
 ```
 
-To run the FuelSequencer on its own, you need to disable the Sidecar in `config.yml` and then:
+To run the FuelSequencer on its own, you can run a version with disabled Sidecar:
 
 ```bash
-make run-sequencer
+make run-sequencer-no-sidecar
 make clean # once you're done
 ```
 
