@@ -178,7 +178,7 @@ run-sidecar-binary:
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
-	@$(eval DEVELOPMENT ?= "true")
+	@$(eval DEVELOPMENT ?= "false")
 	@$(eval ARCH ?= linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
 	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) \
