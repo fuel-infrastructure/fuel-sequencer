@@ -23,8 +23,11 @@ func (s *E2ETestSuite) QuerySidecarBlockEvents(ctx context.Context, blockNumber 
 	}
 }
 
-// PollForSidecarBlockEvents polls until events are found at the specified block number.
-// Note: This function times out after deltaTime duration.
+// PollForSidecarBlockEvents polls until the Sidecar returns a result for the specified block number, which can be an
+// empty or non-empty list of events. We are assuming that the Sidecar will error if it did not process the specified
+// Ethereum block height, in which case we will retry until the specified time delta.
+//
+// Note: in any case, this function times out with an error after the specified time delta.
 func (s *E2ETestSuite) PollForSidecarBlockEvents(
 	ctx context.Context, deltaTime time.Duration, blockNumber int,
 ) ([]*sidecartypes.Event, error) {
