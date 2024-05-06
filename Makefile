@@ -260,7 +260,8 @@ run-sidecar:
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
-		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)"
+		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--development "$(DEVELOPMENT)"
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
