@@ -9,7 +9,7 @@ const (
 	FlagSidecarPort                  = "port"
 	FlagSidecarDevelopment           = "development"
 	FlagEthereumWebSocketUrl         = "eth_ws_url"
-	FlagEthereumContractAddrHex      = "eth_contract_address"
+	FlagEthereumContractAddr         = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
 	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
