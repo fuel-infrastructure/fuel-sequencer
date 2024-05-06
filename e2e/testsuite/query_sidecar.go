@@ -24,6 +24,7 @@ func (s *E2ETestSuite) QuerySidecarBlockEvents(ctx context.Context, blockNumber 
 }
 
 // PollForSidecarBlockEvents polls until events are found at the specified block number.
+// Note: This function times out after deltaTime duration.
 func (s *E2ETestSuite) PollForSidecarBlockEvents(
 	ctx context.Context, deltaTime time.Duration, blockNumber int,
 ) ([]*sidecartypes.Event, error) {
