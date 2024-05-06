@@ -40,3 +40,16 @@ type ethereumConfig struct {
 	minLogsQueryInterval time.Duration
 	unsafeStartBlock     int64
 }
+
+// AppOptionsMap is a stub implementing AppOptions which can get data from a map.
+// It is used to inject app options very early on, for the NewRootCmd function.
+type AppOptionsMap map[string]interface{}
+
+func (m AppOptionsMap) Get(key string) interface{} {
+	v, ok := m[key]
+	if !ok {
+		return interface{}(nil)
+	}
+
+	return v
+}
