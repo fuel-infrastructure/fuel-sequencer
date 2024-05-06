@@ -239,7 +239,7 @@ func startSidecar(
 	// last Ethereum block synced from the genesis file and the Sequencer.
 	if ethCfg.unsafeStartBlock == 0 {
 
-		// Only try quering the genesis file if the sequencerTmRpcUrl was specified.
+		// Only try quering the genesis file if the sequencer RPC URL was specified.
 		if seqCfg.rpcUrl != "" {
 			lastEthereumBlockSynced, err := cometutils.QuerySequencerGenesisForLastEthereumBlockSynced(
 				ctx, seqCfg.rpcUrl,
