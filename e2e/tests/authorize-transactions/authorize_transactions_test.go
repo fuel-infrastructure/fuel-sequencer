@@ -2,6 +2,7 @@ package authorize_transactions_test
 
 import (
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -111,6 +112,10 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 
 		// ----------------------------------- Test MsgWithdrawDelegatorReward
 
+		// Wait some blocks for a significant amount of rewards to accrue, otherwise it's harder to perform some checks.
+		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
+		s.Require().NoError(err)
+
 		// Make sure that rewards have accrued.
 		rewards := s.QueryDelegationRewards(s.Ctx(), delegatorAddress, validator2Address)
 		s.Require().NotZero(rewards.AmountOf(testsuite.BridgeDenom))
@@ -120,12 +125,15 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 			delegatorAddress, validator2Address,
 		)
 		authorizeData = testsuite.PackAuthorize(msgWithdrawDelegatorRewardBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		txReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
-		// To make sure that the rewards withdrawal went through make sure that the rewards balance resets to zero/
-		zeroRewards := sdk.NewDecCoins(sdk.NewDecCoin(testsuite.BridgeDenom, sdkmath.ZeroInt()))
-		s.PollForDelegationRewards(s.Ctx(), 10, delegatorAddress, validator2Address, zeroRewards)
+		// Wait for the withdrawal to be processed.
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, txReceipt.BlockNumber.Uint64())
+
+		// To make sure that the rewards withdrawal went through make sure that the rewards balance went down
+		lessRewards := s.QueryDelegationRewards(s.Ctx(), delegatorAddress, validator2Address)
+		s.Require().True(lessRewards.AmountOf(testsuite.BridgeDenom).LT(rewards.AmountOf(testsuite.BridgeDenom)))
 
 		// ----------------------------------- Test MsgUndelegate
 
@@ -139,7 +147,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		s.Require().NoError(err)
 
 		// To make sure that the execution of MsgUndelegate went through check that all funds where withdrawn.
-		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
+		s.PollForNoDelegation(s.Ctx(), 10, delegatorAddress, validator2Address)
 	})
 }
 

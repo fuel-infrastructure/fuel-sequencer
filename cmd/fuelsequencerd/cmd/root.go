@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -43,9 +44,13 @@ func NewRootCmd() *cobra.Command {
 	)
 
 	if err := depinject.Inject(
-		depinject.Configs(app.AppConfig(),
+		depinject.Configs(
+			app.AppConfig(),
 			depinject.Supply(
 				log.NewNopLogger(),
+				servertypes.AppOptions(AppOptionsMap{
+					flags.FlagHome: app.DefaultNodeHome, // otherwise x/upgrade creates a data/ folder at the CWD
+				}),
 				func() address.Codec {
 					return appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(
 						app.AccountAddressPrefix))

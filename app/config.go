@@ -80,6 +80,7 @@ enabled = true
 # This defines the Sidecar server to listen to.
 address = "localhost:8080"
 # This defines how long the client should wait for responses.
+# This should be reasonably lower than the expected block time.
 timeout = "5s"`
 
 	return customAppTemplate, customAppConfig

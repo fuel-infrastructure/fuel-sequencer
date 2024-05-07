@@ -63,8 +63,7 @@ func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
 		return false, err
 	}
 
-	return m.AdvanceSequencer == e.AdvanceSequencer &&
-		m.NewEthereumBlock == e.NewEthereumBlock &&
+	return m.NewEthereumBlock == e.NewEthereumBlock &&
 		m.BlockNumber == e.BlockNumber &&
 		equalEventSlices, nil
 }
@@ -103,11 +102,6 @@ func (m *EthEventsTx) ValidateStateful(ethereumProxyContractAddress string) erro
 // ValidateBeforeProcessing performs some state-based checks on EthEventsTx before it is officially processed.
 func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset uint64) error {
 
-	// We cannot process an EthEventsTx without advancing the sequencer.
-	if !m.AdvanceSequencer {
-		return fmt.Errorf("expected AdvanceSequencer to be true, got false in EthEventsTx (%s)", m)
-	}
-
 	// If we have an offset, we expect at least one new event.
 	//
 	// The cases where we receive NO events are:
@@ -116,8 +110,6 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	//   being synced still has more events for us to consume, so this case is invalid.
 	// - No new Ethereum block - but since the offset is non-zero, we know that the current Ethereum block exists, and
 	//   we expect to receive the remaining events. The current block is a new Ethereum block, so this case is invalid.
-	// - An error occurred and AdvanceSequencer is false - but we know that AdvanceSequencer is true because we checked
-	//   it above. If AdvanceSequencer was false we would not have an EthEventsTx, so this case is invalid.
 	if eventIndexOffset > 0 && len(m.Events) == 0 {
 		return fmt.Errorf(
 			"expected at least 1 new event if offset is non-zero (%d), got EthEventsTx (%s)",
@@ -146,9 +138,6 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 // discrepancy, we expect at least one unit test to fail.
 func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
 	var l int
-	if m.AdvanceSequencer {
-		n += 2
-	}
 	if m.NewEthereumBlock {
 		n += 2
 	}

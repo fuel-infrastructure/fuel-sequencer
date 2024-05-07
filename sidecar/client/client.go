@@ -158,7 +158,7 @@ func (c *GRPCClient) GetBlockEvents(
 	defer cancel()
 
 	if c.client == nil {
-		return nil, fmt.Errorf("Sidecar client not started")
+		return nil, fmt.Errorf("sidecar client not started")
 	}
 
 	return c.client.GetBlockEvents(ctx, req, grpc.WaitForReady(true))

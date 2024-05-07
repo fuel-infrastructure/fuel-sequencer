@@ -36,7 +36,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 			name: "successfully processes AuthorizeEvents if none error",
 			ethEventsTx: &types.EthEventsTx{
 				Events:           []*sidecartypes.Event{testtypes.TestEvent2, testtypes.TestEvent2},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -50,7 +49,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 					{EventType: "invalid-event", Data: []byte("invalid bytes")}, // event with unrecognized type
 					testtypes.TestEvent2, // valid AuthorizeEvent
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -72,7 +70,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 					),
 					testtypes.TestEvent2, // valid AuthorizeEvent
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -489,7 +486,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent1,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -511,7 +507,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 					testtypes.TestEvent1,
 					testtypes.TestEvent1,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -532,7 +527,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent10,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -553,7 +547,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent11,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -574,7 +567,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent3,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -596,7 +588,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 					testtypes.TestEvent3,
 					testtypes.TestEvent3,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -617,7 +608,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent4,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -638,7 +628,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent5,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -659,7 +648,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent6,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -680,7 +668,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent7,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -765,7 +752,6 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsDepositEvent_AmountParseFailu
 		Events: []*sidecartypes.Event{
 			testtypes.TestEvent8,
 		},
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      1,
 	}
