@@ -88,7 +88,7 @@ func init() {
 		&ed25519.PubKey{},
 	)
 	encodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*authtypes.AccountI)(nil),
+		(*sdk.AccountI)(nil),
 		&bridgetypes.EthOwnedBaseAccount{},
 		&bridgetypes.EthOwnedContinuousVestingAccount{},
 		&vestingtypes.DelayedVestingAccount{},
