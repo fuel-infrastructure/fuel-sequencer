@@ -299,7 +299,7 @@ func startSidecar(
 
 	// Contract ABI
 	var contractAbi abi.ABI
-	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.MockSequencerProxyContractABI))
+	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.SequencerProxyContractABI))
 	if err != nil {
 		return err
 	}

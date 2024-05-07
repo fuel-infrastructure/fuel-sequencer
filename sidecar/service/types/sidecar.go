@@ -49,6 +49,8 @@ type (
 func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 	switch m.EventType {
 	case MockDepositEventName:
+		fallthrough
+	case DepositEventName:
 		var eventData DepositEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
@@ -56,6 +58,8 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 		}
 		return &eventData, nil
 	case MockAuthorizeEventName:
+		fallthrough
+	case AuthorizeEventName:
 		var eventData AuthorizeEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
