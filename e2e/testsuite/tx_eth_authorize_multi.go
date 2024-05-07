@@ -1,25 +1,13 @@
 package testsuite
 
-const proxyContractAuthorizeMultiABIJSON = `
-[
-  {
-    "type": "function",
-    "name": "AuthorizeMulti",
-    "inputs": [
-      {
-        "name": "_message",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  }
-]
-`
+import sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 
 func PackAuthorizeMulti(bytes []byte) []byte {
-	return packCall(proxyContractAuthorizeMultiABIJSON, "AuthorizeMulti", []interface{}{
-		bytes,
-	})
+	return packCall(
+		sidecartypes.MockSequencerProxyContractABI,
+		sidecartypes.MockAuthorizeMultiFunctionName,
+		[]interface{}{
+			bytes,
+		},
+	)
 }

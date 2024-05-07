@@ -33,9 +33,9 @@ func MustGetSidecarEventFromParsedEvent(
 	var eventType string
 	switch parsedEvent.(type) {
 	case *sidecartypes.DepositEvent:
-		eventType = sidecartypes.DepositEventName
+		eventType = sidecartypes.MockDepositEventName
 	case *sidecartypes.AuthorizeEvent:
-		eventType = sidecartypes.AuthorizeEventName
+		eventType = sidecartypes.MockAuthorizeEventName
 	default:
 		panic("invalid event type")
 	}

@@ -108,22 +108,22 @@ func TestEvent_Equal(t *testing.T) {
 		{
 			name: "Error - event1 cannot be unmarshalled",
 			event1: &types.Event{
-				EventType:       types.AuthorizeEventName,
+				EventType:       types.MockAuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			event2:    testtypes.TestEvent2,
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
 		},
 		{
 			name:   "Error - event2 cannot be unmarshalled",
 			event1: testtypes.TestEvent2,
 			event2: &types.Event{
-				EventType:       types.AuthorizeEventName,
+				EventType:       types.MockAuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
 		},
 	}
 
@@ -180,20 +180,20 @@ func TestEvent_ValidateBasic(t *testing.T) {
 		{
 			name: "Invalid event - DepositEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType:       types.DepositEventName,
+				EventType:       types.MockDepositEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.DepositEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockDepositEventName),
 		},
 		{
 			name: "Invalid event - AuthorizeEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType:       types.AuthorizeEventName,
+				EventType:       types.MockAuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
 		},
 	}
 

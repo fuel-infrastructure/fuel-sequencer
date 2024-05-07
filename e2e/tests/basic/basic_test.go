@@ -99,7 +99,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(depositTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
-		s.Require().Equal(sidecartypes.DepositEventName, depositEvents[0].EventType)
+		s.Require().Equal(sidecartypes.MockDepositEventName, depositEvents[0].EventType)
 
 		publicKey := s.GetEthPublicKey()
 		fromAddress := crypto.PubkeyToAddress(*publicKey).String()
@@ -119,7 +119,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		authorizeEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(authorizeTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
-		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
+		s.Require().Equal(sidecartypes.MockAuthorizeEventName, authorizeEvents[0].EventType)
 
 		// Check authorize event data is as expected
 		var authorizeEventData sidecartypes.AuthorizeEvent

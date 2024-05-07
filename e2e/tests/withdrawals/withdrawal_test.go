@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -68,7 +69,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelstreamxABI, err := abi.JSON(strings.NewReader(testsuite.FUEL_STREAM_X_ABI))
+		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.MockSequencerProxyContractABI))
 		s.Require().NoError(err)
 
 		// Check DataCommitmentStored event
