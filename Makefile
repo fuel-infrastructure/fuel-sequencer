@@ -5,7 +5,7 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
+ETH_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum"
 ETH_DOCKER_CONTAINER_NAME := "ethereum"
 
 FSX_DOCKER_IMAGE_NAME_OPERATOR := "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
@@ -175,7 +175,7 @@ run-sidecar-binary:
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
-	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
 	@$(eval DEVELOPMENT ?= "false")
@@ -242,7 +242,7 @@ run-sidecar:
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
-	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
 	@$(eval DEVELOPMENT ?= "true")
@@ -422,11 +422,14 @@ build-fsx-docker-images:
 	@echo "✅ Finished!"
 
 build-eth-docker-image:
-	@echo "🤖 Updating git submodules (test-contracts)..."
-	@git submodule update --init --remote e2e/test-contracts
-	@(cd e2e/test-contracts && make build)
-	@echo "🤖 Cleaning up git submodules (test-contracts)..."
-	@git submodule update --remote e2e/test-contracts
+	@echo "🤖 Updating git submodules (fuel-rollup)..."
+	@git submodule update --init --remote e2e/fuel-rollup
+	@docker build \
+		-t $(ETH_DOCKER_IMAGE_NAME):latest \
+		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
+		./e2e/fuel-rollup/
+	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
+	@git submodule update --remote e2e/fuel-rollup
 	@echo "✅ Finished!"
 
 run-eth-docker-container: check-eth-docker-image-exists
