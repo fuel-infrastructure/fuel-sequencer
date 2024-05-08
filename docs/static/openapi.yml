@@ -8262,6 +8262,424 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/eth_events_tx/{block_number}:
+    get:
+      summary: EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
+      operationId: FuelsequencerBridgeV1Query_EthEventsTxByBlockNumber
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              eth_events_tx:
+                description: >-
+                  eth_events_tx contains the Ethereum events transaction
+                  information.
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        event_type:
+                          type: string
+                        data:
+                          type: string
+                          format: byte
+                        contract_address:
+                          type: string
+                      description: >-
+                        Event stores the event data, type and contract address
+                        queried from Ethereum.
+                    description: events defines the list of Ethereum events.
+                  new_ethereum_block:
+                    type: boolean
+                    description: >-
+                      new_ethereum_block is a boolean which indicates whether a
+                      new Ethereum
+
+                      block has been queried from the Sidecar and that the
+                      events from it were
+
+                      fully consumed by the Sequencer. This is needed to
+                      determine when
+
+                      LastEthereumBlockSynced should be incremented by the
+                      PreBlocker. If it's
+
+                      false but the events list is not empty, the block was
+                      partially consumed.
+                  block_number:
+                    type: string
+                    format: uint64
+                    description: >-
+                      block_number is the block that these events belong to.
+                      This is expected to
+
+                      be LastEthereumBlockSynced+1, since the events are from
+                      the next block.
+            description: >-
+              QueryGetEthEventsTxByBlockNumberResponse is the response type for
+              the
+
+              Query/EthEventsTxByBlockNumber RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: block_number
+          description: >-
+            block_number is the Ethereum block number for which the events are
+            queried.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/ethereum_event_index_offset:
+    get:
+      summary: Queries the EthereumEventIndexOffset.
+      operationId: FuelsequencerBridgeV1Query_EthereumEventIndexOffset
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              offset:
+                type: string
+                format: uint64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/last_ethereum_block_synced:
+    get:
+      summary: Queries the LastEthereumBlockSynced.
+      operationId: FuelsequencerBridgeV1Query_LastEthereumBlockSynced
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              block:
+                type: string
+                format: uint64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/last_ethereum_nonce:
+    get:
+      summary: Queries the LastEthereumNonce.
+      operationId: FuelsequencerBridgeV1Query_LastEthereumNonce
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/sequencer_address_from_ethereum_address/{ethereum_address}:
+    get:
+      summary: Queries a list of SequencerAddressFromEthereumAddress items.
+      operationId: FuelsequencerBridgeV1Query_SequencerAddressFromEthereumAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              sequencer_address:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: ethereum_address
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_info:
+    get:
+      summary: Queries the SupplyDeltaInfo.
+      operationId: FuelsequencerBridgeV1Query_SupplyDeltaInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaInfo:
+                type: object
+                properties:
+                  last_supply:
+                    type: string
+                    description: >-
+                      last_supply is the last supply recorded for the bridge
+                      token.
+                  delta:
+                    type: string
+                    description: >-
+                      delta is the amount of bridge tokens that should be minted
+                      (positive) or
+
+                      burned (negative) on Ethereum.
+                  offset:
+                    type: string
+                    title: >-
+                      offset is used to account for changes in supply that we do
+                      not want to post
+
+                      to Ethereum, including deposits and withdrawals, because
+                      Ethereum will know
+
+                      about these anyways. Note that offset can be positive (to
+                      account for
+
+                      unreported burn) or negative (to account for unreported
+                      mint)
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed:
+    get:
+      summary: Queries a SupplyDeltaProcessed by index.
+      operationId: FuelsequencerBridgeV1Query_SupplyDeltaProcessed
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              SupplyDeltaProcessed:
+                type: object
+                properties:
+                  processed:
+                    type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
+  /fuelsequencer/bridge/v1/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerBridgeV1Query_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when minting
+
+                      upon deposits, burning when withdrawing, and tracking
+                      changes in its
+
+                      supply that will be reported to Ethereum, amongst other
+                      scenarios.
+                  ethereum_proxy_contract_address:
+                    type: string
+                    description: >-
+                      ethereum_proxy_contract_address is the contract address we
+                      expect to
+
+                      receive deposit and authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
+                  vesting_start_time:
+                    type: string
+                    format: date-time
+                    description: >-
+                      vesting_start_time is the common vesting starting time for
+                      vesting accounts
+
+                      that will be created through deposits from Ethereum.
+                  additional_blocked_addresses:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      additional_blocked_addresses is a list of Cosmos SDK-based
+                      addresses that
+
+                      are explicitly disallowed from being controlled by
+                      authorize messages
+
+                      within the Sequencer system. This can include addresses of
+                      module accounts,
+
+                      validator operators, or any other addresses deemed
+                      necessary to protect
+
+                      from unauthorized control actions.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /fuelsequencer.bridge.v1.Msg/SupplyDelta:
     post:
       summary: |-
@@ -8456,12 +8874,19 @@ paths:
                   from is the user address that is withdrawing the tokens from
                   the Sequencer.
 
-                  can be in Hex or Bech32 format.
+                  It can be in Hex or Bech32 format, as supplied in
+                  MsgWithdrawToEthereum.
+
+                  This address is lowercase, regardless of the one in
+                  MsgWithdrawToEthereum.
               to:
                 type: string
                 description: >-
                   to is the user address on Ethereum that will be receiving the
                   tokens.
+
+                  This address is lowercase, regardless of the one in
+                  MsgWithdrawToEthereum.
               amount:
                 description: >-
                   amount is the tokens being sent, which must be the expected
@@ -8503,7 +8928,7 @@ paths:
                   from is the user address that is withdrawing the tokens from
                   the Sequencer.
 
-                  can be in Hex or Bech32 format.
+                  It can be in Hex or Bech32 format.
               to:
                 type: string
                 description: >-
@@ -8542,7 +8967,11 @@ paths:
                   Ethereum.
               from:
                 type: string
-                description: from is the address on FuelSequencer that is posting the blob.
+                description: >-
+                  from is the address on FuelSequencer that is posting the blob.
+
+                  This address is lowercase, regardless of the one in
+                  MsgPostBlob.
               topic:
                 type: string
                 format: byte
@@ -8663,6 +9092,238 @@ paths:
             description: MsgUpdateParams is the Msg/UpdateParams request type.
       tags:
         - Msg
+  /fuel-infrastructure/fuel-sequencer/sequencing/v1/topic:
+    get:
+      summary: Queries all Topics.
+      operationId: FuelsequencerSequencingV1Query_TopicAll
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              topic:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: byte
+                      description: id uniquely identifies the topic with a 32-byte hash.
+                    owner:
+                      type: string
+                      description: >-
+                        owner is the sequencer address, who is the owner of this
+                        topic, assigned at
+
+                        creation.
+                    order:
+                      type: string
+                      description: order is the sequential order of the topic blobs.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /fuel-infrastructure/fuel-sequencer/sequencing/v1/topic/{id}:
+    get:
+      summary: Queries a Topic by Id.
+      operationId: FuelsequencerSequencingV1Query_Topic
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              topic:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: byte
+                    description: id uniquely identifies the topic with a 32-byte hash.
+                  owner:
+                    type: string
+                    description: >-
+                      owner is the sequencer address, who is the owner of this
+                      topic, assigned at
+
+                      creation.
+                  order:
+                    type: string
+                    description: order is the sequential order of the topic blobs.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: byte
+      tags:
+        - Query
+  /fuelsequencer/sequencing/v1/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: FuelsequencerSequencingV1Query_Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  max_blob_size_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      max_blob_size_bytes is the maximum size of blob that can
+                      be submitted in
+
+                      bytes.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
 definitions:
   cosmos.auth.v1beta1.MsgUpdateParams:
     type: object
@@ -12186,6 +12847,49 @@ definitions:
           min_commission_rate is the chain-wide minimum commission rate that a
           validator can charge their delegators
     description: Params defines the parameters for the x/staking module.
+  fuelsequencer.bridge.EthEventsTx:
+    type: object
+    properties:
+      events:
+        type: array
+        items:
+          type: object
+          properties:
+            event_type:
+              type: string
+            data:
+              type: string
+              format: byte
+            contract_address:
+              type: string
+          description: >-
+            Event stores the event data, type and contract address queried from
+            Ethereum.
+        description: events defines the list of Ethereum events.
+      new_ethereum_block:
+        type: boolean
+        description: >-
+          new_ethereum_block is a boolean which indicates whether a new Ethereum
+
+          block has been queried from the Sidecar and that the events from it
+          were
+
+          fully consumed by the Sequencer. This is needed to determine when
+
+          LastEthereumBlockSynced should be incremented by the PreBlocker. If
+          it's
+
+          false but the events list is not empty, the block was partially
+          consumed.
+      block_number:
+        type: string
+        format: uint64
+        description: >-
+          block_number is the block that these events belong to. This is
+          expected to
+
+          be LastEthereumBlockSynced+1, since the events are from the next
+          block.
   fuelsequencer.bridge.Params:
     type: object
     properties:
@@ -12246,6 +12950,227 @@ definitions:
 
           from unauthorized control actions.
     description: Params defines the parameters for the module.
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      last_supply:
+        type: string
+        description: last_supply is the last supply recorded for the bridge token.
+      delta:
+        type: string
+        description: >-
+          delta is the amount of bridge tokens that should be minted (positive)
+          or
+
+          burned (negative) on Ethereum.
+      offset:
+        type: string
+        title: >-
+          offset is used to account for changes in supply that we do not want to
+          post
+
+          to Ethereum, including deposits and withdrawals, because Ethereum will
+          know
+
+          about these anyways. Note that offset can be positive (to account for
+
+          unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.SupplyDeltaProcessed:
+    type: object
+    properties:
+      processed:
+        type: boolean
+  fuelsequencer.bridge.v1.QueryGetEthEventsTxByBlockNumberResponse:
+    type: object
+    properties:
+      eth_events_tx:
+        description: eth_events_tx contains the Ethereum events transaction information.
+        type: object
+        properties:
+          events:
+            type: array
+            items:
+              type: object
+              properties:
+                event_type:
+                  type: string
+                data:
+                  type: string
+                  format: byte
+                contract_address:
+                  type: string
+              description: >-
+                Event stores the event data, type and contract address queried
+                from Ethereum.
+            description: events defines the list of Ethereum events.
+          new_ethereum_block:
+            type: boolean
+            description: >-
+              new_ethereum_block is a boolean which indicates whether a new
+              Ethereum
+
+              block has been queried from the Sidecar and that the events from
+              it were
+
+              fully consumed by the Sequencer. This is needed to determine when
+
+              LastEthereumBlockSynced should be incremented by the PreBlocker.
+              If it's
+
+              false but the events list is not empty, the block was partially
+              consumed.
+          block_number:
+            type: string
+            format: uint64
+            description: >-
+              block_number is the block that these events belong to. This is
+              expected to
+
+              be LastEthereumBlockSynced+1, since the events are from the next
+              block.
+    description: |-
+      QueryGetEthEventsTxByBlockNumberResponse is the response type for the
+      Query/EthEventsTxByBlockNumber RPC method.
+  fuelsequencer.bridge.v1.QueryGetEthereumEventIndexOffsetResponse:
+    type: object
+    properties:
+      offset:
+        type: string
+        format: uint64
+  fuelsequencer.bridge.v1.QueryGetLastEthereumBlockSyncedResponse:
+    type: object
+    properties:
+      block:
+        type: string
+        format: uint64
+  fuelsequencer.bridge.v1.QueryGetLastEthereumNonceResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+  fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
+    type: object
+    properties:
+      SupplyDeltaInfo:
+        type: object
+        properties:
+          last_supply:
+            type: string
+            description: last_supply is the last supply recorded for the bridge token.
+          delta:
+            type: string
+            description: >-
+              delta is the amount of bridge tokens that should be minted
+              (positive) or
+
+              burned (negative) on Ethereum.
+          offset:
+            type: string
+            title: >-
+              offset is used to account for changes in supply that we do not
+              want to post
+
+              to Ethereum, including deposits and withdrawals, because Ethereum
+              will know
+
+              about these anyways. Note that offset can be positive (to account
+              for
+
+              unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.v1.QueryGetSupplyDeltaProcessedResponse:
+    type: object
+    properties:
+      SupplyDeltaProcessed:
+        type: object
+        properties:
+          processed:
+            type: boolean
+  fuelsequencer.bridge.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              minting
+
+              upon deposits, burning when withdrawing, and tracking changes in
+              its
+
+              supply that will be reported to Ethereum, amongst other scenarios.
+          ethereum_proxy_contract_address:
+            type: string
+            description: >-
+              ethereum_proxy_contract_address is the contract address we expect
+              to
+
+              receive deposit and authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
+          vesting_start_time:
+            type: string
+            format: date-time
+            description: >-
+              vesting_start_time is the common vesting starting time for vesting
+              accounts
+
+              that will be created through deposits from Ethereum.
+          additional_blocked_addresses:
+            type: array
+            items:
+              type: string
+            description: >-
+              additional_blocked_addresses is a list of Cosmos SDK-based
+              addresses that
+
+              are explicitly disallowed from being controlled by authorize
+              messages
+
+              within the Sequencer system. This can include addresses of module
+              accounts,
+
+              validator operators, or any other addresses deemed necessary to
+              protect
+
+              from unauthorized control actions.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressResponse:
+    type: object
+    properties:
+      sequencer_address:
+        type: string
+  fuelsequencer.service.v1.Event:
+    type: object
+    properties:
+      event_type:
+        type: string
+      data:
+        type: string
+        format: byte
+      contract_address:
+        type: string
+    description: >-
+      Event stores the event data, type and contract address queried from
+      Ethereum.
   fuelsequencer.bridge.v1.MsgSupplyDelta:
     type: object
     properties:
@@ -12354,7 +13279,7 @@ definitions:
           from is the user address that is withdrawing the tokens from the
           Sequencer.
 
-          can be in Hex or Bech32 format.
+          It can be in Hex or Bech32 format.
       to:
         type: string
         description: to is the user address on Ethereum that will be receiving the tokens.
@@ -12380,10 +13305,18 @@ definitions:
           from is the user address that is withdrawing the tokens from the
           Sequencer.
 
-          can be in Hex or Bech32 format.
+          It can be in Hex or Bech32 format, as supplied in
+          MsgWithdrawToEthereum.
+
+          This address is lowercase, regardless of the one in
+          MsgWithdrawToEthereum.
       to:
         type: string
-        description: to is the user address on Ethereum that will be receiving the tokens.
+        description: >-
+          to is the user address on Ethereum that will be receiving the tokens.
+
+          This address is lowercase, regardless of the one in
+          MsgWithdrawToEthereum.
       amount:
         description: >-
           amount is the tokens being sent, which must be the expected bridge
@@ -12431,7 +13364,9 @@ definitions:
         description: nonce uniquely identifies any message that we send to Ethereum.
       from:
         type: string
-        description: from is the address on FuelSequencer that is posting the blob.
+        description: |-
+          from is the address on FuelSequencer that is posting the blob.
+          This address is lowercase, regardless of the one in MsgPostBlob.
       topic:
         type: string
         format: byte
@@ -12471,3 +13406,181 @@ definitions:
     description: |-
       MsgUpdateParamsResponse defines the response structure for executing a
       MsgUpdateParams message.
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+
+
+          Since: cosmos-sdk 0.43
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        description: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently. It will be empty if
+          there are no more results.
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
+  fuelsequencer.sequencing.Topic:
+    type: object
+    properties:
+      id:
+        type: string
+        format: byte
+        description: id uniquely identifies the topic with a 32-byte hash.
+      owner:
+        type: string
+        description: >-
+          owner is the sequencer address, who is the owner of this topic,
+          assigned at
+
+          creation.
+      order:
+        type: string
+        description: order is the sequential order of the topic blobs.
+  fuelsequencer.sequencing.v1.QueryAllTopicResponse:
+    type: object
+    properties:
+      topic:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              format: byte
+              description: id uniquely identifies the topic with a 32-byte hash.
+            owner:
+              type: string
+              description: >-
+                owner is the sequencer address, who is the owner of this topic,
+                assigned at
+
+                creation.
+            order:
+              type: string
+              description: order is the sequential order of the topic blobs.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  fuelsequencer.sequencing.v1.QueryGetTopicResponse:
+    type: object
+    properties:
+      topic:
+        type: object
+        properties:
+          id:
+            type: string
+            format: byte
+            description: id uniquely identifies the topic with a 32-byte hash.
+          owner:
+            type: string
+            description: >-
+              owner is the sequencer address, who is the owner of this topic,
+              assigned at
+
+              creation.
+          order:
+            type: string
+            description: order is the sequential order of the topic blobs.
+  fuelsequencer.sequencing.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          max_blob_size_bytes:
+            type: string
+            format: uint64
+            description: >-
+              max_blob_size_bytes is the maximum size of blob that can be
+              submitted in
+
+              bytes.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.

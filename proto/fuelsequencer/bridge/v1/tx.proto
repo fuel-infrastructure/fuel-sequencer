@@ -77,7 +77,7 @@ message MsgWithdrawToEthereum {
   option (cosmos.msg.v1.signer) = "from";
 
   // from is the user address that is withdrawing the tokens from the Sequencer.
-  // can be in Hex or Bech32 format.
+  // It can be in Hex or Bech32 format.
   string from = 1;
 
   // to is the user address on Ethereum that will be receiving the tokens.
@@ -98,10 +98,12 @@ message MsgWithdrawToEthereumResponse {
   ];
 
   // from is the user address that is withdrawing the tokens from the Sequencer.
-  // can be in Hex or Bech32 format.
+  // It can be in Hex or Bech32 format, as supplied in MsgWithdrawToEthereum.
+  // This address is lowercase, regardless of the one in MsgWithdrawToEthereum.
   string from = 2;
 
   // to is the user address on Ethereum that will be receiving the tokens.
+  // This address is lowercase, regardless of the one in MsgWithdrawToEthereum.
   string to = 3;
 
   // amount is the tokens being sent, which must be the expected bridge token.

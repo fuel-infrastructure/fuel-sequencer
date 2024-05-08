@@ -71,6 +71,7 @@ message MsgPostBlobResponse {
   ];
 
   // from is the address on FuelSequencer that is posting the blob.
+  // This address is lowercase, regardless of the one in MsgPostBlob.
   string from = 2;
 
   // topic is the Topic that this blob belongs to, it is a 32-byte hash.

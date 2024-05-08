@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"strings"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
@@ -9,10 +11,16 @@ import (
 )
 
 func (s *KeeperTestSuite) TestWithdrawToEthereum() {
-	withdrawerSeq := testtypes.TestFrom1Seq
 	withdrawer := testtypes.TestFrom1
+	withdrawerSeqLower := strings.ToLower(testtypes.TestFrom1Seq)
+	withdrawerLower := strings.ToLower(testtypes.TestFrom1)
+	withdrawerSeqUpper := strings.ToUpper(testtypes.TestFrom1Seq)
+	withdrawerUpper := strings.ToUpper(testtypes.TestFrom1)
 
 	receiver := testtypes.TestTo1
+	receiverLower := strings.ToLower(testtypes.TestTo1)
+	receiverUpper := strings.ToUpper(testtypes.TestTo1)
+
 	bridgeDenom := "fuel"
 	invalidDenom := "invalidDenom"
 	amount := math.NewInt(200)
@@ -26,16 +34,16 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 		expErrMsg          string
 	}{
 		{
-			"successfully withdraw to Ethereum - hex from",
+			"successfully withdraw to Ethereum - hex from - lowercase addresses",
 			types.MsgWithdrawToEthereum{
-				From:   withdrawer,
-				To:     receiver,
+				From:   withdrawerLower,
+				To:     receiverLower,
 				Amount: sdk.NewCoin(bridgeDenom, amount),
 			},
 			&types.MsgWithdrawToEthereumResponse{
 				Nonce:  math.NewInt(1),
-				From:   withdrawer,
-				To:     receiver,
+				From:   withdrawerLower,
+				To:     receiverLower,
 				Amount: sdk.NewCoin(bridgeDenom, amount),
 			},
 			&types.SupplyDeltaInfo{
@@ -47,16 +55,58 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			"",
 		},
 		{
-			"successfully withdraw to Ethereum - bech32 from",
+			"successfully withdraw to Ethereum - hex from - uppercase addresses",
 			types.MsgWithdrawToEthereum{
-				From:   withdrawerSeq,
-				To:     receiver,
+				From:   withdrawerUpper,
+				To:     receiverUpper,
 				Amount: sdk.NewCoin(bridgeDenom, amount),
 			},
 			&types.MsgWithdrawToEthereumResponse{
 				Nonce:  math.NewInt(1),
-				From:   withdrawerSeq,
-				To:     receiver,
+				From:   withdrawerLower, // changed to lowercase
+				To:     receiverLower,   // changed to lowercase
+				Amount: sdk.NewCoin(bridgeDenom, amount),
+			},
+			&types.SupplyDeltaInfo{
+				LastSupply: amount,
+				Delta:      amount,
+				Offset:     amount,
+			},
+			true,
+			"",
+		},
+		{
+			"successfully withdraw to Ethereum - bech32 from - lowercase addresses",
+			types.MsgWithdrawToEthereum{
+				From:   withdrawerSeqLower,
+				To:     receiverLower,
+				Amount: sdk.NewCoin(bridgeDenom, amount),
+			},
+			&types.MsgWithdrawToEthereumResponse{
+				Nonce:  math.NewInt(1),
+				From:   withdrawerSeqLower,
+				To:     receiverLower,
+				Amount: sdk.NewCoin(bridgeDenom, amount),
+			},
+			&types.SupplyDeltaInfo{
+				LastSupply: amount,
+				Delta:      amount,
+				Offset:     amount,
+			},
+			true,
+			"",
+		},
+		{
+			"successfully withdraw to Ethereum - bech32 from - uppercase addresses",
+			types.MsgWithdrawToEthereum{
+				From:   withdrawerSeqUpper,
+				To:     receiverUpper,
+				Amount: sdk.NewCoin(bridgeDenom, amount),
+			},
+			&types.MsgWithdrawToEthereumResponse{
+				Nonce:  math.NewInt(1),
+				From:   withdrawerSeqLower, // changed to lowercase
+				To:     receiverLower,      // changed to lowercase
 				Amount: sdk.NewCoin(bridgeDenom, amount),
 			},
 			&types.SupplyDeltaInfo{
