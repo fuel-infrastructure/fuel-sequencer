@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -76,17 +77,19 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Greater(ethHeight, uint64(1))
 
 		// Try generating some events via a transaction (RPC) - via deposit.
+		depositAmount := big.NewInt(200)
+		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), depositAmount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
 		toAddress := testsuite.ADDRESSES[1]
-		amount1 := big.NewInt(200)
-		amount2 := big.NewInt(300)
-		depositData := testsuite.PackDeposit(amount1, toAddress, amount2)
-		depositTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackTransferAndCall(depositAmount)
+		depositTxReceipt, err := s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		someBytes := []byte("some bytes")
 		authorizeData := testsuite.PackAuthorize(someBytes)
-		authorizeTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		authorizeTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events
@@ -111,8 +114,8 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
 			Depositor: fromAddress,
 			Recipient: toAddress,
-			Amount:    amount1.String(),
-			Lockup:    amount2.String(),
+			Amount:    depositAmount.String(),
+			Lockup:    "",
 		}))
 
 		// Ensure authorize event is at the expected height.

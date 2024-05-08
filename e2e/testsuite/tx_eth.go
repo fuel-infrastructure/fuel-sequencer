@@ -53,6 +53,14 @@ func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*et
 	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
+func (s *E2ETestSuite) SendEthTransactionToTokenContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransaction(common.HexToAddress(TOKEN_CONTRACT), data)
+}
+
+func (s *E2ETestSuite) SendEthTransactionToSequencerInterfaceContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransaction(common.HexToAddress(SEQUENCER_INTERFACE_CONTRACT), data)
+}
+
 func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
 
 	privateKey := s.GetEthPrivateKey()

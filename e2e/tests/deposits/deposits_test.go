@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
@@ -30,9 +31,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		amount := big.NewInt(200)
+		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), amount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(amount, ownedReceiverAddressSeq, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackTransferAndCall(amount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
@@ -62,8 +66,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 
 		// Generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		depositData = testsuite.PackDeposit(amount, notOwnedReceiverAddress, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		mintData = testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), amount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
+		depositData = testsuite.PackTransferAndCall(amount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
@@ -110,9 +117,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		sendAmount := big.NewInt(200)
+		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(sendAmount, ownedReceiverAddressSeq, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackTransferAndCall(sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -153,8 +163,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 
 		// Generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		depositData = testsuite.PackDeposit(sendAmount, notOwnedReceiverAddress, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		mintData = testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
+		depositData = testsuite.PackTransferAndCall(sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -211,9 +224,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		sendAmount := big.NewInt(200)
+		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(sendAmount, ownedReceiverAddressSeq, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackTransferAndCall(sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -260,8 +276,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 
 		// Generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		depositData = testsuite.PackDeposit(sendAmount, notOwnedReceiverAddress, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		mintData = testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
+		depositData = testsuite.PackTransferAndCall(sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial

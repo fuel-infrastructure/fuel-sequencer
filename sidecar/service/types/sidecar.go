@@ -48,8 +48,6 @@ type (
 // UnmarshalParsedEvent attempts to unmarshal a parsed Ethereum event from the Event sent by the sidecar
 func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 	switch m.EventType {
-	case MockDepositEventName:
-		fallthrough
 	case DepositEventName:
 		var eventData DepositEvent
 		err := eventData.Unmarshal(m.Data)
@@ -57,8 +55,6 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 			return nil, fmt.Errorf("could not unmarshal to %s: %w", MockDepositEventName, err)
 		}
 		return &eventData, nil
-	case MockAuthorizeEventName:
-		fallthrough
 	case AuthorizeEventName:
 		var eventData AuthorizeEvent
 		err := eventData.Unmarshal(m.Data)

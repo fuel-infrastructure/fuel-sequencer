@@ -51,7 +51,7 @@ const (
 	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
 	fuelSequencerBinary               = "fuelsequencerd"
 
-	ethereumDockerImageRepo = "fuel-infrastructure/contracts-docker-e2e"
+	ethereumDockerImageRepo = "fuel-rollup/ethereum"
 	ethereumDockerImageTag  = "latest"
 
 	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
@@ -109,6 +109,10 @@ var (
 
 	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
 	FUEL_STREAM_X_CONTRACT = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+	// TOKEN_CONTRACT - TODO
+	TOKEN_CONTRACT = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+	// SEQUENCER_INTERFACE_CONTRACT - TODO
+	SEQUENCER_INTERFACE_CONTRACT = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
 	// GATEWAY_CONTRACT is a contract by Succinct that does ZK proof verification.
 	GATEWAY_CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
@@ -203,11 +207,11 @@ func (s *E2ETestSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	// Get genesis header
-	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
-	s.Require().NoError(err)
+	//genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
+	//s.Require().NoError(err)
 
 	// Deploy the contracts with the header
-	s.deployContracts(1, genesisBlockHeaderHash)
+	//s.deployContracts(1, genesisBlockHeaderHash)
 
 	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
