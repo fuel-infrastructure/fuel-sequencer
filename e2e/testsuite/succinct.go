@@ -32,7 +32,7 @@ type SuccinctXProof struct {
 }
 
 // RunSuccinctXOperatorMockApi runs the operator for 1 proof generation.
-func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
+func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (requestId, startBlock, targetBlock string) {
 	s.T().Log("starting SuccinctX operator container...")
 	var err error
 	runOpts := dockertest.RunOptions{
@@ -65,17 +65,14 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 	)
 	s.Require().NoError(err)
 
-	var requestId string
-	var startBlock string
-	var targetBlock string
+	re := regexp.MustCompile(`\[[^]]*] Header range request submitted: (\d+), start block: (\d+), target block: (\d+)`)
 
-	// Wait for the Operator node to response
+	// Wait for the Operator node to respond
 	s.Require().Eventually(
 		func() bool {
 			logs := s.logsByContainerID(s.succinctOperatorResource.Container.ID)
 
 			for _, logStr := range strings.Split(logs, "\n") {
-				re := regexp.MustCompile(`\[[^]]*] Header range request submitted: (\d+), start block: (\d+), target block: (\d+)`)
 
 				matches := re.FindStringSubmatch(logStr)
 				// The first element represents the string captures, the rest are the digits obtained from the string
@@ -100,7 +97,7 @@ func (s *E2ETestSuite) RunSuccinctXOperatorMockApi() (string, string, string) {
 	s.T().Logf("stopping SuccinctX operator container...")
 	s.Require().NoError(s.dockerPool.Purge(s.succinctOperatorResource))
 
-	return requestId, startBlock, targetBlock
+	return
 }
 
 // RunSuccinctXRelayerMockApi runs the relayer to submit 1 proof to Ethereum.
@@ -109,7 +106,7 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	startBlock uint64,
 	targetBlock uint64,
 	latestHeaderHash cmbytes.HexBytes,
-) *ethereumtypes.Receipt {
+) (txReceipt *ethereumtypes.Receipt) {
 	// Re-create the proof output
 	commitment, err := s.Chain.BridgeCommitment(s.Ctx(), startBlock, targetBlock)
 	s.Require().NoError(err)
@@ -171,9 +168,9 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	)
 	s.Require().NoError(err)
 
-	var txReceipt *ethereumtypes.Receipt
+	re := regexp.MustCompile(`\[[^]]*] Proof relayed successfully! Transaction Hash: (0x[a-fA-F0-9]{64})`)
 
-	// Wait for the Relayer node to response
+	// Wait for the Relayer node to respond
 	s.Require().Eventually(
 		func() bool {
 			logs := s.logsByContainerID(s.succinctRelayerResource.Container.ID)
@@ -182,7 +179,6 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 			defer cancel()
 
 			for _, logStr := range strings.Split(logs, "\n") {
-				re := regexp.MustCompile(`\[[^]]*] Proof relayed successfully! Transaction Hash: (0x[a-fA-F0-9]{64})`)
 
 				matches := re.FindStringSubmatch(logStr)
 				// The first element represents the string captures, the second is the tx hash
@@ -209,7 +205,95 @@ func (s *E2ETestSuite) RunSuccinctXRelayerMockApi(
 	// We only want 1 proof submitted from the relayer
 	s.T().Logf("stopping SuccinctX relayer container...")
 	s.Require().NoError(s.dockerPool.Purge(s.succinctRelayerResource))
-	return txReceipt
+	return
+}
+
+// RunSuccinctXManualProcess runs the manual process for 1 proof generation.
+func (s *E2ETestSuite) RunSuccinctXManualProcess() (
+	startBlock, targetBlock, headerHash, bridgeCommitment string, txReceipt *ethereumtypes.Receipt,
+) {
+	s.T().Log("starting succinctX manual process container...")
+	var err error
+	runOpts := dockertest.RunOptions{
+		Name:         "succinctX-manual",
+		Repository:   succinctXManualDockerImageRepo,
+		Tag:          succinctXManualDockerImageTag,
+		NetworkID:    s.dockerNetwork.Network.ID,
+		PortBindings: map[docker.Port][]docker.PortBinding{},
+		ExposedPorts: []string{},
+		Env: []string{
+			"RPC_URL=http://ethereum:8545",
+			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.Chain.validators[0].instanceName()),
+			"CHAIN_ID=31337",
+			fmt.Sprintf("CONTRACT_ADDRESS=%s", FUEL_STREAM_X_CONTRACT),
+			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
+			fmt.Sprintf("UPDATE_DELAY_BLOCKS=%d", UPDATE_DELAY_BLOCKS),
+		},
+	}
+
+	s.succinctManualResource, err = s.dockerPool.RunWithOptions(
+		&runOpts,
+		noRestart,
+	)
+	s.Require().NoError(err)
+
+	re1 := regexp.MustCompile(`\[[^]]*] updating header range starting (\d+), ending (\d+), header hash "([0-9a-fA-F]{64})", bridge commitment "([0-9a-fA-F]{64})"`)
+	re2 := regexp.MustCompile(`\[[^]]*] Proof relayed successfully! Transaction Hash: (0x[a-fA-F0-9]{64})`)
+
+	// Wait for the manual process to respond
+	s.Require().Eventually(
+		func() bool {
+			logs := s.logsByContainerID(s.succinctManualResource.Container.ID)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			var ok1, ok2 bool
+			for _, logStr := range strings.Split(logs, "\n") {
+
+				matches := re1.FindStringSubmatch(logStr)
+				// The first element represents the string captures, the rest are the matches obtained from the string
+				if matches != nil && len(matches) == 5 {
+					startBlock = matches[1]
+					targetBlock = matches[2]
+					headerHash = matches[3]
+					bridgeCommitment = matches[4]
+					ok1 = true
+				}
+
+				matches = re2.FindStringSubmatch(logStr)
+				// The first element represents the string captures, the second is the tx hash
+				if matches != nil && len(matches) > 1 {
+					receipt, err := s.Chain.ethClient.TransactionReceipt(ctx, common.HexToHash(matches[1]))
+					if err != nil {
+						s.T().Logf("error retreiving transaction receipt %s", err)
+						return false
+					}
+					s.Require().NotNil(receipt.Logs)
+
+					txReceipt = receipt
+					ok2 = true
+				}
+
+				if ok1 && ok2 {
+					return true
+				}
+			}
+
+			return false
+		},
+		1*time.Minute,
+		1*time.Second,
+		"SuccinctX manual process failed to respond",
+	)
+
+	s.T().Logf("SuccinctX manual process request successful!")
+
+	// We only want 1 proof from the manual process
+	s.T().Logf("stopping SuccinctX manual process container...")
+	s.Require().NoError(s.dockerPool.Purge(s.succinctManualResource))
+
+	return
 }
 
 // -------------- TEMP

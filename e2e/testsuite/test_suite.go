@@ -62,6 +62,9 @@ const (
 
 	succinctXRelayerDockerImageRepo = "fuel-infrastructure/fuel-stream-x-relayer-docker-e2e"
 	succinctXRelayerDockerImageTag  = "latest"
+
+	succinctXManualDockerImageRepo = "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
+	succinctXManualDockerImageTag  = "latest"
 )
 
 var (
@@ -146,6 +149,7 @@ type E2ETestSuite struct {
 	// SuccinctX
 	succinctOperatorResource *dockertest.Resource
 	succinctRelayerResource  *dockertest.Resource
+	succinctManualResource   *dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -235,6 +239,9 @@ func (s *E2ETestSuite) TearDownTest() {
 	}
 	if s.succinctRelayerResource != nil {
 		_ = s.dockerPool.Purge(s.succinctRelayerResource)
+	}
+	if s.succinctManualResource != nil {
+		_ = s.dockerPool.Purge(s.succinctManualResource)
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
