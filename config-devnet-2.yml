@@ -29,14 +29,10 @@ client:
 validators:
   - name: alice
     bonded: 1000000utest
-    config:
-      consensus:
-        timeout_propose: "1s"
-        timeout_commit: "2s"
     home: ./data/fuelsequencer
 genesis:
-  genesis_time: "2024-04-19T08:00:00.000000Z"
-  chain_id: "seq-devnet-1"
+  genesis_time: "2024-05-13T13:00:00.000000Z"
+  chain_id: "seq-devnet-2"
   consensus:
     params:
       block:
@@ -71,7 +67,7 @@ genesis:
     bridge:
       params:
         bridge_denom: "utest"
-        ethereum_proxy_contract_address: "0x44D4EB47eC1A511B58fe50399d57A6bc1D88f136"
+        ethereum_proxy_contract_address: "<TODO>"
         authorize_messages_allowed:
           - "*"  # allow all
         supply_delta_period: 1000
