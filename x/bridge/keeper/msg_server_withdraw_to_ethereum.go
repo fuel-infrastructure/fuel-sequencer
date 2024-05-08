@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -62,10 +63,11 @@ func (k msgServer) WithdrawToEthereum(
 		return nil, err
 	}
 
+	// Addresses are lowercase for simpler parsing on Ethereum.
 	return &types.MsgWithdrawToEthereumResponse{
 		Nonce:  nonce,
-		From:   msg.From,
-		To:     msg.To,
+		From:   strings.ToLower(msg.From),
+		To:     strings.ToLower(msg.To),
 		Amount: msg.Amount,
 	}, nil
 }

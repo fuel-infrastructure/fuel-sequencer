@@ -3143,7 +3143,7 @@ type MsgWithdrawToEthereum struct {
 	unknownFields protoimpl.UnknownFields
 
 	// from is the user address that is withdrawing the tokens from the Sequencer.
-	// can be in Hex or Bech32 format.
+	// It can be in Hex or Bech32 format.
 	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	// to is the user address on Ethereum that will be receiving the tokens.
 	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
@@ -3201,9 +3201,11 @@ type MsgWithdrawToEthereumResponse struct {
 	// nonce uniquely identifies any message that we send to Ethereum.
 	Nonce string `protobuf:"bytes,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	// from is the user address that is withdrawing the tokens from the Sequencer.
-	// can be in Hex or Bech32 format.
+	// It can be in Hex or Bech32 format, as supplied in MsgWithdrawToEthereum.
+	// This address is lowercase, regardless of the one in MsgWithdrawToEthereum.
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	// to is the user address on Ethereum that will be receiving the tokens.
+	// This address is lowercase, regardless of the one in MsgWithdrawToEthereum.
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the tokens being sent, which must be the expected bridge token.
 	Amount *v1beta1.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
