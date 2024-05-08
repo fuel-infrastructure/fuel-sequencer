@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -78,9 +79,10 @@ func (k msgServer) PostBlob(
 	nonce := k.bridgeKeeper.MustGetLastEthereumNonce(ctx).AddRaw(1)
 	k.bridgeKeeper.SetLastEthereumNonce(ctx, nonce)
 
+	// Addresses are lowercase for simpler parsing on Ethereum.
 	return &types.MsgPostBlobResponse{
 		Nonce: nonce,
-		From:  msg.From,
+		From:  strings.ToLower(msg.From),
 		Topic: msg.Topic,
 		Order: msg.Order,
 		Data:  msg.Data,
