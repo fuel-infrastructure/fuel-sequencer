@@ -30,7 +30,7 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 			return nil, err
 		}
 
-		// From is indexed, so extract it from Topics
+		// Depositor is indexed, so extract it from Topics
 		sequencerEvent.Depositor = common.HexToAddress(vLog.Topics[1].Hex()).String()
 
 		// Convert the rest of the fields as required
@@ -53,7 +53,7 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 			return nil, err
 		}
 
-		// From is indexed, so extract it from Topics
+		// Sender is indexed, so extract it from Topics
 		sequencerEvent.Sender = common.HexToAddress(vLog.Topics[1].Hex()).String()
 
 		// Convert the rest of the fields as required

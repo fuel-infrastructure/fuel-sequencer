@@ -99,15 +99,15 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		expErrMsg string
 	}{
 		{
-			name:  "DepositEvent - valid - to is a Hex address",
+			name:  "DepositEvent - valid - recipient is a Hex address",
 			event: testtypes.TestDepositEvent1,
 		},
 		{
-			name:  "DepositEvent - valid - to is a Sequencer address",
+			name:  "DepositEvent - valid - recipient is a Sequencer address",
 			event: testtypes.TestDepositEvent9,
 		},
 		{
-			name:  "DepositEvent - valid - to is empty",
+			name:  "DepositEvent - valid - recipient is empty",
 			event: testtypes.TestDepositEvent2,
 		},
 		{

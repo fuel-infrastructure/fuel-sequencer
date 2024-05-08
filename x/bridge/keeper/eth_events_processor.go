@@ -149,10 +149,9 @@ func (k Keeper) processDepositEvent(
 		} else {
 			sequencerAddr, err = sdk.AccAddressFromBech32(depositEvent.Recipient)
 		}
-
 		if err != nil {
 			k.Logger().Error(
-				"Bridge EndBlock: to is not a valid Bech32 or Hex address - minting to gov address",
+				"Bridge EndBlock: recipient is not a valid Bech32 or Hex address - minting to gov address",
 				"event", depositEvent, "err", err,
 			)
 			k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
