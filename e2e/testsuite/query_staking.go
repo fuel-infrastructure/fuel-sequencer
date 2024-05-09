@@ -3,6 +3,7 @@ package testsuite
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -74,18 +75,25 @@ func (s *E2ETestSuite) PollForNoDelegation(
 
 	doPoll := func(ctx context.Context, height uint64) (any, error) {
 		res, err := s.QueryDelegationRaw(ctx, delegatorAddress, validatorAddress)
-		ok := s.Assert().ErrorContains(
-			err,
-			fmt.Sprintf("delegation with delegator %s not found for validator %s", delegatorAddress, validatorAddress),
+
+		// We need to match the following error message to confirm that there are no delegations
+		expectedErrMsg := fmt.Sprintf(
+			"delegation with delegator %s not found for validator %s", delegatorAddress, validatorAddress,
 		)
-		if !ok {
-			if err != nil {
-				return nil, err
-			}
+
+		// If the error is nil, it means that a delegation was found
+		if err == nil {
 			return nil, fmt.Errorf(
 				"unexpected delegation balance found (%s)", res.DelegationResponse.Balance,
 			)
 		}
+
+		// If a different error than what we expected is sent, we need to retry again as we are not sure if the
+		// delegation is still there or not
+		if !strings.Contains(err.Error(), expectedErrMsg) {
+			return nil, err
+		}
+
 		return nil, nil
 	}
 
