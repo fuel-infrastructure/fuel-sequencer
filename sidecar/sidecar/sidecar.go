@@ -117,35 +117,35 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 	return nil
 }
 
-// catchUpWithEthereumLogs syncs logs from the last synced block up to the latest Ethereum block.
+// catchUpWithEthereumLogs syncs logs from the last synced block up to the last finalized Ethereum block.
 func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context) error {
 
-	// Get the current Ethereum height to determine if we already need to sync up.
-	ethHeightUint64, err := s.ethClient.BlockNumber(ctx)
+	// Get the height of the last finalized block to determine whether we need to sync up.
+	finalizedEthHeightUint64, err := s.ethClient.FinalizedBlockNumber(ctx)
 	if err != nil {
-		s.logger.Error("could not get latest height from Ethereum node", zap.Error(err))
+		s.logger.Error("could not get the height of the last finalized block from Ethereum node", zap.Error(err))
 		return err
 	}
-	ethHeight := new(big.Int).SetUint64(ethHeightUint64)
+	finalizedEthHeight := new(big.Int).SetUint64(finalizedEthHeightUint64)
 
-	// If we're behind, fetch the logs up till the current Ethereum height.
-	// Note: in the meantime, more Ethereum blocks will be created, but
-	// these can be detected and fetched in the main data fetching loop.
+	// If we're behind, fetch the logs up till the last finalized Ethereum block.
+	// Note: in the meantime more Ethereum blocks might be finalized, but, these can be detected and fetched in the
+	// main data fetching loop.
 	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
-	if ethHeight.Cmp(lastSyncedBlock) > 0 {
+	if finalizedEthHeight.Cmp(lastSyncedBlock) > 0 {
 		s.logger.Info("catching up with ethereum",
 			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
-			zap.Uint64("eth_height", ethHeightUint64),
+			zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
 			zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 		)
 
-		return s.fetchAndStoreLogsUptoBlock(ctx, ethHeight)
+		return s.fetchAndStoreLogsUptoBlock(ctx, finalizedEthHeight)
 	}
 
 	return nil
 }
 
-// subscribeToNewEthereumLogs syncs logs from newly created Ethereum blocks.
+// subscribeToNewEthereumLogs syncs logs from newly finalized Ethereum blocks.
 func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, retry bool) {
 	s.logger.Info("subscribing to new ethereum block headers",
 		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
@@ -176,11 +176,31 @@ func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, re
 				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
 			}
 
-			// Fetch and store events
-			s.logger.Info("detected new block header", zap.Uint64("block", header.Number.Uint64()))
-			err = s.fetchAndStoreLogsUptoBlock(ctx, header.Number)
+			// Get the height of the last finalized block to determine whether a new finalized block needs processing
+			finalizedEthHeightUint64, err := s.ethClient.FinalizedBlockNumber(ctx)
 			if err != nil {
-				return err, true // retry
+				s.logger.Error(
+					"could not get the height of the last finalized block from Ethereum node", zap.Error(err),
+				)
+				return err, true
+			}
+			finalizedEthHeight := new(big.Int).SetUint64(finalizedEthHeightUint64)
+
+			// If new blocks have been finalized, process all logs between the last synced blocked and the last
+			// finalized block
+			lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
+			if finalizedEthHeight.Cmp(lastSyncedBlock) > 0 {
+				s.logger.Info("detected new block header; will sync up to the last finalized block",
+					zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
+					zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
+					zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
+					zap.Uint64("current_eth_height", header.Number.Uint64()),
+				)
+
+				err := s.fetchAndStoreLogsUptoBlock(ctx, finalizedEthHeight)
+				if err != nil {
+					return err, true // retry
+				}
 			}
 
 			// Fetch the last synced Ethereum block before querying for new logs
@@ -204,7 +224,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, re
 	}
 }
 
-// fetchAndProcessLogs fetches and processes logs based on the next query, latest block, and the query max range.
+// fetchAndProcessLogs fetches and processes logs based on next block to query, target block, and query max range.
 func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.Int) error {
 	s.fetchAndStoreLock.Lock()
 	defer s.fetchAndStoreLock.Unlock()
