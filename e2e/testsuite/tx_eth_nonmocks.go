@@ -42,3 +42,35 @@ func PackBatchAuthorize(data [][]byte) []byte {
 		},
 	)
 }
+
+type BridgeCommitmentLeafForEthereum struct {
+	Height      *big.Int
+	ResultsHash common.Hash
+}
+
+type BinaryMerkleProofForEthereum struct {
+	SideNodes []common.Hash
+	Key       *big.Int
+	NumLeaves *big.Int
+}
+
+// DEPRECATED: not actually deprecated, but currently unusable due to a missing FuelStreamXContractABI.
+func PackProcessSequencerWithdrawalMessage(
+	proofNonce *big.Int,
+	bridgeCommitmentLeaf BridgeCommitmentLeafForEthereum,
+	bridgeCommitmentLeafProof BinaryMerkleProofForEthereum,
+	txResultMarshalled []byte,
+	txResultProof BinaryMerkleProofForEthereum,
+) []byte {
+	return packCall(
+		sidecartypes.FuelStreamXContractABI,
+		sidecartypes.ProcessSequencerWithdrawalMessageFunctionName,
+		[]interface{}{
+			proofNonce,
+			bridgeCommitmentLeaf,
+			bridgeCommitmentLeafProof,
+			txResultMarshalled,
+			txResultProof,
+		},
+	)
+}

@@ -69,7 +69,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.MockSequencerProxyContractABI))
+		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
 		// Check DataCommitmentStored event
@@ -196,7 +196,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithManualProcessSuccinct() {
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.MockSequencerProxyContractABI))
+		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
 		// Check DataCommitmentStored event

@@ -118,7 +118,7 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 			eventTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					{
-						EventType:       sidecartypes.MockDepositEventName,
+						EventType:       sidecartypes.DepositEventName,
 						ContractAddress: testtypes.TestEthereumProxyContractAddress,
 						Data:            []byte("invalid-data"),
 					},
@@ -127,7 +127,7 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 				},
 				NewEthereumBlock: true,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", sidecartypes.MockDepositEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", sidecartypes.DepositEventName),
 		},
 	}
 

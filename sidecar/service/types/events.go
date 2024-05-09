@@ -17,9 +17,6 @@ var (
 
 	DepositEventHashFn   = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,uint256)")).Hex()
 	AuthorizeEventHashFn = crypto.Keccak256Hash([]byte("Authorize(address,bytes)")).Hex()
-
-	MockDepositEventHashFn   = DepositEventHashFn
-	MockAuthorizeEventHashFn = AuthorizeEventHashFn
 )
 
 const (
@@ -27,9 +24,6 @@ const (
 
 	DepositEventName   = "Deposit"
 	AuthorizeEventName = "Authorize"
-
-	MockDepositEventName   = DepositEventName
-	MockAuthorizeEventName = AuthorizeEventName
 )
 
 // ParsedEvent is a common interface for parsed Ethereum events.

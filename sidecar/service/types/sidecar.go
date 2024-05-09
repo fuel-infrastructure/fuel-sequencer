@@ -24,20 +24,6 @@ type (
 		Data []byte `json:"data"`
 	}
 
-	// MockEthDepositEvent is the mocked version of EthDepositEvent.
-	MockEthDepositEvent struct {
-		From     common.Address
-		Amount   *big.Int
-		To       string
-		Duration *big.Int
-	}
-
-	// MockEthAuthorizeEvent is the mocked version of EthAuthorizeEvent.
-	MockEthAuthorizeEvent struct {
-		From    common.Address
-		Message []byte
-	}
-
 	// EthereumBlock stores events associated with a block.
 	EthereumBlock struct {
 		BlockNumber *big.Int
@@ -52,14 +38,14 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 		var eventData DepositEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", MockDepositEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", DepositEventName, err)
 		}
 		return &eventData, nil
 	case AuthorizeEventName:
 		var eventData AuthorizeEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", MockAuthorizeEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
 		}
 		return &eventData, nil
 	default:
