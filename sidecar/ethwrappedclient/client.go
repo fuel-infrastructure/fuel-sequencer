@@ -2,6 +2,7 @@ package ethclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
@@ -84,6 +85,28 @@ func (ec *EthWrappedClient) BlockNumber(ctx context.Context) (uint64, error) {
 	return ec.ethClient.BlockNumber(ctx)
 }
 
+// FinalizedBlockNumber contains logic for querying the block number of the latest finalized block.
+// NOTE: This was copied from https://github.com/ethereum/go-ethereum/blob/7f131dcbc9ffe986f91a1f51025bcfdcc0aa8f0e/ethclient/ethclient.go#L128
+func (ec *EthWrappedClient) FinalizedBlockNumber(ctx context.Context) (uint64, error) {
+	var raw json.RawMessage
+	err := ec.ethClient.Client().CallContext(ctx, &raw, "eth_getBlockByNumber", "finalized", true)
+	if err != nil {
+		return 0, err
+	}
+
+	// Decode header and transactions.
+	var head *ethereumtypes.Header
+	if err := json.Unmarshal(raw, &head); err != nil {
+		return 0, err
+	}
+	// When the block is not found, the API returns JSON null.
+	if head == nil {
+		return 0, ethereum.NotFound
+	}
+
+	return head.Number.Uint64(), nil
+}
+
 // SyncProgress checks if the Ethereum node is synced.
 func (ec *EthWrappedClient) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error) {
 	return ec.ethClient.SyncProgress(ctx)
@@ -150,8 +173,8 @@ func (ec *EthWrappedClient) processLogs(
 	tempBlocks := make(map[uint64][]sidecartypes.Event)
 
 	lastBlockNumber := nextQueryBlock.Uint64()
-	lastTxIndex := int(-1)
-	lastLogIndex := int(-1)
+	lastTxIndex := -1
+	lastLogIndex := -1
 
 	for _, vLog := range logs {
 		currentBlockNumber := vLog.BlockNumber

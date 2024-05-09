@@ -107,7 +107,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 			event: testtypes.TestDepositEvent9,
 		},
 		{
-			name:  "DepositEvent - valid - recipient is empty",
+			name:  "DepositEvent - valid - recipient is the null address",
 			event: testtypes.TestDepositEvent2,
 		},
 		{
