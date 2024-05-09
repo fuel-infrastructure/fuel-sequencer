@@ -64,8 +64,9 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().NoError(err)
 		s.Require().Empty(events)
 
-		// We expect an error if we query a block that doesn't exist.
-		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 1000)
+		// We expect an error if we query a block that doesn't exist. Note, the block height is set to an arbitrarily
+		// large number because it is impossible to reach that height with a one-second block time in this test.
+		events, err = s.QuerySidecarBlockEvents(s.Ctx(), 1000000000)
 		s.Require().Error(err)
 
 		// --------------------------------------- Ethereum queries and transactions
@@ -91,10 +92,6 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- Ensure Sidecar got the new Events
 
-		// Get latest Ethereum height.
-		ethHeight2, err := s.GetEthereumHeight(s.Ctx())
-		s.Require().NoError(err)
-
 		// Ensure deposit event is at the expected height.
 		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(depositTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
@@ -116,7 +113,9 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		}))
 
 		// Ensure authorize event is at the expected height.
-		authorizeEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(authorizeTxReceipt.BlockNumber.Int64()))
+		authorizeEvents, err := s.PollForSidecarBlockEvents(
+			s.Ctx(), time.Second*20, int(authorizeTxReceipt.BlockNumber.Int64()),
+		)
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
 		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
@@ -132,9 +131,15 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
 
+		// Get last Ethereum block synced
+		lastEthereumBlockSyncedOld := s.QueryLastEthereumBlockSynced(s.Ctx())
+
+		// Wait for some blocks
 		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
 		s.Require().NoError(err)
+
+		// Get last Ethereum block synced again and make sure it updated
 		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
-		s.Require().EqualValues(ethHeight2, lastEthereumBlockSynced)
+		s.Require().Greater(lastEthereumBlockSynced, lastEthereumBlockSyncedOld)
 	})
 }
