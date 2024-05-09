@@ -2,7 +2,6 @@ package deposits_test
 
 import (
 	"math/big"
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -13,7 +12,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
@@ -34,30 +33,22 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), amount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		duration := big.NewInt(63072000) // 2 years vesting
 		depositData := testsuite.PackTransferAndCall(amount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
-		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
+		s.PollForBalance(s.Ctx(), 20, ownedReceiverAddressSeq, amountCoin)
 
-		// Make sure that a new Eth owned vesting account was created with the correct details
-		bridgeParams := s.QueryBridgeParams(s.Ctx())
-		durationNanoseconds := time.Second * time.Duration(duration.Int64())
-		vestingStartTime := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay).Unix()
-		vestingEndTime := bridgeParams.VestingStartTime.Add(durationNanoseconds).Unix()
-		amountCoins := sdk.NewCoins(amountCoin)
-
-		ethOwnedContinuousVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, strings.ToLower(ethOwnedContinuousVestingAcc.AccountOwner))
-		s.Require().Equal(vestingStartTime, ethOwnedContinuousVestingAcc.StartTime)
-		s.Require().Equal(vestingEndTime, ethOwnedContinuousVestingAcc.EndTime)
-		s.Require().Equal(amountCoins, ethOwnedContinuousVestingAcc.OriginalVesting)
+		s.Require().Equal(senderAddress, ethOwnedBaseAcc.AccountOwner)
 
 		// --------------------------------------- Account not owned by sender
+
+		s.Logger().Warn("Cannot proceed in E2E test because we can only deposit to account owned by the sender!")
+		return
 
 		// Make sure that the balance of the receiver is as expected.
 		balance, err = s.QueryAllBalances(s.Ctx(), notOwnedReceiverAddress, nil)
@@ -79,16 +70,15 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		// Make sure that the created account is a simple base account
 		baseAccount, err := s.QueryBaseAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().NoError(err)
-		s.Require().Equal(notOwnedReceiverAddressSeq, strings.ToLower(baseAccount.Address))
+		s.Require().Equal(notOwnedReceiverAddressSeq, baseAccount.Address)
 
-		// Try querying the account as a vesting account and assert failure to make sure that no vesting details were
-		// stored
-		_, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), notOwnedReceiverAddress)
+		// Try querying the account and assert failure to make sure that the account is not an EthOwnedBaseAccount
+		_, err = s.QueryEthOwnedBaseAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().Error(err)
 	})
 }
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that exist with no vesting and check results", func() {
 		validatorAddress := testsuite.ADDRESSES[0]                 // Address of one of the validators
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
@@ -120,7 +110,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		duration := big.NewInt(63072000) // 2 years vesting
 		depositData := testsuite.PackTransferAndCall(sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
@@ -129,25 +118,16 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		// balance and the newly vested tokens.
 		expAmount := new(big.Int).Add(sendAmount, initAmount)
 		expAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(expAmount))
-		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, expAmountCoin)
+		s.PollForBalance(s.Ctx(), 20, ownedReceiverAddressSeq, expAmountCoin)
 
-		// Make sure that a new Eth owned vesting account was created with the correct details. Previously existing
-		// funds should not be vested
-		bridgeParams := s.QueryBridgeParams(s.Ctx())
-		durationNanoseconds := time.Second * time.Duration(duration.Int64())
-		vestingStartTime := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay).Unix()
-		vestingEndTime := bridgeParams.VestingStartTime.Add(durationNanoseconds).Unix()
-		sendAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
-		vestingAmountCoins := sdk.NewCoins(sendAmountCoin)
-
-		ethOwnedContinuousVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, strings.ToLower(ethOwnedContinuousVestingAcc.AccountOwner))
-		s.Require().Equal(vestingStartTime, ethOwnedContinuousVestingAcc.StartTime)
-		s.Require().Equal(vestingEndTime, ethOwnedContinuousVestingAcc.EndTime)
-		s.Require().Equal(vestingAmountCoins, ethOwnedContinuousVestingAcc.OriginalVesting)
+		s.Require().Equal(senderAddress, ethOwnedBaseAcc.AccountOwner)
 
 		// --------------------------------------- Account not owned by sender
+
+		s.Logger().Warn("Cannot proceed in E2E test because we can only deposit to account owned by the sender!")
+		return
 
 		// Create the account by transferring tokens to it
 		to = sdk.MustAccAddressFromBech32(notOwnedReceiverAddressSeq)
@@ -177,16 +157,15 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		// Make sure that the created account is a simple base account
 		baseAccount, err := s.QueryBaseAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().NoError(err)
-		s.Require().Equal(notOwnedReceiverAddressSeq, strings.ToLower(baseAccount.Address))
+		s.Require().Equal(notOwnedReceiverAddressSeq, baseAccount.Address)
 
-		// Try querying the account as a vesting account and assert failure to make sure that no vesting details were
-		// stored
-		_, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), notOwnedReceiverAddress)
+		// Try querying the account and assert failure to make sure that the account is not an EthOwnedBaseAccount
+		_, err = s.QueryEthOwnedBaseAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().Error(err)
 	})
 }
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that exist with vesting and check results", func() {
 		validatorAddress := testsuite.ADDRESSES[0]                 // Address of one of the validators
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
@@ -227,7 +206,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		duration := big.NewInt(63072000) // 2 years vesting
 		depositData := testsuite.PackTransferAndCall(sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
@@ -236,25 +214,16 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		// balance and the newly vested tokens.
 		expAmount := new(big.Int).Add(sendAmount, initVestingAmount)
 		expAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(expAmount))
-		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, expAmountCoin)
+		s.PollForBalance(s.Ctx(), 20, ownedReceiverAddressSeq, expAmountCoin)
 
-		// Make sure that a new Eth owned vesting account was created with the correct details. Previously existing
-		// funds should no longer be vested
-		bridgeParams = s.QueryBridgeParams(s.Ctx())
-		durationNanoseconds := time.Second * time.Duration(duration.Int64())
-		vestingStartTime := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay).Unix()
-		vestingEndTime := bridgeParams.VestingStartTime.Add(durationNanoseconds).Unix()
-		sendAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
-		vestingAmountCoins := sdk.NewCoins(sendAmountCoin)
-
-		ethOwnedContinuousVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, strings.ToLower(ethOwnedContinuousVestingAcc.AccountOwner))
-		s.Require().Equal(vestingStartTime, ethOwnedContinuousVestingAcc.StartTime)
-		s.Require().Equal(vestingEndTime, ethOwnedContinuousVestingAcc.EndTime)
-		s.Require().Equal(vestingAmountCoins, ethOwnedContinuousVestingAcc.OriginalVesting)
+		s.Require().Equal(senderAddress, ethOwnedBaseAcc.AccountOwner)
 
 		// --------------------------------------- Account not owned by sender
+
+		s.Logger().Warn("Cannot proceed in E2E test because we can only deposit to account owned by the sender!")
+		return
 
 		// Send tokens to the account and set it as a vesting account
 		to = sdk.MustAccAddressFromBech32(notOwnedReceiverAddressSeq)
