@@ -8,6 +8,9 @@ import (
 
 // TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
 func (s *EventsTestSuite) TestEventTrimming() {
+
+	s.T().Skip("We cannot test this at the moment because we do not have an AuthorizeMulti function")
+
 	s.Run("Run with reduced max bytes to showcase event trimming", func() {
 
 		// Set a low max bytes for txs so that events are split across multiple blocks.

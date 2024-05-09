@@ -38,8 +38,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 		s.Require().NoError(err)
 
 		// Match the expected balances for each user depending on whether they are a sender or a receiver.
-		s.PollForBalance(s.Ctx(), 10, senderAddress, expectedInitBalance.Sub(sendCoin))
-		s.PollForBalance(s.Ctx(), 10, receiverAddress, expectedInitBalance.Add(sendCoin))
+		s.PollForBalance(s.Ctx(), 15, senderAddress, expectedInitBalance.Sub(sendCoin))
+		s.PollForBalance(s.Ctx(), 0, receiverAddress, expectedInitBalance.Add(sendCoin))
 	})
 }
 

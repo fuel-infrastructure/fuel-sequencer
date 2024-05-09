@@ -6,8 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
@@ -78,10 +76,9 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 
 		// Try generating some events via a transaction (RPC) - via deposit.
 		depositAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), depositAmount)
+		mintData := testsuite.PackMint(testsuite.SIGNER_ETH_ADDRESS, depositAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		toAddress := testsuite.ADDRESSES[1]
 		depositData := testsuite.PackTransferAndCall(depositAmount)
 		depositTxReceipt, err := s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
@@ -104,16 +101,13 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().Len(depositEvents, 1)
 		s.Require().Equal(sidecartypes.DepositEventName, depositEvents[0].EventType)
 
-		publicKey := s.GetEthPublicKey()
-		fromAddress := crypto.PubkeyToAddress(*publicKey).String()
-
 		// Check deposit event data is as expected
 		var depositEventData sidecartypes.DepositEvent
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
-			Depositor: fromAddress,
-			Recipient: toAddress,
+			Depositor: testsuite.SIGNER_ETH_ADDRESS_HEX,
+			Recipient: testsuite.SIGNER_ETH_ADDRESS_HEX,
 			Amount:    depositAmount.String(),
 			Lockup:    "0",
 		}))
@@ -129,7 +123,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
-			Sender: fromAddress,
+			Sender: testsuite.SIGNER_ETH_ADDRESS_HEX,
 			Data:   someBytes,
 		}))
 
