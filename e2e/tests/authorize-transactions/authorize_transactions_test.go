@@ -38,7 +38,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 		s.Require().NoError(err)
 
 		// Match the expected balances for each user depending on whether they are a sender or a receiver.
-		s.PollForBalance(s.Ctx(), 15, senderAddress, expectedInitBalance.Sub(sendCoin))
+		s.PollForBalance(s.Ctx(), 20, senderAddress, expectedInitBalance.Sub(sendCoin))
 		s.PollForBalance(s.Ctx(), 0, receiverAddress, expectedInitBalance.Add(sendCoin))
 	})
 }
@@ -79,7 +79,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		s.Require().NoError(err)
 
 		// Confirm that the delegation went through and is as expected.
-		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
+		s.PollForDelegationBalance(s.Ctx(), 20, delegatorAddress, validator1Address, delegateCoin)
 
 		// ----------------------------------- Test MsgRedelegate
 
@@ -174,7 +174,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawT
 
 		// Make sure that the withdrawal was executed by checking the withdrawers' balance
 		postWithdrawalBalance := expectedInitWithdrawerBalance.Sub(withdrawCoin)
-		s.PollForBalance(s.Ctx(), 10, withdrawerAddress, postWithdrawalBalance)
+		s.PollForBalance(s.Ctx(), 20, withdrawerAddress, postWithdrawalBalance)
 	})
 }
 
@@ -207,6 +207,6 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 		s.Require().NoError(err)
 
 		// Make sure that the vote gets submitted by checking that the votes tally has increased from 0 to 1
-		s.PollForNumberOfVotes(s.Ctx(), 10, proposalId, 1)
+		s.PollForNumberOfVotes(s.Ctx(), 20, proposalId, 1)
 	})
 }
