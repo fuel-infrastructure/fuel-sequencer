@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -79,13 +78,10 @@ func (m *DepositEvent) ValidateBasic() error {
 		return errors.New("depositor is not a valid hex address")
 	}
 
-	// Check that Recipient is either a valid Sequencer or hex address. Note that Recipient is optional.
-	if len(strings.TrimSpace(m.Recipient)) != 0 {
-
-		_, err := sdk.AccAddressFromBech32(m.Recipient)
-		if err != nil && !common.IsHexAddress(m.Recipient) {
-			return fmt.Errorf("recipient is not a valid Bech32 or Hex address")
-		}
+	// Check that Recipient is either a valid Sequencer or hex address.
+	_, err := sdk.AccAddressFromBech32(m.Recipient)
+	if err != nil && !common.IsHexAddress(m.Recipient) {
+		return fmt.Errorf("recipient is not a valid Bech32 or Hex address")
 	}
 
 	// Check that the Lockup can be converted from a string to sdk.Int
