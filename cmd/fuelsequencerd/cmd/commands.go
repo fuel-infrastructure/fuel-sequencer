@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"cosmossdk.io/log"
@@ -44,12 +43,11 @@ import (
 	cometutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/cometutils"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 )
 
@@ -299,14 +297,15 @@ func startSidecar(
 		return err
 	}
 
-	// TODO: replace MockBridgeXABI with actual contract once it's available.
-	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
-	contractAbi, err := abi.JSON(strings.NewReader(mockbridgex.MockBridgeXABI))
+	// Contract ABI
+	var contractAbi abi.ABI
+	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.MockSequencerProxyContractABI))
 	if err != nil {
 		return err
 	}
 
 	// Create the sidecar ethereum client
+	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
 
 	// Create the store
@@ -380,12 +379,12 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	}
 	defer conn.Close()
 
-	sidecarClient := types.NewSidecarClient(conn)
+	sidecarClient := sidecartypes.NewSidecarClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	resp, err := sidecarClient.GetBlockEvents(ctx, &types.QueryBlockEventsRequest{BlockNumber: blockNumber})
+	resp, err := sidecarClient.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: blockNumber})
 	if err != nil {
 		return fmt.Errorf("could not get block events: %v", err)
 	}

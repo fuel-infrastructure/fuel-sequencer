@@ -45,8 +45,8 @@ func TestDeserializeAuthorizeTx(t *testing.T) {
 		{
 			name: "errors if AuthorizeTx cannot be deserialized",
 			event: &sidecartypes.AuthorizeEvent{
-				From:    testtypes.TestFrom1,
-				Message: []byte(testtypes.TestMessage1), // Fails because the msg should be encoded to bytes using proto
+				Sender: testtypes.TestFrom1,
+				Data:   []byte(testtypes.TestData1), // Fails because the msg should be encoded to bytes using proto
 			},
 			expErrMsg: "proto: illegal wireType",
 		},

@@ -63,8 +63,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 					// demonstrating that other events still get processed successfully
 					testutils.MustGetSidecarEventFromParsedEvent(
 						&sidecartypes.AuthorizeEvent{
-							From:    testtypes.TestFrom2,
-							Message: testutils.MustHexDecodeString(testtypes.TestMessage2),
+							Sender: testtypes.TestFrom2,
+							Data:   testutils.MustHexDecodeString(testtypes.TestData2),
 						},
 						testtypes.TestEthereumProxyContractAddress,
 					),
@@ -136,10 +136,10 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 		{
 			name: "successfully processes msgs in AuthorizeTx if none error",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				From: testtypes.TestFrom3,
+				Sender: testtypes.TestFrom3,
 
-				// Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
-				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
+				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+				Data: testutils.MustHexDecodeString(testtypes.TestData4),
 			},
 			blockedAddresses: map[string]bool{},
 			expFromBalance:   sdkmath.NewInt(999980),
@@ -148,8 +148,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 		{
 			name: "returns error if sender address is blocked",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				From:    testtypes.TestFrom3,
-				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
+				Sender: testtypes.TestFrom3,
+				Data:   testutils.MustHexDecodeString(testtypes.TestData4),
 			},
 			blockedAddresses: map[string]bool{
 				fromAcc.String(): true,
@@ -159,8 +159,8 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 		{
 			name: "returns error if AuthorizeTx cannot be deserialized",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				From:    testtypes.TestFrom3,
-				Message: []byte("invalid-message"),
+				Sender: testtypes.TestFrom3,
+				Data:   []byte("invalid-data"),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not deserialize AuthorizeTx",
@@ -168,9 +168,10 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 		{
 			name: "returns error if AuthorizeTx cannot be authenticated",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				From: testtypes.TestFrom2, // Invalid From to trigger an authentication error
-				// Message decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
-				Message: testutils.MustHexDecodeString(testtypes.TestMessage4),
+				Sender: testtypes.TestFrom2, // Invalid Sender to trigger an authentication error
+
+				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+				Data: testutils.MustHexDecodeString(testtypes.TestData4),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not authenticate AuthorizeTx",
@@ -178,10 +179,10 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 		{
 			name: "returns error if some messages cannot be validated",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				From: testtypes.TestFrom3,
+				Sender: testtypes.TestFrom3,
 
-				// Message decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
-				Message: testutils.MustHexDecodeString(testtypes.TestMessage5),
+				// Data decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
+				Data: testutils.MustHexDecodeString(testtypes.TestData5),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not validate msg",
@@ -189,12 +190,12 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 		{
 			name: "returns error if some messages fail execution",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				From: testtypes.TestFrom3,
+				Sender: testtypes.TestFrom3,
 
-				// Message decodes two MsgSends, one of 10 ufuel and another of 1000000 both from testtypes.TestFrom3Seq
+				// Data decodes two MsgSends, one of 10 ufuel and another of 1000000 both from testtypes.TestFrom3Seq
 				// to testtypes.TestTo3. The second MsgSend should fail because testtypes.TestFrom3Seq originally should
 				// have 1000000 ufuel
-				Message: testutils.MustHexDecodeString(testtypes.TestMessage6),
+				Data: testutils.MustHexDecodeString(testtypes.TestData6),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not execute msg",
@@ -455,12 +456,12 @@ func (s *KeeperTestSuite) TestExecuteMsg() {
 	}
 }
 
-func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
+func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 
 	blockTime, _ := time.Parse(time.DateOnly, "2024-01-01")
 	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
-	// These accounts correspond to the from and to addresses of the SendToSequencerEvent
+	// These accounts correspond to the from and to addresses of the DepositEvent
 	fromAccOne, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom3)
 	toAccOne, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
 	s.Require().NoError(err)
@@ -480,7 +481,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 		isFromEthOwned bool
 	}{
 		{
-			name: "successful - send to sequencer - mint to To address",
+			name: "successful - deposit - mint to Recipient address",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent1,
@@ -500,7 +501,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "successful - send to sequencer - mint to To address twice",
+			name: "successful - deposit - mint to Recipient address twice",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent1,
@@ -521,7 +522,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "successful - send to sequencer - mint to address To == From",
+			name: "successful - deposit - mint to address Recipient == Depositor",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent10,
@@ -531,7 +532,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &fromAccOne,
-			expFromBalance: sdkmath.NewInt(100), // Same balance From == To
+			expFromBalance: sdkmath.NewInt(100), // Same balance Depositor == Recipient
 			expToBalance:   sdkmath.NewInt(100),
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-100),
@@ -541,7 +542,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "successful - send to sequencer - mint to address To == Sequencer(From)",
+			name: "successful - deposit - mint to address Recipient == Sequencer(Depositor)",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent11,
@@ -551,7 +552,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &fromAccOne,
-			expFromBalance: sdkmath.NewInt(100), // Same balance From == To
+			expFromBalance: sdkmath.NewInt(100), // Same balance Depositor == Recipient
 			expToBalance:   sdkmath.NewInt(100),
 			expSupplyDelta: &types.SupplyDeltaInfo{
 				Offset: sdkmath.NewInt(-100),
@@ -561,7 +562,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "successful - send to sequencer - mint to From address",
+			name: "successful - deposit - mint to Depositor address",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent3,
@@ -581,7 +582,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "successful - send to sequencer - mint to From address twice",
+			name: "successful - deposit - mint to Depositor address twice",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent3,
@@ -602,7 +603,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "failure - send to sequencer - duration failed to parse - mint to governance",
+			name: "failure - deposit - lockup failed to parse - mint to governance",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent4,
@@ -622,7 +623,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - send to sequencer - from address failed to parse - mint to governance",
+			name: "failure - deposit - from address failed to parse - mint to governance",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent5,
@@ -642,7 +643,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - send to sequencer - bad vesting duration - mint to governance",
+			name: "failure - deposit - bad vesting duration - mint to governance",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent6,
@@ -662,7 +663,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - send to sequencer - bad to bech32 address - mint to governance",
+			name: "failure - deposit - bad to bech32 address - mint to governance",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent7,
@@ -743,7 +744,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_SendToSequencerEvent() {
 	}
 }
 
-func (s *KeeperTestSuite) TestProcessEthereumEventsSendToSequencerEvent_AmountParseFailure() {
+func (s *KeeperTestSuite) TestProcessEthereumEventsDepositEvent_AmountParseFailure() {
 	blockTime, _ := time.Parse(time.RFC3339, "2024-01-01T00:00:00Z")
 	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 

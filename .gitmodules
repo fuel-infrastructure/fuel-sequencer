@@ -5,3 +5,4 @@
 [submodule "e2e/fuelstreamx"]
 	path = e2e/fuelstreamx
 	url = https://github.com/fuel-infrastructure/fuelstreamx
+	branch = main

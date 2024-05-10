@@ -6,8 +6,8 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
-// DeserializeAuthorizeTx attempts to unmarshal AuthorizeEvent.Message into AuthorizeTx and unpacks the Any messages
-// in AuthorizeTx.Messages into an array of sdk.Msg
+// DeserializeAuthorizeTx attempts to unmarshal AuthorizeEvent.Data into AuthorizeTx and unpacks the Any messages
+// in AuthorizeTx.Data into an array of sdk.Msg
 func DeserializeAuthorizeTx(cdc codec.BinaryCodec, event *sidecartypes.AuthorizeEvent) ([]sdk.Msg, error) {
 	// this is a defensive check to ensure only the ProtoCodec is used for message unmarshalling
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
@@ -15,7 +15,7 @@ func DeserializeAuthorizeTx(cdc codec.BinaryCodec, event *sidecartypes.Authorize
 	}
 
 	var authorizeTx AuthorizeTx
-	if err := cdc.Unmarshal(event.Message, &authorizeTx); err != nil {
+	if err := cdc.Unmarshal(event.Data, &authorizeTx); err != nil {
 		return nil, err
 	}
 

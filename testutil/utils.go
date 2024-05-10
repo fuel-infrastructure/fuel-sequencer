@@ -32,10 +32,10 @@ func MustGetSidecarEventFromParsedEvent(
 	// Get event type
 	var eventType string
 	switch parsedEvent.(type) {
-	case *sidecartypes.SendToSequencerEvent:
-		eventType = sidecartypes.SendToSequencerEventName
+	case *sidecartypes.DepositEvent:
+		eventType = sidecartypes.MockDepositEventName
 	case *sidecartypes.AuthorizeEvent:
-		eventType = sidecartypes.AuthorizeEventName
+		eventType = sidecartypes.MockAuthorizeEventName
 	default:
 		panic("invalid event type")
 	}

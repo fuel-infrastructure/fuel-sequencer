@@ -197,7 +197,12 @@ func (ec *EthWrappedClient) processLogs(
 
 		// If the event is nil it means we've processed an unrecognized event, and we can skip it.
 		if event == nil {
-			ec.logger.Debug("skipping unrecognized event", zap.Uint64("block", vLog.BlockNumber))
+			log, err := vLog.MarshalJSON()
+			ec.logger.Debug("skipping unrecognized event",
+				zap.Uint64("block", vLog.BlockNumber),
+				zap.String("log", string(log)),
+				zap.NamedError("json_marshal_err", err),
+			)
 			continue
 		}
 
