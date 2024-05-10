@@ -17,7 +17,7 @@ type (
 		Lockup *big.Int `json:"lockup"`
 	}
 
-	// EthAuthorizeEvent represents a AuthorizeEvent event raised by the bridge contract. This represents the structure
+	// EthAuthorizeEvent represents an AuthorizeEvent event raised by the bridge contract. This represents the structure
 	// on Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
 	// Note: Sender is indexed, so it will show up as a vLog topic instead of a field here.
 	EthAuthorizeEvent struct {
