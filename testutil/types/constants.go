@@ -31,25 +31,25 @@ var (
 		Delta:      TestDelta,
 		Offset:     TestOffset,
 	}
-	TestFrom1     = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-	TestFrom2     = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
-	TestFrom3     = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
-	TestFrom4     = "faulty-address"
-	TestFrom1Seq  = "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"
-	TestFrom2Seq  = "fuelsequencer10e0525sfrf53yh2aljmm3sn9jq5njk7lnsk0qn"
-	TestFrom3Seq  = "fuelsequencer16y3q5r8503aeheazu6agnapfwch8hxkmajmslm"
-	TestAmount1   = "100"
-	TestAmount2   = "101"
-	TestAmount3   = "102"
-	TestTo1       = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
-	TestTo2       = "0x0000000000000000000000000000000000000000" // the null Ethereum address
-	TestTo3       = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
-	TestTo4       = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
-	TestDuration1 = "31536050"
-	TestDuration2 = "31536051"
-	TestDuration3 = "31536052"
-	TestDuration4 = "abc"
-	TestDuration5 = "1"
+	TestFrom1    = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+	TestFrom2    = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+	TestFrom3    = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
+	TestFrom4    = "faulty-address"
+	TestFrom1Seq = "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"
+	TestFrom2Seq = "fuelsequencer10e0525sfrf53yh2aljmm3sn9jq5njk7lnsk0qn"
+	TestFrom3Seq = "fuelsequencer16y3q5r8503aeheazu6agnapfwch8hxkmajmslm"
+	TestAmount1  = "100"
+	TestAmount2  = "101"
+	TestAmount3  = "102"
+	TestTo1      = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
+	TestTo2      = "0x0000000000000000000000000000000000000000" // the null Ethereum address
+	TestTo3      = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
+	TestTo4      = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
+	TestLockup1  = "31536050"
+	TestLockup2  = "31536051"
+	TestLockup3  = "31536052"
+	TestLockup4  = "abc"
+	TestLockup5  = "1"
 
 	// TestMessage1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1. This was generated with the help of
 	// utils/proto_serialization_test.go.
@@ -97,67 +97,67 @@ var (
 		Depositor: TestFrom1,
 		Recipient: TestTo1,
 		Amount:    TestAmount1,
-		Lockup:    TestDuration1,
+		Lockup:    TestLockup1,
 	}
 	TestDepositEvent2 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom2,
 		Recipient: TestTo2,
 		Amount:    TestAmount2,
-		Lockup:    TestDuration2,
+		Lockup:    TestLockup2,
 	}
 	TestDepositEvent3 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestTo3,
 		Amount:    TestAmount3,
-		Lockup:    TestDuration3,
+		Lockup:    TestLockup3,
 	}
 	TestDepositEvent4 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestTo3,
 		Amount:    TestAmount3,
-		Lockup:    TestDuration4,
+		Lockup:    TestLockup4,
 	}
 	TestDepositEvent5 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom4,
 		Recipient: TestTo3,
 		Amount:    TestAmount3,
-		Lockup:    TestDuration3,
+		Lockup:    TestLockup3,
 	}
 	TestDepositEvent6 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestTo2,
 		Amount:    TestAmount3,
-		Lockup:    TestDuration5,
+		Lockup:    TestLockup5,
 	}
 	TestDepositEvent7 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestTo4,
 		Amount:    TestAmount3,
-		Lockup:    TestDuration3,
+		Lockup:    TestLockup3,
 	}
 	TestDepositEvent8 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestTo4,
 		Amount:    "failed",
-		Lockup:    TestDuration3,
+		Lockup:    TestLockup3,
 	}
 	TestDepositEvent9 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom2,
 		Recipient: "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
 		Amount:    TestAmount2,
-		Lockup:    TestDuration2,
+		Lockup:    TestLockup2,
 	}
 	TestDepositEvent10 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestFrom3,
 		Amount:    TestAmount1,
-		Lockup:    TestDuration1,
+		Lockup:    TestLockup1,
 	}
 	TestDepositEvent11 = &sidecartypes.DepositEvent{
 		Depositor: TestFrom3,
 		Recipient: TestFrom3Seq,
 		Amount:    TestAmount1,
-		Lockup:    TestDuration1,
+		Lockup:    TestLockup1,
 	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom1,
