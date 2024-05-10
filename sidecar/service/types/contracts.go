@@ -14,6 +14,7 @@ const (
 	FuelStreamXContractABI = `TODO`
 )
 
+// Function names
 const (
 	// Token contract function names
 

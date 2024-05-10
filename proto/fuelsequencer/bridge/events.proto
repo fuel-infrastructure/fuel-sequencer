@@ -47,10 +47,10 @@ message EventWithdrawToEthereumReported {
 
 message EventDepositEventProcessed {
   // the sending Ethereum address in hex format
-  string from = 1;
+  string depositor = 1;
 
   // recipient Ethereum address in hex or bech32 format
-  string to = 2;
+  string recipient = 2;
 
   // amount is the tokens being sent, which must be denominated in the expected
   // bridge token.

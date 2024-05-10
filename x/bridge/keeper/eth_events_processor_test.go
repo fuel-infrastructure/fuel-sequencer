@@ -64,7 +64,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
 					testutils.MustGetSidecarEventFromParsedEvent(
 						&sidecartypes.AuthorizeEvent{
 							Sender: testtypes.TestFrom2,
-							Data:   testutils.MustHexDecodeString(testtypes.TestMessage2),
+							Data:   testutils.MustHexDecodeString(testtypes.TestData2),
 						},
 						testtypes.TestEthereumProxyContractAddress,
 					),
@@ -139,7 +139,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				Sender: testtypes.TestFrom3,
 
 				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
-				Data: testutils.MustHexDecodeString(testtypes.TestMessage4),
+				Data: testutils.MustHexDecodeString(testtypes.TestData4),
 			},
 			blockedAddresses: map[string]bool{},
 			expFromBalance:   sdkmath.NewInt(999980),
@@ -149,7 +149,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "returns error if sender address is blocked",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				Sender: testtypes.TestFrom3,
-				Data:   testutils.MustHexDecodeString(testtypes.TestMessage4),
+				Data:   testutils.MustHexDecodeString(testtypes.TestData4),
 			},
 			blockedAddresses: map[string]bool{
 				fromAcc.String(): true,
@@ -160,7 +160,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "returns error if AuthorizeTx cannot be deserialized",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				Sender: testtypes.TestFrom3,
-				Data:   []byte("invalid-message"),
+				Data:   []byte("invalid-data"),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not deserialize AuthorizeTx",
@@ -171,7 +171,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				Sender: testtypes.TestFrom2, // Invalid Sender to trigger an authentication error
 
 				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
-				Data: testutils.MustHexDecodeString(testtypes.TestMessage4),
+				Data: testutils.MustHexDecodeString(testtypes.TestData4),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not authenticate AuthorizeTx",
@@ -182,7 +182,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				Sender: testtypes.TestFrom3,
 
 				// Data decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
-				Data: testutils.MustHexDecodeString(testtypes.TestMessage5),
+				Data: testutils.MustHexDecodeString(testtypes.TestData5),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not validate msg",
@@ -195,7 +195,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 				// Data decodes two MsgSends, one of 10 ufuel and another of 1000000 both from testtypes.TestFrom3Seq
 				// to testtypes.TestTo3. The second MsgSend should fail because testtypes.TestFrom3Seq originally should
 				// have 1000000 ufuel
-				Data: testutils.MustHexDecodeString(testtypes.TestMessage6),
+				Data: testutils.MustHexDecodeString(testtypes.TestData6),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not execute msg",
@@ -603,7 +603,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "failure - deposit - duration failed to parse - mint to governance",
+			name: "failure - deposit - lockup failed to parse - mint to governance",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent4,
