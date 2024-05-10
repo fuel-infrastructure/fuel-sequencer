@@ -104,7 +104,7 @@ func (k Keeper) processDepositEvent(
 	// Check that the Lockup can be converted from a string to sdk.Int
 	eventDuration, success := sdkmath.NewIntFromString(depositEvent.Lockup)
 	if !success {
-		k.Logger().Error("Bridge EndBlock: could not unmarshal duration to int from string for duration %s", depositEvent.Lockup)
+		k.Logger().Error("Bridge EndBlock: could not unmarshal lockup to int from string %s", depositEvent.Lockup)
 		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
 		return
 	}
