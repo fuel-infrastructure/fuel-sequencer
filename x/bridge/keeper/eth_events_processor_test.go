@@ -603,7 +603,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "failure - deposit - duration failed to parse - mint to governance",
+			name: "failure - deposit - lockup failed to parse - mint to governance",
 			ethEventsTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent4,

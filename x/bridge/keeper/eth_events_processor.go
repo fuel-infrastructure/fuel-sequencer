@@ -102,15 +102,15 @@ func (k Keeper) processDepositEvent(
 	tokensToMint := sdk.NewCoins(tokenToMint)
 
 	// Check that the Lockup can be converted from a string to sdk.Int
-	eventDuration, success := sdkmath.NewIntFromString(depositEvent.Lockup)
+	eventLockup, success := sdkmath.NewIntFromString(depositEvent.Lockup)
 	if !success {
 		k.Logger().Error("Bridge EndBlock: could not unmarshal lockup to int from string %s", depositEvent.Lockup)
 		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
 		return
 	}
 
-	// Convert the duration in seconds to a vesting duration
-	vesting := time.Duration(eventDuration.Int64() * 1e9)
+	// Convert the lockup in seconds to a vesting duration
+	vesting := time.Duration(eventLockup.Int64() * 1e9)
 
 	// Check that Depositor is a valid hex address
 	if !common.IsHexAddress(depositEvent.Depositor) {
