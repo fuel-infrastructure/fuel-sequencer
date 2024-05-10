@@ -115,7 +115,7 @@ func (k Keeper) processDepositEvent(
 	// Check that Depositor is a valid hex address
 	if !common.IsHexAddress(depositEvent.Depositor) {
 		k.Logger().Error(
-			"Bridge EndBlock: from address is not a valid hex address - minting to governance address instead",
+			"Bridge EndBlock: depositor address is not a valid hex address - minting to governance address instead",
 			"event", depositEvent,
 		)
 		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
