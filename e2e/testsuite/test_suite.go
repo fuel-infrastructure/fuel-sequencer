@@ -107,6 +107,7 @@ var (
 	}
 
 	// FUEL_STREAM_X_CONTRACT is the address of the contract that holds bridge commitments.
+	// Blocked by https://github.com/FuelLabs/fuel-rollup/pull/29
 	FUEL_STREAM_X_CONTRACT = "TODO"
 	// TOKEN_CONTRACT is the address of the FUEL token contract.
 	TOKEN_CONTRACT = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"

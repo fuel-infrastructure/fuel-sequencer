@@ -80,7 +80,7 @@ func (m *DepositEvent) ValidateBasic() error {
 
 	// Check that the Lockup can be converted from a string to sdk.Int
 	if _, success := sdkmath.NewIntFromString(m.Lockup); !success {
-		return errors.New("could not convert duration to a valid sdk.Int")
+		return errors.New("could not convert lockup to a valid sdk.Int")
 	}
 
 	// Check that the Amount can be converted from a string to sdk.Int and is bigger than zero

@@ -16,6 +16,7 @@ import (
 
 func (s *WithdrawalsTestSuite) TestWithdrawalWithFuelStreamXManualProcess() {
 
+	// Blocked by https://github.com/FuelLabs/fuel-rollup/pull/29
 	s.T().Skip("We cannot run this test because we do not have a FuelStreamX contract address yet")
 
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
