@@ -185,10 +185,10 @@ func (k Keeper) processDepositEvent(
 
 	// Emit event once completed
 	err = ctx.EventManager().EmitTypedEvent(&types.EventDepositEventProcessed{
-		From:   depositEvent.Depositor,
-		To:     sequencerAddr.String(),
-		Amount: tokenToMint,
-		Lockup: vesting.String(),
+		Depositor: depositEvent.Depositor,
+		Recipient: sequencerAddr.String(),
+		Amount:    tokenToMint,
+		Lockup:    vesting.String(),
 	})
 	if err != nil {
 		k.Logger().Error("Bridge EndBlock: failed to emit event deposit", "err", err)

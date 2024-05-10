@@ -1133,7 +1133,8 @@ type DepositEvent struct {
 
 	// the sending Ethereum address in hex format
 	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
-	// recipient address in hex or bech32 format. This is optional.
+	// recipient address in hex or bech32 format. If the recipient is the null
+	// address, the Sequencer uses the depositor address as the recipient.
 	Recipient string `protobuf:"bytes,2,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// the amount sent encoded as string to prevent loss of precision. Sign is
 	// also preserved
