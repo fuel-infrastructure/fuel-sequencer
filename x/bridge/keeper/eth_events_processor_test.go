@@ -160,7 +160,7 @@ func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
 			name: "returns error if AuthorizeTx cannot be deserialized",
 			authorizeEvent: &sidecartypes.AuthorizeEvent{
 				Sender: testtypes.TestFrom3,
-				Data:   []byte("invalid-message"),
+				Data:   []byte("invalid-data"),
 			},
 			blockedAddresses: map[string]bool{},
 			expErrMsg:        "could not deserialize AuthorizeTx",
