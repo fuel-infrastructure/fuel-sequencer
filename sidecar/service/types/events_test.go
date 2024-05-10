@@ -59,7 +59,7 @@ func TestParsedEvent_Equal(t *testing.T) {
 			event1: testtypes.TestAuthorizeEvent1,
 			event2: &types.AuthorizeEvent{
 				Sender: testtypes.TestFrom1,
-				Data:   testutils.MustHexDecodeString(testtypes.TestMessage1),
+				Data:   testutils.MustHexDecodeString(testtypes.TestData1),
 			},
 			expectedEqual: true,
 		},
@@ -178,7 +178,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 			name: "AuthorizeEvent - invalid sender - error",
 			event: &types.AuthorizeEvent{
 				Sender: "invalid-sender",
-				Data:   testutils.MustHexDecodeString(testtypes.TestMessage1),
+				Data:   testutils.MustHexDecodeString(testtypes.TestData1),
 			},
 			expErrMsg: "sender is not a valid hex address",
 		},
