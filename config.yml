@@ -97,6 +97,7 @@ genesis:
         authorize_messages_allowed:
           - "*"  # allow all
         supply_delta_period: 100
+        max_eth_block_update_delay: "1h"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"
     sequencing:

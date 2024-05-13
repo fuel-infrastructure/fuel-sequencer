@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -18,6 +19,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
 		[]string{},
+		2*time.Hour,
 	)
 	require.NoError(t, k.SetParams(ctx, defaultParams))
 	wctx := sdk.UnwrapSDKContext(ctx)

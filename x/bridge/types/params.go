@@ -13,6 +13,10 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	// DefaultAllowAllAuthorizeMessages is the default messages we allow.
 	DefaultAllowAllAuthorizeMessages = []string{AllowAllAuthorizeMessages}
+
+	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
+	// up with Ethereum. This is set to 1 hour by default.
+	DefaultMaxEthBlockUpdateDelay = time.Hour
 )
 
 const (
@@ -47,6 +51,7 @@ func NewParams(
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
 	additionalBlockedAddresses []string,
+	maxEthBlockUpdateDelay time.Duration,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -63,6 +68,7 @@ func NewParams(
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
 		VestingStartTime:             t0,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
+		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 	}
 }
 
@@ -74,6 +80,7 @@ func DefaultParams() Params {
 		DefaultAllowAllAuthorizeMessages,
 		DefaultSupplyDeltaPeriod,
 		nil,
+		DefaultMaxEthBlockUpdateDelay,
 	)
 }
 
@@ -110,8 +117,13 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	// AdditionalBlockedAddresses blocked addresses
+	// Validate blocked addresses.
 	if err := ValidateBlockedAddresses(p.AdditionalBlockedAddresses); err != nil {
+		return err
+	}
+
+	// Validate tolerance for no Ethereum block syncing.
+	if err := ValidateMaxEthBlockUpdateDelay(p.MaxEthBlockUpdateDelay); err != nil {
 		return err
 	}
 
@@ -199,6 +211,18 @@ func ValidateBlockedAddresses(i interface{}) error {
 		if errAcc != nil {
 			return ErrParamsInvalid.Wrapf("address %s is not a valid Bech32 encoded address", addr)
 		}
+	}
+
+	return nil
+}
+
+func ValidateMaxEthBlockUpdateDelay(i interface{}) error {
+	v, ok := i.(time.Duration)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for maxEthBlockUpdateDelay: %T", i)
+	}
+	if v < 0 {
+		return ErrParamsInvalid.Wrapf("tolerance for no Ethereum block syncing cannot be negative")
 	}
 
 	return nil
