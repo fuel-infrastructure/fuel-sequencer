@@ -9,6 +9,7 @@ import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
 import "fuelsequencer/bridge/eth_events_transaction.proto";
 import "fuelsequencer/bridge/supply_delta_processed.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -40,4 +41,10 @@ message GenesisState {
   // from the next Ethereum block to query from the Sidecar. This
   // is used if queried events are larger than the maximum block size.
   uint64 ethereum_event_index_offset = 5;
+
+  // last_eth_block_update_time is the time of the last Sequencer
+  // block at which consensus was reach by the validators to sync
+  // up with an Ethereum block.
+  google.protobuf.Timestamp last_eth_block_update_time = 6
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }

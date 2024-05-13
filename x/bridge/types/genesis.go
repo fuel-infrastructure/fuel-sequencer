@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/math"
 )
 
@@ -21,6 +23,7 @@ func DefaultGenesis() *GenesisState {
 		LastEthereumNonce:        math.ZeroInt(),
 		LastEthereumBlockSynced:  0,
 		EthereumEventIndexOffset: 0,
+		LastEthBlockUpdateTime:   time.Time{},
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
