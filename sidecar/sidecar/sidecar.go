@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
@@ -89,15 +89,16 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 	backOff.InitialInterval = time.Second
 	backOff.MaxInterval = 5 * time.Second
 	backOff.RandomizationFactor = 0 // no funny business
+	backOff.MaxElapsedTime = 0      // never stop retrying
 	backOff.Reset()
 
 	// Set up the operation to fetch logs from Ethereum.
 	// Note: returning an error inside means we should retry.
 	operation := backoff.Operation(func() error {
-		if err := s.catchUpWithEthereumLogs(ctx); err != nil {
+		if err := s.catchUpWithEthereumLogs(ctx, backOff); err != nil {
 			return err
 		}
-		if err, retry := s.subscribeToNewEthereumLogs(ctx); retry {
+		if err, retry := s.subscribeToNewEthereumLogs(ctx, backOff); retry {
 			return err
 		}
 		return nil
@@ -118,7 +119,9 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 }
 
 // catchUpWithEthereumLogs syncs logs from the last synced block up to the last finalized Ethereum block.
-func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context) error {
+func (s *Sidecar) catchUpWithEthereumLogs(
+	ctx context.Context, backOff *backoff.ExponentialBackOff,
+) error {
 
 	// Get the height of the last finalized block to determine whether we need to sync up.
 	finalizedEthHeightUint64, err := s.ethClient.FinalizedBlockNumber(ctx)
@@ -147,11 +150,16 @@ func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context) error {
 		)
 	}
 
+	// Reset the backoff just in case we've used it.
+	backOff.Reset()
+
 	return nil
 }
 
 // subscribeToNewEthereumLogs syncs logs from newly finalized Ethereum blocks.
-func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, retry bool) {
+func (s *Sidecar) subscribeToNewEthereumLogs(
+	ctx context.Context, backOff *backoff.ExponentialBackOff,
+) (err error, retry bool) {
 	s.logger.Info("subscribing to new ethereum block headers",
 		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
 	)
@@ -227,6 +235,9 @@ func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, re
 
 			// Prune any old events that are no longer necessary to keep.
 			s.eventStore.CalibrateBlocksAndPruneLogs(s.logger, lastSyncedBlockBySequencer)
+
+			// Reset the backoff just in case we've used it.
+			backOff.Reset()
 		}
 	}
 }
@@ -300,5 +311,6 @@ func (s *Sidecar) IsStopped() bool {
 
 // ShutDown signals the sidecar to stop.
 func (s *Sidecar) ShutDown() {
+	s.logger.Warn("shutting down sidecar")
 	s.stopped.Store(true)
 }
