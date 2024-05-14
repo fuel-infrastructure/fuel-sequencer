@@ -94,21 +94,24 @@ SEQ.submit_gov_proposal(get_update_bridge_module_params_proposal(
 ))
 
 # Perform a deposit on Ethereum without vesting
-to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
-pretty(SEQ.query_account(to))  # check current account on the sequencer side
-ETH.deposit(100, to, 0)  # duration must be greater than start time delay
+# TODO: we need to update these to match the non-mock contracts
+# to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
+# pretty(SEQ.query_account(to))  # check current account on the sequencer side
+# ETH.deposit(100, to, 0)  # duration must be greater than start time delay
 
 # Perform a deposit on Ethereum with vesting duration
-to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
-pretty(SEQ.query_account(to))  # check current account on the sequencer side
-ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
+# TODO: we need to update these to match the non-mock contracts
+# to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)  # optional
+# pretty(SEQ.query_account(to))  # check current account on the sequencer side
+# ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
 
 # Perform an authorize on Ethereum. This is a MsgSend of 10 utest:
+# TODO: we need to update these to match the non-mock contracts
 # From: fuelsequencer19dxwsyl3aq2qqnrmsp4uxx60upjscmag23yxly
 # To fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m.
 # The sender maps from Eth address 0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8.
-data = "0x0a99010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412790a346675656c73657175656e636572313964787773796c3361713271716e726d737034757878363075706a73636d6167323379786c7912346675656c73657175656e636572313633727376363574343839337432727a35726d646139736c79376c67646c71326a677233366d1a0b0a05757465737412023130"
-ETH.authorize(data)
+# data = "0x0a99010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412790a346675656c73657175656e636572313964787773796c3361713271716e726d737034757878363075706a73636d6167323379786c7912346675656c73657175656e636572313633727376363574343839337432727a35726d646139736c79376c67646c71326a677233366d1a0b0a05757465737412023130"
+# ETH.authorize(data)
 
 # Perform a withdrawal on Sequencer
 pretty(SEQ.query_balance_by_key_name(SEQ.key_name))  # check balance
