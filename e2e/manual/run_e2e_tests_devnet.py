@@ -163,3 +163,10 @@ height = 1000
 info = "<dummy-info>"
 SEQ.submit_gov_proposal(get_software_upgrade_proposal(
     name=name, height=height, info=info))
+
+# Generate large voting power changes
+SEQ.delegate("fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca", "10000000utest")
+# Wait for a while before submitting the next...
+SEQ.redelegate("fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca", "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f", "10000000utest")
+# Wait for a while before submitting the next...
+SEQ.unbond("fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f", "10000000utest")
