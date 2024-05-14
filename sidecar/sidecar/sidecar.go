@@ -150,7 +150,7 @@ func (s *Sidecar) catchUpWithEthereumLogs(
 		)
 	}
 
-	// Reset the backoff just in case we've used it.
+	// Reset the backoff just in case we've used it. Without this, the backoff interval does not get reset.
 	backOff.Reset()
 
 	return nil
