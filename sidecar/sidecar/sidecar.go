@@ -236,7 +236,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			// Prune any old events that are no longer necessary to keep.
 			s.eventStore.CalibrateBlocksAndPruneLogs(s.logger, lastSyncedBlockBySequencer)
 
-			// Reset the backoff just in case we've used it.
+			// Reset the backoff just in case we've used it. Without this, the backoff interval does not get reset.
 			backOff.Reset()
 		}
 	}
