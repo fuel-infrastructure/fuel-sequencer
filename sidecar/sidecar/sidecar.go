@@ -140,6 +140,11 @@ func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context) error {
 		)
 
 		return s.fetchAndStoreLogsUptoBlock(ctx, finalizedEthHeight)
+	} else {
+		s.logger.Debug("already in sync with ethereum",
+			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
+			zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
+		)
 	}
 
 	return nil
@@ -171,8 +176,6 @@ func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, re
 			return err, true // retry
 		case header := <-ch:
 
-			s.logger.Error("detected something!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!1")
-
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
 				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
@@ -188,17 +191,19 @@ func (s *Sidecar) subscribeToNewEthereumLogs(ctx context.Context) (err error, re
 			}
 			finalizedEthHeight := new(big.Int).SetUint64(finalizedEthHeightUint64)
 
+			// Get the last Ethereum block synced by the Sidecar
+			lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
+
+			s.logger.Info("detected new block header",
+				zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
+				zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
+				zap.Uint64("detected_eth_height", header.Number.Uint64()),
+				zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
+			)
+
 			// If new blocks have been finalized, process all logs between the last synced blocked and the last
 			// finalized block
-			lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
 			if finalizedEthHeight.Cmp(lastSyncedBlock) > 0 {
-				s.logger.Info("detected new block header; will sync up to the last finalized block",
-					zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
-					zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
-					zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
-					zap.Uint64("detected_eth_height", header.Number.Uint64()),
-				)
-
 				err := s.fetchAndStoreLogsUptoBlock(ctx, finalizedEthHeight)
 				if err != nil {
 					return err, true // retry
