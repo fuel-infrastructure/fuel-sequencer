@@ -6,7 +6,6 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
-	v1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/service/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -15,81 +14,28 @@ import (
 	sync "sync"
 )
 
-var _ protoreflect.List = (*_EthEventsTx_1_list)(nil)
-
-type _EthEventsTx_1_list struct {
-	list *[]*v1.Event
-}
-
-func (x *_EthEventsTx_1_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_EthEventsTx_1_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_EthEventsTx_1_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1.Event)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_EthEventsTx_1_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1.Event)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_EthEventsTx_1_list) AppendMutable() protoreflect.Value {
-	v := new(v1.Event)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_EthEventsTx_1_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_EthEventsTx_1_list) NewElement() protoreflect.Value {
-	v := new(v1.Event)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_EthEventsTx_1_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
-	md_EthEventsTx                    protoreflect.MessageDescriptor
-	fd_EthEventsTx_events             protoreflect.FieldDescriptor
-	fd_EthEventsTx_new_ethereum_block protoreflect.FieldDescriptor
-	fd_EthEventsTx_block_number       protoreflect.FieldDescriptor
+	md_EthEventsTxIndex                       protoreflect.MessageDescriptor
+	fd_EthEventsTxIndex_total_num_event_txs   protoreflect.FieldDescriptor
+	fd_EthEventsTxIndex_num_event_txs_handled protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_eth_events_transaction_proto_init()
-	md_EthEventsTx = File_fuelsequencer_bridge_eth_events_transaction_proto.Messages().ByName("EthEventsTx")
-	fd_EthEventsTx_events = md_EthEventsTx.Fields().ByName("events")
-	fd_EthEventsTx_new_ethereum_block = md_EthEventsTx.Fields().ByName("new_ethereum_block")
-	fd_EthEventsTx_block_number = md_EthEventsTx.Fields().ByName("block_number")
+	md_EthEventsTxIndex = File_fuelsequencer_bridge_eth_events_transaction_proto.Messages().ByName("EthEventsTxIndex")
+	fd_EthEventsTxIndex_total_num_event_txs = md_EthEventsTxIndex.Fields().ByName("total_num_event_txs")
+	fd_EthEventsTxIndex_num_event_txs_handled = md_EthEventsTxIndex.Fields().ByName("num_event_txs_handled")
 }
 
-var _ protoreflect.Message = (*fastReflection_EthEventsTx)(nil)
+var _ protoreflect.Message = (*fastReflection_EthEventsTxIndex)(nil)
 
-type fastReflection_EthEventsTx EthEventsTx
+type fastReflection_EthEventsTxIndex EthEventsTxIndex
 
-func (x *EthEventsTx) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_EthEventsTx)(x)
+func (x *EthEventsTxIndex) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_EthEventsTxIndex)(x)
 }
 
-func (x *EthEventsTx) slowProtoReflect() protoreflect.Message {
+func (x *EthEventsTxIndex) slowProtoReflect() protoreflect.Message {
 	mi := &file_fuelsequencer_bridge_eth_events_transaction_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -101,43 +47,43 @@ func (x *EthEventsTx) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_EthEventsTx_messageType fastReflection_EthEventsTx_messageType
-var _ protoreflect.MessageType = fastReflection_EthEventsTx_messageType{}
+var _fastReflection_EthEventsTxIndex_messageType fastReflection_EthEventsTxIndex_messageType
+var _ protoreflect.MessageType = fastReflection_EthEventsTxIndex_messageType{}
 
-type fastReflection_EthEventsTx_messageType struct{}
+type fastReflection_EthEventsTxIndex_messageType struct{}
 
-func (x fastReflection_EthEventsTx_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_EthEventsTx)(nil)
+func (x fastReflection_EthEventsTxIndex_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_EthEventsTxIndex)(nil)
 }
-func (x fastReflection_EthEventsTx_messageType) New() protoreflect.Message {
-	return new(fastReflection_EthEventsTx)
+func (x fastReflection_EthEventsTxIndex_messageType) New() protoreflect.Message {
+	return new(fastReflection_EthEventsTxIndex)
 }
-func (x fastReflection_EthEventsTx_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_EthEventsTx
+func (x fastReflection_EthEventsTxIndex_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_EthEventsTxIndex
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_EthEventsTx) Descriptor() protoreflect.MessageDescriptor {
-	return md_EthEventsTx
+func (x *fastReflection_EthEventsTxIndex) Descriptor() protoreflect.MessageDescriptor {
+	return md_EthEventsTxIndex
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_EthEventsTx) Type() protoreflect.MessageType {
-	return _fastReflection_EthEventsTx_messageType
+func (x *fastReflection_EthEventsTxIndex) Type() protoreflect.MessageType {
+	return _fastReflection_EthEventsTxIndex_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_EthEventsTx) New() protoreflect.Message {
-	return new(fastReflection_EthEventsTx)
+func (x *fastReflection_EthEventsTxIndex) New() protoreflect.Message {
+	return new(fastReflection_EthEventsTxIndex)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_EthEventsTx) Interface() protoreflect.ProtoMessage {
-	return (*EthEventsTx)(x)
+func (x *fastReflection_EthEventsTxIndex) Interface() protoreflect.ProtoMessage {
+	return (*EthEventsTxIndex)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -145,22 +91,16 @@ func (x *fastReflection_EthEventsTx) Interface() protoreflect.ProtoMessage {
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_EthEventsTx) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.Events) != 0 {
-		value := protoreflect.ValueOfList(&_EthEventsTx_1_list{list: &x.Events})
-		if !f(fd_EthEventsTx_events, value) {
+func (x *fastReflection_EthEventsTxIndex) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.TotalNumEventTxs != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.TotalNumEventTxs)
+		if !f(fd_EthEventsTxIndex_total_num_event_txs, value) {
 			return
 		}
 	}
-	if x.NewEthereumBlock != false {
-		value := protoreflect.ValueOfBool(x.NewEthereumBlock)
-		if !f(fd_EthEventsTx_new_ethereum_block, value) {
-			return
-		}
-	}
-	if x.BlockNumber != uint64(0) {
-		value := protoreflect.ValueOfUint64(x.BlockNumber)
-		if !f(fd_EthEventsTx_block_number, value) {
+	if x.NumEventTxsHandled != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.NumEventTxsHandled)
+		if !f(fd_EthEventsTxIndex_num_event_txs_handled, value) {
 			return
 		}
 	}
@@ -177,19 +117,17 @@ func (x *fastReflection_EthEventsTx) Range(f func(protoreflect.FieldDescriptor, 
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_EthEventsTx) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_EthEventsTxIndex) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events":
-		return len(x.Events) != 0
-	case "fuelsequencer.bridge.EthEventsTx.new_ethereum_block":
-		return x.NewEthereumBlock != false
-	case "fuelsequencer.bridge.EthEventsTx.block_number":
-		return x.BlockNumber != uint64(0)
+	case "fuelsequencer.bridge.EthEventsTxIndex.total_num_event_txs":
+		return x.TotalNumEventTxs != uint64(0)
+	case "fuelsequencer.bridge.EthEventsTxIndex.num_event_txs_handled":
+		return x.NumEventTxsHandled != uint64(0)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTxIndex"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTx does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTxIndex does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -199,19 +137,17 @@ func (x *fastReflection_EthEventsTx) Has(fd protoreflect.FieldDescriptor) bool {
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthEventsTx) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_EthEventsTxIndex) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events":
-		x.Events = nil
-	case "fuelsequencer.bridge.EthEventsTx.new_ethereum_block":
-		x.NewEthereumBlock = false
-	case "fuelsequencer.bridge.EthEventsTx.block_number":
-		x.BlockNumber = uint64(0)
+	case "fuelsequencer.bridge.EthEventsTxIndex.total_num_event_txs":
+		x.TotalNumEventTxs = uint64(0)
+	case "fuelsequencer.bridge.EthEventsTxIndex.num_event_txs_handled":
+		x.NumEventTxsHandled = uint64(0)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTxIndex"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTx does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTxIndex does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -221,25 +157,19 @@ func (x *fastReflection_EthEventsTx) Clear(fd protoreflect.FieldDescriptor) {
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_EthEventsTx) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EthEventsTxIndex) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events":
-		if len(x.Events) == 0 {
-			return protoreflect.ValueOfList(&_EthEventsTx_1_list{})
-		}
-		listValue := &_EthEventsTx_1_list{list: &x.Events}
-		return protoreflect.ValueOfList(listValue)
-	case "fuelsequencer.bridge.EthEventsTx.new_ethereum_block":
-		value := x.NewEthereumBlock
-		return protoreflect.ValueOfBool(value)
-	case "fuelsequencer.bridge.EthEventsTx.block_number":
-		value := x.BlockNumber
+	case "fuelsequencer.bridge.EthEventsTxIndex.total_num_event_txs":
+		value := x.TotalNumEventTxs
+		return protoreflect.ValueOfUint64(value)
+	case "fuelsequencer.bridge.EthEventsTxIndex.num_event_txs_handled":
+		value := x.NumEventTxsHandled
 		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTxIndex"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTx does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTxIndex does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -253,21 +183,17 @@ func (x *fastReflection_EthEventsTx) Get(descriptor protoreflect.FieldDescriptor
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthEventsTx) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_EthEventsTxIndex) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events":
-		lv := value.List()
-		clv := lv.(*_EthEventsTx_1_list)
-		x.Events = *clv.list
-	case "fuelsequencer.bridge.EthEventsTx.new_ethereum_block":
-		x.NewEthereumBlock = value.Bool()
-	case "fuelsequencer.bridge.EthEventsTx.block_number":
-		x.BlockNumber = value.Uint()
+	case "fuelsequencer.bridge.EthEventsTxIndex.total_num_event_txs":
+		x.TotalNumEventTxs = value.Uint()
+	case "fuelsequencer.bridge.EthEventsTxIndex.num_event_txs_handled":
+		x.NumEventTxsHandled = value.Uint()
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTxIndex"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTx does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTxIndex does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -281,53 +207,44 @@ func (x *fastReflection_EthEventsTx) Set(fd protoreflect.FieldDescriptor, value 
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthEventsTx) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EthEventsTxIndex) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events":
-		if x.Events == nil {
-			x.Events = []*v1.Event{}
-		}
-		value := &_EthEventsTx_1_list{list: &x.Events}
-		return protoreflect.ValueOfList(value)
-	case "fuelsequencer.bridge.EthEventsTx.new_ethereum_block":
-		panic(fmt.Errorf("field new_ethereum_block of message fuelsequencer.bridge.EthEventsTx is not mutable"))
-	case "fuelsequencer.bridge.EthEventsTx.block_number":
-		panic(fmt.Errorf("field block_number of message fuelsequencer.bridge.EthEventsTx is not mutable"))
+	case "fuelsequencer.bridge.EthEventsTxIndex.total_num_event_txs":
+		panic(fmt.Errorf("field total_num_event_txs of message fuelsequencer.bridge.EthEventsTxIndex is not mutable"))
+	case "fuelsequencer.bridge.EthEventsTxIndex.num_event_txs_handled":
+		panic(fmt.Errorf("field num_event_txs_handled of message fuelsequencer.bridge.EthEventsTxIndex is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTxIndex"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTx does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTxIndex does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_EthEventsTx) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_EthEventsTxIndex) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.EthEventsTx.events":
-		list := []*v1.Event{}
-		return protoreflect.ValueOfList(&_EthEventsTx_1_list{list: &list})
-	case "fuelsequencer.bridge.EthEventsTx.new_ethereum_block":
-		return protoreflect.ValueOfBool(false)
-	case "fuelsequencer.bridge.EthEventsTx.block_number":
+	case "fuelsequencer.bridge.EthEventsTxIndex.total_num_event_txs":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "fuelsequencer.bridge.EthEventsTxIndex.num_event_txs_handled":
 		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTx"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.EthEventsTxIndex"))
 		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTx does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fuelsequencer.bridge.EthEventsTxIndex does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_EthEventsTx) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_EthEventsTxIndex) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EthEventsTx", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.EthEventsTxIndex", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -335,7 +252,7 @@ func (x *fastReflection_EthEventsTx) WhichOneof(d protoreflect.OneofDescriptor) 
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_EthEventsTx) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_EthEventsTxIndex) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -346,7 +263,7 @@ func (x *fastReflection_EthEventsTx) GetUnknown() protoreflect.RawFields {
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EthEventsTx) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_EthEventsTxIndex) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -358,7 +275,7 @@ func (x *fastReflection_EthEventsTx) SetUnknown(fields protoreflect.RawFields) {
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_EthEventsTx) IsValid() bool {
+func (x *fastReflection_EthEventsTxIndex) IsValid() bool {
 	return x != nil
 }
 
@@ -368,9 +285,9 @@ func (x *fastReflection_EthEventsTx) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_EthEventsTxIndex) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*EthEventsTx)
+		x := input.Message.Interface().(*EthEventsTxIndex)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -382,17 +299,11 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		if len(x.Events) > 0 {
-			for _, e := range x.Events {
-				l = options.Size(e)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
+		if x.TotalNumEventTxs != 0 {
+			n += 1 + runtime.Sov(uint64(x.TotalNumEventTxs))
 		}
-		if x.NewEthereumBlock {
-			n += 2
-		}
-		if x.BlockNumber != 0 {
-			n += 1 + runtime.Sov(uint64(x.BlockNumber))
+		if x.NumEventTxsHandled != 0 {
+			n += 1 + runtime.Sov(uint64(x.NumEventTxsHandled))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -404,7 +315,7 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*EthEventsTx)
+		x := input.Message.Interface().(*EthEventsTxIndex)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -423,36 +334,15 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if x.BlockNumber != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.BlockNumber))
-			i--
-			dAtA[i] = 0x18
-		}
-		if x.NewEthereumBlock {
-			i--
-			if x.NewEthereumBlock {
-				dAtA[i] = 1
-			} else {
-				dAtA[i] = 0
-			}
+		if x.NumEventTxsHandled != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.NumEventTxsHandled))
 			i--
 			dAtA[i] = 0x10
 		}
-		if len(x.Events) > 0 {
-			for iNdEx := len(x.Events) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.Events[iNdEx])
-				if err != nil {
-					return protoiface.MarshalOutput{
-						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-						Buf:               input.Buf,
-					}, err
-				}
-				i -= len(encoded)
-				copy(dAtA[i:], encoded)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-				i--
-				dAtA[i] = 0xa
-			}
+		if x.TotalNumEventTxs != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.TotalNumEventTxs))
+			i--
+			dAtA[i] = 0x8
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -465,7 +355,7 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*EthEventsTx)
+		x := input.Message.Interface().(*EthEventsTxIndex)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -497,17 +387,17 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthEventsTx: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthEventsTxIndex: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthEventsTx: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EthEventsTxIndex: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TotalNumEventTxs", wireType)
 				}
-				var msglen int
+				x.TotalNumEventTxs = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -517,31 +407,16 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					msglen |= int(b&0x7F) << shift
+					x.TotalNumEventTxs |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Events = append(x.Events, &v1.Event{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Events[len(x.Events)-1]); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
 			case 2:
 				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NewEthereumBlock", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NumEventTxsHandled", wireType)
 				}
-				var v int
+				x.NumEventTxsHandled = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -551,27 +426,7 @@ func (x *fastReflection_EthEventsTx) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					v |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				x.NewEthereumBlock = bool(v != 0)
-			case 3:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BlockNumber", wireType)
-				}
-				x.BlockNumber = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.BlockNumber |= uint64(b&0x7F) << shift
+					x.NumEventTxsHandled |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -624,26 +479,19 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type EthEventsTx struct {
+type EthEventsTxIndex struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// events defines the list of Ethereum events.
-	Events []*v1.Event `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
-	// new_ethereum_block is a boolean which indicates whether a new Ethereum
-	// block has been queried from the Sidecar and that the events from it were
-	// fully consumed by the Sequencer. This is needed to determine when
-	// LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
-	// false but the events list is not empty, the block was partially consumed.
-	NewEthereumBlock bool `protobuf:"varint,2,opt,name=new_ethereum_block,json=newEthereumBlock,proto3" json:"new_ethereum_block,omitempty"`
-	// block_number is the block that these events belong to. This is expected to
-	// be LastEthereumBlockSynced+1, since the events are from the next block.
-	BlockNumber uint64 `protobuf:"varint,3,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
+	// TODO
+	TotalNumEventTxs uint64 `protobuf:"varint,1,opt,name=total_num_event_txs,json=totalNumEventTxs,proto3" json:"total_num_event_txs,omitempty"`
+	// TODO
+	NumEventTxsHandled uint64 `protobuf:"varint,2,opt,name=num_event_txs_handled,json=numEventTxsHandled,proto3" json:"num_event_txs_handled,omitempty"`
 }
 
-func (x *EthEventsTx) Reset() {
-	*x = EthEventsTx{}
+func (x *EthEventsTxIndex) Reset() {
+	*x = EthEventsTxIndex{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fuelsequencer_bridge_eth_events_transaction_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -651,34 +499,27 @@ func (x *EthEventsTx) Reset() {
 	}
 }
 
-func (x *EthEventsTx) String() string {
+func (x *EthEventsTxIndex) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EthEventsTx) ProtoMessage() {}
+func (*EthEventsTxIndex) ProtoMessage() {}
 
-// Deprecated: Use EthEventsTx.ProtoReflect.Descriptor instead.
-func (*EthEventsTx) Descriptor() ([]byte, []int) {
+// Deprecated: Use EthEventsTxIndex.ProtoReflect.Descriptor instead.
+func (*EthEventsTxIndex) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_eth_events_transaction_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *EthEventsTx) GetEvents() []*v1.Event {
+func (x *EthEventsTxIndex) GetTotalNumEventTxs() uint64 {
 	if x != nil {
-		return x.Events
+		return x.TotalNumEventTxs
 	}
-	return nil
+	return 0
 }
 
-func (x *EthEventsTx) GetNewEthereumBlock() bool {
+func (x *EthEventsTxIndex) GetNumEventTxsHandled() uint64 {
 	if x != nil {
-		return x.NewEthereumBlock
-	}
-	return false
-}
-
-func (x *EthEventsTx) GetBlockNumber() uint64 {
-	if x != nil {
-		return x.BlockNumber
+		return x.NumEventTxsHandled
 	}
 	return 0
 }
@@ -693,35 +534,30 @@ var file_fuelsequencer_bridge_eth_events_transaction_proto_rawDesc = []byte{
 	0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a,
 	0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x26, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
-	0x65, 0x2f, 0x76, 0x31, 0x2f, 0x73, 0x69, 0x64, 0x65, 0x63, 0x61, 0x72, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0x97, 0x01, 0x0a, 0x0b, 0x45, 0x74, 0x68, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73,
-	0x54, 0x78, 0x12, 0x37, 0x0a, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03,
-	0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x76,
-	0x65, 0x6e, 0x74, 0x52, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x2c, 0x0a, 0x12, 0x6e,
-	0x65, 0x77, 0x5f, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x5f, 0x62, 0x6c, 0x6f, 0x63,
-	0x6b, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x10, 0x6e, 0x65, 0x77, 0x45, 0x74, 0x68, 0x65,
-	0x72, 0x65, 0x75, 0x6d, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x21, 0x0a, 0x0c, 0x62, 0x6c, 0x6f,
-	0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52,
-	0x0b, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x42, 0xee, 0x01, 0x0a,
-	0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x19, 0x45, 0x74, 0x68, 0x45, 0x76,
-	0x65, 0x6e, 0x74, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x50,
-	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
-	0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72,
-	0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02,
-	0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
-	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x74, 0x0a, 0x10, 0x45, 0x74,
+	0x68, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x54, 0x78, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x2d,
+	0x0a, 0x13, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x6e, 0x75, 0x6d, 0x5f, 0x65, 0x76, 0x65, 0x6e,
+	0x74, 0x5f, 0x74, 0x78, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x10, 0x74, 0x6f, 0x74,
+	0x61, 0x6c, 0x4e, 0x75, 0x6d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x54, 0x78, 0x73, 0x12, 0x31, 0x0a,
+	0x15, 0x6e, 0x75, 0x6d, 0x5f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x5f, 0x74, 0x78, 0x73, 0x5f, 0x68,
+	0x61, 0x6e, 0x64, 0x6c, 0x65, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x12, 0x6e, 0x75,
+	0x6d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x54, 0x78, 0x73, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x64,
+	0x42, 0xee, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
+	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x19, 0x45,
+	0x74, 0x68, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74,
+	0x69, 0x6f, 0x6e, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72,
+	0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64,
+	0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73,
+	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca,
+	0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c,
+	0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
+	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50,
+	0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -738,16 +574,14 @@ func file_fuelsequencer_bridge_eth_events_transaction_proto_rawDescGZIP() []byte
 
 var file_fuelsequencer_bridge_eth_events_transaction_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bridge_eth_events_transaction_proto_goTypes = []interface{}{
-	(*EthEventsTx)(nil), // 0: fuelsequencer.bridge.EthEventsTx
-	(*v1.Event)(nil),    // 1: fuelsequencer.service.v1.Event
+	(*EthEventsTxIndex)(nil), // 0: fuelsequencer.bridge.EthEventsTxIndex
 }
 var file_fuelsequencer_bridge_eth_events_transaction_proto_depIdxs = []int32{
-	1, // 0: fuelsequencer.bridge.EthEventsTx.events:type_name -> fuelsequencer.service.v1.Event
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_eth_events_transaction_proto_init() }
@@ -757,7 +591,7 @@ func file_fuelsequencer_bridge_eth_events_transaction_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_fuelsequencer_bridge_eth_events_transaction_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EthEventsTx); i {
+			switch v := v.(*EthEventsTxIndex); i {
 			case 0:
 				return &v.state
 			case 1:

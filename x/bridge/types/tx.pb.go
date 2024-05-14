@@ -346,6 +346,231 @@ func (m *MsgWithdrawToEthereumResponse) GetAmount() types.Coin {
 	return types.Coin{}
 }
 
+type MsgDepositFromEthereum struct {
+	// the sending Ethereum address in hex format
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	// recipient address in hex or bech32 format. If the recipient is the null
+	// address, the Sequencer uses the depositor address as the recipient.
+	Recipient string `protobuf:"bytes,2,opt,name=recipient,proto3" json:"recipient,omitempty"`
+	// the amount sent encoded as string to prevent loss of precision. Sign is
+	// also preserved
+	Amount string `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	// vesting duration encoded in string to prevent loss of precision. Sign is
+	// also preserved. This can be zero if no duration is specified.
+	Lockup string `protobuf:"bytes,4,opt,name=lockup,proto3" json:"lockup,omitempty"`
+}
+
+func (m *MsgDepositFromEthereum) Reset()         { *m = MsgDepositFromEthereum{} }
+func (m *MsgDepositFromEthereum) String() string { return proto.CompactTextString(m) }
+func (*MsgDepositFromEthereum) ProtoMessage()    {}
+func (*MsgDepositFromEthereum) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6bf9bf949dad0aca, []int{6}
+}
+func (m *MsgDepositFromEthereum) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDepositFromEthereum) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDepositFromEthereum.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDepositFromEthereum) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDepositFromEthereum.Merge(m, src)
+}
+func (m *MsgDepositFromEthereum) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDepositFromEthereum) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDepositFromEthereum.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDepositFromEthereum proto.InternalMessageInfo
+
+func (m *MsgDepositFromEthereum) GetDepositor() string {
+	if m != nil {
+		return m.Depositor
+	}
+	return ""
+}
+
+func (m *MsgDepositFromEthereum) GetRecipient() string {
+	if m != nil {
+		return m.Recipient
+	}
+	return ""
+}
+
+func (m *MsgDepositFromEthereum) GetAmount() string {
+	if m != nil {
+		return m.Amount
+	}
+	return ""
+}
+
+func (m *MsgDepositFromEthereum) GetLockup() string {
+	if m != nil {
+		return m.Lockup
+	}
+	return ""
+}
+
+type MsgDepositFromEthereumResponse struct {
+}
+
+func (m *MsgDepositFromEthereumResponse) Reset()         { *m = MsgDepositFromEthereumResponse{} }
+func (m *MsgDepositFromEthereumResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDepositFromEthereumResponse) ProtoMessage()    {}
+func (*MsgDepositFromEthereumResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6bf9bf949dad0aca, []int{7}
+}
+func (m *MsgDepositFromEthereumResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDepositFromEthereumResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDepositFromEthereumResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDepositFromEthereumResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDepositFromEthereumResponse.Merge(m, src)
+}
+func (m *MsgDepositFromEthereumResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDepositFromEthereumResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDepositFromEthereumResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDepositFromEthereumResponse proto.InternalMessageInfo
+
+type EthEventsTx struct {
+	// authority a placeholder to satisfy the requirement of having a signer.
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// num_injected_events is the number of Ethereum events injected as
+	// transactions in the current block.
+	NumInjectedEvents uint64 `protobuf:"varint,2,opt,name=num_injected_events,json=numInjectedEvents,proto3" json:"num_injected_events,omitempty"`
+	// new_ethereum_block is a boolean which indicates whether a new Ethereum
+	// block has been queried from the Sidecar and that the events from it were
+	// fully consumed by the Sequencer. This is needed to determine when
+	// LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
+	// false but the events list is not empty, the block was partially consumed.
+	NewEthereumBlock bool `protobuf:"varint,3,opt,name=new_ethereum_block,json=newEthereumBlock,proto3" json:"new_ethereum_block,omitempty"`
+	// block_number is the block that these events belong to. This is expected to
+	// be LastEthereumBlockSynced+1, since the events are from the next block.
+	BlockNumber uint64 `protobuf:"varint,4,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
+}
+
+func (m *EthEventsTx) Reset()         { *m = EthEventsTx{} }
+func (m *EthEventsTx) String() string { return proto.CompactTextString(m) }
+func (*EthEventsTx) ProtoMessage()    {}
+func (*EthEventsTx) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6bf9bf949dad0aca, []int{8}
+}
+func (m *EthEventsTx) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EthEventsTx) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EthEventsTx.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EthEventsTx) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EthEventsTx.Merge(m, src)
+}
+func (m *EthEventsTx) XXX_Size() int {
+	return m.Size()
+}
+func (m *EthEventsTx) XXX_DiscardUnknown() {
+	xxx_messageInfo_EthEventsTx.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EthEventsTx proto.InternalMessageInfo
+
+func (m *EthEventsTx) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *EthEventsTx) GetNumInjectedEvents() uint64 {
+	if m != nil {
+		return m.NumInjectedEvents
+	}
+	return 0
+}
+
+func (m *EthEventsTx) GetNewEthereumBlock() bool {
+	if m != nil {
+		return m.NewEthereumBlock
+	}
+	return false
+}
+
+func (m *EthEventsTx) GetBlockNumber() uint64 {
+	if m != nil {
+		return m.BlockNumber
+	}
+	return 0
+}
+
+type MsgSetEthEventTxsInfoResponse struct {
+}
+
+func (m *MsgSetEthEventTxsInfoResponse) Reset()         { *m = MsgSetEthEventTxsInfoResponse{} }
+func (m *MsgSetEthEventTxsInfoResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSetEthEventTxsInfoResponse) ProtoMessage()    {}
+func (*MsgSetEthEventTxsInfoResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6bf9bf949dad0aca, []int{9}
+}
+func (m *MsgSetEthEventTxsInfoResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetEthEventTxsInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetEthEventTxsInfoResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetEthEventTxsInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetEthEventTxsInfoResponse.Merge(m, src)
+}
+func (m *MsgSetEthEventTxsInfoResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetEthEventTxsInfoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetEthEventTxsInfoResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetEthEventTxsInfoResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "fuelsequencer.bridge.v1.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "fuelsequencer.bridge.v1.MsgUpdateParamsResponse")
@@ -353,52 +578,69 @@ func init() {
 	proto.RegisterType((*MsgSupplyDeltaResponse)(nil), "fuelsequencer.bridge.v1.MsgSupplyDeltaResponse")
 	proto.RegisterType((*MsgWithdrawToEthereum)(nil), "fuelsequencer.bridge.v1.MsgWithdrawToEthereum")
 	proto.RegisterType((*MsgWithdrawToEthereumResponse)(nil), "fuelsequencer.bridge.v1.MsgWithdrawToEthereumResponse")
+	proto.RegisterType((*MsgDepositFromEthereum)(nil), "fuelsequencer.bridge.v1.MsgDepositFromEthereum")
+	proto.RegisterType((*MsgDepositFromEthereumResponse)(nil), "fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse")
+	proto.RegisterType((*EthEventsTx)(nil), "fuelsequencer.bridge.v1.EthEventsTx")
+	proto.RegisterType((*MsgSetEthEventTxsInfoResponse)(nil), "fuelsequencer.bridge.v1.MsgSetEthEventTxsInfoResponse")
 }
 
 func init() { proto.RegisterFile("fuelsequencer/bridge/v1/tx.proto", fileDescriptor_6bf9bf949dad0aca) }
 
 var fileDescriptor_6bf9bf949dad0aca = []byte{
-	// 626 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x4b, 0x4f, 0xd4, 0x40,
-	0x1c, 0xdf, 0x2e, 0x8f, 0x64, 0x07, 0x82, 0x71, 0x02, 0xb2, 0x34, 0x58, 0xb0, 0x07, 0x25, 0x18,
-	0xa6, 0x82, 0x09, 0x46, 0x62, 0x34, 0xac, 0x7a, 0xe0, 0xb0, 0xc6, 0x14, 0x1f, 0x89, 0x17, 0x32,
-	0xdb, 0x0e, 0xb3, 0x55, 0x3a, 0x53, 0x67, 0xa6, 0x08, 0x89, 0x89, 0xc6, 0xa3, 0x27, 0x3f, 0x86,
-	0x89, 0x17, 0x0e, 0xdc, 0x3d, 0x99, 0x70, 0x24, 0x9c, 0x8c, 0x07, 0x34, 0x70, 0xe0, 0x6b, 0x98,
-	0x76, 0x66, 0x81, 0x65, 0x2b, 0x61, 0x13, 0x2f, 0x9b, 0x76, 0xe6, 0x37, 0xbf, 0xd7, 0xfe, 0xa7,
-	0x60, 0x72, 0x35, 0x25, 0x6b, 0x92, 0xbc, 0x4d, 0x09, 0x0b, 0x88, 0xf0, 0x1a, 0x22, 0x0a, 0x29,
-	0xf1, 0xd6, 0x67, 0x3d, 0xb5, 0x81, 0x12, 0xc1, 0x15, 0x87, 0xa3, 0x6d, 0x08, 0xa4, 0x11, 0x68,
-	0x7d, 0xd6, 0xbe, 0x8c, 0xe3, 0x88, 0x71, 0x2f, 0xff, 0xd5, 0x58, 0x7b, 0x34, 0xe0, 0x32, 0xe6,
-	0xd2, 0x8b, 0x25, 0xcd, 0x38, 0x62, 0x49, 0xcd, 0xc6, 0x98, 0xde, 0x58, 0xc9, 0xdf, 0x3c, 0xfd,
-	0x62, 0xb6, 0x86, 0x29, 0xa7, 0x5c, 0xaf, 0x67, 0x4f, 0x66, 0xf5, 0x5a, 0xa1, 0xaf, 0x04, 0x0b,
-	0x1c, 0xb7, 0x0e, 0x3a, 0x46, 0xac, 0x81, 0x65, 0xe6, 0xb8, 0x41, 0x14, 0x9e, 0xf5, 0x02, 0x1e,
-	0x31, 0xbd, 0xef, 0xfe, 0xb0, 0xc0, 0xa5, 0xba, 0xa4, 0xcf, 0x93, 0x10, 0x2b, 0xf2, 0x34, 0x3f,
-	0x09, 0xe7, 0x41, 0x05, 0xa7, 0xaa, 0xc9, 0x45, 0xa4, 0x36, 0xab, 0xd6, 0xa4, 0x35, 0x55, 0xa9,
-	0x55, 0xf7, 0xb6, 0x67, 0x86, 0x8d, 0xa3, 0xc5, 0x30, 0x14, 0x44, 0xca, 0x65, 0x25, 0x22, 0x46,
-	0xfd, 0x13, 0x28, 0x7c, 0x00, 0xfa, 0xb5, 0x76, 0xb5, 0x3c, 0x69, 0x4d, 0x0d, 0xcc, 0x8d, 0xa3,
-	0xc2, 0x56, 0xb4, 0x4a, 0xad, 0xb2, 0xb3, 0x3f, 0x51, 0xfa, 0x7a, 0xb4, 0x35, 0x6d, 0xf9, 0xe6,
-	0xd8, 0xc2, 0xdd, 0x4f, 0x47, 0x5b, 0xd3, 0x27, 0x84, 0x9f, 0x8f, 0xb6, 0xa6, 0xaf, 0xb7, 0x47,
-	0xdc, 0x68, 0x85, 0x3c, 0xe3, 0xd9, 0x1d, 0x03, 0xa3, 0x67, 0x96, 0x7c, 0x22, 0x13, 0xce, 0x24,
-	0x71, 0xef, 0x83, 0xa1, 0xba, 0xa4, 0xcb, 0x69, 0x92, 0xac, 0x6d, 0x3e, 0x22, 0x6b, 0x0a, 0xc3,
-	0xf1, 0x8e, 0x80, 0xa7, 0x62, 0x2c, 0x0c, 0xb5, 0xbb, 0x70, 0xbf, 0x59, 0xe0, 0x4a, 0x3b, 0x41,
-	0x8b, 0x1a, 0x2e, 0x82, 0x3e, 0xc6, 0x59, 0x40, 0x4c, 0x4b, 0x37, 0xb3, 0x48, 0xbf, 0xf6, 0x27,
-	0x46, 0x74, 0x53, 0x32, 0x7c, 0x83, 0x22, 0xee, 0xc5, 0x58, 0x35, 0xd1, 0x12, 0x53, 0x7b, 0xdb,
-	0x33, 0xc0, 0x54, 0xb8, 0xc4, 0x94, 0xaf, 0x4f, 0xc2, 0x27, 0x60, 0x50, 0xe6, 0xcc, 0x2b, 0x61,
-	0x46, 0x9d, 0x57, 0xd7, 0x25, 0xd3, 0x80, 0x3c, 0xb1, 0xe6, 0x7e, 0x00, 0x23, 0x75, 0x49, 0x5f,
-	0x46, 0xaa, 0x19, 0x0a, 0xfc, 0xee, 0x19, 0x7f, 0xac, 0x9a, 0x44, 0x90, 0x34, 0x86, 0x10, 0xf4,
-	0xae, 0x0a, 0x1e, 0x9b, 0xbc, 0xf9, 0x33, 0x1c, 0x02, 0x65, 0xc5, 0xb5, 0xa4, 0x5f, 0x56, 0x1c,
-	0xde, 0x01, 0xfd, 0x38, 0xe6, 0x29, 0x53, 0xd5, 0x9e, 0xfc, 0x1f, 0x1c, 0x43, 0x46, 0x26, 0x1b,
-	0x1f, 0x64, 0xc6, 0x07, 0x3d, 0xe4, 0x11, 0xab, 0xf5, 0x66, 0x0e, 0x7d, 0x03, 0x5f, 0xa8, 0x64,
-	0x9d, 0xe5, 0x9c, 0xee, 0x77, 0x0b, 0x5c, 0x2d, 0x74, 0xf0, 0x3f, 0x5b, 0x6b, 0x85, 0x29, 0x77,
-	0x84, 0xe9, 0x29, 0x08, 0xd3, 0xdb, 0x55, 0x98, 0xb9, 0xdf, 0x65, 0xd0, 0x53, 0x97, 0x14, 0xbe,
-	0x06, 0x83, 0x6d, 0xf7, 0x62, 0x0a, 0xfd, 0xe3, 0x96, 0xa3, 0x33, 0xa3, 0x67, 0xdf, 0xba, 0x28,
-	0xf2, 0xb8, 0x13, 0x0a, 0x06, 0x4e, 0x4f, 0xe8, 0x8d, 0xf3, 0x08, 0x4e, 0x01, 0x6d, 0xef, 0x82,
-	0xc0, 0x63, 0xa1, 0xf7, 0x00, 0x16, 0x0c, 0x07, 0x3a, 0x8f, 0xa6, 0x13, 0x6f, 0xcf, 0x77, 0x87,
-	0x6f, 0xa9, 0xdb, 0x7d, 0x1f, 0xb3, 0x0b, 0x5f, 0x7b, 0xb1, 0x73, 0xe0, 0x58, 0xbb, 0x07, 0x8e,
-	0xf5, 0xe7, 0xc0, 0xb1, 0xbe, 0x1c, 0x3a, 0xa5, 0xdd, 0x43, 0xa7, 0xf4, 0xf3, 0xd0, 0x29, 0xbd,
-	0xba, 0x47, 0x23, 0xd5, 0x4c, 0x1b, 0x28, 0xe0, 0xb1, 0x97, 0x49, 0xcc, 0x44, 0x6c, 0x55, 0x60,
-	0xa9, 0x44, 0x1a, 0xa8, 0x54, 0x10, 0xbd, 0x56, 0xf0, 0x3d, 0x50, 0x9b, 0x09, 0x91, 0x8d, 0xfe,
-	0xfc, 0xa3, 0x76, 0xfb, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x97, 0x5e, 0x54, 0xec, 0xb1, 0x05,
-	0x00, 0x00,
+	// 837 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcf, 0x4f, 0x33, 0x45,
+	0x18, 0xee, 0x96, 0x7e, 0xc4, 0x4e, 0x09, 0xfa, 0xcd, 0xf7, 0x83, 0xd2, 0xe0, 0x52, 0x36, 0x46,
+	0x09, 0xca, 0xae, 0x60, 0x02, 0x91, 0x18, 0x0d, 0x15, 0x4c, 0x7a, 0x28, 0x31, 0x0b, 0x6a, 0xe2,
+	0xa5, 0xd9, 0xee, 0x4e, 0xb7, 0x0b, 0xdd, 0x99, 0x75, 0x66, 0x16, 0x4a, 0x62, 0x82, 0xf1, 0xe8,
+	0xc9, 0x83, 0x7f, 0x84, 0x89, 0x17, 0x0e, 0x1c, 0x4d, 0x3c, 0x99, 0x70, 0x24, 0xc4, 0x83, 0xf1,
+	0x40, 0x0c, 0x1c, 0xf8, 0x37, 0xcc, 0xce, 0xce, 0x6e, 0x5b, 0xba, 0x34, 0x34, 0xf1, 0xd2, 0x74,
+	0xdf, 0x1f, 0xcf, 0xfb, 0x3c, 0xef, 0x3e, 0x3b, 0x03, 0xaa, 0xed, 0x10, 0x75, 0x19, 0xfa, 0x2e,
+	0x44, 0xd8, 0x46, 0xd4, 0x68, 0x51, 0xcf, 0x71, 0x91, 0x71, 0xbc, 0x66, 0xf0, 0x9e, 0x1e, 0x50,
+	0xc2, 0x09, 0x9c, 0x1b, 0xaa, 0xd0, 0xe3, 0x0a, 0xfd, 0x78, 0xad, 0xf2, 0xdc, 0xf2, 0x3d, 0x4c,
+	0x0c, 0xf1, 0x1b, 0xd7, 0x56, 0xe6, 0x6c, 0xc2, 0x7c, 0xc2, 0x0c, 0x9f, 0xb9, 0x11, 0x86, 0xcf,
+	0x5c, 0x99, 0x98, 0x8f, 0x13, 0x4d, 0xf1, 0x64, 0xc4, 0x0f, 0x32, 0xf5, 0xd2, 0x25, 0x2e, 0x89,
+	0xe3, 0xd1, 0x3f, 0x19, 0x5d, 0xca, 0xe4, 0x15, 0x58, 0xd4, 0xf2, 0x93, 0x46, 0x55, 0x0e, 0x6b,
+	0x59, 0x2c, 0x62, 0xdc, 0x42, 0xdc, 0x5a, 0x33, 0x6c, 0xe2, 0xe1, 0x38, 0xaf, 0xfd, 0xa9, 0x80,
+	0x37, 0x1b, 0xcc, 0xfd, 0x2a, 0x70, 0x2c, 0x8e, 0xbe, 0x14, 0x9d, 0x70, 0x03, 0x14, 0xad, 0x90,
+	0x77, 0x08, 0xf5, 0xf8, 0x69, 0x59, 0xa9, 0x2a, 0xcb, 0xc5, 0x5a, 0xf9, 0xfa, 0x62, 0xf5, 0xa5,
+	0x64, 0xb4, 0xed, 0x38, 0x14, 0x31, 0xb6, 0xcf, 0xa9, 0x87, 0x5d, 0xb3, 0x5f, 0x0a, 0x3f, 0x03,
+	0xd3, 0xf1, 0xec, 0x72, 0xbe, 0xaa, 0x2c, 0x97, 0xd6, 0x17, 0xf4, 0xcc, 0xad, 0xc4, 0x53, 0x6a,
+	0xc5, 0xcb, 0x9b, 0xc5, 0xdc, 0xaf, 0xf7, 0xe7, 0x2b, 0x8a, 0x29, 0xdb, 0xb6, 0x3e, 0xfe, 0xf1,
+	0xfe, 0x7c, 0xa5, 0x0f, 0xf8, 0xd3, 0xfd, 0xf9, 0xca, 0xbb, 0xc3, 0x12, 0x7b, 0x89, 0xc8, 0x07,
+	0x9c, 0xb5, 0x79, 0x30, 0xf7, 0x20, 0x64, 0x22, 0x16, 0x10, 0xcc, 0x90, 0xf6, 0x29, 0x98, 0x6d,
+	0x30, 0x77, 0x3f, 0x0c, 0x82, 0xee, 0xe9, 0x0e, 0xea, 0x72, 0x0b, 0x2e, 0x8c, 0x08, 0x1c, 0x90,
+	0xb1, 0x35, 0x3b, 0xcc, 0x42, 0xfb, 0x4d, 0x01, 0xaf, 0x87, 0x01, 0x12, 0x68, 0xb8, 0x0d, 0x9e,
+	0x61, 0x82, 0x6d, 0x24, 0xb7, 0xf4, 0x7e, 0x24, 0xe9, 0x9f, 0x9b, 0xc5, 0x57, 0xf1, 0xa6, 0x98,
+	0x73, 0xa4, 0x7b, 0xc4, 0xf0, 0x2d, 0xde, 0xd1, 0xeb, 0x98, 0x5f, 0x5f, 0xac, 0x02, 0xb9, 0xc2,
+	0x3a, 0xe6, 0x66, 0xdc, 0x09, 0xf7, 0xc0, 0x0c, 0x13, 0xc8, 0x4d, 0x27, 0x82, 0x16, 0xab, 0x9b,
+	0x10, 0xa9, 0xc4, 0xfa, 0xd4, 0xb4, 0x33, 0xf0, 0xaa, 0xc1, 0xdc, 0x6f, 0x3c, 0xde, 0x71, 0xa8,
+	0x75, 0x72, 0x40, 0x76, 0x79, 0x07, 0x51, 0x14, 0xfa, 0x10, 0x82, 0x42, 0x9b, 0x12, 0x5f, 0xea,
+	0x15, 0xff, 0xe1, 0x2c, 0xc8, 0x73, 0x12, 0x8f, 0x34, 0xf3, 0x9c, 0xc0, 0x4d, 0x30, 0x6d, 0xf9,
+	0x24, 0xc4, 0xbc, 0x3c, 0x25, 0xde, 0xe0, 0xbc, 0x2e, 0xc7, 0x44, 0xf6, 0xd1, 0xa5, 0x7d, 0xf4,
+	0xcf, 0x89, 0x87, 0x6b, 0x85, 0x88, 0xa1, 0x29, 0xcb, 0xb7, 0x8a, 0xd1, 0xce, 0x04, 0xa6, 0xf6,
+	0x87, 0x02, 0xde, 0xce, 0x64, 0xf0, 0x7f, 0x6e, 0x2d, 0x11, 0x93, 0x1f, 0x11, 0x33, 0x95, 0x21,
+	0xa6, 0x30, 0x91, 0x18, 0xed, 0x97, 0xf8, 0x85, 0xef, 0xa0, 0x80, 0x30, 0x8f, 0x7f, 0x41, 0x89,
+	0x9f, 0x2e, 0x71, 0x01, 0x14, 0x9d, 0x38, 0x4c, 0x68, 0xe2, 0x9c, 0x34, 0x10, 0x65, 0x29, 0xb2,
+	0xbd, 0xc0, 0x43, 0x98, 0x4b, 0x6a, 0xfd, 0x00, 0x7c, 0x3d, 0xb4, 0xdc, 0x62, 0x32, 0x2e, 0x8a,
+	0x77, 0x89, 0x7d, 0x14, 0x06, 0x82, 0x67, 0xd1, 0x94, 0x4f, 0xd2, 0x87, 0x29, 0xba, 0x56, 0x05,
+	0x6a, 0x36, 0xab, 0xd4, 0xe9, 0xbf, 0x2b, 0xa0, 0xb4, 0xcb, 0x3b, 0xbb, 0xc7, 0x08, 0x73, 0x76,
+	0xd0, 0x1b, 0xef, 0x73, 0xa8, 0x83, 0x17, 0x38, 0xf4, 0x9b, 0x1e, 0x3e, 0x44, 0x36, 0x47, 0x4e,
+	0x13, 0x89, 0x36, 0xc1, 0xbb, 0x60, 0x3e, 0xc7, 0xa1, 0x5f, 0x97, 0x99, 0x18, 0x0f, 0x7e, 0x00,
+	0x20, 0x46, 0x27, 0x4d, 0x24, 0xa7, 0x36, 0x5b, 0x11, 0x4f, 0xa1, 0xe5, 0x0d, 0xf3, 0x2d, 0x8c,
+	0x4e, 0x12, 0x3a, 0xb5, 0x28, 0x0e, 0x97, 0xc0, 0x8c, 0x28, 0x68, 0xe2, 0xd0, 0x6f, 0x21, 0x2a,
+	0xb4, 0x15, 0xcc, 0x92, 0x88, 0xed, 0x89, 0xd0, 0xc8, 0x87, 0xb6, 0x28, 0x8c, 0xb3, 0x8f, 0x78,
+	0xa2, 0xe1, 0xa0, 0xc7, 0xea, 0xb8, 0x4d, 0x12, 0x7d, 0xeb, 0x7f, 0x15, 0xc0, 0x54, 0x83, 0xb9,
+	0xf0, 0x10, 0xcc, 0x0c, 0x1d, 0x58, 0xcb, 0xfa, 0x23, 0xc7, 0xaf, 0xfe, 0xe0, 0x4c, 0xa8, 0x7c,
+	0xf8, 0xd4, 0xca, 0xd4, 0xac, 0x2e, 0x28, 0x0d, 0x1e, 0x1d, 0xef, 0x8d, 0x03, 0x18, 0x28, 0xac,
+	0x18, 0x4f, 0x2c, 0x4c, 0x07, 0x7d, 0x0f, 0x60, 0xc6, 0x57, 0xab, 0x8f, 0x83, 0x19, 0xad, 0xaf,
+	0x6c, 0x4c, 0x56, 0x9f, 0x4e, 0x3f, 0x03, 0x2f, 0xb2, 0xfc, 0x3e, 0x56, 0x45, 0x46, 0x43, 0x65,
+	0x73, 0xc2, 0x86, 0x94, 0x00, 0x05, 0x70, 0xf4, 0xcd, 0xc3, 0x77, 0x1e, 0x85, 0x1b, 0xf0, 0xf9,
+	0x78, 0xd1, 0x8f, 0xfb, 0xa9, 0xf2, 0xec, 0x87, 0xe8, 0xfa, 0xa9, 0x7d, 0x7d, 0x79, 0xab, 0x2a,
+	0x57, 0xb7, 0xaa, 0xf2, 0xef, 0xad, 0xaa, 0xfc, 0x7c, 0xa7, 0xe6, 0xae, 0xee, 0xd4, 0xdc, 0xdf,
+	0x77, 0x6a, 0xee, 0xdb, 0x4f, 0x5c, 0x8f, 0x77, 0xc2, 0x96, 0x6e, 0x13, 0xdf, 0x88, 0x46, 0xac,
+	0x7a, 0xb8, 0x4d, 0x2d, 0xc6, 0x69, 0x68, 0xf3, 0x90, 0xa2, 0x38, 0x96, 0x71, 0x3b, 0xf1, 0xd3,
+	0x00, 0xb1, 0xd6, 0xb4, 0xb8, 0x62, 0x3f, 0xfa, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x96, 0x7f, 0x62,
+	0xbf, 0x3f, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -421,6 +663,11 @@ type MsgClient interface {
 	SupplyDelta(ctx context.Context, in *MsgSupplyDelta, opts ...grpc.CallOption) (*MsgSupplyDeltaResponse, error)
 	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
 	WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error)
+	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
+	DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error)
+	// SetEthEventTxsInfo defines an operation for setting information about
+	// injected transactions, specifically ones originating from Ethereum events.
+	SetEthEventTxsInfo(ctx context.Context, in *EthEventsTx, opts ...grpc.CallOption) (*MsgSetEthEventTxsInfoResponse, error)
 }
 
 type msgClient struct {
@@ -458,6 +705,24 @@ func (c *msgClient) WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEth
 	return out, nil
 }
 
+func (c *msgClient) DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error) {
+	out := new(MsgDepositFromEthereumResponse)
+	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.v1.Msg/DepositFromEthereum", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) SetEthEventTxsInfo(ctx context.Context, in *EthEventsTx, opts ...grpc.CallOption) (*MsgSetEthEventTxsInfoResponse, error) {
+	out := new(MsgSetEthEventTxsInfoResponse)
+	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.v1.Msg/SetEthEventTxsInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// UpdateParams defines a (governance) operation for updating the module
@@ -468,6 +733,11 @@ type MsgServer interface {
 	SupplyDelta(context.Context, *MsgSupplyDelta) (*MsgSupplyDeltaResponse, error)
 	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
 	WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error)
+	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
+	DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error)
+	// SetEthEventTxsInfo defines an operation for setting information about
+	// injected transactions, specifically ones originating from Ethereum events.
+	SetEthEventTxsInfo(context.Context, *EthEventsTx) (*MsgSetEthEventTxsInfoResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -482,6 +752,12 @@ func (*UnimplementedMsgServer) SupplyDelta(ctx context.Context, req *MsgSupplyDe
 }
 func (*UnimplementedMsgServer) WithdrawToEthereum(ctx context.Context, req *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawToEthereum not implemented")
+}
+func (*UnimplementedMsgServer) DepositFromEthereum(ctx context.Context, req *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositFromEthereum not implemented")
+}
+func (*UnimplementedMsgServer) SetEthEventTxsInfo(ctx context.Context, req *EthEventsTx) (*MsgSetEthEventTxsInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetEthEventTxsInfo not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -542,6 +818,42 @@ func _Msg_WithdrawToEthereum_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_DepositFromEthereum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDepositFromEthereum)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DepositFromEthereum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fuelsequencer.bridge.v1.Msg/DepositFromEthereum",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DepositFromEthereum(ctx, req.(*MsgDepositFromEthereum))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_SetEthEventTxsInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EthEventsTx)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SetEthEventTxsInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fuelsequencer.bridge.v1.Msg/SetEthEventTxsInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SetEthEventTxsInfo(ctx, req.(*EthEventsTx))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "fuelsequencer.bridge.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -557,6 +869,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WithdrawToEthereum",
 			Handler:    _Msg_WithdrawToEthereum_Handler,
+		},
+		{
+			MethodName: "DepositFromEthereum",
+			Handler:    _Msg_DepositFromEthereum_Handler,
+		},
+		{
+			MethodName: "SetEthEventTxsInfo",
+			Handler:    _Msg_SetEthEventTxsInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -803,6 +1123,153 @@ func (m *MsgWithdrawToEthereumResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgDepositFromEthereum) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDepositFromEthereum) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDepositFromEthereum) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Lockup) > 0 {
+		i -= len(m.Lockup)
+		copy(dAtA[i:], m.Lockup)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Lockup)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Amount) > 0 {
+		i -= len(m.Amount)
+		copy(dAtA[i:], m.Amount)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Amount)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Recipient) > 0 {
+		i -= len(m.Recipient)
+		copy(dAtA[i:], m.Recipient)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Recipient)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Depositor) > 0 {
+		i -= len(m.Depositor)
+		copy(dAtA[i:], m.Depositor)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Depositor)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDepositFromEthereumResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDepositFromEthereumResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDepositFromEthereumResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *EthEventsTx) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EthEventsTx) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EthEventsTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.BlockNumber != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.BlockNumber))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.NewEthereumBlock {
+		i--
+		if m.NewEthereumBlock {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.NumInjectedEvents != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.NumInjectedEvents))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSetEthEventTxsInfoResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetEthEventTxsInfoResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetEthEventTxsInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -901,6 +1368,71 @@ func (m *MsgWithdrawToEthereumResponse) Size() (n int) {
 	}
 	l = m.Amount.Size()
 	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgDepositFromEthereum) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Depositor)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Recipient)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Amount)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Lockup)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgDepositFromEthereumResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *EthEventsTx) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.NumInjectedEvents != 0 {
+		n += 1 + sovTx(uint64(m.NumInjectedEvents))
+	}
+	if m.NewEthereumBlock {
+		n += 2
+	}
+	if m.BlockNumber != 0 {
+		n += 1 + sovTx(uint64(m.BlockNumber))
+	}
+	return n
+}
+
+func (m *MsgSetEthEventTxsInfoResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -1582,6 +2114,424 @@ func (m *MsgWithdrawToEthereumResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDepositFromEthereum) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDepositFromEthereum: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDepositFromEthereum: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Depositor", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Depositor = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Recipient", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Recipient = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Amount = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lockup", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Lockup = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDepositFromEthereumResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDepositFromEthereumResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDepositFromEthereumResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EthEventsTx) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EthEventsTx: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EthEventsTx: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NumInjectedEvents", wireType)
+			}
+			m.NumInjectedEvents = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NumInjectedEvents |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewEthereumBlock", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.NewEthereumBlock = bool(v != 0)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlockNumber", wireType)
+			}
+			m.BlockNumber = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BlockNumber |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetEthEventTxsInfoResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetEthEventTxsInfoResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetEthEventTxsInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

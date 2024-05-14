@@ -8262,6 +8262,148 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuelsequencer.bridge.v1.Msg/DepositFromEthereum:
+    post:
+      summary: >-
+        DepositFromEthereum defines an operation for bridging tokens from
+        Ethereum.
+      operationId: FuelsequencerBridgeV1Msg_DepositFromEthereum
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              depositor:
+                type: string
+                title: the sending Ethereum address in hex format
+              recipient:
+                type: string
+                description: >-
+                  recipient address in hex or bech32 format. If the recipient is
+                  the null
+
+                  address, the Sequencer uses the depositor address as the
+                  recipient.
+              amount:
+                type: string
+                title: >-
+                  the amount sent encoded as string to prevent loss of
+                  precision. Sign is
+
+                  also preserved
+              lockup:
+                type: string
+                description: >-
+                  vesting duration encoded in string to prevent loss of
+                  precision. Sign is
+
+                  also preserved. This can be zero if no duration is specified.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.v1.Msg/SetEthEventTxsInfo:
+    post:
+      summary: >-
+        SetEthEventTxsInfo defines an operation for setting information about
+
+        injected transactions, specifically ones originating from Ethereum
+        events.
+      operationId: FuelsequencerBridgeV1Msg_SetEthEventTxsInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: >-
+                  authority a placeholder to satisfy the requirement of having a
+                  signer.
+              num_injected_events:
+                type: string
+                format: uint64
+                description: >-
+                  num_injected_events is the number of Ethereum events injected
+                  as
+
+                  transactions in the current block.
+              new_ethereum_block:
+                type: boolean
+                description: >-
+                  new_ethereum_block is a boolean which indicates whether a new
+                  Ethereum
+
+                  block has been queried from the Sidecar and that the events
+                  from it were
+
+                  fully consumed by the Sequencer. This is needed to determine
+                  when
+
+                  LastEthereumBlockSynced should be incremented by the
+                  PreBlocker. If it's
+
+                  false but the events list is not empty, the block was
+                  partially consumed.
+              block_number:
+                type: string
+                format: uint64
+                description: >-
+                  block_number is the block that these events belong to. This is
+                  expected to
+
+                  be LastEthereumBlockSynced+1, since the events are from the
+                  next block.
+      tags:
+        - Msg
   /fuelsequencer.bridge.v1.Msg/SupplyDelta:
     post:
       summary: |-
@@ -12257,6 +12399,73 @@ definitions:
 
           from unauthorized control actions.
     description: Params defines the parameters for the module.
+  fuelsequencer.bridge.v1.EthEventsTx:
+    type: object
+    properties:
+      authority:
+        type: string
+        description: authority a placeholder to satisfy the requirement of having a signer.
+      num_injected_events:
+        type: string
+        format: uint64
+        description: |-
+          num_injected_events is the number of Ethereum events injected as
+          transactions in the current block.
+      new_ethereum_block:
+        type: boolean
+        description: >-
+          new_ethereum_block is a boolean which indicates whether a new Ethereum
+
+          block has been queried from the Sidecar and that the events from it
+          were
+
+          fully consumed by the Sequencer. This is needed to determine when
+
+          LastEthereumBlockSynced should be incremented by the PreBlocker. If
+          it's
+
+          false but the events list is not empty, the block was partially
+          consumed.
+      block_number:
+        type: string
+        format: uint64
+        description: >-
+          block_number is the block that these events belong to. This is
+          expected to
+
+          be LastEthereumBlockSynced+1, since the events are from the next
+          block.
+  fuelsequencer.bridge.v1.MsgDepositFromEthereum:
+    type: object
+    properties:
+      depositor:
+        type: string
+        title: the sending Ethereum address in hex format
+      recipient:
+        type: string
+        description: >-
+          recipient address in hex or bech32 format. If the recipient is the
+          null
+
+          address, the Sequencer uses the depositor address as the recipient.
+      amount:
+        type: string
+        title: >-
+          the amount sent encoded as string to prevent loss of precision. Sign
+          is
+
+          also preserved
+      lockup:
+        type: string
+        description: >-
+          vesting duration encoded in string to prevent loss of precision. Sign
+          is
+
+          also preserved. This can be zero if no duration is specified.
+  fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse:
+    type: object
+  fuelsequencer.bridge.v1.MsgSetEthEventTxsInfoResponse:
+    type: object
   fuelsequencer.bridge.v1.MsgSupplyDelta:
     type: object
     properties:

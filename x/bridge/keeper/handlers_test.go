@@ -8,6 +8,10 @@ func (s *KeeperTestSuite) TestMessagesRegisteredWithCorrectTypeUrl() {
 	s.Require().NotNil(handler)
 	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bridge.v1.MsgWithdrawToEthereum")
 	s.Require().NotNil(handler)
+	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bridge.v1.MsgDepositFromEthereum")
+	s.Require().NotNil(handler)
+	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bridge.v1.EthEventsTx")
+	s.Require().NotNil(handler)
 }
 
 // This test confirms that the Bridge module's queries were registered with the correct path
@@ -21,8 +25,6 @@ func (s *KeeperTestSuite) TestQueriesRegisteredWithCorrectPath() {
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/EthereumEventIndexOffset")
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo")
-	s.Require().NotNil(handler)
-	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/EthEventsTxByBlockNumber")
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress")
 	s.Require().NotNil(handler)

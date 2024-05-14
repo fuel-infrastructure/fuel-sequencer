@@ -4,98 +4,31 @@ import (
 	"errors"
 	"fmt"
 
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
-// isEqualEventSlices compares two slices of Ethereum events for equality
-func isEqualEventSlices(slice1, slice2 []*sidecartypes.Event) (bool, error) {
-	if len(slice1) != len(slice2) {
-		// Slices of different lengths cannot be equal
-		return false, nil
-	}
-
-	for i := range slice1 {
-		equalElements, err := slice1[i].Equal(slice2[i])
-		if err != nil {
-			// Return error if equality failed
-			return false, err
-		}
-
-		if !equalElements {
-			// Found unequal elements
-			return false, nil
-		}
-	}
-
-	// All elements are equal
-	return true, nil
-}
-
-// isValidEventSlice performs some sanity checks on the list of Ethereum events
-func isValidEventSlice(slice []*sidecartypes.Event) error {
-	for _, event := range slice {
-		err := event.ValidateBasic()
-		if err != nil {
-			// Return error if verification failed.
-			return err
-		}
-	}
-
-	// All elements pass validation
-	return nil
-}
-
-// Equal compares two EthEventsTx structs for equality
-func (m *EthEventsTx) Equal(e *EthEventsTx) (bool, error) {
+// Equal compares two EthEventsTx structs and two sets of event transactions for equality
+func (m *EthEventsTx) Equal(e *EthEventsTx, eventTxs1 [][]byte, eventTxs2 [][]byte) error {
 	// If both structs are nil then they are equal
 	if m == nil && e == nil {
-		return true, nil
+		return nil
 	}
 
-	// If one of them only is nil then they are not equal
 	if m == nil || e == nil {
-		return false, nil
+		return fmt.Errorf("nil (%t) != (%t)", m == nil, e == nil)
+	} else if m.Authority != e.Authority {
+		return fmt.Errorf("authority (%s) != (%s)", m.Authority, e.Authority)
+	} else if m.NumInjectedEvents != e.NumInjectedEvents {
+		return fmt.Errorf("number of injected events (%d) != (%d)", m.NumInjectedEvents, e.NumInjectedEvents)
+	} else if m.NewEthereumBlock != e.NewEthereumBlock {
+		return fmt.Errorf("new Ethereum block (%t) != (%t)", m.NewEthereumBlock, e.NewEthereumBlock)
+	} else if m.BlockNumber != e.BlockNumber {
+		return fmt.Errorf("block number (%d) != (%d)", m.BlockNumber, e.BlockNumber)
+	} else if !utils.IsEqualBytesSlices(eventTxs1, eventTxs2) {
+		return fmt.Errorf("event transactions are not equal")
 	}
-
-	// Check if the events are equal
-	equalEventSlices, err := isEqualEventSlices(m.Events, e.Events)
-	if err != nil {
-		return false, err
-	}
-
-	return m.NewEthereumBlock == e.NewEthereumBlock &&
-		m.BlockNumber == e.BlockNumber &&
-		equalEventSlices, nil
-}
-
-// ValidateBasic performs some sanity checks on EthEventsTx
-func (m *EthEventsTx) ValidateBasic() error {
-	// Error if the receiver is nil
-	if m == nil {
-		return errors.New("EthEventsTx is nil")
-	}
-
-	return isValidEventSlice(m.Events)
-}
-
-// ValidateStateful performs some state-based checks on EthEventsTx
-func (m *EthEventsTx) ValidateStateful(ethereumProxyContractAddress string) error {
-	// Error if the receiver is nil
-	if m == nil {
-		return errors.New("EthEventsTx is nil")
-	}
-
-	// Error if one of the events does not belong to the Ethereum Proxy Contract
-	for _, event := range m.Events {
-		if event.ContractAddress != ethereumProxyContractAddress {
-			return fmt.Errorf(
-				"event contract_address does not match expected ethereum_proxy_contract_address; got %s, expected %s",
-				event.ContractAddress,
-				ethereumProxyContractAddress,
-			)
-		}
-	}
-
 	return nil
 }
 
@@ -110,7 +43,7 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	//   being synced still has more events for us to consume, so this case is invalid.
 	// - No new Ethereum block - but since the offset is non-zero, we know that the current Ethereum block exists, and
 	//   we expect to receive the remaining events. The current block is a new Ethereum block, so this case is invalid.
-	if eventIndexOffset > 0 && len(m.Events) == 0 {
+	if eventIndexOffset > 0 && m.NumInjectedEvents == 0 {
 		return fmt.Errorf(
 			"expected at least 1 new event if offset is non-zero (%d), got EthEventsTx (%s)",
 			eventIndexOffset, m,
@@ -130,90 +63,131 @@ func (m *EthEventsTx) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset
 	return nil
 }
 
-// NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This closely
-// resembles the EthEventsTx Size function but only iterates over as many events as can fit into the specified maxBytes.
-//
-// It is very important to update this function if the EthEventsTx Size function gets updated, otherwise we might be
-// overestimating or underestimating the size of EthEventsTx and inject a suboptimal number of events. If there is a
-// discrepancy, we expect at least one unit test to fail.
-func (m *EthEventsTx) NumberOfEventsWithMaxBytes(maxBytes uint64) (n int) {
-	var l int
-	if m.NewEthereumBlock {
-		n += 2
+// NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
+// the size of the EthEventsTx as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
+func (m *EthEventsTx) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (n int, err error) {
+	rawTxBytes, err := m.RawTxBytes()
+	if err != nil {
+		return 0, err
 	}
-	if m.BlockNumber != 0 {
-		n += 1 + sovEthEventsTransaction(m.BlockNumber)
-	}
-	if len(m.Events) > 0 {
-		for i, e := range m.Events {
-			l = e.Size()
-			toAdd := 1 + l + sovEthEventsTransaction(uint64(l))
-			if uint64(n+toAdd) > maxBytes {
-				return i
-			}
-			n += toAdd
+	n += len(rawTxBytes)
+	for i, eventTx := range eventTxs {
+		toAdd := len(eventTx)
+		if uint64(n+toAdd) > maxBytes {
+			return i, nil
 		}
+		n += toAdd
 	}
-	return len(m.Events)
+	return len(eventTxs), nil
 }
 
 // TrimEventsFromHead removes the first N events from the front of the list of events.
 //
 // An important check that it does is to ensure that if there are events, these cannot all be trimmed, otherwise the
 // blockchain might get stuck injecting empty EthEventsTx forever. At least one event must be kept if there are events.
-func (m *EthEventsTx) TrimEventsFromHead(numEventsToTrim uint64) error {
-	numEventsInTx := uint64(len(m.Events))
+func (m *EthEventsTx) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64) ([][]byte, error) {
 
 	if numEventsToTrim == 0 {
 
-		return nil // trim nothing
+		return eventTxs, nil // trim nothing
 
-	} else if numEventsInTx > 0 && numEventsInTx == numEventsToTrim {
+	} else if m.NumInjectedEvents > 0 && m.NumInjectedEvents == numEventsToTrim {
 
 		// If we trim all the events from the transaction this is a problem because if we retry
 		// at the next block, we expect the same to happen, and we will never inject the events.
-		return fmt.Errorf("cannot trim all %d events from EthEventsTx %s", numEventsInTx, m)
+		return nil, fmt.Errorf("cannot trim all %d events", m.NumInjectedEvents)
 
-	} else if numEventsToTrim > numEventsInTx {
+	} else if numEventsToTrim > m.NumInjectedEvents {
 
 		// If we try to trim more events than there are, something is wrong.
-		return fmt.Errorf("insufficient no of events, expected at least %d got %d", numEventsToTrim, numEventsInTx)
+		return nil, fmt.Errorf(
+			"insufficient no of events, expected at least %d got %d",
+			numEventsToTrim, m.NumInjectedEvents,
+		)
 
 	}
 
-	m.Events = m.Events[numEventsToTrim:]
-	return nil
+	eventTxs = eventTxs[numEventsToTrim:]
+	m.NumInjectedEvents = uint64(len(eventTxs))
+	return eventTxs, nil
 }
 
 // KeepEventsFromHead keeps the first N events from the front of the list of events and trims the rest.
 //
 // An important check that it does is to ensure that if there are events, these cannot all be trimmed, otherwise the
 // blockchain might get stuck injecting empty EthEventsTx forever. At least one event must be kept if there are events.
-func (m *EthEventsTx) KeepEventsFromHead(numEventsToKeep uint64) (trimmed uint64, err error) {
-	numEventsInTx := uint64(len(m.Events))
+func (m *EthEventsTx) KeepEventsFromHead(
+	eventTxs [][]byte, numEventsToKeep uint64,
+) (newEventTxs [][]byte, trimmed uint64, err error) {
 
-	if numEventsInTx == numEventsToKeep {
+	if m.NumInjectedEvents == numEventsToKeep {
 
-		return 0, nil // keep all
+		return eventTxs, 0, nil // keep all
 
-	} else if numEventsInTx > 0 && numEventsToKeep == 0 {
+	} else if m.NumInjectedEvents > 0 && numEventsToKeep == 0 {
 
 		// If we trim all the events from the transaction this is a problem because if we retry
 		// at the next block, we expect the same to happen, and we will never inject the events.
-		return 0, fmt.Errorf("cannot trim all %d events from EthEventsTx %s", numEventsInTx, m)
+		return nil, 0, fmt.Errorf("cannot trim all %d events", m.NumInjectedEvents)
 
-	} else if numEventsInTx < numEventsToKeep {
+	} else if m.NumInjectedEvents < numEventsToKeep {
 
 		// If we try to trim more events than there are, something is wrong.
-		return 0, fmt.Errorf("insufficient no of events, expected at least %d got %d", numEventsToKeep, numEventsInTx)
+		return nil, 0, fmt.Errorf(
+			"insufficient no of events, expected at least %d got %d",
+			numEventsToKeep, m.NumInjectedEvents,
+		)
 
 	}
 
-	m.Events = m.Events[:numEventsToKeep]
+	eventTxs = eventTxs[:numEventsToKeep]
+	trimmed = m.NumInjectedEvents - numEventsToKeep
+	m.NumInjectedEvents = uint64(len(eventTxs))
 	m.NewEthereumBlock = false
 
 	// Note: changing NewEthereumBlock can affect the size of EthEventsTx. However, setting it to false will reduce
 	// the size, not increase it, so there is no risk of exceeding the maxBytes as a result of setting it to false.
 
-	return numEventsInTx - numEventsToKeep, nil
+	return eventTxs, trimmed, nil
+}
+
+// RawTxBytes TODO
+func (m *EthEventsTx) RawTxBytes() ([]byte, error) {
+
+	ethEventsTxAny, err := codectypes.NewAnyWithValue(m)
+	if err != nil {
+		return nil, err
+	}
+
+	ethEventsTxBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{ethEventsTxAny})
+	if err != nil {
+		return nil, err
+	}
+
+	return ethEventsTxBz, nil
+}
+
+// FromSdkTx TODO
+func (m *EthEventsTx) FromSdkTx(tx sdk.Tx) error {
+
+	// MsgSupplyDelta Txs will contain only one message.
+	msgs := tx.GetMsgs()
+	if len(msgs) != 1 {
+		return fmt.Errorf("expected 1 msg in EthEventsTx raw bytes, got %d", len(msgs))
+	}
+
+	// If the message is not a MsgSupplyDelta continue with the other Ante decorators.
+	msg := msgs[0]
+	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&EthEventsTx{}) {
+		return fmt.Errorf("expected msg type URL %s, got %s", sdk.MsgTypeURL(&EthEventsTx{}), sdk.MsgTypeURL(msg))
+	}
+
+	// If the message cannot be parsed into EthEventsTx, this is a problem.
+	ethEventsTx, ok := msg.(*EthEventsTx)
+	if !ok {
+		return errors.New("could not parse message into EthEventsTx")
+	}
+
+	*m = *ethEventsTx
+	return nil
 }

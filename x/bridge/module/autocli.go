@@ -69,6 +69,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Send a WithdrawToEthereum tx",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "to"}, {ProtoField: "amount"}},
 				},
+				{
+					RpcMethod: "DepositFromEthereum",
+					Skip:      true, // skipped because generated through consensus
+				},
+				{
+					RpcMethod: "SetEthEventTxsInfo",
+					Skip:      true, // skipped because generated through consensus
+				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
 		},

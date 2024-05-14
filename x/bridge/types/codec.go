@@ -25,6 +25,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgUpdateParams{},
 		&MsgSupplyDelta{},
 		&MsgWithdrawToEthereum{},
+		&MsgDepositFromEthereum{},
+		&EthEventsTx{},
 	)
 	// this line is used by starport scaffolding # 3
 

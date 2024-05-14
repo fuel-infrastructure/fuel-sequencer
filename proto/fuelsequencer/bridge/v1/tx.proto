@@ -26,6 +26,14 @@ service Msg {
   // WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
   rpc WithdrawToEthereum(MsgWithdrawToEthereum)
       returns (MsgWithdrawToEthereumResponse);
+
+  // DepositFromEthereum defines an operation for bridging tokens from Ethereum.
+  rpc DepositFromEthereum(MsgDepositFromEthereum)
+      returns (MsgDepositFromEthereumResponse);
+
+  // SetEthEventTxsInfo defines an operation for setting information about
+  // injected transactions, specifically ones originating from Ethereum events.
+  rpc SetEthEventTxsInfo(EthEventsTx) returns (MsgSetEthEventTxsInfoResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -109,3 +117,48 @@ message MsgWithdrawToEthereumResponse {
   // amount is the tokens being sent, which must be the expected bridge token.
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
+
+message MsgDepositFromEthereum {
+  option (cosmos.msg.v1.signer) = "depositor";
+
+  // the sending Ethereum address in hex format
+  string depositor = 1;
+
+  // recipient address in hex or bech32 format. If the recipient is the null
+  // address, the Sequencer uses the depositor address as the recipient.
+  string recipient = 2;
+
+  // the amount sent encoded as string to prevent loss of precision. Sign is
+  // also preserved
+  string amount = 3;
+
+  // vesting duration encoded in string to prevent loss of precision. Sign is
+  // also preserved. This can be zero if no duration is specified.
+  string lockup = 4;
+}
+
+message MsgDepositFromEthereumResponse {}
+
+message EthEventsTx {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority a placeholder to satisfy the requirement of having a signer.
+  string authority = 1;
+
+  // num_injected_events is the number of Ethereum events injected as
+  // transactions in the current block.
+  uint64 num_injected_events = 2;
+
+  // new_ethereum_block is a boolean which indicates whether a new Ethereum
+  // block has been queried from the Sidecar and that the events from it were
+  // fully consumed by the Sequencer. This is needed to determine when
+  // LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
+  // false but the events list is not empty, the block was partially consumed.
+  bool new_ethereum_block = 3;
+
+  // block_number is the block that these events belong to. This is expected to
+  // be LastEthereumBlockSynced+1, since the events are from the next block.
+  uint64 block_number = 4;
+}
+
+message MsgSetEthEventTxsInfoResponse {}

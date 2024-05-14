@@ -6,9 +6,12 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 var (
@@ -37,6 +40,7 @@ type ParsedEvent interface {
 	ValidateBasic() error
 	Marshal() (dAtA []byte, err error)
 	Unmarshal(dAtA []byte) error
+	Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error)
 }
 
 // Equal attempts to compare two DepositEvent structs for equality
@@ -67,6 +71,7 @@ func (m *DepositEvent) Equal(e ParsedEvent) bool {
 // ValidateBasic performs some sanity checks on the DepositEvent
 func (m *DepositEvent) ValidateBasic() error {
 	// TODO: More checks can be added in the future
+	// TODO: Consider clearing out ValidateBasic since this might cause the deposit event to get skipped!
 
 	// Error if the receiver is nil
 	if m == nil {
@@ -99,6 +104,26 @@ func (m *DepositEvent) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func (m *DepositEvent) ToMsgDepositFromEthereum() *bridgetypes.MsgDepositFromEthereum {
+	return &bridgetypes.MsgDepositFromEthereum{
+		Depositor: m.Depositor,
+		Recipient: m.Recipient,
+		Amount:    m.Amount,
+		Lockup:    m.Lockup,
+	}
+}
+
+// Messages TODO
+func (m *DepositEvent) Messages(codec.BinaryCodec) ([]*codectypes.Any, error) {
+
+	msgDepositFromEthereumAny, err := codectypes.NewAnyWithValue(m.ToMsgDepositFromEthereum())
+	if err != nil {
+		return nil, err
+	}
+
+	return []*codectypes.Any{msgDepositFromEthereumAny}, nil
 }
 
 // Equal attempts to compare two AuthorizeEvent structs for equality
@@ -137,4 +162,16 @@ func (m *AuthorizeEvent) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// Messages TODO
+func (m *AuthorizeEvent) Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error) {
+
+	var authorizeTx bridgetypes.AuthorizeTx
+	err := cdc.Unmarshal(m.Data, &authorizeTx)
+	if err != nil {
+		return nil, err
+	}
+
+	return authorizeTx.Messages, nil
 }

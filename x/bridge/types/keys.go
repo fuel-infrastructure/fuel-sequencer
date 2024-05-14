@@ -1,9 +1,5 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 const (
 	// ModuleName defines the module name
 	ModuleName = "bridge"
@@ -17,7 +13,7 @@ const (
 
 var (
 	ParamsKey                   = []byte("p_bridge")
-	EthEventsTxPrefixKey        = []byte("eth_events_tx")
+	EthEventsTxIndexKey         = []byte("eth_events_tx_index")
 	SupplyDeltaInfoKey          = []byte("supply_delta_info")
 	LastEthereumNonceKey        = []byte("LastEthereumNonce")
 	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
@@ -27,9 +23,4 @@ var (
 
 func KeyPrefix(p string) []byte {
 	return []byte(p)
-}
-
-// EthEventsTxKey the store key for a EthEventsTx by ethereum block height.
-func EthEventsTxKey(blockHeight uint64) []byte {
-	return append(EthEventsTxPrefixKey, sdk.Uint64ToBigEndian(blockHeight)...)
 }

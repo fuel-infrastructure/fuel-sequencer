@@ -206,47 +206,109 @@ var (
 		TestDepositEvent11, TestEthereumProxyContractAddress,
 	)
 
+	// The below event messages are set in the init() function.
+	// These serve as convenient access to the event's original messages.
+	// We skipped TestEvent2Msg because this is an authorize msg.
+
+	TestEvent1Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent3Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent4Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent5Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent6Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent7Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent8Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent9Msg  *bridgetypes.MsgDepositFromEthereum
+	TestEvent10Msg *bridgetypes.MsgDepositFromEthereum
+	TestEvent11Msg *bridgetypes.MsgDepositFromEthereum
+
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
 	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
 
-	TestEthEventsTx = bridgetypes.EthEventsTx{
-		Events:           TestEvents,
-		NewEthereumBlock: true,
-		BlockNumber:      1,
+	TestEthEventsTx = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: uint64(len(TestEvents)),
+			NewEthereumBlock:  true,
+			BlockNumber:       1,
+		},
+		Events: TestEvents,
 	}
-	TestEthEventsTxWithDifferentEvents = bridgetypes.EthEventsTx{
-		Events:           TestEventsDifferent,
-		NewEthereumBlock: true,
-		BlockNumber:      1,
+
+	TestEthEventsTxWithDifferentEvents = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: uint64(len(TestEventsDifferent)),
+			NewEthereumBlock:  true,
+			BlockNumber:       1,
+		},
+		Events: TestEventsDifferent,
 	}
-	TestEthEventsTxReduced = bridgetypes.EthEventsTx{
-		Events:           TestEventsReduced,
-		NewEthereumBlock: true,
-		BlockNumber:      1,
+
+	TestEthEventsTxReduced = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: uint64(len(TestEventsReduced)),
+			NewEthereumBlock:  true,
+			BlockNumber:       1,
+		},
+		Events: TestEventsReduced,
 	}
-	TestEthEventsTxPartial = bridgetypes.EthEventsTx{
-		Events:           TestEventsReduced,
-		NewEthereumBlock: false, // block was partially consumed
-		BlockNumber:      1,
+
+	TestEthEventsTxPartial = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: uint64(len(TestEventsReduced)),
+			NewEthereumBlock:  false, // block was partially consumed
+			BlockNumber:       1,
+		},
+		Events: TestEventsReduced,
 	}
-	TestEthEventsTxWithoutEvents = bridgetypes.EthEventsTx{
-		Events:           []*sidecartypes.Event{},
-		NewEthereumBlock: true,
-		BlockNumber:      1,
+
+	TestEthEventsTxWithoutEvents = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: 0,
+			NewEthereumBlock:  true,
+			BlockNumber:       1,
+		},
+		Events: nil,
 	}
-	TestEthEventsTxNoNewBlock = bridgetypes.EthEventsTx{
-		Events:           []*sidecartypes.Event{},
-		NewEthereumBlock: false,
-		BlockNumber:      1,
+
+	TestEthEventsTxNoNewBlock = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: 0,
+			NewEthereumBlock:  false,
+			BlockNumber:       1,
+		},
+		Events: nil,
 	}
-	TestEthEventsTxSidecarErr = bridgetypes.EthEventsTx{
-		Events:           []*sidecartypes.Event{},
-		NewEthereumBlock: false,
-		BlockNumber:      1,
+
+	TestEthEventsTxSidecarErr = TestEthEventsTxWithEvents{
+		EthEventsTx: &bridgetypes.EthEventsTx{
+			Authority:         TestGovernanceAddress,
+			NumInjectedEvents: 0,
+			NewEthereumBlock:  false,
+			BlockNumber:       1,
+		},
+		Events: nil,
 	}
 
 	TestEmptySidecarResponse   = &sidecartypes.QueryBlockEventsResponse{Events: nil}
 	TestSidecarResponse        = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 	TestSidecarResponseReduced = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
 )
+
+func init() {
+	TestEvent1Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent1)
+	TestEvent3Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent3)
+	TestEvent4Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent4)
+	TestEvent5Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent5)
+	TestEvent6Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent6)
+	TestEvent7Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent7)
+	TestEvent8Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent8)
+	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent9)
+	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent10)
+	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent11)
+}

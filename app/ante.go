@@ -29,6 +29,8 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+		NewEthEventsTxDecorator(bridgeKeeper),
+		NewEthEventTxsDecorator(bridgeKeeper),
 		NewMsgSupplyDeltaDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
@@ -43,6 +45,109 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
+}
+
+type EthEventsTxDecorator struct {
+	bridgeKeeper bridgekeeper.Keeper
+}
+
+func NewEthEventsTxDecorator(bridgeKeeper bridgekeeper.Keeper) EthEventsTxDecorator {
+	return EthEventsTxDecorator{
+		bridgeKeeper: bridgeKeeper,
+	}
+}
+
+// AnteHandle implements the AnteHandler decorator for EthEventsTx. If an error is returned from AnteHandle during
+// CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
+func (d EthEventsTxDecorator) AnteHandle(
+	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
+) (sdk.Context, error) {
+
+	// There's no injected transactions at genesis, and they are only at FinalizeBlock.
+	if ctx.BlockHeight() == 0 || ctx.ExecMode() != sdk.ExecModeFinalize {
+		return next(ctx, tx, simulate)
+	}
+
+	// Override the gas meter with an infinite one to make sure that the message handlers do not run out of gas when
+	// they are processing the EthEventsTx. This is safe because we know that it was injected by the consensus logic.
+	// We cache the existing one in case we need to revert back to it.
+	cachedGasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+
+	// Check that we haven't set EthEventsTxIndex yet.
+	_, found := d.bridgeKeeper.GetEthEventsTxIndex(ctx)
+	if found {
+		ctx = ctx.WithGasMeter(cachedGasMeter) // revert
+		return next(ctx, tx, simulate)
+	}
+
+	// Note: beyond this point, we strictly expect EthEventsTx, and so we should error if anything goes wrong.
+
+	// EthEventsTx Txs contains only one message.
+	msgs := tx.GetMsgs()
+	if len(msgs) != 1 {
+		return ctx, errors.New("expected transaction containing just EthEventsTx")
+	}
+
+	var ethEventsTx bridgetypes.EthEventsTx
+	err := ethEventsTx.FromSdkTx(tx)
+	if err != nil {
+		return ctx, fmt.Errorf("could not get EthEventsTx from tx: %w", err)
+	}
+
+	// Confirm that EthEventsTx passes the necessary verification checks and error if not
+	if err := ethEventsTx.ValidateBasic(); err != nil {
+		return ctx, err
+	}
+
+	// Other Ante decorators won't execute if we reach this stage
+	return ctx, nil
+}
+
+type EthEventTxsDecorator struct {
+	bridgeKeeper bridgekeeper.Keeper
+}
+
+func NewEthEventTxsDecorator(bridgeKeeper bridgekeeper.Keeper) EthEventTxsDecorator {
+	return EthEventTxsDecorator{
+		bridgeKeeper: bridgeKeeper,
+	}
+}
+
+// AnteHandle implements the AnteHandler decorator for Ethereum event transactions. If an error is returned from
+// AnteHandle during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
+func (d EthEventTxsDecorator) AnteHandle(
+	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
+) (sdk.Context, error) {
+
+	// There's no injected transactions at genesis, and they are only at FinalizeBlock.
+	if ctx.BlockHeight() == 0 || ctx.ExecMode() != sdk.ExecModeFinalize {
+		return next(ctx, tx, simulate)
+	}
+
+	// Override the gas meter with an infinite one to make sure that the message handlers do not run out of gas when
+	// they are processing the Ethereum event transactions. This is safe because we know that we are processing an event
+	// transaction injected by the consensus logic.
+	// We cache the existing one in case we need to revert back to it.
+	cachedGasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+
+	// If we're done processing Ethereum event transactions, proceed to the next decorators.
+	// Otherwise, we know for sure that we are processing an Ethereum event transaction.
+	eventsIndex := d.bridgeKeeper.MustGetEthEventsTxIndex(ctx)
+	if eventsIndex.NumEventTxsHandled == eventsIndex.TotalNumEventTxs {
+		ctx = ctx.WithGasMeter(cachedGasMeter) // revert
+		return next(ctx, tx, simulate)
+	}
+
+	// Note: beyond this point, we strictly expect injected transactions, and so we should error if anything goes wrong.
+
+	// Update events index
+	eventsIndex.NumEventTxsHandled += 1
+	d.bridgeKeeper.SetEthEventsTxIndex(ctx, eventsIndex)
+
+	// Other Ante decorators won't execute if we reach this stage
+	return ctx, nil
 }
 
 type MsgSupplyDeltaDecorator struct {
@@ -60,6 +165,11 @@ func NewMsgSupplyDeltaDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSupplyDelta
 func (d MsgSupplyDeltaDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
+
+	// There's no injected transactions at genesis, and they are only at FinalizeBlock.
+	if ctx.BlockHeight() == 0 || ctx.ExecMode() != sdk.ExecModeFinalize {
+		return next(ctx, tx, simulate)
+	}
 
 	// MsgSupplyDelta Txs will contain only one message.
 	msgs := tx.GetMsgs()
@@ -109,8 +219,7 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 	}
 	d.bridgeKeeper.SetSupplyDeltaProcessed(ctx, bridgetypes.SupplyDeltaProcessed{Processed: true})
 
-	// Reset the gas meter to its original state. We can't use a defer function because this doesn't work well with
-	// decorators.
+	// Reset the gas meter to its original state. We can't use defer because this doesn't work well with decorators.
 	ctx = ctx.WithGasMeter(cachedGasMeter)
 
 	// Other Ante decorators won't execute if we reach this stage

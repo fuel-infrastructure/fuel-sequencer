@@ -5,245 +5,144 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
-	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *KeeperTestSuite) TestProcessEthereumEvents_AuthorizeEvent() {
-	// These accounts correspond to the from and to addresses of the bank. MsgSend to be executed via the AuthorizeEvent
-	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
-	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
-	s.Require().NoError(err)
-
-	// This is the amount to be funded to the fromAcc
-	amt := sdkmath.NewInt(1000000)
-	coinAmt := sdk.NewCoin("ufuel", amt)
-
-	testCases := []struct {
-		name           string
-		ethEventsTx    *types.EthEventsTx
-		expFromBalance sdkmath.Int
-		expToBalance   sdkmath.Int
-	}{
-		{
-			name: "successfully processes AuthorizeEvents if none error",
-			ethEventsTx: &types.EthEventsTx{
-				Events:           []*sidecartypes.Event{testtypes.TestEvent2, testtypes.TestEvent2},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
-			},
-			expFromBalance: sdkmath.NewInt(999980),
-			expToBalance:   sdkmath.NewInt(20),
-		},
-		{
-			name: "successfully processes valid AuthorizeEvents if some cannot be unmarshalled",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					{EventType: "invalid-event", Data: []byte("invalid bytes")}, // event with unrecognized type
-					testtypes.TestEvent2, // valid AuthorizeEvent
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
-			},
-			expFromBalance: sdkmath.NewInt(999990),
-			expToBalance:   sdkmath.NewInt(10),
-		},
-		{
-			name: "successfully processes valid AuthorizeEvents if some error while executing",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					// Event that sends 10 ufuel from a sequencer address that has no funds. We expect this to fail,
-					// demonstrating that other events still get processed successfully
-					testutils.MustGetSidecarEventFromParsedEvent(
-						&sidecartypes.AuthorizeEvent{
-							Sender: testtypes.TestFrom2,
-							Data:   testutils.MustHexDecodeString(testtypes.TestData2),
-						},
-						testtypes.TestEthereumProxyContractAddress,
-					),
-					testtypes.TestEvent2, // valid AuthorizeEvent
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
-			},
-			expFromBalance: sdkmath.NewInt(999990),
-			expToBalance:   sdkmath.NewInt(10),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			// Fund accounts to be used so that we can execute messages
-			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
-
-			// Set LastEthereumBlockSynced to EthEventsTxs' block height
-			s.App.BridgeKeeper.SetLastEthereumBlockSynced(s.Ctx(), tc.ethEventsTx.BlockNumber)
-
-			// Authorize bank.MsgSend on Sequencer
-			err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
-				AuthorizeMessagesAllowed: []string{"*"},
-			})
-			s.Require().NoError(err)
-
-			// Set EthEventsTx
-			s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *tc.ethEventsTx)
-			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
-			s.Require().True(found)
-
-			s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
-
-			// Make sure that EthEventsTx has been removed
-			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
-			s.Require().False(found)
-
-			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvents were
-			// executed successfully
-			actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
-			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
-			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
-			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
-	// These accounts correspond to the from and to addresses of the bank.MsgSends to be executed via the AuthorizeEvent
-	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
-	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
-	s.Require().NoError(err)
-
-	// This is the amount to be funded to the fromAcc
-	amt := sdkmath.NewInt(1000000)
-	coinAmt := sdk.NewCoin("ufuel", amt)
-
-	testCases := []struct {
-		name             string
-		authorizeEvent   *sidecartypes.AuthorizeEvent
-		blockedAddresses map[string]bool
-		expFromBalance   sdkmath.Int
-		expToBalance     sdkmath.Int
-		expErrMsg        string
-	}{
-		{
-			name: "successfully processes msgs in AuthorizeTx if none error",
-			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				Sender: testtypes.TestFrom3,
-
-				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
-				Data: testutils.MustHexDecodeString(testtypes.TestData4),
-			},
-			blockedAddresses: map[string]bool{},
-			expFromBalance:   sdkmath.NewInt(999980),
-			expToBalance:     sdkmath.NewInt(20),
-		},
-		{
-			name: "returns error if sender address is blocked",
-			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				Sender: testtypes.TestFrom3,
-				Data:   testutils.MustHexDecodeString(testtypes.TestData4),
-			},
-			blockedAddresses: map[string]bool{
-				fromAcc.String(): true,
-			},
-			expErrMsg: fmt.Sprintf("signer %s is a blocked address", fromAcc.String()),
-		},
-		{
-			name: "returns error if AuthorizeTx cannot be deserialized",
-			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				Sender: testtypes.TestFrom3,
-				Data:   []byte("invalid-data"),
-			},
-			blockedAddresses: map[string]bool{},
-			expErrMsg:        "could not deserialize AuthorizeTx",
-		},
-		{
-			name: "returns error if AuthorizeTx cannot be authenticated",
-			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				Sender: testtypes.TestFrom2, // Invalid Sender to trigger an authentication error
-
-				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
-				Data: testutils.MustHexDecodeString(testtypes.TestData4),
-			},
-			blockedAddresses: map[string]bool{},
-			expErrMsg:        "could not authenticate AuthorizeTx",
-		},
-		{
-			name: "returns error if some messages cannot be validated",
-			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				Sender: testtypes.TestFrom3,
-
-				// Data decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
-				Data: testutils.MustHexDecodeString(testtypes.TestData5),
-			},
-			blockedAddresses: map[string]bool{},
-			expErrMsg:        "could not validate msg",
-		},
-		{
-			name: "returns error if some messages fail execution",
-			authorizeEvent: &sidecartypes.AuthorizeEvent{
-				Sender: testtypes.TestFrom3,
-
-				// Data decodes two MsgSends, one of 10 ufuel and another of 1000000 both from testtypes.TestFrom3Seq
-				// to testtypes.TestTo3. The second MsgSend should fail because testtypes.TestFrom3Seq originally should
-				// have 1000000 ufuel
-				Data: testutils.MustHexDecodeString(testtypes.TestData6),
-			},
-			blockedAddresses: map[string]bool{},
-			expErrMsg:        "could not execute msg",
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			// Fund accounts to be used so that we can execute messages
-			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
-
-			// Authorize bank.MsgSend on Sequencer
-			bridgeParams := &types.Params{
-				AuthorizeMessagesAllowed: []string{"*"},
-			}
-			err := s.App.BridgeKeeper.SetParams(s.Ctx(), *bridgeParams)
-			s.Require().NoError(err)
-
-			processAuthorizeEventCtx := s.Ctx()
-			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(
-				processAuthorizeEventCtx, tc.authorizeEvent, bridgeParams, tc.blockedAddresses,
-			)
-
-			if len(tc.expErrMsg) > 0 {
-				// Confirm that the expected error was raised
-				s.Require().Error(err)
-				s.Require().ErrorContains(err, tc.expErrMsg)
-
-				// Make sure that the balances are as if no message was executed
-				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
-				s.Require().Equal(coinAmt.Amount, actualFromBalance.Amount)
-				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
-				s.Require().Equal(sdkmath.ZeroInt(), actualToBalance.Amount)
-				return
-			}
-			s.Require().NoError(err)
-
-			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvent was executed
-			// successfully
-			actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
-			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
-			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
-			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
-		})
-	}
-}
+// TODO: move to where we're checking AuthorizeEvent authentication and blocked addresses
+//func (s *KeeperTestSuite) TestProcessAuthorizeEvent() {
+//	// These accounts correspond to the from and to addresses of the bank.MsgSends to be executed via the AuthorizeEvent
+//	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom3Seq)
+//	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
+//	s.Require().NoError(err)
+//
+//	// This is the amount to be funded to the fromAcc
+//	amt := sdkmath.NewInt(1000000)
+//	coinAmt := sdk.NewCoin("ufuel", amt)
+//
+//	testCases := []struct {
+//		name             string
+//		authorizeEvent   *sidecartypes.AuthorizeEvent
+//		blockedAddresses map[string]bool
+//		expFromBalance   sdkmath.Int
+//		expToBalance     sdkmath.Int
+//		expErrMsg        string
+//	}{
+//		{
+//			name: "successfully processes msgs in AuthorizeTx if none error",
+//			authorizeEvent: &sidecartypes.AuthorizeEvent{
+//				Sender: testtypes.TestFrom3,
+//
+//				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+//				Data: testutils.MustHexDecodeString(testtypes.TestData4),
+//			},
+//			blockedAddresses: map[string]bool{},
+//			expFromBalance:   sdkmath.NewInt(999980),
+//			expToBalance:     sdkmath.NewInt(20),
+//		},
+//		{
+//			name: "returns error if sender address is blocked",
+//			authorizeEvent: &sidecartypes.AuthorizeEvent{
+//				Sender: testtypes.TestFrom3,
+//				Data:   testutils.MustHexDecodeString(testtypes.TestData4),
+//			},
+//			blockedAddresses: map[string]bool{
+//				fromAcc.String(): true,
+//			},
+//			expErrMsg: fmt.Sprintf("signer %s is a blocked address", fromAcc.String()),
+//		},
+//		{
+//			name: "returns error if AuthorizeTx cannot be deserialized",
+//			authorizeEvent: &sidecartypes.AuthorizeEvent{
+//				Sender: testtypes.TestFrom3,
+//				Data:   []byte("invalid-data"),
+//			},
+//			blockedAddresses: map[string]bool{},
+//			expErrMsg:        "could not deserialize AuthorizeTx",
+//		},
+//		{
+//			name: "returns error if AuthorizeTx cannot be authenticated",
+//			authorizeEvent: &sidecartypes.AuthorizeEvent{
+//				Sender: testtypes.TestFrom2, // Invalid Sender to trigger an authentication error
+//
+//				// Data decodes two MsgSends of 10 ufuel from testtypes.TestFrom3Seq to testtypes.TestTo3
+//				Data: testutils.MustHexDecodeString(testtypes.TestData4),
+//			},
+//			blockedAddresses: map[string]bool{},
+//			expErrMsg:        "could not authenticate AuthorizeTx",
+//		},
+//		{
+//			name: "returns error if some messages cannot be validated",
+//			authorizeEvent: &sidecartypes.AuthorizeEvent{
+//				Sender: testtypes.TestFrom3,
+//
+//				// Data decodes a MsgWithdrawToEthereum with a zero amount to trigger a failed ValidateBasic.
+//				Data: testutils.MustHexDecodeString(testtypes.TestData5),
+//			},
+//			blockedAddresses: map[string]bool{},
+//			expErrMsg:        "could not validate msg",
+//		},
+//		{
+//			name: "returns error if some messages fail execution",
+//			authorizeEvent: &sidecartypes.AuthorizeEvent{
+//				Sender: testtypes.TestFrom3,
+//
+//				// Data decodes two MsgSends, one of 10 ufuel and another of 1000000 both from testtypes.TestFrom3Seq
+//				// to testtypes.TestTo3. The second MsgSend should fail because testtypes.TestFrom3Seq originally should
+//				// have 1000000 ufuel
+//				Data: testutils.MustHexDecodeString(testtypes.TestData6),
+//			},
+//			blockedAddresses: map[string]bool{},
+//			expErrMsg:        "could not execute msg",
+//		},
+//	}
+//
+//	for _, tc := range testCases {
+//		s.Run(tc.name, func() {
+//			s.SetupTest()
+//
+//			// Fund accounts to be used so that we can execute messages
+//			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
+//
+//			// Authorize bank.MsgSend on Sequencer
+//			bridgeParams := &types.Params{
+//				AuthorizeMessagesAllowed: []string{"*"},
+//			}
+//			err := s.App.BridgeKeeper.SetParams(s.Ctx(), *bridgeParams)
+//			s.Require().NoError(err)
+//
+//			processAuthorizeEventCtx := s.Ctx()
+//			err = s.App.BridgeKeeper.ProcessAuthorizeEvent(
+//				processAuthorizeEventCtx, tc.authorizeEvent, bridgeParams, tc.blockedAddresses,
+//			)
+//
+//			if len(tc.expErrMsg) > 0 {
+//				// Confirm that the expected error was raised
+//				s.Require().Error(err)
+//				s.Require().ErrorContains(err, tc.expErrMsg)
+//
+//				// Make sure that the balances are as if no message was executed
+//				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
+//				s.Require().Equal(coinAmt.Amount, actualFromBalance.Amount)
+//				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
+//				s.Require().Equal(sdkmath.ZeroInt(), actualToBalance.Amount)
+//				return
+//			}
+//			s.Require().NoError(err)
+//
+//			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvent was executed
+//			// successfully
+//			actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
+//			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
+//			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
+//			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
+//		})
+//	}
+//}
 
 func (s *KeeperTestSuite) TestAuthenticateTx() {
 	// Some amounts to populate bank.MsgSend messages
@@ -376,87 +275,7 @@ func (s *KeeperTestSuite) TestAuthenticateTx() {
 	}
 }
 
-func (s *KeeperTestSuite) TestExecuteMsg() {
-	// These accounts correspond to the from and to addresses of the bank.MsgSend to be executed
-	fromAcc := sdk.MustAccAddressFromBech32(testtypes.TestFrom2Seq)
-	toAcc, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestTo3)
-	s.Require().NoError(err)
-
-	// This is the amount to be funded to the fromAcc
-	amt := sdkmath.NewInt(1000000)
-	coinAmt := sdk.NewCoin("ufuel", amt)
-
-	testCases := []struct {
-		name                  string
-		msg                   sdk.Msg
-		expFromBalance        sdkmath.Int
-		expToBalance          sdkmath.Int
-		resetMsgServiceRouter bool
-		expErrMsg             string
-	}{
-		{
-			name: "successfully executes recognized msg",
-			msg: &banktypes.MsgSend{
-				FromAddress: testtypes.TestFrom2Seq,
-				ToAddress:   testtypes.TestTo3,
-				Amount:      sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(10))),
-			},
-			expFromBalance:        sdkmath.NewInt(999990),
-			expToBalance:          sdkmath.NewInt(10),
-			resetMsgServiceRouter: false,
-		},
-		{
-			name: "returns error if unrecognized msg",
-			msg: &banktypes.MsgSend{
-				FromAddress: testtypes.TestFrom2Seq,
-				ToAddress:   testtypes.TestTo3,
-				Amount:      sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(10))),
-			},
-			expFromBalance:        amt,
-			expToBalance:          sdkmath.ZeroInt(),
-			resetMsgServiceRouter: true, // No message will be registered
-			expErrMsg:             "invalid MsgHandler route",
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			if tc.resetMsgServiceRouter {
-				s.App.BridgeKeeper = bridgekeeper.SetRouter(s.App.BridgeKeeper, baseapp.NewMsgServiceRouter())
-			}
-
-			// Fund accounts to be used so that we can execute messages
-			s.FundAcc(s.Ctx(), fromAcc, sdk.NewCoins(coinAmt))
-
-			err := s.App.BridgeKeeper.ExecuteMsg(s.Ctx(), tc.msg)
-
-			if len(tc.expErrMsg) > 0 {
-				// Confirm that the expected error was raised
-				s.Require().Error(err)
-				s.Require().ErrorContains(err, tc.expErrMsg)
-
-				// Make sure that the balances are as expected
-				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
-				s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
-				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
-				s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
-				return
-			}
-			s.Require().NoError(err)
-
-			// Confirm that the balances were changed as expected. This indicates that the AuthorizedEvent was executed
-			// successfully
-			actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), fromAcc, "ufuel")
-			s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
-			actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), toAcc, "ufuel")
-			s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
+func (s *KeeperTestSuite) TestDepositFromEthereum() {
 
 	blockTime, _ := time.Parse(time.DateOnly, "2024-01-01")
 	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
@@ -470,7 +289,7 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 
 	testCases := []struct {
 		name           string
-		ethEventsTx    *types.EthEventsTx
+		msgs           []*types.MsgDepositFromEthereum
 		toAcc          *sdk.AccAddress
 		fromAcc        *sdk.AccAddress
 		expFromBalance sdkmath.Int
@@ -482,12 +301,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 	}{
 		{
 			name: "successful - deposit - mint to Recipient address",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent1,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent1Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -502,13 +317,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "successful - deposit - mint to Recipient address twice",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent1,
-					testtypes.TestEvent1,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent1Msg,
+				testtypes.TestEvent1Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -523,12 +334,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "successful - deposit - mint to address Recipient == Depositor",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent10,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent10Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &fromAccOne,
@@ -543,12 +350,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "successful - deposit - mint to address Recipient == Sequencer(Depositor)",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent11,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent11Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &fromAccOne,
@@ -563,12 +366,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "successful - deposit - mint to Depositor address",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent3,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent3Msg,
 			},
 			fromAcc:        &fromAccTwo,
 			toAcc:          nil,
@@ -583,13 +382,9 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "successful - deposit - mint to Depositor address twice",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent3,
-					testtypes.TestEvent3,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent3Msg,
+				testtypes.TestEvent3Msg,
 			},
 			fromAcc:        &fromAccTwo,
 			toAcc:          nil,
@@ -604,12 +399,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "failure - deposit - lockup failed to parse - mint to governance",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent4,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent4Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -624,12 +415,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "failure - deposit - from address failed to parse - mint to governance",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent5,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent5Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -644,12 +431,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "failure - deposit - bad vesting duration - mint to governance",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent6,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent6Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          nil,
@@ -664,12 +447,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		},
 		{
 			name: "failure - deposit - bad to bech32 address - mint to governance",
-			ethEventsTx: &types.EthEventsTx{
-				Events: []*sidecartypes.Event{
-					testtypes.TestEvent7,
-				},
-				NewEthereumBlock: true,
-				BlockNumber:      1,
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent7Msg,
 			},
 			fromAcc:        &fromAccOne,
 			toAcc:          &toAccOne,
@@ -688,8 +467,8 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			// Set LastEthereumBlockSynced to EthEventsTxs' block height
-			s.App.BridgeKeeper.SetLastEthereumBlockSynced(s.Ctx(), tc.ethEventsTx.BlockNumber)
+			// Get the message server
+			msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
 
 			// Authorize bank.MsgSend on Sequencer
 			err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
@@ -699,16 +478,10 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 			})
 			s.Require().NoError(err)
 
-			// Set EthEventsTx
-			s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *tc.ethEventsTx)
-			_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
-			s.Require().True(found)
-
-			s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
-
-			// Make sure that EthEventsTx has been removed
-			_, found = s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), tc.ethEventsTx.BlockNumber)
-			s.Require().False(found)
+			for _, msg := range tc.msgs {
+				_, err = msgServer.DepositFromEthereum(s.Ctx(), msg)
+				s.Require().NoError(err)
+			}
 
 			// Confirm that the balances were changed as specified. This indicates that the AuthorizedEvents were
 			// executed successfully
@@ -744,21 +517,12 @@ func (s *KeeperTestSuite) TestProcessEthereumEvents_DepositEvent() {
 	}
 }
 
-func (s *KeeperTestSuite) TestProcessEthereumEventsDepositEvent_AmountParseFailure() {
+func (s *KeeperTestSuite) TestDepositFromEthereum_AmountParseFailure() {
 	blockTime, _ := time.Parse(time.RFC3339, "2024-01-01T00:00:00Z")
 	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
-	ethEventsTx := &types.EthEventsTx{
-		Events: []*sidecartypes.Event{
-			testtypes.TestEvent8,
-		},
-		NewEthereumBlock: true,
-		BlockNumber:      1,
-	}
+	msg := testtypes.TestEvent8Msg
 	s.SetupTest() // Reset the test suite
-
-	// Set initial conditions: LastEthereumBlockSynced and Params
-	s.App.BridgeKeeper.SetLastEthereumBlockSynced(s.Ctx(), ethEventsTx.BlockNumber)
 
 	// Authorize bank.MsgSend on Sequencer
 	err := s.App.BridgeKeeper.SetParams(s.Ctx(), types.Params{
@@ -768,14 +532,12 @@ func (s *KeeperTestSuite) TestProcessEthereumEventsDepositEvent_AmountParseFailu
 	})
 	s.Require().NoError(err)
 
-	// Set the malformed EthEventsTx
-	s.App.BridgeKeeper.SetEthEventsTx(s.Ctx(), *ethEventsTx)
-	_, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), ethEventsTx.BlockNumber)
-	s.Require().True(found)
+	// Get the message server
+	msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
 
 	// Trigger the processing of the Ethereum events
 	s.Require().Panics(func() {
-		s.App.BridgeKeeper.ProcessEthereumEvents(s.Ctx())
+		_, _ = msgServer.DepositFromEthereum(s.Ctx(), msg)
 	})
 
 	// Verify the governance address balance is as expected

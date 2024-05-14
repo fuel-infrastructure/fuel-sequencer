@@ -40,13 +40,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
 	totalTxsBytesWithEventsAndSupplyDelta := int64(calculateTotalTxBytes(
-		[][]byte{
+		append(
 			encodedEthEventsTxWithEvents,
 			msgSupplyDeltaTx,
 			encodedDummyTxs[0],
 			encodedDummyTxs[1],
 			encodedDummyTxs[2],
-		},
+		),
 	))
 
 	four := uint64(4)
@@ -82,13 +82,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{
+				Txs: append(
 					encodedEthEventsTxWithEvents,
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
-				},
+				),
 			},
 		},
 		{
@@ -107,7 +107,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]},
+				Txs: append(encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
 			},
 		},
 		{
@@ -126,12 +126,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{
+				Txs: append(
 					encodedEthEventsTxWithoutEvents,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
-				},
+				),
 			},
 		},
 		{
@@ -150,12 +150,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{
+				Txs: append(
 					encodedEthEventsTxSidecarErr,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
-				},
+				),
 			},
 		},
 		{
@@ -169,7 +169,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				// Set to the size of a partial eth tx, so that the last event does not fit. We need to add +2 since the
 				// generated EthEventsTx will have NewEthereumBlock set to true at first until the proposer updates it.
 				// When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume anything.
-				MaxTxBytes: int64(calculateTotalTxBytes([][]byte{encodedEthEventsTxPartialBlock})) + 2,
+				MaxTxBytes: int64(calculateTotalTxBytes(encodedEthEventsTxPartialBlock)) + 2,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -177,9 +177,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{
-					encodedEthEventsTxPartialBlock, // partial eth tx
-				},
+				Txs: encodedEthEventsTxPartialBlock, // partial eth tx
 			},
 		},
 		{
@@ -287,8 +285,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg: "failed to trim eth events tx tail: cannot trim all 3 events from " +
-				"EthEventsTx",
+			expErrMsg:                    "failed to trim eth events tx tail: cannot trim all 3 events",
 		},
 		{
 			name:                      "returns error if none of the EthEventsTx events fit in the block",
@@ -306,8 +303,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg: "failed to trim eth events tx tail: cannot trim all 3 events from " +
-				"EthEventsTx",
+			expErrMsg:                    "failed to trim eth events tx tail: cannot trim all 3 events",
 		},
 		{
 			name:                      "returns only supply delta and EthEventsTx if it's just enough block size",
@@ -318,7 +314,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to EXACTLY the size of MsgSupplyDelta transaction plus EthEventsTx
-				MaxTxBytes: int64(calculateTotalTxBytes([][]byte{msgSupplyDeltaTx, encodedEthEventsTxWithEvents})),
+				MaxTxBytes: int64(calculateTotalTxBytes(append(encodedEthEventsTxWithEvents, msgSupplyDeltaTx))),
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
@@ -326,7 +322,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{encodedEthEventsTxWithEvents, msgSupplyDeltaTx},
+				Txs: append(encodedEthEventsTxWithEvents, msgSupplyDeltaTx),
 			},
 		},
 		{
@@ -346,7 +342,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]},
+				Txs: append(encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
 			},
 		},
 		{
@@ -365,7 +361,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: [][]byte{encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]},
+				Txs: append(encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
 			},
 		},
 		{
@@ -478,27 +474,25 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
-	validTxsWithEvents := [][]byte{
+	validTxsWithEvents := append(
 		encodedEthEventsTxWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	}
-	validTxsWithDifferentEvents := [][]byte{
+	)
+	validTxsWithDifferentEvents := append(
 		encodedEthEventsTxWithDifferentEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	}
-	validTxsPartialBlock := [][]byte{
-		encodedEthEventsTxPartialBlock,
-	}
-	validTxsWithEventsReduced := [][]byte{
+	)
+	validTxsPartialBlock := encodedEthEventsTxPartialBlock
+	validTxsWithEventsReduced := append(
 		encodedEthEventsTxWithEventsReduced, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	}
-	validTxsWithEventsAndSupplyDelta := [][]byte{
+	)
+	validTxsWithEventsAndSupplyDelta := append(
 		encodedEthEventsTxWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	}
-	validTxsWithoutEvents := [][]byte{
+	)
+	validTxsWithoutEvents := append(
 		encodedEthEventsTxWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	}
-	validTxsSidecarErr := [][]byte{
+	)
+	validTxsSidecarErr := append(
 		encodedEthEventsTxSidecarErr, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	}
+	)
 
 	four := uint64(4)
 
@@ -727,7 +721,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "generated eth events tx does not match the one in the block proposal",
+			expErrMsg:                    "generated eth events txs do not match the one in the block proposal",
 		},
 		{
 			name: "returns error if generated EthEventsTx not equal to block proposer's " +
@@ -744,8 +738,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg: "failed to trim eth events tx tail: cannot trim all 3 events from " +
-				"EthEventsTx events",
+			expErrMsg:                    "failed to trim eth events tx tail: cannot trim all 3 events",
 		},
 		{
 			name: "returns error if generated EthEventsTx not equal to block proposer's " +
@@ -796,7 +789,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "generated eth events tx does not match the one in the block proposal",
+			expErrMsg:                    "generated eth events txs do not match the one in the block proposal",
 		},
 		{
 			name:                      "returns error if block exceeds MaxBlockGas",
@@ -845,10 +838,10 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "expected at least two transactions in block proposal",
+			expErrMsg:                    "expected at least 5 transactions in block proposal",
 		},
 		{
-			name:                      "returns error if incorrect msg injected in tx at index 1",
+			name:                      "returns error if incorrect msg injected in tx at index 4",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -863,7 +856,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expErrMsg: fmt.Errorf(
-				"incorrect msg type url in transaction at index 1; expected %s got %s",
+				"incorrect msg type url in transaction at index 4; expected %s got %s",
 				sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}),
 				sdk.MsgTypeURL(&banktypes.MsgSend{}),
 			).Error(),
@@ -961,364 +954,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	}
 }
 
-func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_SingleTransaction() {
-	encodedEthEventsTxWithEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTx)
-	encodedEthEventsTxPartialBlock := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxPartial)
-	encodedEthEventsTxWithoutEvents := s.EncodeEthEventsTx(&testtypes.TestEthEventsTxWithoutEvents)
-
-	ethEventsTxWithWrongBlock := testtypes.TestEthEventsTx
-	ethEventsTxWithWrongBlock.BlockNumber = 99
-	encodedEthEventsTxWithWrongBlock := s.EncodeEthEventsTx(&ethEventsTxWithWrongBlock)
-
-	testCases := []struct {
-		name                            string
-		requestTxs                      [][]byte
-		expectEvents                    bool
-		expectNewBlock                  bool
-		expectEthereumEventsIndexOffset uint64
-		expectErrMsg                    string
-	}{
-		{
-			name:         "no EthEventsTx => error",
-			requestTxs:   [][]byte{},
-			expectErrMsg: "expected eth events transaction to be injected",
-		},
-		{
-			name:         "EthEventsTx with wrong block number => error",
-			requestTxs:   [][]byte{encodedEthEventsTxWithWrongBlock},
-			expectErrMsg: "expected block number 1, got 99 in EthEventsTx",
-		},
-		{
-			name:                            "EthEventsTx with events => new block and offset stays at zero",
-			requestTxs:                      [][]byte{encodedEthEventsTxWithEvents},
-			expectEvents:                    true,
-			expectNewBlock:                  true,
-			expectEthereumEventsIndexOffset: 0,
-		},
-		{
-			name:                            "EthEventsTx without events => new block and offset stays at zero",
-			requestTxs:                      [][]byte{encodedEthEventsTxWithoutEvents},
-			expectEvents:                    false,
-			expectNewBlock:                  true,
-			expectEthereumEventsIndexOffset: 0,
-		},
-		{
-			name:                            "EthEventsTx with partial events => no new block but offset updated",
-			requestTxs:                      [][]byte{encodedEthEventsTxPartialBlock},
-			expectEvents:                    true,
-			expectNewBlock:                  false,
-			expectEthereumEventsIndexOffset: uint64(len(testtypes.TestEthEventsTxPartial.Events)),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			// Simulate calling PreBlocker with the provided transactions
-			req := &abcitypes.RequestFinalizeBlock{Txs: tc.requestTxs}
-
-			// Set sidecar mock
-			ctrl := gomock.NewController(s.T())
-			defer ctrl.Finish()
-			sidecarClientMock := sidecartestutil.NewMockAppSidecarClient(ctrl)
-
-			propHandler := s.GetTestProposalHandler(sidecarClientMock)
-			_, err := propHandler.PreBlocker(s.Ctx(), req)
-			if tc.expectErrMsg != "" {
-				s.Require().ErrorContains(err, tc.expectErrMsg)
-				return
-			}
-			s.Require().NoError(err)
-
-			// Verify the EthEventsTx in state
-			storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), uint64(1))
-			if tc.expectEvents {
-				s.Require().True(found)
-				s.Require().NotEmpty(storedTx.Events)
-			} else {
-				s.Require().False(found)
-			}
-
-			// Check LastEthereumBlockSynced
-			lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
-			s.Require().True(found)
-			if tc.expectNewBlock {
-				s.Require().EqualValues(1, lastBlock)
-			} else {
-				s.Require().EqualValues(0, lastBlock)
-			}
-
-			// Check EthereumEventIndexOffset
-			indexOffset, found := s.App.BridgeKeeper.GetEthereumEventIndexOffset(s.Ctx())
-			s.Require().True(found)
-			s.Require().EqualValues(indexOffset, tc.expectEthereumEventsIndexOffset)
-		})
-	}
-}
-
-func (s *AppTestSuite) TestPreBlockerEthEventsTxHandling_Combinations() {
-
-	ethEventsTxWithEvents1 := testtypes.TestEthEventsTx
-	ethEventsTxPartialBlock1 := testtypes.TestEthEventsTxPartial
-	ethEventsTxWithoutEvents1 := testtypes.TestEthEventsTxWithoutEvents
-	ethEventsTxNoNewBlock1 := testtypes.TestEthEventsTxNoNewBlock
-
-	// Set of events with block number set to 2
-	ethEventsTxWithEvents2 := testtypes.TestEthEventsTx
-	ethEventsTxPartialBlock2 := testtypes.TestEthEventsTxPartial
-	ethEventsTxWithoutEvents2 := testtypes.TestEthEventsTxWithoutEvents
-	ethEventsTxNoNewBlock2 := testtypes.TestEthEventsTxNoNewBlock
-	ethEventsTxWithEvents2.BlockNumber = 2
-	ethEventsTxPartialBlock2.BlockNumber = 2
-	ethEventsTxWithoutEvents2.BlockNumber = 2
-	ethEventsTxNoNewBlock2.BlockNumber = 2
-
-	// Ensure that original block numbers are as expected, and unchanged
-	s.Require().EqualValues(ethEventsTxWithEvents1.BlockNumber, 1)
-	s.Require().EqualValues(ethEventsTxPartialBlock1.BlockNumber, 1)
-	s.Require().EqualValues(ethEventsTxWithoutEvents1.BlockNumber, 1)
-	s.Require().EqualValues(ethEventsTxNoNewBlock1.BlockNumber, 1)
-
-	numberOfEventsInPartialTx := uint64(len(testtypes.TestEthEventsTxPartial.Events))
-
-	testCases := []struct {
-		name                            string
-		ethEventsTx                     []bridgetypes.EthEventsTx
-		expectEvents                    []bool
-		expectLastEthereumBlockSynced   []uint64
-		expectEthereumEventsIndexOffset []uint64
-		expectErrMsg                    []string
-	}{
-		// ---------------------------- Combinations of Partial and Full
-		{
-			name: "Partial + Full => 0,1 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxPartialBlock1,
-				ethEventsTxWithEvents1, // from same block
-			},
-			expectEvents:                    []bool{true, true},
-			expectLastEthereumBlockSynced:   []uint64{0, 1},
-			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx, 0},
-		},
-		{
-			name: "Full + Partial => 1,1 synced and 0,N offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithEvents1,
-				ethEventsTxPartialBlock2, // from new block
-			},
-			expectEvents:                    []bool{true, true},
-			expectLastEthereumBlockSynced:   []uint64{1, 1},
-			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-		},
-		// ---------------------------- Combinations of Partial and NoNewBlock
-		{
-			name: "Partial + NoNewBlock => ERR because we expect at least one new event",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxPartialBlock1,
-				ethEventsTxNoNewBlock1, // from same block
-			},
-			expectEvents:                    []bool{true},
-			expectLastEthereumBlockSynced:   []uint64{0},
-			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx},
-			expectErrMsg: []string{
-				"",
-				"expected at least 1 new event if offset is non-zero (2)",
-			},
-		},
-		{
-			name: "NoNewBlock + Partial => 0,0 synced and 0,N offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxNoNewBlock1,
-				ethEventsTxPartialBlock1, // from same block
-			},
-			expectEvents:                    []bool{false, true},
-			expectLastEthereumBlockSynced:   []uint64{0, 0},
-			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-		},
-		// ---------------------------- Combinations of Partial and NoEvents
-		{
-			name: "Partial + NoEvents => ERR because we expect at least one new event",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxPartialBlock1,
-				ethEventsTxWithoutEvents1, // from same block
-			},
-			expectEvents:                    []bool{true},
-			expectLastEthereumBlockSynced:   []uint64{0},
-			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx},
-			expectErrMsg: []string{
-				"",
-				"expected at least 1 new event if offset is non-zero (2)",
-			},
-		},
-		{
-			name: "NoEvents + Partial => 1,1 synced and 0,N offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithoutEvents1,
-				ethEventsTxPartialBlock2, // from new block
-			},
-			expectEvents:                    []bool{false, true},
-			expectLastEthereumBlockSynced:   []uint64{1, 1},
-			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-		},
-		// ---------------------------- Combinations of NoNewBlock and NoEvents
-		{
-			name: "NoNewBlock + NoEvents => 0,1 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxNoNewBlock1,
-				ethEventsTxWithoutEvents1, // from same block
-			},
-			expectEvents:                    []bool{false, false},
-			expectLastEthereumBlockSynced:   []uint64{0, 1},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		{
-			name: "NoEvents + NoNewBlock => 1,1 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithoutEvents1,
-				ethEventsTxNoNewBlock2, // from new block
-			},
-			expectEvents:                    []bool{false, false},
-			expectLastEthereumBlockSynced:   []uint64{1, 1},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		// ---------------------------- Combinations of NoNewBlock and Full
-		{
-			name: "NoNewBlock + Full => 0,1 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxNoNewBlock1,
-				ethEventsTxWithEvents1, // from same block
-			},
-			expectEvents:                    []bool{false, true},
-			expectLastEthereumBlockSynced:   []uint64{0, 1},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		{
-			name: "Full + NoNewBlock => 1,1 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithEvents1,
-				ethEventsTxNoNewBlock2, // from new block
-			},
-			expectEvents:                    []bool{true, false},
-			expectLastEthereumBlockSynced:   []uint64{1, 1},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		// ---------------------------- Combinations of NoEvents and Full
-		{
-			name: "NoEvents + Full => 1,2 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithoutEvents1,
-				ethEventsTxWithEvents2, // from new block
-			},
-			expectEvents:                    []bool{false, true},
-			expectLastEthereumBlockSynced:   []uint64{1, 2},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		{
-			name: "Full + NoEvents => 1,2 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithEvents1,
-				ethEventsTxWithoutEvents2, // from new block
-			},
-			expectEvents:                    []bool{true, false},
-			expectLastEthereumBlockSynced:   []uint64{1, 2},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		// ---------------------------- Combinations of Full and Full
-		{
-			name: "Full + Full => 1,2 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithEvents1,
-				ethEventsTxWithEvents2, // from new block
-			},
-			expectEvents:                    []bool{true, true},
-			expectLastEthereumBlockSynced:   []uint64{1, 2},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		// ---------------------------- Combinations of Partial and Partial
-		{
-			name: "Partial + Partial => 0,0 synced and N,2N offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxPartialBlock1,
-				ethEventsTxPartialBlock1, // from same block
-			},
-			expectEvents:                    []bool{true, true},
-			expectLastEthereumBlockSynced:   []uint64{0, 0},
-			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx, numberOfEventsInPartialTx * 2},
-		},
-		// ---------------------------- Combinations of NoNewBlock and NoNewBlock
-		{
-			name: "NoNewBlock + NoNewBlock => 0,0 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxNoNewBlock1,
-				ethEventsTxNoNewBlock1, // from same block
-			},
-			expectEvents:                    []bool{false, false},
-			expectLastEthereumBlockSynced:   []uint64{0, 0},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-		// ---------------------------- Combinations of NoEvents and NoEvents
-		{
-			name: "NoEvents + NoEvents => 1,2 synced and 0,0 offset",
-			ethEventsTx: []bridgetypes.EthEventsTx{
-				ethEventsTxWithoutEvents1,
-				ethEventsTxWithoutEvents2, // from new block
-			},
-			expectEvents:                    []bool{false, false},
-			expectLastEthereumBlockSynced:   []uint64{1, 2},
-			expectEthereumEventsIndexOffset: []uint64{0, 0},
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			// Set sidecar mock
-			ctrl := gomock.NewController(s.T())
-			defer ctrl.Finish()
-			sidecarClientMock := sidecartestutil.NewMockAppSidecarClient(ctrl)
-
-			propHandler := s.GetTestProposalHandler(sidecarClientMock)
-
-			for i := 0; i < len(tc.ethEventsTx); i++ {
-
-				ethEventsTx := tc.ethEventsTx[i]
-				req := &abcitypes.RequestFinalizeBlock{Txs: [][]byte{s.EncodeEthEventsTx(&ethEventsTx)}}
-
-				_, err := propHandler.PreBlocker(s.Ctx(), req)
-				if tc.expectErrMsg != nil && tc.expectErrMsg[i] != "" {
-					s.Require().ErrorContains(err, tc.expectErrMsg[i])
-					return
-				}
-				s.Require().NoError(err)
-
-				expectEvents := tc.expectEvents[i]
-				expectLastEthereumBlockSynced := tc.expectLastEthereumBlockSynced[i]
-				expectEthereumEventsIndexOffset := tc.expectEthereumEventsIndexOffset[i]
-
-				// Verify the EthEventsTx in state at the EthEventsTx block number
-				storedTx, found := s.App.BridgeKeeper.GetEthEventsTx(s.Ctx(), ethEventsTx.BlockNumber)
-				if expectEvents {
-					s.Require().True(found)
-					s.Require().NotEmpty(storedTx.Events)
-				} else {
-					s.Require().False(found)
-				}
-
-				// Check LastEthereumBlockSynced
-				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
-				s.Require().True(found)
-				s.Require().EqualValues(expectLastEthereumBlockSynced, lastBlock)
-
-				// Check EthereumEventIndexOffset
-				indexOffset, found := s.App.BridgeKeeper.GetEthereumEventIndexOffset(s.Ctx())
-				s.Require().True(found)
-				s.Require().EqualValues(indexOffset, expectEthereumEventsIndexOffset)
-
-				// Simulate EndBlocker consuming the events between each PreBlocker call
-				s.App.BridgeKeeper.RemoveEthEventsTx(s.Ctx(), ethEventsTx.BlockNumber)
-			}
-		})
-	}
-}
+// TODO: remove this line
+// TestPreBlockerEthEventsTxHandling_SingleTransaction MOVED TO TestSetEthEventTxsInfo_SingleTransaction
+// TODO: remove this line
+// TestPreBlockerEthEventsTxHandling_Combinations MOVED TO TestSetEthEventTxsInfo_Combinations

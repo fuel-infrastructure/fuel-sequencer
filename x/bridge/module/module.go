@@ -3,6 +3,7 @@ package bridge
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/core/appmodule"
@@ -154,11 +155,33 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// It is important to check that a supply delta was processed if we expect that a MsgSupplyDelta was injected.
+	supplyDeltaPeriod := am.keeper.GetParams(ctx).SupplyDeltaPeriod
+	if supplyDeltaPeriod == 0 {
+		return errors.New("SupplyDeltaPeriod cannot be zero")
+	}
+	supplyDeltaProcessed, found := am.keeper.GetSupplyDeltaProcessed(ctx)
+	if !found {
+		return fmt.Errorf("expected to find SupplyDeltaProcessed")
+	}
+	if (uint64(ctx.BlockHeight())%supplyDeltaPeriod == 0) && !supplyDeltaProcessed.Processed {
+		return fmt.Errorf(
+			"expected supply delta processed at block %d with supply delta period %d",
+			ctx.BlockHeight(), supplyDeltaPeriod,
+		)
+	}
+
 	// Reset SupplyDeltaProcessed in preparation for next block.
 	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
 
-	// Process the Ethereum events injected at lastEthereumBlockSynced height.
-	am.keeper.ProcessEthereumEvents(ctx)
+	// It is important to check that EthEventsTxIndex was set during the block, indicating EthEventsTx was processed.
+	_, found = am.keeper.GetEthEventsTxIndex(ctx)
+	if !found {
+		return fmt.Errorf("expected to find EthEventsTxIndex at the end of the block")
+	}
+
+	// Remove EthEventsTxIndex in preparation for next block, since the AnteHandler uses this to detect the EthEventsTx.
+	am.keeper.RemoveEthEventsTxIndex(ctx)
 
 	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)

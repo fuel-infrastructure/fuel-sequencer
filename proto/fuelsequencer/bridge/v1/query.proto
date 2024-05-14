@@ -50,13 +50,6 @@ service Query {
         "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_info";
   }
 
-  // EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
-  rpc EthEventsTxByBlockNumber(QueryGetEthEventsTxByBlockNumberRequest)
-      returns (QueryGetEthEventsTxByBlockNumberResponse) {
-    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
-                                   "v1/eth_events_tx/{block_number}";
-  }
-
   // Queries a list of SequencerAddressFromEthereumAddress items.
   rpc SequencerAddressFromEthereumAddress(
       QuerySequencerAddressFromEthereumAddressRequest)
@@ -101,20 +94,6 @@ message QueryGetLastEthereumBlockSyncedResponse { uint64 block = 1; }
 message QueryGetEthereumEventIndexOffsetRequest {}
 
 message QueryGetEthereumEventIndexOffsetResponse { uint64 offset = 1; }
-
-// QueryGetEthEventsTxByBlockNumberRequest is the request type for the
-// Query/EthEventsTxByBlockNumber RPC method.
-message QueryGetEthEventsTxByBlockNumberRequest {
-  // block_number is the Ethereum block number for which the events are queried.
-  string block_number = 1;
-}
-
-// QueryGetEthEventsTxByBlockNumberResponse is the response type for the
-// Query/EthEventsTxByBlockNumber RPC method.
-message QueryGetEthEventsTxByBlockNumberResponse {
-  // eth_events_tx contains the Ethereum events transaction information.
-  EthEventsTx eth_events_tx = 1;
-}
 
 message QuerySequencerAddressFromEthereumAddressRequest {
   string ethereum_address = 1;

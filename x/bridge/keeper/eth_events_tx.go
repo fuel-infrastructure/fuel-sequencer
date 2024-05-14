@@ -8,20 +8,20 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// SetEthEventsTx set ethEventsTx in the store.
-func (k Keeper) SetEthEventsTx(ctx context.Context, ethEventsTx types.EthEventsTx) {
+// SetEthEventsTxIndex set ethEventsTx in the store.
+func (k Keeper) SetEthEventsTxIndex(ctx context.Context, ethEventsTx types.EthEventsTxIndex) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.EthEventsTxPrefixKey)
+	store := prefix.NewStore(storeAdapter, types.EthEventsTxIndexKey)
 	b := k.cdc.MustMarshal(&ethEventsTx)
-	store.Set(types.EthEventsTxKey(ethEventsTx.BlockNumber), b)
+	store.Set(types.EthEventsTxIndexKey, b)
 }
 
-// GetEthEventsTx returns ethEventsTx.
-func (k Keeper) GetEthEventsTx(ctx context.Context, blockHeight uint64) (val types.EthEventsTx, found bool) {
+// GetEthEventsTxIndex returns ethEventsTx.
+func (k Keeper) GetEthEventsTxIndex(ctx context.Context) (val types.EthEventsTxIndex, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.EthEventsTxPrefixKey)
+	store := prefix.NewStore(storeAdapter, types.EthEventsTxIndexKey)
 
-	b := store.Get(types.EthEventsTxKey(blockHeight))
+	b := store.Get(types.EthEventsTxIndexKey)
 	if b == nil {
 		return val, false
 	}
@@ -30,9 +30,18 @@ func (k Keeper) GetEthEventsTx(ctx context.Context, blockHeight uint64) (val typ
 	return val, true
 }
 
-// RemoveEthEventsTx removes EthEventsTx from the store.
-func (k Keeper) RemoveEthEventsTx(ctx context.Context, blockHeight uint64) {
+// RemoveEthEventsTxIndex removes EthEventsTx from the store.
+func (k Keeper) RemoveEthEventsTxIndex(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.EthEventsTxPrefixKey)
-	store.Delete(types.EthEventsTxKey(blockHeight))
+	store := prefix.NewStore(storeAdapter, types.EthEventsTxIndexKey)
+	store.Delete(types.EthEventsTxIndexKey)
+}
+
+// MustGetEthEventsTxIndex returns ethEventsTx and panics otherwise.
+func (k Keeper) MustGetEthEventsTxIndex(ctx context.Context) (val types.EthEventsTxIndex) {
+	val, ok := k.GetEthEventsTxIndex(ctx)
+	if !ok {
+		panic("expected to find EthEventsTxIndex")
+	}
+	return val
 }
