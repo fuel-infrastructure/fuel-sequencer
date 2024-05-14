@@ -135,7 +135,7 @@ func (d EthEventTxsDecorator) AnteHandle(
 	// If we're done processing Ethereum event transactions, proceed to the next decorators.
 	// Otherwise, we know for sure that we are processing an Ethereum event transaction.
 	eventsIndex := d.bridgeKeeper.MustGetEthEventsTxIndex(ctx)
-	if eventsIndex.NumEventTxsHandled == eventsIndex.TotalNumEventTxs {
+	if eventsIndex.NumUnhandledEventTxs == 0 {
 		ctx = ctx.WithGasMeter(cachedGasMeter) // revert
 		return next(ctx, tx, simulate)
 	}
@@ -143,7 +143,7 @@ func (d EthEventTxsDecorator) AnteHandle(
 	// Note: beyond this point, we strictly expect injected transactions, and so we should error if anything goes wrong.
 
 	// Update events index
-	eventsIndex.NumEventTxsHandled += 1
+	eventsIndex.NumUnhandledEventTxs -= 1
 	d.bridgeKeeper.SetEthEventsTxIndex(ctx, eventsIndex)
 
 	// Other Ante decorators won't execute if we reach this stage

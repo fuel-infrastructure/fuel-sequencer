@@ -13,8 +13,7 @@ import (
 
 func createTestEthEventsTxIndex(keeper keeper.Keeper, ctx context.Context) types.EthEventsTxIndex {
 	item := types.EthEventsTxIndex{
-		TotalNumEventTxs:   2,
-		NumEventTxsHandled: 1,
+		NumUnhandledEventTxs: 2,
 	}
 	keeper.SetEthEventsTxIndex(ctx, item)
 	return item

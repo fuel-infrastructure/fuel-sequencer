@@ -68,8 +68,7 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_SingleTransaction() {
 			// Verify that EthEventsTxIndex is in state
 			ethEventsTxIndex, found := s.App.BridgeKeeper.GetEthEventsTxIndex(s.Ctx())
 			s.Require().True(found)
-			s.Require().Zero(ethEventsTxIndex.NumEventTxsHandled)
-			s.Require().Equal(ethEventsTxIndex.TotalNumEventTxs, tc.ethEventsTx.NumInjectedEvents)
+			s.Require().Equal(ethEventsTxIndex.NumUnhandledEventTxs, tc.ethEventsTx.NumInjectedEvents)
 
 			// Check LastEthereumBlockSynced
 			lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
@@ -372,8 +371,7 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_Combinations() {
 				// Verify that EthEventsTxIndex is in state
 				ethEventsTxIndex, found := s.App.BridgeKeeper.GetEthEventsTxIndex(s.Ctx())
 				s.Require().True(found)
-				s.Require().Zero(ethEventsTxIndex.NumEventTxsHandled)
-				s.Require().Equal(ethEventsTxIndex.TotalNumEventTxs, tc.ethEventsTx[i].NumInjectedEvents)
+				s.Require().Equal(ethEventsTxIndex.NumUnhandledEventTxs, tc.ethEventsTx[i].NumInjectedEvents)
 
 				// Check LastEthereumBlockSynced
 				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())

@@ -8,8 +8,5 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 
 message EthEventsTxIndex {
   // TODO
-  uint64 total_num_event_txs = 1;
-
-  // TODO
-  uint64 num_event_txs_handled = 2;
+  uint64 num_unhandled_event_txs = 1;
 }

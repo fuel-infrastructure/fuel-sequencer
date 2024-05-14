@@ -21,10 +21,9 @@ func (k msgServer) SetEthEventTxsInfo(goCtx context.Context, msg *types.EthEvent
 		return nil, fmt.Errorf("eth events tx validation failed: %w", err)
 	}
 
-	// It is very important to set the index, so the AnteHandler knows that we've processed the EthEventsTxIndex.
+	// It is very important to set the index, so the AnteHandler knows that we've processed the EthEventsTx.
 	k.SetEthEventsTxIndex(ctx, types.EthEventsTxIndex{
-		TotalNumEventTxs:   msg.NumInjectedEvents,
-		NumEventTxsHandled: 0,
+		NumUnhandledEventTxs: msg.NumInjectedEvents,
 	})
 
 	if msg.NewEthereumBlock {
