@@ -4,7 +4,7 @@ go 1.21
 
 replace (
 	// Include BridgeCommitment queries
-	github.com/cometbft/cometbft => github.com/dferendo/cometbft v0.38.5-alpha-7
+	github.com/cometbft/cometbft => github.com/dferendo/cometbft v0.38.5-alpha-9
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// replace broken goleveldb
@@ -23,6 +23,7 @@ require (
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.30.0
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
@@ -390,7 +391,7 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/time v0.5.0
 	google.golang.org/api v0.162.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect

@@ -5,30 +5,31 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types";
 
-// SendToSequencerEvent represents a EventSendToSequencer event raised by the
-// bridge contract. This message represents the event structure on the Sequencer
-message SendToSequencerEvent {
+// DepositEvent represents a deposit event raised by the proxy contract.
+// This message represents the event structure on the Sequencer.
+message DepositEvent {
   // the sending Ethereum address in hex format
-  string from = 1;
+  string depositor = 1;
+
+  // recipient address in hex or bech32 format. If the recipient is the null
+  // address, the Sequencer uses the depositor address as the recipient.
+  string recipient = 2;
 
   // the amount sent encoded as string to prevent loss of precision. Sign is
   // also preserved
-  string amount = 2;
-
-  // recipient Ethereum address in hex or bech32 format
-  string to = 3;
+  string amount = 3;
 
   // vesting duration encoded in string to prevent loss of precision. Sign is
   // also preserved. This can be zero if no duration is specified.
-  string duration = 4;
+  string lockup = 4;
 }
 
-// AuthorizeEvent represents a EventAuthorize event raised by the bridge
-// contract. This message represents the event structure on the Sequencer
+// AuthorizeEvent represents an authorize event raised by the proxy contract.
+// This message represents the event structure on the Sequencer.
 message AuthorizeEvent {
   // the Ethereum address granting authorization in hex format
-  string from = 1;
+  string sender = 1;
 
   // message to be executed
-  bytes message = 2;
+  bytes data = 2;
 }

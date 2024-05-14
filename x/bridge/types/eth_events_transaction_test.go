@@ -33,7 +33,6 @@ func TestEthEventsTx_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestEthEventsTx,
 			eventTx2: &types.EthEventsTx{
 				Events:           testtypes.TestEvents,
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -50,18 +49,6 @@ func TestEthEventsTx_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestEthEventsTx,
 			eventTx2: &types.EthEventsTx{
 				Events:           []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
-				AdvanceSequencer: true,
-				NewEthereumBlock: true,
-				BlockNumber:      1,
-			},
-			expectedEqual: false,
-		},
-		{
-			name:     "Unequal events tx - AdvanceSequencer is different",
-			eventTx1: &testtypes.TestEthEventsTx,
-			eventTx2: &types.EthEventsTx{
-				Events:           testtypes.TestEvents,
-				AdvanceSequencer: false,
 				NewEthereumBlock: true,
 				BlockNumber:      1,
 			},
@@ -72,7 +59,6 @@ func TestEthEventsTx_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestEthEventsTx,
 			eventTx2: &types.EthEventsTx{
 				Events:           testtypes.TestEvents,
-				AdvanceSequencer: true,
 				NewEthereumBlock: false,
 				BlockNumber:      1,
 			},
@@ -83,7 +69,6 @@ func TestEthEventsTx_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestEthEventsTx,
 			eventTx2: &types.EthEventsTx{
 				Events:           testtypes.TestEvents,
-				AdvanceSequencer: true,
 				NewEthereumBlock: false,
 				BlockNumber:      0,
 			},
@@ -133,17 +118,16 @@ func TestEthEventsTx_ValidateBasic(t *testing.T) {
 			eventTx: &types.EthEventsTx{
 				Events: []*sidecartypes.Event{
 					{
-						EventType:       sidecartypes.SendToSequencerEventName,
+						EventType:       sidecartypes.MockDepositEventName,
 						ContractAddress: testtypes.TestEthereumProxyContractAddress,
 						Data:            []byte("invalid-data"),
 					},
 					testtypes.TestEvent1,
 					testtypes.TestEvent2,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", sidecartypes.SendToSequencerEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", sidecartypes.MockDepositEventName),
 		},
 	}
 
@@ -186,11 +170,10 @@ func TestEthEventsTx_ValidateStateful(t *testing.T) {
 				Events: []*sidecartypes.Event{
 					testtypes.TestEvent1,
 					testutils.MustGetSidecarEventFromParsedEvent(
-						testtypes.TestSendToSequencerEvent2, "invalid-ethereum-proxy-contract-address",
+						testtypes.TestDepositEvent2, "invalid-ethereum-proxy-contract-address",
 					),
 					testtypes.TestEvent2,
 				},
-				AdvanceSequencer: true,
 				NewEthereumBlock: true,
 			},
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -265,14 +248,6 @@ func TestEthEventsTx_ValidateBeforeProcessing(t *testing.T) {
 			lastBlockSynced:  previousBlock,
 			eventIndexOffset: 0,
 		},
-		// Invalid transactions with AdvanceSequencer false
-		{
-			name:             "invalid tx with AdvanceSequencer false",
-			eventTx:          &testtypes.TestEthEventsTxSidecarErr,
-			lastBlockSynced:  previousBlock,
-			eventIndexOffset: 0,
-			expErrMsg:        "expected AdvanceSequencer to be true",
-		},
 		// Invalid transactions with no events when there's a non-zero offset
 		{
 			name:             "invalid tx with no events when there's a non-zero offset",
@@ -325,9 +300,9 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndSize(t *testing.T) {
 
 	tx := testtypes.TestEthEventsTx
 
-	require.EqualValues(t, 558, tx.Size())
-	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(558)) // just enough bytes
-	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(557)) // just under enough
+	require.EqualValues(t, 601, tx.Size())
+	require.EqualValues(t, 3, tx.NumberOfEventsWithMaxBytes(601)) // just enough bytes
+	require.EqualValues(t, 2, tx.NumberOfEventsWithMaxBytes(600)) // just under enough
 }
 
 // TestCorrelationBetweenSizeAndMarshalling checks that marshalling TestEthEventsTx yields the expected number of bytes.
@@ -400,14 +375,12 @@ func TestEthEventsTx_TrimEventsFromHead(t *testing.T) {
 			name: "trim one => trimmed EthEventsTx",
 			eventTx: types.EthEventsTx{
 				Events:           testtypes.TestEthEventsTx.Events,
-				AdvanceSequencer: testtypes.TestEthEventsTx.AdvanceSequencer,
 				NewEthereumBlock: testtypes.TestEthEventsTx.NewEthereumBlock,
 				BlockNumber:      testtypes.TestEthEventsTx.BlockNumber,
 			},
 			numEventsToTrim: 1,
 			expEventTx: types.EthEventsTx{
 				Events:           testtypes.TestEthEventsTx.Events[1:], // 1 trimmed
-				AdvanceSequencer: testtypes.TestEthEventsTx.AdvanceSequencer,
 				NewEthereumBlock: testtypes.TestEthEventsTx.NewEthereumBlock,
 				BlockNumber:      testtypes.TestEthEventsTx.BlockNumber,
 			},
@@ -463,7 +436,6 @@ func TestEthEventsTx_KeepEventsFromHead(t *testing.T) {
 			name: "keep all but one => same EthEventsTx",
 			eventTx: types.EthEventsTx{
 				Events:           testtypes.TestEthEventsTx.Events[:3],
-				AdvanceSequencer: testtypes.TestEthEventsTx.AdvanceSequencer,
 				NewEthereumBlock: true, // will become false
 				BlockNumber:      testtypes.TestEthEventsTx.BlockNumber,
 			},
@@ -471,8 +443,7 @@ func TestEthEventsTx_KeepEventsFromHead(t *testing.T) {
 			expTrimmed:      1,
 			expEventTx: types.EthEventsTx{
 				Events:           testtypes.TestEthEventsTx.Events[:2], // 1 trimmed
-				AdvanceSequencer: testtypes.TestEthEventsTx.AdvanceSequencer,
-				NewEthereumBlock: false, // becomes false
+				NewEthereumBlock: false,                                // becomes false
 				BlockNumber:      testtypes.TestEthEventsTx.BlockNumber,
 			},
 		},

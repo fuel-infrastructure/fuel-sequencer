@@ -10,6 +10,8 @@ import (
 	"time"
 
 	gateway "github.com/cosmos/gogogateway"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -17,9 +19,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 )
 
 const DefaultServerShutdownTimeout = 3 * time.Second
@@ -56,8 +55,6 @@ type SidecarServer struct { //nolint
 
 // NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
 func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServer {
-	logger = logger.With(zap.String("server", "sidecar"))
-
 	ss := &SidecarServer{
 		s:          s,
 		logger:     logger,
@@ -110,7 +107,7 @@ func (ss *SidecarServer) StartServer(ctx context.Context) error {
 
 	// Start processing events from the sidecar.
 	eg.Go(func() error {
-		return ss.s.StartFetching(ctx)
+		return ss.s.Start(ctx)
 	})
 
 	eg.Go(func() error {
@@ -148,7 +145,7 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, errors.New("nil request")
 	}
 
-	ss.logger.Info("received request for block events", zap.String("blockNumber", req.BlockNumber))
+	ss.logger.Info("received request for events", zap.String("block", req.BlockNumber))
 
 	// Check that sidecar is running
 	if ss.s.IsStopped() {
@@ -168,9 +165,9 @@ func (ss *SidecarServer) GetBlockEvents(
 	go func() {
 		var events []*types.Event
 
-		blockchainEvents, err := ss.s.QueryBlockEvents(ctx, blockNumber)
+		blockchainEvents, err := ss.s.QueryBlockEvents(blockNumber)
 		if err != nil {
-			ss.logger.Error("error querying block events", zap.Error(err))
+			ss.logger.Warn("error processing events query", zap.Error(err))
 			resCh <- &queryBlockEventsResponseWithError{Response: nil, Err: err}
 			return
 		}
@@ -194,17 +191,8 @@ func (ss *SidecarServer) GetBlockEvents(
 		return nil, context.Canceled
 	case resp := <-resCh:
 		if resp.Err != nil {
-
-			// If the error is not fatal, return the error message so that it can be handled accordingly on the
-			// Sequencer
-			if !types.IsErrorFatal(resp.Err) {
-				return nil, resp.Err
-			}
-
-			// Otherwise, return a fatal error
-			return nil, errors.New("failed to get block events")
+			return nil, resp.Err
 		}
-
 		return resp.Response, nil
 	}
 }

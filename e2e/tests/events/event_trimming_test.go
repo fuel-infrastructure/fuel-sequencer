@@ -1,4 +1,4 @@
-package basic_test
+package events_test
 
 import (
 	cmtypes "github.com/cometbft/cometbft/types"
@@ -44,7 +44,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		// Try generating some events via a transaction (RPC) - via authorize.
 		someBytes := []byte("some bytes")
 		authorizeData := testsuite.PackAuthorizeMulti(someBytes)
-		err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
 		// 1st event of 4 processed

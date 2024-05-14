@@ -4,91 +4,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
-
-const processSequencerWithdrawalMessageABIJSON = `
-[
-  {
-    "type": "function",
-    "name": "processSequencerWithdrawalMessage",
-    "inputs": [
-      {
-        "name": "_proofNonce",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "bridgeCommitmentLeaf",
-        "type": "tuple",
-        "internalType": "struct FuelStreamX.BridgeCommitmentLeaf",
-        "components": [
-          {
-            "name": "height",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "resultsHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          }
-        ]
-      },
-      {
-        "name": "bridgeCommitmentLeafProof",
-        "type": "tuple",
-        "internalType": "struct BinaryMerkleProof",
-        "components": [
-          {
-            "name": "sideNodes",
-            "type": "bytes32[]",
-            "internalType": "bytes32[]"
-          },
-          {
-            "name": "key",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "numLeaves",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      },
-      {
-        "name": "txResultMarshalled",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "txResultProof",
-        "type": "tuple",
-        "internalType": "struct BinaryMerkleProof",
-        "components": [
-          {
-            "name": "sideNodes",
-            "type": "bytes32[]",
-            "internalType": "bytes32[]"
-          },
-          {
-            "name": "key",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "numLeaves",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  }
-]
-`
 
 type BridgeCommitmentLeafForEthereum struct {
 	Height      *big.Int
@@ -108,11 +25,15 @@ func PackProcessSequencerWithdrawalMessage(
 	txResultMarshalled []byte,
 	txResultProof BinaryMerkleProofForEthereum,
 ) []byte {
-	return packCall(processSequencerWithdrawalMessageABIJSON, "processSequencerWithdrawalMessage", []interface{}{
-		proofNonce,
-		bridgeCommitmentLeaf,
-		bridgeCommitmentLeafProof,
-		txResultMarshalled,
-		txResultProof,
-	})
+	return packCall(
+		sidecartypes.MockSequencerProxyContractABI,
+		sidecartypes.MockProcessSequencerWithdrawalMessageFunctionName,
+		[]interface{}{
+			proofNonce,
+			bridgeCommitmentLeaf,
+			bridgeCommitmentLeafProof,
+			txResultMarshalled,
+			txResultProof,
+		},
+	)
 }

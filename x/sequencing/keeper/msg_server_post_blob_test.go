@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/math"
 	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
@@ -12,6 +13,8 @@ import (
 func (s *KeeperTestSuite) TestPostBlob() {
 
 	sender := s.TestAccs[0].String()
+	senderUpper := strings.ToUpper(s.TestAccs[0].String())
+	senderLower := strings.ToLower(s.TestAccs[0].String())
 	anotherAccount := s.TestAccs[1].String()
 
 	testCases := []struct {
@@ -25,16 +28,16 @@ func (s *KeeperTestSuite) TestPostBlob() {
 		expErrMsg        string
 	}{
 		{
-			name: "successfully post a blob - creates new topic",
+			name: "successfully post a blob - creates new topic - lowercase sender",
 			msg: types.MsgPostBlob{
-				From:  sender,
+				From:  senderLower,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
-				From:  sender,
+				From:  senderLower,
 				Topic: utilstest.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
@@ -43,7 +46,31 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
 				Id:    utilstest.MockTopicIDHex(0),
-				Owner: sender,
+				Owner: senderLower,
+				Order: math.ZeroInt(),
+			},
+			expErrMsg: "",
+		},
+		{
+			name: "successfully post a blob - creates new topic - uppercase sender",
+			msg: types.MsgPostBlob{
+				From:  senderUpper,
+				Topic: utilstest.MockTopicIDHex(0),
+				Order: math.ZeroInt(),
+				Data:  make([]byte, 4),
+			},
+			msgResponse: &types.MsgPostBlobResponse{
+				Nonce: math.NewInt(1),
+				From:  senderLower, // changed to lowercase
+				Topic: utilstest.MockTopicIDHex(0),
+				Order: math.ZeroInt(),
+				Data:  make([]byte, 4),
+			},
+			maxBlobSizeBytes: 400,
+			setNonce:         math.ZeroInt(),
+			expTopic: &types.Topic{
+				Id:    utilstest.MockTopicIDHex(0),
+				Owner: senderUpper,
 				Order: math.ZeroInt(),
 			},
 			expErrMsg: "",

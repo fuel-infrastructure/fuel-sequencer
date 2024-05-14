@@ -34,24 +34,23 @@ message EventWithdrawToEthereumReported {
     (gogoproto.nullable) = false
   ];
 
-  // from is the user address on Ethereum that is sending the tokens.
+  // from is the user address that is withdrawing the tokens from the Sequencer.
+  // can be in Hex or Bech32 format.
   string from = 2;
 
-  // to is the user address on FuelSequencer that will be receiving the tokens.
-  // Can be empty if no address is specified.
+  // to is the user address on Ethereum that will be receiving the tokens.
   string to = 3;
 
-  // amount is the tokens being sent, which must be the expacted bridge token.
+  // amount is the tokens being sent, which must be the expected bridge token.
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
 
-message EventSendToSequencerEventProcessed {
-  // from is the user address on Ethereum that is sending the tokens.
-  string from = 1;
+message EventDepositEventProcessed {
+  // the sending Ethereum address in hex format
+  string depositor = 1;
 
-  // to is the user address on FuelSequencer that will be receiving the tokens.
-  // Can be empty if no address is specified.
-  string to = 2;
+  // recipient Ethereum address in hex or bech32 format
+  string recipient = 2;
 
   // amount is the tokens being sent, which must be denominated in the expected
   // bridge token.
@@ -59,10 +58,10 @@ message EventSendToSequencerEventProcessed {
 
   // vesting duration encoded in string to prevent loss of precision. Sign is
   // also preserved. This can be zero if no duration is specified.
-  string duration = 4;
+  string lockup = 4;
 }
 
-message EventSendToSequencerEventFailed {
+message EventDepositEventFailed {
   // event_details is the marshalled event that failed to be processed.
   bytes event_details = 1;
 }

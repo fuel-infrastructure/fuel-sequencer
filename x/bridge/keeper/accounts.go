@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -10,6 +9,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
+
+// NullEthereumAddress is the null Ethereum address (0x0000000000000000000000000000000000000000).
+// If this is specified as a deposit Recipient, the Recipient is considered to be owned by the Sender.
+var NullEthereumAddress = new(common.Address).String()
 
 // normaliseExistingAccount tries to extract EthOwnedAccountI from sdk.AccountI. If an 'EthOwned' account is found,
 // the account info is extracted untouched. Otherwise, we use the base account and wrap it as a EthOwnedBaseAccount.
@@ -32,11 +35,11 @@ func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwne
 	return types.NewEthOwnedBaseAccount(baseAcc, ethAddress)
 }
 
-// destinationAccountOwnedBySender determines whether the SendToSequencerEvent.From owns SendToSequencerEvent.To on the
-// Sequencer. An account is owned by the sender iff To is not specified or To is equivalent to From (eth addresses) or
-// To is equivalent to the mapping of From as a Sequencer address.
-func isDestinationOwnedBySender(from, to, fromSeq string, seqMappingErr error) bool {
-	return len(strings.TrimSpace(to)) == 0 || to == from || (seqMappingErr == nil && to == fromSeq)
+// isRecipientOwnedByDepositor determines whether the DepositEvent.Depositor owns DepositEvent.Recipient on the
+// Sequencer. An account is owned by the Depositor iff Recipient is a null address, or Recipient is equivalent to
+// Depositor (both Ethereum addresses), or Recipient is equivalent to the mapping of Depositor as a Sequencer address.
+func isRecipientOwnedByDepositor(depositor, recipient, depositorSeq string, seqMappingErr error) bool {
+	return recipient == NullEthereumAddress || recipient == depositor || (seqMappingErr == nil && recipient == depositorSeq)
 }
 
 // GenerateSequencerAddressFromEthereumAddress uses the App address codec to generate a Sequencer address from an

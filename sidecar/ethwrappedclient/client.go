@@ -2,22 +2,26 @@ package ethclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 	"go.uber.org/zap"
+	"golang.org/x/time/rate"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 // EthWrappedClient wraps the Ethereum client, with extra functionality.
 type EthWrappedClient struct {
+	logger *zap.Logger
 
 	// ethClient is the direct ethereum client, we'll be interacting with.
 	ethClient *ethclient.Client
@@ -25,23 +29,39 @@ type EthWrappedClient struct {
 	contractAddress common.Address
 	// contractABI is the contract ABI of the contract address we're querying.
 	contractABI abi.ABI
+
+	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.
+	logsQueryLimiter *rate.Limiter
 }
 
 // NewClient creates a new EthWrappedClient instance.
 func NewClient(
+	logger *zap.Logger,
 	ethClient *ethclient.Client,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
+	minLogsQueryInterval time.Duration,
 ) *EthWrappedClient {
 	return &EthWrappedClient{
-		ethClient:       ethClient,
-		contractAddress: contractAddress,
-		contractABI:     contractAbi,
+		logger:           logger,
+		ethClient:        ethClient,
+		contractAddress:  contractAddress,
+		contractABI:      contractAbi,
+		logsQueryLimiter: rate.NewLimiter(rate.Every(minLogsQueryInterval), 1), // max 1 request per interval
 	}
 }
 
-// FilterLogs wraps the FilterLogs call to the Ethereum client.
-func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]types.Log, error) {
+// FilterLogs wraps and rate-limits the FilterLogs call to the Ethereum client.
+func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]ethereumtypes.Log, error) {
+
+	// Wait for the rate limiter to let us through.
+	if !ec.logsQueryLimiter.Allow() {
+		maxWaitSeconds := 1 / float64(ec.logsQueryLimiter.Limit())
+		ec.logger.Debug("waiting for logs rate limiter", zap.Float64("max_wait_seconds", maxWaitSeconds))
+		if err := ec.logsQueryLimiter.Wait(ctx); err != nil {
+			return nil, fmt.Errorf("error when waiting for logs rate limiter: %s", err.Error())
+		}
+	}
 
 	// Create the ethereum query for the set contract.
 	query := ethereum.FilterQuery{
@@ -53,9 +73,38 @@ func (ec *EthWrappedClient) FilterLogs(ctx context.Context, fromBlock, toBlock *
 	return ec.ethClient.FilterLogs(ctx, query)
 }
 
+// SubscribeNewHead wraps the SubscribeNewHead call to the Ethereum client.
+func (ec *EthWrappedClient) SubscribeNewHead(
+	ctx context.Context, ch chan<- *ethereumtypes.Header,
+) (ethereum.Subscription, error) {
+	return ec.ethClient.SubscribeNewHead(ctx, ch)
+}
+
 // BlockNumber wraps the BlockNumber call to get the current block number.
 func (ec *EthWrappedClient) BlockNumber(ctx context.Context) (uint64, error) {
 	return ec.ethClient.BlockNumber(ctx)
+}
+
+// FinalizedBlockNumber contains logic for querying the block number of the latest finalized block.
+// NOTE: This was copied from https://github.com/ethereum/go-ethereum/blob/7f131dcbc9ffe986f91a1f51025bcfdcc0aa8f0e/ethclient/ethclient.go#L128
+func (ec *EthWrappedClient) FinalizedBlockNumber(ctx context.Context) (uint64, error) {
+	var raw json.RawMessage
+	err := ec.ethClient.Client().CallContext(ctx, &raw, "eth_getBlockByNumber", "finalized", true)
+	if err != nil {
+		return 0, err
+	}
+
+	// Decode header and transactions.
+	var head *ethereumtypes.Header
+	if err := json.Unmarshal(raw, &head); err != nil {
+		return 0, err
+	}
+	// When the block is not found, the API returns JSON null.
+	if head == nil {
+		return 0, ethereum.NotFound
+	}
+
+	return head.Number.Uint64(), nil
 }
 
 // SyncProgress checks if the Ethereum node is synced.
@@ -69,65 +118,51 @@ func (ec *EthWrappedClient) PeerCount(ctx context.Context) (uint64, error) {
 }
 
 // FetchAndProcessLogs fetches the logs from the blockchain and processes them.
+// It returns the events and the last block that it synced up to.
+// Upon failure, no events and no last block synced are returned.
 func (ec *EthWrappedClient) FetchAndProcessLogs(
 	ctx context.Context,
-	logger *zap.Logger,
-	nextQueryBlock, maxQueryRange *big.Int,
-) (*map[uint64][]sidecartypes.Event, *big.Int) {
-
-	// Determine the range of blocks to query.
-	currentBlockNumber, err := ec.ethClient.BlockNumber(ctx)
-	if err != nil {
-		logger.Error("error fetching current Ethereum block number", zap.Error(err))
-		return nil, nextQueryBlock
-	}
-
-	// Return if there is no update for the ETH block height.
-	if currentBlockNumber < nextQueryBlock.Uint64() {
-		logger.Info("no new blocks", zap.Uint64("current_block_number", currentBlockNumber))
-		return nil, nextQueryBlock
-	}
+	fromBlock *big.Int,
+	toBlock *big.Int,
+	maxQueryRange *big.Int,
+) (events map[uint64][]sidecartypes.Event, lastSyncedBlock *big.Int, err error) {
 
 	// Cap the range of blocks to query. We subtract 1 from maxQueryRange since otherwise we query an extra block.
-	// Example: if nextQueryBlock is 100 and maxQueryRange is 1, then the fromBlock and toBlock should both be 100.
-	toBlock := new(big.Int).SetUint64(currentBlockNumber)
-	maxToBlock := new(big.Int).Add(nextQueryBlock, new(big.Int).Sub(maxQueryRange, big.NewInt(1)))
+	// Example: if fromBlock is 100 and maxQueryRange is 1, then the fromBlock and toBlock should both be 100.
+	maxToBlock := new(big.Int).Add(fromBlock, new(big.Int).Sub(maxQueryRange, big.NewInt(1)))
 	if toBlock.Cmp(maxToBlock) > 0 {
 		toBlock = maxToBlock
 	}
 
-	// Filter the logs from the next query block to the to block.
-	logs, err := ec.FilterLogs(ctx, nextQueryBlock, toBlock)
+	// Filter the logs from the next query block to the to block (note: this is rate-limited under the hood).
+	logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
 	if err != nil {
-		logger.Error("error fetching logs", zap.Error(err))
-		return nil, nextQueryBlock
+		return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())
 	}
 
 	// Process the logs if any are found.
-	eventsMap, err := ec.processLogs(logger, logs, nextQueryBlock)
+	eventsMap, err := ec.processLogs(logs, fromBlock)
 	if err != nil {
-		logger.Error("failed to process logs", zap.Error(err))
-		return nil, nextQueryBlock
+		return nil, nil, fmt.Errorf("logs processing failed: %s", err.Error())
 	}
 
 	// Regardless of whether logs were found, update the last queried block to the current block number,
 	// since we have now queried up to this block.
-	logger.Info("processed logs from range of blocks",
-		zap.String("from_block", nextQueryBlock.String()),
+	ec.logger.Info("processed logs from range",
+		zap.String("from_block", fromBlock.String()),
 		zap.String("to_block", toBlock.String()),
-		zap.Int("no_of_events", len(logs)),
+		zap.Int("num_events", len(logs)),
 	)
 
-	// Next block to query will be the one after toBlock
-	return eventsMap, new(big.Int).Add(toBlock, big.NewInt(1))
+	// Return the fetched events and the block that we fetched up to.
+	return eventsMap, toBlock, nil
 }
 
 // processLogs processes each log in a sequential order and stores it.
 func (ec *EthWrappedClient) processLogs(
-	logger *zap.Logger,
-	logs []types.Log,
+	logs []ethereumtypes.Log,
 	nextQueryBlock *big.Int,
-) (*map[uint64][]sidecartypes.Event, error) {
+) (map[uint64][]sidecartypes.Event, error) {
 
 	// If there are no logs to process return.
 	if len(logs) == 0 {
@@ -138,42 +173,47 @@ func (ec *EthWrappedClient) processLogs(
 	tempBlocks := make(map[uint64][]sidecartypes.Event)
 
 	lastBlockNumber := nextQueryBlock.Uint64()
-	lastTxIndex := int(-1)
-	lastLogIndex := int(-1)
+	lastTxIndex := -1
+	lastLogIndex := -1
 
 	for _, vLog := range logs {
 		currentBlockNumber := vLog.BlockNumber
 
 		if vLog.Removed {
-			logger.Debug("processed a removed log, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
+			ec.logger.Debug("skipping removed log", zap.Uint64("block", vLog.BlockNumber))
 			continue
 		}
 
 		if err := utils.ValidateIsLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex); err != nil {
-			logger.Error("failed sequential validation", zap.Error(err))
+			ec.logger.Error("failed sequential validation", zap.Error(err))
 			return nil, err
 		}
 
 		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI)
 		if err != nil {
-			logger.Error("error processing log", zap.Error(err))
+			ec.logger.Error("error processing log", zap.Error(err))
 			return nil, fmt.Errorf("error processing log %s", err)
 		}
 
-		// If the event is nil it means we've processed an unknown event and we can skip it.
+		// If the event is nil it means we've processed an unrecognized event, and we can skip it.
 		if event == nil {
-			logger.Debug("processed unknown event, skipping it.", zap.Int64("block", int64(vLog.BlockNumber)))
+			log, err := vLog.MarshalJSON()
+			ec.logger.Debug("skipping unrecognized event",
+				zap.Uint64("block", vLog.BlockNumber),
+				zap.String("log", string(log)),
+				zap.NamedError("json_marshal_err", err),
+			)
 			continue
 		}
 
 		// Add the event to the temporary block map
 		tempBlocks[currentBlockNumber] = append(tempBlocks[currentBlockNumber], *event)
-		logger.Debug("processed a log successfully",
+		ec.logger.Debug("processed log from block",
 			zap.Uint64("block", vLog.BlockNumber),
 			zap.Uint("tx_index", vLog.TxIndex),
 			zap.Uint("index", vLog.Index),
 		)
 	}
 
-	return &tempBlocks, nil
+	return tempBlocks, nil
 }

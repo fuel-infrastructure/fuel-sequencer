@@ -18,9 +18,9 @@ func TestUnmarshalParsedEvent(t *testing.T) {
 		expErrMsg     string
 	}{
 		{
-			name:          "SendToSequencerEvent",
+			name:          "DepositEvent",
 			event:         testtypes.TestEvent1,
-			expectedEvent: testtypes.TestSendToSequencerEvent3,
+			expectedEvent: testtypes.TestDepositEvent3,
 		},
 		{
 			name:          "AuthorizeEvent",
@@ -70,10 +70,10 @@ func TestEvent_Equal(t *testing.T) {
 			expectedEqual: true,
 		},
 		{
-			name:   "Equal events - SendToSequencer",
+			name:   "Equal events - Deposit",
 			event1: testtypes.TestEvent1,
 			event2: testutils.MustGetSidecarEventFromParsedEvent(
-				testtypes.TestSendToSequencerEvent3, testtypes.TestEthereumProxyContractAddress,
+				testtypes.TestDepositEvent3, testtypes.TestEthereumProxyContractAddress,
 			),
 			expectedEqual: true,
 		},
@@ -101,29 +101,29 @@ func TestEvent_Equal(t *testing.T) {
 			name:   "Unequal events - events belonging to a different contract",
 			event1: testtypes.TestEvent1,
 			event2: testutils.MustGetSidecarEventFromParsedEvent(
-				testtypes.TestSendToSequencerEvent3, "different-contract-address",
+				testtypes.TestDepositEvent3, "different-contract-address",
 			),
 			expectedEqual: false,
 		},
 		{
 			name: "Error - event1 cannot be unmarshalled",
 			event1: &types.Event{
-				EventType:       types.AuthorizeEventName,
+				EventType:       types.MockAuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
 			event2:    testtypes.TestEvent2,
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
 		},
 		{
 			name:   "Error - event2 cannot be unmarshalled",
 			event1: testtypes.TestEvent2,
 			event2: &types.Event{
-				EventType:       types.AuthorizeEventName,
+				EventType:       types.MockAuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
 		},
 	}
 
@@ -156,7 +156,7 @@ func TestEvent_ValidateBasic(t *testing.T) {
 		expErrMsg string
 	}{
 		{
-			name:  "Valid event - SendToSequencerEvent",
+			name:  "Valid event - DepositEvent",
 			event: testtypes.TestEvent1,
 		},
 		{
@@ -178,22 +178,22 @@ func TestEvent_ValidateBasic(t *testing.T) {
 			expErrMsg: "contract_address is not a valid hex address",
 		},
 		{
-			name: "Invalid event - SendToSequencerEvent cannot be unmarshalled",
+			name: "Invalid event - DepositEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType:       types.SendToSequencerEventName,
+				EventType:       types.MockDepositEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.SendToSequencerEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockDepositEventName),
 		},
 		{
 			name: "Invalid event - AuthorizeEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType:       types.AuthorizeEventName,
+				EventType:       types.MockAuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
 		},
 	}
 

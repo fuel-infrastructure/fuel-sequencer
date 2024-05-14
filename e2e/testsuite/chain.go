@@ -26,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -38,6 +39,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 )
 
@@ -84,6 +86,13 @@ func init() {
 		(*cryptotypes.PubKey)(nil),
 		&secp256k1.PubKey{},
 		&ed25519.PubKey{},
+	)
+	encodingConfig.InterfaceRegistry.RegisterImplementations(
+		(*sdk.AccountI)(nil),
+		&bridgetypes.EthOwnedBaseAccount{},
+		&bridgetypes.EthOwnedContinuousVestingAccount{},
+		&vestingtypes.DelayedVestingAccount{},
+		&vestingtypes.ContinuousVestingAccount{},
 	)
 
 	cdc = encodingConfig.Codec

@@ -31,179 +31,179 @@ var (
 		Delta:      TestDelta,
 		Offset:     TestOffset,
 	}
-	TestFrom1     = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-	TestFrom2     = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
-	TestFrom3     = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
-	TestFrom4     = "faulty-address"
-	TestFrom1Seq  = "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"
-	TestFrom2Seq  = "fuelsequencer10e0525sfrf53yh2aljmm3sn9jq5njk7lnsk0qn"
-	TestFrom3Seq  = "fuelsequencer16y3q5r8503aeheazu6agnapfwch8hxkmajmslm"
-	TestAmount1   = "100"
-	TestAmount2   = "101"
-	TestAmount3   = "102"
-	TestTo1       = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
-	TestTo2       = ""
-	TestTo3       = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
-	TestTo4       = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
-	TestDuration1 = "31536050"
-	TestDuration2 = "31536051"
-	TestDuration3 = "31536052"
-	TestDuration4 = "abc"
-	TestDuration5 = "1"
+	TestFrom1    = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+	TestFrom2    = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+	TestFrom3    = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
+	TestFrom4    = "faulty-address"
+	TestFrom1Seq = "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"
+	TestFrom2Seq = "fuelsequencer10e0525sfrf53yh2aljmm3sn9jq5njk7lnsk0qn"
+	TestFrom3Seq = "fuelsequencer16y3q5r8503aeheazu6agnapfwch8hxkmajmslm"
+	TestAmount1  = "100"
+	TestAmount2  = "101"
+	TestAmount3  = "102"
+	TestTo1      = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
+	TestTo2      = "0x0000000000000000000000000000000000000000" // the null Ethereum address
+	TestTo3      = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
+	TestTo4      = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
+	TestLockup1  = "31536050"
+	TestLockup2  = "31536051"
+	TestLockup3  = "31536052"
+	TestLockup4  = "abc"
+	TestLockup5  = "1"
 
-	// TestMessage1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1. This was generated with the help of
+	// TestData1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1. This was generated with the help of
 	// utils/proto_serialization_test.go.
-	TestMessage1 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30786633396664366535316" +
-		"1616438386636663463653661623838323732373963666666623932323636122a3078643434373036366138626139636231356138363" +
-		"261306636646539363166323762653836666330611a0b0a05756675656c12023130"
+	TestData1 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30786633396664366535316161" +
+		"6438386636663463653661623838323732373963666666623932323636122a3078643434373036366138626139636231356138363261" +
+		"306636646539363166323762653836666330611a0b0a05756675656c12023130"
 
-	// TestMessage2 corresponds to a 10ufuel bank send to TestTo3 from TestFrom2. This was generated with the help of
+	// TestData2 corresponds to a 10ufuel bank send to TestTo3 from TestFrom2. This was generated with the help of
 	// utils/proto_serialization_test.go.
-	TestMessage2 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30783745354634353532303" +
-		"9314136393132356435446643623762384332363539303239333935426466122a3078643434373036366138626139636231356138363" +
-		"261306636646539363166323762653836666330611a0b0a05756675656c12023130"
+	TestData2 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30783745354634353532303931" +
+		"4136393132356435446643623762384332363539303239333935426466122a3078643434373036366138626139636231356138363261" +
+		"306636646539363166323762653836666330611a0b0a05756675656c12023130"
 
-	// TestMessage3 corresponds to a 10ufuel bank send to TestTo3 from TestFrom3. This was generated with the help of
+	// TestData3 corresponds to a 10ufuel bank send to TestTo3 from TestFrom3. This was generated with the help of
 	// utils/proto_serialization_test.go.
-	TestMessage3 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663" +
-		"4376337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363" +
-		"261306636646539363166323762653836666330611a0b0a05756675656c12023130"
+	TestData3 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663437" +
+		"6337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363261" +
+		"306636646539363166323762653836666330611a0b0a05756675656c12023130"
 
-	// TestMessage4 corresponds to two 10 ufuel bank sends from TestFrom3 to TestTo3. This was generated with the help
-	// of utils/proto_serialization_test.go.
-	TestMessage4 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663" +
-		"4376337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363" +
-		"261306636646539363166323762653836666330611a0b0a05756675656c120231300a85010a1c2f636f736d6f732e62616e6b2e76316" +
-		"2657461312e4d736753656e6412650a2a307844313232304130636634376337423942653741324536424138394634323937363265376" +
-		"239614462122a3078643434373036366138626139636231356138363261306636646539363166323762653836666330611a0b0a05756" +
-		"675656c12023130"
+	// TestData4 corresponds to two 10 ufuel bank sends from TestFrom3 to TestTo3. This was generated with the help of
+	// utils/proto_serialization_test.go.
+	TestData4 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663437" +
+		"6337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363261" +
+		"306636646539363166323762653836666330611a0b0a05756675656c120231300a85010a1c2f636f736d6f732e62616e6b2e76316265" +
+		"7461312e4d736753656e6412650a2a307844313232304130636634376337423942653741324536424138394634323937363265376239" +
+		"614462122a3078643434373036366138626139636231356138363261306636646539363166323762653836666330611a0b0a05756675" +
+		"656c12023130"
 
-	// TestMessage5 corresponds to a MsgWithdrawToEthereum of 0 ufuel from TestFrom3. This was generated with the help
-	// of utils/proto_serialization_test.go.
-	TestMessage5 = "0a6a0a2e2f6675656c73657175656e6365722e6272696467652e76312e4d73675769746864726177546f4574686572657" +
-		"56d12380a2a3078443132323041306366343763374239426537413245364241383946343239373632653762396144621a0a0a0575667" +
-		"5656c120130"
+	// TestData5 corresponds to a MsgWithdrawToEthereum of 0 ufuel from TestFrom3. This was generated with the help of
+	// utils/proto_serialization_test.go.
+	TestData5 = "0a6a0a2e2f6675656c73657175656e6365722e6272696467652e76312e4d73675769746864726177546f457468657265756d" +
+		"12380a2a3078443132323041306366343763374239426537413245364241383946343239373632653762396144621a0a0a0575667565" +
+		"6c120130"
 
-	// TestMessage6 corresponds to one 10 ufuel and another 1000000ufuel bank send from TestFrom3 to TestTo3. This was
+	// TestData6 corresponds to one 10 ufuel and another 1000000ufuel bank send from TestFrom3 to TestTo3. This was
 	// generated with the help of utils/proto_serialization_test.go.
-	TestMessage6 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663" +
-		"4376337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363" +
-		"261306636646539363166323762653836666330611a0b0a05756675656c120231300a8a010a1c2f636f736d6f732e62616e6b2e76316" +
-		"2657461312e4d736753656e64126a0a2a307844313232304130636634376337423942653741324536424138394634323937363265376" +
-		"239614462122a3078643434373036366138626139636231356138363261306636646539363166323762653836666330611a100a05756" +
-		"675656c120731303030303030"
+	TestData6 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663437" +
+		"6337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363261" +
+		"306636646539363166323762653836666330611a0b0a05756675656c120231300a8a010a1c2f636f736d6f732e62616e6b2e76316265" +
+		"7461312e4d736753656e64126a0a2a307844313232304130636634376337423942653741324536424138394634323937363265376239" +
+		"614462122a3078643434373036366138626139636231356138363261306636646539363166323762653836666330611a100a05756675" +
+		"656c120731303030303030"
 
-	TestSendToSequencerEvent1 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom1,
-		Amount:   TestAmount1,
-		To:       TestTo1,
-		Duration: TestDuration1,
+	TestDepositEvent1 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom1,
+		Recipient: TestTo1,
+		Amount:    TestAmount1,
+		Lockup:    TestLockup1,
 	}
-	TestSendToSequencerEvent2 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom2,
-		Amount:   TestAmount2,
-		To:       TestTo2,
-		Duration: TestDuration2,
+	TestDepositEvent2 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom2,
+		Recipient: TestTo2,
+		Amount:    TestAmount2,
+		Lockup:    TestLockup2,
 	}
-	TestSendToSequencerEvent3 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo3,
-		Duration: TestDuration3,
+	TestDepositEvent3 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo3,
+		Amount:    TestAmount3,
+		Lockup:    TestLockup3,
 	}
-	TestSendToSequencerEvent4 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo3,
-		Duration: TestDuration4,
+	TestDepositEvent4 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo3,
+		Amount:    TestAmount3,
+		Lockup:    TestLockup4,
 	}
-	TestSendToSequencerEvent5 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom4,
-		Amount:   TestAmount3,
-		To:       TestTo3,
-		Duration: TestDuration3,
+	TestDepositEvent5 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom4,
+		Recipient: TestTo3,
+		Amount:    TestAmount3,
+		Lockup:    TestLockup3,
 	}
-	TestSendToSequencerEvent6 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo2,
-		Duration: TestDuration5,
+	TestDepositEvent6 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo2,
+		Amount:    TestAmount3,
+		Lockup:    TestLockup5,
 	}
-	TestSendToSequencerEvent7 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount3,
-		To:       TestTo4,
-		Duration: TestDuration3,
+	TestDepositEvent7 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo4,
+		Amount:    TestAmount3,
+		Lockup:    TestLockup3,
 	}
-	TestSendToSequencerEvent8 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   "failed",
-		To:       TestTo4,
-		Duration: TestDuration3,
+	TestDepositEvent8 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestTo4,
+		Amount:    "failed",
+		Lockup:    TestLockup3,
 	}
-	TestSendToSequencerEvent9 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom2,
-		Amount:   TestAmount2,
-		To:       "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
-		Duration: TestDuration2,
+	TestDepositEvent9 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom2,
+		Recipient: "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+		Amount:    TestAmount2,
+		Lockup:    TestLockup2,
 	}
-	TestSendToSequencerEvent10 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount1,
-		To:       TestFrom3,
-		Duration: TestDuration1,
+	TestDepositEvent10 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestFrom3,
+		Amount:    TestAmount1,
+		Lockup:    TestLockup1,
 	}
-	TestSendToSequencerEvent11 = &sidecartypes.SendToSequencerEvent{
-		From:     TestFrom3,
-		Amount:   TestAmount1,
-		To:       TestFrom3Seq,
-		Duration: TestDuration1,
+	TestDepositEvent11 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom3,
+		Recipient: TestFrom3Seq,
+		Amount:    TestAmount1,
+		Lockup:    TestLockup1,
 	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
-		From:    TestFrom1,
-		Message: testutils.MustHexDecodeString(TestMessage1),
+		Sender: TestFrom1,
+		Data:   testutils.MustHexDecodeString(TestData1),
 	}
 	TestAuthorizeEvent2 = &sidecartypes.AuthorizeEvent{
-		From:    TestFrom2,
-		Message: testutils.MustHexDecodeString(TestMessage2),
+		Sender: TestFrom2,
+		Data:   testutils.MustHexDecodeString(TestData2),
 	}
 	TestAuthorizeEvent3 = &sidecartypes.AuthorizeEvent{
-		From:    TestFrom3,
-		Message: testutils.MustHexDecodeString(TestMessage3),
+		Sender: TestFrom3,
+		Data:   testutils.MustHexDecodeString(TestData3),
 	}
 
 	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent3, TestEthereumProxyContractAddress,
+		TestDepositEvent3, TestEthereumProxyContractAddress,
 	)
 	TestEvent2 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestAuthorizeEvent3, TestEthereumProxyContractAddress,
 	)
 	TestEvent3 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent2, TestEthereumProxyContractAddress,
+		TestDepositEvent2, TestEthereumProxyContractAddress,
 	)
 	TestEvent4 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent4, TestEthereumProxyContractAddress,
+		TestDepositEvent4, TestEthereumProxyContractAddress,
 	)
 	TestEvent5 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent5, TestEthereumProxyContractAddress,
+		TestDepositEvent5, TestEthereumProxyContractAddress,
 	)
 	TestEvent6 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent6, TestEthereumProxyContractAddress,
+		TestDepositEvent6, TestEthereumProxyContractAddress,
 	)
 	TestEvent7 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent7, TestEthereumProxyContractAddress,
+		TestDepositEvent7, TestEthereumProxyContractAddress,
 	)
 	TestEvent8 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent8, TestEthereumProxyContractAddress,
+		TestDepositEvent8, TestEthereumProxyContractAddress,
 	)
 	TestEvent9 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent9, TestEthereumProxyContractAddress,
+		TestDepositEvent9, TestEthereumProxyContractAddress,
 	)
 	TestEvent10 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent10, TestEthereumProxyContractAddress,
+		TestDepositEvent10, TestEthereumProxyContractAddress,
 	)
 	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
-		TestSendToSequencerEvent11, TestEthereumProxyContractAddress,
+		TestDepositEvent11, TestEthereumProxyContractAddress,
 	)
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
@@ -212,49 +212,36 @@ var (
 
 	TestEthEventsTx = bridgetypes.EthEventsTx{
 		Events:           TestEvents,
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      1,
 	}
 	TestEthEventsTxWithDifferentEvents = bridgetypes.EthEventsTx{
 		Events:           TestEventsDifferent,
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      1,
 	}
 	TestEthEventsTxReduced = bridgetypes.EthEventsTx{
 		Events:           TestEventsReduced,
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      1,
 	}
 	TestEthEventsTxPartial = bridgetypes.EthEventsTx{
 		Events:           TestEventsReduced,
-		AdvanceSequencer: true,
 		NewEthereumBlock: false, // block was partially consumed
 		BlockNumber:      1,
 	}
 	TestEthEventsTxWithoutEvents = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
-		AdvanceSequencer: true,
 		NewEthereumBlock: true,
 		BlockNumber:      1,
 	}
 	TestEthEventsTxNoNewBlock = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
-		AdvanceSequencer: true,
-		NewEthereumBlock: false,
-		BlockNumber:      1,
-	}
-	TestEthEventsTxSidecarDelay = bridgetypes.EthEventsTx{
-		Events:           []*sidecartypes.Event{},
-		AdvanceSequencer: true,
 		NewEthereumBlock: false,
 		BlockNumber:      1,
 	}
 	TestEthEventsTxSidecarErr = bridgetypes.EthEventsTx{
 		Events:           []*sidecartypes.Event{},
-		AdvanceSequencer: false,
 		NewEthereumBlock: false,
 		BlockNumber:      1,
 	}

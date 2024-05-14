@@ -293,29 +293,31 @@ func NewFuelSequencerApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// SIDECAR :: Configure
-	cfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
+	sidecarCfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
 	if err != nil {
 		panic(err)
 	}
 
 	// SIDECAR :: Create client
 	app.sidecar, err = sidecarclient.NewClientFromConfig(
-		cfg,
+		sidecarCfg,
 		app.Logger().With("client", "sidecar"),
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	// SIDECAR :: Connect to the client
-	go func() {
-		if err := app.sidecar.Start(context.Background()); err != nil {
-			app.Logger().Error("failed to start Sidecar client", "err", err)
-			panic(err)
-		}
+	// SIDECAR :: Connect to the client if the Sidecar is enabled
+	if sidecarCfg.Enabled {
+		go func() {
+			if err := app.sidecar.Start(context.Background()); err != nil {
+				app.Logger().Error("failed to start Sidecar client", "err", err)
+				panic(err)
+			}
 
-		app.Logger().Info("started Sidecar client", "addr", cfg.Address)
-	}()
+			app.Logger().Info("started Sidecar client", "addr", sidecarCfg.Address)
+		}()
+	}
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(

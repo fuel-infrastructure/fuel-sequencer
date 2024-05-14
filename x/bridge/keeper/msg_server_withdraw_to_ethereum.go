@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -32,7 +33,10 @@ func (k msgServer) WithdrawToEthereum(
 	}
 
 	// Burn the user's bridge tokens
-	withdrawerAccAddress := sdk.MustAccAddressFromBech32(msg.From)
+	withdrawerAccAddress, err := k.GetAddressCodec().StringToBytes(msg.From)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to decode from address")
+	}
 	if err := k.BurnCoinsFromAddress(ctx, withdrawerAccAddress, sdk.NewCoins(msg.Amount)); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to burn bridge tokens")
 	}
@@ -47,7 +51,7 @@ func (k msgServer) WithdrawToEthereum(
 	k.SetLastEthereumNonce(ctx, nonce)
 
 	// Emit event
-	err := ctx.EventManager().EmitTypedEvent(
+	err = ctx.EventManager().EmitTypedEvent(
 		&types.EventWithdrawToEthereumReported{
 			Nonce:  nonce,
 			From:   msg.From,
@@ -59,10 +63,11 @@ func (k msgServer) WithdrawToEthereum(
 		return nil, err
 	}
 
+	// Addresses are lowercase for simpler parsing on Ethereum.
 	return &types.MsgWithdrawToEthereumResponse{
 		Nonce:  nonce,
-		From:   msg.From,
-		To:     msg.To,
+		From:   strings.ToLower(msg.From),
+		To:     strings.ToLower(msg.To),
 		Amount: msg.Amount,
 	}, nil
 }

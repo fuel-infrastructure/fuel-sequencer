@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"net/url"
 	"os"
 	"strconv"
-	"strings"
+	"time"
 
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
@@ -34,6 +35,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -41,12 +43,11 @@ import (
 	cometutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/cometutils"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/mockbridgex"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
 )
 
@@ -145,102 +146,86 @@ func txCommand() *cobra.Command {
 }
 
 func startSidecarServerCmd() *cobra.Command {
-	var (
-		host                  string
-		port                  string
-		ethNodeRPC            string
-		cosmosNodeRPC         string
-		tendermintNodeRPC     string
-		contractAddressHex    string
-		unsafeEthereumBlock   int64
-		ethMaxBlockRange      int64
-		development           bool
-		unsafeAcceptableDelay uint64
-	)
+
+	scrCfg := sidecarConfig{}
+	seqCfg := sequencerConfig{}
+	ethCfg := ethereumConfig{}
 
 	cmd := &cobra.Command{
 		Use:   "start-sidecar",
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return startSidecar(
-				host,
-				port,
-				ethNodeRPC,
-				cosmosNodeRPC,
-				tendermintNodeRPC,
-				contractAddressHex,
-				unsafeEthereumBlock,
-				ethMaxBlockRange,
-				development,
-				unsafeAcceptableDelay,
-			)
+			return startSidecar(scrCfg, seqCfg, ethCfg)
 		},
 	}
 
-	cmd.Flags().StringVar(&host, "host", "localhost", "host for the grpc-service to listen on")
-	cmd.Flags().StringVar(&port, "port", "8080", "port for the grpc-service to listen on")
-	cmd.Flags().StringVar(&ethNodeRPC, "eth_node_rpc", "http://127.0.0.1:8545/", "Ethereum node RPC endpoint")
-	cmd.Flags().StringVar(&cosmosNodeRPC, "cosmos_node_rpc", "127.0.0.1:9090", "Cosmos node RPC endpoint")
-	cmd.Flags().StringVar(&tendermintNodeRPC, "tendermint_node_rpc", "http://127.0.0.1:26657", "Tendermint node RPC endpoint")
-	cmd.Flags().StringVar(&contractAddressHex, "contract_address", "", "Contract address in hex format")
-	cmd.Flags().Int64Var(&unsafeEthereumBlock, "unsafe_ethereum_block", 0, "Ethereum start query block")
-	cmd.Flags().Int64Var(&ethMaxBlockRange, "eth_max_block_range", 100, "max number of Ethereum blocks per query")
-	cmd.Flags().BoolVar(&development, "development", false, "Starts the sidecar in development mode")
-	cmd.Flags().Uint64Var(&unsafeAcceptableDelay, "unsafe_acceptable_delay", 1, "the amount of blocks the sidecar can be out-of-sync with Ethereum")
+	// Sidecar
+	cmd.Flags().StringVar(&scrCfg.host, FlagSidecarHost, "localhost", "host for the gRPC server to listen on")
+	cmd.Flags().StringVar(&scrCfg.port, FlagSidecarPort, "8080", "port for the gRPC server to listen on")
+	cmd.Flags().BoolVar(&scrCfg.development, FlagSidecarDevelopment, false, "Starts the sidecar in development mode")
+
+	// Ethereum
+	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "Ethereum node WebSocket endpoint")
+	cmd.Flags().StringVar(&ethCfg.contractAddrHex, FlagEthereumContractAddr, "", "address in hex format of the contract to monitor for logs")
+	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of Ethereum blocks queried at one go")
+	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*5, "minimum wait between successive queries for logs")
+	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the Ethereum block to start querying from")
+
+	// Sequencer
+	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "Sequencer's gRPC endpoint")
+	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "Sequencer's CometBFT RPC endpoint")
 
 	return cmd
 }
 
 func startSidecar(
-	host,
-	port,
-	ethNodeRPC,
-	cosmosNodeRPC,
-	tendermintNodeRPC,
-	contractAddressHex string,
-	unsafeEthereumBlock,
-	ethMaxBlockRange int64,
-	development bool,
-	unsafeAcceptableDelay uint64,
+	scrCfg sidecarConfig,
+	seqCfg sequencerConfig,
+	ethCfg ethereumConfig,
 ) error {
 	sigs := make(chan os.Signal, 1)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var logger *zap.Logger
-	var err error
-	if development {
-		logger, err = zap.NewDevelopment()
+	// Configure logger.
+	var loggerCfg zap.Config
+	if scrCfg.development {
+		loggerCfg = zap.NewDevelopmentConfig()
 	} else {
-		logger, err = zap.NewProduction()
+		loggerCfg = zap.NewProductionConfig()
+		loggerCfg.EncoderConfig.CallerKey = zapcore.OmitKey // do not output file and line number of caller
 	}
+	loggerCfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
+	loggerCfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	loggerCfg.Encoding = "console" // more readable compared to JSON
+
+	// Build logger based on config.
+	logger, err := loggerCfg.Build()
 	if err != nil {
 		return fmt.Errorf("failed to create logger: %s", err)
 	}
 
-	if unsafeEthereumBlock < 0 {
-		return fmt.Errorf("unsafe ethereum block must be >= 0, got: %d", unsafeEthereumBlock)
+	if ethCfg.unsafeStartBlock < 0 {
+		return fmt.Errorf("ethereum unsafe start block must be >= 0, got: %d", ethCfg.unsafeStartBlock)
 	}
-	if ethMaxBlockRange < 1 {
-		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethMaxBlockRange)
-	}
-	if unsafeAcceptableDelay > 10 {
-		return fmt.Errorf("unsafe acceptable delay is too large, must be <= 10, got: %d", unsafeAcceptableDelay)
+	if ethCfg.maxBlockRange < 1 {
+		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethCfg.maxBlockRange)
 	}
 
-	// Check if the unsafeEthereumBlock is provided and use it instead of querying the genesis.
+	// Check if the unsafe start block is provided and use it instead of querying the genesis.
 	startBlock := big.NewInt(0)
-	if unsafeEthereumBlock > 0 {
-		startBlock = big.NewInt(unsafeEthereumBlock)
-		logger.Info(
-			"ethereum start block set to unsafe-ethereum-block",
+	if ethCfg.unsafeStartBlock > 0 {
+		startBlock = big.NewInt(ethCfg.unsafeStartBlock)
+		logger.Warn(
+			fmt.Sprintf("ethereum start block set to %s flag value", FlagEthereumUnsafeStartBlock),
 			zap.String("start_block", startBlock.String()),
 		)
 	}
 
 	// Create a connection to the Cosmos gRPC server.
-	grpcConn, err := grpc.Dial(cosmosNodeRPC, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
+	grpcConn, err := grpc.Dial(seqCfg.grpcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
@@ -248,25 +233,25 @@ func startSidecar(
 	// Create the sequencer client
 	scSequencerClient := scsequencerclient.NewClient(grpcConn)
 
-	// If the unsafeEthereumBlock is not set then we attempt to query the
+	// If the unsafe start block is not set then we attempt to query the
 	// last Ethereum block synced from the genesis file and the Sequencer.
-	if unsafeEthereumBlock == 0 {
+	if ethCfg.unsafeStartBlock == 0 {
 
-		// Only try quering the genesis file if the tendermintNodeRPC was specified.
-		if tendermintNodeRPC != "" {
+		// Only try quering the genesis file if the sequencer RPC URL was specified.
+		if seqCfg.rpcUrl != "" {
 			lastEthereumBlockSynced, err := cometutils.QuerySequencerGenesisForLastEthereumBlockSynced(
-				ctx, tendermintNodeRPC,
+				ctx, seqCfg.rpcUrl,
 			)
 			if err != nil {
 				logger.Error(
 					"failed to read the response body of the genesis file",
-					zap.String("tendermint_node_rpc", tendermintNodeRPC),
+					zap.String("rpc_url", seqCfg.rpcUrl),
 					zap.Error(err),
 				)
 			} else {
 				startBlock = big.NewInt(int64(lastEthereumBlockSynced + 1))
 				logger.Info(
-					"ethereum start block set to LastEthereumBlockSynced+1 from genesis",
+					"ethereum start block set to LastEthereumBlockSynced+1 from Sequencer genesis",
 					zap.String("start_block", startBlock.String()),
 				)
 			}
@@ -277,7 +262,7 @@ func startSidecar(
 		if err != nil {
 			logger.Warn(
 				"failed to query LastEthereumBlockSynced from Sequencer, but maybe Sequencer hasn't started",
-				zap.String("cosmos_node_rpc", cosmosNodeRPC),
+				zap.String("grpc_url", seqCfg.grpcUrl),
 				zap.Error(err),
 			)
 		} else {
@@ -301,36 +286,37 @@ func startSidecar(
 	// If the startBlock is 0, we've failed to set it through the various attempts (unsafe flag / genesis / node).
 	if startBlock.Cmp(big.NewInt(0)) == 0 {
 		panic(fmt.Sprintf(
-			"did not find a start block; ensure Sequencer is available at cosmos_node_rpc=%s, tendermint_node_rpc=%s",
-			cosmosNodeRPC, tendermintNodeRPC,
+			"did not find a start block; ensure Sequencer is available at grpc=%s, rpc=%s",
+			seqCfg.grpcUrl, seqCfg.rpcUrl,
 		))
 	}
 
-	ethClient, err := ethclient.Dial(ethNodeRPC)
+	logger.Info("dialling Ethereum node", zap.String("ws_url", ethCfg.webSocketUrl))
+	ethClient, err := ethclient.Dial(ethCfg.webSocketUrl)
 	if err != nil {
 		return err
 	}
 
-	// TODO: replace MockBridgeXABI with actual contract once it's available.
-	contractAddr := common.HexToAddress(contractAddressHex)
-	contractAbi, err := abi.JSON(strings.NewReader(mockbridgex.MockBridgeXABI))
+	// Contract ABI
+	var contractAbi abi.ABI
+	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.MockSequencerProxyContractABI))
 	if err != nil {
 		return err
 	}
 
 	// Create the sidecar ethereum client
-	scEthClient := scethclient.NewClient(ethClient, contractAddr, contractAbi)
+	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
+	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
 
 	// Create the store
-	eventStore := scstore.NewEventStore(startBlock, nil, big.NewInt(ethMaxBlockRange))
+	eventStore := scstore.NewEventStore(startBlock, big.NewInt(ethCfg.maxBlockRange))
 
 	sideCar := sidecar.NewSidecar(
 		logger,
 		scEthClient,
 		scSequencerClient,
 		eventStore,
-		development,
-		unsafeAcceptableDelay,
+		scrCfg.development,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
@@ -340,7 +326,7 @@ func startSidecar(
 		cancel()
 	}()
 
-	if err := srv.InitializeServer(host, port); err != nil {
+	if err := srv.InitializeServer(scrCfg.host, scrCfg.port); err != nil {
 		logger.Error("failed to initialize the server", zap.Error(err))
 	}
 
@@ -360,18 +346,18 @@ func querySidecarServerCmd() *cobra.Command {
 		Aliases: []string{"qse"},
 	}
 
-	cmd.Flags().String("host", "localhost", "host of the gRPC service to query")
-	cmd.Flags().String("port", "8080", "port of the gRPC service to query")
+	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "Sidecar's gRPC URL")
+	cmd.Flags().DurationP(FlagQueryTimeout, "t", time.Second*5, "how long to wait before timing out")
 
 	return cmd
 }
 
 func queryBlockEvents(cmd *cobra.Command, args []string) error {
-	host, err := cmd.Flags().GetString("host")
+	sidecarGrpcUrl, err := cmd.Flags().GetString(FlagSidecarGrpcUrl)
 	if err != nil {
 		return err
 	}
-	port, err := cmd.Flags().GetString("port")
+	queryTimeout, err := cmd.Flags().GetDuration(FlagQueryTimeout)
 	if err != nil {
 		return err
 	}
@@ -382,19 +368,23 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not parse block number: %s", err.Error())
 	}
 
-	url := fmt.Sprintf("%s:%s", host, port)
-	conn, err := grpc.Dial(url, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	// Prepending a "//" allows addresses without a scheme.
+	if _, err := url.Parse("//" + sidecarGrpcUrl); err != nil {
+		return fmt.Errorf("invalid Sidecar address: %w", err)
+	}
+
+	conn, err := grpc.Dial(sidecarGrpcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("failed to connect to Sidecar service: %v", err)
 	}
 	defer conn.Close()
 
-	sidecarClient := types.NewSidecarClient(conn)
+	sidecarClient := sidecartypes.NewSidecarClient(conn)
 
-	resp, err := sidecarClient.GetBlockEvents(
-		context.Background(),
-		&types.QueryBlockEventsRequest{BlockNumber: blockNumber},
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	resp, err := sidecarClient.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: blockNumber})
 	if err != nil {
 		return fmt.Errorf("could not get block events: %v", err)
 	}

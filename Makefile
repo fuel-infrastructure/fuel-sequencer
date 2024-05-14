@@ -169,9 +169,28 @@ run-client-binary:
 	@$(BUILDDIR)/client-$(VERSION)-$(ARCH) -blocknumber $(BLOCK_NUMBER)
 
 run-sidecar-binary:
+	@$(eval SIDECAR_HOST ?= "0.0.0.0")
+	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
+	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
+	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
+	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
+	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
+	@$(eval DEVELOPMENT ?= "false")
 	@$(eval ARCH ?= linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
-	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) --host="$(HOST)" --port="$(PORT)" --eth_node_rpc="$(ETH_NODE_RPC)" --contract_address="$(CONTRACT_ADDRESS)" --eth_start_block="$(ETH_START_BLOCK)" --cosmos_node_rpc="$(COSMOS_NODE_RPC)" --development="$(DEVELOPMENT)"
+	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) \
+		--host "$(SIDECAR_HOST)" \
+		--port "$(SIDECAR_PORT)" \
+		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
+		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--eth_ws_url "$(ETH_WS_URL)" \
+		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
+		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
+		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--development "$(DEVELOPMENT)"
 
 ###############################################################################
 ###                                 Protobuf                                ###
@@ -214,32 +233,46 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 
 run-sequencer: proto-go-gen serve
 
+run-sequencer-no-sidecar: proto-go-gen serve-no-sidecar
+
 run-sidecar:
-	@$(eval HOST ?= "0.0.0.0")
-	@$(eval COSMOS_NODE_RPC ?= "127.0.0.1:9090")
-	@$(eval TENDERMINT_NODE_RPC ?= "http://127.0.0.1:26657")
-	@$(eval ETH_RPC ?= "http://localhost:8545")
-	@$(eval CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
-	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
-	@echo "Waiting for Ethereum node $(ETH_RPC) to start..."
-	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC) | grep -q "result"; do \
+	@$(eval SIDECAR_HOST ?= "0.0.0.0")
+	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
+	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
+	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
+	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
+	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
+	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
+	@$(eval DEVELOPMENT ?= "true")
+	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
+	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
 	done
-	@echo "Waiting for Sequencer node $(TENDERMINT_NODE_RPC) to start..."
-	@while ! curl -s -X GET --max-time 1 "$(TENDERMINT_NODE_RPC)" | grep -q "result"; do \
+	@echo "Waiting for Sequencer node $(SEQUENCER_RPC_URL) to start..."
+	@while ! curl -s -X GET --max-time 1 "$(SEQUENCER_RPC_URL)" | grep -q "result"; do \
 		sleep 1; \
 	done
 	@fuelsequencerd start-sidecar \
-		--host "$(HOST)" \
-		--cosmos_node_rpc "$(COSMOS_NODE_RPC)" \
-		--tendermint_node_rpc "$(TENDERMINT_NODE_RPC)" \
-		--eth_node_rpc "$(ETH_RPC)" \
-		--contract_address "$(CONTRACT_ADDRESS)" \
+		--host "$(SIDECAR_HOST)" \
+		--port "$(SIDECAR_PORT)" \
+		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
+		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--eth_ws_url "$(ETH_WS_URL)" \
+		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
-		--development=true
+		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--development "$(DEVELOPMENT)"
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
+
+serve-force-reset:
+	ignite chain serve -v --force-reset --skip-proto --build.tags ledger
+
+serve-no-sidecar:
+	ignite chain serve -v --reset-once --skip-proto --build.tags ledger --config config-no-sidecar.yml
 
 keys:
 	@echo "🤖 Generating keys..."
@@ -286,7 +319,7 @@ test-all: test-unit test-e2e
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
 
-test-e2e: check-docker-image-exists check-eth-docker-image-exists check-fsx-docker-images-exist test-e2e-basic test-e2e-withdrawals test-e2e-events
+test-e2e: check-docker-image-exists check-eth-docker-image-exists check-fsx-docker-images-exist test-e2e-basic test-e2e-withdrawals test-e2e-events test-e2e-authorize-transactions test-e2e-deposits
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
@@ -430,9 +463,16 @@ test-e2e-events:
 test-e2e-withdrawals:
 	@cd e2e/tests && go test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
 
+test-e2e-authorize-transactions:
+	@cd e2e/tests && go test -mod=readonly -race -v ./authorize-transactions/... --test.timeout 0
+
+test-e2e-deposits:
+	@cd e2e/tests && go test -mod=readonly -race -v ./deposits/... --test.timeout 0
+
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
 	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker stop
+	@docker ps -aq --filter "name=succinctX-relayer" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
@@ -440,6 +480,7 @@ clean-e2e:
 
 	@echo "🧹 Removing Docker containers..."
 	@docker ps -aq --filter "name=succinctX-operator" | xargs -r docker rm
+	@docker ps -aq --filter "name=succinctX-relayer" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm

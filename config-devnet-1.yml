@@ -5,7 +5,7 @@ build:
 accounts:
   - name: alice
     coins:
-      - 999996000000utest
+      - 999992000000utest
     mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
   - name: validator1
     coins:
@@ -15,6 +15,14 @@ accounts:
     coins:
       - 2000000utest
     address: fuelsequencer1ddjv8z30raavjc8ku6n6mqlm9rjhezs2u4jetp
+  - name: validator3
+    coins:
+      - 2000000utest
+    address: fuelsequencer14x7vdjp8nm86d2s03rg9z2z8jdu20x280mxgm0
+  - name: validator4
+    coins:
+      - 2000000utest
+    address: fuelsequencer1262eh7nej33nq82f5jts6xjhy446m37qqrugzu
 client:
   openapi:
     path: docs/static/openapi.yml
