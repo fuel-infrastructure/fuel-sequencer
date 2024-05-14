@@ -646,23 +646,6 @@ class FuelSequencerChain(CosmosChain):
         self.sign(temp_json_file)
         return self.broadcast(temp_json_file)
 
-    def post_blob_v1(
-            self,
-            sender: str,
-            topic: str,
-            order: str,
-            data: str,
-            gas: str,
-            fee: List
-    ):
-        msg = get_msg_post_blob_v1(sender, topic, order, data, gas, fee)
-        temp_json_file = "temp-msg.json"
-        with open(temp_json_file, 'w') as f:
-            json.dump(msg, f)
-
-        self.sign(temp_json_file)
-        return self.broadcast(temp_json_file)
-
 
 class EthereumChain(Web3):
 
