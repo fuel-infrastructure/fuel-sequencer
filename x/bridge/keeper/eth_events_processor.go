@@ -27,8 +27,7 @@ func (k Keeper) processDepositEvent(
 	amount, success := sdkmath.NewIntFromString(depositEvent.Amount)
 	if !success {
 		// Panic if we've failed to unmarshal an amount, as something has gone wrong in the entire chain process.
-		k.Logger().Error("Bridge EndBlock: could not unmarshal amount to int from string")
-		panic("Bridge EndBlock: could not unmarshal amount to int from string")
+		panic(fmt.Sprintf("could not unmarshal amount to int from string (%s)", depositEvent.Amount))
 	}
 	tokenToMint := sdk.NewCoin(params.BridgeDenom, amount)
 	tokensToMint := sdk.NewCoins(tokenToMint)
@@ -36,7 +35,7 @@ func (k Keeper) processDepositEvent(
 	// Check that the Lockup can be converted from a string to sdk.Int
 	eventLockup, success := sdkmath.NewIntFromString(depositEvent.Lockup)
 	if !success {
-		k.Logger().Error("Bridge EndBlock: could not unmarshal lockup to int from string %s", depositEvent.Lockup)
+		k.Logger().Error("could not unmarshal lockup to int from string", "lockup", depositEvent.Lockup)
 		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
 		return
 	}
@@ -47,7 +46,7 @@ func (k Keeper) processDepositEvent(
 	// Check that Depositor is a valid hex address
 	if !common.IsHexAddress(depositEvent.Depositor) {
 		k.Logger().Error(
-			"Bridge EndBlock: depositor address is not a valid hex address - minting to governance address instead",
+			"depositor address is not a valid hex address - minting to governance address instead",
 			"event", depositEvent,
 		)
 		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
@@ -66,7 +65,7 @@ func (k Keeper) processDepositEvent(
 		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, depositEvent.Depositor, vesting, tokensToMint)
 		if err != nil {
 			k.Logger().Error(
-				"Bridge EndBlock: failed to generate sequencer account from ethereum address - minting to gov address",
+				"failed to generate sequencer account from ethereum address - minting to gov address",
 				"event", depositEvent, "err", err,
 			)
 			k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
@@ -83,7 +82,7 @@ func (k Keeper) processDepositEvent(
 		}
 		if err != nil {
 			k.Logger().Error(
-				"Bridge EndBlock: recipient is not a valid Bech32 or Hex address - minting to gov address",
+				"recipient is not a valid Bech32 or Hex address - minting to gov address",
 				"event", depositEvent, "err", err,
 			)
 			k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
@@ -94,21 +93,19 @@ func (k Keeper) processDepositEvent(
 	// Otherwise mint and send the coins to the specified user.
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, tokensToMint)
 	if err != nil {
-		k.Logger().Error("Bridge EndBlock: failed to mint tokens to module", "err", err)
-		panic(err)
+		panic(fmt.Sprintf("failed to mint tokens to module; err: %s", err.Error()))
 	}
 
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sequencerAddr, tokensToMint)
 	if err != nil {
-		k.Logger().Error("Bridge EndBlock: failed to send tokens from module to account", "err", err)
+		k.Logger().Error("failed to send tokens from module to account", "err", err)
 
 		// Do not panic here because a receiver address could be blocked. Instead send the minted tokens to
 		// the governance account. If that fails we can then panic because it's a misconfiguration of the modules.
 		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, govtypes.ModuleName, tokensToMint)
 		if err != nil {
-			panic(fmt.Errorf("bridge endblock: failed to transfer bridge tokens to gov module account err: %s", err))
+			panic(fmt.Sprintf("failed to transfer bridge tokens to gov module account err: %s", err.Error()))
 		}
-
 	}
 
 	// Apply negative offset to supply delta offset
@@ -123,13 +120,10 @@ func (k Keeper) processDepositEvent(
 		Lockup:    vesting.String(),
 	})
 	if err != nil {
-		k.Logger().Error("Bridge EndBlock: failed to emit event deposit", "err", err)
+		k.Logger().Error("failed to emit event deposit", "err", err)
 	}
 
-	k.Logger().Debug(
-		"Bridge EndBlock: minted bridge tokens to account",
-		"amount", tokenToMint.Amount, "address", sequencerAddr,
-	)
+	k.Logger().Debug("minted bridge tokens to account", "amount", tokenToMint.Amount, "address", sequencerAddr)
 }
 
 // mintToGovernanceAddress mints to the governance address in case of an error in normal processing.
@@ -146,7 +140,7 @@ func (k Keeper) mintToGovernanceAddress(
 	// Mint bridged tokens to governance module address.
 	err := k.bankKeeper.MintCoins(ctx, govtypes.ModuleName, tokensToMint)
 	if err != nil {
-		panic(fmt.Errorf("bridge endblock: failed to mint bridge tokens to gov module account err: %s", err))
+		panic(fmt.Sprintf("failed to mint bridge tokens to gov module account err: %s", err.Error()))
 	}
 
 	// Update supply delta to reflect the minting to the governance address.
@@ -158,13 +152,13 @@ func (k Keeper) mintToGovernanceAddress(
 	// Marshal event details to bytes.
 	eventDetails, err := depositEvent.Marshal()
 	if err != nil {
-		panic(fmt.Errorf("bridge endblock: failed to marshal event details into bytes: %s", err))
+		panic(fmt.Sprintf("failed to marshal event details into bytes: %s", err.Error()))
 	}
 
 	// Emit event once completed.
 	err = ctx.EventManager().EmitTypedEvent(&types.EventDepositEventFailed{EventDetails: eventDetails})
 	if err != nil {
-		k.Logger().Error("Bridge EndBlock: failed to emit event deposit", "err", err)
+		k.Logger().Error("failed to emit event deposit", "err", err)
 	}
 
 	k.Logger().Warn("minted bridge tokens to governance address", "amount", tokenToMint.Amount)
