@@ -19,6 +19,7 @@ var (
 	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
 	EthereumEventIndexOffsetKey = []byte("EthereumEventIndexOffset")
 	SupplyDeltaProcessedKey     = []byte("SupplyDeltaProcessed")
+	LastEthBlockUpdateTimeKey   = []byte("LastEthBlockUpdateTime")
 )
 
 func KeyPrefix(p string) []byte {

@@ -27,10 +27,10 @@ func (k msgServer) SetEthEventTxsInfo(goCtx context.Context, msg *types.EthEvent
 		NumEventTxsHandled: 0,
 	})
 
-	// Set LastEthereumBlockSynced and reset EthereumEventIndexOffset if we are to increment to a new Ethereum block.
 	if msg.NewEthereumBlock {
 		k.SetLastEthereumBlockSynced(ctx, msg.BlockNumber)
 		k.ResetEthereumEventIndexOffset(ctx)
+		k.SetLastEthBlockUpdateTime(ctx, ctx.BlockTime())
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.

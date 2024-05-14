@@ -11,6 +11,7 @@ import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
 import "fuelsequencer/bridge/eth_events_transaction.proto";
 import "fuelsequencer/bridge/supply_delta_processed.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -65,6 +66,13 @@ service Query {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed";
   }
+
+  // Queries the LastEthBlockUpdateTime.
+  rpc LastEthBlockUpdateTime(QueryGetLastEthBlockUpdateTimeRequest)
+      returns (QueryGetLastEthBlockUpdateTimeResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "v1/last_eth_block_update_time";
+  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
@@ -106,6 +114,13 @@ message QuerySequencerAddressFromEthereumAddressResponse {
 message QueryGetSupplyDeltaProcessedRequest {}
 
 message QueryGetSupplyDeltaProcessedResponse {
-  SupplyDeltaProcessed SupplyDeltaProcessed = 1
+  SupplyDeltaProcessed supply_delta_processed = 1
       [ (gogoproto.nullable) = false ];
+}
+
+message QueryGetLastEthBlockUpdateTimeRequest {}
+
+message QueryGetLastEthBlockUpdateTimeResponse {
+  google.protobuf.Timestamp last_eth_block_update_time = 1
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }

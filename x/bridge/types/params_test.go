@@ -204,12 +204,37 @@ func TestValidateVestingStartTime(t *testing.T) {
 	}
 }
 
+func TestValidateMaxEthBlockUpdateDelay(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid delay - non-zero value", time.Hour, false},
+		{"Valid delay - Zero value", time.Duration(0), false},
+		{"Invalid delay - value is negative", time.Duration(-1), true},
+		{"Non-time.Duration type", "not a time.Duration", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateMaxEthBlockUpdateDelay(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
 	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	validAuthorizeMessagesAllowed := []string{"authorizeMessage1", "authorizeMessage2"}
 	validSupplyDeltaPeriod := uint64(10)
 	validVestingStartTime := time.Now()
+	validMaxEthBlockUpdateDelay := time.Hour
 
 	// Creating an invalid ethereum proxy contract address for testing
 	invalidEthereumProxyContractAddress := "0xInvalidAddress"
@@ -220,7 +245,12 @@ func TestParams_Validate(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name: "Valid parameters",
+			name:      "Valid parameters - default params",
+			params:    types.DefaultParams(),
+			expectErr: false,
+		},
+		{
+			name: "Valid parameters - non-default params",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
@@ -228,6 +258,7 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 			},
 			expectErr: false,
 		},
@@ -300,6 +331,19 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
 				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
+			},
+			expectErr: true,
+		},
+		{
+			name: "negative tolerance for no Ethereum block syncing",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       time.Duration(-1),
 			},
 			expectErr: true,
 		},

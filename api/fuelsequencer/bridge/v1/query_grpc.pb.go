@@ -26,6 +26,7 @@ const (
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress"
 	Query_SupplyDeltaProcessed_FullMethodName                = "/fuelsequencer.bridge.v1.Query/SupplyDeltaProcessed"
+	Query_LastEthBlockUpdateTime_FullMethodName              = "/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime"
 )
 
 // QueryClient is the client API for Query service.
@@ -46,6 +47,8 @@ type QueryClient interface {
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries a SupplyDeltaProcessed by index.
 	SupplyDeltaProcessed(ctx context.Context, in *QueryGetSupplyDeltaProcessedRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaProcessedResponse, error)
+	// Queries the LastEthBlockUpdateTime.
+	LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error)
 }
 
 type queryClient struct {
@@ -119,6 +122,15 @@ func (c *queryClient) SupplyDeltaProcessed(ctx context.Context, in *QueryGetSupp
 	return out, nil
 }
 
+func (c *queryClient) LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
+	out := new(QueryGetLastEthBlockUpdateTimeResponse)
+	err := c.cc.Invoke(ctx, Query_LastEthBlockUpdateTime_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -137,6 +149,8 @@ type QueryServer interface {
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries a SupplyDeltaProcessed by index.
 	SupplyDeltaProcessed(context.Context, *QueryGetSupplyDeltaProcessedRequest) (*QueryGetSupplyDeltaProcessedResponse, error)
+	// Queries the LastEthBlockUpdateTime.
+	LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -164,6 +178,9 @@ func (UnimplementedQueryServer) SequencerAddressFromEthereumAddress(context.Cont
 }
 func (UnimplementedQueryServer) SupplyDeltaProcessed(context.Context, *QueryGetSupplyDeltaProcessedRequest) (*QueryGetSupplyDeltaProcessedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaProcessed not implemented")
+}
+func (UnimplementedQueryServer) LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastEthBlockUpdateTime not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -304,6 +321,24 @@ func _Query_SupplyDeltaProcessed_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLastEthBlockUpdateTimeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LastEthBlockUpdateTime(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_LastEthBlockUpdateTime_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LastEthBlockUpdateTime(ctx, req.(*QueryGetLastEthBlockUpdateTimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -338,6 +373,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SupplyDeltaProcessed",
 			Handler:    _Query_SupplyDeltaProcessed_Handler,
+		},
+		{
+			MethodName: "LastEthBlockUpdateTime",
+			Handler:    _Query_LastEthBlockUpdateTime_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

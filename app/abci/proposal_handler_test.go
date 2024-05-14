@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -496,10 +497,16 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 
 	four := uint64(4)
 
+	testMaxEthBlockUpdateDelay := time.Duration(10)
+	testLastEthBlockUpdate := time.Now().Round(0)
+	testCurrentTimeDoesNotExceedDelay := testLastEthBlockUpdate.Add(testMaxEthBlockUpdateDelay)
+	testCurrentTimeExceedsDelay := testLastEthBlockUpdate.Add(time.Duration(11))
+
 	testCases := []struct {
 		name                           string
 		removeLastEthereumBlockSynced  bool
 		removeEthereumEventIndexOffset bool
+		setLastEthBlockUpdateTime      bool
 		setEthereumEventIndexOffset    *uint64
 		expQueryBlockEventsCalled      int
 		expQueryBlockEventsReq         *sidecartypes.QueryBlockEventsRequest
@@ -570,6 +577,47 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			maxBlockGas:                  totalTxsGas,
+		},
+		{
+			name:                          "accepts block if no new Ethereum block and delay not exceeded",
+			removeLastEthereumBlockSynced: false,
+			setLastEthBlockUpdateTime:     true,
+			expQueryBlockEventsCalled:     1,
+			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: nil,
+				Error:    errors.New("block not yet processed 1"),
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsSidecarErr,                // Problem is both with validator and the proposer
+				Height: 1,                                 // We do not expect MsgSupplyDelta to be injected
+				Time:   testCurrentTimeDoesNotExceedDelay, // Block time within syncing delay
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+		},
+		{
+			name:                          "returns error if no new Ethereum block and delay exceeded",
+			removeLastEthereumBlockSynced: false,
+			setLastEthBlockUpdateTime:     true,
+			expQueryBlockEventsCalled:     0,
+			expQueryBlockEventsReq:        nil,
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsSidecarErr,          // Problem is both with validator and the proposer
+				Height: 1,                           // We do not expect MsgSupplyDelta to be injected
+				Time:   testCurrentTimeExceedsDelay, // Block time exceeds syncing delay
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg: fmt.Sprintf(
+				"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
+				testLastEthBlockUpdate.String(),
+				testCurrentTimeExceedsDelay.String(),
+				testMaxEthBlockUpdateDelay.String(),
+			),
 		},
 		{
 			name:                      "returns error if zero transactions in req.Txs",
@@ -897,6 +945,10 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			if tc.setEthereumEventIndexOffset != nil {
 				s.App.BridgeKeeper.SetEthereumEventIndexOffset(s.Ctx(), *tc.setEthereumEventIndexOffset)
 			}
+			// Set LastEthBlockUpdateTime if the test requires it
+			if tc.setLastEthBlockUpdateTime {
+				s.App.BridgeKeeper.SetLastEthBlockUpdateTime(s.Ctx(), testLastEthBlockUpdate)
+			}
 
 			// Set SupplyDeltaPeriod and EthereumProxyContractAddress
 			err := s.App.BridgeKeeper.SetParams(
@@ -904,6 +956,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				bridgetypes.Params{
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
+					MaxEthBlockUpdateDelay:       testMaxEthBlockUpdateDelay,
 				},
 			)
 			s.Require().NoError(err)

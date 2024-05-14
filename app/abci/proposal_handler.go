@@ -257,6 +257,20 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
+		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
+		// for a while.
+		lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
+		if !injectedEthEventsTx.NewEthereumBlock && ethSyncDelayExceeded {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
+				lastEthBlockUpdateTime.String(),
+				req.Time.String(),
+				bridgeParams.MaxEthBlockUpdateDelay.String(),
+			)
+		}
+
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
@@ -281,7 +295,6 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 		ethEventsTx, eventTxs, err := h.generateEthEventsTx(
 			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
 		)
