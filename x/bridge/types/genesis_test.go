@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -32,6 +33,7 @@ func TestValidateGenesisState(t *testing.T) {
 				LastEthereumNonce:        math.NewInt(3),
 				LastEthereumBlockSynced:  1,
 				EthereumEventIndexOffset: 2,
+				LastEthBlockUpdateTime:   time.Now(),
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,

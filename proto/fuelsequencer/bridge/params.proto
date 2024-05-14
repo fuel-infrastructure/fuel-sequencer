@@ -4,6 +4,7 @@ package fuelsequencer.bridge;
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -40,4 +41,11 @@ message Params {
   // validator operators, or any other addresses deemed necessary to protect
   // from unauthorized control actions.
   repeated string additional_blocked_addresses = 6;
+
+  // max_eth_block_update_delay is the maximum amount of time that the Sequencer
+  // allows validators to not sync up with Ethereum. Once
+  // max_eth_block_update_delay is exceeded, the Sequencer's block production
+  // will halt until validators sync up with next Ethereum block.
+  google.protobuf.Duration max_eth_block_update_delay = 7
+      [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
 }

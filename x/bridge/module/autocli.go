@@ -48,6 +48,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "show-ethereum-event-index-offset",
 					Short:     "show ethereum-event-index-offset",
 				},
+				{
+					RpcMethod: "LastEthBlockUpdateTime",
+					Use:       "show-last-eth-block-update-time",
+					Short:     "show last-eth-block-update-time",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

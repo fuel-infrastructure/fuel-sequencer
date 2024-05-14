@@ -241,6 +241,20 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
+		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
+		// for a while.
+		lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
+		if !injectedEthEventsTx.NewEthereumBlock && ethSyncDelayExceeded {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
+				lastEthBlockUpdateTime.String(),
+				req.Time.String(),
+				bridgeParams.MaxEthBlockUpdateDelay.String(),
+			)
+		}
+
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
@@ -265,7 +279,6 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 		ethEventsTx, err := h.generateEthEventsTx(
 			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
 		)
@@ -531,10 +544,10 @@ func (h *FuelSequencerProposalHandler) PreBlocker(
 		h.bridgeKeeper.SetEthEventsTx(ctx, injectedEthEventsTx)
 	}
 
-	// Set LastEthereumBlockSynced and reset EthereumEventIndexOffset if we are to increment to a new Ethereum block.
 	if injectedEthEventsTx.NewEthereumBlock {
 		h.bridgeKeeper.SetLastEthereumBlockSynced(ctx, injectedEthEventsTx.BlockNumber)
 		h.bridgeKeeper.ResetEthereumEventIndexOffset(ctx)
+		h.bridgeKeeper.SetLastEthBlockUpdateTime(ctx, req.Time)
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
