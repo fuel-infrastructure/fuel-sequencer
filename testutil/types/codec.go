@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	TestEncodingConfig testutil.TestEncodingConfig
-	TestCdc            codec.Codec
+	encodingConfig testutil.TestEncodingConfig
+	cdc            codec.Codec
+	TestCdc        codec.Codec // an exported alias of cdc
 )
 
 func init() {
@@ -48,19 +49,19 @@ func init() {
 		bridge.AppModuleBasic{},
 		sequencing.AppModuleBasic{},
 	}
-	TestEncodingConfig = testutil.MakeTestEncodingConfig(modules...)
+	encodingConfig = testutil.MakeTestEncodingConfig(modules...)
 
-	TestEncodingConfig.InterfaceRegistry.RegisterImplementations(
+	encodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&stakingtypes.MsgCreateValidator{},
 		&stakingtypes.MsgBeginRedelegate{},
 	)
-	TestEncodingConfig.InterfaceRegistry.RegisterImplementations(
+	encodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*cryptotypes.PubKey)(nil),
 		&secp256k1.PubKey{},
 		&ed25519.PubKey{},
 	)
-	TestEncodingConfig.InterfaceRegistry.RegisterImplementations(
+	encodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*sdk.AccountI)(nil),
 		&bridgetypes.EthOwnedBaseAccount{},
 		&bridgetypes.EthOwnedContinuousVestingAccount{},
@@ -68,5 +69,6 @@ func init() {
 		&vestingtypes.ContinuousVestingAccount{},
 	)
 
-	TestCdc = TestEncodingConfig.Codec
+	cdc = encodingConfig.Codec
+	TestCdc = cdc
 }

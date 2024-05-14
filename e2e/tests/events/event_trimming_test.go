@@ -1,20 +1,58 @@
 package events_test
 
 import (
+	"fmt"
+
+	sdkmath "cosmossdk.io/math"
 	cmtypes "github.com/cometbft/cometbft/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
 func (s *EventsTestSuite) TestEventTrimming() {
 
-	s.T().Skip("We will probably have to disable this test anyways once we switch to repo with real contracts")
-
 	s.Run("Run with reduced max bytes to showcase event trimming", func() {
 
-		// Set a low max bytes for txs so that events are split across multiple blocks.
-		maxBytesForTransactions := int64(150)
+		// Calculate size of transaction resulting from EthEventsTx.
+		typicalEthEventsTx := &bridgetypes.EthEventsTx{
+			Authority:         s.GetGovernanceAddress(),
+			NumInjectedEvents: 10,
+			NewEthereumBlock:  true,
+			BlockNumber:       1,
+		}
+		typicalEthEventsTxBz, err := typicalEthEventsTx.RawTxBytes()
+		s.Require().NoError(err)
+		typicalEthEventsTxSize := len(typicalEthEventsTxBz)
+
+		s.Logger().Info(fmt.Sprintf("Predicted size of EthEventsTx: %d", typicalEthEventsTxSize))
+
+		// Generate a MsgSend
+		sendAmount, ok := sdkmath.NewIntFromString("10")
+		s.Require().True(ok)
+		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
+		sendCoins := sdk.NewCoins(sendCoin)
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+
+		// Calculate size of transaction resulting from AuthorizeEvent.
+		authorizeEvent := types.AuthorizeEvent{
+			Sender: testsuite.ETH_ADDRESSES[0],
+			Data:   msgSendBz,
+		}
+		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc)
+		s.Require().NoError(err)
+		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
+		s.Require().NoError(err)
+		authorizeEventMsgSize := len(authorizeEventMsgBz)
+
+		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
+
+		// Set a low max bytes for txs so that events are split across multiple blocks, with a buffer of 10 bytes.
+		maxBytesForTransactions := int64(typicalEthEventsTxSize + authorizeEventMsgSize + 10)
 
 		// Calculate a max block size - this is not just for txs and must consider
 		// the max size of the header and other components that make up a block.
@@ -45,9 +83,8 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
-		someBytes := []byte("some bytes")
-		authorizeData := testsuite.PackAuthorizeMulti(someBytes)
-		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		authorizeData := testsuite.PackAuthorizeMulti(msgSendBz)
+		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
 		// 1st event of 4 processed

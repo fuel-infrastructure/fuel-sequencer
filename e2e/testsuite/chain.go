@@ -56,6 +56,7 @@ const (
 var (
 	encodingConfig testutil.TestEncodingConfig
 	cdc            codec.Codec
+	TestCdc        codec.Codec // an exported alias of cdc
 )
 
 func init() {
@@ -96,6 +97,7 @@ func init() {
 	)
 
 	cdc = encodingConfig.Codec
+	TestCdc = cdc
 }
 
 type chain struct {
