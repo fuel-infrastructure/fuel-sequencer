@@ -5,7 +5,7 @@ import time
 from typing import List, Optional, Dict, Union, Type
 
 import requests
-from raw_msgs.msg_post_blob import get_msg_post_blob, get_msg_post_blob_v1
+from raw_msgs.msg_post_blob import get_msg_post_blob, get_msg_post_blob
 from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
@@ -652,23 +652,45 @@ class EthereumChain(Web3):
     def __init__(
             self,
             httpProvider: HTTPProvider,
-            fuelstreamx_address: str,
-            fuelstreamx_abi: str,
+            token_contract_address: str,
+            token_contract_abi: str,
+            sequencer_interface_contract_address: str,
+            sequencer_interface_contract_abi: str,
+            sequencer_proxy_contract_address: str,
+            sequencer_proxy_contract_abi: str,
             acc_private_key: str,
             acc_address: str,
     ):
         super().__init__(httpProvider)
 
-        self.fuelstreamx_address = fuelstreamx_address
-        self.fuelstreamx_abi = fuelstreamx_abi
+        self.token_contract_address = token_contract_address
+        self.token_contract_abi = token_contract_abi
+        self.sequencer_interface_contract_address = sequencer_interface_contract_address
+        self.sequencer_interface_contract_abi = sequencer_interface_contract_abi
+        self.sequencer_proxy_contract_address = sequencer_proxy_contract_address
+        self.sequencer_proxy_contract_abi = sequencer_proxy_contract_abi
         self.acc_address = acc_address
         self.acc_private_key = acc_private_key
 
     # noinspection PyTypeChecker
-    def _contract(self) -> Union[Type[Contract], Contract]:
+    def _token_contract(self) -> Union[Type[Contract], Contract]:
         return self.eth.contract(
-            address=self.fuelstreamx_address,
-            abi=self.fuelstreamx_abi,
+            address=self.token_contract_address,
+            abi=self.token_contract_abi,
+        )
+
+    # noinspection PyTypeChecker
+    def _sequencer_interface_contract(self) -> Union[Type[Contract], Contract]:
+        return self.eth.contract(
+            address=self.sequencer_interface_contract_address,
+            abi=self.sequencer_interface_contract_abi,
+        )
+
+    # noinspection PyTypeChecker
+    def _sequencer_proxy_contract(self) -> Union[Type[Contract], Contract]:
+        return self.eth.contract(
+            address=self.sequencer_proxy_contract_address,
+            abi=self.sequencer_proxy_contract_abi,
         )
 
     def _sign_tx(self, txn):
@@ -677,10 +699,10 @@ class EthereumChain(Web3):
         )
 
     # noinspection PyTypeChecker
-    def deposit(self, amount: int, to: str, duration: int):
+    def mint(self, address: str, amount: int):
         # NB: function name is case-sensitive.
-        txn = self._contract().functions.deposit(
-            amount, to, duration
+        txn = self._token_contract().functions.mint(
+            address, amount,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
         })
@@ -689,9 +711,21 @@ class EthereumChain(Web3):
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
 
     # noinspection PyTypeChecker
-    def authorize(self, hex_bytes: str):
+    def transfer_and_call(self, amount: int):
         # NB: function name is case-sensitive.
-        txn = self._contract().functions.Authorize(
+        txn = self._token_contract().functions.transferAndCall(
+            self.sequencer_interface_contract_address, amount,
+        ).build_transaction({
+            'nonce': self.eth.get_transaction_count(self.acc_address),
+        })
+
+        signed_txn = self._sign_tx(txn)
+        return self.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+    # noinspection PyTypeChecker
+    def batch_authorize(self, hex_bytes: str):
+        # NB: function name is case-sensitive.
+        txn = self._sequencer_interface_contract().functions.batchAuthorize(
             hex_bytes,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
