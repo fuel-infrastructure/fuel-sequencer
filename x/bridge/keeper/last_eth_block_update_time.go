@@ -29,13 +29,7 @@ func (k Keeper) GetLastEthBlockUpdateTime(ctx context.Context) (val time.Time, f
 	}
 	nanosecondCount := sdk.BigEndianToUint64(b)
 
-	// Extract seconds from the total nanoseconds
-	seconds := int64(nanosecondCount / 1e9)
-
-	// Extract the remaining nanoseconds after accounting for full seconds
-	nanoseconds := int64(nanosecondCount % 1e9)
-
-	return time.Unix(seconds, nanoseconds), true
+	return time.Unix(0, int64(nanosecondCount)), true
 }
 
 // MustGetLastEthBlockUpdateTime returns lastEthBlockUpdateTime and panics if it doesn't find it
