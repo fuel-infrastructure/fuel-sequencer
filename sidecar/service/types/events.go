@@ -167,6 +167,11 @@ func (m *AuthorizeEvent) ValidateBasic() error {
 // Messages TODO
 func (m *AuthorizeEvent) Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error) {
 
+	// This is a defensive check to ensure only the ProtoCodec is used for message unmarshalling
+	if _, ok := cdc.(*codec.ProtoCodec); !ok {
+		return nil, bridgetypes.ErrCodecIsNotSupported.Wrap(bridgetypes.ErrStrOnlyProtoCodecAllowed)
+	}
+
 	var authorizeTx bridgetypes.AuthorizeTx
 	err := cdc.Unmarshal(m.Data, &authorizeTx)
 	if err != nil {
