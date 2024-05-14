@@ -31,6 +31,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	// Set SupplyDeltaProcessed to false by default
 	k.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
 
+	// Only set the LastEthBlockUpdateTime if it is not a zero value, otherwise, we would construct a time in the future
+	if !genState.LastEthBlockUpdateTime.IsZero() {
+		k.SetLastEthBlockUpdateTime(ctx, genState.LastEthBlockUpdateTime)
+	}
+
 	// this line is used by starport scaffolding # genesis/module/init
 }
 
@@ -57,6 +62,12 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	ethereumEventIndexOffset, found := k.GetEthereumEventIndexOffset(ctx)
 	if found {
 		genesis.EthereumEventIndexOffset = ethereumEventIndexOffset
+	}
+
+	// Get all lastEthBlockUpdateTime
+	lastEthBlockUpdateTime, found := k.GetLastEthBlockUpdateTime(ctx)
+	if found {
+		genesis.LastEthBlockUpdateTime = lastEthBlockUpdateTime
 	}
 
 	// this line is used by starport scaffolding # genesis/module/export

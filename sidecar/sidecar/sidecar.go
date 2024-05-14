@@ -205,7 +205,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			s.logger.Info("detected new block header",
 				zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
 				zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
-				zap.Uint64("current_eth_height", header.Number.Uint64()),
+				zap.Uint64("detected_eth_height", header.Number.Uint64()),
 				zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 			)
 
