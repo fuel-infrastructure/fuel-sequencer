@@ -83,12 +83,6 @@ func (d EthEventsTxDecorator) AnteHandle(
 
 	// Note: beyond this point, we strictly expect EthEventsTx, and so we should error if anything goes wrong.
 
-	// EthEventsTx Txs contains only one message.
-	msgs := tx.GetMsgs()
-	if len(msgs) != 1 {
-		return ctx, errors.New("expected transaction containing just EthEventsTx")
-	}
-
 	var ethEventsTx bridgetypes.EthEventsTx
 	err := ethEventsTx.FromSdkTx(tx)
 	if err != nil {
@@ -171,21 +165,9 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 		return next(ctx, tx, simulate)
 	}
 
-	// MsgSupplyDelta Txs will contain only one message.
-	msgs := tx.GetMsgs()
-	if len(msgs) != 1 {
-		return next(ctx, tx, simulate)
-	}
-
-	// If the message is not a MsgSupplyDelta continue with the other Ante decorators.
-	msg := msgs[0]
-	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}) {
-		return next(ctx, tx, simulate)
-	}
-
-	// If the message cannot be parsed into MsgSupplyDelta continue with the other Ante decorators.
-	msgSupplyDelta, ok := msg.(*bridgetypes.MsgSupplyDelta)
-	if !ok {
+	var msgSupplyDelta bridgetypes.MsgSupplyDelta
+	err := msgSupplyDelta.FromSdkTx(tx)
+	if err != nil {
 		return next(ctx, tx, simulate)
 	}
 
@@ -217,7 +199,6 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 	if d.bridgeKeeper.MustGetSupplyDeltaProcessed(ctx).Processed {
 		return ctx, errors.New("MsgSupplyDelta already processed in block proposal")
 	}
-	d.bridgeKeeper.SetSupplyDeltaProcessed(ctx, bridgetypes.SupplyDeltaProcessed{Processed: true})
 
 	// Reset the gas meter to its original state. We can't use defer because this doesn't work well with decorators.
 	ctx = ctx.WithGasMeter(cachedGasMeter)

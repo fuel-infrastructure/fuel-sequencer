@@ -58,6 +58,9 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	// Reset SupplyDeltaInfo
 	k.MustResetSupplyDeltaInfo(ctx)
 
+	// Set SupplyDelta as processed
+	k.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: true})
+
 	// Emit event
 	err := ctx.EventManager().EmitTypedEvent(&types.EventSupplyDeltaReported{SupplyDelta: supplyDelta, Nonce: nonce})
 	if err != nil {

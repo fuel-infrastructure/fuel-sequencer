@@ -170,13 +170,13 @@ func (m *EthEventsTx) RawTxBytes() ([]byte, error) {
 // FromSdkTx TODO
 func (m *EthEventsTx) FromSdkTx(tx sdk.Tx) error {
 
-	// MsgSupplyDelta Txs will contain only one message.
+	// EthEventsTx will contain only one message.
 	msgs := tx.GetMsgs()
 	if len(msgs) != 1 {
 		return fmt.Errorf("expected 1 msg in EthEventsTx raw bytes, got %d", len(msgs))
 	}
 
-	// If the message is not a MsgSupplyDelta continue with the other Ante decorators.
+	// If the message is not a EthEventsTx continue with the other Ante decorators.
 	msg := msgs[0]
 	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&EthEventsTx{}) {
 		return fmt.Errorf("expected msg type URL %s, got %s", sdk.MsgTypeURL(&EthEventsTx{}), sdk.MsgTypeURL(msg))
