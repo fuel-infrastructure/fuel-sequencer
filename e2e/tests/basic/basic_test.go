@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -84,9 +85,15 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		depositTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(depositData)
 		s.Require().NoError(err)
 
+		// Generate a MsgSend
+		sendAmount, ok := sdkmath.NewIntFromString("10")
+		s.Require().True(ok)
+		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
+		sendCoins := sdk.NewCoins(sendCoin)
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+
 		// Try generating some events via a transaction (RPC) - via authorize.
-		someBytes := []byte("some bytes")
-		authorizeData := testsuite.PackAuthorize(someBytes)
+		authorizeData := testsuite.PackAuthorize(msgSendBz)
 		authorizeTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
@@ -126,7 +133,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 		s.Require().NoError(err)
 		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
 			Sender: fromAddress,
-			Data:   someBytes,
+			Data:   msgSendBz,
 		}))
 
 		// --------------------------------------- Ensure LastEthereumBlockSynced is being updated
