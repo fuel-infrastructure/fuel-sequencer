@@ -13,7 +13,7 @@ const (
 
 var (
 	ParamsKey                   = []byte("p_bridge")
-	IndexKey                    = []byte("block_txs_index")
+	IndexKey                    = []byte("index")
 	SupplyDeltaInfoKey          = []byte("supply_delta_info")
 	LastEthereumNonceKey        = []byte("LastEthereumNonce")
 	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
