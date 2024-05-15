@@ -129,7 +129,7 @@ func (s *BasicTestSuite) TestStartUpAndBasicQueries() {
 			Data:   someBytes,
 		}))
 
-		// --------------------------------------- Ensure PreBlocker is updating LastEthereumBlockSynced
+		// --------------------------------------- Ensure LastEthereumBlockSynced is being updated
 
 		// Get last Ethereum block synced
 		lastEthereumBlockSyncedOld := s.QueryLastEthereumBlockSynced(s.Ctx())

@@ -8388,8 +8388,8 @@ paths:
                   fully consumed by the Sequencer. This is needed to determine
                   when
 
-                  LastEthereumBlockSynced should be incremented by the
-                  PreBlocker. If it's
+                  LastEthereumBlockSynced should be incremented by
+                  MsgSetEthEventTxsInfo. If
 
                   false but the events list is not empty, the block was
                   partially consumed.
@@ -12819,8 +12819,8 @@ definitions:
 
           fully consumed by the Sequencer. This is needed to determine when
 
-          LastEthereumBlockSynced should be incremented by the PreBlocker. If
-          it's
+          LastEthereumBlockSynced should be incremented by
+          MsgSetEthEventTxsInfo. If
 
           false but the events list is not empty, the block was partially
           consumed.

@@ -5258,7 +5258,7 @@ type EthEventsTx struct {
 	// new_ethereum_block is a boolean which indicates whether a new Ethereum
 	// block has been queried from the Sidecar and that the events from it were
 	// fully consumed by the Sequencer. This is needed to determine when
-	// LastEthereumBlockSynced should be incremented by the PreBlocker. If it's
+	// LastEthereumBlockSynced should be incremented by MsgSetEthEventTxsInfo. If
 	// false but the events list is not empty, the block was partially consumed.
 	NewEthereumBlock bool `protobuf:"varint,3,opt,name=new_ethereum_block,json=newEthereumBlock,proto3" json:"new_ethereum_block,omitempty"`
 	// block_number is the block that these events belong to. This is expected to
