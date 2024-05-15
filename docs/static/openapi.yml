@@ -8298,6 +8298,9 @@ paths:
           schema:
             type: object
             properties:
+              authority:
+                type: string
+                description: authority ensures that users cannot execute this message.
               depositor:
                 type: string
                 title: the sending Ethereum address in hex format
@@ -8325,14 +8328,12 @@ paths:
                   also preserved. This can be zero if no duration is specified.
       tags:
         - Msg
-  /fuelsequencer.bridge.v1.Msg/SetEthEventTxsIndex:
+  /fuelsequencer.bridge.v1.Msg/Index:
     post:
-      summary: >-
-        SetEthEventTxsIndex defines an operation for setting information about
-
-        injected transactions, specifically ones originating from Ethereum
-        events.
-      operationId: FuelsequencerBridgeV1Msg_SetEthEventTxsIndex
+      summary: |-
+        Index defines an operation for setting information about injected
+        transactions and special transactions.
+      operationId: FuelsequencerBridgeV1Msg_Index
       responses:
         '200':
           description: A successful response.
@@ -8365,17 +8366,25 @@ paths:
             properties:
               authority:
                 type: string
-                description: >-
-                  authority a placeholder to satisfy the requirement of having a
-                  signer.
-              num_injected_events:
+                description: authority ensures that users cannot execute this message.
+              num_injected_txs:
                 type: string
                 format: uint64
                 description: >-
                   num_injected_events is the number of Ethereum events injected
                   as
 
-                  transactions in the current block.
+                  transactions in the current block, plus any SupplyDelta.
+              num_special_txs:
+                type: string
+                format: uint64
+                description: >-
+                  num_special_txs is the number of special transactions injected
+                  as
+
+                  transactions in the current block. This includes MsgIndex,
+
+                  MsgDepositFromEthereum, and MsgSupplyDelta.
               new_ethereum_block:
                 type: boolean
                 description: >-
@@ -8388,8 +8397,7 @@ paths:
                   fully consumed by the Sequencer. This is needed to determine
                   when
 
-                  LastEthereumBlockSynced should be incremented by
-                  MsgSetEthEventTxsIndex. If
+                  LastEthereumBlockSynced should be incremented by MsgIndex. If
 
                   false but the events list is not empty, the block was
                   partially consumed.
@@ -8455,9 +8463,7 @@ paths:
             properties:
               authority:
                 type: string
-                description: >-
-                  authority a placeholder to satisfy the requirement of having a
-                  signer.
+                description: authority ensures that users cannot execute this message.
       tags:
         - Msg
   /fuelsequencer.bridge.v1.Msg/UpdateParams:
@@ -8892,41 +8898,6 @@ paths:
 
                       unreported burn) or negative (to account for unreported
                       mint)
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
-  /fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed:
-    get:
-      summary: Queries a SupplyDeltaProcessed by index.
-      operationId: FuelsequencerBridgeV1Query_SupplyDeltaProcessed
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              supply_delta_processed:
-                type: object
-                properties:
-                  processed:
-                    type: boolean
         default:
           description: An unexpected error response.
           schema:
@@ -12797,45 +12768,12 @@ definitions:
 
           will halt until validators sync up with next Ethereum block.
     description: Params defines the parameters for the module.
-  fuelsequencer.bridge.v1.EthEventsTx:
+  fuelsequencer.bridge.v1.MsgDepositFromEthereum:
     type: object
     properties:
       authority:
         type: string
-        description: authority a placeholder to satisfy the requirement of having a signer.
-      num_injected_events:
-        type: string
-        format: uint64
-        description: |-
-          num_injected_events is the number of Ethereum events injected as
-          transactions in the current block.
-      new_ethereum_block:
-        type: boolean
-        description: >-
-          new_ethereum_block is a boolean which indicates whether a new Ethereum
-
-          block has been queried from the Sidecar and that the events from it
-          were
-
-          fully consumed by the Sequencer. This is needed to determine when
-
-          LastEthereumBlockSynced should be incremented by
-          MsgSetEthEventTxsIndex. If
-
-          false but the events list is not empty, the block was partially
-          consumed.
-      block_number:
-        type: string
-        format: uint64
-        description: >-
-          block_number is the block that these events belong to. This is
-          expected to
-
-          be LastEthereumBlockSynced+1, since the events are from the next
-          block.
-  fuelsequencer.bridge.v1.MsgDepositFromEthereum:
-    type: object
-    properties:
+        description: authority ensures that users cannot execute this message.
       depositor:
         type: string
         title: the sending Ethereum address in hex format
@@ -12862,14 +12800,56 @@ definitions:
           also preserved. This can be zero if no duration is specified.
   fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse:
     type: object
-  fuelsequencer.bridge.v1.MsgSetEthEventTxsIndexResponse:
+  fuelsequencer.bridge.v1.MsgIndex:
+    type: object
+    properties:
+      authority:
+        type: string
+        description: authority ensures that users cannot execute this message.
+      num_injected_txs:
+        type: string
+        format: uint64
+        description: |-
+          num_injected_events is the number of Ethereum events injected as
+          transactions in the current block, plus any SupplyDelta.
+      num_special_txs:
+        type: string
+        format: uint64
+        description: |-
+          num_special_txs is the number of special transactions injected as
+          transactions in the current block. This includes MsgIndex,
+          MsgDepositFromEthereum, and MsgSupplyDelta.
+      new_ethereum_block:
+        type: boolean
+        description: >-
+          new_ethereum_block is a boolean which indicates whether a new Ethereum
+
+          block has been queried from the Sidecar and that the events from it
+          were
+
+          fully consumed by the Sequencer. This is needed to determine when
+
+          LastEthereumBlockSynced should be incremented by MsgIndex. If
+
+          false but the events list is not empty, the block was partially
+          consumed.
+      block_number:
+        type: string
+        format: uint64
+        description: >-
+          block_number is the block that these events belong to. This is
+          expected to
+
+          be LastEthereumBlockSynced+1, since the events are from the next
+          block.
+  fuelsequencer.bridge.v1.MsgIndexResponse:
     type: object
   fuelsequencer.bridge.v1.MsgSupplyDelta:
     type: object
     properties:
       authority:
         type: string
-        description: authority a placeholder to satisfy the requirement of having a signer.
+        description: authority ensures that users cannot execute this message.
   fuelsequencer.bridge.v1.MsgSupplyDeltaResponse:
     type: object
     properties:
@@ -13057,11 +13037,6 @@ definitions:
           about these anyways. Note that offset can be positive (to account for
 
           unreported burn) or negative (to account for unreported mint)
-  fuelsequencer.bridge.SupplyDeltaProcessed:
-    type: object
-    properties:
-      processed:
-        type: boolean
   fuelsequencer.bridge.v1.QueryGetEthereumEventIndexOffsetResponse:
     type: object
     properties:
@@ -13114,14 +13089,6 @@ definitions:
               for
 
               unreported burn) or negative (to account for unreported mint)
-  fuelsequencer.bridge.v1.QueryGetSupplyDeltaProcessedResponse:
-    type: object
-    properties:
-      supply_delta_processed:
-        type: object
-        properties:
-          processed:
-            type: boolean
   fuelsequencer.bridge.v1.QueryParamsResponse:
     type: object
     properties:

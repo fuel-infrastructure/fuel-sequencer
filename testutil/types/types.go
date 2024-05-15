@@ -7,18 +7,18 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// TestEthEventsTxWithEvents is a convenient combination of an EthEventsTx and a slice of events.
-type TestEthEventsTxWithEvents struct {
-	*bridgetypes.EthEventsTx
+// TestMsgIndexWithEvents is a convenient combination of a MsgIndex and a slice of events.
+type TestMsgIndexWithEvents struct {
+	*bridgetypes.MsgIndex
 	Events []*sidecartypes.Event
 }
 
 // MustGetDepositMsgFromDepositEvent extracts a single deposit message from an Ethereum event and panics otherwise.
 func MustGetDepositMsgFromDepositEvent(
-	cdc codec.BinaryCodec, depositEvent *sidecartypes.Event,
+	cdc codec.BinaryCodec, authority string, depositEvent *sidecartypes.Event,
 ) *bridgetypes.MsgDepositFromEthereum {
 
-	msgs, err := depositEvent.Messages(cdc)
+	msgs, err := depositEvent.Messages(cdc, authority)
 	if err != nil {
 		panic(err)
 	} else if len(msgs) > 1 {
@@ -39,11 +39,13 @@ func MustGetDepositMsgFromDepositEvent(
 	return depositMsg
 }
 
-// MustGetRawTxBytesFromEvents gets raw tx bytes from all the passed events, and panics otherwise.
-func MustGetRawTxBytesFromEvents(cdc codec.BinaryCodec, events []*sidecartypes.Event) (allRawTxBytes [][]byte) {
+// MustGetEventTxsFromEvents gets raw tx bytes from all the passed events, and panics otherwise.
+func MustGetEventTxsFromEvents(
+	cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event,
+) (allRawTxBytes [][]byte) {
 
 	for _, event := range events {
-		rawTxBytes, err := event.RawTxBytes(cdc)
+		rawTxBytes, err := event.RawTxBytes(cdc, authority)
 		if err != nil {
 			panic(err)
 		}
@@ -54,9 +56,9 @@ func MustGetRawTxBytesFromEvents(cdc codec.BinaryCodec, events []*sidecartypes.E
 }
 
 // MustGetSizeFromEvents gets the size of the raw tx bytes from all the passed events, and panics otherwise.
-func MustGetSizeFromEvents(cdc codec.BinaryCodec, events []*sidecartypes.Event) (size int) {
+func MustGetSizeFromEvents(cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event) (size int) {
 
-	for _, event := range MustGetRawTxBytesFromEvents(cdc, events) {
+	for _, event := range MustGetEventTxsFromEvents(cdc, authority, events) {
 		size += len(event)
 	}
 	return

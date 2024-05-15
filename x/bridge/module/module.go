@@ -3,7 +3,6 @@ package bridge
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"cosmossdk.io/core/appmodule"
@@ -155,45 +154,30 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	supplyDeltaPeriod := am.keeper.GetParams(ctx).SupplyDeltaPeriod
-	if supplyDeltaPeriod == 0 {
-		return errors.New("SupplyDeltaPeriod cannot be zero")
-	}
-
-	supplyDeltaProcessed, found := am.keeper.GetSupplyDeltaProcessed(ctx)
+	// Index must have been set during the block.
+	index, found := am.keeper.GetIndex(ctx)
 	if !found {
-		return fmt.Errorf("expected to find SupplyDeltaProcessed")
+		return fmt.Errorf("expected to find Index at the end of the block")
 	}
 
-	supplyDeltaInfo := am.keeper.MustGetSupplyDeltaInfo(ctx)
-	supplyDelta := supplyDeltaInfo.Delta.Add(supplyDeltaInfo.Offset)
-
-	// It is important to check that a supply delta was processed if we expect that a MsgSupplyDelta was injected.
-	// The main criteria are that (i) we are at the correct height, and that (ii) there is a non-zero supply delta.
-	if (uint64(ctx.BlockHeight())%supplyDeltaPeriod == 0) && !supplyDelta.IsZero() && !supplyDeltaProcessed.Processed {
-
+	// Check that the AnteHandler has seen all injected transactions.
+	if index.NumInjectedTxsAnte != index.NumInjectedTxsTotal {
 		return fmt.Errorf(
-			"expected supply delta processed at block %d with supply delta period %d",
-			ctx.BlockHeight(), supplyDeltaPeriod,
+			"expected AnteHandler to see all injected txs; total: %d; seen: %d",
+			index.NumInjectedTxsTotal, index.NumInjectedTxsAnte,
 		)
 	}
 
-	// Reset SupplyDeltaProcessed in preparation for next block.
-	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
-
-	// It is important to check that EthEventsTxIndex was set during the block, indicating EthEventsTx was processed.
-	index, found := am.keeper.GetEthEventsTxIndex(ctx)
-	if !found {
-		return fmt.Errorf("expected to find EthEventsTxIndex at the end of the block")
+	// Check that all special transactions have been executed.
+	if index.NumSpecialTxsExec != index.NumSpecialTxsTotal {
+		return fmt.Errorf(
+			"expected all special txs to be executed; total: %d; executed: %d",
+			index.NumSpecialTxsTotal, index.NumSpecialTxsExec,
+		)
 	}
 
-	// Also important to check that we've consumed all the transactions.
-	if index.NumUnhandledEventTxs != 0 {
-		return fmt.Errorf("expected num unhandled event transactions to be zero; found %d", index.NumUnhandledEventTxs)
-	}
-
-	// Remove EthEventsTxIndex in preparation for next block, since the AnteHandler uses this to detect the EthEventsTx.
-	am.keeper.RemoveEthEventsTxIndex(ctx)
+	// Remove Index in preparation for next block, since the AnteHandler uses this to look out for MsgIndex.
+	am.keeper.RemoveIndex(ctx)
 
 	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)

@@ -25,7 +25,6 @@ const (
 	Query_EthereumEventIndexOffset_FullMethodName            = "/fuelsequencer.bridge.v1.Query/EthereumEventIndexOffset"
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress"
-	Query_SupplyDeltaProcessed_FullMethodName                = "/fuelsequencer.bridge.v1.Query/SupplyDeltaProcessed"
 	Query_LastEthBlockUpdateTime_FullMethodName              = "/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime"
 )
 
@@ -45,8 +44,6 @@ type QueryClient interface {
 	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
 	// Queries a list of SequencerAddressFromEthereumAddress items.
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
-	// Queries a SupplyDeltaProcessed by index.
-	SupplyDeltaProcessed(ctx context.Context, in *QueryGetSupplyDeltaProcessedRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaProcessedResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error)
 }
@@ -113,15 +110,6 @@ func (c *queryClient) SequencerAddressFromEthereumAddress(ctx context.Context, i
 	return out, nil
 }
 
-func (c *queryClient) SupplyDeltaProcessed(ctx context.Context, in *QueryGetSupplyDeltaProcessedRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaProcessedResponse, error) {
-	out := new(QueryGetSupplyDeltaProcessedResponse)
-	err := c.cc.Invoke(ctx, Query_SupplyDeltaProcessed_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *queryClient) LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	out := new(QueryGetLastEthBlockUpdateTimeResponse)
 	err := c.cc.Invoke(ctx, Query_LastEthBlockUpdateTime_FullMethodName, in, out, opts...)
@@ -147,8 +135,6 @@ type QueryServer interface {
 	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
 	// Queries a list of SequencerAddressFromEthereumAddress items.
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
-	// Queries a SupplyDeltaProcessed by index.
-	SupplyDeltaProcessed(context.Context, *QueryGetSupplyDeltaProcessedRequest) (*QueryGetSupplyDeltaProcessedResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error)
 	mustEmbedUnimplementedQueryServer()
@@ -175,9 +161,6 @@ func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupply
 }
 func (UnimplementedQueryServer) SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SequencerAddressFromEthereumAddress not implemented")
-}
-func (UnimplementedQueryServer) SupplyDeltaProcessed(context.Context, *QueryGetSupplyDeltaProcessedRequest) (*QueryGetSupplyDeltaProcessedResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SupplyDeltaProcessed not implemented")
 }
 func (UnimplementedQueryServer) LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthBlockUpdateTime not implemented")
@@ -303,24 +286,6 @@ func _Query_SequencerAddressFromEthereumAddress_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_SupplyDeltaProcessed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetSupplyDeltaProcessedRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).SupplyDeltaProcessed(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_SupplyDeltaProcessed_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).SupplyDeltaProcessed(ctx, req.(*QueryGetSupplyDeltaProcessedRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryGetLastEthBlockUpdateTimeRequest)
 	if err := dec(in); err != nil {
@@ -369,10 +334,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SequencerAddressFromEthereumAddress",
 			Handler:    _Query_SequencerAddressFromEthereumAddress_Handler,
-		},
-		{
-			MethodName: "SupplyDeltaProcessed",
-			Handler:    _Query_SupplyDeltaProcessed_Handler,
 		},
 		{
 			MethodName: "LastEthBlockUpdateTime",

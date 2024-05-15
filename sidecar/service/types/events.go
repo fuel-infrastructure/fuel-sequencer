@@ -38,7 +38,7 @@ type ParsedEvent interface {
 	ValidateBasic() error
 	Marshal() (dAtA []byte, err error)
 	Unmarshal(dAtA []byte) error
-	Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error)
+	Messages(cdc codec.BinaryCodec, authority string) ([]*codectypes.Any, error)
 }
 
 // Equal attempts to compare two DepositEvent structs for equality
@@ -96,8 +96,9 @@ func (m *DepositEvent) ValidateBasic() error {
 
 // ToMsgDepositFromEthereum is a convenient function for getting a MsgDepositFromEthereum from the DepositEvent.
 // This is easy because these two have the exact same fields.
-func (m *DepositEvent) ToMsgDepositFromEthereum() *bridgetypes.MsgDepositFromEthereum {
+func (m *DepositEvent) ToMsgDepositFromEthereum(authority string) *bridgetypes.MsgDepositFromEthereum {
 	return &bridgetypes.MsgDepositFromEthereum{
+		Authority: authority,
 		Depositor: m.Depositor,
 		Recipient: m.Recipient,
 		Amount:    m.Amount,
@@ -107,9 +108,9 @@ func (m *DepositEvent) ToMsgDepositFromEthereum() *bridgetypes.MsgDepositFromEth
 
 // Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
 // In this case we only get one message, i.e. a MsgDepositFromEthereum.
-func (m *DepositEvent) Messages(codec.BinaryCodec) ([]*codectypes.Any, error) {
+func (m *DepositEvent) Messages(_ codec.BinaryCodec, authority string) ([]*codectypes.Any, error) {
 
-	msgDepositFromEthereumAny, err := codectypes.NewAnyWithValue(m.ToMsgDepositFromEthereum())
+	msgDepositFromEthereumAny, err := codectypes.NewAnyWithValue(m.ToMsgDepositFromEthereum(authority))
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +158,7 @@ func (m *AuthorizeEvent) ValidateBasic() error {
 
 // Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
 // In this case we get the messages included in the AuthorizeTx encoded in the event data, which are already Anys.
-func (m *AuthorizeEvent) Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error) {
+func (m *AuthorizeEvent) Messages(cdc codec.BinaryCodec, _ string) ([]*codectypes.Any, error) {
 
 	// This is a defensive check to ensure only the ProtoCodec is used for message unmarshalling
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {

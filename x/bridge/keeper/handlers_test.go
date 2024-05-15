@@ -10,7 +10,7 @@ func (s *KeeperTestSuite) TestMessagesRegisteredWithCorrectTypeUrl() {
 	s.Require().NotNil(handler)
 	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bridge.v1.MsgDepositFromEthereum")
 	s.Require().NotNil(handler)
-	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bridge.v1.EthEventsTx")
+	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bridge.v1.MsgIndex")
 	s.Require().NotNil(handler)
 }
 
@@ -27,8 +27,6 @@ func (s *KeeperTestSuite) TestQueriesRegisteredWithCorrectPath() {
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo")
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress")
-	s.Require().NotNil(handler)
-	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SupplyDeltaProcessed")
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime")
 	s.Require().NotNil(handler)

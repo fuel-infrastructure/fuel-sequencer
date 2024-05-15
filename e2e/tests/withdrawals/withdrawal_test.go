@@ -98,7 +98,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 
 		// Get BridgeCommitment inclusion proof
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
-		// - The withdrawal is assumed to be the second transaction in the block, following the EthEventsTx.
+		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
 
 		txIndex := int64(1) // second tx
 		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
@@ -225,7 +225,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithManualProcessSuccinct() {
 
 		// Get BridgeCommitment inclusion proof
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
-		// - The withdrawal is assumed to be the second transaction in the block, following the EthEventsTx.
+		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
 
 		txIndex := int64(1) // second tx
 		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(

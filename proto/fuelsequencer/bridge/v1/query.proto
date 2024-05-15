@@ -9,8 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
-import "fuelsequencer/bridge/eth_events_transaction.proto";
-import "fuelsequencer/bridge/supply_delta_processed.proto";
+import "fuelsequencer/bridge/index.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
@@ -60,13 +59,6 @@ service Query {
         "sequencer_address_from_ethereum_address/{ethereum_address}";
   }
 
-  // Queries a SupplyDeltaProcessed by index.
-  rpc SupplyDeltaProcessed(QueryGetSupplyDeltaProcessedRequest)
-      returns (QueryGetSupplyDeltaProcessedResponse) {
-    option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed";
-  }
-
   // Queries the LastEthBlockUpdateTime.
   rpc LastEthBlockUpdateTime(QueryGetLastEthBlockUpdateTimeRequest)
       returns (QueryGetLastEthBlockUpdateTimeResponse) {
@@ -109,13 +101,6 @@ message QuerySequencerAddressFromEthereumAddressRequest {
 
 message QuerySequencerAddressFromEthereumAddressResponse {
   string sequencer_address = 1;
-}
-
-message QueryGetSupplyDeltaProcessedRequest {}
-
-message QueryGetSupplyDeltaProcessedResponse {
-  SupplyDeltaProcessed supply_delta_processed = 1
-      [ (gogoproto.nullable) = false ];
 }
 
 message QueryGetLastEthBlockUpdateTimeRequest {}

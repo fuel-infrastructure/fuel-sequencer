@@ -1,0 +1,26 @@
+Counter 1: number of AnteHandled injected txs
+
+- // Set by MsgIndex
+- // Decorator: increment at every injected tx processed
+- \\ Decorator: if counter at ceiling, sniff for SPECIALS
+- // EndBlock: check that counter is at ceiling
+- // Decorator: if no counter, assert MsgIndex
+- // Decorator: if counter N-1, assert SupplyDelta
+
+Counter 2: number of MsgHandled specials
+
+- // Set by MsgIndex
+- // Handler(Deposit): increment counter
+- // Handler(MsgIndex): increment counter
+- // Handler(SupplyDelta): increment counter
+- // EndBlock: check that counter is at ceiling
+
+Prepare/Process:
+
+- Authentication
+- Blocked addresses check
+- \\ Do not let AuthorizeTxs with SPECIALS
+
+AnteHandler
+
+- Check gas meter reset on next TX

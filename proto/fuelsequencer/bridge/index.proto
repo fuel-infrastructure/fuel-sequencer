@@ -1,0 +1,22 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+message Index {
+
+  // TODO
+  uint64 num_injected_txs_total = 1;
+
+  // TODO
+  uint64 num_injected_txs_ante = 2;
+
+  // TODO
+  uint64 num_special_txs_total = 3;
+
+  // TODO
+  uint64 num_special_txs_exec = 4;
+}

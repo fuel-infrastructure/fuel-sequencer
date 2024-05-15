@@ -110,55 +110,55 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		)
 		if sidecarErr != nil {
 			ctx.Logger().Warn("observed sidecar error at PrepareProposal", "err", sidecarErr)
-			// This error is also passed to generateEthEventsTx to perform dedicated error handling.
+			// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
 		}
 
-		ethEventsTx, eventTxs, err := h.generateEthEventsTx(
+		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
 			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate eth events tx: %w", err)
+			return nil, fmt.Errorf("failed to generate MsgIndex: %w", err)
 		}
 
 		// Trim events from head to skip the events that were already processed.
-		eventTxs, err = ethEventsTx.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
+		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
-			return nil, fmt.Errorf("failed to trim eth events tx head: %w", err)
+			return nil, fmt.Errorf("failed to trim events from head: %w", err)
 		}
 
-		// Sanity check: number of event txs is equal to NumInjectedEvents
-		if ethEventsTx.NumInjectedEvents != uint64(len(eventTxs)) {
+		// Sanity check: number of event txs is equal to NumInjectedTxs
+		if msgIndex.NumInjectedTxs != uint64(len(eventTxs)) {
 			return nil, fmt.Errorf(
 				"mismatch in number of events; expected: %d, got: %d",
-				len(eventTxs), ethEventsTx.NumInjectedEvents,
+				len(eventTxs), msgIndex.NumInjectedTxs,
 			)
 		}
 
 		// Trim events from tail to fit the block size allocated for events.
 		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
-		maxNumberOfEvents, err := ethEventsTx.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
+		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events for max bytes %d: %w", maxBytesForEvents, err)
 		}
 		originalNumberOfEvents := len(eventTxs)
-		eventTxs, trimmed, err := ethEventsTx.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))
+		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))
 		if err != nil {
-			return nil, fmt.Errorf("failed to trim eth events tx tail: %w", err)
+			return nil, fmt.Errorf("failed to trim events from tail: %w", err)
 		}
 		if trimmed > 0 {
 			ctx.Logger().Debug(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %d because only %d could fit in max bytes %d",
-				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
+				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
 		}
 
-		ethEventsTxBz, err := ethEventsTx.RawTxBytes()
+		msgIndexBz, err := msgIndex.RawTxBytes()
 		if err != nil {
-			return nil, fmt.Errorf("failed to encode injected eth events tx: %w", err)
+			return nil, fmt.Errorf("failed to encode MsgIndex: %w", err)
 		}
 
-		// Inject EthEventsTx and Ethereum event transactions as the first txs in the block.
-		req.Txs = append(append([][]byte{ethEventsTxBz}, eventTxs...), req.Txs...)
+		// Inject MsgIndex and Ethereum event transactions as the first txs in the block.
+		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
 
 		var maxBlockGas uint64
 		if b := ctx.ConsensusParams().Block; b != nil {
@@ -188,9 +188,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			}
 		}
 
-		// Calculate the minimum number of expected transactions, which is the EthEventsTx, the number of event txs, and
+		// Calculate the minimum number of expected transactions, which is the MsgIndex, the number of event txs, and
 		// lastly the MsgSupplyDelta, if we're at the MsgSupplyDelta height.
-		minimumExpectedTxs := 1 + ethEventsTx.NumInjectedEvents
+		minimumExpectedTxs := 1 + msgIndex.NumInjectedTxs
 		if injectMsgSupplyDelta {
 			minimumExpectedTxs += 1
 		}
@@ -233,27 +233,27 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
-		// Expect that there is at least one transaction (EthEventsTx must be there)
+		// Expect that there is at least one transaction (MsgIndex must be there)
 		if len(req.Txs) == 0 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"block proposal doesn't have any transactions: first tx expected to be an eth events tx",
+				"block proposal doesn't have any transactions: first tx expected to be MsgIndex",
 			)
 		}
 
-		// Expect that the first transaction is always a valid transaction containing EthEventsTx.
-		injectedEthEventsTxUnparsed, err := h.txVerifier.TxDecode(req.Txs[0])
+		// Expect that the first transaction is always a valid transaction containing MsgIndex.
+		injectedMsgIndexUnparsed, err := h.txVerifier.TxDecode(req.Txs[0])
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"first transaction expected to be an valid tx: %w", err,
 			)
 		}
 
-		// Parse the first transaction into an EthEventsTx.
-		var injectedEthEventsTx bridgetypes.EthEventsTx
-		err = injectedEthEventsTx.FromSdkTx(injectedEthEventsTxUnparsed)
+		// Parse the first transaction into an MsgIndex.
+		var injectedMsgIndex bridgetypes.MsgIndex
+		err = injectedMsgIndex.FromSdkTx(injectedMsgIndexUnparsed)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"first transaction expected to be an eth events tx: %w", err,
+				"first transaction expected to be MsgIndex: %w", err,
 			)
 		}
 
@@ -262,7 +262,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 		ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
-		if !injectedEthEventsTx.NewEthereumBlock && ethSyncDelayExceeded {
+		if !injectedMsgIndex.NewEthereumBlock && ethSyncDelayExceeded {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
 				lastEthBlockUpdateTime.String(),
@@ -270,6 +270,15 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				bridgeParams.MaxEthBlockUpdateDelay.String(),
 			)
 		}
+
+		// Check if we expect MsgSupplyDelta
+		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
+		if supplyDeltaPeriod == 0 {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"SupplyDeltaPeriod cannot be zero",
+			)
+		}
+		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
@@ -291,73 +300,65 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		)
 		if sidecarErr != nil {
 			ctx.Logger().Warn("observed sidecar error at ProcessProposal", "err", sidecarErr)
-			// This error is also passed to generateEthEventsTx to perform dedicated error handling.
+			// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
 		}
 
-		// Generate the EthEventsTx that should be included at index 0 in the block proposal
-		ethEventsTx, eventTxs, err := h.generateEthEventsTx(
+		// Generate the MsgIndex that should be included at index 0 in the block proposal
+		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
 			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
 		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to generate eth events tx: %w", err,
+				"failed to generate MsgIndex: %w", err,
 			)
 		}
 
 		// Trim events from head to skip the events that were already processed.
-		eventTxs, err = ethEventsTx.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
+		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to trim eth events tx head: %w", err,
+				"failed to trim events from head: %w", err,
 			)
 		}
 
 		// Trim events from tail to fit the block size allocated for events. Unlike the PrepareProposal step, here we do
 		// not have access to the max block size, so instead we assume that the proposer proposed an optimised block.
 		// TODO: consider adding access to max block size instead of assuming the optimal number of events were proposed
-		originalNumberOfEvents := ethEventsTx.NumInjectedEvents
-		eventTxs, trimmed, err := ethEventsTx.KeepEventsFromHead(eventTxs, injectedEthEventsTx.NumInjectedEvents)
+		originalNumberOfEvents := msgIndex.NumInjectedTxs
+		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, injectedMsgIndex.NumInjectedTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to trim eth events tx tail: %w", err,
+				"failed to trim events from tail: %w", err,
 			)
 		}
 		if trimmed > 0 {
 			ctx.Logger().Debug(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %d because only %d were received from the proposer",
-				trimmed, originalNumberOfEvents, ethEventsTx.BlockNumber, injectedEthEventsTx.NumInjectedEvents,
+				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, injectedMsgIndex.NumInjectedTxs,
 			))
 		}
 
 		// Extract the injected event txs and ensure that we've gotten the right amount of transactions.
-		injectedEventTxs := req.Txs[1 : injectedEthEventsTx.NumInjectedEvents+1]
-		if uint64(len(injectedEventTxs)) != injectedEthEventsTx.NumInjectedEvents {
+		injectedEventTxs := req.Txs[1 : injectedMsgIndex.NumInjectedTxs+1]
+		if uint64(len(injectedEventTxs)) != injectedMsgIndex.NumInjectedTxs {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"unexpected number of injected event txs; expected: %d, got: %d",
-				injectedEthEventsTx.NumInjectedEvents, len(injectedEventTxs),
+				injectedMsgIndex.NumInjectedTxs, len(injectedEventTxs),
 			)
 		}
 
-		// Reject block if injected EthEventsTx does not match the one generated by the validator verifying the block
+		// Reject block if injected MsgIndex does not match the one generated by the validator verifying the block
 		// proposal
-		err = injectedEthEventsTx.Equal(ethEventsTx, injectedEventTxs, eventTxs)
+		err = injectedMsgIndex.Equal(msgIndex, injectedEventTxs, eventTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"generated eth events txs do not match the one in the block proposal: %w", err,
-			)
-		}
-
-		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
-		if supplyDeltaPeriod == 0 {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"SupplyDeltaPeriod cannot be zero",
+				"generated data does not match that from the block proposal: %w", err,
 			)
 		}
 
 		// Check that MsgSupplyDelta was injected correctly if expected
-		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 		if expectMsgSupplyDelta {
-			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, ethEventsTx.NumInjectedEvents)
+			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedTxs)
 			if err != nil {
 				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 					"failed to verify injected MsgSupplyDeltaTx: %w", err,
@@ -402,20 +403,20 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 	}
 }
 
-// getNewEthereumBlock returns the value for EthEventsTx.NewEthereumBlock. NewEthereumBlock should be true iff the
+// getNewEthereumBlock returns the value for MsgIndex.NewEthereumBlock. NewEthereumBlock should be true iff the
 // Sidecar didn't error.
 func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) bool {
 	return sidecarErr == nil
 }
 
-// generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
-// returned from the sidecar don't pass validation. Returned errors have the capability of halting block production.
-func (h *FuelSequencerProposalHandler) generateEthEventsTx(
+// generateMsgIndexAndEventTxs generates MsgIndex and transactions from events based on the response of the sidecar.
+// It errors upon invalid events from the sidecar. Returned errors have the capability of halting block production.
+func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
 	ethereumProxyContractAddress string,
-) (ethEventsTx *bridgetypes.EthEventsTx, eventTxs [][]byte, err error) {
+) (msgIndex *bridgetypes.MsgIndex, eventTxs [][]byte, err error) {
 
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
 	// Context: Sidecar returns a nil response when it errors.
@@ -424,29 +425,30 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 		events = sidecarResponse.Events
 	}
 
-	// Identify the deposit and authorize events in the EthEventsTx and produce one new valid transaction per event.
+	// Identify the deposit and authorize events in the MsgIndex and produce one new valid transaction per event.
 	// If an event is not valid for any reason, we have to skip it since there might be something suspicious.
 	for _, event := range events {
 
 		err = event.Validate(ethereumProxyContractAddress)
 		if err != nil {
-			return nil, nil, fmt.Errorf("encountered invalid event with err %s; event: %s", err.Error(), event)
+			return nil, nil, fmt.Errorf("encountered invalid event with err: %s; event: %s", err.Error(), event)
 		}
 
-		eventTx, err := event.RawTxBytes(h.cdc)
+		eventTx, err := event.RawTxBytes(h.cdc, h.bridgeKeeper.GetAuthority())
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get raw tx bytes with err %s; event: %s", err.Error(), event)
+			return nil, nil, fmt.Errorf("failed to get raw tx bytes with err: %s; event: %s", err.Error(), event)
 		}
 
 		eventTxs = append(eventTxs, eventTx)
 	}
 
-	// Generate EthEventsTx based on the number of injected events.
-	ethEventsTx = &bridgetypes.EthEventsTx{
-		Authority:         h.bridgeKeeper.GetAuthority(),
-		NumInjectedEvents: uint64(len(eventTxs)),
-		NewEthereumBlock:  h.getNewEthereumBlock(sidecarErr),
-		BlockNumber:       blockNumber,
+	// Generate MsgIndex based on the number of injected events.
+	msgIndex = &bridgetypes.MsgIndex{
+		Authority:        h.bridgeKeeper.GetAuthority(),
+		NumInjectedTxs:   uint64(len(eventTxs)),
+		NumSpecialTxs:    0, // let's go with 0 for now until we have more information
+		NewEthereumBlock: h.getNewEthereumBlock(sidecarErr),
+		BlockNumber:      blockNumber,
 	}
 
 	return
@@ -466,11 +468,11 @@ func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx() ([]byte, error
 }
 
 // verifyInjectedMsgSupplyDeltaTx is used by ProcessProposal to check whether MsgSupplyDeltaTx was injected properly
-func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(txs [][]byte, numInjectedEvents uint64) error {
+func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(txs [][]byte, numInjectedTxs uint64) error {
 
-	// We expect the MsgSupplyDeltaTx to be at the index right after EthEventsTx and any injected events.
-	// If no events were injected, the index will be 1, i.e. right after the EthEventsTx.
-	msgSupplyDeltaIndex := 1 + numInjectedEvents
+	// We expect the MsgSupplyDeltaTx to be at the index right after MsgIndex and any injected events.
+	// If no events were injected, the index will be 1, i.e. right after the MsgIndex.
+	msgSupplyDeltaIndex := 1 + numInjectedTxs
 
 	// Check that there's enough transactions for the above index to make sense.
 	if uint64(len(txs)) < 1+msgSupplyDeltaIndex {

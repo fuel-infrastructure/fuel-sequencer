@@ -16,15 +16,15 @@ func TestMsgDepositFromEthereum_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name: "valid - recipient is a Hex address",
-			msg:  testtypes.TestDepositEvent1.ToMsgDepositFromEthereum(),
+			msg:  testtypes.TestDepositEvent1.ToMsgDepositFromEthereum(testtypes.TestGovernanceAddress),
 		},
 		{
 			name: "valid - recipient is a Sequencer address",
-			msg:  testtypes.TestDepositEvent9.ToMsgDepositFromEthereum(),
+			msg:  testtypes.TestDepositEvent9.ToMsgDepositFromEthereum(testtypes.TestGovernanceAddress),
 		},
 		{
 			name: "valid - recipient is the null address",
-			msg:  testtypes.TestDepositEvent2.ToMsgDepositFromEthereum(),
+			msg:  testtypes.TestDepositEvent2.ToMsgDepositFromEthereum(testtypes.TestGovernanceAddress),
 		},
 		{
 			name:      "nil receiver - error",

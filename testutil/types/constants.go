@@ -225,72 +225,90 @@ var (
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
 	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
 
-	TestEthEventsTx = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: uint64(len(TestEvents)),
-			NewEthereumBlock:  true,
-			BlockNumber:       1,
+	TestMsgIndex = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   uint64(len(TestEvents)),
+			NumSpecialTxs:    3, // 1 index, 2 deposits
+			NewEthereumBlock: true,
+			BlockNumber:      1,
 		},
 		Events: TestEvents,
 	}
 
-	TestEthEventsTxWithDifferentEvents = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: uint64(len(TestEventsDifferent)),
-			NewEthereumBlock:  true,
-			BlockNumber:       1,
+	TestMsgIndexPlusSupplyDelta = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   uint64(len(TestEvents)),
+			NumSpecialTxs:    4, // 1 index, 2 deposits, 1 supply delta
+			NewEthereumBlock: true,
+			BlockNumber:      1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithDifferentEvents = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   uint64(len(TestEventsDifferent)),
+			NumSpecialTxs:    3, // 1 index, 2 deposits
+			NewEthereumBlock: true,
+			BlockNumber:      1,
 		},
 		Events: TestEventsDifferent,
 	}
 
-	TestEthEventsTxReduced = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: uint64(len(TestEventsReduced)),
-			NewEthereumBlock:  true,
-			BlockNumber:       1,
+	TestMsgIndexReduced = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   uint64(len(TestEventsReduced)),
+			NumSpecialTxs:    2, // 1 index, 1 deposit
+			NewEthereumBlock: true,
+			BlockNumber:      1,
 		},
 		Events: TestEventsReduced,
 	}
 
-	TestEthEventsTxPartial = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: uint64(len(TestEventsReduced)),
-			NewEthereumBlock:  false, // block was partially consumed
-			BlockNumber:       1,
+	TestMsgIndexPartial = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   uint64(len(TestEventsReduced)),
+			NumSpecialTxs:    2,     // 1 index, 1 deposits
+			NewEthereumBlock: false, // block was partially consumed
+			BlockNumber:      1,
 		},
 		Events: TestEventsReduced,
 	}
 
-	TestEthEventsTxWithoutEvents = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: 0,
-			NewEthereumBlock:  true,
-			BlockNumber:       1,
+	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   0,
+			NumSpecialTxs:    1, // 1 index
+			NewEthereumBlock: true,
+			BlockNumber:      1,
 		},
 		Events: nil,
 	}
 
-	TestEthEventsTxNoNewBlock = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: 0,
-			NewEthereumBlock:  false,
-			BlockNumber:       1,
+	TestMsgIndexNoNewBlock = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   0,
+			NumSpecialTxs:    1, // 1 index
+			NewEthereumBlock: false,
+			BlockNumber:      1,
 		},
 		Events: nil,
 	}
 
-	TestEthEventsTxSidecarErr = TestEthEventsTxWithEvents{
-		EthEventsTx: &bridgetypes.EthEventsTx{
-			Authority:         TestGovernanceAddress,
-			NumInjectedEvents: 0,
-			NewEthereumBlock:  false,
-			BlockNumber:       1,
+	TestMsgIndexSidecarErr = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:        TestGovernanceAddress,
+			NumInjectedTxs:   0,
+			NumSpecialTxs:    1, // 1 index
+			NewEthereumBlock: false,
+			BlockNumber:      1,
 		},
 		Events: nil,
 	}
@@ -301,14 +319,14 @@ var (
 )
 
 func init() {
-	TestEvent1Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent1)
-	TestEvent3Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent3)
-	TestEvent4Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent4)
-	TestEvent5Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent5)
-	TestEvent6Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent6)
-	TestEvent7Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent7)
-	TestEvent8Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent8)
-	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent9)
-	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent10)
-	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestEvent11)
+	TestEvent1Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent1)
+	TestEvent3Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent3)
+	TestEvent4Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent4)
+	TestEvent5Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent5)
+	TestEvent6Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent6)
+	TestEvent7Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent7)
+	TestEvent8Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent8)
+	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent9)
+	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent10)
+	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent11)
 }

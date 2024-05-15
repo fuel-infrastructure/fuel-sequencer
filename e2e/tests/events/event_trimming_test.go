@@ -18,18 +18,18 @@ func (s *EventsTestSuite) TestEventTrimming() {
 
 	s.Run("Run with reduced max bytes to showcase event trimming", func() {
 
-		// Calculate size of transaction resulting from EthEventsTx.
-		typicalEthEventsTx := &bridgetypes.EthEventsTx{
-			Authority:         s.GetGovernanceAddress(),
-			NumInjectedEvents: 10,
-			NewEthereumBlock:  true,
-			BlockNumber:       1,
+		// Calculate size of transaction resulting from MsgIndex.
+		typicalMsgIndex := &bridgetypes.MsgIndex{
+			Authority:        s.GetGovernanceAddress(),
+			NumInjectedTxs:   10,
+			NewEthereumBlock: true,
+			BlockNumber:      1,
 		}
-		typicalEthEventsTxBz, err := typicalEthEventsTx.RawTxBytes()
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
 		s.Require().NoError(err)
-		typicalEthEventsTxSize := len(typicalEthEventsTxBz)
+		typicalMsgIndexSize := len(typicalMsgIndexBz)
 
-		s.Logger().Info(fmt.Sprintf("Predicted size of EthEventsTx: %d", typicalEthEventsTxSize))
+		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
 		// Generate a MsgSend
 		sendAmount, ok := sdkmath.NewIntFromString("10")
@@ -52,7 +52,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
 
 		// Set a low max bytes for txs so that events are split across multiple blocks, with a buffer of 10 bytes.
-		maxBytesForTransactions := int64(typicalEthEventsTxSize + authorizeEventMsgSize + 10)
+		maxBytesForTransactions := int64(typicalMsgIndexSize + authorizeEventMsgSize + 10)
 
 		// Calculate a max block size - this is not just for txs and must consider
 		// the max size of the header and other components that make up a block.

@@ -14,5 +14,10 @@ func (k msgServer) DepositFromEthereum(goCtx context.Context, msg *types.MsgDepo
 
 	k.processDepositEvent(ctx, msg, &params, &supplyDeltaInfo)
 
+	// We've processed a special transaction
+	index := k.MustGetIndex(ctx)
+	index.NumSpecialTxsExec += 1
+	k.SetIndex(ctx, index)
+
 	return &types.MsgDepositFromEthereumResponse{}, nil
 }

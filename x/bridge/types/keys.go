@@ -13,12 +13,11 @@ const (
 
 var (
 	ParamsKey                   = []byte("p_bridge")
-	EthEventsTxIndexKey         = []byte("eth_events_tx_index")
+	IndexKey                    = []byte("block_txs_index")
 	SupplyDeltaInfoKey          = []byte("supply_delta_info")
 	LastEthereumNonceKey        = []byte("LastEthereumNonce")
 	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
 	EthereumEventIndexOffsetKey = []byte("EthereumEventIndexOffset")
-	SupplyDeltaProcessedKey     = []byte("SupplyDeltaProcessed")
 	LastEthBlockUpdateTimeKey   = []byte("LastEthBlockUpdateTime")
 )
 

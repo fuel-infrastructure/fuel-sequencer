@@ -2,23 +2,13 @@ package keeper
 
 import (
 	"context"
-	"errors"
 
-	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// Override the gas meter with an infinite one to make sure that MsgSupplyDelta never runs out of gas. The gas meter
-	// is reset to its original state just in case.
-	cachedGasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
-	defer func() {
-		ctx = ctx.WithGasMeter(cachedGasMeter)
-	}()
 
 	// Confirm that the msg signer is the bridge module's authority address (governance).
 	if k.GetAuthority() != msg.Authority {
@@ -42,12 +32,6 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 		)
 	}
 
-	// MsgSupplyDelta will be rejected if we have already processed a MsgSupplyDeltaTx. Here we are assuming that
-	// module initiated MsgSupplyDeltaTxs are always first of their kind in the block proposal.
-	if k.MustGetSupplyDeltaProcessed(ctx).Processed {
-		return nil, errors.New("MsgSupplyDelta already processed")
-	}
-
 	// Increment LastEthereumNonce and get the result so that it is added to MsgSupplyDeltaResponse.
 	nonce := k.MustGetNextEthereumNonce(ctx)
 
@@ -64,14 +48,16 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	// Reset SupplyDeltaInfo
 	k.MustResetSupplyDeltaInfo(ctx)
 
-	// Set SupplyDelta as processed
-	k.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: true})
-
 	// Emit event
 	err := ctx.EventManager().EmitTypedEvent(&types.EventSupplyDeltaReported{SupplyDelta: supplyDelta, Nonce: nonce})
 	if err != nil {
 		return nil, err
 	}
+
+	// We've processed a special transaction
+	index := k.MustGetIndex(ctx)
+	index.NumSpecialTxsExec += 1
+	k.SetIndex(ctx, index)
 
 	return &types.MsgSupplyDeltaResponse{
 		Nonce:       nonce,

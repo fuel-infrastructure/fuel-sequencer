@@ -2,13 +2,12 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) SetEthEventTxsIndex(goCtx context.Context, msg *types.EthEventsTx) (*types.MsgSetEthEventTxsIndexResponse, error) {
+func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.MsgIndexResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	lastBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
@@ -18,18 +17,15 @@ func (k msgServer) SetEthEventTxsIndex(goCtx context.Context, msg *types.EthEven
 	// If any problem is found, this is an indication of a serious bug.
 	err := msg.ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset)
 	if err != nil {
-		return nil, fmt.Errorf("eth events tx validation failed: %w", err)
+		return nil, err
 	}
 
-	// It is very important to check that the index does not exist, to ensure that this message is not user-initiated.
-	_, found := k.GetEthEventsTxIndex(ctx)
-	if found {
-		return nil, fmt.Errorf("MsgSetEthEventTxsIndex was already processed")
-	}
-
-	// It is very important to set the index, so the AnteHandler knows that we've processed the EthEventsTx.
-	k.SetEthEventsTxIndex(ctx, types.EthEventsTxIndex{
-		NumUnhandledEventTxs: msg.NumInjectedEvents,
+	// It is very important to set the index, so the AnteHandler knows that we've processed the MsgIndex.
+	k.SetIndex(ctx, types.Index{
+		NumInjectedTxsTotal: msg.NumInjectedTxs,
+		NumInjectedTxsAnte:  0,
+		NumSpecialTxsTotal:  msg.NumSpecialTxs,
+		NumSpecialTxsExec:   0,
 	})
 
 	if msg.NewEthereumBlock {
@@ -39,10 +35,15 @@ func (k msgServer) SetEthEventTxsIndex(goCtx context.Context, msg *types.EthEven
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
-	if !msg.NewEthereumBlock && msg.NumInjectedEvents > 0 {
-		newOffset := eventIndexOffset + msg.NumInjectedEvents
+	if !msg.NewEthereumBlock && msg.NumInjectedTxs > 0 {
+		newOffset := eventIndexOffset + msg.NumInjectedTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 
-	return &types.MsgSetEthEventTxsIndexResponse{}, nil
+	// We've processed a special transaction
+	index := k.MustGetIndex(ctx)
+	index.NumSpecialTxsExec += 1
+	k.SetIndex(ctx, index)
+
+	return &types.MsgIndexResponse{}, nil
 }

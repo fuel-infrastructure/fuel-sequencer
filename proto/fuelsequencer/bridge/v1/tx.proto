@@ -31,9 +31,9 @@ service Msg {
   rpc DepositFromEthereum(MsgDepositFromEthereum)
       returns (MsgDepositFromEthereumResponse);
 
-  // SetEthEventTxsIndex defines an operation for setting information about
-  // injected transactions, specifically ones originating from Ethereum events.
-  rpc SetEthEventTxsIndex(EthEventsTx) returns (MsgSetEthEventTxsIndexResponse);
+  // Index defines an operation for setting information about injected
+  // transactions and special transactions.
+  rpc Index(MsgIndex) returns (MsgIndexResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -59,7 +59,7 @@ message MsgUpdateParamsResponse {}
 message MsgSupplyDelta {
   option (cosmos.msg.v1.signer) = "authority";
 
-  // authority a placeholder to satisfy the requirement of having a signer.
+  // authority ensures that users cannot execute this message.
   string authority = 1;
 }
 
@@ -119,46 +119,54 @@ message MsgWithdrawToEthereumResponse {
 }
 
 message MsgDepositFromEthereum {
-  option (cosmos.msg.v1.signer) = "depositor";
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority ensures that users cannot execute this message.
+  string authority = 1;
 
   // the sending Ethereum address in hex format
-  string depositor = 1;
+  string depositor = 2;
 
   // recipient address in hex or bech32 format. If the recipient is the null
   // address, the Sequencer uses the depositor address as the recipient.
-  string recipient = 2;
+  string recipient = 3;
 
   // the amount sent encoded as string to prevent loss of precision. Sign is
   // also preserved
-  string amount = 3;
+  string amount = 4;
 
   // vesting duration encoded in string to prevent loss of precision. Sign is
   // also preserved. This can be zero if no duration is specified.
-  string lockup = 4;
+  string lockup = 5;
 }
 
 message MsgDepositFromEthereumResponse {}
 
-message EthEventsTx {
+message MsgIndex {
   option (cosmos.msg.v1.signer) = "authority";
 
-  // authority a placeholder to satisfy the requirement of having a signer.
+  // authority ensures that users cannot execute this message.
   string authority = 1;
 
   // num_injected_events is the number of Ethereum events injected as
-  // transactions in the current block.
-  uint64 num_injected_events = 2;
+  // transactions in the current block, plus any SupplyDelta.
+  uint64 num_injected_txs = 2;
+
+  // num_special_txs is the number of special transactions injected as
+  // transactions in the current block. This includes MsgIndex,
+  // MsgDepositFromEthereum, and MsgSupplyDelta.
+  uint64 num_special_txs = 3;
 
   // new_ethereum_block is a boolean which indicates whether a new Ethereum
   // block has been queried from the Sidecar and that the events from it were
   // fully consumed by the Sequencer. This is needed to determine when
-  // LastEthereumBlockSynced should be incremented by MsgSetEthEventTxsIndex. If
+  // LastEthereumBlockSynced should be incremented by MsgIndex. If
   // false but the events list is not empty, the block was partially consumed.
-  bool new_ethereum_block = 3;
+  bool new_ethereum_block = 4;
 
   // block_number is the block that these events belong to. This is expected to
   // be LastEthereumBlockSynced+1, since the events are from the next block.
-  uint64 block_number = 4;
+  uint64 block_number = 5;
 }
 
-message MsgSetEthEventTxsIndexResponse {}
+message MsgIndexResponse {}

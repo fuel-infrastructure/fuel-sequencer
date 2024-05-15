@@ -39,11 +39,6 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereum_address"}},
 				},
 				{
-					RpcMethod: "SupplyDeltaProcessed",
-					Use:       "show-supply-delta-processed",
-					Short:     "show supply-delta-processed",
-				},
-				{
 					RpcMethod: "EthereumEventIndexOffset",
 					Use:       "show-ethereum-event-index-offset",
 					Short:     "show ethereum-event-index-offset",
@@ -79,7 +74,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Skip:      true, // skipped because generated through consensus
 				},
 				{
-					RpcMethod: "SetEthEventTxsIndex",
+					RpcMethod: "Index",
 					Skip:      true, // skipped because generated through consensus
 				},
 				// this line is used by ignite scaffolding # autocli/tx
