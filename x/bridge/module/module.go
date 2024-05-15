@@ -155,16 +155,23 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// It is important to check that a supply delta was processed if we expect that a MsgSupplyDelta was injected.
 	supplyDeltaPeriod := am.keeper.GetParams(ctx).SupplyDeltaPeriod
 	if supplyDeltaPeriod == 0 {
 		return errors.New("SupplyDeltaPeriod cannot be zero")
 	}
+
 	supplyDeltaProcessed, found := am.keeper.GetSupplyDeltaProcessed(ctx)
 	if !found {
 		return fmt.Errorf("expected to find SupplyDeltaProcessed")
 	}
-	if (uint64(ctx.BlockHeight())%supplyDeltaPeriod == 0) && !supplyDeltaProcessed.Processed {
+
+	supplyDeltaInfo := am.keeper.MustGetSupplyDeltaInfo(ctx)
+	supplyDelta := supplyDeltaInfo.Delta.Add(supplyDeltaInfo.Offset)
+
+	// It is important to check that a supply delta was processed if we expect that a MsgSupplyDelta was injected.
+	// The main criteria are that (i) we are at the correct height, and that (ii) there is a non-zero supply delta.
+	if (uint64(ctx.BlockHeight())%supplyDeltaPeriod == 0) && !supplyDelta.IsZero() && !supplyDeltaProcessed.Processed {
+
 		return fmt.Errorf(
 			"expected supply delta processed at block %d with supply delta period %d",
 			ctx.BlockHeight(), supplyDeltaPeriod,
