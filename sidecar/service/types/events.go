@@ -3,12 +3,10 @@ package types
 import (
 	"bytes"
 	"errors"
-	"fmt"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -70,23 +68,13 @@ func (m *DepositEvent) Equal(e ParsedEvent) bool {
 
 // ValidateBasic performs some sanity checks on the DepositEvent
 func (m *DepositEvent) ValidateBasic() error {
-	// TODO: More checks can be added in the future
-	// TODO: Consider clearing out ValidateBasic since this might cause the deposit event to get skipped!
+
+	// NOTE: we intentionally skip the validation of the Depositor and Recipient since in the message handler we still
+	// want to mint the deposited tokens even if we do not know who they are coming from or who they are going to.
 
 	// Error if the receiver is nil
 	if m == nil {
 		return errors.New("DepositEvent is nil")
-	}
-
-	// Check that Depositor is a valid hex address
-	if !common.IsHexAddress(m.Depositor) {
-		return errors.New("depositor is not a valid hex address")
-	}
-
-	// Check that Recipient is either a valid Sequencer or hex address.
-	_, err := sdk.AccAddressFromBech32(m.Recipient)
-	if err != nil && !common.IsHexAddress(m.Recipient) {
-		return fmt.Errorf("recipient is not a valid Bech32 or Hex address")
 	}
 
 	// Check that the Lockup can be converted from a string to sdk.Int

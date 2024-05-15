@@ -2,11 +2,9 @@ package types
 
 import (
 	"errors"
-	"fmt"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 var _ sdk.Msg = &MsgDepositFromEthereum{}
@@ -22,22 +20,13 @@ func NewMsgDepositFromEthereum(depositor string, recipient string, amount string
 
 // ValidateBasic for MsgDepositFromEthereum is essentially a copy of DepositEvent.ValidateBasic.
 func (msg *MsgDepositFromEthereum) ValidateBasic() error {
-	// TODO: Consider clearing out ValidateBasic since this might cause the deposit event to get skipped!
+
+	// NOTE: we intentionally skip the validation of the Depositor and Recipient since in the message handler we still
+	// want to mint the deposited tokens even if we do not know who they are coming from or who they are going to.
 
 	// Error if the receiver is nil
 	if msg == nil {
 		return errors.New("MsgDepositFromEthereum is nil")
-	}
-
-	// Check that Depositor is a valid hex address
-	if !common.IsHexAddress(msg.Depositor) {
-		return errors.New("depositor is not a valid hex address")
-	}
-
-	// Check that Recipient is either a valid Sequencer or hex address.
-	_, err := sdk.AccAddressFromBech32(msg.Recipient)
-	if err != nil && !common.IsHexAddress(msg.Recipient) {
-		return fmt.Errorf("recipient is not a valid Bech32 or Hex address")
 	}
 
 	// Check that the Lockup can be converted from a string to sdk.Int
