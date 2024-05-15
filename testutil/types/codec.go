@@ -33,7 +33,6 @@ var (
 )
 
 func init() {
-	// TODO: is this the correct way?
 	modules := []module.AppModuleBasic{
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},

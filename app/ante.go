@@ -57,8 +57,8 @@ func NewMsgSetEthEventTxsInfoDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSetE
 	}
 }
 
-// AnteHandle implements the AnteHandler decorator for EthEventsTx. If an error is returned from AnteHandle during
-// CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
+// AnteHandle implements the AnteHandler decorator for MsgSetEthEventTxsInfo. If an error is returned from AnteHandle
+// during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
 func (d MsgSetEthEventTxsInfoDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {

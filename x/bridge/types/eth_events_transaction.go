@@ -151,7 +151,7 @@ func (m *EthEventsTx) KeepEventsFromHead(
 	return eventTxs, trimmed, nil
 }
 
-// RawTxBytes TODO
+// RawTxBytes converts the message to a valid tx that can be injected into a block and produces a tx result.
 func (m *EthEventsTx) RawTxBytes() ([]byte, error) {
 
 	ethEventsTxAny, err := codectypes.NewAnyWithValue(m)
@@ -167,7 +167,7 @@ func (m *EthEventsTx) RawTxBytes() ([]byte, error) {
 	return ethEventsTxBz, nil
 }
 
-// FromSdkTx TODO
+// FromSdkTx extracts EthEventsTx from an SDK transaction, which is expected to contain just EthEventsTx.
 func (m *EthEventsTx) FromSdkTx(tx sdk.Tx) error {
 
 	// EthEventsTx will contain only one message.

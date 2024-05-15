@@ -106,6 +106,8 @@ func (m *DepositEvent) ValidateBasic() error {
 	return nil
 }
 
+// ToMsgDepositFromEthereum is a convenient function for getting a MsgDepositFromEthereum from the DepositEvent.
+// This is easy because these two have the exact same fields.
 func (m *DepositEvent) ToMsgDepositFromEthereum() *bridgetypes.MsgDepositFromEthereum {
 	return &bridgetypes.MsgDepositFromEthereum{
 		Depositor: m.Depositor,
@@ -115,7 +117,8 @@ func (m *DepositEvent) ToMsgDepositFromEthereum() *bridgetypes.MsgDepositFromEth
 	}
 }
 
-// Messages TODO
+// Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
+// In this case we only get one message, i.e. a MsgDepositFromEthereum.
 func (m *DepositEvent) Messages(codec.BinaryCodec) ([]*codectypes.Any, error) {
 
 	msgDepositFromEthereumAny, err := codectypes.NewAnyWithValue(m.ToMsgDepositFromEthereum())
@@ -164,7 +167,8 @@ func (m *AuthorizeEvent) ValidateBasic() error {
 	return nil
 }
 
-// Messages TODO
+// Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
+// In this case we get the messages included in the AuthorizeTx encoded in the event data, which are already Anys.
 func (m *AuthorizeEvent) Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error) {
 
 	// This is a defensive check to ensure only the ProtoCodec is used for message unmarshalling

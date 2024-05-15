@@ -25,7 +25,7 @@ func (m *MsgSupplyDelta) ValidateBasic() error {
 	return nil
 }
 
-// FromSdkTx TODO
+// FromSdkTx extracts MsgSupplyDelta from an SDK transaction, which is expected to contain just MsgSupplyDelta.
 func (m *MsgSupplyDelta) FromSdkTx(tx sdk.Tx) error {
 
 	// MsgSupplyDelta will contain only one message.

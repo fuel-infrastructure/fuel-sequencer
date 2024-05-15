@@ -7,6 +7,9 @@ import "cosmos_proto/cosmos.proto";
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
 message EthEventsTxIndex {
-  // TODO
+
+  // num_unhandled_event_txs is the number of transactions injected from
+  // Ethereum events that have not yet been seen by the AnteHandler. This allows
+  // us to distinguish between injected and user-initiated transactions.
   uint64 num_unhandled_event_txs = 1;
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// SetEthEventsTxIndex set ethEventsTx in the store.
+// SetEthEventsTxIndex sets EthEventsTxIndex in the store.
 func (k Keeper) SetEthEventsTxIndex(ctx context.Context, ethEventsTx types.EthEventsTxIndex) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthEventsTxIndexKey)
@@ -16,7 +16,7 @@ func (k Keeper) SetEthEventsTxIndex(ctx context.Context, ethEventsTx types.EthEv
 	store.Set(types.EthEventsTxIndexKey, b)
 }
 
-// GetEthEventsTxIndex returns ethEventsTx.
+// GetEthEventsTxIndex returns EthEventsTxIndex.
 func (k Keeper) GetEthEventsTxIndex(ctx context.Context) (val types.EthEventsTxIndex, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthEventsTxIndexKey)
@@ -30,14 +30,14 @@ func (k Keeper) GetEthEventsTxIndex(ctx context.Context) (val types.EthEventsTxI
 	return val, true
 }
 
-// RemoveEthEventsTxIndex removes EthEventsTx from the store.
+// RemoveEthEventsTxIndex removes EthEventsTxIndex from the store.
 func (k Keeper) RemoveEthEventsTxIndex(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthEventsTxIndexKey)
 	store.Delete(types.EthEventsTxIndexKey)
 }
 
-// MustGetEthEventsTxIndex returns ethEventsTx and panics otherwise.
+// MustGetEthEventsTxIndex returns EthEventsTxIndex and panics otherwise.
 func (k Keeper) MustGetEthEventsTxIndex(ctx context.Context) (val types.EthEventsTxIndex) {
 	val, ok := k.GetEthEventsTxIndex(ctx)
 	if !ok {

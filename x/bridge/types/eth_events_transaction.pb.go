@@ -25,7 +25,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type EthEventsTxIndex struct {
-	// TODO
+	// num_unhandled_event_txs is the number of transactions injected from
+	// Ethereum events that have not yet been seen by the AnteHandler. This allows
+	// us to distinguish between injected and user-initiated transactions.
 	NumUnhandledEventTxs uint64 `protobuf:"varint,1,opt,name=num_unhandled_event_txs,json=numUnhandledEventTxs,proto3" json:"num_unhandled_event_txs,omitempty"`
 }
 

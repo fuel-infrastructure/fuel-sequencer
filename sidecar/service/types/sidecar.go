@@ -74,6 +74,9 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 	}
 }
 
+// Validate ensures that the event is valid by checking that:
+// - It originated from the expected contract address.
+// - It can be parsed, and the parsed version is valid.
 func (m *Event) Validate(ethereumProxyContractAddress string) error {
 	// Error if the receiver is nil
 	if m == nil {
@@ -103,7 +106,8 @@ func (m *Event) Validate(ethereumProxyContractAddress string) error {
 	return nil
 }
 
-// Messages TODO
+// Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
+// To do so, we unmarshal the event into a parsed event, and then extract the messages from it.
 func (m *Event) Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error) {
 
 	parsedEvent, err := m.UnmarshalParsedEvent()
@@ -114,7 +118,7 @@ func (m *Event) Messages(cdc codec.BinaryCodec) ([]*codectypes.Any, error) {
 	return parsedEvent.Messages(cdc)
 }
 
-// RawTxBytes TODO
+// RawTxBytes converts the event to a valid tx that can be injected into a block and produces a tx result.
 func (m *Event) RawTxBytes(cdc codec.BinaryCodec) ([]byte, error) {
 
 	messages, err := m.Messages(cdc)
