@@ -13,10 +13,4 @@ message Index {
 
   // TODO
   uint64 num_injected_txs_ante = 2;
-
-  // TODO
-  uint64 num_special_txs_total = 3;
-
-  // TODO
-  uint64 num_special_txs_exec = 4;
 }

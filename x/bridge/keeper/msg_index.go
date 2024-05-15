@@ -24,8 +24,6 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 	k.SetIndex(ctx, types.Index{
 		NumInjectedTxsTotal: msg.NumInjectedTxs,
 		NumInjectedTxsAnte:  0,
-		NumSpecialTxsTotal:  msg.NumSpecialTxs,
-		NumSpecialTxsExec:   0,
 	})
 
 	if msg.NewEthereumBlock {
@@ -39,11 +37,6 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 		newOffset := eventIndexOffset + msg.NumInjectedTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
-
-	// We've processed a special transaction
-	index := k.MustGetIndex(ctx)
-	index.NumSpecialTxsExec += 1
-	k.SetIndex(ctx, index)
 
 	return &types.MsgIndexResponse{}, nil
 }

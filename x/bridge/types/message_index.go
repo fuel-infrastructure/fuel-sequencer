@@ -13,13 +13,10 @@ import (
 
 var _ sdk.Msg = &MsgIndex{}
 
-func NewMsgIndex(
-	authority string, numInjectedTxs, numSpecialTxs uint64, newEthereumBlock bool, blockNumber uint64,
-) *MsgIndex {
+func NewMsgIndex(authority string, numInjectedTxs uint64, newEthereumBlock bool, blockNumber uint64) *MsgIndex {
 	return &MsgIndex{
 		Authority:        authority,
 		NumInjectedTxs:   numInjectedTxs,
-		NumSpecialTxs:    numSpecialTxs,
 		NewEthereumBlock: newEthereumBlock,
 		BlockNumber:      blockNumber,
 	}
@@ -49,8 +46,6 @@ func (m *MsgIndex) Equal(e *MsgIndex, eventTxs1 [][]byte, eventTxs2 [][]byte) er
 		return fmt.Errorf("authority (%s) != (%s)", m.Authority, e.Authority)
 	} else if m.NumInjectedTxs != e.NumInjectedTxs {
 		return fmt.Errorf("number of injected txs (%d) != (%d)", m.NumInjectedTxs, e.NumInjectedTxs)
-	} else if m.NumSpecialTxs != e.NumSpecialTxs {
-		return fmt.Errorf("number of special txs (%d) != (%d)", m.NumSpecialTxs, e.NumSpecialTxs)
 	} else if m.NewEthereumBlock != e.NewEthereumBlock {
 		return fmt.Errorf("new Ethereum block (%t) != (%t)", m.NewEthereumBlock, e.NewEthereumBlock)
 	} else if m.BlockNumber != e.BlockNumber {

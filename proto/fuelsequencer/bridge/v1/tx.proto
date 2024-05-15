@@ -152,21 +152,16 @@ message MsgIndex {
   // transactions in the current block, plus any SupplyDelta.
   uint64 num_injected_txs = 2;
 
-  // num_special_txs is the number of special transactions injected as
-  // transactions in the current block. This includes MsgIndex,
-  // MsgDepositFromEthereum, and MsgSupplyDelta.
-  uint64 num_special_txs = 3;
-
   // new_ethereum_block is a boolean which indicates whether a new Ethereum
   // block has been queried from the Sidecar and that the events from it were
   // fully consumed by the Sequencer. This is needed to determine when
   // LastEthereumBlockSynced should be incremented by MsgIndex. If
   // false but the events list is not empty, the block was partially consumed.
-  bool new_ethereum_block = 4;
+  bool new_ethereum_block = 3;
 
   // block_number is the block that these events belong to. This is expected to
   // be LastEthereumBlockSynced+1, since the events are from the next block.
-  uint64 block_number = 5;
+  uint64 block_number = 4;
 }
 
 message MsgIndexResponse {}

@@ -116,9 +116,6 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			// Fast-forward the chain so that MsgSupplyDelta is executed at the desired height
 			msgSupplyDeltaCtx := s.Ctx().WithBlockHeight(tc.chainHeight)
 
-			// Set a blank index
-			s.App.BridgeKeeper.SetIndex(s.Ctx(), bridgetypes.Index{})
-
 			// Execute MsgSupplyDelta
 			response, err := s.GetMsgServer().SupplyDelta(msgSupplyDeltaCtx, tc.msg)
 
@@ -128,12 +125,6 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 				return
 			}
 			s.Require().NoError(err)
-
-			// Ensure NumSpecialTxsExec incremented
-			expIndex := bridgetypes.Index{NumSpecialTxsExec: 1}
-			index, found := s.App.BridgeKeeper.GetIndex(s.Ctx())
-			s.Require().True(found)
-			s.Require().Equal(expIndex, index)
 
 			// Confirm that the LastEthereumNonce has been incremented by 1
 			actualNonce, found := s.App.BridgeKeeper.GetLastEthereumNonce(s.Ctx())

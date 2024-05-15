@@ -8375,16 +8375,6 @@ paths:
                   as
 
                   transactions in the current block, plus any SupplyDelta.
-              num_special_txs:
-                type: string
-                format: uint64
-                description: >-
-                  num_special_txs is the number of special transactions injected
-                  as
-
-                  transactions in the current block. This includes MsgIndex,
-
-                  MsgDepositFromEthereum, and MsgSupplyDelta.
               new_ethereum_block:
                 type: boolean
                 description: >-
@@ -12812,13 +12802,6 @@ definitions:
         description: |-
           num_injected_events is the number of Ethereum events injected as
           transactions in the current block, plus any SupplyDelta.
-      num_special_txs:
-        type: string
-        format: uint64
-        description: |-
-          num_special_txs is the number of special transactions injected as
-          transactions in the current block. This includes MsgIndex,
-          MsgDepositFromEthereum, and MsgSupplyDelta.
       new_ethereum_block:
         type: boolean
         description: >-

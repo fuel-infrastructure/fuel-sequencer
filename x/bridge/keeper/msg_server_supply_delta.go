@@ -54,11 +54,6 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 		return nil, err
 	}
 
-	// We've processed a special transaction
-	index := k.MustGetIndex(ctx)
-	index.NumSpecialTxsExec += 1
-	k.SetIndex(ctx, index)
-
 	return &types.MsgSupplyDeltaResponse{
 		Nonce:       nonce,
 		SupplyDelta: supplyDelta,

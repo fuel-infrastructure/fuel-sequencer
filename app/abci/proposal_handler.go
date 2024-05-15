@@ -271,15 +271,6 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Check if we expect MsgSupplyDelta
-		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
-		if supplyDeltaPeriod == 0 {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"SupplyDeltaPeriod cannot be zero",
-			)
-		}
-		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
-
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
@@ -356,7 +347,15 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
+		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
+		if supplyDeltaPeriod == 0 {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"SupplyDeltaPeriod cannot be zero",
+			)
+		}
+
 		// Check that MsgSupplyDelta was injected correctly if expected
+		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 		if expectMsgSupplyDelta {
 			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedTxs)
 			if err != nil {
@@ -446,7 +445,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	msgIndex = &bridgetypes.MsgIndex{
 		Authority:        h.bridgeKeeper.GetAuthority(),
 		NumInjectedTxs:   uint64(len(eventTxs)),
-		NumSpecialTxs:    0, // let's go with 0 for now until we have more information
 		NewEthereumBlock: h.getNewEthereumBlock(sidecarErr),
 		BlockNumber:      blockNumber,
 	}

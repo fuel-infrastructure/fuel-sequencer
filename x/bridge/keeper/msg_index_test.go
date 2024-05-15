@@ -82,8 +82,6 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			s.Require().True(found)
 			s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg.NumInjectedTxs)
 			s.Require().EqualValues(index.NumInjectedTxsAnte, 0)
-			s.Require().EqualValues(index.NumSpecialTxsTotal, tc.msg.NumSpecialTxs)
-			s.Require().EqualValues(index.NumSpecialTxsExec, 1)
 
 			// Check LastEthereumBlockSynced
 			lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())
@@ -388,8 +386,6 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 				s.Require().True(found)
 				s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg[i].NumInjectedTxs)
 				s.Require().EqualValues(index.NumInjectedTxsAnte, 0)
-				s.Require().EqualValues(index.NumSpecialTxsTotal, tc.msg[i].NumSpecialTxs)
-				s.Require().EqualValues(index.NumSpecialTxsExec, 1)
 
 				// Check LastEthereumBlockSynced
 				lastBlock, found := s.App.BridgeKeeper.GetLastEthereumBlockSynced(s.Ctx())

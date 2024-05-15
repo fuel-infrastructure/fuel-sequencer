@@ -71,7 +71,6 @@ func TestMsgIndex_Equal(t *testing.T) {
 				MsgIndex: &types.MsgIndex{
 					Authority:        testtypes.TestGovernanceAddress,
 					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NumSpecialTxs:    3, // 1 index, 2 deposits
 					NewEthereumBlock: true,
 					BlockNumber:      1,
 				},
@@ -94,7 +93,6 @@ func TestMsgIndex_Equal(t *testing.T) {
 				MsgIndex: &types.MsgIndex{
 					Authority:        testtypes.TestGovernanceAddress,
 					NumInjectedTxs:   2,
-					NumSpecialTxs:    3, // 1 index, 2 deposits
 					NewEthereumBlock: true,
 					BlockNumber:      1,
 				},
@@ -103,28 +101,12 @@ func TestMsgIndex_Equal(t *testing.T) {
 			expErrMsg: "number of injected txs (3) != (2)",
 		},
 		{
-			name:     "Unequal MsgIndex - number of injected txs is different",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: &types.MsgIndex{
-					Authority:        testtypes.TestGovernanceAddress,
-					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NumSpecialTxs:    0,
-					NewEthereumBlock: true,
-					BlockNumber:      1,
-				},
-				Events: []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
-			},
-			expErrMsg: "number of special txs (3) != (0)",
-		},
-		{
 			name:     "Unequal MsgIndex - NewEthereumBlock is different",
 			eventTx1: &testtypes.TestMsgIndex,
 			eventTx2: &testtypes.TestMsgIndexWithEvents{
 				MsgIndex: &types.MsgIndex{
 					Authority:        testtypes.TestGovernanceAddress,
 					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NumSpecialTxs:    3, // 1 index, 2 deposits
 					NewEthereumBlock: false,
 					BlockNumber:      1,
 				},
@@ -139,7 +121,6 @@ func TestMsgIndex_Equal(t *testing.T) {
 				MsgIndex: &types.MsgIndex{
 					Authority:        testtypes.TestGovernanceAddress,
 					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NumSpecialTxs:    3, // 1 index, 2 deposits
 					NewEthereumBlock: true,
 					BlockNumber:      0,
 				},
@@ -154,7 +135,6 @@ func TestMsgIndex_Equal(t *testing.T) {
 				MsgIndex: &types.MsgIndex{
 					Authority:        "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
 					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NumSpecialTxs:    3, // 1 index, 2 deposits
 					NewEthereumBlock: true,
 					BlockNumber:      1,
 				},

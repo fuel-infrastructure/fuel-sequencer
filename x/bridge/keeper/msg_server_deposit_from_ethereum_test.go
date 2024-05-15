@@ -202,19 +202,10 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			// Get the message server
 			msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
 
-			// Set a blank index
-			s.App.BridgeKeeper.SetIndex(s.Ctx(), types.Index{})
-
 			for _, msg := range tc.msgs {
 				_, err = msgServer.DepositFromEthereum(s.Ctx(), msg)
 				s.Require().NoError(err)
 			}
-
-			// Ensure NumSpecialTxsExec incremented
-			expIndex := types.Index{NumSpecialTxsExec: uint64(len(tc.msgs))}
-			index, found := s.App.BridgeKeeper.GetIndex(s.Ctx())
-			s.Require().True(found)
-			s.Require().Equal(expIndex, index)
 
 			// Confirm that the balances were changed as specified. This indicates that the AuthorizedEvents were
 			// executed successfully

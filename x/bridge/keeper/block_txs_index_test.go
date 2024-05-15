@@ -15,8 +15,6 @@ func createTestIndex(keeper keeper.Keeper, ctx context.Context) types.Index {
 	item := types.Index{
 		NumInjectedTxsTotal: 2,
 		NumInjectedTxsAnte:  1,
-		NumSpecialTxsTotal:  4,
-		NumSpecialTxsExec:   3,
 	}
 	keeper.SetIndex(ctx, item)
 	return item

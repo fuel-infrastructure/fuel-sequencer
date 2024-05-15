@@ -34,7 +34,6 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
 	encodedMsgIndexWithEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndex)
-	encodedMsgIndexWithEventsPlusSupplyDelta := s.EncodeMsgIndex(&testtypes.TestMsgIndexPlusSupplyDelta)
 	encodedMsgIndexPartialBlock := s.EncodeMsgIndex(&testtypes.TestMsgIndexPartial)
 	encodedMsgIndexWithoutEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndexWithoutEvents)
 	encodedMsgIndexSidecarErr := s.EncodeMsgIndex(&testtypes.TestMsgIndexSidecarErr)
@@ -85,7 +84,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithEventsPlusSupplyDelta,
+					encodedMsgIndexWithEvents,
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
@@ -468,7 +467,6 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
 	encodedMsgIndexWithEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndex)
-	encodedMsgIndexWithEventsPlusSupplyDelta := s.EncodeMsgIndex(&testtypes.TestMsgIndexPlusSupplyDelta)
 	encodedMsgIndexWithDifferentEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndexWithDifferentEvents)
 	encodedMsgIndexPartialBlock := s.EncodeMsgIndex(&testtypes.TestMsgIndexPartial)
 	encodedMsgIndexWithEventsReduced := s.EncodeMsgIndex(&testtypes.TestMsgIndexReduced)
@@ -478,33 +476,26 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
 	validTxsWithEvents := append(
-		encodedMsgIndexWithEvents,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithEventsWithMissingSupplyDelta := append(
-		encodedMsgIndexWithEventsPlusSupplyDelta,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithDifferentEvents := append(
-		encodedMsgIndexWithDifferentEvents,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithDifferentEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsPartialBlock := encodedMsgIndexPartialBlock
 	validTxsWithEventsReduced := append(
-		encodedMsgIndexWithEventsReduced,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEventsReduced, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithEventsAndSupplyDelta := append(
-		encodedMsgIndexWithEventsPlusSupplyDelta, msgSupplyDeltaTx,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithoutEvents := append(
-		encodedMsgIndexWithoutEvents,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsSidecarErr := append(
-		encodedMsgIndexSidecarErr,
-		encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexSidecarErr, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 
 	four := uint64(4)
@@ -867,7 +858,12 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "block gas limit exceeded",
 		},
 		{
-			name: "returns error if SupplyDeltaPeriod is zero",
+			name:                      "returns error if SupplyDeltaPeriod is zero",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
@@ -1012,8 +1008,3 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		})
 	}
 }
-
-// TODO: remove this line
-// TestPreBlockerMsgIndexHandling_SingleTransaction MOVED TO TestMsgIndex_SingleTransaction
-// TODO: remove this line
-// TestPreBlockerMsgIndexHandling_Combinations MOVED TO TestMsgIndex_Combinations

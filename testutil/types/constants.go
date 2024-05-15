@@ -229,18 +229,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   uint64(len(TestEvents)),
-			NumSpecialTxs:    3, // 1 index, 2 deposits
-			NewEthereumBlock: true,
-			BlockNumber:      1,
-		},
-		Events: TestEvents,
-	}
-
-	TestMsgIndexPlusSupplyDelta = TestMsgIndexWithEvents{
-		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   uint64(len(TestEvents)),
-			NumSpecialTxs:    4, // 1 index, 2 deposits, 1 supply delta
 			NewEthereumBlock: true,
 			BlockNumber:      1,
 		},
@@ -251,7 +239,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   uint64(len(TestEventsDifferent)),
-			NumSpecialTxs:    3, // 1 index, 2 deposits
 			NewEthereumBlock: true,
 			BlockNumber:      1,
 		},
@@ -262,7 +249,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   uint64(len(TestEventsReduced)),
-			NumSpecialTxs:    2, // 1 index, 1 deposit
 			NewEthereumBlock: true,
 			BlockNumber:      1,
 		},
@@ -273,7 +259,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   uint64(len(TestEventsReduced)),
-			NumSpecialTxs:    2,     // 1 index, 1 deposits
 			NewEthereumBlock: false, // block was partially consumed
 			BlockNumber:      1,
 		},
@@ -284,7 +269,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   0,
-			NumSpecialTxs:    1, // 1 index
 			NewEthereumBlock: true,
 			BlockNumber:      1,
 		},
@@ -295,7 +279,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   0,
-			NumSpecialTxs:    1, // 1 index
 			NewEthereumBlock: false,
 			BlockNumber:      1,
 		},
@@ -306,7 +289,6 @@ var (
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:        TestGovernanceAddress,
 			NumInjectedTxs:   0,
-			NumSpecialTxs:    1, // 1 index
 			NewEthereumBlock: false,
 			BlockNumber:      1,
 		},

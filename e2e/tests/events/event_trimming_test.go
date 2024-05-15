@@ -43,7 +43,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 			Sender: testsuite.ETH_ADDRESSES[0],
 			Data:   msgSendBz,
 		}
-		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc)
+		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
 		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
 		s.Require().NoError(err)
