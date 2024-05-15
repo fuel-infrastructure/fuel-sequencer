@@ -182,9 +182,14 @@ func (am AppModule) EndBlock(goCtx context.Context) error {
 	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
 
 	// It is important to check that EthEventsTxIndex was set during the block, indicating EthEventsTx was processed.
-	_, found = am.keeper.GetEthEventsTxIndex(ctx)
+	index, found := am.keeper.GetEthEventsTxIndex(ctx)
 	if !found {
 		return fmt.Errorf("expected to find EthEventsTxIndex at the end of the block")
+	}
+
+	// Also important to check that we've consumed all the transactions.
+	if index.NumUnhandledEventTxs != 0 {
+		return fmt.Errorf("expected num unhandled event transactions to be zero; found %d", index.NumUnhandledEventTxs)
 	}
 
 	// Remove EthEventsTxIndex in preparation for next block, since the AnteHandler uses this to detect the EthEventsTx.
