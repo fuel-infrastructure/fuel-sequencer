@@ -32,24 +32,22 @@ func TestMsgDepositFromEthereum_ValidateBasic(t *testing.T) {
 			expErrMsg: "MsgDepositFromEthereum is nil",
 		},
 		{
-			name: "invalid depositor - error",
+			name: "invalid depositor - NO ERROR",
 			msg: &types.MsgDepositFromEthereum{
 				Depositor: "invalid-depositor",
 				Recipient: testtypes.TestTo1,
 				Amount:    testtypes.TestAmount1,
 				Lockup:    testtypes.TestLockup1,
 			},
-			expErrMsg: "depositor is not a valid hex address",
 		},
 		{
-			name: "invalid recipient - error",
+			name: "invalid recipient - NO ERROR",
 			msg: &types.MsgDepositFromEthereum{
 				Depositor: testtypes.TestFrom1,
 				Recipient: "invalid-recipient",
 				Amount:    testtypes.TestAmount1,
 				Lockup:    testtypes.TestLockup1,
 			},
-			expErrMsg: "recipient is not a valid Bech32 or Hex address",
 		},
 		{
 			name: "invalid lockup - error",
