@@ -8,7 +8,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *KeeperTestSuite) TestSetEthEventTxsInfo_SingleTransaction() {
+func (s *KeeperTestSuite) TestSetEthEventTxsIndex_SingleTransaction() {
 	encodedEthEventsTxWithEvents := *testtypes.TestEthEventsTx.EthEventsTx
 	encodedEthEventsTxPartialBlock := *testtypes.TestEthEventsTxPartial.EthEventsTx
 	encodedEthEventsTxWithoutEvents := *testtypes.TestEthEventsTxWithoutEvents.EthEventsTx
@@ -21,6 +21,7 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_SingleTransaction() {
 
 	testCases := []struct {
 		name                            string
+		setEthEventsTxIndex             *types.EthEventsTxIndex
 		ethEventsTx                     types.EthEventsTx
 		expectNewBlock                  bool
 		expectEthereumEventsIndexOffset uint64
@@ -49,6 +50,20 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_SingleTransaction() {
 			expectNewBlock:                  false,
 			expectEthereumEventsIndexOffset: testtypes.TestEthEventsTxPartial.NumInjectedEvents,
 		},
+		{
+			name:                            "EthEventsTx with partial events => no new block but offset updated",
+			ethEventsTx:                     encodedEthEventsTxPartialBlock,
+			expectNewBlock:                  false,
+			expectEthereumEventsIndexOffset: testtypes.TestEthEventsTxPartial.NumInjectedEvents,
+		},
+		{
+			name: "failure if EthEventsTxIndex already exists",
+			setEthEventsTxIndex: &types.EthEventsTxIndex{
+				NumUnhandledEventTxs: 2,
+			},
+			ethEventsTx:  encodedEthEventsTxWithEvents,
+			expectErrMsg: "MsgSetEthEventTxsIndex was already processed",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -58,7 +73,12 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_SingleTransaction() {
 			// Get the message server
 			msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
 
-			_, err := msgServer.SetEthEventTxsInfo(s.Ctx().WithBlockTime(testBlockTime), &tc.ethEventsTx)
+			// Set EthEventsTxIndex
+			if tc.setEthEventsTxIndex != nil {
+				s.App.BridgeKeeper.SetEthEventsTxIndex(s.Ctx(), *tc.setEthEventsTxIndex)
+			}
+
+			_, err := msgServer.SetEthEventTxsIndex(s.Ctx().WithBlockTime(testBlockTime), &tc.ethEventsTx)
 			if tc.expectErrMsg != "" {
 				s.Require().ErrorContains(err, tc.expectErrMsg)
 				return
@@ -97,7 +117,7 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_SingleTransaction() {
 	}
 }
 
-func (s *KeeperTestSuite) TestSetEthEventTxsInfo_Combinations() {
+func (s *KeeperTestSuite) TestSetEthEventTxsIndex_Combinations() {
 
 	ethEventsTxWithEvents1 := *testtypes.TestEthEventsTx.EthEventsTx
 	ethEventsTxPartialBlock1 := *testtypes.TestEthEventsTxPartial.EthEventsTx
@@ -356,7 +376,7 @@ func (s *KeeperTestSuite) TestSetEthEventTxsInfo_Combinations() {
 
 			for i := 0; i < len(tc.ethEventsTx); i++ {
 
-				_, err := msgServer.SetEthEventTxsInfo(s.Ctx().WithBlockTime(tc.blockTime[i]), &tc.ethEventsTx[i])
+				_, err := msgServer.SetEthEventTxsIndex(s.Ctx().WithBlockTime(tc.blockTime[i]), &tc.ethEventsTx[i])
 				if tc.expectErrMsg != nil && tc.expectErrMsg[i] != "" {
 					s.Require().ErrorContains(err, tc.expectErrMsg[i])
 					return

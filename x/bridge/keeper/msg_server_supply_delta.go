@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
-	"cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -22,8 +22,8 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 
 	// Confirm that the msg signer is the bridge module's authority address (governance).
 	if k.GetAuthority() != msg.Authority {
-		return nil, errors.Wrapf(
-			types.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
+		return nil, types.ErrInvalidSigner.Wrapf(
+			"invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
 		)
 	}
 
@@ -31,15 +31,21 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	// which a MsgSupplyDelta is to be sent.
 	supplyDeltaPeriod := k.GetParams(ctx).SupplyDeltaPeriod
 	if supplyDeltaPeriod == 0 {
-		return nil, errors.Wrapf(types.ErrInvalidSupplyDeltaPeriod, "SupplyDeltaPeriod cannot be zero")
+		return nil, types.ErrInvalidSupplyDeltaPeriod.Wrapf("SupplyDeltaPeriod cannot be zero")
 	}
 
 	// Confirm that MsgSupplyDelta was injected at the correct height.
 	blockHeight := ctx.BlockHeight()
 	if (uint64(blockHeight) % supplyDeltaPeriod) != 0 {
-		return nil, errors.Wrapf(
-			types.ErrUnexpectedOperation, "MsgSupplyDelta cannot be submitted at height %d", blockHeight,
+		return nil, types.ErrUnexpectedOperation.Wrapf(
+			"MsgSupplyDelta not expected at height %d", blockHeight,
 		)
+	}
+
+	// MsgSupplyDelta will be rejected if we have already processed a MsgSupplyDeltaTx. Here we are assuming that
+	// module initiated MsgSupplyDeltaTxs are always first of their kind in the block proposal.
+	if k.MustGetSupplyDeltaProcessed(ctx).Processed {
+		return nil, errors.New("MsgSupplyDelta already processed")
 	}
 
 	// Increment LastEthereumNonce and get the result so that it is added to MsgSupplyDeltaResponse.
@@ -52,7 +58,7 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	// If the supply delta is zero, then there is either nothing to report to Ethereum or MsgSupplyDelta was submitted
 	// at a valid height by a user. We should fail in both scenarios.
 	if supplyDelta.IsZero() {
-		return nil, errors.Wrapf(types.ErrInvalidSupplyDeltaValue, "cannot report 0 supply delta to Ethereum")
+		return nil, types.ErrInvalidSupplyDeltaValue.Wrapf("cannot report 0 supply delta to Ethereum")
 	}
 
 	// Reset SupplyDeltaInfo

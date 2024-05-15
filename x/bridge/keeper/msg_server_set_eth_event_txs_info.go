@@ -21,6 +21,12 @@ func (k msgServer) SetEthEventTxsIndex(goCtx context.Context, msg *types.EthEven
 		return nil, fmt.Errorf("eth events tx validation failed: %w", err)
 	}
 
+	// It is very important to check that the index does not exist, to ensure that this message is not user-initiated.
+	_, found := k.GetEthEventsTxIndex(ctx)
+	if found {
+		return nil, fmt.Errorf("MsgSetEthEventTxsIndex was already processed")
+	}
+
 	// It is very important to set the index, so the AnteHandler knows that we've processed the EthEventsTx.
 	k.SetEthEventsTxIndex(ctx, types.EthEventsTxIndex{
 		NumUnhandledEventTxs: msg.NumInjectedEvents,

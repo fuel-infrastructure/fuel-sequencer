@@ -10,13 +10,14 @@ import (
 
 func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 	testCases := []struct {
-		name              string
-		supplyDeltaPeriod uint64
-		lastEthereumNonce sdk.Int
-		supplyDeltaInfo   bridgetypes.SupplyDeltaInfo
-		chainHeight       int64
-		msg               *bridgetypes.MsgSupplyDelta
-		expErrMsg         string
+		name                 string
+		supplyDeltaPeriod    uint64
+		lastEthereumNonce    sdk.Int
+		supplyDeltaInfo      bridgetypes.SupplyDeltaInfo
+		supplyDeltaProcessed bridgetypes.SupplyDeltaProcessed
+		chainHeight          int64
+		msg                  *bridgetypes.MsgSupplyDelta
+		expErrMsg            string
 	}{
 		{
 			name:              "valid MsgSupplyDelta - block height equals period",
@@ -47,7 +48,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expErrMsg: "MsgSupplyDelta cannot be submitted at height 101",
+			expErrMsg: "MsgSupplyDelta not expected at height 101",
 		},
 		{
 			name:              "invalid MsgSupplyDelta - invalid authority",
@@ -95,6 +96,18 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 				bridgetypes.ErrInvalidSupplyDeltaValue, "cannot report 0 supply delta to Ethereum",
 			).Error(),
 		},
+		{
+			name:                 "invalid MsgSupplyDelta - SupplyDelta already processed",
+			supplyDeltaPeriod:    testtypes.TestSupplyDeltaPeriod,
+			lastEthereumNonce:    testtypes.TestLastEthereumNonce,
+			supplyDeltaInfo:      testtypes.TestSupplyDeltaInfo,
+			supplyDeltaProcessed: bridgetypes.SupplyDeltaProcessed{Processed: true},
+			chainHeight:          int64(testtypes.TestSupplyDeltaPeriod),
+			msg: &bridgetypes.MsgSupplyDelta{
+				Authority: testtypes.TestGovernanceAddress,
+			},
+			expErrMsg: "MsgSupplyDelta already processed",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -112,6 +125,9 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 
 			// Set the supply delta info
 			s.App.BridgeKeeper.SetSupplyDeltaInfo(s.Ctx(), tc.supplyDeltaInfo)
+
+			// Set supply delta processed
+			s.App.BridgeKeeper.SetSupplyDeltaProcessed(s.Ctx(), tc.supplyDeltaProcessed)
 
 			// Fast-forward the chain so that MsgSupplyDelta is executed at the desired height
 			msgSupplyDeltaCtx := s.Ctx().WithBlockHeight(tc.chainHeight)
