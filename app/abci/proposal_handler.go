@@ -409,7 +409,7 @@ func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) boo
 }
 
 // generateEthEventsTx generates an EthEventsTx based on the response of the sidecar. It returns an error if the events
-// returned from the sidecar don't pass validation.
+// returned from the sidecar don't pass validation. Returned errors have the capability of halting block production.
 func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
@@ -430,14 +430,12 @@ func (h *FuelSequencerProposalHandler) generateEthEventsTx(
 
 		err = event.Validate(ethereumProxyContractAddress)
 		if err != nil {
-			h.logger.Error("event is not valid", "event", event.String(), "err", err)
-			continue
+			return nil, nil, fmt.Errorf("encountered invalid event with err %s; event: %s", err.Error(), event)
 		}
 
 		eventTx, err := event.RawTxBytes(h.cdc)
 		if err != nil {
-			h.logger.Error("could not get raw tx bytes from event", "event", event.String(), "err", err)
-			continue
+			return nil, nil, fmt.Errorf("failed to get raw tx bytes with err %s; event: %s", err.Error(), event)
 		}
 
 		eventTxs = append(eventTxs, eventTx)
