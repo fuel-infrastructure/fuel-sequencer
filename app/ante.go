@@ -29,8 +29,8 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		NewEthEventsTxDecorator(bridgeKeeper),
-		NewEthEventTxsDecorator(bridgeKeeper),
+		NewMsgSetEthEventTxsInfoDecorator(bridgeKeeper),
+		NewInjectedEventTxsDecorator(bridgeKeeper),
 		NewMsgSupplyDeltaDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
@@ -47,19 +47,19 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 
-type EthEventsTxDecorator struct {
+type MsgSetEthEventTxsInfoDecorator struct {
 	bridgeKeeper bridgekeeper.Keeper
 }
 
-func NewEthEventsTxDecorator(bridgeKeeper bridgekeeper.Keeper) EthEventsTxDecorator {
-	return EthEventsTxDecorator{
+func NewMsgSetEthEventTxsInfoDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSetEthEventTxsInfoDecorator {
+	return MsgSetEthEventTxsInfoDecorator{
 		bridgeKeeper: bridgeKeeper,
 	}
 }
 
 // AnteHandle implements the AnteHandler decorator for EthEventsTx. If an error is returned from AnteHandle during
 // CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
-func (d EthEventsTxDecorator) AnteHandle(
+func (d MsgSetEthEventTxsInfoDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
 
@@ -98,19 +98,19 @@ func (d EthEventsTxDecorator) AnteHandle(
 	return ctx, nil
 }
 
-type EthEventTxsDecorator struct {
+type InjectedEventTxsDecorator struct {
 	bridgeKeeper bridgekeeper.Keeper
 }
 
-func NewEthEventTxsDecorator(bridgeKeeper bridgekeeper.Keeper) EthEventTxsDecorator {
-	return EthEventTxsDecorator{
+func NewInjectedEventTxsDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedEventTxsDecorator {
+	return InjectedEventTxsDecorator{
 		bridgeKeeper: bridgeKeeper,
 	}
 }
 
 // AnteHandle implements the AnteHandler decorator for Ethereum event transactions. If an error is returned from
 // AnteHandle during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
-func (d EthEventTxsDecorator) AnteHandle(
+func (d InjectedEventTxsDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
 
