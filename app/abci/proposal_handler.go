@@ -78,6 +78,11 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, errors.New("SupplyDeltaPeriod cannot be zero")
 		}
 
+		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get blocked addresses: %w", err)
+		}
+
 		// Inject MsgSupplyDeltaTx if expected at current height
 		injectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 		supplyDeltaBytesSize := int64(0)
@@ -114,7 +119,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
+			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedAddresses,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex: %w", err)
@@ -240,6 +245,13 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
+		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+
+		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get blocked addresses: %w", err)
+		}
+
 		// Expect that the first transaction is always a valid transaction containing MsgIndex.
 		injectedMsgIndexUnparsed, err := h.txVerifier.TxDecode(req.Txs[0])
 		if err != nil {
@@ -260,7 +272,6 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
 		// for a while.
 		lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
-		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 		ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
 		if !injectedMsgIndex.NewEthereumBlock && ethSyncDelayExceeded {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -296,7 +307,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Generate the MsgIndex that should be included at index 0 in the block proposal
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, bridgeParams.EthereumProxyContractAddress,
+			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedAddresses,
 		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -414,7 +425,8 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
-	ethereumProxyContractAddress string,
+	params *bridgetypes.Params,
+	blockedAddresses map[string]bool,
 ) (msgIndex *bridgetypes.MsgIndex, eventTxs [][]byte, err error) {
 
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
@@ -428,17 +440,26 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	// If an event is not valid for any reason, we have to skip it since there might be something suspicious.
 	for _, event := range events {
 
-		err = event.Validate(ethereumProxyContractAddress)
+		err = event.Validate(params.EthereumProxyContractAddress)
 		if err != nil {
 			return nil, nil, fmt.Errorf("encountered invalid event with err: %s; event: %s", err.Error(), event)
 		}
 
 		eventTx, err := event.RawTxBytes(h.cdc, h.bridgeKeeper.GetAuthority())
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get raw tx bytes with err: %s; event: %s", err.Error(), event)
+			return nil, nil, fmt.Errorf("failed to get messages with err: %s; event: %s", err.Error(), event)
 		}
 
-		eventTxs = append(eventTxs, eventTx)
+		authenticated, err := h.AuthenticateEvent(event, eventTx, params, blockedAddresses)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to check authorization: %s; event: %s", err.Error(), event)
+		}
+
+		if authenticated {
+			eventTxs = append(eventTxs, eventTx)
+		} else {
+			h.logger.Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+		}
 	}
 
 	// Generate MsgIndex based on the number of injected events.

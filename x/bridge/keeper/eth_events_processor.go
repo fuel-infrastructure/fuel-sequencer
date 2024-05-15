@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -162,55 +161,4 @@ func (k Keeper) mintToGovernanceAddress(
 	}
 
 	k.Logger().Warn("minted bridge tokens to governance address", "amount", tokenToMint.Amount)
-}
-
-// authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
-func (k Keeper) authenticateTx(
-	sender string, msgs []sdk.Msg, params *types.Params, blockedAddresses map[string]bool,
-) error {
-
-	// Generate the Sequencer address from the Ethereum address
-	mappedSequencerAddr, err := k.GenerateSequencerAddressFromEthereumAddress(sender)
-	if err != nil {
-		return types.ErrCouldNotGenerateSequencerAddress.Wrapf("%v", err)
-	}
-
-	for _, msg := range msgs {
-
-		// Check that the message is authorized
-		if !params.IsAuthorizedMessage(msg) {
-			return types.ErrMsgNotAuthorizedOnSequencer.Wrapf("%s", sdk.MsgTypeURL(msg))
-		}
-
-		// Obtain the message signers using the proto signer annotations
-		protoCodec, ok := k.cdc.(*codec.ProtoCodec)
-		if !ok {
-			return types.ErrCodecIsNotSupported.Wrap(types.ErrStrOnlyProtoCodecAllowed)
-		}
-		signers, _, err := protoCodec.GetMsgV1Signers(msg)
-		if err != nil {
-			return types.ErrFailedToObtainMsgSigners.Wrapf("msg %s, err %v", sdk.MsgTypeURL(msg), err)
-		}
-
-		for _, signer := range signers {
-
-			// Make sure that the message signer is equivalent to the mapped Sequencer address of the
-			// sender on Ethereum. We also make sure that the signer is not part of a list of blocked addresses.
-			signerAddress := sdk.AccAddress(signer).String()
-			if mappedSequencerAddr.String() != signerAddress {
-				return types.ErrInvalidSigner.Wrapf(
-					"expected %s, got %s", mappedSequencerAddr.String(), signerAddress,
-				)
-			}
-
-			// Check if signer is a blocked address.
-			if blockedAddresses[signerAddress] {
-				return types.ErrInvalidSigner.Wrapf(
-					"signer %s is a blocked address ", signerAddress,
-				)
-			}
-		}
-	}
-
-	return nil
 }

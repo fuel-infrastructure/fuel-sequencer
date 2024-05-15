@@ -403,10 +403,11 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				s.App.BridgeKeeper.SetEthereumEventIndexOffset(s.Ctx(), *tc.setEthereumEventIndexOffset)
 			}
 
-			// Set SupplyDeltaPeriod and EthereumProxyContractAddress
+			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(
 				s.Ctx(),
 				bridgetypes.Params{
+					AuthorizeMessagesAllowed:     []string{bridgetypes.AllowAllAuthorizeMessages},
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
 				},
@@ -952,10 +953,11 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				s.App.BridgeKeeper.SetLastEthBlockUpdateTime(s.Ctx(), testLastEthBlockUpdate)
 			}
 
-			// Set SupplyDeltaPeriod and EthereumProxyContractAddress
+			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(
 				s.Ctx(),
 				bridgetypes.Params{
+					AuthorizeMessagesAllowed:     []string{bridgetypes.AllowAllAuthorizeMessages},
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
 					MaxEthBlockUpdateDelay:       testMaxEthBlockUpdateDelay,
