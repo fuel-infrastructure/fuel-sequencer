@@ -79,7 +79,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Skip:      true, // skipped because generated through consensus
 				},
 				{
-					RpcMethod: "SetEthEventTxsInfo",
+					RpcMethod: "SetEthEventTxsIndex",
 					Skip:      true, // skipped because generated through consensus
 				},
 				// this line is used by ignite scaffolding # autocli/tx

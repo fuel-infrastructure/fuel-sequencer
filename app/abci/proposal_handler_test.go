@@ -1008,6 +1008,6 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 }
 
 // TODO: remove this line
-// TestPreBlockerEthEventsTxHandling_SingleTransaction MOVED TO TestSetEthEventTxsInfo_SingleTransaction
+// TestPreBlockerEthEventsTxHandling_SingleTransaction MOVED TO TestSetEthEventTxsIndex_SingleTransaction
 // TODO: remove this line
-// TestPreBlockerEthEventsTxHandling_Combinations MOVED TO TestSetEthEventTxsInfo_Combinations
+// TestPreBlockerEthEventsTxHandling_Combinations MOVED TO TestSetEthEventTxsIndex_Combinations

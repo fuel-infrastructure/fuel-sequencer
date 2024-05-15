@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgSetEthEventTxsInfo_ValidateBasic(t *testing.T) {
+func TestMsgSetEthEventTxsIndex_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
 		msg  types.EthEventsTx

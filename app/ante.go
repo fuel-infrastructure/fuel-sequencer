@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -15,21 +14,21 @@ import (
 
 func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keeper) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
+		return nil, sdkerrors.ErrLogic.Wrap("account keeper is required for ante builder")
 	}
 
 	if options.BankKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "bank keeper is required for ante builder")
+		return nil, sdkerrors.ErrLogic.Wrap("bank keeper is required for ante builder")
 	}
 
 	if options.SignModeHandler == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
+		return nil, sdkerrors.ErrLogic.Wrap("sign mode handler is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		NewMsgSetEthEventTxsInfoDecorator(bridgeKeeper),
+		NewMsgSetEthEventTxsIndexDecorator(bridgeKeeper),
 		NewInjectedEventTxsDecorator(bridgeKeeper),
 		NewMsgSupplyDeltaDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
@@ -47,19 +46,19 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 
-type MsgSetEthEventTxsInfoDecorator struct {
+type MsgSetEthEventTxsIndexDecorator struct {
 	bridgeKeeper bridgekeeper.Keeper
 }
 
-func NewMsgSetEthEventTxsInfoDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSetEthEventTxsInfoDecorator {
-	return MsgSetEthEventTxsInfoDecorator{
+func NewMsgSetEthEventTxsIndexDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSetEthEventTxsIndexDecorator {
+	return MsgSetEthEventTxsIndexDecorator{
 		bridgeKeeper: bridgeKeeper,
 	}
 }
 
-// AnteHandle implements the AnteHandler decorator for MsgSetEthEventTxsInfo. If an error is returned from AnteHandle
+// AnteHandle implements the AnteHandler decorator for MsgSetEthEventTxsIndex. If an error is returned from AnteHandle
 // during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
-func (d MsgSetEthEventTxsInfoDecorator) AnteHandle(
+func (d MsgSetEthEventTxsIndexDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
 
@@ -197,7 +196,7 @@ func (d MsgSupplyDeltaDecorator) AnteHandle(
 	// MsgSupplyDelta will be rejected if we have already processed a MsgSupplyDeltaTx. Here we are assuming that
 	// module initiated MsgSupplyDeltaTxs are always first of their kind in the block proposal.
 	if d.bridgeKeeper.MustGetSupplyDeltaProcessed(ctx).Processed {
-		return ctx, errors.New("MsgSupplyDelta already processed in block proposal")
+		return ctx, errors.New("MsgSupplyDelta already processed")
 	}
 
 	// Reset the gas meter to its original state. We can't use defer because this doesn't work well with decorators.

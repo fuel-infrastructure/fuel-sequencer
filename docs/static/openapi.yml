@@ -8325,14 +8325,14 @@ paths:
                   also preserved. This can be zero if no duration is specified.
       tags:
         - Msg
-  /fuelsequencer.bridge.v1.Msg/SetEthEventTxsInfo:
+  /fuelsequencer.bridge.v1.Msg/SetEthEventTxsIndex:
     post:
       summary: >-
-        SetEthEventTxsInfo defines an operation for setting information about
+        SetEthEventTxsIndex defines an operation for setting information about
 
         injected transactions, specifically ones originating from Ethereum
         events.
-      operationId: FuelsequencerBridgeV1Msg_SetEthEventTxsInfo
+      operationId: FuelsequencerBridgeV1Msg_SetEthEventTxsIndex
       responses:
         '200':
           description: A successful response.
@@ -8389,7 +8389,7 @@ paths:
                   when
 
                   LastEthereumBlockSynced should be incremented by
-                  MsgSetEthEventTxsInfo. If
+                  MsgSetEthEventTxsIndex. If
 
                   false but the events list is not empty, the block was
                   partially consumed.
@@ -12820,7 +12820,7 @@ definitions:
           fully consumed by the Sequencer. This is needed to determine when
 
           LastEthereumBlockSynced should be incremented by
-          MsgSetEthEventTxsInfo. If
+          MsgSetEthEventTxsIndex. If
 
           false but the events list is not empty, the block was partially
           consumed.
@@ -12862,7 +12862,7 @@ definitions:
           also preserved. This can be zero if no duration is specified.
   fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse:
     type: object
-  fuelsequencer.bridge.v1.MsgSetEthEventTxsInfoResponse:
+  fuelsequencer.bridge.v1.MsgSetEthEventTxsIndexResponse:
     type: object
   fuelsequencer.bridge.v1.MsgSupplyDelta:
     type: object

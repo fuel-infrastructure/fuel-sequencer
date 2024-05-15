@@ -8,7 +8,7 @@ import (
 
 var _ sdk.Msg = &EthEventsTx{}
 
-func NewMsgSetEthEventTxsInfo(
+func NewMsgSetEthEventTxsIndex(
 	authority string, numInjectedEvents uint64, newEthereumBlock bool, blockNumber uint64,
 ) *EthEventsTx {
 	return &EthEventsTx{

@@ -8,7 +8,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) SetEthEventTxsInfo(goCtx context.Context, msg *types.EthEventsTx) (*types.MsgSetEthEventTxsInfoResponse, error) {
+func (k msgServer) SetEthEventTxsIndex(goCtx context.Context, msg *types.EthEventsTx) (*types.MsgSetEthEventTxsIndexResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	lastBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
@@ -38,5 +38,5 @@ func (k msgServer) SetEthEventTxsInfo(goCtx context.Context, msg *types.EthEvent
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 
-	return &types.MsgSetEthEventTxsInfoResponse{}, nil
+	return &types.MsgSetEthEventTxsIndexResponse{}, nil
 }

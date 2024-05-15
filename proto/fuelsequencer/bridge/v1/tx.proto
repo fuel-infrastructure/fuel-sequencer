@@ -31,9 +31,9 @@ service Msg {
   rpc DepositFromEthereum(MsgDepositFromEthereum)
       returns (MsgDepositFromEthereumResponse);
 
-  // SetEthEventTxsInfo defines an operation for setting information about
+  // SetEthEventTxsIndex defines an operation for setting information about
   // injected transactions, specifically ones originating from Ethereum events.
-  rpc SetEthEventTxsInfo(EthEventsTx) returns (MsgSetEthEventTxsInfoResponse);
+  rpc SetEthEventTxsIndex(EthEventsTx) returns (MsgSetEthEventTxsIndexResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -152,7 +152,7 @@ message EthEventsTx {
   // new_ethereum_block is a boolean which indicates whether a new Ethereum
   // block has been queried from the Sidecar and that the events from it were
   // fully consumed by the Sequencer. This is needed to determine when
-  // LastEthereumBlockSynced should be incremented by MsgSetEthEventTxsInfo. If
+  // LastEthereumBlockSynced should be incremented by MsgSetEthEventTxsIndex. If
   // false but the events list is not empty, the block was partially consumed.
   bool new_ethereum_block = 3;
 
@@ -161,4 +161,4 @@ message EthEventsTx {
   uint64 block_number = 4;
 }
 
-message MsgSetEthEventTxsInfoResponse {}
+message MsgSetEthEventTxsIndexResponse {}
