@@ -8,15 +8,21 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.MsgIndexResponse, error) {
+func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (resp *types.MsgIndexResponse, err error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Confirm that the msg signer is the bridge module's authority address (governance).
-	if k.GetAuthority() != msg.Authority {
-		return nil, types.ErrInvalidSigner.Wrapf(
-			"invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
-		)
-	}
+	err = k.TryExecSpecialMessage(ctx, msg.Authority, func(ctx sdk.Context) error {
+		var err error
+		if resp, err = k.index(ctx, msg); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return resp, err
+}
+
+func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexResponse, error) {
 
 	lastBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 	eventIndexOffset := k.MustGetEthereumEventIndexOffset(ctx)
