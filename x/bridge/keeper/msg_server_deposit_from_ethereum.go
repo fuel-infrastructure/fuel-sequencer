@@ -7,25 +7,15 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) DepositFromEthereum(
-	goCtx context.Context, msg *types.MsgDepositFromEthereum,
-) (resp *types.MsgDepositFromEthereumResponse, err error) {
+func (k msgServer) DepositFromEthereum(goCtx context.Context, msg *types.MsgDepositFromEthereum) (*types.MsgDepositFromEthereumResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err = k.TryExecSpecialMessage(ctx, msg.Authority, func(ctx sdk.Context) error {
-		var err error
-		if resp, err = k.depositFromEthereum(ctx, msg); err != nil {
-			return err
-		}
-		return nil
-	})
-
-	return resp, err
-}
-
-func (k msgServer) depositFromEthereum(
-	ctx sdk.Context, msg *types.MsgDepositFromEthereum,
-) (*types.MsgDepositFromEthereumResponse, error) {
+	// Confirm that the msg signer is the bridge module's authority address (governance).
+	if k.GetAuthority() != msg.Authority {
+		return nil, types.ErrInvalidSigner.Wrapf(
+			"invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
+		)
+	}
 
 	params := k.GetParams(ctx)
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)

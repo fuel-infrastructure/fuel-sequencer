@@ -7,23 +7,15 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) SupplyDelta(
-	goCtx context.Context, msg *types.MsgSupplyDelta,
-) (resp *types.MsgSupplyDeltaResponse, err error) {
+func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err = k.TryExecSpecialMessage(ctx, msg.Authority, func(ctx sdk.Context) error {
-		var err error
-		if resp, err = k.supplyDelta(ctx, msg); err != nil {
-			return err
-		}
-		return nil
-	})
-
-	return resp, err
-}
-
-func (k msgServer) supplyDelta(ctx sdk.Context, _ *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
+	// Confirm that the msg signer is the bridge module's authority address (governance).
+	if k.GetAuthority() != msg.Authority {
+		return nil, types.ErrInvalidSigner.Wrapf(
+			"invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
+		)
+	}
 
 	// Confirm that BridgeParams.SupplyDeltaPeriod is non-zero, otherwise we can't calculate the expected height at
 	// which a MsgSupplyDelta is to be sent.

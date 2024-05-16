@@ -8262,6 +8262,425 @@ paths:
               Since: cosmos-sdk 0.47
       tags:
         - Msg
+  /fuelsequencer.bridge.v1.Msg/DepositFromEthereum:
+    post:
+      summary: >-
+        DepositFromEthereum defines an operation for bridging tokens from
+        Ethereum.
+      operationId: FuelsequencerBridgeV1Msg_DepositFromEthereum
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: authority ensures that users cannot execute this message.
+              depositor:
+                type: string
+                title: the sending Ethereum address in hex format
+              recipient:
+                type: string
+                description: >-
+                  recipient address in hex or bech32 format. If the recipient is
+                  the null
+
+                  address, the Sequencer uses the depositor address as the
+                  recipient.
+              amount:
+                type: string
+                title: >-
+                  the amount sent encoded as string to prevent loss of
+                  precision. Sign is
+
+                  also preserved
+              lockup:
+                type: string
+                description: >-
+                  vesting duration encoded in string to prevent loss of
+                  precision. Sign is
+
+                  also preserved. This can be zero if no duration is specified.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.v1.Msg/Index:
+    post:
+      summary: |-
+        Index defines an operation for setting information about injected
+        transactions and special transactions.
+      operationId: FuelsequencerBridgeV1Msg_Index
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: authority ensures that users cannot execute this message.
+              num_injected_txs:
+                type: string
+                format: uint64
+                description: >-
+                  num_injected_events is the number of Ethereum events injected
+                  as
+
+                  transactions in the current block, plus any SupplyDelta.
+              new_ethereum_block:
+                type: boolean
+                description: >-
+                  new_ethereum_block is a boolean which indicates whether a new
+                  Ethereum
+
+                  block has been queried from the Sidecar and that the events
+                  from it were
+
+                  fully consumed by the Sequencer. This is needed to determine
+                  when
+
+                  LastEthereumBlockSynced should be incremented by MsgIndex. If
+
+                  false but the events list is not empty, the block was
+                  partially consumed.
+              block_number:
+                type: string
+                format: uint64
+                description: >-
+                  block_number is the block that these events belong to. This is
+                  expected to
+
+                  be LastEthereumBlockSynced+1, since the events are from the
+                  next block.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.v1.Msg/SupplyDelta:
+    post:
+      summary: |-
+        SupplyDelta defines an operation for submitting a report to Ethereum
+        about changes in supply of the bridged token.
+      operationId: FuelsequencerBridgeV1Msg_SupplyDelta
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+                description: >-
+                  nonce uniquely identifies any message that we send to
+                  Ethereum.
+              supply_delta:
+                type: string
+                description: >-
+                  supply_delta reports the change in the bridge token's supply
+                  due to mints
+
+                  and burns.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: authority ensures that users cannot execute this message.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.v1.Msg/UpdateParams:
+    post:
+      summary: |-
+        UpdateParams defines a (governance) operation for updating the module
+        parameters. The authority defaults to the x/gov module account.
+      operationId: FuelsequencerBridgeV1Msg_UpdateParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            description: >-
+              MsgUpdateParamsResponse defines the response structure for
+              executing a
+
+              MsgUpdateParams message.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          description: MsgUpdateParams is the Msg/UpdateParams request type.
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authority:
+                type: string
+                description: >-
+                  authority is the address that controls the module (defaults to
+                  x/gov unless
+
+                  overwritten).
+              params:
+                description: 'NOTE: All parameters must be supplied.'
+                type: object
+                properties:
+                  bridge_denom:
+                    type: string
+                    description: >-
+                      bridge_denom is the assumed denom for the bridged token,
+                      used when minting
+
+                      upon deposits, burning when withdrawing, and tracking
+                      changes in its
+
+                      supply that will be reported to Ethereum, amongst other
+                      scenarios.
+                  ethereum_proxy_contract_address:
+                    type: string
+                    description: >-
+                      ethereum_proxy_contract_address is the contract address we
+                      expect to
+
+                      receive deposit and authorize messages from.
+                  authorize_messages_allowed:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      authorize_messages_allowed is a whitelist for authorize
+                      messages that we
+
+                      can receive and process.
+                  supply_delta_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      supply_delta_period is the frequency in block at which we
+                      report supply
+
+                      delta info to Ethereum.
+                  vesting_start_time:
+                    type: string
+                    format: date-time
+                    description: >-
+                      vesting_start_time is the common vesting starting time for
+                      vesting accounts
+
+                      that will be created through deposits from Ethereum.
+                  additional_blocked_addresses:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      additional_blocked_addresses is a list of Cosmos SDK-based
+                      addresses that
+
+                      are explicitly disallowed from being controlled by
+                      authorize messages
+
+                      within the Sequencer system. This can include addresses of
+                      module accounts,
+
+                      validator operators, or any other addresses deemed
+                      necessary to protect
+
+                      from unauthorized control actions.
+                  max_eth_block_update_delay:
+                    type: string
+                    description: >-
+                      max_eth_block_update_delay is the maximum amount of time
+                      that the Sequencer
+
+                      allows validators to not sync up with Ethereum. Once
+
+                      max_eth_block_update_delay is exceeded, the Sequencer's
+                      block production
+
+                      will halt until validators sync up with next Ethereum
+                      block.
+            description: MsgUpdateParams is the Msg/UpdateParams request type.
+      tags:
+        - Msg
+  /fuelsequencer.bridge.v1.Msg/WithdrawToEthereum:
+    post:
+      summary: WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
+      operationId: FuelsequencerBridgeV1Msg_WithdrawToEthereum
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+                description: >-
+                  nonce uniquely identifies any message that we send to
+                  Ethereum.
+              from:
+                type: string
+                description: >-
+                  from is the user address that is withdrawing the tokens from
+                  the Sequencer.
+
+                  It can be in Hex or Bech32 format, as supplied in
+                  MsgWithdrawToEthereum.
+
+                  This address is lowercase, regardless of the one in
+                  MsgWithdrawToEthereum.
+              to:
+                type: string
+                description: >-
+                  to is the user address on Ethereum that will be receiving the
+                  tokens.
+
+                  This address is lowercase, regardless of the one in
+                  MsgWithdrawToEthereum.
+              amount:
+                description: >-
+                  amount is the tokens being sent, which must be the expected
+                  bridge token.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              from:
+                type: string
+                description: >-
+                  from is the user address that is withdrawing the tokens from
+                  the Sequencer.
+
+                  It can be in Hex or Bech32 format.
+              to:
+                type: string
+                description: >-
+                  to is the user address on Ethereum that will be receiving the
+                  tokens.
+              amount:
+                description: >-
+                  amount is the tokens being sent, which must be in the expected
+                  bridge
+
+                  token.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+      tags:
+        - Msg
   /fuel-infrastructure/fuel-sequencer/bridge/v1/ethereum_event_index_offset:
     get:
       summary: Queries the EthereumEventIndexOffset.
@@ -8600,425 +9019,6 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
-  /fuelsequencer.bridge.v1.Msg/DepositFromEthereum:
-    post:
-      summary: >-
-        DepositFromEthereum defines an operation for bridging tokens from
-        Ethereum.
-      operationId: FuelsequencerBridgeV1Msg_DepositFromEthereum
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              authority:
-                type: string
-                description: authority ensures that users cannot execute this message.
-              depositor:
-                type: string
-                title: the sending Ethereum address in hex format
-              recipient:
-                type: string
-                description: >-
-                  recipient address in hex or bech32 format. If the recipient is
-                  the null
-
-                  address, the Sequencer uses the depositor address as the
-                  recipient.
-              amount:
-                type: string
-                title: >-
-                  the amount sent encoded as string to prevent loss of
-                  precision. Sign is
-
-                  also preserved
-              lockup:
-                type: string
-                description: >-
-                  vesting duration encoded in string to prevent loss of
-                  precision. Sign is
-
-                  also preserved. This can be zero if no duration is specified.
-      tags:
-        - Msg
-  /fuelsequencer.bridge.v1.Msg/Index:
-    post:
-      summary: |-
-        Index defines an operation for setting information about injected
-        transactions and special transactions.
-      operationId: FuelsequencerBridgeV1Msg_Index
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              authority:
-                type: string
-                description: authority ensures that users cannot execute this message.
-              num_injected_txs:
-                type: string
-                format: uint64
-                description: >-
-                  num_injected_events is the number of Ethereum events injected
-                  as
-
-                  transactions in the current block, excluding the SupplyDelta.
-              new_ethereum_block:
-                type: boolean
-                description: >-
-                  new_ethereum_block is a boolean which indicates whether a new
-                  Ethereum
-
-                  block has been queried from the Sidecar and that the events
-                  from it were
-
-                  fully consumed by the Sequencer. This is needed to determine
-                  when
-
-                  LastEthereumBlockSynced should be incremented by MsgIndex. If
-
-                  false but the events list is not empty, the block was
-                  partially consumed.
-              block_number:
-                type: string
-                format: uint64
-                description: >-
-                  block_number is the block that these events belong to. This is
-                  expected to
-
-                  be LastEthereumBlockSynced+1, since the events are from the
-                  next block.
-      tags:
-        - Msg
-  /fuelsequencer.bridge.v1.Msg/SupplyDelta:
-    post:
-      summary: |-
-        SupplyDelta defines an operation for submitting a report to Ethereum
-        about changes in supply of the bridged token.
-      operationId: FuelsequencerBridgeV1Msg_SupplyDelta
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              nonce:
-                type: string
-                description: >-
-                  nonce uniquely identifies any message that we send to
-                  Ethereum.
-              supply_delta:
-                type: string
-                description: >-
-                  supply_delta reports the change in the bridge token's supply
-                  due to mints
-
-                  and burns.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              authority:
-                type: string
-                description: authority ensures that users cannot execute this message.
-      tags:
-        - Msg
-  /fuelsequencer.bridge.v1.Msg/UpdateParams:
-    post:
-      summary: |-
-        UpdateParams defines a (governance) operation for updating the module
-        parameters. The authority defaults to the x/gov module account.
-      operationId: FuelsequencerBridgeV1Msg_UpdateParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            description: >-
-              MsgUpdateParamsResponse defines the response structure for
-              executing a
-
-              MsgUpdateParams message.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          description: MsgUpdateParams is the Msg/UpdateParams request type.
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              authority:
-                type: string
-                description: >-
-                  authority is the address that controls the module (defaults to
-                  x/gov unless
-
-                  overwritten).
-              params:
-                description: 'NOTE: All parameters must be supplied.'
-                type: object
-                properties:
-                  bridge_denom:
-                    type: string
-                    description: >-
-                      bridge_denom is the assumed denom for the bridged token,
-                      used when minting
-
-                      upon deposits, burning when withdrawing, and tracking
-                      changes in its
-
-                      supply that will be reported to Ethereum, amongst other
-                      scenarios.
-                  ethereum_proxy_contract_address:
-                    type: string
-                    description: >-
-                      ethereum_proxy_contract_address is the contract address we
-                      expect to
-
-                      receive deposit and authorize messages from.
-                  authorize_messages_allowed:
-                    type: array
-                    items:
-                      type: string
-                    description: >-
-                      authorize_messages_allowed is a whitelist for authorize
-                      messages that we
-
-                      can receive and process.
-                  supply_delta_period:
-                    type: string
-                    format: uint64
-                    description: >-
-                      supply_delta_period is the frequency in block at which we
-                      report supply
-
-                      delta info to Ethereum.
-                  vesting_start_time:
-                    type: string
-                    format: date-time
-                    description: >-
-                      vesting_start_time is the common vesting starting time for
-                      vesting accounts
-
-                      that will be created through deposits from Ethereum.
-                  additional_blocked_addresses:
-                    type: array
-                    items:
-                      type: string
-                    description: >-
-                      additional_blocked_addresses is a list of Cosmos SDK-based
-                      addresses that
-
-                      are explicitly disallowed from being controlled by
-                      authorize messages
-
-                      within the Sequencer system. This can include addresses of
-                      module accounts,
-
-                      validator operators, or any other addresses deemed
-                      necessary to protect
-
-                      from unauthorized control actions.
-                  max_eth_block_update_delay:
-                    type: string
-                    description: >-
-                      max_eth_block_update_delay is the maximum amount of time
-                      that the Sequencer
-
-                      allows validators to not sync up with Ethereum. Once
-
-                      max_eth_block_update_delay is exceeded, the Sequencer's
-                      block production
-
-                      will halt until validators sync up with next Ethereum
-                      block.
-            description: MsgUpdateParams is the Msg/UpdateParams request type.
-      tags:
-        - Msg
-  /fuelsequencer.bridge.v1.Msg/WithdrawToEthereum:
-    post:
-      summary: WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
-      operationId: FuelsequencerBridgeV1Msg_WithdrawToEthereum
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              nonce:
-                type: string
-                description: >-
-                  nonce uniquely identifies any message that we send to
-                  Ethereum.
-              from:
-                type: string
-                description: >-
-                  from is the user address that is withdrawing the tokens from
-                  the Sequencer.
-
-                  It can be in Hex or Bech32 format, as supplied in
-                  MsgWithdrawToEthereum.
-
-                  This address is lowercase, regardless of the one in
-                  MsgWithdrawToEthereum.
-              to:
-                type: string
-                description: >-
-                  to is the user address on Ethereum that will be receiving the
-                  tokens.
-
-                  This address is lowercase, regardless of the one in
-                  MsgWithdrawToEthereum.
-              amount:
-                description: >-
-                  amount is the tokens being sent, which must be the expected
-                  bridge token.
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              from:
-                type: string
-                description: >-
-                  from is the user address that is withdrawing the tokens from
-                  the Sequencer.
-
-                  It can be in Hex or Bech32 format.
-              to:
-                type: string
-                description: >-
-                  to is the user address on Ethereum that will be receiving the
-                  tokens.
-              amount:
-                description: >-
-                  amount is the tokens being sent, which must be in the expected
-                  bridge
-
-                  token.
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-      tags:
-        - Msg
   /fuelsequencer.sequencing.v1.Msg/PostBlob:
     post:
       summary: >-
@@ -12758,168 +12758,6 @@ definitions:
 
           will halt until validators sync up with next Ethereum block.
     description: Params defines the parameters for the module.
-  fuelsequencer.bridge.SupplyDeltaInfo:
-    type: object
-    properties:
-      last_supply:
-        type: string
-        description: last_supply is the last supply recorded for the bridge token.
-      delta:
-        type: string
-        description: >-
-          delta is the amount of bridge tokens that should be minted (positive)
-          or
-
-          burned (negative) on Ethereum.
-      offset:
-        type: string
-        title: >-
-          offset is used to account for changes in supply that we do not want to
-          post
-
-          to Ethereum, including deposits and withdrawals, because Ethereum will
-          know
-
-          about these anyways. Note that offset can be positive (to account for
-
-          unreported burn) or negative (to account for unreported mint)
-  fuelsequencer.bridge.v1.QueryGetEthereumEventIndexOffsetResponse:
-    type: object
-    properties:
-      offset:
-        type: string
-        format: uint64
-  fuelsequencer.bridge.v1.QueryGetLastEthBlockUpdateTimeResponse:
-    type: object
-    properties:
-      last_eth_block_update_time:
-        type: string
-        format: date-time
-  fuelsequencer.bridge.v1.QueryGetLastEthereumBlockSyncedResponse:
-    type: object
-    properties:
-      block:
-        type: string
-        format: uint64
-  fuelsequencer.bridge.v1.QueryGetLastEthereumNonceResponse:
-    type: object
-    properties:
-      nonce:
-        type: string
-  fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
-    type: object
-    properties:
-      SupplyDeltaInfo:
-        type: object
-        properties:
-          last_supply:
-            type: string
-            description: last_supply is the last supply recorded for the bridge token.
-          delta:
-            type: string
-            description: >-
-              delta is the amount of bridge tokens that should be minted
-              (positive) or
-
-              burned (negative) on Ethereum.
-          offset:
-            type: string
-            title: >-
-              offset is used to account for changes in supply that we do not
-              want to post
-
-              to Ethereum, including deposits and withdrawals, because Ethereum
-              will know
-
-              about these anyways. Note that offset can be positive (to account
-              for
-
-              unreported burn) or negative (to account for unreported mint)
-  fuelsequencer.bridge.v1.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        description: params holds all the parameters of this module.
-        type: object
-        properties:
-          bridge_denom:
-            type: string
-            description: >-
-              bridge_denom is the assumed denom for the bridged token, used when
-              minting
-
-              upon deposits, burning when withdrawing, and tracking changes in
-              its
-
-              supply that will be reported to Ethereum, amongst other scenarios.
-          ethereum_proxy_contract_address:
-            type: string
-            description: >-
-              ethereum_proxy_contract_address is the contract address we expect
-              to
-
-              receive deposit and authorize messages from.
-          authorize_messages_allowed:
-            type: array
-            items:
-              type: string
-            description: >-
-              authorize_messages_allowed is a whitelist for authorize messages
-              that we
-
-              can receive and process.
-          supply_delta_period:
-            type: string
-            format: uint64
-            description: >-
-              supply_delta_period is the frequency in block at which we report
-              supply
-
-              delta info to Ethereum.
-          vesting_start_time:
-            type: string
-            format: date-time
-            description: >-
-              vesting_start_time is the common vesting starting time for vesting
-              accounts
-
-              that will be created through deposits from Ethereum.
-          additional_blocked_addresses:
-            type: array
-            items:
-              type: string
-            description: >-
-              additional_blocked_addresses is a list of Cosmos SDK-based
-              addresses that
-
-              are explicitly disallowed from being controlled by authorize
-              messages
-
-              within the Sequencer system. This can include addresses of module
-              accounts,
-
-              validator operators, or any other addresses deemed necessary to
-              protect
-
-              from unauthorized control actions.
-          max_eth_block_update_delay:
-            type: string
-            description: >-
-              max_eth_block_update_delay is the maximum amount of time that the
-              Sequencer
-
-              allows validators to not sync up with Ethereum. Once
-
-              max_eth_block_update_delay is exceeded, the Sequencer's block
-              production
-
-              will halt until validators sync up with next Ethereum block.
-    description: QueryParamsResponse is response type for the Query/Params RPC method.
-  fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressResponse:
-    type: object
-    properties:
-      sequencer_address:
-        type: string
   fuelsequencer.bridge.v1.MsgDepositFromEthereum:
     type: object
     properties:
@@ -12963,7 +12801,7 @@ definitions:
         format: uint64
         description: |-
           num_injected_events is the number of Ethereum events injected as
-          transactions in the current block, excluding the SupplyDelta.
+          transactions in the current block, plus any SupplyDelta.
       new_ethereum_block:
         type: boolean
         description: >-
@@ -13157,6 +12995,168 @@ definitions:
             type: string
           amount:
             type: string
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      last_supply:
+        type: string
+        description: last_supply is the last supply recorded for the bridge token.
+      delta:
+        type: string
+        description: >-
+          delta is the amount of bridge tokens that should be minted (positive)
+          or
+
+          burned (negative) on Ethereum.
+      offset:
+        type: string
+        title: >-
+          offset is used to account for changes in supply that we do not want to
+          post
+
+          to Ethereum, including deposits and withdrawals, because Ethereum will
+          know
+
+          about these anyways. Note that offset can be positive (to account for
+
+          unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.v1.QueryGetEthereumEventIndexOffsetResponse:
+    type: object
+    properties:
+      offset:
+        type: string
+        format: uint64
+  fuelsequencer.bridge.v1.QueryGetLastEthBlockUpdateTimeResponse:
+    type: object
+    properties:
+      last_eth_block_update_time:
+        type: string
+        format: date-time
+  fuelsequencer.bridge.v1.QueryGetLastEthereumBlockSyncedResponse:
+    type: object
+    properties:
+      block:
+        type: string
+        format: uint64
+  fuelsequencer.bridge.v1.QueryGetLastEthereumNonceResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+  fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
+    type: object
+    properties:
+      SupplyDeltaInfo:
+        type: object
+        properties:
+          last_supply:
+            type: string
+            description: last_supply is the last supply recorded for the bridge token.
+          delta:
+            type: string
+            description: >-
+              delta is the amount of bridge tokens that should be minted
+              (positive) or
+
+              burned (negative) on Ethereum.
+          offset:
+            type: string
+            title: >-
+              offset is used to account for changes in supply that we do not
+              want to post
+
+              to Ethereum, including deposits and withdrawals, because Ethereum
+              will know
+
+              about these anyways. Note that offset can be positive (to account
+              for
+
+              unreported burn) or negative (to account for unreported mint)
+  fuelsequencer.bridge.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          bridge_denom:
+            type: string
+            description: >-
+              bridge_denom is the assumed denom for the bridged token, used when
+              minting
+
+              upon deposits, burning when withdrawing, and tracking changes in
+              its
+
+              supply that will be reported to Ethereum, amongst other scenarios.
+          ethereum_proxy_contract_address:
+            type: string
+            description: >-
+              ethereum_proxy_contract_address is the contract address we expect
+              to
+
+              receive deposit and authorize messages from.
+          authorize_messages_allowed:
+            type: array
+            items:
+              type: string
+            description: >-
+              authorize_messages_allowed is a whitelist for authorize messages
+              that we
+
+              can receive and process.
+          supply_delta_period:
+            type: string
+            format: uint64
+            description: >-
+              supply_delta_period is the frequency in block at which we report
+              supply
+
+              delta info to Ethereum.
+          vesting_start_time:
+            type: string
+            format: date-time
+            description: >-
+              vesting_start_time is the common vesting starting time for vesting
+              accounts
+
+              that will be created through deposits from Ethereum.
+          additional_blocked_addresses:
+            type: array
+            items:
+              type: string
+            description: >-
+              additional_blocked_addresses is a list of Cosmos SDK-based
+              addresses that
+
+              are explicitly disallowed from being controlled by authorize
+              messages
+
+              within the Sequencer system. This can include addresses of module
+              accounts,
+
+              validator operators, or any other addresses deemed necessary to
+              protect
+
+              from unauthorized control actions.
+          max_eth_block_update_delay:
+            type: string
+            description: >-
+              max_eth_block_update_delay is the maximum amount of time that the
+              Sequencer
+
+              allows validators to not sync up with Ethereum. Once
+
+              max_eth_block_update_delay is exceeded, the Sequencer's block
+              production
+
+              will halt until validators sync up with next Ethereum block.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressResponse:
+    type: object
+    properties:
+      sequencer_address:
+        type: string
   fuelsequencer.sequencing.Params:
     type: object
     properties:
