@@ -8,9 +8,11 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 
 message Index {
 
-  // TODO
+  // num_injected_events is the number of Ethereum events injected as
+  // transactions in the current block, plus any SupplyDelta.
   uint64 num_injected_txs_total = 1;
 
-  // TODO
+  // num_injected_events is the number of injected transactions that
+  // have been seen by the AnteHandler.
   uint64 num_injected_txs_ante = 2;
 }

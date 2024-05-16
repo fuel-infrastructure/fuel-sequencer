@@ -50,7 +50,8 @@ func NewCustomDecorator(bridgeKeeper bridgekeeper.Keeper) CustomDecorator {
 	}
 }
 
-// AnteHandle TODO
+// AnteHandle implements the AnteHandler decorator for injected transactions. If an error is returned from AnteHandle
+// during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
 func (d CustomDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {

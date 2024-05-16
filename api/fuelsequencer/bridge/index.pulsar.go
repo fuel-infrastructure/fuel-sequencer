@@ -484,9 +484,11 @@ type Index struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// TODO
+	// num_injected_events is the number of Ethereum events injected as
+	// transactions in the current block, plus any SupplyDelta.
 	NumInjectedTxsTotal uint64 `protobuf:"varint,1,opt,name=num_injected_txs_total,json=numInjectedTxsTotal,proto3" json:"num_injected_txs_total,omitempty"`
-	// TODO
+	// num_injected_events is the number of injected transactions that
+	// have been seen by the AnteHandler.
 	NumInjectedTxsAnte uint64 `protobuf:"varint,2,opt,name=num_injected_txs_ante,json=numInjectedTxsAnte,proto3" json:"num_injected_txs_ante,omitempty"`
 }
 
