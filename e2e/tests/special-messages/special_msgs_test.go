@@ -2,8 +2,6 @@ package basic_test
 
 import (
 	"fmt"
-	"regexp"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -14,43 +12,78 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 
 	s.Run("Ensure special messages cannot be submitted through an Authorize event", func() {
 
-		var msg sdk.Msg
-		var msgBz []byte
-		var authorizeData []byte
+		// Set SupplyDeltaPeriod to a high number so that we can focus on our messages.
+		bridgeParams := s.QueryBridgeParams(s.Ctx())
+		bridgeParams.SupplyDeltaPeriod = 1000
+		msgUpdateParams := bridgetypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *bridgeParams,
+		}
+		s.ExecuteGovProposal(&msgUpdateParams)
 
-		// Get Sequencer height before
-		//seqBlockBefore, err := s.GetFuelSequencerHeight(s.Ctx())
-		//s.Require().NoError(err)
+		var msg sdk.Msg
+
+		// Get starting block
+		fromBlock, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
 
 		// For a control test, let's try MsgUpdateParams first
 		msg = &bridgetypes.MsgUpdateParams{
 			Authority: testsuite.ETH_ADDRESSES[0],
 			Params:    bridgetypes.DefaultParams(),
 		}
-		msgBz = s.GenerateMsgBz(msg)
-		authorizeData = testsuite.PackAuthorize(msgBz)
+		msgBz := s.GenerateMsgBz(msg)
+		authorizeData := testsuite.PackAuthorize(msgBz)
 		resp, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
+
+		// MsgIndex
+		msg = &bridgetypes.MsgIndex{
+			Authority:        testsuite.ADDRESSES[0],
+			NumInjectedTxs:   0,
+			NewEthereumBlock: false,
+			BlockNumber:      s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
+		}
+		msgBz = s.GenerateMsgBz(msg)
+		authorizeData = testsuite.PackAuthorize(msgBz)
+		resp, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// MsgDepositFromEthereum
+		msg = &bridgetypes.MsgDepositFromEthereum{
+			Authority: testsuite.ADDRESSES[0],
+			Depositor: testsuite.ADDRESSES[0],
+			Recipient: testsuite.ADDRESSES[1],
+			Amount:    "1000",
+			Lockup:    "0",
+		}
+		msgBz = s.GenerateMsgBz(msg)
+		authorizeData = testsuite.PackAuthorize(msgBz)
+		resp, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// MsgSupplyDelta
+		msg = &bridgetypes.MsgSupplyDelta{
+			Authority: testsuite.ADDRESSES[0],
+		}
+		msgBz = s.GenerateMsgBz(msg)
+		authorizeData = testsuite.PackAuthorize(msgBz)
+		resp, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Wait for all messages to get processed
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, resp.BlockNumber.Uint64())
 
-		logRegexp := regexp.MustCompile("skipping unauthorized event.*")
-		s.Require().Eventually(func() bool {
-			matches := s.FindSequencerLogs(logRegexp)
-			if len(matches) > 0 {
-				return true
-			}
-			return false
-		}, time.Second, time.Minute)
+		// Get ending block
+		toBlock, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
 
-		// Get Sequencer height after
-		//seqHeightAfter, err := s.GetFuelSequencerHeight(s.Ctx())
-		//s.Require().NoError(err)
-		//
-		//// Ensure no transactions injected in the block range
-		//for block := seqBlockBefore; block <= seqHeightAfter; block++ {
-		//	msgIndex := s.GetMsgIndexFromBlock(s.Ctx(), int64(block))
-		//	s.Require().Zero(msgIndex.NumInjectedTxs)
-		//}
+		// Check that no block has more than one transaction (the MsgIndex)
+		for block := fromBlock; block <= toBlock; block++ {
+			blockByHeight, err := s.GetBlockByHeight(s.Ctx(), int64(block))
+			s.Require().NoError(err)
+			s.Require().Len(blockByHeight.Data.Txs, 1)
+		}
 	})
 
 	s.Run("Ensure special messages cannot be submitted by users", func() {
