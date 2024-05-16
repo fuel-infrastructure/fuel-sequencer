@@ -118,9 +118,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
 		}
 
-		maxBytesForEvents := uint64(req.MaxTxBytes - bridgetypes.MsgIndexMaxSize() - supplyDeltaBytesSize)
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedAddresses, maxBytesForEvents,
+			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedAddresses,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex: %w", err)
@@ -141,6 +140,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Trim events from tail to fit the block size allocated for events.
+		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events for max bytes %d: %w", maxBytesForEvents, err)
@@ -427,7 +427,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	sidecarErr error,
 	params *bridgetypes.Params,
 	blockedAddresses map[string]bool,
-	maxBytesForEvents uint64,
 ) (msgIndex *bridgetypes.MsgIndex, eventTxs [][]byte, err error) {
 
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
@@ -451,11 +450,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("failed to get messages with err: %s; event: %s", err.Error(), event)
 		}
 
-		if uint64(len(eventTx)) > maxBytesForEvents {
-			h.logger.Warn(fmt.Sprintf("skipping event that is too large: %s", event))
-			continue
-		}
-
 		authenticated, err := h.AuthenticateEvent(event, eventTx, params, blockedAddresses)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to check authorization: %s; event: %s", err.Error(), event)
@@ -465,7 +459,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			eventTxs = append(eventTxs, eventTx)
 		} else {
 			h.logger.Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
-			continue
 		}
 	}
 
