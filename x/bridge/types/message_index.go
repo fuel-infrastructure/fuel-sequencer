@@ -20,6 +20,19 @@ func NewMsgIndex(authority string, numInjectedTxs uint64, newEthereumBlock bool,
 	}
 }
 
+// MsgIndexMaxSize calculates the maximum size that a MsgIndex can occupy.
+func MsgIndexMaxSize() int64 {
+
+	var msg MsgIndex
+	msg.NewEthereumBlock = true
+
+	rawTxBytes, err := msg.RawTxBytes()
+	if err != nil {
+		panic(err)
+	}
+	return int64(len(rawTxBytes))
+}
+
 // ValidateBasic for this message should be a no-op so that we definitely AnteHandle this message.
 // Since we generate the MsgIndex ourselves, we expect the message to be valid anyway.
 func (*MsgIndex) ValidateBasic() error {
