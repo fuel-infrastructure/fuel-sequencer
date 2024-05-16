@@ -9,8 +9,9 @@ import (
 
 var _ sdk.Msg = &MsgDepositFromEthereum{}
 
-func NewMsgDepositFromEthereum(depositor string, recipient string, amount string, lockup string) *MsgDepositFromEthereum {
+func NewMsgDepositFromEthereum(authority, depositor, recipient, amount, lockup string) *MsgDepositFromEthereum {
 	return &MsgDepositFromEthereum{
+		Authority: authority,
 		Depositor: depositor,
 		Recipient: recipient,
 		Amount:    amount,
