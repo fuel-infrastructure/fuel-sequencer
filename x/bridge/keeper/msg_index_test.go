@@ -77,6 +77,11 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectEthereumEventsIndexOffset: 0,
 			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs + 1, // +1 for MsgSupplyDelta
 		},
+		{
+			name:         "MsgIndex with invalid authority => failed",
+			msg:          types.MsgIndex{Authority: "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"},
+			expectErrMsg: "invalid authority",
+		},
 	}
 
 	for _, tc := range testCases {

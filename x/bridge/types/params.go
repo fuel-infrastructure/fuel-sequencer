@@ -11,8 +11,8 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// DefaultAllowAllAuthorizeMessages is the default messages we allow.
-	DefaultAllowAllAuthorizeMessages = []string{AllowAllAuthorizeMessages}
+	// DefaultAuthorizeMessagesAllowed is the default messages we allow.
+	DefaultAuthorizeMessagesAllowed = []string{AllowAllAuthorizeMessages}
 
 	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
 	// up with Ethereum. This is set to 1 hour by default.
@@ -77,7 +77,7 @@ func DefaultParams() Params {
 	return NewParams(
 		DefaultBridgeDenom,
 		DefaultEthereumProxyContractAddress,
-		DefaultAllowAllAuthorizeMessages,
+		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,

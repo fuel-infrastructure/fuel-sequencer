@@ -30,9 +30,10 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 		expGovBal      sdkmath.Int
 		isToEthOwned   bool
 		isFromEthOwned bool
+		expErrMsg      string
 	}{
 		{
-			name: "successful - deposit - mint to Recipient address",
+			name: "successful - mint to Recipient address",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent1Msg,
 			},
@@ -48,7 +49,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "successful - deposit - mint to Recipient address twice",
+			name: "successful - mint to Recipient address twice",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent1Msg,
 				testtypes.TestEvent1Msg,
@@ -65,7 +66,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "successful - deposit - mint to address Recipient == Depositor",
+			name: "successful - mint to address Recipient == Depositor",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent10Msg,
 			},
@@ -81,7 +82,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "successful - deposit - mint to address Recipient == Sequencer(Depositor)",
+			name: "successful - mint to address Recipient == Sequencer(Depositor)",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent11Msg,
 			},
@@ -97,7 +98,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "successful - deposit - mint to Depositor address",
+			name: "successful - mint to Depositor address",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent3Msg,
 			},
@@ -113,7 +114,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "successful - deposit - mint to Depositor address twice",
+			name: "successful - mint to Depositor address twice",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent3Msg,
 				testtypes.TestEvent3Msg,
@@ -130,7 +131,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: true,
 		},
 		{
-			name: "failure - deposit - lockup failed to parse - mint to governance",
+			name: "failure - lockup failed to parse - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent4Msg,
 			},
@@ -146,7 +147,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - deposit - from address failed to parse - mint to governance",
+			name: "failure - from address failed to parse - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent5Msg,
 			},
@@ -162,7 +163,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - deposit - bad vesting duration - mint to governance",
+			name: "failure - bad vesting duration - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent6Msg,
 			},
@@ -178,7 +179,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - deposit - bad to bech32 address - mint to governance",
+			name: "failure - bad to bech32 address - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent7Msg,
 			},
@@ -193,6 +194,13 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isToEthOwned:   false,
 			isFromEthOwned: false,
 		},
+		{
+			name: "failure - invalid authority address",
+			msgs: []*types.MsgDepositFromEthereum{
+				{Authority: "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"},
+			},
+			expErrMsg: "invalid authority",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -204,6 +212,10 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 
 			for _, msg := range tc.msgs {
 				_, err = msgServer.DepositFromEthereum(s.Ctx(), msg)
+				if tc.expErrMsg != "" {
+					s.Require().ErrorContains(err, tc.expErrMsg)
+					return
+				}
 				s.Require().NoError(err)
 			}
 

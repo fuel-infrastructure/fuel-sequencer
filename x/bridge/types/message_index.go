@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
@@ -22,14 +20,9 @@ func NewMsgIndex(authority string, numInjectedTxs uint64, newEthereumBlock bool,
 	}
 }
 
-func (msg *MsgIndex) ValidateBasic() error {
-
-	// Note: sufficient validation already done during injection and in the message handler.
-
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
-	}
+// ValidateBasic for this message should be a no-op so that we definitely AnteHandle this message.
+// Since we generate the MsgIndex ourselves, we expect the message to be valid anyway.
+func (*MsgIndex) ValidateBasic() error {
 	return nil
 }
 

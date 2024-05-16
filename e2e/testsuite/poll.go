@@ -7,6 +7,9 @@ import (
 
 // From: https://github.com/strangelove-ventures/interchaintest
 
+// sleepBetweenPolls prevents extremely fast polling but still keeps polling fast.
+const sleepBetweenPolls = time.Second / 4
+
 type BlockPoller[T any] struct {
 	CurrentHeight func(ctx context.Context) (uint64, error)
 	PollFunc      func(ctx context.Context, height uint64) (T, error)
@@ -29,6 +32,7 @@ func (p BlockPoller[T]) DoPoll(ctx context.Context, startHeight, maxHeight uint6
 			return zero, err
 		}
 		if cursor > curHeight {
+			time.Sleep(sleepBetweenPolls)
 			continue
 		}
 
@@ -37,6 +41,7 @@ func (p BlockPoller[T]) DoPoll(ctx context.Context, startHeight, maxHeight uint6
 		if findErr != nil {
 			pollErr = findErr
 			cursor++
+			time.Sleep(sleepBetweenPolls)
 			continue
 		}
 
@@ -66,6 +71,7 @@ func (p TimePoller[T]) DoPoll(ctx context.Context, until time.Time) (T, error) {
 		if findErr != nil {
 			pollErr = findErr
 			cursor = time.Now()
+			time.Sleep(sleepBetweenPolls)
 			continue
 		}
 

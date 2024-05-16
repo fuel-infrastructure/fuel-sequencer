@@ -1,16 +1,19 @@
 package utils_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -30,7 +33,7 @@ func TestProtoSerialization(t *testing.T) {
 	data, _ := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: []*codectypes.Any{anymsgsend}})
 
 	// Convert the serialized bytes to a hex string
-	hexData := fmt.Sprintf("0x%x", data)
+	hexData := fmt.Sprintf("0x%s", hex.EncodeToString(data))
 	fmt.Println(fmt.Printf("Serialized Hex Data: %s", hexData))
 }
 
@@ -55,4 +58,22 @@ func TestDecodeDepositEvent(t *testing.T) {
 		"Lockup: %s\n",
 		eventData.Depositor, eventData.Recipient, eventData.Amount, eventData.Lockup,
 	))
+}
+
+func TestDecodeTx(t *testing.T) {
+
+	dataBase64 := "CqIBCp8BCigvZnVlbHNlcXVlbmNlci5icmlkZ2UudjEuTXNnVXBkYXRlUGFyYW1zEnMKKjB4ZjM5ZmQ2ZTUxYWFkODhmNmY0Y2U2YWI4ODI3Mjc5Y2ZmZmI5MjI2NhJFCgV1ZnVlbBIqMHhhNTEzRTZFNGI4ZjJhOTIzRDk4MzA0ZWM4N0Y2NDM1M0M0RDVDODUzGgEqIAoqBgiAgcisBjoDCJAcEgISAA"
+	dataBz, err := base64url.Decode(dataBase64)
+	if err != nil {
+		panic(err)
+	}
+
+	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
+	if err != nil {
+		panic(err)
+	}
+
+	for i, msg := range tx.GetMsgs() {
+		fmt.Println(fmt.Sprintf("MSG %d: %s", i, msg))
+	}
 }

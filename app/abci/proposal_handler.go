@@ -437,7 +437,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	}
 
 	// Identify the deposit and authorize events in the MsgIndex and produce one new valid transaction per event.
-	// If an event is not valid for any reason, we have to skip it since there might be something suspicious.
+	// If an event is not valid, returned errors have the capability of halting block production.
 	for _, event := range events {
 
 		err = event.Validate(params.EthereumProxyContractAddress)

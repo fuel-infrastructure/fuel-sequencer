@@ -11,6 +11,13 @@ import (
 func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.MsgIndexResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// Confirm that the msg signer is the bridge module's authority address (governance).
+	if k.GetAuthority() != msg.Authority {
+		return nil, types.ErrInvalidSigner.Wrapf(
+			"invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority,
+		)
+	}
+
 	lastBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 	eventIndexOffset := k.MustGetEthereumEventIndexOffset(ctx)
 	params := k.GetParams(ctx)

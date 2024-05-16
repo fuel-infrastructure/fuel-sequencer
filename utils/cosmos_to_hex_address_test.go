@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // Required to load the right config for testing
 	"github.com/stretchr/testify/require"
 )
 
 func TestConvertCosmosToHexAddressAndViceVersa(t *testing.T) {
-	app.InitSDKConfig()
 
 	// Cosmos valoper address in bech32 format
 	cosmosAddress := "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn"

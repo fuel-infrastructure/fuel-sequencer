@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgSupplyDelta{}
@@ -16,12 +15,9 @@ func NewMsgSupplyDelta(authority string) *MsgSupplyDelta {
 	}
 }
 
-func (m *MsgSupplyDelta) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Authority)
-	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address (%s)", err)
-	}
-
+// ValidateBasic for this message should be a no-op so that we definitely AnteHandle this message.
+// Since we generate the MsgSupplyDelta ourselves, we expect the message to be valid anyway.
+func (*MsgSupplyDelta) ValidateBasic() error {
 	return nil
 }
 

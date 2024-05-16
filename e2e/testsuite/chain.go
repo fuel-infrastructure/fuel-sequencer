@@ -217,6 +217,7 @@ func (c *chain) clientContext(
 func (c *chain) sendMsgs(
 	clientCtx client.Context,
 	outputBuffer *bytes.Buffer,
+	gas uint64,
 	msgs ...sdk.Msg,
 ) (*sdk.TxResponse, error) {
 
@@ -226,7 +227,7 @@ func (c *chain) sendMsgs(
 		WithTxConfig(clientCtx.TxConfig).
 		WithGasAdjustment(1.2).
 		WithKeybase(clientCtx.Keyring).
-		WithGas(1000000).
+		WithGas(gas).
 		WithGasPrices(fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)).
 		WithSignMode(signing.SignMode_SIGN_MODE_DIRECT)
 
