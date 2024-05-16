@@ -149,7 +149,7 @@ message MsgIndex {
   string authority = 1;
 
   // num_injected_events is the number of Ethereum events injected as
-  // transactions in the current block, plus any SupplyDelta.
+  // transactions in the current block, excluding the SupplyDelta.
   uint64 num_injected_txs = 2;
 
   // new_ethereum_block is a boolean which indicates whether a new Ethereum

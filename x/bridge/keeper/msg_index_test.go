@@ -18,43 +18,64 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 	encodedMsgIndexWithWrongBlock := msgIndexWithWrongBlock
 
 	testBlockTime := time.Now().Round(0)
+	heightToAvoidSupplyDelta := int64(999)
+	heightForSupplyDelta := int64(types.DefaultSupplyDeltaPeriod)
 
 	testCases := []struct {
 		name                            string
 		setIndex                        *types.Index
 		msg                             types.MsgIndex
+		blockHeight                     int64
 		expectNewBlock                  bool
 		expectEthereumEventsIndexOffset uint64
+		expectNumInjectedTxsTotal       uint64
 		expectErrMsg                    string
 	}{
 		{
 			name:         "MsgIndex with wrong block number => error",
 			msg:          encodedMsgIndexWithWrongBlock,
+			blockHeight:  heightToAvoidSupplyDelta,
 			expectErrMsg: "expected block number 1, got 99 in MsgIndex",
 		},
 		{
 			name:                            "MsgIndex with events => new block and offset stays at zero",
 			msg:                             encodedMsgIndexWithEvents,
+			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  true,
 			expectEthereumEventsIndexOffset: 0,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs,
 		},
 		{
 			name:                            "MsgIndex without events => new block and offset stays at zero",
 			msg:                             encodedMsgIndexWithoutEvents,
+			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  true,
 			expectEthereumEventsIndexOffset: 0,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithoutEvents.NumInjectedTxs,
 		},
 		{
 			name:                            "MsgIndex with partial events => no new block but offset updated",
 			msg:                             encodedMsgIndexPartialBlock,
+			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  false,
-			expectEthereumEventsIndexOffset: testtypes.TestMsgIndexPartial.NumInjectedTxs,
+			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedTxs,
 		},
 		{
 			name:                            "MsgIndex with partial events => no new block but offset updated",
 			msg:                             encodedMsgIndexPartialBlock,
+			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  false,
-			expectEthereumEventsIndexOffset: testtypes.TestMsgIndexPartial.NumInjectedTxs,
+			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedTxs,
+		},
+		{
+			name:                            "MsgIndex with events at supply delta height => supply delta considered",
+			msg:                             encodedMsgIndexWithEvents,
+			blockHeight:                     heightForSupplyDelta,
+			expectNewBlock:                  true,
+			expectEthereumEventsIndexOffset: 0,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs + 1, // +1 for MsgSupplyDelta
 		},
 	}
 
@@ -70,7 +91,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 				s.App.BridgeKeeper.SetIndex(s.Ctx(), *tc.setIndex)
 			}
 
-			_, err := msgServer.Index(s.Ctx().WithBlockTime(testBlockTime), &tc.msg)
+			_, err := msgServer.Index(s.Ctx().WithBlockTime(testBlockTime).WithBlockHeight(tc.blockHeight), &tc.msg)
 			if tc.expectErrMsg != "" {
 				s.Require().ErrorContains(err, tc.expectErrMsg)
 				return
@@ -80,7 +101,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			// Verify that Index is in state
 			index, found := s.App.BridgeKeeper.GetIndex(s.Ctx())
 			s.Require().True(found)
-			s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg.NumInjectedTxs)
+			s.Require().EqualValues(index.NumInjectedTxsTotal, tc.expectNumInjectedTxsTotal)
 			s.Require().EqualValues(index.NumInjectedTxsAnte, 0)
 
 			// Check LastEthereumBlockSynced
@@ -141,6 +162,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 	testCases := []struct {
 		name                            string
 		msg                             []types.MsgIndex
+		blockHeight                     uint64
 		blockTime                       []time.Time
 		expectLastEthereumBlockSynced   []uint64
 		expectEthereumEventsIndexOffset []uint64
@@ -369,7 +391,9 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 
 			for i := 0; i < len(tc.msg); i++ {
 
-				_, err := msgServer.Index(s.Ctx().WithBlockTime(tc.blockTime[i]), &tc.msg[i])
+				heightToAvoidSupplyDelta := int64(999)
+				indexCtx := s.Ctx().WithBlockTime(tc.blockTime[i]).WithBlockHeight(heightToAvoidSupplyDelta)
+				_, err := msgServer.Index(indexCtx, &tc.msg[i])
 				if tc.expectErrMsg != nil && tc.expectErrMsg[i] != "" {
 					s.Require().ErrorContains(err, tc.expectErrMsg[i])
 					return

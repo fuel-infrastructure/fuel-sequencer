@@ -5326,7 +5326,7 @@ type MsgIndex struct {
 	// authority ensures that users cannot execute this message.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// num_injected_events is the number of Ethereum events injected as
-	// transactions in the current block, plus any SupplyDelta.
+	// transactions in the current block, excluding the SupplyDelta.
 	NumInjectedTxs uint64 `protobuf:"varint,2,opt,name=num_injected_txs,json=numInjectedTxs,proto3" json:"num_injected_txs,omitempty"`
 	// new_ethereum_block is a boolean which indicates whether a new Ethereum
 	// block has been queried from the Sidecar and that the events from it were
