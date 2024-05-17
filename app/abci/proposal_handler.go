@@ -389,6 +389,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			maxBlockGas = b.MaxGas
 		}
 
+		// Note: amongst these transactions are a number of injected txs which will consume zero gas.
 		for _, txBytes := range req.Txs {
 			tx, err := h.txVerifier.TxDecode(txBytes)
 			if err != nil {
