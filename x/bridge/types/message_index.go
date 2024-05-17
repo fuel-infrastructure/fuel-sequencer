@@ -185,6 +185,7 @@ func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64)
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
 	m.NewEthereumBlock = false
 
+        // Check whether the modification of MsgIndex has increased its size to avoid unexpected behaviour
 	if m.Size() > msgIndexSizeBefore {
 		return nil, 0, fmt.Errorf("unexpected increase of MsgIndex size from %d to %d", msgIndexSizeBefore, m.Size())
 	}
