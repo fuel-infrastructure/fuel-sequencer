@@ -450,7 +450,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("failed to get messages with err: %s; event: %s", err.Error(), event)
 		}
 
-		authenticated, err := h.AuthenticateEvent(event, eventTx, params, blockedAddresses)
+		authenticated, err := h.authenticateEvent(event, eventTx, params, blockedAddresses)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to check authorization: %s; event: %s", err.Error(), event)
 		}
