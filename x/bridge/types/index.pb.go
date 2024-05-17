@@ -24,7 +24,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type Index struct {
 	// num_injected_txs_total is the number of Ethereum events injected as
-	// transactions in the current block, plus any SupplyDelta.
+	// txs in the current block, with any SupplyDelta, but excluding MsgIndex.
 	NumInjectedTxsTotal uint64 `protobuf:"varint,1,opt,name=num_injected_txs_total,json=numInjectedTxsTotal,proto3" json:"num_injected_txs_total,omitempty"`
 	// num_injected_txs_ante is the number of injected transactions that
 	// have been seen by the AnteHandler.

@@ -149,11 +149,11 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			))
 		}
 
-		// Sanity check: number of event txs is equal to NumInjectedTxs
-		if msgIndex.NumInjectedTxs != uint64(len(eventTxs)) {
+		// Sanity check: number of event txs is equal to NumInjectedEventTxs
+		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
 			return nil, fmt.Errorf(
 				"mismatch in number of events; expected: %d, got: %d",
-				len(eventTxs), msgIndex.NumInjectedTxs,
+				len(eventTxs), msgIndex.NumInjectedEventTxs,
 			)
 		}
 
@@ -195,7 +195,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		// Calculate the minimum number of expected transactions, which is the MsgIndex, the number of event txs, and
 		// lastly the MsgSupplyDelta, if we're at the MsgSupplyDelta height.
-		minimumExpectedTxs := 1 + msgIndex.NumInjectedTxs
+		minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
 		if injectMsgSupplyDelta {
 			minimumExpectedTxs += 1
 		}
@@ -324,8 +324,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Trim events from tail to fit the block size allocated for events. Unlike the PrepareProposal step, here we do
 		// not have access to the max block size, so instead we assume that the proposer proposed an optimised block.
 		// TODO: consider adding access to max block size instead of assuming the optimal number of events were proposed
-		originalNumberOfEvents := msgIndex.NumInjectedTxs
-		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, injectedMsgIndex.NumInjectedTxs)
+		originalNumberOfEvents := msgIndex.NumInjectedEventTxs
+		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, injectedMsgIndex.NumInjectedEventTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to trim event txs from tail: %w", err,
@@ -334,24 +334,24 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		if trimmed > 0 {
 			ctx.Logger().Debug(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %d because only %d were received from the proposer",
-				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, injectedMsgIndex.NumInjectedTxs,
+				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, injectedMsgIndex.NumInjectedEventTxs,
 			))
 		}
 
-		// Sanity check: number of event txs is equal to NumInjectedTxs
-		if msgIndex.NumInjectedTxs != uint64(len(eventTxs)) {
+		// Sanity check: number of event txs is equal to NumInjectedEventTxs
+		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"mismatch in number of events; expected: %d, got: %d",
-				len(eventTxs), msgIndex.NumInjectedTxs,
+				len(eventTxs), msgIndex.NumInjectedEventTxs,
 			)
 		}
 
 		// Extract the injected event txs and ensure that we've gotten the right amount of transactions.
-		injectedEventTxs := req.Txs[1 : injectedMsgIndex.NumInjectedTxs+1]
-		if uint64(len(injectedEventTxs)) != injectedMsgIndex.NumInjectedTxs {
+		injectedEventTxs := req.Txs[1 : injectedMsgIndex.NumInjectedEventTxs+1]
+		if uint64(len(injectedEventTxs)) != injectedMsgIndex.NumInjectedEventTxs {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"unexpected number of injected event txs; expected: %d, got: %d",
-				injectedMsgIndex.NumInjectedTxs, len(injectedEventTxs),
+				injectedMsgIndex.NumInjectedEventTxs, len(injectedEventTxs),
 			)
 		}
 
@@ -374,7 +374,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Check that MsgSupplyDelta was injected correctly if expected
 		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
 		if expectMsgSupplyDelta {
-			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedTxs)
+			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedEventTxs)
 			if err != nil {
 				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 					"failed to verify injected MsgSupplyDeltaTx: %w", err,
@@ -415,7 +415,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Calculate the minimum number of expected transactions, which is the MsgIndex, the number of event txs, and
 		// lastly the MsgSupplyDelta, if we're at the MsgSupplyDelta height.
-		minimumExpectedTxs := 1 + msgIndex.NumInjectedTxs
+		minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
 		if expectMsgSupplyDelta {
 			minimumExpectedTxs += 1
 		}
@@ -486,10 +486,10 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 	// Generate MsgIndex based on the number of injected events.
 	msgIndex = &bridgetypes.MsgIndex{
-		Authority:        h.bridgeKeeper.GetAuthority(),
-		NumInjectedTxs:   uint64(len(eventTxs)),
-		NewEthereumBlock: h.getNewEthereumBlock(sidecarErr),
-		BlockNumber:      blockNumber,
+		Authority:           h.bridgeKeeper.GetAuthority(),
+		NumInjectedEventTxs: uint64(len(eventTxs)),
+		NewEthereumBlock:    h.getNewEthereumBlock(sidecarErr),
+		BlockNumber:         blockNumber,
 	}
 
 	return

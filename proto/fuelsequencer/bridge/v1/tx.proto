@@ -147,9 +147,9 @@ message MsgIndex {
   // authority ensures that users cannot execute this message.
   string authority = 1;
 
-  // num_injected_txs is the number of Ethereum events injected as
-  // transactions in the current block, excluding the SupplyDelta.
-  uint64 num_injected_txs = 2;
+  // num_injected_event_txs is the number of Ethereum events injected as
+  // txs in the current block, excluding MsgSupplyDelta and MsgIndex.
+  uint64 num_injected_event_txs = 2;
 
   // new_ethereum_block is a boolean which indicates whether a new Ethereum
   // block has been queried from the Sidecar and that the events from it were

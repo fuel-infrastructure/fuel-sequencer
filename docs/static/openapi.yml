@@ -8703,12 +8703,15 @@ paths:
               authority:
                 type: string
                 description: authority ensures that users cannot execute this message.
-              num_injected_txs:
+              num_injected_event_txs:
                 type: string
                 format: uint64
-                description: |-
-                  num_injected_txs is the number of Ethereum events injected as
-                  transactions in the current block, excluding the SupplyDelta.
+                description: >-
+                  num_injected_event_txs is the number of Ethereum events
+                  injected as
+
+                  txs in the current block, excluding MsgSupplyDelta and
+                  MsgIndex.
               new_ethereum_block:
                 type: boolean
                 description: >-
@@ -12954,12 +12957,12 @@ definitions:
       authority:
         type: string
         description: authority ensures that users cannot execute this message.
-      num_injected_txs:
+      num_injected_event_txs:
         type: string
         format: uint64
         description: |-
-          num_injected_txs is the number of Ethereum events injected as
-          transactions in the current block, excluding the SupplyDelta.
+          num_injected_event_txs is the number of Ethereum events injected as
+          txs in the current block, excluding MsgSupplyDelta and MsgIndex.
       new_ethereum_block:
         type: boolean
         description: >-

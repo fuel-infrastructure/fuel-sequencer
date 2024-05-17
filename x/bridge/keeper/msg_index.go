@@ -33,7 +33,7 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 
 	// It is very important to set the index, so the AnteHandler knows that we've processed the MsgIndex.
 	k.SetIndex(ctx, types.Index{
-		NumInjectedTxsTotal: msg.NumInjectedTxs + supplyDeltaCount,
+		NumInjectedTxsTotal: msg.NumInjectedEventTxs + supplyDeltaCount,
 		NumInjectedTxsAnte:  0, // MsgIndex tx is never factored in because it is just a metadata transaction
 	})
 
@@ -44,8 +44,8 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
-	if !msg.NewEthereumBlock && msg.NumInjectedTxs > 0 {
-		newOffset := eventIndexOffset + msg.NumInjectedTxs
+	if !msg.NewEthereumBlock && msg.NumInjectedEventTxs > 0 {
+		newOffset := eventIndexOffset + msg.NumInjectedEventTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 

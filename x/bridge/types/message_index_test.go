@@ -69,10 +69,10 @@ func TestMsgIndex_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestMsgIndex,
 			eventTx2: &testtypes.TestMsgIndexWithEvents{
 				MsgIndex: &types.MsgIndex{
-					Authority:        testtypes.TestGovernanceAddress,
-					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock: true,
-					BlockNumber:      1,
+					Authority:           testtypes.TestGovernanceAddress,
+					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
+					NewEthereumBlock:    true,
+					BlockNumber:         1,
 				},
 				Events: testtypes.TestEvents,
 			},
@@ -87,28 +87,28 @@ func TestMsgIndex_Equal(t *testing.T) {
 			expErrMsg: "nil (false) != (true)",
 		},
 		{
-			name:     "Unequal MsgIndex - number of injected txs is different",
+			name:     "Unequal MsgIndex - number of injected event txs is different",
 			eventTx1: &testtypes.TestMsgIndex,
 			eventTx2: &testtypes.TestMsgIndexWithEvents{
 				MsgIndex: &types.MsgIndex{
-					Authority:        testtypes.TestGovernanceAddress,
-					NumInjectedTxs:   2,
-					NewEthereumBlock: true,
-					BlockNumber:      1,
+					Authority:           testtypes.TestGovernanceAddress,
+					NumInjectedEventTxs: 2,
+					NewEthereumBlock:    true,
+					BlockNumber:         1,
 				},
 				Events: []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
 			},
-			expErrMsg: "number of injected txs (3) != (2)",
+			expErrMsg: "number of injected event txs (3) != (2)",
 		},
 		{
 			name:     "Unequal MsgIndex - NewEthereumBlock is different",
 			eventTx1: &testtypes.TestMsgIndex,
 			eventTx2: &testtypes.TestMsgIndexWithEvents{
 				MsgIndex: &types.MsgIndex{
-					Authority:        testtypes.TestGovernanceAddress,
-					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock: false,
-					BlockNumber:      1,
+					Authority:           testtypes.TestGovernanceAddress,
+					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
+					NewEthereumBlock:    false,
+					BlockNumber:         1,
 				},
 				Events: testtypes.TestEvents,
 			},
@@ -119,10 +119,10 @@ func TestMsgIndex_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestMsgIndex,
 			eventTx2: &testtypes.TestMsgIndexWithEvents{
 				MsgIndex: &types.MsgIndex{
-					Authority:        testtypes.TestGovernanceAddress,
-					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock: true,
-					BlockNumber:      0,
+					Authority:           testtypes.TestGovernanceAddress,
+					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
+					NewEthereumBlock:    true,
+					BlockNumber:         0,
 				},
 				Events: testtypes.TestEvents,
 			},
@@ -133,10 +133,10 @@ func TestMsgIndex_Equal(t *testing.T) {
 			eventTx1: &testtypes.TestMsgIndex,
 			eventTx2: &testtypes.TestMsgIndexWithEvents{
 				MsgIndex: &types.MsgIndex{
-					Authority:        "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
-					NumInjectedTxs:   uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock: true,
-					BlockNumber:      1,
+					Authority:           "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
+					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
+					NewEthereumBlock:    true,
+					BlockNumber:         1,
 				},
 				Events: testtypes.TestEvents,
 			},
@@ -356,46 +356,46 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 		{
 			name: "trim none => same MsgIndex",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			events:          events,
 			numEventsToTrim: 0,
 			expEventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			expEvents: events,
 		},
 		{
 			name: "trim one => trimmed MsgIndex",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			events:          events,
 			numEventsToTrim: 1,
 			expEventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs - 1, // 1 trimmed
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs - 1, // 1 trimmed
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			expEvents: events[1:], // 1 trimmed
 		},
 		{
 			name: "trim all is not possible",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			numEventsToTrim: uint64(len(testtypes.TestMsgIndex.Events)),
 			expErrMsg:       "cannot trim all 3 events",
@@ -403,10 +403,10 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 		{
 			name: "trim more than all is not possible",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			numEventsToTrim: uint64(len(testtypes.TestMsgIndex.Events)) + 1,
 			expErrMsg:       "insufficient no of events, expected at least 4 got 3",
@@ -448,47 +448,47 @@ func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 		{
 			name: "keep all => same MsgIndex",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			events:          eventTxs,
 			numEventsToKeep: uint64(len(testtypes.TestMsgIndex.Events)),
 			expEventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			expEvents: eventTxs,
 		},
 		{
 			name: "keep all but one => same MsgIndex",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   3,
-				NewEthereumBlock: true, // will become false
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: 3,
+				NewEthereumBlock:    true, // will become false
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			events:          eventTxs[:3],
 			numEventsToKeep: uint64(len(testtypes.TestMsgIndex.Events)) - 1,
 			expTrimmed:      1,
 			expEventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   2,     // 1 trimmed
-				NewEthereumBlock: false, // becomes false
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: 2,     // 1 trimmed
+				NewEthereumBlock:    false, // becomes false
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			expEvents: eventTxs[:2], // 1 trimmed
 		},
 		{
 			name: "keep none is not possible",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			events:          eventTxs,
 			numEventsToKeep: 0,
@@ -497,10 +497,10 @@ func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 		{
 			name: "keep more than all is not possible",
 			eventTx: types.MsgIndex{
-				Authority:        testtypes.TestMsgIndex.Authority,
-				NumInjectedTxs:   testtypes.TestMsgIndex.NumInjectedTxs,
-				NewEthereumBlock: testtypes.TestMsgIndex.NewEthereumBlock,
-				BlockNumber:      testtypes.TestMsgIndex.BlockNumber,
+				Authority:           testtypes.TestMsgIndex.Authority,
+				NumInjectedEventTxs: testtypes.TestMsgIndex.NumInjectedEventTxs,
+				NewEthereumBlock:    testtypes.TestMsgIndex.NewEthereumBlock,
+				BlockNumber:         testtypes.TestMsgIndex.BlockNumber,
 			},
 			events:          eventTxs,
 			numEventsToKeep: uint64(len(testtypes.TestMsgIndex.Events)) + 1,

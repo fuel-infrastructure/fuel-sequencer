@@ -43,7 +43,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  true,
 			expectEthereumEventsIndexOffset: 0,
-			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedEventTxs,
 		},
 		{
 			name:                            "MsgIndex without events => new block and offset stays at zero",
@@ -51,23 +51,23 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  true,
 			expectEthereumEventsIndexOffset: 0,
-			expectNumInjectedTxsTotal:       encodedMsgIndexWithoutEvents.NumInjectedTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithoutEvents.NumInjectedEventTxs,
 		},
 		{
 			name:                            "MsgIndex with partial events => no new block but offset updated",
 			msg:                             encodedMsgIndexPartialBlock,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  false,
-			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedTxs,
-			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedTxs,
+			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 		},
 		{
 			name:                            "MsgIndex with partial events => no new block but offset updated",
 			msg:                             encodedMsgIndexPartialBlock,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectNewBlock:                  false,
-			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedTxs,
-			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedTxs,
+			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 		},
 		{
 			name:                            "MsgIndex with events at supply delta height => supply delta considered",
@@ -75,7 +75,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			blockHeight:                     heightForSupplyDelta,
 			expectNewBlock:                  true,
 			expectEthereumEventsIndexOffset: 0,
-			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs + 1, // +1 for MsgSupplyDelta
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedEventTxs + 1, // +1 for MsgSupplyDelta
 		},
 	}
 
@@ -154,7 +154,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 	s.Require().EqualValues(msgWithoutEvents1.BlockNumber, 1)
 	s.Require().EqualValues(msgNoNewBlock1.BlockNumber, 1)
 
-	numberOfEventsInPartialTx := testtypes.TestMsgIndexPartial.NumInjectedTxs
+	numberOfEventsInPartialTx := testtypes.TestMsgIndexPartial.NumInjectedEventTxs
 
 	testBlockTime1 := time.Now().Round(0)
 	testBlockTime2 := time.Now().Round(0)
@@ -408,7 +408,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 				// Verify that Index is in state
 				index, found := s.App.BridgeKeeper.GetIndex(s.Ctx())
 				s.Require().True(found)
-				s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg[i].NumInjectedTxs)
+				s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg[i].NumInjectedEventTxs)
 				s.Require().EqualValues(index.NumInjectedTxsAnte, 0)
 
 				// Check LastEthereumBlockSynced

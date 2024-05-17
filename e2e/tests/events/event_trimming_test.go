@@ -20,10 +20,10 @@ func (s *EventsTestSuite) TestEventTrimming() {
 
 		// Calculate size of transaction resulting from MsgIndex.
 		typicalMsgIndex := &bridgetypes.MsgIndex{
-			Authority:        s.GetGovernanceAddress(),
-			NumInjectedTxs:   4,
-			NewEthereumBlock: true,
-			BlockNumber:      1,
+			Authority:           s.GetGovernanceAddress(),
+			NumInjectedEventTxs: 4,
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
 		}
 		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
 		s.Require().NoError(err)
