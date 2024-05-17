@@ -1,0 +1,15 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+message Index {
+
+  // num_injected_txs_total is the number of Ethereum events injected as
+  // txs in the current block, with any SupplyDelta, but excluding MsgIndex.
+  uint64 num_injected_txs_total = 1;
+
+  // num_injected_txs_ante is the number of injected transactions that
+  // have been seen by the AnteHandler.
+  uint64 num_injected_txs_ante = 2;
+}

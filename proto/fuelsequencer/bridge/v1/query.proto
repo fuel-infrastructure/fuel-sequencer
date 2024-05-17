@@ -9,8 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bridge/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
-import "fuelsequencer/bridge/eth_events_transaction.proto";
-import "fuelsequencer/bridge/supply_delta_processed.proto";
+import "fuelsequencer/bridge/index.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
@@ -51,13 +50,6 @@ service Query {
         "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_info";
   }
 
-  // EthEventsTxByBlockNumber queries the EthEventsTx data by block number.
-  rpc EthEventsTxByBlockNumber(QueryGetEthEventsTxByBlockNumberRequest)
-      returns (QueryGetEthEventsTxByBlockNumberResponse) {
-    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
-                                   "v1/eth_events_tx/{block_number}";
-  }
-
   // Queries a list of SequencerAddressFromEthereumAddress items.
   rpc SequencerAddressFromEthereumAddress(
       QuerySequencerAddressFromEthereumAddressRequest)
@@ -65,13 +57,6 @@ service Query {
     option (google.api.http).get =
         "/fuel-infrastructure/fuel-sequencer/bridge/v1/"
         "sequencer_address_from_ethereum_address/{ethereum_address}";
-  }
-
-  // Queries a SupplyDeltaProcessed by index.
-  rpc SupplyDeltaProcessed(QueryGetSupplyDeltaProcessedRequest)
-      returns (QueryGetSupplyDeltaProcessedResponse) {
-    option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_processed";
   }
 
   // Queries the LastEthBlockUpdateTime.
@@ -110,35 +95,12 @@ message QueryGetEthereumEventIndexOffsetRequest {}
 
 message QueryGetEthereumEventIndexOffsetResponse { uint64 offset = 1; }
 
-// QueryGetEthEventsTxByBlockNumberRequest is the request type for the
-// Query/EthEventsTxByBlockNumber RPC method.
-message QueryGetEthEventsTxByBlockNumberRequest {
-
-  // block_number is the Ethereum block number for which the events are queried.
-  string block_number = 1;
-}
-
-// QueryGetEthEventsTxByBlockNumberResponse is the response type for the
-// Query/EthEventsTxByBlockNumber RPC method.
-message QueryGetEthEventsTxByBlockNumberResponse {
-
-  // eth_events_tx contains the Ethereum events transaction information.
-  EthEventsTx eth_events_tx = 1;
-}
-
 message QuerySequencerAddressFromEthereumAddressRequest {
   string ethereum_address = 1;
 }
 
 message QuerySequencerAddressFromEthereumAddressResponse {
   string sequencer_address = 1;
-}
-
-message QueryGetSupplyDeltaProcessedRequest {}
-
-message QueryGetSupplyDeltaProcessedResponse {
-  SupplyDeltaProcessed supply_delta_processed = 1
-      [ (gogoproto.nullable) = false ];
 }
 
 message QueryGetLastEthBlockUpdateTimeRequest {}

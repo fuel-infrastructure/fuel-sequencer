@@ -1,35 +1,30 @@
 package app
 
 import (
-	"errors"
-	"fmt"
-
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keeper) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
+		return nil, sdkerrors.ErrLogic.Wrap("account keeper is required for ante builder")
 	}
 
 	if options.BankKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "bank keeper is required for ante builder")
+		return nil, sdkerrors.ErrLogic.Wrap("bank keeper is required for ante builder")
 	}
 
 	if options.SignModeHandler == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
+		return nil, sdkerrors.ErrLogic.Wrap("sign mode handler is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		NewMsgSupplyDeltaDecorator(bridgeKeeper),
+		NewInjectedTxsDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
@@ -45,74 +40,55 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 
-type MsgSupplyDeltaDecorator struct {
+type InjectedTxsDecorator struct {
 	bridgeKeeper bridgekeeper.Keeper
 }
 
-func NewMsgSupplyDeltaDecorator(bridgeKeeper bridgekeeper.Keeper) MsgSupplyDeltaDecorator {
-	return MsgSupplyDeltaDecorator{
+func NewInjectedTxsDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedTxsDecorator {
+	return InjectedTxsDecorator{
 		bridgeKeeper: bridgeKeeper,
 	}
 }
 
-// AnteHandle implements the AnteHandler decorator for MsgSupplyDelta. If an error is returned from AnteHandle during
-// CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
-func (d MsgSupplyDeltaDecorator) AnteHandle(
+// AnteHandle implements the AnteHandler decorator for injected transactions. If an error is returned from AnteHandle
+// during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
+func (d InjectedTxsDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
 
-	// MsgSupplyDelta Txs will contain only one message.
-	msgs := tx.GetMsgs()
-	if len(msgs) != 1 {
+	// There's no injected transactions at genesis, and they are only at FinalizeBlock.
+	if ctx.BlockHeight() == 0 || ctx.ExecMode() != sdk.ExecModeFinalize {
 		return next(ctx, tx, simulate)
 	}
 
-	// If the message is not a MsgSupplyDelta continue with the other Ante decorators.
-	msg := msgs[0]
-	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}) {
-		return next(ctx, tx, simulate)
-	}
-
-	// If the message cannot be parsed into MsgSupplyDelta continue with the other Ante decorators.
-	msgSupplyDelta, ok := msg.(*bridgetypes.MsgSupplyDelta)
-	if !ok {
-		return next(ctx, tx, simulate)
-	}
-
-	// Confirm that msgSupplyDelta passes the necessary verification checks and error if not
-	if err := msgSupplyDelta.ValidateBasic(); err != nil {
-		return ctx, err
-	}
-
-	// Override the gas meter with an infinite one to make sure that the AnteHandler does not run out of gas when it's
-	// processing a MsgSupplyDelta. This is safe because any user-initiated MsgSupplyDelta will never be included in a
-	// block as below we are erroring when we detect such messages.
+	// Set an infinite gas meter from now since we might be processing an injected transaction.
 	cachedGasMeter := ctx.GasMeter()
 	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
-	// Get SupplyDeltaPeriod
-	supplyDeltaPeriod := d.bridgeKeeper.GetParams(ctx).SupplyDeltaPeriod
-	if supplyDeltaPeriod == 0 {
-		return ctx, errors.New("SupplyDeltaPeriod cannot be zero")
+	// If the index does not exist, then this must be the first transaction that will set the index.
+	// We're done from the AnteHandler and can keep the infinite gas meter for the message handler.
+	//
+	// Assumption: first tx always contains a MsgIndex. This should be amended if it is no longer the case.
+	index, found := d.bridgeKeeper.GetIndex(ctx)
+	if !found {
+		return ctx, nil
 	}
 
-	// MsgSupplyDelta can only be injected at specific height intervals. We will reject the Tx if a MsgSupplyDelta is
-	// injected at an unexpected height as this must be user-generated
-	if uint64(ctx.BlockHeight())%supplyDeltaPeriod != 0 {
-		return ctx, fmt.Errorf("MsgSupplyDelta not expected at height %d", ctx.BlockHeight())
+	// If the AnteHandler has not seen all injected transactions, this must be an injected transaction.
+	// Note that the consideration of 'all injected transactions' here covers the MsgSupplyDelta as well.
+	//
+	// We're done from the AnteHandler and can keep the infinite gas meter for the respective message handler.
+	if index.NumInjectedTxsAnte < index.NumInjectedTxsTotal {
+
+		// The AnteHandler has seen an injected transaction.
+		index.NumInjectedTxsAnte += 1
+		d.bridgeKeeper.SetIndex(ctx, index)
+
+		return ctx, nil
 	}
 
-	// MsgSupplyDelta will be rejected if we have already processed a MsgSupplyDeltaTx. Here we are assuming that
-	// module initiated MsgSupplyDeltaTxs are always first of their kind in the block proposal.
-	if d.bridgeKeeper.MustGetSupplyDeltaProcessed(ctx).Processed {
-		return ctx, errors.New("MsgSupplyDelta already processed in block proposal")
-	}
-	d.bridgeKeeper.SetSupplyDeltaProcessed(ctx, bridgetypes.SupplyDeltaProcessed{Processed: true})
-
-	// Reset the gas meter to its original state. We can't use a defer function because this doesn't work well with
-	// decorators.
+	// Revert the gas meter because if we reach this stage, the tx is not an injected one.
 	ctx = ctx.WithGasMeter(cachedGasMeter)
 
-	// Other Ante decorators won't execute if we reach this stage
-	return ctx, nil
+	return next(ctx, tx, simulate)
 }

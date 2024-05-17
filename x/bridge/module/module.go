@@ -154,11 +154,21 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Reset SupplyDeltaProcessed in preparation for next block.
-	am.keeper.SetSupplyDeltaProcessed(ctx, types.SupplyDeltaProcessed{Processed: false})
+	index, found := am.keeper.GetIndex(ctx)
+	if !found {
+		return fmt.Errorf("expected to find Index at the end of the block")
+	}
 
-	// Process the Ethereum events injected at lastEthereumBlockSynced height.
-	am.keeper.ProcessEthereumEvents(ctx)
+	// Check that the AnteHandler has seen all injected transactions.
+	if index.NumInjectedTxsAnte != index.NumInjectedTxsTotal {
+		return fmt.Errorf(
+			"expected AnteHandler to see all injected txs; total: %d; seen: %d",
+			index.NumInjectedTxsTotal, index.NumInjectedTxsAnte,
+		)
+	}
+
+	// Remove Index in preparation for next block, since the AnteHandler uses this to look out for MsgIndex.
+	am.keeper.RemoveIndex(ctx)
 
 	// Update SupplyDeltaInfo with new changes in supply
 	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)

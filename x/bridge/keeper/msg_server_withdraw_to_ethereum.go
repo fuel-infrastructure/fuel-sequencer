@@ -54,8 +54,8 @@ func (k msgServer) WithdrawToEthereum(
 	err = ctx.EventManager().EmitTypedEvent(
 		&types.EventWithdrawToEthereumReported{
 			Nonce:  nonce,
-			From:   msg.From,
-			To:     msg.To,
+			From:   strings.ToLower(msg.From),
+			To:     strings.ToLower(msg.To),
 			Amount: msg.Amount,
 		},
 	)

@@ -47,7 +47,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expErrMsg: "MsgSupplyDelta cannot be submitted at height 101",
+			expErrMsg: "MsgSupplyDelta not expected at height 101",
 		},
 		{
 			name:              "invalid MsgSupplyDelta - invalid authority",
