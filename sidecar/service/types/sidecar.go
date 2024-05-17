@@ -83,7 +83,7 @@ func (m *Event) Validate(ethereumProxyContractAddress string) error {
 		return errors.New("event is nil")
 	}
 
-	// Error if one of the events does not belong to the Ethereum Proxy Contract.
+	// Error if the event does not belong to the Ethereum Proxy Contract.
 	// Note: there is no need to check that m.ContractAddress is hex, assuming ethereumProxyContractAddress is correct.
 	if m.ContractAddress != ethereumProxyContractAddress {
 		return fmt.Errorf(

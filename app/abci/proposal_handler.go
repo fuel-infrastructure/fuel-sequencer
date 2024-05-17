@@ -128,15 +128,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Trim events from head to skip the events that were already processed.
 		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
-			return nil, fmt.Errorf("failed to trim events from head: %w", err)
-		}
-
-		// Sanity check: number of event txs is equal to NumInjectedTxs
-		if msgIndex.NumInjectedTxs != uint64(len(eventTxs)) {
-			return nil, fmt.Errorf(
-				"mismatch in number of events; expected: %d, got: %d",
-				len(eventTxs), msgIndex.NumInjectedTxs,
-			)
+			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
 
 		// Trim events from tail to fit the block size allocated for events.
@@ -148,13 +140,21 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		originalNumberOfEvents := len(eventTxs)
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))
 		if err != nil {
-			return nil, fmt.Errorf("failed to trim events from tail: %w", err)
+			return nil, fmt.Errorf("failed to trim event txs from tail: %w", err)
 		}
 		if trimmed > 0 {
 			ctx.Logger().Debug(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %d because only %d could fit in max bytes %d",
 				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
+		}
+
+		// Sanity check: number of event txs is equal to NumInjectedTxs
+		if msgIndex.NumInjectedTxs != uint64(len(eventTxs)) {
+			return nil, fmt.Errorf(
+				"mismatch in number of events; expected: %d, got: %d",
+				len(eventTxs), msgIndex.NumInjectedTxs,
+			)
 		}
 
 		msgIndexBz, err := msgIndex.RawTxBytes()
@@ -199,13 +199,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		if injectMsgSupplyDelta {
 			minimumExpectedTxs += 1
 		}
-
-		// Given that we trimmed the events list earlier on, we expect the MsgSupplyDelta transaction and the event
-		// transactions to fit in the block. If this is not the case, there must be something wrong with the size
-		// calculations or trimming logic. We want to fail in both of these cases.
 		if uint64(len(h.txSelector.SelectedTxs(ctx))) < minimumExpectedTxs {
 			req.Txs = [][]byte{}
-			return nil, errors.New("failed to add all mandatory messages to block proposal")
+			return nil, errors.New("failed to add mandatory messages to block proposal")
 		}
 
 		h.logger.Debug("prepared proposal", "txs", len(h.txSelector.SelectedTxs(ctx)))
@@ -249,14 +245,16 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get blocked addresses: %w", err)
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to get blocked addresses: %w", err,
+			)
 		}
 
 		// Expect that the first transaction is always a valid transaction containing MsgIndex.
 		injectedMsgIndexUnparsed, err := h.txVerifier.TxDecode(req.Txs[0])
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"first transaction expected to be an valid tx: %w", err,
+				"first transaction expected to be a valid tx: %w", err,
 			)
 		}
 
@@ -319,7 +317,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to trim events from head: %w", err,
+				"failed to trim event txs from head: %w", err,
 			)
 		}
 
@@ -330,7 +328,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, injectedMsgIndex.NumInjectedTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to trim events from tail: %w", err,
+				"failed to trim event txs from tail: %w", err,
 			)
 		}
 		if trimmed > 0 {
@@ -338,6 +336,14 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				"Skipped %d/%d of remaining events from block %d because only %d were received from the proposer",
 				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, injectedMsgIndex.NumInjectedTxs,
 			))
+		}
+
+		// Sanity check: number of event txs is equal to NumInjectedTxs
+		if msgIndex.NumInjectedTxs != uint64(len(eventTxs)) {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"mismatch in number of events; expected: %d, got: %d",
+				len(eventTxs), msgIndex.NumInjectedTxs,
+			)
 		}
 
 		// Extract the injected event txs and ensure that we've gotten the right amount of transactions.
@@ -354,7 +360,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		err = injectedMsgIndex.Equal(msgIndex, injectedEventTxs, eventTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"generated data does not match that from the block proposal: %w", err,
+				"generated injected txs do not match the ones from the block proposal: %w", err,
 			)
 		}
 
@@ -407,6 +413,19 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			}
 		}
 
+		// Calculate the minimum number of expected transactions, which is the MsgIndex, the number of event txs, and
+		// lastly the MsgSupplyDelta, if we're at the MsgSupplyDelta height.
+		minimumExpectedTxs := 1 + msgIndex.NumInjectedTxs
+		if expectMsgSupplyDelta {
+			minimumExpectedTxs += 1
+		}
+		if uint64(len(req.Txs)) < minimumExpectedTxs {
+			req.Txs = [][]byte{}
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"failed to add mandatory messages to block proposal",
+			)
+		}
+
 		h.logger.Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
@@ -447,10 +466,13 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 		eventTx, err := event.RawTxBytes(h.cdc, h.bridgeKeeper.GetAuthority())
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get messages with err: %s; event: %s", err.Error(), event)
+			return nil, nil, fmt.Errorf(
+				"failed to encode event as raw tx bytes with err: %s; event: %s",
+				err.Error(), event,
+			)
 		}
 
-		authenticated, err := h.AuthenticateEvent(event, eventTx, params, blockedAddresses)
+		authenticated, err := h.authenticateEvent(event, eventTx, params, blockedAddresses)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to check authorization: %s; event: %s", err.Error(), event)
 		}

@@ -189,7 +189,7 @@ func (m *MsgIndex) RawTxBytes() ([]byte, error) {
 	return msgIndexBz, nil
 }
 
-// FromSdkTx extracts MsgIndex from an SDK transaction, which is expected to contain just MsgIndex.
+// FromSdkTx extracts MsgIndex from an SDK transaction which is expected to contain just MsgIndex.
 func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 
 	// MsgIndex will contain only one message.
@@ -198,7 +198,7 @@ func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 		return fmt.Errorf("expected 1 msg in MsgIndex raw bytes, got %d", len(msgs))
 	}
 
-	// If the message is not a MsgIndex continue with the other Ante decorators.
+	// If the message is not a MsgIndex return an error.
 	msg := msgs[0]
 	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&MsgIndex{}) {
 		return fmt.Errorf("expected msg type URL %s, got %s", sdk.MsgTypeURL(&MsgIndex{}), sdk.MsgTypeURL(msg))

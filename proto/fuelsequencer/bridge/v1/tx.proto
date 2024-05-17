@@ -31,8 +31,7 @@ service Msg {
   rpc DepositFromEthereum(MsgDepositFromEthereum)
       returns (MsgDepositFromEthereumResponse);
 
-  // Index defines an operation for setting information about injected
-  // transactions and special transactions.
+  // Index defines an operation for setting information about injected txs.
   rpc Index(MsgIndex) returns (MsgIndexResponse);
 }
 
@@ -148,7 +147,7 @@ message MsgIndex {
   // authority ensures that users cannot execute this message.
   string authority = 1;
 
-  // num_injected_events is the number of Ethereum events injected as
+  // num_injected_txs is the number of Ethereum events injected as
   // transactions in the current block, excluding the SupplyDelta.
   uint64 num_injected_txs = 2;
 

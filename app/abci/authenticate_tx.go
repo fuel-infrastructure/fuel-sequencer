@@ -9,7 +9,7 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (h *FuelSequencerProposalHandler) AuthenticateEvent(
+func (h *FuelSequencerProposalHandler) authenticateEvent(
 	event *sidecartypes.Event, rawTxBytes []byte, params *bridgetypes.Params, blockedAddresses map[string]bool,
 ) (bool, error) {
 
@@ -33,17 +33,17 @@ func (h *FuelSequencerProposalHandler) AuthenticateEvent(
 		}
 		msgs := tx.GetMsgs()
 
-		err = h.AuthenticateTx(authorizeEvent.Sender, msgs, params, blockedAddresses)
+		err = h.authenticateTx(authorizeEvent.Sender, msgs, params, blockedAddresses)
 		if err != nil {
-			return false, nil // the fact that authentication failed is more important than the error
+			return false, nil // do not return the error, otherwise it takes priority over the boolean
 		}
 	}
 
 	return true, nil
 }
 
-// AuthenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
-func (h *FuelSequencerProposalHandler) AuthenticateTx(
+// authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
+func (h *FuelSequencerProposalHandler) authenticateTx(
 	sender string, msgs []sdk.Msg, params *bridgetypes.Params, blockedAddresses map[string]bool,
 ) error {
 

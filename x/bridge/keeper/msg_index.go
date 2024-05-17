@@ -15,8 +15,7 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 	eventIndexOffset := k.MustGetEthereumEventIndexOffset(ctx)
 	params := k.GetParams(ctx)
 
-	// Perform some checks on the injected Ethereum events transaction.
-	// If any problem is found, this is an indication of a serious bug.
+	// If any problem is found in the MsgIndex, this is an indication of a serious bug.
 	err := msg.ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset)
 	if err != nil {
 		return nil, err
@@ -35,7 +34,7 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 	// It is very important to set the index, so the AnteHandler knows that we've processed the MsgIndex.
 	k.SetIndex(ctx, types.Index{
 		NumInjectedTxsTotal: msg.NumInjectedTxs + supplyDeltaCount,
-		NumInjectedTxsAnte:  0,
+		NumInjectedTxsAnte:  0, // MsgIndex tx is never factored in because it is just a metadata transaction
 	})
 
 	if msg.NewEthereumBlock {

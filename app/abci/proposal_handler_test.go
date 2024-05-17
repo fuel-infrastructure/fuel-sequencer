@@ -33,10 +33,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
-	encodedMsgIndexWithEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndex)
-	encodedMsgIndexPartialBlock := s.EncodeMsgIndex(&testtypes.TestMsgIndexPartial)
-	encodedMsgIndexWithoutEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndexWithoutEvents)
-	encodedMsgIndexSidecarErr := s.EncodeMsgIndex(&testtypes.TestMsgIndexSidecarErr)
+	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
+	encodedMsgIndexPartialBlock := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexPartial)
+	encodedMsgIndexWithoutEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexSidecarErr := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
@@ -286,7 +286,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to trim events from tail: cannot trim all 3 events",
+			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
 		},
 		{
 			name:                      "returns error if none of the MsgIndex events fit in the block",
@@ -304,7 +304,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to trim events from tail: cannot trim all 3 events",
+			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
 		},
 		{
 			name:                      "returns only supply delta and MsgIndex if it's just enough block size",
@@ -381,7 +381,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg: "failed to trim events from head: insufficient no of events, expected at " +
+			expErrMsg: "failed to trim event txs from head: insufficient no of events, expected at " +
 				"least 4 got 3",
 		},
 	}
@@ -467,12 +467,12 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
-	encodedMsgIndexWithEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndex)
-	encodedMsgIndexWithDifferentEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndexWithDifferentEvents)
-	encodedMsgIndexPartialBlock := s.EncodeMsgIndex(&testtypes.TestMsgIndexPartial)
-	encodedMsgIndexWithEventsReduced := s.EncodeMsgIndex(&testtypes.TestMsgIndexReduced)
-	encodedMsgIndexWithoutEvents := s.EncodeMsgIndex(&testtypes.TestMsgIndexWithoutEvents)
-	encodedMsgIndexSidecarErr := s.EncodeMsgIndex(&testtypes.TestMsgIndexSidecarErr)
+	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
+	encodedMsgIndexWithDifferentEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithDifferentEvents)
+	encodedMsgIndexPartialBlock := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexPartial)
+	encodedMsgIndexWithEventsReduced := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexReduced)
+	encodedMsgIndexWithoutEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexSidecarErr := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
@@ -772,7 +772,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "enerated data does not match that from the block proposal",
+			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
@@ -789,7 +789,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to trim events from tail: cannot trim all 3 events",
+			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
@@ -840,7 +840,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "enerated data does not match that from the block proposal",
+			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
 		},
 		{
 			name:                      "returns error if block exceeds MaxBlockGas",
@@ -927,7 +927,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			maxBlockGas:                  totalTxsGas,
-			expErrMsg: "failed to trim events from head: insufficient no of events, expected " +
+			expErrMsg: "failed to trim event txs from head: insufficient no of events, expected " +
 				"at least 4 got 3",
 		},
 	}

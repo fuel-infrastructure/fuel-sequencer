@@ -40,7 +40,7 @@ func (k msgServer) SupplyDelta(goCtx context.Context, msg *types.MsgSupplyDelta)
 	supplyDelta := supplyDeltaInfo.Delta.Add(supplyDeltaInfo.Offset)
 
 	// If the supply delta is zero, then there is either nothing to report to Ethereum or MsgSupplyDelta was submitted
-	// at a valid height by a user. We should fail in both scenarios.
+	// at a valid height by a user (unlikely to reach this stage if this is the case). We should fail in both scenarios.
 	if supplyDelta.IsZero() {
 		return nil, types.ErrInvalidSupplyDeltaValue.Wrapf("cannot report 0 supply delta to Ethereum")
 	}

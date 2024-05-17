@@ -469,7 +469,7 @@ var xxx_messageInfo_MsgDepositFromEthereumResponse proto.InternalMessageInfo
 type MsgIndex struct {
 	// authority ensures that users cannot execute this message.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	// num_injected_events is the number of Ethereum events injected as
+	// num_injected_txs is the number of Ethereum events injected as
 	// transactions in the current block, excluding the SupplyDelta.
 	NumInjectedTxs uint64 `protobuf:"varint,2,opt,name=num_injected_txs,json=numInjectedTxs,proto3" json:"num_injected_txs,omitempty"`
 	// new_ethereum_block is a boolean which indicates whether a new Ethereum
@@ -673,8 +673,7 @@ type MsgClient interface {
 	WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error)
 	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
 	DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error)
-	// Index defines an operation for setting information about injected
-	// transactions and special transactions.
+	// Index defines an operation for setting information about injected txs.
 	Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOption) (*MsgIndexResponse, error)
 }
 
@@ -743,8 +742,7 @@ type MsgServer interface {
 	WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error)
 	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
 	DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error)
-	// Index defines an operation for setting information about injected
-	// transactions and special transactions.
+	// Index defines an operation for setting information about injected txs.
 	Index(context.Context, *MsgIndex) (*MsgIndexResponse, error)
 }
 
