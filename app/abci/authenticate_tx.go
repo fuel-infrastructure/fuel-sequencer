@@ -38,8 +38,8 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 		}
 		msgs := tx.GetMsgs()
 
-		// It is very very very important to validate the Authorize event's messages, otherwise,
-		// these might skip AnteHandler and cause us to not track the injected transactions correctly.
+		// It is very important to validate the Authorize event's messages, otherwise invalid messages will not be seen
+		// by the AnteHandler, which means we will not track the injected transactions correctly.
 		for _, msg := range msgs {
 			m, ok := msg.(sdk.HasValidateBasic)
 			if !ok {
