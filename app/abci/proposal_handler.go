@@ -95,6 +95,14 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			// Calculate size of supply delta message
 			supplyDeltaBytesSize = int64(len(supplyDeltaBytes))
 
+			// Ensure that supply delta fits in the block on its own
+			if supplyDeltaBytesSize > req.MaxTxBytes {
+				return nil, fmt.Errorf(
+					"could not fit MsgSupplyDelta of size %d in block's max bytes %d",
+					supplyDeltaBytesSize, req.MaxTxBytes,
+				)
+			}
+
 			// Set MsgSupplyDeltaTx as first transaction to precede over user initiated MsgSupplyDelta
 			req.Txs = append([][]byte{supplyDeltaBytes}, req.Txs...)
 		}
@@ -135,7 +143,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
-			return nil, fmt.Errorf("failed to calculate number of events for max bytes %d: %w", maxBytesForEvents, err)
+			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
 		}
 		originalNumberOfEvents := len(eventTxs)
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))

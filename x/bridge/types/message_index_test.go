@@ -287,15 +287,15 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 
 func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
-	tx := testtypes.TestMsgIndex.MsgIndex
-	txRawBytes, err := tx.RawTxBytes()
+	msgIndexSize := testtypes.TestMsgIndex.MsgIndex
+	msgIndexRawBytes, err := msgIndexSize.RawTxBytes()
 	require.NoError(t, err)
 
 	events := testtypes.TestMsgIndex.Events
 	eventTxs := testtypes.MustGetEventTxsFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
 	eventsSize := testtypes.MustGetSizeFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
 
-	txAndEventsSize := len(txRawBytes) + eventsSize
+	txAndEventsSize := len(msgIndexRawBytes) + eventsSize
 
 	testCases := []struct {
 		name           string
@@ -321,6 +321,13 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 			eventTx:        &testtypes.TestMsgIndex,
 			maxBytes:       uint64(txAndEventsSize) - 1,
 			expNumOfEvents: len(testtypes.TestMsgIndex.Events) - 1,
+		},
+		{
+			name:           "size smaller than MsgIndex size errors",
+			eventTx:        &testtypes.TestMsgIndex,
+			maxBytes:       uint64(len(msgIndexRawBytes)) - 1,
+			expNumOfEvents: len(testtypes.TestMsgIndex.Events) - 1,
+			expErrMsg:      "could not fit MsgIndex",
 		},
 	}
 

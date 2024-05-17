@@ -286,7 +286,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
+			expErrMsg:                    "failed to calculate number of events with max bytes 0",
 		},
 		{
 			name:                      "returns error if none of the MsgIndex events fit in the block",
@@ -304,7 +304,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
+			expErrMsg:                    "failed to calculate number of events with max bytes 0",
 		},
 		{
 			name:                      "returns only supply delta and MsgIndex if it's just enough block size",
