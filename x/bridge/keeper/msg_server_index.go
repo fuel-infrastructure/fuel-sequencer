@@ -46,6 +46,11 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 		supplyDeltaCount += 1
 	}
 
+	// Ensure index was not already set
+	if _, found := k.GetIndex(ctx); found {
+		return nil, fmt.Errorf("expected to not find Index")
+	}
+
 	// It is very important to set the index, so the AnteHandler knows that we've processed the MsgIndex.
 	k.SetIndex(ctx, types.Index{
 		NumInjectedTxsTotal: msg.NumInjectedTxs + supplyDeltaCount,
