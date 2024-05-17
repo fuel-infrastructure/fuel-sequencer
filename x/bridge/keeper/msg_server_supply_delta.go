@@ -14,7 +14,7 @@ func (k msgServer) SupplyDelta(
 
 	err = k.TryExecSpecialMessage(ctx, msg.Authority, func(ctx sdk.Context) error {
 		var innerErr error
-		if resp, innerErr = k.supplyDelta(ctx, msg); innerErr != nil {
+		if resp, innerErr = k.supplyDelta(ctx); innerErr != nil {
 			resp = &types.MsgSupplyDeltaResponse{} // normalise
 			return innerErr
 		}
@@ -24,7 +24,7 @@ func (k msgServer) SupplyDelta(
 	return resp, err
 }
 
-func (k msgServer) supplyDelta(ctx sdk.Context, _ *types.MsgSupplyDelta) (*types.MsgSupplyDeltaResponse, error) {
+func (k msgServer) supplyDelta(ctx sdk.Context) (*types.MsgSupplyDeltaResponse, error) {
 
 	// Confirm that BridgeParams.SupplyDeltaPeriod is non-zero, otherwise we can't calculate the expected height at
 	// which a MsgSupplyDelta is to be sent.
@@ -47,12 +47,6 @@ func (k msgServer) supplyDelta(ctx sdk.Context, _ *types.MsgSupplyDelta) (*types
 	// Calculate the supply delta to be reported.
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
 	supplyDelta := supplyDeltaInfo.Delta.Add(supplyDeltaInfo.Offset)
-
-	// If the supply delta is zero, then there is either nothing to report to Ethereum or MsgSupplyDelta was submitted
-	// at a valid height by a user. We should fail in both scenarios.
-	if supplyDelta.IsZero() {
-		return nil, types.ErrInvalidSupplyDeltaValue.Wrapf("cannot report 0 supply delta to Ethereum")
-	}
 
 	// Reset SupplyDeltaInfo
 	k.MustResetSupplyDeltaInfo(ctx)

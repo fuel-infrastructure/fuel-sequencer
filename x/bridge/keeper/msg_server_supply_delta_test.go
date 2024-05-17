@@ -111,18 +111,21 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			expEventEmitted:      false,
 		},
 		{
-			name:              "invalid MsgSupplyDelta - SupplyDelta is zero",
+			name:              "valid MsgSupplyDelta - SupplyDelta is zero",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testSupplyDeltaInfoZeros, // zeros
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod),
+			supplyDeltaInfo:   testSupplyDeltaInfoZeros,               // zeros
+			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,        // unchanged
-			expLastEthereumNonce: testtypes.TestLastEthereumNonce, // unchanged
-			expResponse:          &bridgetypes.MsgSupplyDeltaResponse{},
-			expEventEmitted:      false,
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
+				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+				SupplyDelta: sdk.ZeroInt(),
+			},
+			expEventEmitted: true,
 		},
 	}
 
