@@ -147,7 +147,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - from address failed to parse - mint to governance",
+			name: "failure - depositor address failed to parse - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent5Msg,
 			},
@@ -179,7 +179,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - bad to bech32 address - mint to governance",
+			name: "failure - bad recipient bech32 address - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent7Msg,
 			},

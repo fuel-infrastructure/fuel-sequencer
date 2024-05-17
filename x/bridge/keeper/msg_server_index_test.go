@@ -19,10 +19,11 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 
 	testBlockTime := time.Now().Round(0)
 	heightToAvoidSupplyDelta := int64(999)
-	heightForSupplyDelta := int64(types.DefaultSupplyDeltaPeriod)
+	heightForSupplyDelta := int64(testtypes.TestSupplyDeltaPeriod)
 
 	testCases := []struct {
 		name                            string
+		supplyDeltaPeriod               uint64
 		setIndex                        *types.Index
 		msg                             types.MsgIndex
 		blockHeight                     int64
@@ -34,13 +35,31 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 		expectLastEthBlockUpdateTime    bool
 	}{
 		{
-			name:           "MsgIndex with wrong block number => error",
-			msg:            encodedMsgIndexWithWrongBlock,
-			blockHeight:    heightToAvoidSupplyDelta,
-			expectIndexSet: false,
+			name:              "MsgIndex with wrong block number => reverted",
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			msg:               encodedMsgIndexWithWrongBlock,
+			blockHeight:       heightToAvoidSupplyDelta,
+			expectIndexSet:    false,
+		},
+		{
+			name:                      "Index already exists => reverted",
+			supplyDeltaPeriod:         testtypes.TestSupplyDeltaPeriod,
+			setIndex:                  &types.Index{},
+			msg:                       encodedMsgIndexWithEvents,
+			blockHeight:               heightToAvoidSupplyDelta,
+			expectIndexSet:            true, // not set, but exists already
+			expectNumInjectedTxsTotal: 0,
+		},
+		{
+			name:              "Supply delta period zero => reverted",
+			supplyDeltaPeriod: 0,
+			msg:               encodedMsgIndexWithEvents,
+			blockHeight:       heightToAvoidSupplyDelta,
+			expectIndexSet:    false,
 		},
 		{
 			name:                            "MsgIndex with events => new block and offset stays at zero",
+			supplyDeltaPeriod:               testtypes.TestSupplyDeltaPeriod,
 			msg:                             encodedMsgIndexWithEvents,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   1,
@@ -51,6 +70,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 		},
 		{
 			name:                            "MsgIndex without events => new block and offset stays at zero",
+			supplyDeltaPeriod:               testtypes.TestSupplyDeltaPeriod,
 			msg:                             encodedMsgIndexWithoutEvents,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   1,
@@ -61,6 +81,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 		},
 		{
 			name:                            "MsgIndex with partial events => no new block but offset updated",
+			supplyDeltaPeriod:               testtypes.TestSupplyDeltaPeriod,
 			msg:                             encodedMsgIndexPartialBlock,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   0,
@@ -71,6 +92,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 		},
 		{
 			name:                            "MsgIndex with partial events => no new block but offset updated",
+			supplyDeltaPeriod:               testtypes.TestSupplyDeltaPeriod,
 			msg:                             encodedMsgIndexPartialBlock,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   0,
@@ -81,6 +103,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 		},
 		{
 			name:                            "MsgIndex with events at supply delta height => supply delta considered",
+			supplyDeltaPeriod:               testtypes.TestSupplyDeltaPeriod,
 			msg:                             encodedMsgIndexWithEvents,
 			blockHeight:                     heightForSupplyDelta,
 			expectLastEthereumBlockSynced:   1,
@@ -90,15 +113,22 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectIndexSet:                  true,
 		},
 		{
-			name:         "MsgIndex with invalid authority => failed",
-			msg:          types.MsgIndex{Authority: "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"},
-			expectErrMsg: "invalid authority",
+			name:              "MsgIndex with invalid authority => failed",
+			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
+			msg:               types.MsgIndex{Authority: "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"},
+			expectErrMsg:      "invalid authority",
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.SetupTest()
+
+			// Set the supply delta period
+			params := s.App.BridgeKeeper.GetParams(s.Ctx())
+			params.SupplyDeltaPeriod = tc.supplyDeltaPeriod
+			err := s.App.BridgeKeeper.SetParams(s.Ctx(), params)
+			s.Require().NoError(err)
 
 			// Get the message server
 			msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
@@ -108,7 +138,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 				s.App.BridgeKeeper.SetIndex(s.Ctx(), *tc.setIndex)
 			}
 
-			_, err := msgServer.Index(s.Ctx().WithBlockTime(testBlockTime).WithBlockHeight(tc.blockHeight), &tc.msg)
+			_, err = msgServer.Index(s.Ctx().WithBlockTime(testBlockTime).WithBlockHeight(tc.blockHeight), &tc.msg)
 			if tc.expectErrMsg != "" {
 				s.Require().ErrorContains(err, tc.expectErrMsg)
 				return
