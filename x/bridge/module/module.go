@@ -154,7 +154,6 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Index must have been set during the block.
 	index, found := am.keeper.GetIndex(ctx)
 	if !found {
 		return fmt.Errorf("expected to find Index at the end of the block")

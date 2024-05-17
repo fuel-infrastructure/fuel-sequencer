@@ -65,9 +65,9 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectLastEthereumBlockSynced:   1,
 			expectLastEthBlockUpdateTime:    true,
 			expectEthereumEventsIndexOffset: 0,
-			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedEventTxs,
 			expectIndex: types.Index{
-				NumInjectedTxsTotal: encodedMsgIndexWithEvents.NumInjectedTxs,
+				NumInjectedTxsTotal: encodedMsgIndexWithEvents.NumInjectedEventTxs,
 			},
 		},
 		{
@@ -78,9 +78,9 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectLastEthereumBlockSynced:   1,
 			expectLastEthBlockUpdateTime:    true,
 			expectEthereumEventsIndexOffset: 0,
-			expectNumInjectedTxsTotal:       encodedMsgIndexWithoutEvents.NumInjectedTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithoutEvents.NumInjectedEventTxs,
 			expectIndex: types.Index{
-				NumInjectedTxsTotal: encodedMsgIndexWithoutEvents.NumInjectedTxs,
+				NumInjectedTxsTotal: encodedMsgIndexWithoutEvents.NumInjectedEventTxs,
 			},
 		},
 		{
@@ -90,10 +90,10 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   0,
 			expectLastEthBlockUpdateTime:    false,
-			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedTxs,
-			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedTxs,
+			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectIndex: types.Index{
-				NumInjectedTxsTotal: encodedMsgIndexPartialBlock.NumInjectedTxs,
+				NumInjectedTxsTotal: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			},
 		},
 		{
@@ -103,10 +103,10 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   0,
 			expectLastEthBlockUpdateTime:    false,
-			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedTxs,
-			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedTxs,
+			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
+			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectIndex: types.Index{
-				NumInjectedTxsTotal: encodedMsgIndexPartialBlock.NumInjectedTxs,
+				NumInjectedTxsTotal: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			},
 		},
 		{
@@ -117,9 +117,9 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectLastEthereumBlockSynced:   1,
 			expectLastEthBlockUpdateTime:    true,
 			expectEthereumEventsIndexOffset: 0,
-			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedTxs + 1, // +1 for MsgSupplyDelta
+			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedEventTxs + 1, // +1 for MsgSupplyDelta
 			expectIndex: types.Index{
-				NumInjectedTxsTotal: encodedMsgIndexWithEvents.NumInjectedTxs + 1, // +1 for MsgSupplyDelta
+				NumInjectedTxsTotal: encodedMsgIndexWithEvents.NumInjectedEventTxs + 1, // +1 for MsgSupplyDelta
 			},
 		},
 		{
@@ -206,7 +206,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 	s.Require().EqualValues(msgWithoutEvents1.BlockNumber, 1)
 	s.Require().EqualValues(msgNoNewBlock1.BlockNumber, 1)
 
-	numberOfEventsInPartialTx := testtypes.TestMsgIndexPartial.NumInjectedTxs
+	numberOfEventsInPartialTx := testtypes.TestMsgIndexPartial.NumInjectedEventTxs
 
 	testBlockTime1 := time.Now().Round(0)
 	testBlockTime2 := time.Now().Round(0)
@@ -236,8 +236,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
 			},
 		},
 		{
@@ -252,8 +252,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgPartialBlock2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgPartialBlock2.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of Partial and NoNewBlock
@@ -269,7 +269,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
 			expectLastEthBlockUpdateTime:    []bool{false, false},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 				{NumFailedSpecialTxs: 1}, // failed!
 			},
 		},
@@ -285,8 +285,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
 			expectLastEthBlockUpdateTime:    []bool{false, false},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of Partial and NoEvents
@@ -302,7 +302,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
 			expectLastEthBlockUpdateTime:    []bool{false, false},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 				{NumFailedSpecialTxs: 1}, // failed!
 			},
 		},
@@ -318,8 +318,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of NoNewBlock and NoEvents
@@ -335,8 +335,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedEventTxs},
 			},
 		},
 		{
@@ -351,8 +351,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgNoNewBlock2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock2.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of NoNewBlock and Full
@@ -368,8 +368,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
 			},
 		},
 		{
@@ -384,8 +384,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgNoNewBlock2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock2.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of NoEvents and Full
@@ -401,8 +401,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithEvents2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithEvents2.NumInjectedEventTxs},
 			},
 		},
 		{
@@ -417,8 +417,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithoutEvents2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents2.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of Full and Full
@@ -434,8 +434,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithEvents2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithEvents2.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of Partial and Partial
@@ -451,8 +451,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
 			expectLastEthBlockUpdateTime:    []bool{false, false},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of NoNewBlock and NoNewBlock
@@ -468,8 +468,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
 			expectLastEthBlockUpdateTime:    []bool{false, false},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
 			},
 		},
 		// ---------------------------- Combinations of NoEvents and NoEvents
@@ -485,8 +485,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
-				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedTxs},
-				{NumInjectedTxsTotal: msgWithoutEvents2.NumInjectedTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents1.NumInjectedEventTxs},
+				{NumInjectedTxsTotal: msgWithoutEvents2.NumInjectedEventTxs},
 			},
 		},
 	}
@@ -517,7 +517,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 				// Check Index
 				index, found := s.App.BridgeKeeper.GetIndex(s.Ctx())
 				s.Require().True(found)
-				s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg[i].NumInjectedTxs)
+				s.Require().EqualValues(index.NumInjectedTxsTotal, tc.msg[i].NumInjectedEventTxs)
 				s.Require().EqualValues(index.NumInjectedTxsAnte, 0)
 
 				// Check LastEthereumBlockSynced

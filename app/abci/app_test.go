@@ -118,8 +118,8 @@ func (s *AppTestSuite) EncodeMsgSupplyDeltaTx() []byte {
 	return txRawBz
 }
 
-// EncodeMsgIndex is a helper to encode MsgIndex to bytes
-func (s *AppTestSuite) EncodeMsgIndex(tx *types.TestMsgIndexWithEvents) (txs [][]byte) {
+// EncodeMsgIndexWithEvents is a helper to encode MsgIndex to bytes
+func (s *AppTestSuite) EncodeMsgIndexWithEvents(tx *types.TestMsgIndexWithEvents) (txs [][]byte) {
 	msgIndexBz, err := tx.MsgIndex.RawTxBytes()
 	if err != nil {
 		panic(err)
@@ -129,7 +129,7 @@ func (s *AppTestSuite) EncodeMsgIndex(tx *types.TestMsgIndexWithEvents) (txs [][
 	for _, event := range tx.Events {
 		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority())
 		if err != nil {
-			panic("could not get raw tx bytes from event")
+			panic(fmt.Sprintf("could not get raw tx bytes from event: %s", event.String()))
 		}
 		txs = append(txs, eventTx)
 	}

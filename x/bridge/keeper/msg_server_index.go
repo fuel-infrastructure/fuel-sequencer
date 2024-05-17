@@ -29,8 +29,7 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 	eventIndexOffset := k.MustGetEthereumEventIndexOffset(ctx)
 	params := k.GetParams(ctx)
 
-	// Perform some checks on the injected Ethereum events transaction.
-	// If any problem is found, this is an indication of a serious bug.
+	// If any problem is found in the MsgIndex, this is an indication of a serious bug.
 	err := msg.ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset)
 	if err != nil {
 		return nil, err
@@ -53,8 +52,8 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 
 	// It is very important to set the index, so the AnteHandler knows that we've processed the MsgIndex.
 	k.SetIndex(ctx, types.Index{
-		NumInjectedTxsTotal: msg.NumInjectedTxs + supplyDeltaCount,
-		NumInjectedTxsAnte:  0,
+		NumInjectedTxsTotal: msg.NumInjectedEventTxs + supplyDeltaCount,
+		NumInjectedTxsAnte:  0, // MsgIndex tx is never factored in because it is just a metadata transaction
 	})
 
 	if msg.NewEthereumBlock {
@@ -64,8 +63,8 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
-	if !msg.NewEthereumBlock && msg.NumInjectedTxs > 0 {
-		newOffset := eventIndexOffset + msg.NumInjectedTxs
+	if !msg.NewEthereumBlock && msg.NumInjectedEventTxs > 0 {
+		newOffset := eventIndexOffset + msg.NumInjectedEventTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 	}
 

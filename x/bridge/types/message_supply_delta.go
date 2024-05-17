@@ -21,7 +21,7 @@ func (*MsgSupplyDelta) ValidateBasic() error {
 	return nil
 }
 
-// FromSdkTx extracts MsgSupplyDelta from an SDK transaction, which is expected to contain just MsgSupplyDelta.
+// FromSdkTx extracts MsgSupplyDelta from an SDK transaction which is expected to contain just MsgSupplyDelta.
 func (m *MsgSupplyDelta) FromSdkTx(tx sdk.Tx) error {
 
 	// MsgSupplyDelta will contain only one message.
@@ -30,7 +30,7 @@ func (m *MsgSupplyDelta) FromSdkTx(tx sdk.Tx) error {
 		return fmt.Errorf("expected 1 msg in MsgSupplyDelta raw bytes, got %d", len(msgs))
 	}
 
-	// If the message is not a MsgSupplyDelta continue with the other Ante decorators.
+	// If the message is not a MsgSupplyDelta return an error.
 	msg := msgs[0]
 	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&MsgSupplyDelta{}) {
 		return fmt.Errorf("expected msg type URL %s, got %s", sdk.MsgTypeURL(&MsgSupplyDelta{}), sdk.MsgTypeURL(msg))

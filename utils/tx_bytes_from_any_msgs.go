@@ -8,7 +8,7 @@ import (
 
 const (
 	// InjectedTxGasLimit is the default gas limit set to injected transactions. This value is set to zero because
-	// inside the message handler we are overriding with an infinite gas meter to make sure that the messages do not
+	// inside the ante handler we are overriding with an infinite gas meter to make sure that the messages do not
 	// fail due to insufficient gas.
 	InjectedTxGasLimit = uint64(0)
 )

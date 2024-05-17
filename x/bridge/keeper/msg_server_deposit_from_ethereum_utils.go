@@ -12,7 +12,7 @@ import (
 )
 
 // processDepositEvent processes the deposit events queried from the sidecar.
-// Deposits message cannot fail, so either the chain panics or we store the minted
+// Deposits message cannot fail, so either the handler panics or we store the minted
 // tokens in the governance address. The only time processDepositEvent can panic
 // is if we cannot parse the `Amount` of tokens as we won't know how many tokens
 // have been processed.

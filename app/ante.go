@@ -24,7 +24,7 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		NewCustomDecorator(bridgeKeeper),
+		NewInjectedTxsDecorator(bridgeKeeper),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
@@ -40,39 +40,43 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 
-type CustomDecorator struct {
+type InjectedTxsDecorator struct {
 	bridgeKeeper bridgekeeper.Keeper
 }
 
-func NewCustomDecorator(bridgeKeeper bridgekeeper.Keeper) CustomDecorator {
-	return CustomDecorator{
+func NewInjectedTxsDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedTxsDecorator {
+	return InjectedTxsDecorator{
 		bridgeKeeper: bridgeKeeper,
 	}
 }
 
 // AnteHandle implements the AnteHandler decorator for injected transactions. If an error is returned from AnteHandle
 // during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
-func (d CustomDecorator) AnteHandle(
+func (d InjectedTxsDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
 
-	// There's no special transactions at genesis, and they are only at FinalizeBlock.
+	// There's no injected transactions at genesis, and they are only at FinalizeBlock.
 	if ctx.BlockHeight() == 0 || ctx.ExecMode() != sdk.ExecModeFinalize {
 		return next(ctx, tx, simulate)
 	}
 
-	// Set an infinite gas meter temporarily since we might be processing a special or injected transaction.
+	// Set an infinite gas meter from now since we might be processing an injected transaction.
 	cachedGasMeter := ctx.GasMeter()
 	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// If the index does not exist, then this must be the first transaction that will set the index.
 	// We're done from the AnteHandler and can keep the infinite gas meter for the message handler.
+	//
+	// Assumption: first tx always contains a MsgIndex. This should be amended if it is no longer the case.
 	index, found := d.bridgeKeeper.GetIndex(ctx)
 	if !found {
 		return ctx, nil
 	}
 
 	// If the AnteHandler has not seen all injected transactions, this must be an injected transaction.
+	// Note that the consideration of 'all injected transactions' here covers the MsgSupplyDelta as well.
+	//
 	// We're done from the AnteHandler and can keep the infinite gas meter for the respective message handler.
 	if index.NumInjectedTxsAnte < index.NumInjectedTxsTotal {
 
@@ -83,7 +87,7 @@ func (d CustomDecorator) AnteHandle(
 		return ctx, nil
 	}
 
-	// Revert the gas meter
+	// Revert the gas meter because if we reach this stage, the tx is not an injected one.
 	ctx = ctx.WithGasMeter(cachedGasMeter)
 
 	return next(ctx, tx, simulate)

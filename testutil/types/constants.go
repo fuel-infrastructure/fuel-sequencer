@@ -247,70 +247,70 @@ var (
 
 	TestMsgIndex = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   uint64(len(TestEvents)),
-			NewEthereumBlock: true,
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
 		},
 		Events: TestEvents,
 	}
 
 	TestMsgIndexWithDifferentEvents = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   uint64(len(TestEventsDifferent)),
-			NewEthereumBlock: true,
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEventsDifferent)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
 		},
 		Events: TestEventsDifferent,
 	}
 
 	TestMsgIndexReduced = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   uint64(len(TestEventsReduced)),
-			NewEthereumBlock: true,
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEventsReduced)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
 		},
 		Events: TestEventsReduced,
 	}
 
 	TestMsgIndexPartial = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   uint64(len(TestEventsReduced)),
-			NewEthereumBlock: false, // block was partially consumed
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEventsReduced)),
+			NewEthereumBlock:    false, // block was partially consumed
+			BlockNumber:         1,
 		},
 		Events: TestEventsReduced,
 	}
 
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   0,
-			NewEthereumBlock: true,
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: 0,
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
 		},
 		Events: nil,
 	}
 
 	TestMsgIndexNoNewBlock = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   0,
-			NewEthereumBlock: false,
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: 0,
+			NewEthereumBlock:    false,
+			BlockNumber:         1,
 		},
 		Events: nil,
 	}
 
 	TestMsgIndexSidecarErr = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
-			Authority:        TestGovernanceAddress,
-			NumInjectedTxs:   0,
-			NewEthereumBlock: false,
-			BlockNumber:      1,
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: 0,
+			NewEthereumBlock:    false,
+			BlockNumber:         1,
 		},
 		Events: nil,
 	}

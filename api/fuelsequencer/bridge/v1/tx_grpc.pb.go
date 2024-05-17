@@ -40,8 +40,7 @@ type MsgClient interface {
 	WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error)
 	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
 	DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error)
-	// Index defines an operation for setting information about injected
-	// transactions and special transactions.
+	// Index defines an operation for setting information about injected txs.
 	Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOption) (*MsgIndexResponse, error)
 }
 
@@ -112,8 +111,7 @@ type MsgServer interface {
 	WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error)
 	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
 	DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error)
-	// Index defines an operation for setting information about injected
-	// transactions and special transactions.
+	// Index defines an operation for setting information about injected txs.
 	Index(context.Context, *MsgIndex) (*MsgIndexResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }

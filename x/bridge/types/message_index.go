@@ -11,12 +11,12 @@ import (
 
 var _ sdk.Msg = &MsgIndex{}
 
-func NewMsgIndex(authority string, numInjectedTxs uint64, newEthereumBlock bool, blockNumber uint64) *MsgIndex {
+func NewMsgIndex(authority string, numInjectedEventTxs uint64, newEthereumBlock bool, blockNumber uint64) *MsgIndex {
 	return &MsgIndex{
-		Authority:        authority,
-		NumInjectedTxs:   numInjectedTxs,
-		NewEthereumBlock: newEthereumBlock,
-		BlockNumber:      blockNumber,
+		Authority:           authority,
+		NumInjectedEventTxs: numInjectedEventTxs,
+		NewEthereumBlock:    newEthereumBlock,
+		BlockNumber:         blockNumber,
 	}
 }
 
@@ -37,8 +37,8 @@ func (m *MsgIndex) Equal(e *MsgIndex, eventTxs1 [][]byte, eventTxs2 [][]byte) er
 		return fmt.Errorf("nil (%t) != (%t)", m == nil, e == nil)
 	} else if m.Authority != e.Authority {
 		return fmt.Errorf("authority (%s) != (%s)", m.Authority, e.Authority)
-	} else if m.NumInjectedTxs != e.NumInjectedTxs {
-		return fmt.Errorf("number of injected txs (%d) != (%d)", m.NumInjectedTxs, e.NumInjectedTxs)
+	} else if m.NumInjectedEventTxs != e.NumInjectedEventTxs {
+		return fmt.Errorf("number of injected event txs (%d) != (%d)", m.NumInjectedEventTxs, e.NumInjectedEventTxs)
 	} else if m.NewEthereumBlock != e.NewEthereumBlock {
 		return fmt.Errorf("new Ethereum block (%t) != (%t)", m.NewEthereumBlock, e.NewEthereumBlock)
 	} else if m.BlockNumber != e.BlockNumber {
@@ -60,7 +60,7 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 	//   being synced still has more events for us to consume, so this case is invalid.
 	// - No new Ethereum block - but since the offset is non-zero, we know that the current Ethereum block exists, and
 	//   we expect to receive the remaining events. The current block is a new Ethereum block, so this case is invalid.
-	if eventIndexOffset > 0 && m.NumInjectedTxs == 0 {
+	if eventIndexOffset > 0 && m.NumInjectedEventTxs == 0 {
 		return fmt.Errorf(
 			"expected at least 1 new event if offset is non-zero (%d), got MsgIndex (%s)",
 			eventIndexOffset, m,
@@ -83,11 +83,20 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
 func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (n int, err error) {
-	rawTxBytes, err := m.RawTxBytes()
+
+	msgIndexRawTxBytes, err := m.RawTxBytes()
 	if err != nil {
 		return 0, err
 	}
-	n += len(rawTxBytes)
+
+	// If the MsgIndex on its own cannot fit into the block, this is a major issue.
+	if uint64(len(msgIndexRawTxBytes)) > maxBytes {
+		return 0, fmt.Errorf(
+			"could not fit MsgIndex of size %d in max bytes allocated for events %d",
+			len(msgIndexRawTxBytes), maxBytes)
+	}
+
+	n += len(msgIndexRawTxBytes)
 	for i, eventTx := range eventTxs {
 		toAdd := len(eventTx)
 		if uint64(n+toAdd) > maxBytes {
@@ -95,6 +104,7 @@ func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64
 		}
 		n += toAdd
 	}
+
 	return len(eventTxs), nil
 }
 
@@ -108,24 +118,30 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 
 		return eventTxs, nil // trim nothing
 
-	} else if m.NumInjectedTxs > 0 && m.NumInjectedTxs == numEventsToTrim {
+	} else if m.NumInjectedEventTxs > 0 && m.NumInjectedEventTxs == numEventsToTrim {
 
 		// If we trim all the events from the transaction this is a problem because if we retry
 		// at the next block, we expect the same to happen, and we will never inject the events.
-		return nil, fmt.Errorf("cannot trim all %d events", m.NumInjectedTxs)
+		return nil, fmt.Errorf("cannot trim all %d events", m.NumInjectedEventTxs)
 
-	} else if numEventsToTrim > m.NumInjectedTxs {
+	} else if numEventsToTrim > m.NumInjectedEventTxs {
 
 		// If we try to trim more events than there are, something is wrong.
 		return nil, fmt.Errorf(
 			"insufficient no of events, expected at least %d got %d",
-			numEventsToTrim, m.NumInjectedTxs,
+			numEventsToTrim, m.NumInjectedEventTxs,
 		)
 
 	}
 
+	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[numEventsToTrim:]
-	m.NumInjectedTxs = uint64(len(eventTxs))
+	m.NumInjectedEventTxs = uint64(len(eventTxs))
+
+	if m.Size() > msgIndexSizeBefore {
+		return nil, fmt.Errorf("unexpected increase of MsgIndex size from %d to %d", msgIndexSizeBefore, m.Size())
+	}
+
 	return eventTxs, nil
 }
 
@@ -135,33 +151,35 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 // blockchain might get stuck injecting empty MsgIndex forever. At least one event must be kept if there are events.
 func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64) (newEventTxs [][]byte, trimmed uint64, err error) {
 
-	if m.NumInjectedTxs == numEventsToKeep {
+	if m.NumInjectedEventTxs == numEventsToKeep {
 
 		return eventTxs, 0, nil // keep all
 
-	} else if m.NumInjectedTxs > 0 && numEventsToKeep == 0 {
+	} else if m.NumInjectedEventTxs > 0 && numEventsToKeep == 0 {
 
 		// If we trim all the events from the transaction this is a problem because if we retry
 		// at the next block, we expect the same to happen, and we will never inject the events.
-		return nil, 0, fmt.Errorf("cannot trim all %d events", m.NumInjectedTxs)
+		return nil, 0, fmt.Errorf("cannot trim all %d events", m.NumInjectedEventTxs)
 
-	} else if m.NumInjectedTxs < numEventsToKeep {
+	} else if m.NumInjectedEventTxs < numEventsToKeep {
 
 		// If we try to trim more events than there are, something is wrong.
 		return nil, 0, fmt.Errorf(
 			"insufficient no of events, expected at least %d got %d",
-			numEventsToKeep, m.NumInjectedTxs,
+			numEventsToKeep, m.NumInjectedEventTxs,
 		)
 
 	}
 
+	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[:numEventsToKeep]
-	trimmed = m.NumInjectedTxs - numEventsToKeep
-	m.NumInjectedTxs = uint64(len(eventTxs))
+	trimmed = m.NumInjectedEventTxs - numEventsToKeep
+	m.NumInjectedEventTxs = uint64(len(eventTxs))
 	m.NewEthereumBlock = false
 
-	// Note: changing NewEthereumBlock can affect the size of MsgIndex. However, setting it to false will reduce
-	// the size, not increase it, so there is no risk of exceeding the maxBytes as a result of setting it to false.
+	if m.Size() > msgIndexSizeBefore {
+		return nil, 0, fmt.Errorf("unexpected increase of MsgIndex size from %d to %d", msgIndexSizeBefore, m.Size())
+	}
 
 	return eventTxs, trimmed, nil
 }
@@ -182,7 +200,7 @@ func (m *MsgIndex) RawTxBytes() ([]byte, error) {
 	return msgIndexBz, nil
 }
 
-// FromSdkTx extracts MsgIndex from an SDK transaction, which is expected to contain just MsgIndex.
+// FromSdkTx extracts MsgIndex from an SDK transaction which is expected to contain just MsgIndex.
 func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 
 	// MsgIndex will contain only one message.
@@ -191,7 +209,7 @@ func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 		return fmt.Errorf("expected 1 msg in MsgIndex raw bytes, got %d", len(msgs))
 	}
 
-	// If the message is not a MsgIndex continue with the other Ante decorators.
+	// If the message is not a MsgIndex return an error.
 	msg := msgs[0]
 	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&MsgIndex{}) {
 		return fmt.Errorf("expected msg type URL %s, got %s", sdk.MsgTypeURL(&MsgIndex{}), sdk.MsgTypeURL(msg))
