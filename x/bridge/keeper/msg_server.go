@@ -37,6 +37,7 @@ func (k msgServer) TryExecSpecialMessage(ctx sdk.Context, signer string, msg fun
 			index = types.Index{NumFailedSpecialTxs: 0}
 		}
 		index.NumFailedSpecialTxs += 1
+		k.SetIndex(ctx, index)
 	}
 
 	return nil
