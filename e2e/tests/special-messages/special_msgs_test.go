@@ -27,10 +27,10 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:        testsuite.ADDRESSES[0],
-			NumInjectedTxs:   0,
-			NewEthereumBlock: false,
-			BlockNumber:      s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
+			Authority:           testsuite.ADDRESSES[0],
+			NumInjectedEventTxs: 0,
+			NewEthereumBlock:    false,
+			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
 		}
 		s.Require().NoError(msgIndex.ValidateBasic())
 
@@ -108,10 +108,10 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:        testsuite.ADDRESSES[0],
-			NumInjectedTxs:   0,
-			NewEthereumBlock: false,
-			BlockNumber:      s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
+			Authority:           testsuite.ADDRESSES[0],
+			NumInjectedEventTxs: 0,
+			NewEthereumBlock:    false,
+			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
 		}
 		resp, err := s.SubmitMsgs(msgIndex)
 		s.Require().NoError(err)
