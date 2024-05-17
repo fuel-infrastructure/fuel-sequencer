@@ -159,6 +159,12 @@ var (
 		Amount:    TestAmount1,
 		Lockup:    TestLockup1,
 	}
+	TestDepositEvent12 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom1,
+		Recipient: TestTo1,
+		Amount:    "faulty-amount",
+		Lockup:    TestLockup1,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom1,
 		Data:   testutils.MustHexDecodeString(TestData1),
@@ -170,6 +176,10 @@ var (
 	TestAuthorizeEvent3 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom3,
 		Data:   testutils.MustHexDecodeString(TestData3),
+	}
+	TestAuthorizeEvent4 = &sidecartypes.AuthorizeEvent{
+		Sender: TestFrom3,
+		Data:   []byte("some invalid data"),
 	}
 
 	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
@@ -205,6 +215,12 @@ var (
 	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestDepositEvent11, TestEthereumProxyContractAddress,
 	)
+	TestEvent12 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestDepositEvent12, TestEthereumProxyContractAddress,
+	)
+	TestEvent13 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent4, TestEthereumProxyContractAddress,
+	)
 
 	// The below event messages are set in the init() function.
 	// These serve as convenient access to the event's original messages.
@@ -220,10 +236,14 @@ var (
 	TestEvent9Msg  *bridgetypes.MsgDepositFromEthereum
 	TestEvent10Msg *bridgetypes.MsgDepositFromEthereum
 	TestEvent11Msg *bridgetypes.MsgDepositFromEthereum
+	TestEvent12Msg *bridgetypes.MsgDepositFromEthereum
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
 	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+
+	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
+	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
 
 	TestMsgIndex = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
@@ -295,9 +315,11 @@ var (
 		Events: nil,
 	}
 
-	TestEmptySidecarResponse   = &sidecartypes.QueryBlockEventsResponse{Events: nil}
-	TestSidecarResponse        = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
-	TestSidecarResponseReduced = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestEmptySidecarResponse            = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse                 = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
+	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 )
 
 func init() {
@@ -311,4 +333,5 @@ func init() {
 	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent9)
 	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent10)
 	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent11)
+	TestEvent12Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent12)
 }

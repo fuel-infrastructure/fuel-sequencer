@@ -384,6 +384,40 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg: "failed to trim events from head: insufficient no of events, expected at " +
 				"least 4 got 3",
 		},
+		{
+			name:                      "returns error if invalid deposit found",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseInvalidDeposit, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg:                    "failed to generate MsgIndex",
+		},
+		{
+			name:                      "returns error if invalid authorize found",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseInvalidAuthorize, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg:                    "failed to generate MsgIndex",
+		},
 	}
 
 	for _, tc := range testCases {

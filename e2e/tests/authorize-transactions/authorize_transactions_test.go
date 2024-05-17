@@ -210,3 +210,20 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 		s.PollForNumberOfVotes(s.Ctx(), 10, proposalId, 1)
 	})
 }
+
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataCausesHalt() {
+	s.Run("Invalid data from Ethereum causes Sequencer to stop block production", func() {
+
+		// Generate Authorize event wrapping invalid data.
+		invalidBz := []byte("some invalid data")
+		authorizeData := testsuite.PackAuthorize(invalidBz)
+		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Check that Sequencer queries start failing
+		s.Require().Eventually(func() bool {
+			_, err := s.Chain.FuelSequencerHeight(s.Ctx())
+			return err != nil
+		}, time.Minute, time.Second)
+	})
+}
