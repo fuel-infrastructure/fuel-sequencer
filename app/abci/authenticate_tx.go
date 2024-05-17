@@ -51,7 +51,7 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 			}
 		}
 
-		err = h.AuthenticateTx(authorizeEvent.Sender, msgs, params, blockedAddresses)
+		err = h.authenticateTx(authorizeEvent.Sender, msgs, params, blockedAddresses)
 		if err != nil {
 			return false, nil // skip the Authorize event
 		}
@@ -60,8 +60,8 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 	return true, nil
 }
 
-// AuthenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
-func (h *FuelSequencerProposalHandler) AuthenticateTx(
+// authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
+func (h *FuelSequencerProposalHandler) authenticateTx(
 	sender string, msgs []sdk.Msg, params *bridgetypes.Params, blockedAddresses map[string]bool,
 ) error {
 
