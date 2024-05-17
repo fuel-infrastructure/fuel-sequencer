@@ -47,13 +47,13 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 			}
 
 			if err := m.ValidateBasic(); err != nil {
-				return false, nil // skip the Authorize event
+				return false, nil // do not return the error, otherwise it takes priority over the boolean
 			}
 		}
 
 		err = h.authenticateTx(authorizeEvent.Sender, msgs, params, blockedAddresses)
 		if err != nil {
-			return false, nil // skip the Authorize event
+			return false, nil // do not return the error, otherwise it takes priority over the boolean
 		}
 	}
 
