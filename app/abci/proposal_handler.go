@@ -170,6 +170,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to encode MsgIndex: %w", err)
 		}
 
+		// ----- Beyond this point, any error returned should consider setting req.Txs = [][]byte{},
+		// otherwise CometBFT will still use the req.Txs even though we return an error or panic.
+
 		// Inject MsgIndex and Ethereum event transactions as the first txs in the block.
 		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
 
@@ -207,9 +210,13 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		if injectMsgSupplyDelta {
 			minimumExpectedTxs += 1
 		}
-		if uint64(len(h.txSelector.SelectedTxs(ctx))) < minimumExpectedTxs {
+		actualNumberOfTxs := uint64(len(h.txSelector.SelectedTxs(ctx)))
+		if actualNumberOfTxs < minimumExpectedTxs {
 			req.Txs = [][]byte{}
-			return nil, errors.New("failed to add mandatory messages to block proposal")
+			return nil, fmt.Errorf(
+				"failed to add mandatory messages to block proposal; expected minimum number of txs %d, got %d",
+				minimumExpectedTxs, actualNumberOfTxs,
+			)
 		}
 
 		h.logger.Debug("prepared proposal", "txs", len(h.txSelector.SelectedTxs(ctx)))
@@ -428,10 +435,12 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		if expectMsgSupplyDelta {
 			minimumExpectedTxs += 1
 		}
-		if uint64(len(req.Txs)) < minimumExpectedTxs {
+		actualNumberOfTxs := uint64(len(req.Txs))
+		if actualNumberOfTxs < minimumExpectedTxs {
 			req.Txs = [][]byte{}
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"failed to add mandatory messages to block proposal",
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to add mandatory messages to block proposal; expected minimum number of txs %d, got %d",
+				minimumExpectedTxs, actualNumberOfTxs,
 			)
 		}
 
