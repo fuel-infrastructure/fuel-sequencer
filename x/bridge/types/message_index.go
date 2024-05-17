@@ -141,8 +141,14 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 
 	}
 
+	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[numEventsToTrim:]
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
+
+	if m.Size() > msgIndexSizeBefore {
+		return nil, fmt.Errorf("unexpected increase of MsgIndex size from %d to %d", msgIndexSizeBefore, m.Size())
+	}
+
 	return eventTxs, nil
 }
 
@@ -172,13 +178,15 @@ func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64)
 
 	}
 
+	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[:numEventsToKeep]
 	trimmed = m.NumInjectedEventTxs - numEventsToKeep
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
 	m.NewEthereumBlock = false
 
-	// Note: changing NewEthereumBlock can affect the size of MsgIndex. However, setting it to false will reduce
-	// the size, not increase it, so there is no risk of exceeding the maxBytes as a result of setting it to false.
+	if m.Size() > msgIndexSizeBefore {
+		return nil, 0, fmt.Errorf("unexpected increase of MsgIndex size from %d to %d", msgIndexSizeBefore, m.Size())
+	}
 
 	return eventTxs, trimmed, nil
 }
