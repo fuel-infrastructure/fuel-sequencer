@@ -154,7 +154,8 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 func (am AppModule) EndBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Index must have been set during the block.
+	// It is very important to ensure that Index was set during the block, indicating that MsgIndex was executed.
+	// There is also a case where it gets set due to a failed special message, but this check is handled further down.
 	index, found := am.keeper.GetIndex(ctx)
 	if !found {
 		return fmt.Errorf("expected to find Index at the end of the block")
