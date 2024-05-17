@@ -262,12 +262,17 @@ func (s *KeeperTestSuite) TestDepositFromEthereum_AmountParseFailure() {
 	// Get the message server
 	msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
 
-	// Trigger the processing of the Ethereum events
-	s.Require().Panics(func() {
-		_, _ = msgServer.DepositFromEthereum(s.Ctx(), msg)
-	})
+	// Get balances before
+	allBalancesBefore := s.App.BankKeeper.GetAccountsBalances(s.Ctx())
 
-	// Verify the governance address balance is as expected
+	// Trigger the processing of the Ethereum events
+	_, _ = msgServer.DepositFromEthereum(s.Ctx(), msg)
+
+	// Verify that all balances are unchanged
+	allBalancesAfter := s.App.BankKeeper.GetAccountsBalances(s.Ctx())
+	s.Require().EqualValues(allBalancesBefore, allBalancesAfter)
+
+	// Verify the governance address is still zero
 	actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, "ufuel")
-	s.Require().Equal(sdkmath.ZeroInt(), actualGovBal.Amount)
+	s.Require().True(actualGovBal.Amount.IsZero())
 }
