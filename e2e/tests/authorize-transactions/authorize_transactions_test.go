@@ -2,6 +2,7 @@ package authorize_transactions_test
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -220,10 +221,10 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataC
 		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
-		// Check that Sequencer queries start failing
+		// Check that Sequencer runs into issues
+		re := regexp.MustCompile("block proposal doesn't have any transactions: first tx expected to be MsgIndex")
 		s.Require().Eventually(func() bool {
-			_, err := s.Chain.FuelSequencerHeight(s.Ctx())
-			return err != nil
+			return len(s.FindSequencerLogs(re)) > 0
 		}, time.Minute, time.Second)
 	})
 }
