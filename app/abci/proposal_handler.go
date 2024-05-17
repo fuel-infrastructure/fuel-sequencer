@@ -184,9 +184,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// This is needed to clear variables tracked by the TxSelector
 		defer h.txSelector.Clear()
 
-		// Since we are assuming a NoOp mempool we simply return the transactions requested from CometBFT, which, by
-		// default, should be in FIFO order. Note, we still need to ensure the transactions returned respect
-		// req.MaxTxBytes and blockParams.MaxGas
+		// Since we are assuming a NoOp mempool we simply return the txs requested from CometBFT which, by default,
+		// should be in FIFO order. Note, we still need to ensure the transactions returned respect req.MaxTxBytes and
+		// blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
 		for _, txBz := range req.Txs {
 			tx, err := h.txVerifier.TxDecode(txBz)
 			if err != nil {
