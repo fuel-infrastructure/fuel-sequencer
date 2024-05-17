@@ -455,8 +455,9 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		events = sidecarResponse.Events
 	}
 
-	// Identify the deposit and authorize events in the MsgIndex and produce one new valid transaction per event.
-	// If an event is not valid for any reason, we have to skip it since there might be something suspicious.
+	// Identify the deposit and authorize events in the MsgIndex and produce one new valid transaction per event. If an
+	// event is not valid we have to error since there might be something suspicious. However, in the case that a msg
+	// from an Authority event does not get authenticated, the Authority event is skipped.
 	for _, event := range events {
 
 		err = event.Validate(params.EthereumProxyContractAddress)
