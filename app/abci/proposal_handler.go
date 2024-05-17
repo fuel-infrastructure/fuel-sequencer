@@ -172,6 +172,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		// ----- Beyond this point, any error returned should consider setting req.Txs = [][]byte{},
 		// otherwise CometBFT will still use the req.Txs even though we return an error or panic.
+		// Anything that comes before this point will cause ProcessProposal to error where a 
+		// MsgIndex tx is expected
 
 		// Inject MsgIndex and Ethereum event transactions as the first txs in the block.
 		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
