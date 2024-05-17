@@ -160,8 +160,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Sanity check: number of event txs is equal to NumInjectedEventTxs
 		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
 			return nil, fmt.Errorf(
-				"mismatch in number of events; expected: %d, got: %d",
-				len(eventTxs), msgIndex.NumInjectedEventTxs,
+				"mismatch between NumInjectedEventTxs in index and actual number of event txs; expected: %d, got: %d",
+				msgIndex.NumInjectedEventTxs, len(eventTxs),
 			)
 		}
 
@@ -356,8 +356,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Sanity check: number of event txs is equal to NumInjectedEventTxs
 		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"mismatch in number of events; expected: %d, got: %d",
-				len(eventTxs), msgIndex.NumInjectedEventTxs,
+				"mismatch between NumInjectedEventTxs in index and actual number of event txs; expected: %d, got: %d",
+				msgIndex.NumInjectedEventTxs, len(eventTxs),
 			)
 		}
 
