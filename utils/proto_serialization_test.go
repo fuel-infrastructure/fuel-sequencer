@@ -74,6 +74,6 @@ func TestDecodeTx(t *testing.T) {
 	}
 
 	for i, msg := range tx.GetMsgs() {
-		fmt.Println(fmt.Sprintf("MSG %d: %s", i, msg))
+		fmt.Printf("MSG %d: %s\n", i, msg)
 	}
 }
