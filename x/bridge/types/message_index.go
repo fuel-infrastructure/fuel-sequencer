@@ -205,6 +205,10 @@ func (m *MsgIndex) RawTxBytes() ([]byte, error) {
 // FromSdkTx extracts MsgIndex from an SDK transaction which is expected to contain just MsgIndex.
 func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 
+	if m == nil {
+		return fmt.Errorf("expected non-nil MsgIndex receiver")
+	}
+
 	// MsgIndex will contain only one message.
 	msgs := tx.GetMsgs()
 	if len(msgs) != 1 {
@@ -225,4 +229,19 @@ func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 
 	*m = *msgIndex
 	return nil
+}
+
+// FromRawTxBytes extracts MsgIndex from raw transaction bytes.
+func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) error {
+
+	if m == nil {
+		return fmt.Errorf("expected non-nil MsgIndex receiver")
+	}
+
+	tx, err := decoder(bz)
+	if err != nil {
+		return err
+	}
+
+	return m.FromSdkTx(tx)
 }

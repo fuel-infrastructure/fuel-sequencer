@@ -265,3 +265,12 @@ func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
 
 	return false
 }
+
+// IsMsgSupplyDeltaBlock returns true if it's the right height for a MsgSupplyDelta.
+func (p *Params) IsMsgSupplyDeltaBlock(block uint64) bool {
+	if p.SupplyDeltaPeriod == 0 {
+		// We've already validated it at the Validate function.
+		panic("supply delta period is zero")
+	}
+	return block%p.SupplyDeltaPeriod == 0
+}

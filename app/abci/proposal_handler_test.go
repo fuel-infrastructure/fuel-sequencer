@@ -182,20 +182,6 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 		},
 		{
-			name:                      "returns error if SupplyDeltaPeriod is zero",
-			expQueryBlockEventsCalled: 0,
-			expQueryBlockEventsReq:    nil,
-			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
-				MaxTxBytes: 0,
-				Txs:        nil,
-			},
-			maxBlockGas:                  totalTxsGas,
-			supplyDeltaPeriod:            uint64(0),
-			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "SupplyDeltaPeriod cannot be zero",
-		},
-		{
 			name:                          "returns error if LastEthereumBlockSynced not found",
 			removeLastEthereumBlockSynced: true,
 			expQueryBlockEventsCalled:     0,
@@ -672,7 +658,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "block proposal doesn't have any transactions: first tx expected to be MsgIndex",
 		},
 		{
-			name:                      "returns error if first tx no an MsgIndex",
+			name:                      "returns error if first tx not a MsgIndex",
 			expQueryBlockEventsCalled: 0,
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
@@ -683,7 +669,21 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "first transaction expected to be MsgIndex",
+			expErrMsg:                    "first transaction expected to be a valid MsgIndex",
+		},
+		{
+			name:                      "returns error if first tx not a valid MsgIndex",
+			expQueryBlockEventsCalled: 0,
+			expQueryBlockEventsReq:    nil,
+			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    [][]byte{[]byte("invalid-MsgSupplyDelta")},
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			expErrMsg:                    "first transaction expected to be a valid MsgIndex",
 		},
 		{
 			name:                          "returns error if LastEthereumBlockSynced not found",
@@ -893,22 +893,6 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "block gas limit exceeded",
 		},
 		{
-			name:                      "returns error if SupplyDeltaPeriod is zero",
-			expQueryBlockEventsCalled: 1,
-			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: testtypes.TestSidecarResponse, Error: nil,
-			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
-			},
-			maxBlockGas:                  totalTxsGas,
-			supplyDeltaPeriod:            0,
-			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "SupplyDeltaPeriod cannot be zero",
-		},
-		{
 			name:                      "returns error if MsgSupplyDelta expected but not injected",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
@@ -941,7 +925,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			expErrMsg: fmt.Errorf(
-				"incorrect msg type url in transaction at index 4; expected %s got %s",
+				"failed to parse MsgSupplyDelta at index 4 with error: expected msg type URL %s, got %s",
 				sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}),
 				sdk.MsgTypeURL(&banktypes.MsgSend{}),
 			).Error(),

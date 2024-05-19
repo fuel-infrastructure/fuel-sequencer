@@ -73,18 +73,13 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
-		if supplyDeltaPeriod == 0 {
-			return nil, errors.New("SupplyDeltaPeriod cannot be zero")
-		}
-
 		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get blocked addresses: %w", err)
 		}
 
 		// Inject MsgSupplyDeltaTx if expected at current height
-		injectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
+		injectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
 		supplyDeltaBytesSize := int64(0)
 		if injectMsgSupplyDelta {
 			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx()
@@ -165,17 +160,16 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			)
 		}
 
+		// ----- Beyond this point, any error returned should consider setting req.Txs = [][]byte{},
+		// otherwise CometBFT will still use the req.Txs even though we return an error or panic.
+		// Anything that comes before this point will cause ProcessProposal to error where a
+		// MsgIndex tx is expected
+
+		// Inject MsgIndex and Ethereum event transactions as the first txs in the block.
 		msgIndexBz, err := msgIndex.RawTxBytes()
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode MsgIndex: %w", err)
 		}
-
-		// ----- Beyond this point, any error returned should consider setting req.Txs = [][]byte{},
-		// otherwise CometBFT will still use the req.Txs even though we return an error or panic.
-		// Anything that comes before this point will cause ProcessProposal to error where a 
-		// MsgIndex tx is expected
-
-		// Inject MsgIndex and Ethereum event transactions as the first txs in the block.
 		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
 
 		var maxBlockGas uint64
@@ -206,19 +200,11 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			}
 		}
 
-		// Calculate the minimum number of expected transactions, which is the MsgIndex, the number of event txs, and
-		// lastly the MsgSupplyDelta, if we're at the MsgSupplyDelta height.
-		minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
-		if injectMsgSupplyDelta {
-			minimumExpectedTxs += 1
-		}
-		actualNumberOfTxs := uint64(len(h.txSelector.SelectedTxs(ctx)))
-		if actualNumberOfTxs < minimumExpectedTxs {
+		// Check that we've collected the minimum expected transactions
+		err = checkMinimumNumTxs(uint64(len(h.txSelector.SelectedTxs(ctx))), msgIndex, injectMsgSupplyDelta)
+		if err != nil {
 			req.Txs = [][]byte{}
-			return nil, fmt.Errorf(
-				"failed to add mandatory messages to block proposal; expected minimum number of txs %d, got %d",
-				minimumExpectedTxs, actualNumberOfTxs,
-			)
+			return nil, err
 		}
 
 		h.logger.Debug("prepared proposal", "txs", len(h.txSelector.SelectedTxs(ctx)))
@@ -267,20 +253,12 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Expect that the first transaction is always a valid transaction containing MsgIndex.
-		injectedMsgIndexUnparsed, err := h.txVerifier.TxDecode(req.Txs[0])
-		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"first transaction expected to be a valid tx: %w", err,
-			)
-		}
-
 		// Parse the first transaction into an MsgIndex.
 		var injectedMsgIndex bridgetypes.MsgIndex
-		err = injectedMsgIndex.FromSdkTx(injectedMsgIndexUnparsed)
+		err = injectedMsgIndex.FromRawTxBytes(req.Txs[0], h.txVerifier.TxDecode)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"first transaction expected to be MsgIndex: %w", err,
+				"first transaction expected to be a valid MsgIndex: %w", err,
 			)
 		}
 
@@ -381,15 +359,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		supplyDeltaPeriod := bridgeParams.SupplyDeltaPeriod
-		if supplyDeltaPeriod == 0 {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"SupplyDeltaPeriod cannot be zero",
-			)
-		}
-
 		// Check that MsgSupplyDelta was injected correctly if expected
-		expectMsgSupplyDelta := uint64(req.Height)%supplyDeltaPeriod == 0
+		expectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
 		if expectMsgSupplyDelta {
 			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedEventTxs)
 			if err != nil {
@@ -431,25 +402,35 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			}
 		}
 
-		// Calculate the minimum number of expected transactions, which is the MsgIndex, the number of event txs, and
-		// lastly the MsgSupplyDelta, if we're at the MsgSupplyDelta height.
-		minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
-		if expectMsgSupplyDelta {
-			minimumExpectedTxs += 1
-		}
-		actualNumberOfTxs := uint64(len(req.Txs))
-		if actualNumberOfTxs < minimumExpectedTxs {
-			req.Txs = [][]byte{}
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to add mandatory messages to block proposal; expected minimum number of txs %d, got %d",
-				minimumExpectedTxs, actualNumberOfTxs,
-			)
+		// Check that we've collected the minimum expected transactions
+		err = checkMinimumNumTxs(uint64(len(req.Txs)), msgIndex, expectMsgSupplyDelta)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
 		h.logger.Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
+}
+
+// checkMinimumNumTxs ensures that we've collected the minimum number of expected transactions, i.e. MsgIndex, the event
+// transactions, and the MsgSupplyDelta, if we're at the MsgSupplyDelta height, and returns an error otherwise
+func checkMinimumNumTxs(numTxs uint64, msgIndex *bridgetypes.MsgIndex, injectMsgSupplyDelta bool) error {
+
+	minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
+	if injectMsgSupplyDelta {
+		minimumExpectedTxs += 1
+	}
+
+	if numTxs < minimumExpectedTxs {
+		return fmt.Errorf(
+			"incorrect number of messages in block proposal; expected minimum number of txs %d, got %d",
+			minimumExpectedTxs, numTxs,
+		)
+	}
+
+	return nil
 }
 
 // getNewEthereumBlock returns the value for MsgIndex.NewEthereumBlock. NewEthereumBlock should be true iff the
@@ -547,30 +528,10 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(txs [][]by
 		return fmt.Errorf("failed to decode transaction at index %d into sdk.Tx: %w", msgSupplyDeltaIndex, err)
 	}
 
-	// MsgSupplyDeltaTx should contain exactly one message, MsgSupplyDelta
-	msgs := tx.GetMsgs()
-	if len(msgs) != 1 {
-		return fmt.Errorf("expected one message in transaction at index %d", msgSupplyDeltaIndex)
-	}
-	msg := msgs[0]
-
-	// Confirm that the proper message was encoded
-	if sdk.MsgTypeURL(msg) != sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}) {
-		return fmt.Errorf(
-			"incorrect msg type url in transaction at index %d; expected %s got %s",
-			msgSupplyDeltaIndex,
-			sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}),
-			sdk.MsgTypeURL(msg),
-		)
-	}
-
-	// Check that the message unmarshals successfully to MsgSupplyDelta
-	msgSupplyDelta, ok := msg.(*bridgetypes.MsgSupplyDelta)
-	if !ok {
-		return fmt.Errorf(
-			"could not unmarshal message in transaction at index %d to MsgSupplyDelta",
-			msgSupplyDeltaIndex,
-		)
+	var msgSupplyDelta bridgetypes.MsgSupplyDelta
+	err = msgSupplyDelta.FromSdkTx(tx)
+	if err != nil {
+		return fmt.Errorf("failed to parse MsgSupplyDelta at index %d with error: %w", msgSupplyDeltaIndex, err)
 	}
 
 	// Confirm that MsgSupplyDelta passes all verification checks and error if not

@@ -97,20 +97,6 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			).Error(),
 		},
 		{
-			name:              "invalid MsgSupplyDelta - SupplyDeltaPeriod is zero",
-			supplyDeltaPeriod: 0,
-			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod),
-			msg: &bridgetypes.MsgSupplyDelta{
-				Authority: testtypes.TestGovernanceAddress,
-			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfo,             // unchanged
-			expLastEthereumNonce: testtypes.TestLastEthereumNonce, // unchanged
-			expResponse:          &bridgetypes.MsgSupplyDeltaResponse{},
-			expEventEmitted:      false,
-		},
-		{
 			name:              "valid MsgSupplyDelta - SupplyDelta is zero",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,

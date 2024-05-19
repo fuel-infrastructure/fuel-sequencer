@@ -26,16 +26,11 @@ func (k msgServer) SupplyDelta(
 
 func (k msgServer) supplyDelta(ctx sdk.Context) (*types.MsgSupplyDeltaResponse, error) {
 
-	// Confirm that BridgeParams.SupplyDeltaPeriod is non-zero, otherwise we can't calculate the expected height at
-	// which a MsgSupplyDelta is to be sent.
-	supplyDeltaPeriod := k.GetParams(ctx).SupplyDeltaPeriod
-	if supplyDeltaPeriod == 0 {
-		return nil, types.ErrInvalidSupplyDeltaPeriod.Wrapf("SupplyDeltaPeriod cannot be zero")
-	}
+	bridgeParams := k.GetParams(ctx)
 
 	// Confirm that MsgSupplyDelta was injected at the correct height.
 	blockHeight := ctx.BlockHeight()
-	if (uint64(blockHeight) % supplyDeltaPeriod) != 0 {
+	if !bridgeParams.IsMsgSupplyDeltaBlock(uint64(blockHeight)) {
 		return nil, types.ErrUnexpectedOperation.Wrapf(
 			"MsgSupplyDelta not expected at height %d", blockHeight,
 		)
