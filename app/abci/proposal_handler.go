@@ -22,7 +22,6 @@ type FuelSequencerProposalHandler struct {
 	cdc          codec.Codec // codec
 	logger       log.Logger
 	valStore     baseapp.ValidatorStore         // to get the current validators' pubkeys
-	txSelector   baseapp.TxSelector             // a utility for checking whether a tx can be included in the proposal
 	txVerifier   baseapp.ProposalTxVerifier     // a utility for transaction verification
 	sidecar      sidecarclient.AppSidecarClient // a client to query the Sidecar service
 	bridgeKeeper bridgekeeper.Keeper            // Bridge keeper
@@ -42,7 +41,6 @@ func NewFuelSequencerProposalHandler(
 		logger:       logger,
 		valStore:     valStore,
 		txVerifier:   txVerifier,
-		txSelector:   baseapp.NewDefaultTxSelector(),
 		sidecar:      sidecar,
 		bridgeKeeper: bridgeKeeper,
 	}
@@ -172,44 +170,26 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
 
-		var maxBlockGas uint64
-		if b := ctx.ConsensusParams().Block; b != nil {
-			maxBlockGas = uint64(b.MaxGas)
+		// Use the DefaultProposalHandler which, since we're using a NoOp mempool, will select the txs requested from
+		// CometBFT which by default should be in FIFO order. It still ensures the txs returned respect req.MaxTxBytes
+		// and blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
+		defaultProposalHandler := baseapp.NewDefaultProposalHandler(nil, h.txVerifier)
+		resp, err := defaultProposalHandler.PrepareProposalHandler()(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("default proposal handler failed with error: %w", err)
 		}
-
-		// This is needed to clear variables tracked by the TxSelector
-		defer h.txSelector.Clear()
-
-		// Since we are assuming a NoOp mempool we simply return the txs requested from CometBFT which, by default,
-		// should be in FIFO order. Note, we still need to ensure the transactions returned respect req.MaxTxBytes and
-		// blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
-		for _, txBz := range req.Txs {
-			tx, err := h.txVerifier.TxDecode(txBz)
-			if err != nil {
-
-				// We will be assuming that all transactions given to PrepareProposal can be properly decoded.
-				// As a result, blocks will get rejected by ProcessProposal if PrepareProposal can't decode a tx.
-				return nil, err
-			}
-
-			stop := h.txSelector.SelectTxForProposal(ctx, uint64(req.MaxTxBytes), maxBlockGas, tx, txBz)
-
-			// If we are at full capacity stop adding transactions
-			if stop {
-				break
-			}
-		}
+		selectedTxs := resp.Txs
 
 		// Check that we've collected the minimum expected transactions
-		err = checkMinimumNumTxs(uint64(len(h.txSelector.SelectedTxs(ctx))), msgIndex, injectMsgSupplyDelta)
+		err = checkMinimumNumTxs(uint64(len(selectedTxs)), msgIndex, injectMsgSupplyDelta)
 		if err != nil {
 			req.Txs = [][]byte{}
 			return nil, err
 		}
 
-		h.logger.Debug("prepared proposal", "txs", len(h.txSelector.SelectedTxs(ctx)))
+		h.logger.Debug("prepared proposal", "txs", len(selectedTxs))
 
-		return &abci.ResponsePrepareProposal{Txs: h.txSelector.SelectedTxs(ctx)}, nil
+		return &abci.ResponsePrepareProposal{Txs: selectedTxs}, nil
 	}
 }
 
@@ -370,36 +350,10 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			}
 		}
 
-		var totalTxGas uint64
-
-		var maxBlockGas int64
-		if b := ctx.ConsensusParams().Block; b != nil {
-			maxBlockGas = b.MaxGas
-		}
-
-		// Note: amongst these transactions are a number of injected txs which will consume zero gas.
-		for _, txBytes := range req.Txs {
-			tx, err := h.txVerifier.TxDecode(txBytes)
-			if err != nil {
-
-				// This should not occur as PrepareProposal should get transactions that can be decoded properly, but,
-				// block proposal rejection is done just in case.
-				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
-			}
-
-			// Confirm that the block's max gas limit is not exceeded
-			if maxBlockGas > 0 {
-				gasTx, ok := tx.(baseapp.GasTx)
-				if ok {
-					totalTxGas += gasTx.GetGas()
-				}
-
-				if totalTxGas > uint64(maxBlockGas) {
-					return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-						"block gas limit exceeded",
-					)
-				}
-			}
+		// Verify transactions' bytes and gas consumption.
+		err = verifyTransactionsInProposal(ctx, req.Txs, h.txVerifier.TxDecode)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
 		// Check that we've collected the minimum expected transactions
@@ -428,6 +382,44 @@ func checkMinimumNumTxs(numTxs uint64, msgIndex *bridgetypes.MsgIndex, injectMsg
 			"incorrect number of messages in block proposal; expected minimum number of txs %d, got %d",
 			minimumExpectedTxs, numTxs,
 		)
+	}
+
+	return nil
+}
+
+// verifyTransactionsInProposal checks that all the transactions proposed by the block proposer can be decoded into a
+// valid SDK transaction, and that the total gas consumption by the transactions will be less than the max gas.
+func verifyTransactionsInProposal(ctx sdk.Context, txs [][]byte, txDecoder sdk.TxDecoder) error {
+	var totalTxGas uint64
+
+	var maxBlockGas int64
+	if b := ctx.ConsensusParams().Block; b != nil {
+		maxBlockGas = b.MaxGas
+	}
+
+	// Note: amongst these transactions are a number of injected txs which will consume zero gas.
+	for _, txBytes := range txs {
+		tx, err := txDecoder(txBytes)
+		if err != nil {
+
+			// This should not occur as PrepareProposal should get transactions that can be decoded properly, but,
+			// block proposal rejection is done just in case.
+			return err
+		}
+
+		// Confirm that the block's max gas limit is not exceeded
+		if maxBlockGas > 0 {
+			gasTx, ok := tx.(baseapp.GasTx)
+			if ok {
+				totalTxGas += gasTx.GetGas()
+			}
+
+			if totalTxGas > uint64(maxBlockGas) {
+				return errors.New(
+					"block gas limit exceeded",
+				)
+			}
+		}
 	}
 
 	return nil
