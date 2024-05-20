@@ -1,4 +1,4 @@
-package utils_test
+package scripts_test
 
 import (
 	"encoding/hex"
