@@ -207,9 +207,9 @@ cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
-    # This runs ./utils/protocgen-pulsar.sh as well, under the hood.
+    # This runs ./scripts/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
-	@$(protoImage) sh ./utils/protocgen.sh;
+	@$(protoImage) sh ./scripts/protocgen.sh;
 	@echo "✅ Finished Go code generation!"
 
 proto-format:
@@ -335,7 +335,8 @@ test-cover:
 
 mocks: $(MOCKS_DIR)
 	@go install github.com/golang/mock/mockgen@v1.6.0
-	sh ./utils/mockgen.sh
+	sh ./scripts/mockgen.sh
+	rm -r "$(MOCKS_DIR)"
 .PHONY: mocks
 
 $(MOCKS_DIR):
