@@ -54,6 +54,7 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 	k.SetIndex(ctx, types.Index{
 		NumInjectedTxsTotal: msg.NumInjectedEventTxs + supplyDeltaCount,
 		NumInjectedTxsAnte:  0, // MsgIndex tx is never factored in because it is just a metadata transaction
+		NumFailedSpecialTxs: 0, // No special txs have failed yet
 	})
 
 	if msg.NewEthereumBlock {
