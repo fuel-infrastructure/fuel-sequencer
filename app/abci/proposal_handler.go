@@ -403,7 +403,7 @@ func verifyTransactionsInProposal(ctx sdk.Context, txs [][]byte, txDecoder sdk.T
 		if err != nil {
 
 			// This should not occur as PrepareProposal should get transactions that can be decoded properly, but,
-			// block proposal rejection is done just in case.
+			// an error is returned just in case.
 			return err
 		}
 
