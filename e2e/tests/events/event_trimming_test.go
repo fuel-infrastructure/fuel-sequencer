@@ -87,7 +87,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		// Try generating some events via a transaction (RPC) - via authorize.
 		// TODO: authorizeData := testsuite.PackAuthorizeMulti(msgSendBz)
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// 1st event of 4 processed

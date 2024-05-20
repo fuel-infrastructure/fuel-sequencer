@@ -36,7 +36,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 
 		msgBz := s.GenerateMsgBz(msgIndex)
 		authorizeData := testsuite.PackAuthorize(msgBz)
-		resp, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		resp, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// ------------ MsgDepositFromEthereum
@@ -52,7 +52,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 
 		msgBz = s.GenerateMsgBz(msgDepositFromEthereum)
 		authorizeData = testsuite.PackAuthorize(msgBz)
-		resp, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		resp, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// ------------ MsgSupplyDelta
@@ -64,7 +64,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 
 		msgBz = s.GenerateMsgBz(msgSupplyDelta)
 		authorizeData = testsuite.PackAuthorize(msgBz)
-		resp, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		resp, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// ------------ Check results...

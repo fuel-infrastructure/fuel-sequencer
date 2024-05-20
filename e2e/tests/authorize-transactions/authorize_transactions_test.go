@@ -218,7 +218,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataC
 		// Generate Authorize event wrapping invalid data.
 		invalidBz := []byte("some invalid data")
 		authorizeData := testsuite.PackAuthorize(invalidBz)
-		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Check that Sequencer runs into issues
