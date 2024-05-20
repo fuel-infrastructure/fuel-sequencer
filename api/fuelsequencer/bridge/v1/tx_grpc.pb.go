@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_UpdateParams_FullMethodName       = "/fuelsequencer.bridge.v1.Msg/UpdateParams"
-	Msg_SupplyDelta_FullMethodName        = "/fuelsequencer.bridge.v1.Msg/SupplyDelta"
-	Msg_WithdrawToEthereum_FullMethodName = "/fuelsequencer.bridge.v1.Msg/WithdrawToEthereum"
+	Msg_UpdateParams_FullMethodName        = "/fuelsequencer.bridge.v1.Msg/UpdateParams"
+	Msg_SupplyDelta_FullMethodName         = "/fuelsequencer.bridge.v1.Msg/SupplyDelta"
+	Msg_WithdrawToEthereum_FullMethodName  = "/fuelsequencer.bridge.v1.Msg/WithdrawToEthereum"
+	Msg_DepositFromEthereum_FullMethodName = "/fuelsequencer.bridge.v1.Msg/DepositFromEthereum"
+	Msg_Index_FullMethodName               = "/fuelsequencer.bridge.v1.Msg/Index"
 )
 
 // MsgClient is the client API for Msg service.
@@ -36,6 +38,10 @@ type MsgClient interface {
 	SupplyDelta(ctx context.Context, in *MsgSupplyDelta, opts ...grpc.CallOption) (*MsgSupplyDeltaResponse, error)
 	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
 	WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEthereum, opts ...grpc.CallOption) (*MsgWithdrawToEthereumResponse, error)
+	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
+	DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error)
+	// Index defines an operation for setting information about injected txs.
+	Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOption) (*MsgIndexResponse, error)
 }
 
 type msgClient struct {
@@ -73,6 +79,24 @@ func (c *msgClient) WithdrawToEthereum(ctx context.Context, in *MsgWithdrawToEth
 	return out, nil
 }
 
+func (c *msgClient) DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error) {
+	out := new(MsgDepositFromEthereumResponse)
+	err := c.cc.Invoke(ctx, Msg_DepositFromEthereum_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOption) (*MsgIndexResponse, error) {
+	out := new(MsgIndexResponse)
+	err := c.cc.Invoke(ctx, Msg_Index_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -85,6 +109,10 @@ type MsgServer interface {
 	SupplyDelta(context.Context, *MsgSupplyDelta) (*MsgSupplyDeltaResponse, error)
 	// WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
 	WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error)
+	// DepositFromEthereum defines an operation for bridging tokens from Ethereum.
+	DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error)
+	// Index defines an operation for setting information about injected txs.
+	Index(context.Context, *MsgIndex) (*MsgIndexResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -100,6 +128,12 @@ func (UnimplementedMsgServer) SupplyDelta(context.Context, *MsgSupplyDelta) (*Ms
 }
 func (UnimplementedMsgServer) WithdrawToEthereum(context.Context, *MsgWithdrawToEthereum) (*MsgWithdrawToEthereumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawToEthereum not implemented")
+}
+func (UnimplementedMsgServer) DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositFromEthereum not implemented")
+}
+func (UnimplementedMsgServer) Index(context.Context, *MsgIndex) (*MsgIndexResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Index not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -168,6 +202,42 @@ func _Msg_WithdrawToEthereum_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_DepositFromEthereum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDepositFromEthereum)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DepositFromEthereum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_DepositFromEthereum_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DepositFromEthereum(ctx, req.(*MsgDepositFromEthereum))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_Index_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgIndex)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).Index(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_Index_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).Index(ctx, req.(*MsgIndex))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -186,6 +256,14 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WithdrawToEthereum",
 			Handler:    _Msg_WithdrawToEthereum_Handler,
+		},
+		{
+			MethodName: "DepositFromEthereum",
+			Handler:    _Msg_DepositFromEthereum_Handler,
+		},
+		{
+			MethodName: "Index",
+			Handler:    _Msg_Index_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

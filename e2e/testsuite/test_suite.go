@@ -39,6 +39,7 @@ func init() {
 const (
 	BridgeDenom       = "ufuel"
 	minGasPrices      = "0.01"
+	defaultTxGas      = 1000000
 	supplyDeltaPeriod = uint64(10) // default - can be overridden
 
 	// Balance and staked amount per validator
@@ -340,6 +341,14 @@ func (s *E2ETestSuite) runEthContainer() {
 	)
 
 	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+}
+
+func (s *E2ETestSuite) PauseEthereum() {
+	s.Require().NoError(s.dockerPool.Client.PauseContainer(s.ethResource.Container.ID))
+}
+
+func (s *E2ETestSuite) UnpauseEthereum() {
+	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.ethResource.Container.ID))
 }
 
 func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash cmtbytes.HexBytes) {

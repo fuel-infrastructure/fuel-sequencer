@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -73,4 +74,38 @@ func (s *E2ETestSuite) PollForLastEthereumBlockSynced(
 	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
 	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, fmt.Errorf("last Ethereum block synced %d not found in expected number of blocks", block))
+}
+
+func (s *E2ETestSuite) GetMsgIndexFromBlock(ctx context.Context, block int64) *bridgetypes.MsgIndex {
+	s.Logger().Info(fmt.Sprintf("Getting MsgIndex from block %d", block))
+
+	blockByHeight, err := s.GetBlockByHeight(ctx, block)
+	s.Require().NoError(err)
+	s.Require().GreaterOrEqual(len(blockByHeight.Data.Txs), 1)
+
+	txBz := blockByHeight.Data.Txs[0]
+	sdkTx, err := tx.DefaultTxDecoder(TestCdc)(txBz)
+	s.Require().NoError(err)
+
+	var msg bridgetypes.MsgIndex
+	err = msg.FromSdkTx(sdkTx)
+	s.Require().NoError(err)
+
+	return &msg
+}
+
+func (s *E2ETestSuite) SearchForEventInBlockResults(ctx context.Context, eventType string, block int64) (found bool) {
+	s.Logger().Info(fmt.Sprintf("Looking for event %s at block %d", eventType, block))
+
+	blockResults, err := s.GetBlockResultsByHeight(ctx, block)
+	s.Require().NoError(err)
+
+	for _, txResult := range blockResults.TxsResults {
+		for _, event := range txResult.Events {
+			if event.Type == eventType {
+				return true
+			}
+		}
+	}
+	return false
 }

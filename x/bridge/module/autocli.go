@@ -39,14 +39,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereum_address"}},
 				},
 				{
-					RpcMethod: "SupplyDeltaProcessed",
-					Use:       "show-supply-delta-processed",
-					Short:     "show supply-delta-processed",
-				},
-				{
 					RpcMethod: "EthereumEventIndexOffset",
 					Use:       "show-ethereum-event-index-offset",
 					Short:     "show ethereum-event-index-offset",
+				},
+				{
+					RpcMethod: "LastEthBlockUpdateTime",
+					Use:       "show-last-eth-block-update-time",
+					Short:     "show last-eth-block-update-time",
 				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
@@ -68,6 +68,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:            "withdraw-to-ethereum [to] [amount]",
 					Short:          "Send a WithdrawToEthereum tx",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "to"}, {ProtoField: "amount"}},
+				},
+				{
+					RpcMethod: "DepositFromEthereum",
+					Skip:      true, // skipped because generated through consensus
+				},
+				{
+					RpcMethod: "Index",
+					Skip:      true, // skipped because generated through consensus
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},

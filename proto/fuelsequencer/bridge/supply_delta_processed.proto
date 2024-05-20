@@ -1,6 +1,0 @@
-syntax = "proto3";
-package fuelsequencer.bridge;
-
-option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
-
-message SupplyDeltaProcessed { bool processed = 1; }

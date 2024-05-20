@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
 type (
@@ -53,61 +55,57 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 	}
 }
 
-// Equal compares two Event structs for equality
-func (m *Event) Equal(e *Event) (bool, error) {
-	// If both structs are nil then they are equal
-	if m == nil && e == nil {
-		return true, nil
-	}
-
-	// If one of them only is nil then they are not equal
-	if m == nil || e == nil {
-		return false, nil
-	}
-
-	// If two events are not of the same type then they are not equal
-	if m.EventType != e.EventType {
-		return false, nil
-	}
-
-	// If two events do not originate from the same contract then they are not equal
-	if m.ContractAddress != e.ContractAddress {
-		return false, nil
-	}
-
-	// Get parsed event from the first event
-	event1, err := m.UnmarshalParsedEvent()
-	if err != nil {
-		return false, err
-	}
-
-	// Get parsed event from the second event
-	event2, err := e.UnmarshalParsedEvent()
-	if err != nil {
-		return false, err
-	}
-
-	// Equality boils down to the specific equality logic of the event type
-	return event1.Equal(event2), nil
-}
-
-// ValidateBasic performs some sanity checks on Event
-func (m *Event) ValidateBasic() error {
+// Validate ensures that the event is valid by checking that:
+// - It originated from the expected contract address.
+// - It can be parsed, and the parsed version is valid.
+func (m *Event) Validate(ethereumProxyContractAddress string) error {
 	// Error if the receiver is nil
 	if m == nil {
 		return errors.New("event is nil")
 	}
 
-	// Error if the ContractAddress is not a valid Ethereum hex address
-	if !common.IsHexAddress(m.ContractAddress) {
-		return errors.New("contract_address is not a valid hex address")
+	// Error if the event does not belong to the Ethereum Proxy Contract.
+	// Note: there is no need to check that m.ContractAddress is hex, assuming ethereumProxyContractAddress is correct.
+	if m.ContractAddress != ethereumProxyContractAddress {
+		return fmt.Errorf(
+			"event's contract address does not match expected proxy contract address; got %s, expected %s",
+			m.ContractAddress,
+			ethereumProxyContractAddress,
+		)
 	}
 
-	// Get parsed event
-	event, err := m.UnmarshalParsedEvent()
+	parsedEvent, err := m.UnmarshalParsedEvent()
 	if err != nil {
 		return err
 	}
 
-	return event.ValidateBasic()
+	err = parsedEvent.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
+// To do so, we unmarshal the event into a parsed event, and then extract the messages from it.
+func (m *Event) Messages(cdc codec.BinaryCodec, authority string) ([]*codectypes.Any, error) {
+
+	parsedEvent, err := m.UnmarshalParsedEvent()
+	if err != nil {
+		return nil, err
+	}
+
+	return parsedEvent.Messages(cdc, authority)
+}
+
+// RawTxBytes converts the event to a valid tx that can be injected into a block and produces a tx result.
+func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string) ([]byte, error) {
+
+	messages, err := m.Messages(cdc, authority)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.ValidRawTxBytesFromAnyMsgs(messages)
 }

@@ -116,24 +116,22 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 			expErrMsg: "DepositEvent is nil",
 		},
 		{
-			name: "DepositEvent - invalid depositor - error",
+			name: "DepositEvent - invalid depositor - NO ERROR",
 			event: &types.DepositEvent{
 				Depositor: "invalid-depositor",
 				Recipient: testtypes.TestTo1,
 				Amount:    testtypes.TestAmount1,
 				Lockup:    testtypes.TestLockup1,
 			},
-			expErrMsg: "depositor is not a valid hex address",
 		},
 		{
-			name: "DepositEvent - invalid recipient - error",
+			name: "DepositEvent - invalid recipient - NO ERROR",
 			event: &types.DepositEvent{
 				Depositor: testtypes.TestFrom1,
 				Recipient: "invalid-recipient",
 				Amount:    testtypes.TestAmount1,
 				Lockup:    testtypes.TestLockup1,
 			},
-			expErrMsg: "recipient is not a valid Bech32 or Hex address",
 		},
 		{
 			name: "DepositEvent - invalid lockup - error",

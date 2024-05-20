@@ -59,7 +59,15 @@ func (s *E2ETestSuite) SubmitMsgs(msgs ...sdk.Msg) (*sdk.TxResponse, error) {
 	return s.SubmitMsgsFrom(s.Chain.validators[0], msgs...)
 }
 
+func (s *E2ETestSuite) SubmitMsgsWithGas(gas uint64, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
+	return s.SubmitMsgsWithGasFrom(s.Chain.validators[0], gas, msgs...)
+}
+
 func (s *E2ETestSuite) SubmitMsgsFrom(val *validator, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
+	return s.SubmitMsgsWithGasFrom(val, defaultTxGas, msgs...)
+}
+
+func (s *E2ETestSuite) SubmitMsgsWithGasFrom(val *validator, gas uint64, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
 
 	kr, err := val.keyring()
 	s.Require().NoError(err)
@@ -69,7 +77,7 @@ func (s *E2ETestSuite) SubmitMsgsFrom(val *validator, msgs ...sdk.Msg) (*sdk.TxR
 	clientCtx, err := s.Chain.clientContext(addr, &kr, validatorKeyName, val.address(), outputBuffer)
 	s.Require().NoError(err)
 
-	respWithTxHash, err := s.Chain.sendMsgs(*clientCtx, outputBuffer, msgs...)
+	respWithTxHash, err := s.Chain.sendMsgs(*clientCtx, outputBuffer, gas, msgs...)
 	s.Require().NoError(err)
 
 	var resp *sdk.TxResponse

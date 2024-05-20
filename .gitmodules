@@ -5,4 +5,4 @@
 [submodule "e2e/fuel-rollup"]
 	path = e2e/fuel-rollup
 	url = https://github.com/FuelLabs/fuel-rollup
-	branch = deficake/authorize-sendmsg-integration-test
+	branch = main

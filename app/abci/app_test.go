@@ -13,6 +13,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -26,7 +27,7 @@ func (s *AppTestSuite) GetTestProposalHandler(
 	sidecarClientMock *sidecartestutil.MockAppSidecarClient,
 ) *abci.FuelSequencerProposalHandler {
 	return abci.NewFuelSequencerProposalHandler(
-		s.App.Logger(), s.App.StakingKeeper, s.App, sidecarClientMock, s.App.BridgeKeeper,
+		s.App.AppCodec(), s.App.Logger(), s.App.StakingKeeper, s.App, sidecarClientMock, s.App.BridgeKeeper,
 	)
 }
 
@@ -117,14 +118,23 @@ func (s *AppTestSuite) EncodeMsgSupplyDeltaTx() []byte {
 	return txRawBz
 }
 
-// EncodeEthEventsTx is a helper to encode EthEventsTx to bytes
-func (s *AppTestSuite) EncodeEthEventsTx(tx *bridgetypes.EthEventsTx) []byte {
-	ethEventsTxBz, err := tx.Marshal()
+// EncodeMsgIndexWithEvents is a helper to encode MsgIndex to bytes
+func (s *AppTestSuite) EncodeMsgIndexWithEvents(tx *types.TestMsgIndexWithEvents) (txs [][]byte) {
+	msgIndexBz, err := tx.MsgIndex.RawTxBytes()
 	if err != nil {
-		panic("could not encode eth events tx")
+		panic(err)
+	}
+	txs = append(txs, msgIndexBz)
+
+	for _, event := range tx.Events {
+		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority())
+		if err != nil {
+			panic(fmt.Sprintf("could not get raw tx bytes from event: %s", event.String()))
+		}
+		txs = append(txs, eventTx)
 	}
 
-	return ethEventsTxBz
+	return
 }
 
 func (s *AppTestSuite) SetupTest() {

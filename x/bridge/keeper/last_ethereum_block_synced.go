@@ -30,7 +30,7 @@ func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val uint64, fou
 	return sdk.BigEndianToUint64(b), true
 }
 
-// MustGetLastEthereumBlockSynced returns lastEthereumBlockSynced and panics if it does't find it
+// MustGetLastEthereumBlockSynced returns lastEthereumBlockSynced and panics if it doesn't find it
 func (k Keeper) MustGetLastEthereumBlockSynced(ctx context.Context) uint64 {
 	val, found := k.GetLastEthereumBlockSynced(ctx)
 	if !found {

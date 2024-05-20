@@ -11,8 +11,12 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// DefaultAllowAllAuthorizeMessages is the default messages we allow.
-	DefaultAllowAllAuthorizeMessages = []string{AllowAllAuthorizeMessages}
+	// DefaultAuthorizeMessagesAllowed is the default messages we allow.
+	DefaultAuthorizeMessagesAllowed = []string{AllowAllAuthorizeMessages}
+
+	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
+	// up with Ethereum. This is set to 1 hour by default.
+	DefaultMaxEthBlockUpdateDelay = time.Hour
 )
 
 const (
@@ -47,6 +51,7 @@ func NewParams(
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
 	additionalBlockedAddresses []string,
+	maxEthBlockUpdateDelay time.Duration,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -63,6 +68,7 @@ func NewParams(
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
 		VestingStartTime:             t0,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
+		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 	}
 }
 
@@ -71,9 +77,10 @@ func DefaultParams() Params {
 	return NewParams(
 		DefaultBridgeDenom,
 		DefaultEthereumProxyContractAddress,
-		DefaultAllowAllAuthorizeMessages,
+		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
 		nil,
+		DefaultMaxEthBlockUpdateDelay,
 	)
 }
 
@@ -110,8 +117,13 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	// AdditionalBlockedAddresses blocked addresses
+	// Validate blocked addresses.
 	if err := ValidateBlockedAddresses(p.AdditionalBlockedAddresses); err != nil {
+		return err
+	}
+
+	// Validate tolerance for no Ethereum block syncing.
+	if err := ValidateMaxEthBlockUpdateDelay(p.MaxEthBlockUpdateDelay); err != nil {
 		return err
 	}
 
@@ -204,6 +216,18 @@ func ValidateBlockedAddresses(i interface{}) error {
 	return nil
 }
 
+func ValidateMaxEthBlockUpdateDelay(i interface{}) error {
+	v, ok := i.(time.Duration)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for maxEthBlockUpdateDelay: %T", i)
+	}
+	if v < 0 {
+		return ErrParamsInvalid.Wrapf("tolerance for no Ethereum block syncing cannot be negative")
+	}
+
+	return nil
+}
+
 // VestingTimesFromVestingDuration returns the vesting start and end time based on the VestingStartTime parameter, the
 // vestingStartTimeDelay, and a specified vesting duration, which must be greater than vestingStartTimeDelay since the
 // vesting duration is included in the vestingStartTimeDelay.
@@ -240,4 +264,13 @@ func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
 	}
 
 	return false
+}
+
+// IsMsgSupplyDeltaBlock returns true if it's the right height for a MsgSupplyDelta.
+func (p *Params) IsMsgSupplyDeltaBlock(block uint64) bool {
+	if p.SupplyDeltaPeriod == 0 {
+		// We've already validated it at the Validate function.
+		panic("supply delta period is zero")
+	}
+	return block%p.SupplyDeltaPeriod == 0
 }

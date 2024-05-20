@@ -53,101 +53,7 @@ func TestUnmarshalParsedEvent(t *testing.T) {
 	}
 }
 
-func TestEvent_Equal(t *testing.T) {
-	var nilEvent *types.Event = nil
-
-	testCases := []struct {
-		name          string
-		event1        *types.Event
-		event2        *types.Event
-		expectedEqual bool
-		expErrMsg     string
-	}{
-		{
-			name:          "Equal events - both nil",
-			event1:        nilEvent,
-			event2:        nilEvent,
-			expectedEqual: true,
-		},
-		{
-			name:   "Equal events - Deposit",
-			event1: testtypes.TestEvent1,
-			event2: testutils.MustGetSidecarEventFromParsedEvent(
-				testtypes.TestDepositEvent3, testtypes.TestEthereumProxyContractAddress,
-			),
-			expectedEqual: true,
-		},
-		{
-			name:   "Equal events - AuthorizeEvent",
-			event1: testtypes.TestEvent2,
-			event2: testutils.MustGetSidecarEventFromParsedEvent(
-				testtypes.TestAuthorizeEvent3, testtypes.TestEthereumProxyContractAddress,
-			),
-			expectedEqual: true,
-		},
-		{
-			name:          "Unequal events - one is nil the other is not",
-			event1:        testtypes.TestEvent1,
-			event2:        nilEvent,
-			expectedEqual: false,
-		},
-		{
-			name:          "Unequal events - events with different types",
-			event1:        testtypes.TestEvent1,
-			event2:        testtypes.TestEvent2,
-			expectedEqual: false,
-		},
-		{
-			name:   "Unequal events - events belonging to a different contract",
-			event1: testtypes.TestEvent1,
-			event2: testutils.MustGetSidecarEventFromParsedEvent(
-				testtypes.TestDepositEvent3, "different-contract-address",
-			),
-			expectedEqual: false,
-		},
-		{
-			name: "Error - event1 cannot be unmarshalled",
-			event1: &types.Event{
-				EventType:       types.AuthorizeEventName,
-				Data:            []byte("invalid-data"),
-				ContractAddress: testtypes.TestEthereumProxyContractAddress,
-			},
-			event2:    testtypes.TestEvent2,
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
-		},
-		{
-			name:   "Error - event2 cannot be unmarshalled",
-			event1: testtypes.TestEvent2,
-			event2: &types.Event{
-				EventType:       types.AuthorizeEventName,
-				Data:            []byte("invalid-data"),
-				ContractAddress: testtypes.TestEthereumProxyContractAddress,
-			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			actualEqual, err := tc.event1.Equal(tc.event2)
-
-			if len(tc.expErrMsg) > 0 {
-				require.Error(t, err)
-				require.ErrorContains(t, err, tc.expErrMsg)
-				return
-			}
-			require.NoError(t, err)
-
-			if tc.expectedEqual {
-				require.True(t, actualEqual)
-			} else {
-				require.False(t, actualEqual)
-			}
-		})
-	}
-}
-
-func TestEvent_ValidateBasic(t *testing.T) {
+func TestEvent_Validate(t *testing.T) {
 	var nilEvent *types.Event = nil
 
 	testCases := []struct {
@@ -169,13 +75,11 @@ func TestEvent_ValidateBasic(t *testing.T) {
 			expErrMsg: "event is nil",
 		},
 		{
-			name: "Invalid event - contract address not in the right format",
-
-			// Ethereum addresses are strictly 40 chars long. Adding more characters should make ValidateBasic error.
+			name: "Invalid event - contract address not the correct one",
 			event: testutils.MustGetSidecarEventFromParsedEvent(
-				testtypes.TestAuthorizeEvent3, testtypes.TestEthereumProxyContractAddress+"Ab",
+				testtypes.TestAuthorizeEvent3, "0x4838b106fce9647bdf1e7877bf73ce8b0bad5f97",
 			),
-			expErrMsg: "contract_address is not a valid hex address",
+			expErrMsg: "event's contract address does not match expected proxy contract address",
 		},
 		{
 			name: "Invalid event - DepositEvent cannot be unmarshalled",
@@ -199,7 +103,7 @@ func TestEvent_ValidateBasic(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.event.ValidateBasic()
+			err := tc.event.Validate(testtypes.TestEthereumProxyContractAddress)
 			if len(tc.expErrMsg) > 0 {
 				require.Error(t, err)
 				require.ErrorContains(t, err, tc.expErrMsg)

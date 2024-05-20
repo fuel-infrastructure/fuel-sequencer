@@ -2,6 +2,7 @@ package authorize_transactions_test
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -208,5 +209,22 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 
 		// Make sure that the vote gets submitted by checking that the votes tally has increased from 0 to 1
 		s.PollForNumberOfVotes(s.Ctx(), 20, proposalId, 1)
+	})
+}
+
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataCausesHalt() {
+	s.Run("Invalid data from Ethereum causes Sequencer to stop block production", func() {
+
+		// Generate Authorize event wrapping invalid data.
+		invalidBz := []byte("some invalid data")
+		authorizeData := testsuite.PackAuthorize(invalidBz)
+		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Check that Sequencer runs into issues
+		re := regexp.MustCompile("block proposal doesn't have any transactions: first tx expected to be MsgIndex")
+		s.Require().Eventually(func() bool {
+			return len(s.FindSequencerLogs(re)) > 0
+		}, time.Minute, time.Second)
 	})
 }
