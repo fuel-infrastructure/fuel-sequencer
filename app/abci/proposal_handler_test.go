@@ -672,7 +672,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "first transaction expected to be a valid MsgIndex",
 		},
 		{
-			name:                      "returns error if first tx not a valid MsgIndex",
+			name:                      "returns error if first tx not a valid sdk.Tx",
 			expQueryBlockEventsCalled: 0,
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
