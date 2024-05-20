@@ -29,7 +29,7 @@ func (k msgServer) TryExecSpecialMessage(ctx sdk.Context, signer string, msg fun
 		)
 	}
 
-	// Catch failures of special messages`
+	// Catch failures of special messages
 	err := utils.ApplyFuncIfNoErrorAndNoPanic(ctx, msg)
 	if err != nil {
 		index, found := k.GetIndex(ctx)
