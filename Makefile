@@ -207,9 +207,9 @@ cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
-    # This runs ./utils/protocgen-pulsar.sh as well, under the hood.
+    # This runs ./scripts/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
-	@$(protoImage) sh ./utils/protocgen.sh;
+	@$(protoImage) sh ./scripts/protocgen.sh;
 	@echo "✅ Finished Go code generation!"
 
 proto-format:
@@ -319,14 +319,24 @@ test-all: test-unit test-e2e
 test-unit:
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
 
-test-e2e: check-docker-image-exists check-eth-docker-image-exists check-fsx-docker-images-exist test-e2e-basic test-e2e-withdrawals test-e2e-events test-e2e-authorize-transactions test-e2e-deposits
+test-e2e: \
+	check-docker-image-exists \
+	check-eth-docker-image-exists \
+	check-fsx-docker-images-exist \
+	test-e2e-basic \
+	test-e2e-withdrawals \
+	test-e2e-events \
+	test-e2e-authorize-transactions \
+	test-e2e-deposits \
+	test-e2e-special-messages
 
 test-cover:
 	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
 
 mocks: $(MOCKS_DIR)
 	@go install github.com/golang/mock/mockgen@v1.6.0
-	sh ./utils/mockgen.sh
+	sh ./scripts/mockgen.sh
+	rm -r "$(MOCKS_DIR)"
 .PHONY: mocks
 
 $(MOCKS_DIR):
@@ -468,6 +478,9 @@ test-e2e-authorize-transactions:
 
 test-e2e-deposits:
 	@cd e2e/tests && go test -mod=readonly -race -v ./deposits/... --test.timeout 0
+
+test-e2e-special-messages:
+	@cd e2e/tests && go test -mod=readonly -race -v ./special-messages/... --test.timeout 0
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."

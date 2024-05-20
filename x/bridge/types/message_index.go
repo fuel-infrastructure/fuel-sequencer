@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
@@ -22,14 +20,9 @@ func NewMsgIndex(authority string, numInjectedEventTxs uint64, newEthereumBlock 
 	}
 }
 
-func (msg *MsgIndex) ValidateBasic() error {
-
-	// Note: sufficient validation already done during injection and in the message handler.
-
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
-	}
+// ValidateBasic for this message should be a no-op so that we definitely AnteHandle this message.
+// Since we generate the MsgIndex ourselves, we expect the message to be valid anyway.
+func (*MsgIndex) ValidateBasic() error {
 	return nil
 }
 
@@ -212,6 +205,10 @@ func (m *MsgIndex) RawTxBytes() ([]byte, error) {
 // FromSdkTx extracts MsgIndex from an SDK transaction which is expected to contain just MsgIndex.
 func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 
+	if m == nil {
+		return fmt.Errorf("expected non-nil MsgIndex receiver")
+	}
+
 	// MsgIndex will contain only one message.
 	msgs := tx.GetMsgs()
 	if len(msgs) != 1 {
@@ -232,4 +229,19 @@ func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 
 	*m = *msgIndex
 	return nil
+}
+
+// FromRawTxBytes extracts MsgIndex from raw transaction bytes.
+func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) error {
+
+	if m == nil {
+		return fmt.Errorf("expected non-nil MsgIndex receiver")
+	}
+
+	tx, err := decoder(bz)
+	if err != nil {
+		return err
+	}
+
+	return m.FromSdkTx(tx)
 }

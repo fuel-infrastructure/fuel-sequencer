@@ -12,4 +12,9 @@ message Index {
   // num_injected_txs_ante is the number of injected transactions that
   // have been seen by the AnteHandler.
   uint64 num_injected_txs_ante = 2;
+
+  // num_failed_special_txs is the number of failed special transactions, i.e.
+  // MsgIndex, MsgDepositFromEthereum, and MsgSupplyDelta. We should stop block
+  // production if any of these fails because something is really wrong.
+  uint64 num_failed_special_txs = 3;
 }

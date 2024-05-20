@@ -65,8 +65,7 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 
 func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 
-	// address to block
-	addressesToBlock := []string{}
+	var addressesToBlock []string
 
 	for _, permission := range s.App.AccountKeeper.GetModulePermissions() {
 		addrStr, err := s.App.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
@@ -107,11 +106,16 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 			// Verify that there is at least one validator
 			s.Require().GreaterOrEqual(len(vals), 1)
 
+			// All account addresses of validators are blocked
 			for _, validator := range vals {
 				valAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
 				s.Require().NoError(err)
-				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, sdk.AccAddress(valAddr.Bytes()).String())
+				accAddrFromValAddr := sdk.AccAddress(valAddr.Bytes()).String()
+				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, accAddrFromValAddr)
 			}
+
+			// The authority address is blocked
+			tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, s.App.BridgeKeeper.GetAuthority())
 
 			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedAddresses(ctx, tc.paramsBlockedAddresses)
 			s.Require().NoError(err)

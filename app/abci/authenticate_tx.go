@@ -9,6 +9,11 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+// authenticateEvent has the responsibility of ensuring that the necessary authentication is in place for the event to
+// be executed, and that any messages resulting from the encoded transaction are valid. An error returned from this
+// function can cause block production to stop, whereas no authentication just means the event should just be skipped.
+//
+// Note: the error always takes priority over the value of the returned bool.
 func (h *FuelSequencerProposalHandler) authenticateEvent(
 	event *sidecartypes.Event, rawTxBytes []byte, params *bridgetypes.Params, blockedAddresses map[string]bool,
 ) (bool, error) {
@@ -32,6 +37,19 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 			return false, fmt.Errorf("failed to decode event transaction: %s", err.Error())
 		}
 		msgs := tx.GetMsgs()
+
+		// It is very important to validate the Authorize event's messages, otherwise invalid messages will not be seen
+		// by the AnteHandler, which means we will not track the injected transactions correctly.
+		for _, msg := range msgs {
+			m, ok := msg.(sdk.HasValidateBasic)
+			if !ok {
+				continue
+			}
+
+			if err := m.ValidateBasic(); err != nil {
+				return false, nil // do not return the error, otherwise it takes priority over the boolean
+			}
+		}
 
 		err = h.authenticateTx(authorizeEvent.Sender, msgs, params, blockedAddresses)
 		if err != nil {

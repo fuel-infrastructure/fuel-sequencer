@@ -9,51 +9,82 @@ import (
 )
 
 func (s *KeeperTestSuite) TestMsgSupplyDelta() {
+
+	testSupplyDeltaInfo := testtypes.TestSupplyDeltaInfo
+	testSupplyDelta := testSupplyDeltaInfo.Delta.Add(testSupplyDeltaInfo.Offset)
+
+	testSupplyDeltaInfoZeros := bridgetypes.SupplyDeltaInfo{
+		LastSupply: testSupplyDeltaInfo.LastSupply,
+		Delta:      sdk.ZeroInt(),
+		Offset:     sdk.ZeroInt(),
+	}
+
 	testCases := []struct {
-		name              string
-		supplyDeltaPeriod uint64
-		lastEthereumNonce sdk.Int
-		supplyDeltaInfo   bridgetypes.SupplyDeltaInfo
-		chainHeight       int64
-		msg               *bridgetypes.MsgSupplyDelta
-		expErrMsg         string
+		name                 string
+		supplyDeltaPeriod    uint64
+		lastEthereumNonce    sdk.Int
+		supplyDeltaInfo      bridgetypes.SupplyDeltaInfo
+		chainHeight          int64
+		msg                  *bridgetypes.MsgSupplyDelta
+		expErrMsg            string
+		expSupplyDeltaInfo   bridgetypes.SupplyDeltaInfo
+		expLastEthereumNonce sdk.Int
+		expResponse          *bridgetypes.MsgSupplyDeltaResponse
+		expEventEmitted      bool
 	}{
 		{
 			name:              "valid MsgSupplyDelta - block height equals period",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
+			supplyDeltaInfo:   testSupplyDeltaInfo,
 			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
+				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+				SupplyDelta: testSupplyDelta,
+			},
+			expEventEmitted: true,
 		},
 		{
 			name:              "valid MsgSupplyDelta - block height not equal period",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
+			supplyDeltaInfo:   testSupplyDeltaInfo,
 			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod * 4), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
+				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+				SupplyDelta: testSupplyDelta,
+			},
+			expEventEmitted: true,
 		},
 		{
 			name:              "invalid MsgSupplyDelta - block height not at the right height",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
+			supplyDeltaInfo:   testSupplyDeltaInfo,
 			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod + 1), // height % period != 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expErrMsg: "MsgSupplyDelta not expected at height 101",
+			expSupplyDeltaInfo:   testSupplyDeltaInfo,             // unchanged
+			expLastEthereumNonce: testtypes.TestLastEthereumNonce, // unchanged
+			expResponse:          &bridgetypes.MsgSupplyDeltaResponse{},
+			expEventEmitted:      false,
 		},
 		{
 			name:              "invalid MsgSupplyDelta - invalid authority",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
+			supplyDeltaInfo:   testSupplyDeltaInfo,
 			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod),
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: "invalid address",
@@ -66,34 +97,21 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			).Error(),
 		},
 		{
-			name:              "invalid MsgSupplyDelta - SupplyDeltaPeriod is zero",
-			supplyDeltaPeriod: 0,
-			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testtypes.TestSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod),
-			msg: &bridgetypes.MsgSupplyDelta{
-				Authority: testtypes.TestGovernanceAddress,
-			},
-			expErrMsg: errors.Wrapf(
-				bridgetypes.ErrInvalidSupplyDeltaPeriod, "SupplyDeltaPeriod cannot be zero",
-			).Error(),
-		},
-		{
-			name:              "invalid MsgSupplyDelta - SupplyDelta is zero",
+			name:              "valid MsgSupplyDelta - SupplyDelta is zero",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo: bridgetypes.SupplyDeltaInfo{
-				LastSupply: testtypes.TestLastSupply,
-				Delta:      sdk.ZeroInt(),
-				Offset:     sdk.ZeroInt(),
-			},
-			chainHeight: int64(testtypes.TestSupplyDeltaPeriod),
+			supplyDeltaInfo:   testSupplyDeltaInfoZeros,               // zeros
+			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expErrMsg: errors.Wrapf(
-				bridgetypes.ErrInvalidSupplyDeltaValue, "cannot report 0 supply delta to Ethereum",
-			).Error(),
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
+				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
+				SupplyDelta: sdk.ZeroInt(),
+			},
+			expEventEmitted: true,
 		},
 	}
 
@@ -126,31 +144,25 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			}
 			s.Require().NoError(err)
 
-			// Confirm that the LastEthereumNonce has been incremented by 1
+			// Confirm the value of LastEthereumNonce
 			actualNonce, found := s.App.BridgeKeeper.GetLastEthereumNonce(s.Ctx())
-			expectedNonce := tc.lastEthereumNonce.Add(sdk.OneInt())
 			s.Require().True(found)
-			s.Require().Equal(expectedNonce, actualNonce)
+			s.Require().EqualValues(tc.expLastEthereumNonce, actualNonce)
 
-			// Confirm that SupplyDeltaInfo has been reset to the correct value
+			// Confirm the value of SupplyDeltaInfo
 			actualSupplyDeltaInfo := s.App.BridgeKeeper.MustGetSupplyDeltaInfo(s.Ctx())
-			expectedSupplyDeltaInfo := bridgetypes.SupplyDeltaInfo{
-				LastSupply: tc.supplyDeltaInfo.LastSupply,
-				Delta:      sdk.ZeroInt(),
-				Offset:     sdk.ZeroInt(),
-			}
-			s.Require().Equal(expectedSupplyDeltaInfo, actualSupplyDeltaInfo)
+			s.Require().EqualValues(tc.expSupplyDeltaInfo, actualSupplyDeltaInfo)
 
 			// Confirm that we received the expected response
-			expectedReportedDelta := tc.supplyDeltaInfo.Delta.Add(tc.supplyDeltaInfo.Offset)
-			expectedResponse := &bridgetypes.MsgSupplyDeltaResponse{
-				Nonce:       expectedNonce,
-				SupplyDelta: expectedReportedDelta,
-			}
-			s.Require().Equal(expectedResponse, response)
+			s.Require().EqualValues(tc.expResponse, response)
 
 			// Check events emitted
-			s.AssertEventEmitted(msgSupplyDeltaCtx, proto.MessageName(&bridgetypes.EventSupplyDeltaReported{}), 1)
+			event := proto.MessageName(&bridgetypes.EventSupplyDeltaReported{})
+			if tc.expEventEmitted {
+				s.AssertEventEmitted(msgSupplyDeltaCtx, event, 1)
+			} else {
+				s.AssertEventEmitted(msgSupplyDeltaCtx, event, 0)
+			}
 		})
 	}
 }

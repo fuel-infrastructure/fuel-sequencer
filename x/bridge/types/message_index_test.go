@@ -4,44 +4,11 @@ import (
 	"math"
 	"testing"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
-
-func TestMsgIndex_ValidateBasic(t *testing.T) {
-	tests := []struct {
-		name string
-		msg  types.MsgIndex
-		err  error
-	}{
-		{
-			name: "invalid address",
-			msg: types.MsgIndex{
-				Authority: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: types.MsgIndex{
-				Authority: sample.AccAddress(),
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.msg.ValidateBasic()
-			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
-				return
-			}
-			require.NoError(t, err)
-		})
-	}
-}
 
 func TestMsgIndex_Equal(t *testing.T) {
 	var nilMsgIndex *types.MsgIndex = nil

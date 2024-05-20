@@ -8,8 +8,22 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.MsgIndexResponse, error) {
+func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (resp *types.MsgIndexResponse, err error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err = k.TryExecSpecialMessage(ctx, msg.Authority, func(ctx sdk.Context) error {
+		var innerErr error
+		if resp, innerErr = k.index(ctx, msg); innerErr != nil {
+			resp = &types.MsgIndexResponse{} // normalise
+			return innerErr
+		}
+		return nil
+	})
+
+	return resp, err
+}
+
+func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexResponse, error) {
 
 	lastBlockSynced := k.MustGetLastEthereumBlockSynced(ctx)
 	eventIndexOffset := k.MustGetEthereumEventIndexOffset(ctx)
@@ -31,10 +45,16 @@ func (k msgServer) Index(goCtx context.Context, msg *types.MsgIndex) (*types.Msg
 		supplyDeltaCount += 1
 	}
 
+	// Ensure index was not already set
+	if _, found := k.GetIndex(ctx); found {
+		return nil, fmt.Errorf("expected to not find Index")
+	}
+
 	// It is very important to set the index, so the AnteHandler knows that we've processed the MsgIndex.
 	k.SetIndex(ctx, types.Index{
 		NumInjectedTxsTotal: msg.NumInjectedEventTxs + supplyDeltaCount,
 		NumInjectedTxsAnte:  0, // MsgIndex tx is never factored in because it is just a metadata transaction
+		NumFailedSpecialTxs: 0, // No special txs have failed yet
 	})
 
 	if msg.NewEthereumBlock {

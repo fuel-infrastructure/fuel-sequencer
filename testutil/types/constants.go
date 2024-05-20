@@ -52,25 +52,25 @@ var (
 	TestLockup5  = "1"
 
 	// TestData1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1. This was generated with the help of
-	// utils/proto_serialization_test.go.
+	// scripts/proto_serialization_test.go.
 	TestData1 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30786633396664366535316161" +
 		"6438386636663463653661623838323732373963666666623932323636122a3078643434373036366138626139636231356138363261" +
 		"306636646539363166323762653836666330611a0b0a05756675656c12023130"
 
 	// TestData2 corresponds to a 10ufuel bank send to TestTo3 from TestFrom2. This was generated with the help of
-	// utils/proto_serialization_test.go.
+	// scripts/proto_serialization_test.go.
 	TestData2 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30783745354634353532303931" +
 		"4136393132356435446643623762384332363539303239333935426466122a3078643434373036366138626139636231356138363261" +
 		"306636646539363166323762653836666330611a0b0a05756675656c12023130"
 
 	// TestData3 corresponds to a 10ufuel bank send to TestTo3 from TestFrom3. This was generated with the help of
-	// utils/proto_serialization_test.go.
+	// scripts/proto_serialization_test.go.
 	TestData3 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663437" +
 		"6337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363261" +
 		"306636646539363166323762653836666330611a0b0a05756675656c12023130"
 
 	// TestData4 corresponds to two 10 ufuel bank sends from TestFrom3 to TestTo3. This was generated with the help of
-	// utils/proto_serialization_test.go.
+	// scripts/proto_serialization_test.go.
 	TestData4 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663437" +
 		"6337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363261" +
 		"306636646539363166323762653836666330611a0b0a05756675656c120231300a85010a1c2f636f736d6f732e62616e6b2e76316265" +
@@ -79,13 +79,13 @@ var (
 		"656c12023130"
 
 	// TestData5 corresponds to a MsgWithdrawToEthereum of 0 ufuel from TestFrom3. This was generated with the help of
-	// utils/proto_serialization_test.go.
+	// scripts/proto_serialization_test.go.
 	TestData5 = "0a6a0a2e2f6675656c73657175656e6365722e6272696467652e76312e4d73675769746864726177546f457468657265756d" +
 		"12380a2a3078443132323041306366343763374239426537413245364241383946343239373632653762396144621a0a0a0575667565" +
 		"6c120130"
 
 	// TestData6 corresponds to one 10 ufuel and another 1000000ufuel bank send from TestFrom3 to TestTo3. This was
-	// generated with the help of utils/proto_serialization_test.go.
+	// generated with the help of scripts/proto_serialization_test.go.
 	TestData6 = "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a30784431323230413063663437" +
 		"6337423942653741324536424138394634323937363265376239614462122a3078643434373036366138626139636231356138363261" +
 		"306636646539363166323762653836666330611a0b0a05756675656c120231300a8a010a1c2f636f736d6f732e62616e6b2e76316265" +
@@ -159,6 +159,12 @@ var (
 		Amount:    TestAmount1,
 		Lockup:    TestLockup1,
 	}
+	TestDepositEvent12 = &sidecartypes.DepositEvent{
+		Depositor: TestFrom1,
+		Recipient: TestTo1,
+		Amount:    "faulty-amount",
+		Lockup:    TestLockup1,
+	}
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom1,
 		Data:   testutils.MustHexDecodeString(TestData1),
@@ -170,6 +176,10 @@ var (
 	TestAuthorizeEvent3 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom3,
 		Data:   testutils.MustHexDecodeString(TestData3),
+	}
+	TestAuthorizeEvent4 = &sidecartypes.AuthorizeEvent{
+		Sender: TestFrom3,
+		Data:   []byte("some invalid data"),
 	}
 
 	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
@@ -205,6 +215,12 @@ var (
 	TestEvent11 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestDepositEvent11, TestEthereumProxyContractAddress,
 	)
+	TestEvent12 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestDepositEvent12, TestEthereumProxyContractAddress,
+	)
+	TestEvent13 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent4, TestEthereumProxyContractAddress,
+	)
 
 	// The below event messages are set in the init() function.
 	// These serve as convenient access to the event's original messages.
@@ -220,10 +236,26 @@ var (
 	TestEvent9Msg  *bridgetypes.MsgDepositFromEthereum
 	TestEvent10Msg *bridgetypes.MsgDepositFromEthereum
 	TestEvent11Msg *bridgetypes.MsgDepositFromEthereum
+	TestEvent12Msg *bridgetypes.MsgDepositFromEthereum
 
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
 	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+
+	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
+	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
+
+	TestMsgSupplyDelta = &bridgetypes.MsgSupplyDelta{
+		Authority: TestGovernanceAddress,
+	}
+
+	TestMsgDepositFromEthereum = &bridgetypes.MsgDepositFromEthereum{
+		Authority: TestGovernanceAddress,
+		Depositor: TestFrom1,
+		Recipient: TestTo1,
+		Amount:    TestAmount1,
+		Lockup:    TestLockup1,
+	}
 
 	TestMsgIndex = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
@@ -295,9 +327,11 @@ var (
 		Events: nil,
 	}
 
-	TestEmptySidecarResponse   = &sidecartypes.QueryBlockEventsResponse{Events: nil}
-	TestSidecarResponse        = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
-	TestSidecarResponseReduced = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestEmptySidecarResponse            = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse                 = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
+	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 )
 
 func init() {
@@ -311,4 +345,5 @@ func init() {
 	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent9)
 	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent10)
 	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent11)
+	TestEvent12Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent12)
 }

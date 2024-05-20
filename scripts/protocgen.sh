@@ -18,4 +18,4 @@ cd ..
 cp -r github.com/fuel-infrastructure/fuel-sequencer/* ./
 rm -rf github.com
 
-./utils/protocgen-pulsar.sh
+./scripts/protocgen-pulsar.sh

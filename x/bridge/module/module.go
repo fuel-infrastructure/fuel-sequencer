@@ -167,6 +167,11 @@ func (am AppModule) EndBlock(goCtx context.Context) error {
 		)
 	}
 
+	// Check that there was no failure of special messages
+	if index.NumFailedSpecialTxs > 0 {
+		return fmt.Errorf("expected all special transactions to pass; total failed: %d", index.NumFailedSpecialTxs)
+	}
+
 	// Remove Index in preparation for next block, since the AnteHandler uses this to look out for MsgIndex.
 	am.keeper.RemoveIndex(ctx)
 
