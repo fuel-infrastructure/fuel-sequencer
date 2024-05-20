@@ -272,7 +272,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum_AmountParseFailure() {
 	allBalancesAfter := s.App.BankKeeper.GetAccountsBalances(s.Ctx())
 	s.Require().EqualValues(allBalancesBefore, allBalancesAfter)
 
-	// Verify the governance address is still zero
+	// Verify the governance address balance is still zero
 	actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, "ufuel")
 	s.Require().True(actualGovBal.Amount.IsZero())
 }
