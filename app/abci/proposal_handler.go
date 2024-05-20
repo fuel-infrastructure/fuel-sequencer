@@ -369,7 +369,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 }
 
 // checkMinimumNumTxs ensures that we've collected the minimum number of expected transactions, i.e. MsgIndex, the event
-// transactions, and the MsgSupplyDelta, if we're at the MsgSupplyDelta height, and returns an error otherwise
+// transactions, and the MsgSupplyDelta if we're at the MsgSupplyDelta height, and returns an error otherwise
 func checkMinimumNumTxs(numTxs uint64, msgIndex *bridgetypes.MsgIndex, injectMsgSupplyDelta bool) error {
 
 	minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
