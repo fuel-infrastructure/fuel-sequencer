@@ -24,6 +24,10 @@ func (*MsgSupplyDelta) ValidateBasic() error {
 // FromSdkTx extracts MsgSupplyDelta from an SDK transaction which is expected to contain just MsgSupplyDelta.
 func (m *MsgSupplyDelta) FromSdkTx(tx sdk.Tx) error {
 
+	if m == nil {
+		return fmt.Errorf("expected non-nil MsgSupplyDelta receiver")
+	}
+
 	// MsgSupplyDelta will contain only one message.
 	msgs := tx.GetMsgs()
 	if len(msgs) != 1 {

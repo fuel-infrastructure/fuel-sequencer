@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func ValidateAddress(address string) error {
+func ValidateBech32Address(address string) error {
 	_, err := sdk.AccAddressFromBech32(address)
 	return err
 }

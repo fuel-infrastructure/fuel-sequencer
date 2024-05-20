@@ -245,6 +245,18 @@ var (
 	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
 	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
 
+	TestMsgSupplyDelta = &bridgetypes.MsgSupplyDelta{
+		Authority: TestGovernanceAddress,
+	}
+
+	TestMsgDepositFromEthereum = &bridgetypes.MsgDepositFromEthereum{
+		Authority: TestGovernanceAddress,
+		Depositor: TestFrom1,
+		Recipient: TestTo1,
+		Amount:    TestAmount1,
+		Lockup:    TestLockup1,
+	}
+
 	TestMsgIndex = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,
