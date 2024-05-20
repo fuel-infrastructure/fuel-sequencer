@@ -17,7 +17,7 @@ func NewMsgDepositFromEthereum(authority, depositor, recipient, amount, lockup s
 }
 
 // ValidateBasic for this message should be a no-op so that we definitely AnteHandle this message.
-// By this point we already know that the deposit details are valid anyway.
+// Events are being validated before composed as a transaction anyway.
 func (*MsgDepositFromEthereum) ValidateBasic() error {
 	return nil
 }
