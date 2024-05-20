@@ -19,12 +19,13 @@ import (
 )
 
 type FuelSequencerProposalHandler struct {
-	cdc          codec.Codec // codec
-	logger       log.Logger
-	valStore     baseapp.ValidatorStore         // to get the current validators' pubkeys
-	txVerifier   baseapp.ProposalTxVerifier     // a utility for transaction verification
-	sidecar      sidecarclient.AppSidecarClient // a client to query the Sidecar service
-	bridgeKeeper bridgekeeper.Keeper            // Bridge keeper
+	cdc                    codec.Codec // codec
+	logger                 log.Logger
+	valStore               baseapp.ValidatorStore          // to get the current validators' pubkeys
+	txVerifier             baseapp.ProposalTxVerifier      // a utility for transaction verification
+	sidecar                sidecarclient.AppSidecarClient  // a client to query the Sidecar service
+	bridgeKeeper           bridgekeeper.Keeper             // Bridge keeper
+	defaultProposalHandler *baseapp.DefaultProposalHandler // gives us access to default proposal handling behaviour
 }
 
 // NewFuelSequencerProposalHandler defines a custom FuelSequencer proposal handler object
@@ -37,12 +38,13 @@ func NewFuelSequencerProposalHandler(
 	bridgeKeeper bridgekeeper.Keeper,
 ) *FuelSequencerProposalHandler {
 	return &FuelSequencerProposalHandler{
-		cdc:          cdc,
-		logger:       logger,
-		valStore:     valStore,
-		txVerifier:   txVerifier,
-		sidecar:      sidecar,
-		bridgeKeeper: bridgeKeeper,
+		cdc:                    cdc,
+		logger:                 logger,
+		valStore:               valStore,
+		txVerifier:             txVerifier,
+		sidecar:                sidecar,
+		bridgeKeeper:           bridgeKeeper,
+		defaultProposalHandler: baseapp.NewDefaultProposalHandler(nil, txVerifier),
 	}
 }
 
@@ -173,8 +175,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Use the DefaultProposalHandler which, since we're using a NoOp mempool, will select the txs requested from
 		// CometBFT which by default should be in FIFO order. It still ensures the txs returned respect req.MaxTxBytes
 		// and blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
-		defaultProposalHandler := baseapp.NewDefaultProposalHandler(nil, h.txVerifier)
-		resp, err := defaultProposalHandler.PrepareProposalHandler()(ctx, req)
+		resp, err := h.defaultProposalHandler.PrepareProposalHandler()(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("default proposal handler failed with error: %w", err)
 		}
