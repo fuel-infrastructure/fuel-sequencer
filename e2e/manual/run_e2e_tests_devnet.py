@@ -25,7 +25,7 @@ def pretty(in_json: str):
 
 
 SEQ_node = "https://rpc-seq.simplystaking.xyz"
-SEQ_chain = "seq-devnet-2"
+SEQ_chain = "seq-devnet-3"
 SEQ_bin = "fuelsequencerd"
 
 ETH_rpc = "https://ethereum-sepolia-rpc.publicnode.com"
