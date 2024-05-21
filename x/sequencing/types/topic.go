@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -10,8 +10,8 @@ import (
 
 func (t *Topic) ValidateBasic() error {
 
-	if err := utils.ValidateAddress(t.Owner); err != nil {
-		return errors.Wrap(err, "invalid topic address")
+	if err := utils.ValidateBech32Address(t.Owner); err != nil {
+		return errors.Wrap(err, "invalid topic owner address")
 	}
 
 	if err := ValidateTopicId(t.Id); err != nil {

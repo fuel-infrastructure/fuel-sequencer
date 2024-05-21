@@ -31,7 +31,7 @@ validators:
     bonded: 1000000utest
     home: ./data/fuelsequencer
 genesis:
-  genesis_time: "2024-05-13T13:00:00.000000Z"
+  genesis_time: "2024-05-13T13:00:00Z"
   chain_id: "seq-devnet-2"
   consensus:
     params:
@@ -58,7 +58,8 @@ genesis:
         mint_denom: "utest"
     slashing:
       params:
-        downtime_jail_duration: "14400s"
+        downtime_jail_duration: 600s
+        signed_blocks_window: "28800"
     staking:
       params:
         bond_denom: "utest"
@@ -67,12 +68,15 @@ genesis:
     bridge:
       params:
         bridge_denom: "utest"
-        ethereum_proxy_contract_address: "<TODO>"
+        ethereum_proxy_contract_address: "0xC8a69eD7E452DF857110Fd2191483FB91b7A00ef"
+        additional_blocked_addresses:
+          - "fuelsequencer1jula6akuac095ypsmes2c7uhhlm0g5tk67pt8a"
         authorize_messages_allowed:
           - "*"  # allow all
         supply_delta_period: 1000
+        vesting_start_time: "2023-05-20T08:00:00Z"
       last_ethereum_nonce: "0"
-      last_ethereum_block_synced: "0"
+      last_ethereum_block_synced: "5890000"
     sequencing:
       params:
         max_blob_size_bytes: 1000000

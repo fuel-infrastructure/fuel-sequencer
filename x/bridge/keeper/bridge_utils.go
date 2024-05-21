@@ -51,5 +51,8 @@ func (k Keeper) GetAllBlockedAddresses(
 		k.blockedAddresses[sdk.AccAddress(valAddr.Bytes()).String()] = true
 	}
 
+	// Block Authority
+	k.blockedAddresses[k.GetAuthority()] = true
+
 	return k.blockedAddresses, nil
 }

@@ -1,40 +1,85 @@
-package types
+package types_test
 
 import (
+	"fmt"
 	"testing"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/gogoproto/proto"
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgSupplyDelta_ValidateBasic(t *testing.T) {
-	tests := []struct {
-		name string
-		msg  MsgSupplyDelta
-		err  error
+func TestMsgSupplyDelta_FromSdkTx(t *testing.T) {
+
+	testMsgSupplyDelta := &types.MsgSupplyDelta{Authority: testutiltypes.TestGovernanceAddress}
+	testMsgSend := &banktypes.MsgSend{
+		FromAddress: testutiltypes.TestFrom1,
+		ToAddress:   testutiltypes.TestTo1,
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1)),
+	}
+
+	testMsgSupplyDeltaTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSupplyDelta})
+	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend})
+	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSupplyDelta, testMsgSend})
+	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgSupplyDelta})
+	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil)
+
+	testCases := []struct {
+		name              string
+		receiver          *types.MsgSupplyDelta
+		sdkTx             sdk.Tx
+		expMsgSupplyDelta *types.MsgSupplyDelta
+		expErrMsg         string
 	}{
 		{
-			name: "invalid address",
-			msg: MsgSupplyDelta{
-				Authority: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgSupplyDelta{
-				Authority: sample.AccAddress(),
-			},
+			name:              "tx with just MsgSupplyDelta is correctly parsed",
+			receiver:          &types.MsgSupplyDelta{},
+			sdkTx:             testMsgSupplyDeltaTx,
+			expMsgSupplyDelta: testMsgSupplyDelta,
+		},
+		{
+			name:      "tx cannot contain non-MsgSupplyDelta",
+			receiver:  &types.MsgSupplyDelta{},
+			sdkTx:     testMsgSendTx,
+			expErrMsg: fmt.Sprintf("expected msg type URL %s", sdk.MsgTypeURL(&types.MsgSupplyDelta{})),
+		},
+		{
+			name:      "tx cannot contain more than one msg (even if MsgSupplyDelta is first)",
+			receiver:  &types.MsgSupplyDelta{},
+			sdkTx:     testMixedTx1,
+			expErrMsg: "expected 1 msg in MsgSupplyDelta raw bytes",
+		},
+		{
+			name:      "tx cannot contain more than one msg (even if MsgSupplyDelta is not first)",
+			receiver:  &types.MsgSupplyDelta{},
+			sdkTx:     testMixedTx2,
+			expErrMsg: "expected 1 msg in MsgSupplyDelta raw bytes",
+		},
+		{
+			name:      "tx cannot be empty",
+			receiver:  &types.MsgSupplyDelta{},
+			sdkTx:     testEmptyTx,
+			expErrMsg: "expected 1 msg in MsgSupplyDelta raw bytes",
+		},
+		{
+			name:      "receiver cannot be nil",
+			receiver:  nil,
+			expErrMsg: "expected non-nil MsgSupplyDelta receiver",
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.msg.ValidateBasic()
-			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			err := tc.receiver.FromSdkTx(tc.sdkTx)
+			if tc.expErrMsg != "" {
+				require.ErrorContains(t, err, tc.expErrMsg)
 				return
 			}
 			require.NoError(t, err)
+			require.EqualValues(t, tc.expMsgSupplyDelta, tc.receiver)
 		})
 	}
 }

@@ -56,10 +56,10 @@ const (
 var (
 	encodingConfig testutil.TestEncodingConfig
 	cdc            codec.Codec
+	TestCdc        codec.Codec // an exported alias of cdc
 )
 
 func init() {
-	// TODO: is this the correct way?
 	modules := []module.AppModuleBasic{
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -96,6 +96,7 @@ func init() {
 	)
 
 	cdc = encodingConfig.Codec
+	TestCdc = cdc
 }
 
 type chain struct {
@@ -216,6 +217,7 @@ func (c *chain) clientContext(
 func (c *chain) sendMsgs(
 	clientCtx client.Context,
 	outputBuffer *bytes.Buffer,
+	gas uint64,
 	msgs ...sdk.Msg,
 ) (*sdk.TxResponse, error) {
 
@@ -225,7 +227,7 @@ func (c *chain) sendMsgs(
 		WithTxConfig(clientCtx.TxConfig).
 		WithGasAdjustment(1.2).
 		WithKeybase(clientCtx.Keyring).
-		WithGas(1000000).
+		WithGas(gas).
 		WithGasPrices(fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)).
 		WithSignMode(signing.SignMode_SIGN_MODE_DIRECT)
 
