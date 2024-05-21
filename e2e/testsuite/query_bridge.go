@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -94,7 +96,9 @@ func (s *E2ETestSuite) GetMsgIndexFromBlock(ctx context.Context, block int64) *b
 	return &msg
 }
 
-func (s *E2ETestSuite) SearchForEventInBlockResults(ctx context.Context, eventType string, block int64) (found bool) {
+func (s *E2ETestSuite) SearchForEventInBlockResults(
+	ctx context.Context, eventType string, block int64,
+) (event *abcitypes.Event, found bool) {
 	s.Logger().Info(fmt.Sprintf("Looking for event %s at block %d", eventType, block))
 
 	blockResults, err := s.GetBlockResultsByHeight(ctx, block)
@@ -103,9 +107,33 @@ func (s *E2ETestSuite) SearchForEventInBlockResults(ctx context.Context, eventTy
 	for _, txResult := range blockResults.TxsResults {
 		for _, event := range txResult.Events {
 			if event.Type == eventType {
-				return true
+				return &event, true
 			}
 		}
 	}
-	return false
+	return nil, false
+}
+
+func (s *E2ETestSuite) SearchForMsgInBlock(
+	ctx context.Context, msgTypeUrl string, block int64,
+) (msg sdk.Msg, found bool) {
+	s.Logger().Info(fmt.Sprintf("Looking for msg %s at block %d", msgTypeUrl, block))
+
+	txDecoder := tx.DefaultTxDecoder(TestCdc)
+
+	blockByHeight, err := s.GetBlockByHeight(ctx, block)
+	s.Require().NoError(err)
+
+	for _, txBz := range blockByHeight.Data.Txs {
+		sdkTx, err := txDecoder(txBz)
+		s.Require().NoError(err)
+
+		for _, msg := range sdkTx.GetMsgs() {
+			if sdk.MsgTypeURL(msg) == msgTypeUrl {
+				return msg, true
+			}
+		}
+	}
+
+	return nil, false
 }
