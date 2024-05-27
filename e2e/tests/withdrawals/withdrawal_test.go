@@ -153,7 +153,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 	})
 }
 
-func (s *WithdrawalsTestSuite) TestWithdrawalWithManualProcessSuccinct() {
+func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromSequencer() {
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
 
 		// --------------------------------------- User withdraws on the Sequencer
@@ -280,7 +280,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithManualProcessSuccinct() {
 	})
 }
 
-func (s *WithdrawalsTestSuite) TestWithdrawalInitiatedFromEthereum() {
+func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
 
 		withdrawerAddress := testsuite.ETH_ADDRESSES[0]
