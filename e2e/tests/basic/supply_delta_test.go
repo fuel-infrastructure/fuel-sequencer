@@ -19,14 +19,26 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 		err = s.WaitForSequencerBlocks(s.Ctx(), int(searchTillBlock), time.Minute)
 		s.Require().NoError(err)
 
+		// Construct standard MsgSupplyDelta details
+		typicalMsgSupplyDelta := bridgetypes.MsgSupplyDelta{Authority: s.GetGovernanceAddress()}
+		msgSupplyDeltaTypeUrl := sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{})
+
 		// Ensure that MsgSupplyDelta injected, and only at the right heights
 		for block := int64(1); block < searchTillBlock; block++ {
-			found := s.SearchForEventInBlockResults(s.Ctx(), supplyDeltaEvent.Type, block)
-			if block%supplyDeltaPeriod == 0 {
-				s.Require().True(found)
-			} else {
-				s.Require().False(found)
+			expectMsgSupplyDelta := block%supplyDeltaPeriod == 0
+
+			// Search for message showing successful injection
+			msg, msgFound := s.SearchForMsgInBlock(s.Ctx(), msgSupplyDeltaTypeUrl, block)
+			s.Require().Equal(expectMsgSupplyDelta, msgFound)
+			if expectMsgSupplyDelta {
+				msgSupplyDelta, ok := msg.(*bridgetypes.MsgSupplyDelta)
+				s.Require().True(ok)
+				s.Require().EqualValues(typicalMsgSupplyDelta, *msgSupplyDelta)
 			}
+
+			// Search for event showing successful execution
+			_, eventFound := s.SearchForEventInBlockResults(s.Ctx(), supplyDeltaEvent.Type, block)
+			s.Require().Equal(expectMsgSupplyDelta, eventFound)
 		}
 	})
 }
