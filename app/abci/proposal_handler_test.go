@@ -388,7 +388,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg:                    "failed to generate MsgIndex",
 		},
 		{
-			name:                      "returns error if invalid authorize found",
+			name:                      "skips event if invalid authorize found",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -402,7 +402,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to generate MsgIndex",
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+			},
 		},
 	}
 
