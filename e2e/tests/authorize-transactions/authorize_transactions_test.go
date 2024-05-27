@@ -212,8 +212,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 	})
 }
 
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataCausesHalt() {
-	s.Run("Invalid data from Ethereum causes Sequencer to stop block production", func() {
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataDoesNotCauseHalt() {
+	s.Run("Invalid data from Ethereum causes Sequencer to skip an invalid authorize event", func() {
 
 		// Generate Authorize event wrapping invalid data.
 		invalidBz := []byte("some invalid data")
@@ -221,8 +221,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataC
 		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
 		s.Require().NoError(err)
 
-		// Check that Sequencer runs into issues
-		re := regexp.MustCompile("block proposal doesn't have any transactions: first tx expected to be MsgIndex")
+		// Check that the Sequencer skips the event
+		re := regexp.MustCompile("skipping event; failed to encode event as raw tx bytes with err")
 		s.Require().Eventually(func() bool {
 			return len(s.FindSequencerLogs(re)) > 0
 		}, time.Minute, time.Second)
