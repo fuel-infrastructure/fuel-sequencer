@@ -17,6 +17,9 @@ type EventStore struct {
 	// It also indicates the oldest block that we might have in state.
 	startQueryBlock *big.Int
 
+	// endQueryBlock is the last block that we will query for events.
+	endQueryBlock *big.Int
+
 	// lastSyncedBlock is the last block queried for events.
 	lastSyncedBlock *big.Int
 
@@ -29,13 +32,11 @@ type EventStore struct {
 }
 
 // NewEventStore creates a new EventStore instance.
-func NewEventStore(
-	startQueryBlock *big.Int,
-	maxQueryRange *big.Int,
-) *EventStore {
+func NewEventStore(startQueryBlock, endQueryBlock, maxQueryRange *big.Int) *EventStore {
 	return &EventStore{
 		blocksMap:       make(map[uint64]*sidecartypes.EthereumBlock),
 		startQueryBlock: startQueryBlock,
+		endQueryBlock:   endQueryBlock,
 		// The last synced block is the one right before the one we're starting at.
 		// The next query block will then evaluate to the last synced block + 1.
 		lastSyncedBlock:  new(big.Int).Sub(startQueryBlock, big.NewInt(1)),
@@ -91,6 +92,18 @@ func (store *EventStore) GetStartQueryBlock() *big.Int {
 		return nil
 	}
 	return new(big.Int).Set(store.startQueryBlock)
+}
+
+// GetEndQueryBlock returns the endQueryBlock safely.
+func (store *EventStore) GetEndQueryBlock() *big.Int {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	// Return a copy to avoid external modification.
+	if store.endQueryBlock == nil {
+		return nil
+	}
+	return new(big.Int).Set(store.endQueryBlock)
 }
 
 // SetLastSyncedBlock safely sets the value of lastSyncedBlock.
