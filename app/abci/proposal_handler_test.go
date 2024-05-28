@@ -64,6 +64,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		maxBlockGas                    int64
 		supplyDeltaPeriod              uint64
 		ethereumProxyContractAddress   string
+		injectedEventTxMaxBytes        uint64
 		expErrMsg                      string
 		expRes                         *abcitypes.ResponsePrepareProposal
 	}{
@@ -82,6 +83,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
 					encodedMsgIndexWithEvents,
@@ -107,6 +109,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
 			},
@@ -126,6 +129,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
 					encodedMsgIndexWithoutEvents,
@@ -150,6 +154,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
 					encodedMsgIndexSidecarErr,
@@ -177,6 +182,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: encodedMsgIndexPartialBlock, // partial eth tx
 			},
@@ -195,6 +201,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "could not get last Ethereum block synced from state",
 		},
 		{
@@ -211,6 +218,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "could not get Ethereum event index offset from state",
 		},
 		{
@@ -231,7 +239,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to generate MsgIndex",
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
 			name:                      "returns error if MsgIndex cannot be generated - ValidateStateful error",
@@ -255,7 +264,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to generate MsgIndex",
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
 			name:                      "returns error if not enough block space for at least one MsgIndex event",
@@ -272,6 +282,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "failed to calculate number of events with max bytes 0",
 		},
 		{
@@ -290,6 +301,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "failed to calculate number of events with max bytes 0",
 		},
 		{
@@ -308,6 +320,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx),
 			},
@@ -328,6 +341,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
 			},
@@ -347,6 +361,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas - 1, // Set to total - 1 so that the last transaction is omitted
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
 			},
@@ -367,6 +382,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg: "failed to trim event txs from head: insufficient no of events, expected at " +
 				"least 4 got 3",
 		},
@@ -385,7 +401,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to generate MsgIndex",
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
 			name:                      "skips event if invalid authorize found",
@@ -402,6 +419,45 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+			},
+		},
+		{
+			name:                      "returns error if big deposit found",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseDepositOnly, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      1, // To ensure deposit event is too big
+			expErrMsg:                    "generated raw tx bytes exceeded max bytes",
+		},
+		{
+			name:                      "skips event if big authorize found",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      1, // To ensure authorize event is too big
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
 			},
@@ -432,6 +488,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 					AuthorizeMessagesAllowed:     []string{bridgetypes.AllowAllAuthorizeMessages},
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
+					InjectedEventTxMaxBytes:      tc.injectedEventTxMaxBytes,
 				},
 			)
 			s.Require().NoError(err)
@@ -520,6 +577,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	validTxsSidecarErr := append(
 		encodedMsgIndexSidecarErr, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
+	validTxsWithLargeAuthorizeSkipped := append(
+		encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+	)
 
 	four := uint64(4)
 
@@ -541,6 +601,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		maxBlockGas                    int64
 		supplyDeltaPeriod              uint64
 		ethereumProxyContractAddress   string
+		injectedEventTxMaxBytes        uint64
 		expErrMsg                      string
 	}{
 		{
@@ -556,6 +617,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
@@ -571,6 +633,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
@@ -587,6 +650,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
@@ -602,6 +666,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
@@ -622,6 +687,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 		},
 		{
 			name:                          "returns error if no new Ethereum block and delay exceeded",
@@ -638,6 +704,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg: fmt.Sprintf(
 				"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
 				testLastEthBlockUpdate.String(),
@@ -657,6 +724,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "block proposal doesn't have any transactions: first tx expected to be MsgIndex",
 		},
 		{
@@ -671,6 +739,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "first transaction expected to be a valid MsgIndex",
 		},
 		{
@@ -685,6 +754,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "first transaction expected to be a valid MsgIndex",
 		},
 		{
@@ -700,6 +770,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "could not get last Ethereum block synced from state",
 		},
 		{
@@ -715,6 +786,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "could not get Ethereum event index offset from state",
 		},
 		{
@@ -734,7 +806,8 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to generate MsgIndex",
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
 			name:                      "returns error if MsgIndex cannot be generated - ValidateStateful error",
@@ -757,7 +830,8 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			expErrMsg:                    "failed to generate MsgIndex",
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
 			name:                          "accepts block if matches MsgIndex indicating error",
@@ -775,6 +849,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 		},
 		{
 			name:                      "returns error if sidecar errors for validators but not for proposer",
@@ -791,6 +866,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "insufficient no of events, expected at least 3 got 0",
 		},
 		{
@@ -808,6 +884,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
 		},
 		{
@@ -825,6 +902,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
 		},
 		{
@@ -842,6 +920,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "insufficient no of events, expected at least 3 got 0",
 		},
 		{
@@ -859,6 +938,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "insufficient no of events, expected at least 3 got 2",
 		},
 		{
@@ -876,6 +956,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
 		},
 		{
@@ -892,6 +973,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas - 1, // Set to total - 1 so that MaxBlockGas is exceeded
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "block gas limit exceeded",
 		},
 		{
@@ -909,6 +991,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg:                    "expected at least 5 transactions in block proposal",
 		},
 		{
@@ -926,6 +1009,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			expErrMsg: fmt.Errorf(
 				"failed to parse MsgSupplyDelta at index 4 with error: expected msg type URL %s, got %s",
 				sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}),
@@ -946,9 +1030,47 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxBlockGas:                  totalTxsGas,
 			expErrMsg: "failed to trim event txs from head: insufficient no of events, expected " +
 				"at least 4 got 3",
+		},
+		{
+			name:                      "accepts block if match skipped large authorize event",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsWithLargeAuthorizeSkipped,
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      1, // To ensure authorize event is too big
+			maxBlockGas:                  totalTxsGas,
+		},
+		{
+			name:                      "returns error if large deposit event is detected",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseDepositOnly, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				// If a big deposit is also matched at PrepareProposal no MsgIndex tx is returned, thus we would
+				// error when we try to parse a MsgIndex. To make ProcessProposal error at generateMsgIndexAndEventTxs
+				// we need to make use of a different set of txs (one which has a MsgIndex)
+				Txs: validTxsWithEvents,
+
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      1, // To ensure deposit event is too big
+			maxBlockGas:                  totalTxsGas,
+			expErrMsg:                    "generated raw tx bytes exceeded max bytes;",
 		},
 	}
 
@@ -981,6 +1103,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
 					MaxEthBlockUpdateDelay:       testMaxEthBlockUpdateDelay,
+					InjectedEventTxMaxBytes:      tc.injectedEventTxMaxBytes,
 				},
 			)
 			s.Require().NoError(err)

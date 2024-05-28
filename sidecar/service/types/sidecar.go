@@ -128,3 +128,16 @@ func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string) ([]byte, err
 
 	return utils.ValidRawTxBytesFromAnyMsgs(messages)
 }
+
+// RawTxBytesWithMaxBytes makes use of RawTxBytes with an additional size verification. This function will error if the
+// bytes returned from RawTxBytes exceed the specified max bytes.
+func (m *Event) RawTxBytesWithMaxBytes(cdc codec.BinaryCodec, authority string, maxBytes uint64) ([]byte, error) {
+
+	bz, err := m.RawTxBytes(cdc, authority)
+
+	if uint64(len(bz)) > maxBytes {
+		return nil, fmt.Errorf("generated raw tx bytes exceeded max bytes; %d > %d", uint64(len(bz)), maxBytes)
+	}
+
+	return bz, err
+}

@@ -22,6 +22,7 @@ var (
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod            = uint64(100)
 	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	TestInjectedEventTxMaxBytes      = uint64(20000000)
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestLastSupply                   = sdkmath.NewInt(100000000)
 	TestDelta                        = sdkmath.NewInt(5000000)
@@ -245,6 +246,9 @@ var (
 	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
 	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
 
+	TestEventsDepositOnly   = []*sidecartypes.Event{TestEvent1}
+	TestEventsAuthorizeOnly = []*sidecartypes.Event{TestEvent2}
+
 	TestMsgSupplyDelta = &bridgetypes.MsgSupplyDelta{
 		Authority: TestGovernanceAddress,
 	}
@@ -332,6 +336,8 @@ var (
 	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
 	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
+	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
+	TestSidecarResponseAuthorizeOnly    = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsAuthorizeOnly}
 )
 
 func init() {

@@ -37,6 +37,16 @@ const (
 
 	// vestingStartTimeDelay is a constant period of time during which tokens are completely locked.
 	vestingStartTimeDelay = time.Hour * 24 * 365
+
+	// DefaultInjectedEventTxMaxBytes is the default max size in bytes for an injected event tx in a block. This is set
+	// to 20000000 assuming a max block size of 22020096 bytes, index tx size 103 bytes and supply delta tx size of 105.
+	// The remaining bytes serve as a buffer. This default needs to be revised if any of the values above change.
+	DefaultInjectedEventTxMaxBytes = 20000000
+
+	// MinimumInjectedEventTxMaxBytes is the minimum value that InjectedEventTxMaxBytes can be set to. This is done to
+	// prevent setting InjectedEventTxMaxBytes to a very small value, and thus avoiding situations where event txs are
+	// never injected due to a strict InjectedEventTxMaxBytes.
+	MinimumInjectedEventTxMaxBytes = 1024
 )
 
 // ParamKeyTable the param key table for launch module
@@ -52,6 +62,7 @@ func NewParams(
 	supplyDeltaPeriod uint64,
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
+	injectedEventTxMaxBytes uint64,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -69,6 +80,7 @@ func NewParams(
 		VestingStartTime:             t0,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
+		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
 	}
 }
 
@@ -81,6 +93,7 @@ func DefaultParams() Params {
 		DefaultSupplyDeltaPeriod,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
+		DefaultInjectedEventTxMaxBytes,
 	)
 }
 
@@ -124,6 +137,11 @@ func (p Params) Validate() error {
 
 	// Validate tolerance for no Ethereum block syncing.
 	if err := ValidateMaxEthBlockUpdateDelay(p.MaxEthBlockUpdateDelay); err != nil {
+		return err
+	}
+
+	// Validate the maximum bytes for injected event txs.
+	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
 		return err
 	}
 
@@ -223,6 +241,22 @@ func ValidateMaxEthBlockUpdateDelay(i interface{}) error {
 	}
 	if v < 0 {
 		return ErrParamsInvalid.Wrapf("tolerance for no Ethereum block syncing cannot be negative")
+	}
+
+	return nil
+}
+
+func ValidateInjectedEventTxMaxBytes(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for injectedEventTxMaxBytes: %T", i)
+	}
+
+	// value cannot be less than MinimumInjectedEventTxMaxBytes, otherwise, we risk never injecting event txs in a block
+	if v < MinimumInjectedEventTxMaxBytes {
+		return ErrParamsInvalid.Wrapf(
+			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
 	}
 
 	return nil
