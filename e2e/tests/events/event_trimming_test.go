@@ -16,8 +16,6 @@ import (
 // TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
 func (s *EventsTestSuite) TestEventTrimming() {
 
-	s.T().Skip("We cannot test this at the moment because we do not have an AuthorizeMulti function")
-
 	s.Run("Run with reduced max bytes to showcase event trimming", func() {
 
 		// Calculate size of transaction resulting from MsgIndex.
@@ -85,8 +83,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
-		// TODO: authorizeData := testsuite.PackAuthorizeMulti(msgSendBz)
-		authorizeData := testsuite.PackAuthorize(msgSendBz)
+		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
 		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
