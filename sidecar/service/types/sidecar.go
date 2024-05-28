@@ -136,11 +136,7 @@ func (m *Event) RawTxBytesWithMaxBytes(cdc codec.BinaryCodec, authority string, 
 	bz, err := m.RawTxBytes(cdc, authority)
 
 	if uint64(len(bz)) > maxBytes {
-		return nil, fmt.Errorf(
-			"generated raw tx bytes exceeded max bytes; %d > %d",
-			uint64(len(bz)),
-			maxBytes,
-		)
+		return nil, fmt.Errorf("generated raw tx bytes exceeded max bytes; %d > %d", uint64(len(bz)), maxBytes)
 	}
 
 	return bz, err
