@@ -36,7 +36,7 @@ func NewEventStore(startQueryBlock, endQueryBlock, maxQueryRange *big.Int) *Even
 	return &EventStore{
 		blocksMap:       make(map[uint64]*sidecartypes.EthereumBlock),
 		startQueryBlock: startQueryBlock,
-		endQueryBlock:   endQueryBlock, // might be nil
+		endQueryBlock:   endQueryBlock,
 		// The last synced block is the one right before the one we're starting at.
 		// The next query block will then evaluate to the last synced block + 1.
 		lastSyncedBlock:  new(big.Int).Sub(startQueryBlock, big.NewInt(1)),
