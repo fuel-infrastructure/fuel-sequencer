@@ -1048,7 +1048,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			injectedEventTxMaxBytes:      1, // To ensure authorize event is big enough
+			injectedEventTxMaxBytes:      1, // To ensure deposit event is too big
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
