@@ -81,6 +81,32 @@ func (s *Sidecar) Start(ctx context.Context) error {
 	return s.startFetchingLogs(ctx)
 }
 
+// getMaxSyncableBlock gets the last Ethereum height that the Sidecar can sync up to. In normal operation, this will be
+// the height of the last finalized Ethereum block. However, if an end query block is available, the end query block
+// will override the finalized Ethereum block.
+func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
+
+	// Get the height of the last finalized block.
+	finalizedEthHeight, err := s.ethClient.FinalizedBlockNumber(ctx)
+	if err != nil {
+		s.logger.Error("could not get the height of the last finalized block from Ethereum node", zap.Error(err))
+		return nil, err
+	}
+
+	// If the end query block exists and is less than the finalized Ethereum height, use it instead.
+	endQueryBlock := s.eventStore.GetEndQueryBlock()
+	if endQueryBlock != nil && endQueryBlock.Cmp(finalizedEthHeight) < 0 {
+		s.logger.Warn(
+			"using end query block instead of finalized Ethereum height",
+			zap.Uint64("finalized_eth_height", finalizedEthHeight.Uint64()),
+			zap.Uint64("end_query_block", endQueryBlock.Uint64()),
+		)
+		return endQueryBlock, nil
+	}
+
+	return finalizedEthHeight, nil
+}
+
 // startFetchingLogs fetches logs from Ethereum and processes them, with a catch-up process to sync historical logs.
 func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 
@@ -123,30 +149,28 @@ func (s *Sidecar) catchUpWithEthereumLogs(
 	ctx context.Context, backOff *backoff.ExponentialBackOff,
 ) error {
 
-	// Get the height of the last finalized block to determine whether we need to sync up.
-	finalizedEthHeightUint64, err := s.ethClient.FinalizedBlockNumber(ctx)
+	// Get the max syncable block (considers finalized Ethereum height and the end query block)
+	maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
 	if err != nil {
-		s.logger.Error("could not get the height of the last finalized block from Ethereum node", zap.Error(err))
 		return err
 	}
-	finalizedEthHeight := new(big.Int).SetUint64(finalizedEthHeightUint64)
 
-	// If we're behind, fetch the logs up till the last finalized Ethereum block.
+	// If we're behind, fetch the logs up till the max syncable block.
 	// Note: in the meantime more Ethereum blocks might be finalized, but, these can be detected and fetched in the
 	// main data fetching loop.
 	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
-	if finalizedEthHeight.Cmp(lastSyncedBlock) > 0 {
+	if maxSyncableBlock.Cmp(lastSyncedBlock) > 0 {
 		s.logger.Info("catching up with ethereum",
 			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
-			zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
+			zap.Uint64("max_syncable_block", maxSyncableBlock.Uint64()),
 			zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 		)
 
-		return s.fetchAndStoreLogsUptoBlock(ctx, finalizedEthHeight)
+		return s.fetchAndStoreLogsUptoBlock(ctx, maxSyncableBlock)
 	} else {
 		s.logger.Debug("already in sync with ethereum",
 			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
-			zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
+			zap.Uint64("max_syncable_block", maxSyncableBlock.Uint64()),
 		)
 	}
 
@@ -189,30 +213,25 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
 			}
 
-			// Get the height of the last finalized block to determine whether a new finalized block needs processing
-			finalizedEthHeightUint64, err := s.ethClient.FinalizedBlockNumber(ctx)
+			// Get the max syncable block (considers finalized Ethereum height and the end query block)
+			maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
 			if err != nil {
-				s.logger.Error(
-					"could not get the height of the last finalized block from Ethereum node", zap.Error(err),
-				)
 				return err, true
 			}
-			finalizedEthHeight := new(big.Int).SetUint64(finalizedEthHeightUint64)
 
 			// Get the last Ethereum block synced by the Sidecar
 			lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
 
 			s.logger.Info("detected new block header",
 				zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
-				zap.Uint64("finalized_eth_height", finalizedEthHeightUint64),
+				zap.Uint64("max_syncable_block", maxSyncableBlock.Uint64()),
 				zap.Uint64("detected_eth_height", header.Number.Uint64()),
 				zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 			)
 
-			// If new blocks have been finalized, process all logs between the last synced blocked and the last
-			// finalized block
-			if finalizedEthHeight.Cmp(lastSyncedBlock) > 0 {
-				err := s.fetchAndStoreLogsUptoBlock(ctx, finalizedEthHeight)
+			// If new blocks are syncable, process all logs between the last synced blocked and max syncable block.
+			if maxSyncableBlock.Cmp(lastSyncedBlock) > 0 {
+				err := s.fetchAndStoreLogsUptoBlock(ctx, maxSyncableBlock)
 				if err != nil {
 					return err, true // retry
 				}

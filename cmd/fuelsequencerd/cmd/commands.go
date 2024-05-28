@@ -170,6 +170,7 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of Ethereum blocks queried at one go")
 	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*5, "minimum wait between successive queries for logs")
 	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the Ethereum block to start querying from")
+	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last Ethereum block to query")
 
 	// Sequencer
 	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "Sequencer's gRPC endpoint")
@@ -209,6 +210,9 @@ func startSidecar(
 	if ethCfg.unsafeStartBlock < 0 {
 		return fmt.Errorf("ethereum unsafe start block must be >= 0, got: %d", ethCfg.unsafeStartBlock)
 	}
+	if ethCfg.unsafeEndBlock < 0 {
+		return fmt.Errorf("ethereum unsafe end block must be >= 0, got: %d", ethCfg.unsafeEndBlock)
+	}
 	if ethCfg.maxBlockRange < 1 {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethCfg.maxBlockRange)
 	}
@@ -221,6 +225,18 @@ func startSidecar(
 			fmt.Sprintf("ethereum start block set to %s flag value", FlagEthereumUnsafeStartBlock),
 			zap.String("start_block", startBlock.String()),
 		)
+	}
+
+	// Check if the unsafe end block is provided and use it.
+	var endBlock *big.Int
+	if ethCfg.unsafeEndBlock > 0 {
+		endBlock = big.NewInt(ethCfg.unsafeEndBlock)
+		logger.Warn(
+			fmt.Sprintf("ethereum end block set to %s flag value", FlagEthereumUnsafeEndBlock),
+			zap.String("end_block", endBlock.String()),
+		)
+	} else {
+		endBlock = nil
 	}
 
 	// Create a connection to the Cosmos gRPC server.
@@ -309,7 +325,7 @@ func startSidecar(
 	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
 
 	// Create the store
-	eventStore := scstore.NewEventStore(startBlock, big.NewInt(ethCfg.maxBlockRange))
+	eventStore := scstore.NewEventStore(startBlock, endBlock, big.NewInt(ethCfg.maxBlockRange))
 
 	sideCar := sidecar.NewSidecar(
 		logger,
