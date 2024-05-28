@@ -13,6 +13,7 @@ const (
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
 	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
+	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
 	FlagSequencerRpcUrl              = "sequencer_rpc_url"
 
@@ -39,6 +40,7 @@ type ethereumConfig struct {
 	maxBlockRange        int64
 	minLogsQueryInterval time.Duration
 	unsafeStartBlock     int64
+	unsafeEndBlock       int64
 }
 
 // AppOptionsMap is a stub implementing AppOptions which can get data from a map.
