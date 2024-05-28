@@ -81,7 +81,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		amount1 := big.NewInt(200)
 		amount2 := big.NewInt(300)
 		depositData := testsuite.PackDeposit(amount1, common.HexToAddress(toAddress), amount2)
-		depositTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositTxReceipt, err := s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Generate a MsgSend
@@ -93,7 +93,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		authorizeTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		authorizeTxReceipt, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events

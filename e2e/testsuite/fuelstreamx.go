@@ -32,7 +32,7 @@ func (s *E2ETestSuite) RunFuelStreamXProcess() (
 			"RPC_URL=http://ethereum:8545",
 			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.Chain.validators[0].instanceName()),
 			"CHAIN_ID=31337",
-			fmt.Sprintf("CONTRACT_ADDRESS=%s", FUEL_STREAM_X_CONTRACT),
+			fmt.Sprintf("CONTRACT_ADDRESS=%s", MOCK_ETHEREUM_CONTRACT),
 			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
 			fmt.Sprintf("UPDATE_DELAY_BLOCKS=%d", UPDATE_DELAY_BLOCKS),
 		},

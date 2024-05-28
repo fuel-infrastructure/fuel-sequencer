@@ -102,8 +102,8 @@ var (
 		"fuelsequencer13lnr2rmhe7d7pza6ctyp2m9t5n28uattwk7kr8",
 	}
 
-	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
-	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	// MOCK_ETHEREUM_CONTRACT is the Ethereum contract that generates events and processes messages from the Sequencer.
+	MOCK_ETHEREUM_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
 	UPDATE_DELAY_BLOCKS = 30
 
@@ -215,7 +215,7 @@ func (s *E2ETestSuite) TearDownTest() {
 		s.Require().NoError(s.dockerPool.Purge(vc))
 	}
 
-	// Operator and relayer should have been purged earlier, but purge just in case
+	// FuelStreamX resource should have been purged earlier, but purge just in case
 	if s.fuelStreamXResource != nil {
 		_ = s.dockerPool.Purge(s.fuelStreamXResource)
 	}
@@ -353,7 +353,7 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 
-			code, err := s.Chain.ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
+			code, err := s.Chain.ethClient.CodeAt(ctx, common.HexToAddress(MOCK_ETHEREUM_CONTRACT), nil)
 			if err != nil {
 				s.T().Logf("error retreiving contract's code: %e", err)
 				return false

@@ -49,8 +49,8 @@ func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
 	return publicKeyECDSA
 }
 
-func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
+func (s *E2ETestSuite) SendEthTransactionToMockEthereumContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransaction(common.HexToAddress(MOCK_ETHEREUM_CONTRACT), data)
 }
 
 func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
@@ -90,7 +90,7 @@ func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte)
 		return nil, err
 	}
 
-	s.Logger().Info(fmt.Sprintf("Submitting transaction to FuelStreamX contract: %s", signedTx.Hash().Hex()))
+	s.Logger().Info(fmt.Sprintf("Submitting transaction to contract: %s", signedTx.Hash().Hex()))
 	err = s.Chain.ethClient.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		return nil, err
