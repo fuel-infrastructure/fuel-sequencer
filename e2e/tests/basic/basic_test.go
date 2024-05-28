@@ -7,6 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -79,7 +80,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		toAddress := testsuite.ADDRESSES[1]
 		amount1 := big.NewInt(200)
 		amount2 := big.NewInt(300)
-		depositData := testsuite.PackDeposit(amount1, toAddress, amount2)
+		depositData := testsuite.PackDeposit(amount1, common.HexToAddress(toAddress), amount2)
 		depositTxReceipt, err := s.SendEthTransactionToFuelStreamXContract(depositData)
 		s.Require().NoError(err)
 
@@ -101,7 +102,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(depositTxReceipt.BlockNumber.Int64()))
 		s.Require().NoError(err)
 		s.Require().Len(depositEvents, 1)
-		s.Require().Equal(sidecartypes.MockDepositEventName, depositEvents[0].EventType)
+		s.Require().Equal(sidecartypes.DepositEventName, depositEvents[0].EventType)
 
 		publicKey := s.GetEthPublicKey()
 		fromAddress := crypto.PubkeyToAddress(*publicKey).String()
@@ -123,7 +124,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		)
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
-		s.Require().Equal(sidecartypes.MockAuthorizeEventName, authorizeEvents[0].EventType)
+		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
 
 		// Check authorize event data is as expected
 		var authorizeEventData sidecartypes.AuthorizeEvent

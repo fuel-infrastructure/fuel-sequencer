@@ -7,7 +7,7 @@ func PackAuthorize(bytes []byte) []byte {
 		sidecartypes.MockSequencerProxyContractABI,
 		sidecartypes.MockAuthorizeFunctionName,
 		[]interface{}{
-			bytes,
+			[][]byte{bytes},
 		},
 	)
 }
