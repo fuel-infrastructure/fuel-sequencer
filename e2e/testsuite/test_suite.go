@@ -58,14 +58,8 @@ const (
 	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
 	blocksToWaitForGovProposalToPass = uint64(25)
 
-	succinctXOperatorDockerImageRepo = "fuel-infrastructure/fuel-stream-x-operator-docker-e2e"
-	succinctXOperatorDockerImageTag  = "latest"
-
-	succinctXRelayerDockerImageRepo = "fuel-infrastructure/fuel-stream-x-relayer-docker-e2e"
-	succinctXRelayerDockerImageTag  = "latest"
-
-	succinctXManualDockerImageRepo = "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
-	succinctXManualDockerImageTag  = "latest"
+	fuelStreamXDockerImageRepo = "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
+	fuelStreamXDockerImageTag  = "latest"
 )
 
 var (
@@ -110,14 +104,8 @@ var (
 
 	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
 	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
-	// GATEWAY_CONTRACT is a contract by Succinct that does ZK proof verification.
-	GATEWAY_CONTRACT = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
-	UPDATE_DELAY_BLOCKS = 25
-
-	// Circuits
-	NEXT_HEADER_FUNCTION_ID  = "0xbc40fbf4394cd00f78fae9763b0c2c71b21ea442c42fdadc5b720537240ebac1"
-	HEADER_RANGE_FUNCTION_ID = "0xa3c1274aadd82e4d12c8004c33fb244ca686dad4fcc8957fc5668588c11d9502"
+	UPDATE_DELAY_BLOCKS = 30
 
 	// Inflation params
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13")
@@ -141,16 +129,9 @@ type E2ETestSuite struct {
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
-	// Ethereum
-	ethResource *dockertest.Resource
-
-	// Sequencer
-	valResources []*dockertest.Resource
-
-	// SuccinctX
-	succinctOperatorResource *dockertest.Resource
-	succinctRelayerResource  *dockertest.Resource
-	succinctManualResource   *dockertest.Resource
+	ethResource         *dockertest.Resource
+	valResources        []*dockertest.Resource
+	fuelStreamXResource *dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -235,14 +216,8 @@ func (s *E2ETestSuite) TearDownTest() {
 	}
 
 	// Operator and relayer should have been purged earlier, but purge just in case
-	if s.succinctOperatorResource != nil {
-		_ = s.dockerPool.Purge(s.succinctOperatorResource)
-	}
-	if s.succinctRelayerResource != nil {
-		_ = s.dockerPool.Purge(s.succinctRelayerResource)
-	}
-	if s.succinctManualResource != nil {
-		_ = s.dockerPool.Purge(s.succinctManualResource)
+	if s.fuelStreamXResource != nil {
+		_ = s.dockerPool.Purge(s.fuelStreamXResource)
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))

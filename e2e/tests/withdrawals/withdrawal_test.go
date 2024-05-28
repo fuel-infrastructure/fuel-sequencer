@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -14,7 +15,7 @@ import (
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
+func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromSequencer() {
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
 
 		// --------------------------------------- User withdraws on the Sequencer
@@ -33,13 +34,11 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		// The LastResultsHash is generated at the block right after the withdrawal
 		lastResultsHashHeight := withdrawalResponse.Height + 1
 
-		// --------------------------------------- Run Operator
-
 		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
 		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
 		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
 
-		requestId, startBlockString, targetBlockString := s.RunSuccinctXOperatorMockApi()
+		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcess()
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
 		s.Require().NoError(err)
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
@@ -49,17 +48,8 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 		// Since the target block is exclusive, it has to be > not >=.
 		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
-		// --------------------------------------- Run Relayer
-
-		// Get genesis header
-		genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
-		s.Require().NoError(err)
-
-		err = s.WaitForSequencerBlocks(s.Ctx(), 5, time.Minute)
-		s.Require().NoError(err)
-
-		receipt := s.RunSuccinctXRelayerMockApi(requestId, startBlock, targetBlock, genesisBlockHeaderHash)
-		s.Require().Len(receipt.Logs, 3) // The three events are: HeadUpdate, DataCommitmentStored, Call
+		// The two events are: HeadUpdate, DataCommitmentStored
+		s.Require().Len(receipt.Logs, 2)
 
 		// Extract log 1's topics and data
 		s.Require().Len(receipt.Logs[1].Topics, 4)
@@ -152,30 +142,63 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithMockedSuccinct() {
 	})
 }
 
-func (s *WithdrawalsTestSuite) TestWithdrawalWithManualProcessSuccinct() {
-	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
+func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
+	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
 
-		// --------------------------------------- User withdraws on the Sequencer
+		withdrawerAddress := testsuite.ETH_ADDRESSES[0]
+		withdrawCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 100)
 
-		aliceWallet := testsuite.ADDRESSES[0]
+		// --------------------------------------- Fund Ethereum owned account that will withdraw
 
-		withdrawMsg := bridgemoduletypes.NewMsgWithdrawToEthereum(
-			aliceWallet,
-			"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-			sdk.NewInt64Coin(testsuite.BridgeDenom, 100),
-		)
-		withdrawalResponse, err := s.SubmitMsgs(withdrawMsg)
+		msgSend := &banktypes.MsgSend{
+			FromAddress: testsuite.ADDRESSES[0],
+			ToAddress:   testsuite.ETH_ADDRESSES[0],
+			Amount:      sdk.NewCoins(withdrawCoin),
+		}
+		res, err := s.SubmitMsgs(msgSend)
 		s.Require().NoError(err)
-		s.Require().Zero(withdrawalResponse.Code)
+		s.Require().Zero(res.Code)
+
+		// --------------------------------------- User withdraws on the Sequencer via Ethereum
+
+		sequencerHeightBefore, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
+
+		// Generate Authorize event wrapping a MsgWithdrawToEthereum.
+		msgWithdrawToEthereumBz := s.E2ETestSuite.GenerateMsgWithdrawToEthereumBz(
+			withdrawerAddress, withdrawerAddress, withdrawCoin,
+		)
+		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
+		txReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		s.Require().NoError(err)
 
 		// The LastResultsHash is generated at the block right after the withdrawal
-		lastResultsHashHeight := withdrawalResponse.Height + 1
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 20, txReceipt.BlockNumber.Uint64())
+		sequencerHeightAfter, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
+
+		// Get withdrawal event type
+		withdrawalEvent, err := sdk.TypedEventToEvent(&bridgemoduletypes.EventWithdrawToEthereumReported{})
+		s.Require().NoError(err)
+		withdrawalEventType := withdrawalEvent.Type
+
+		// Find the actual LastResultsHash height
+		var found bool
+		var lastResultsHashHeight int64
+		for i := sequencerHeightBefore; i <= sequencerHeightAfter; i++ {
+			_, found = s.SearchForEventInBlockResults(s.Ctx(), withdrawalEventType, int64(i))
+			if found {
+				lastResultsHashHeight = int64(i + 1)
+				break
+			}
+		}
+		s.Require().True(found)
 
 		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
 		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
 		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
 
-		startBlockString, targetBlockString, _, _, receipt := s.RunSuccinctXManualProcess()
+		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcess()
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
 		s.Require().NoError(err)
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
