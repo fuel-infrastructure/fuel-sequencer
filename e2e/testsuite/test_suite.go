@@ -90,9 +90,9 @@ var (
 
 	// ETH_ADDRESSES are the Ethereum addresses derived from the above MNEMONICS.
 	ETH_ADDRESSES = []string{
-		"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-		"0xe53e6e952cf156b9f58a2a82da5ea537102ba484",
-		"0x8fe6350f77cf9be08bbac2c8156caba4d47e756b",
+		"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+		"0xe53E6E952cf156b9f58A2A82da5ea537102Ba484",
+		"0x8fe6350F77CF9bE08bBaC2c8156CaBA4D47e756b",
 	}
 
 	// ETH_ADDRESS_SEQ are the addresses mapped from ETH_ADDRESSES on the Sequencer

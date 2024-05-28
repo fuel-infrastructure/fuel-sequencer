@@ -77,7 +77,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().Greater(ethHeight, uint64(1))
 
 		// Try generating some events via a transaction (RPC) - via deposit.
-		toAddress := testsuite.ADDRESSES[1]
+		toAddress := testsuite.ETH_ADDRESSES[1]
 		amount1 := big.NewInt(200)
 		amount2 := big.NewInt(300)
 		depositData := testsuite.PackDeposit(amount1, common.HexToAddress(toAddress), amount2)
