@@ -254,7 +254,9 @@ func ValidateInjectedEventTxMaxBytes(i interface{}) error {
 
 	// value cannot be less than MinimumInjectedEventTxMaxBytes, otherwise, we risk never injecting event txs in a block
 	if v < MinimumInjectedEventTxMaxBytes {
-		return ErrParamsInvalid.Wrapf("injected event tx max bytes cannot be less than 1kb: %d", v)
+		return ErrParamsInvalid.Wrapf(
+			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
 	}
 
 	return nil
