@@ -15,16 +15,16 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 )
 
-// RunFuelStreamXManualProcess runs the manual process for 1 proof generation.
-func (s *E2ETestSuite) RunFuelStreamXManualProcess() (
+// RunFuelStreamXProcess runs the FuelStreamX process for 1 proof generation.
+func (s *E2ETestSuite) RunFuelStreamXProcess() (
 	startBlock, targetBlock, headerHash, bridgeCommitment string, txReceipt *ethereumtypes.Receipt,
 ) {
-	s.T().Log("starting FuelStreamX manual process container...")
+	s.T().Log("starting fuelstreamx container...")
 	var err error
 	runOpts := dockertest.RunOptions{
-		Name:         "fuelstreamx-manual-process",
-		Repository:   fuelStreamXManualDockerImageRepo,
-		Tag:          fuelStreamXManualDockerImageTag,
+		Name:         "fuelstreamx",
+		Repository:   fuelStreamXDockerImageRepo,
+		Tag:          fuelStreamXDockerImageTag,
 		NetworkID:    s.dockerNetwork.Network.ID,
 		PortBindings: map[docker.Port][]docker.PortBinding{},
 		ExposedPorts: []string{},
@@ -38,7 +38,7 @@ func (s *E2ETestSuite) RunFuelStreamXManualProcess() (
 		},
 	}
 
-	s.fuelStreamXManualResource, err = s.dockerPool.RunWithOptions(
+	s.fuelStreamXResource, err = s.dockerPool.RunWithOptions(
 		&runOpts,
 		noRestart,
 	)
@@ -47,10 +47,10 @@ func (s *E2ETestSuite) RunFuelStreamXManualProcess() (
 	re1 := regexp.MustCompile(`\[[^]]*] updating header range starting (\d+), ending (\d+), header hash "([0-9a-fA-F]{64})", bridge commitment "([0-9a-fA-F]{64})"`)
 	re2 := regexp.MustCompile(`\[[^]]*] Proof relayed successfully! Transaction Hash: (0x[a-fA-F0-9]{64})`)
 
-	// Wait for the manual process to respond
+	// Wait for the FuelStreamX process to respond
 	s.Require().Eventually(
 		func() bool {
-			logs := s.logsByContainerID(s.fuelStreamXManualResource.Container.ID)
+			logs := s.logsByContainerID(s.fuelStreamXResource.Container.ID)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -91,14 +91,14 @@ func (s *E2ETestSuite) RunFuelStreamXManualProcess() (
 		},
 		1*time.Minute,
 		1*time.Second,
-		"FuelStreamX manual process failed to respond",
+		"FuelStreamX failed to respond",
 	)
 
-	s.T().Logf("FuelStreamX manual process request successful!")
+	s.T().Logf("FuelStreamX request successful!")
 
-	// We only want 1 proof from the manual process
-	s.T().Logf("stopping FuelStreamX manual process container...")
-	s.Require().NoError(s.dockerPool.Purge(s.fuelStreamXManualResource))
+	// We only want 1 proof from the FuelStreamX process
+	s.T().Logf("stopping FuelStreamX container...")
+	s.Require().NoError(s.dockerPool.Purge(s.fuelStreamXResource))
 
 	return
 }

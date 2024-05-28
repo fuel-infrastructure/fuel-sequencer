@@ -55,12 +55,12 @@ const (
 	ethereumDockerImageRepo = "fuel-rollup/ethereum"
 	ethereumDockerImageTag  = "latest"
 
-	fuelStreamXManualDockerImageRepo = "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
-	fuelStreamXManualDockerImageTag  = "latest"
-
 	ethereumBlockTimeMs              = 3000             // 3 seconds
 	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
 	blocksToWaitForGovProposalToPass = uint64(25)
+
+	fuelStreamXDockerImageRepo = "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
+	fuelStreamXDockerImageTag  = "latest"
 )
 
 var (
@@ -114,13 +114,8 @@ var (
 	TOKEN_CONTRACT = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 	// SEQUENCER_INTERFACE_CONTRACT is the address of the contract that has the batchAuthorize function.
 	SEQUENCER_INTERFACE_CONTRACT = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-
 	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
-	UPDATE_DELAY_BLOCKS = 25
-
-	// Circuits
-	NEXT_HEADER_FUNCTION_ID  = "0xbc40fbf4394cd00f78fae9763b0c2c71b21ea442c42fdadc5b720537240ebac1"
-	HEADER_RANGE_FUNCTION_ID = "0xa3c1274aadd82e4d12c8004c33fb244ca686dad4fcc8957fc5668588c11d9502"
+	UPDATE_DELAY_BLOCKS = 30
 
 	// Inflation params
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13")
@@ -144,14 +139,9 @@ type E2ETestSuite struct {
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
-	// Ethereum
-	ethResource *dockertest.Resource
-
-	// Sequencer
-	valResources []*dockertest.Resource
-
-	// FuelStreamX
-	fuelStreamXManualResource *dockertest.Resource
+	ethResource         *dockertest.Resource
+	valResources        []*dockertest.Resource
+	fuelStreamXResource *dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -235,9 +225,9 @@ func (s *E2ETestSuite) TearDownTest() {
 		s.Require().NoError(s.dockerPool.Purge(vc))
 	}
 
-	// FuelStreamX should have been purged earlier, but purge just in case
-	if s.fuelStreamXManualResource != nil {
-		_ = s.dockerPool.Purge(s.fuelStreamXManualResource)
+	// Operator and relayer should have been purged earlier, but purge just in case
+	if s.fuelStreamXResource != nil {
+		_ = s.dockerPool.Purge(s.fuelStreamXResource)
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
