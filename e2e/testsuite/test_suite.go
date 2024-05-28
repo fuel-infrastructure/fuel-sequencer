@@ -105,7 +105,7 @@ var (
 	// FUEL_STREAM_X_CONTRACT is the FuelStreamX contract that generates events, deployed on the Ethereum node.
 	FUEL_STREAM_X_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
-	UPDATE_DELAY_BLOCKS = 25
+	UPDATE_DELAY_BLOCKS = 30
 
 	// Inflation params
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13")
