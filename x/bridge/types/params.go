@@ -40,7 +40,7 @@ const (
 
 	// DefaultInjectedEventTxMaxBytes is the default max size in bytes for an injected event tx in a block. This is set
 	// to 20000000 assuming a max block size of 22020096 bytes, index tx size 103 bytes and supply delta tx size of 105.
-	// This needs to be revised if any of the values above change.
+	// The remaining bytes serve as a buffer. This default needs to be revised if any of the values above change.
 	DefaultInjectedEventTxMaxBytes = 20000000
 
 	// MinimumInjectedEventTxMaxBytes is the minimum value that InjectedEventTxMaxBytes can be set to. This is done to
