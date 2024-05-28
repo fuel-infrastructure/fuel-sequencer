@@ -92,9 +92,9 @@ func TestBridgeCommitmentInclusionProof(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println(fmt.Sprintf("proofNonce: %d", proofNonce))
-	fmt.Println(fmt.Sprintf("bridgeCommitmentLeaf: %s", bridgeCommitmentLeaf))
-	fmt.Println(fmt.Sprintf("bridgeCommitmentLeafProof: %s", bridgeCommitmentLeafProof))
-	fmt.Println(fmt.Sprintf("txResultMarshalled: %s", txResultMarshalled))
-	fmt.Println(fmt.Sprintf("txResultProof: %s", txResultProof))
+	fmt.Printf("proofNonce: %d\n", proofNonce)
+	fmt.Printf("bridgeCommitmentLeaf: %s\n", bridgeCommitmentLeaf)
+	fmt.Printf("bridgeCommitmentLeafProof: %s\n", bridgeCommitmentLeafProof)
+	fmt.Printf("txResultMarshalled: %s\n", txResultMarshalled)
+	fmt.Printf("txResultProof: %s\n", txResultProof)
 }

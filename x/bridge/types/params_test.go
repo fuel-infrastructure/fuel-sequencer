@@ -228,6 +228,42 @@ func TestValidateMaxEthBlockUpdateDelay(t *testing.T) {
 	}
 }
 
+func TestValidateInjectedEventTxMaxBytes(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{
+			"Valid InjectedEventTxMaxBytes - value greater than MinimumInjectedEventTxMaxBytes",
+			uint64(types.MinimumInjectedEventTxMaxBytes + 1),
+			false,
+		},
+		{
+			"Valid InjectedEventTxMaxBytes - value equal to MinimumInjectedEventTxMaxBytes",
+			uint64(types.MinimumInjectedEventTxMaxBytes),
+			false,
+		},
+		{
+			"Invalid InjectedEventTxMaxBytes - value less than MinimumInjectedEventTxMaxBytes",
+			uint64(types.MinimumInjectedEventTxMaxBytes - 1),
+			true,
+		},
+		{"Non-uint64 type", "not a uint64", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateInjectedEventTxMaxBytes(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
 	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
@@ -259,6 +295,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: false,
 		},
@@ -271,6 +308,8 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: true,
 		},
@@ -283,6 +322,8 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: true,
 		},
@@ -295,6 +336,8 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: true,
 		},
@@ -307,6 +350,8 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            0,
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: true,
 		},
@@ -319,6 +364,8 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
 				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: true,
 		},
@@ -331,6 +378,8 @@ func TestParams_Validate(t *testing.T) {
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
 				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
 			},
 			expectErr: true,
 		},
@@ -344,6 +393,21 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       time.Duration(-1),
+				InjectedEventTxMaxBytes:      10000000,
+			},
+			expectErr: true,
+		},
+		{
+			name: "InjectedEventTxMaxBytes too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             time.Time{},
+				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      uint64(types.MinimumInjectedEventTxMaxBytes - 1),
 			},
 			expectErr: true,
 		},
