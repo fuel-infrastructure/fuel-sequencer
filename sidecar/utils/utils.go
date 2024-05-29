@@ -20,50 +20,6 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 	var err error
 
 	switch vLog.Topics[0].Hex() {
-	case sidecartypes.MockDepositEventHashFn:
-		var sequencerEvent sidecartypes.DepositEvent
-
-		// Process the SendToSequencerEvent
-		var ethEvent sidecartypes.MockEthDepositEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.MockDepositEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Depositor is indexed, so extract it from Topics
-		sequencerEvent.Depositor = common.HexToAddress(vLog.Topics[1].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Recipient = ethEvent.To
-		sequencerEvent.Lockup = ethEvent.Duration.String()
-		sequencerEvent.Amount = ethEvent.Amount.String()
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.MockDepositEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.MockAuthorizeEventHashFn:
-		var sequencerEvent sidecartypes.AuthorizeEvent
-
-		// Process the Authorize Event
-		var ethEvent sidecartypes.MockEthAuthorizeEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.MockAuthorizeEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Sender is indexed, so extract it from Topics
-		sequencerEvent.Sender = common.HexToAddress(vLog.Topics[1].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Data = ethEvent.Message
-
-		// Fillup the generic event with fields
-		event.EventType = sidecartypes.MockAuthorizeEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
 	case sidecartypes.DepositEventHashFn:
 		var sequencerEvent sidecartypes.DepositEvent
 

@@ -35,7 +35,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 		sendCoins := sdk.NewCoins(sendCoin)
 		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(senderAddress, receiverAddress, sendCoins)
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Match the expected balances for each user depending on whether they are a sender or a receiver.
@@ -76,7 +76,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
 		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
 		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Confirm that the delegation went through and is as expected.
@@ -97,7 +97,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 			delegatorAddress, validator1Address, validator2Address, delegateCoin,
 		)
 		authorizeData = testsuite.PackAuthorize(msgBeginRedelegateBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Confirm that the redelegation to validator2 went through and was executed as expected.
@@ -126,7 +126,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 			delegatorAddress, validator2Address,
 		)
 		authorizeData = testsuite.PackAuthorize(msgWithdrawDelegatorRewardBz)
-		txReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		txReceipt, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Wait for the withdrawal to be processed.
@@ -144,7 +144,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		// Generate Authorize event wrapping a MsgUndelegate.
 		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBz(delegatorAddress, validator2Address, delegateCoin)
 		authorizeData = testsuite.PackAuthorize(msgUndelegateBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// To make sure that the execution of MsgUndelegate went through check that all funds where withdrawn.
@@ -170,7 +170,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawT
 			withdrawerAddress, withdrawerAddress, withdrawCoin,
 		)
 		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Make sure that the withdrawal was executed by checking the withdrawers' balance
@@ -204,7 +204,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 		// Generate Authorize event wrapping a MsgVote.
 		msgVoteBz := s.E2ETestSuite.GenerateMsgVoteBz(proposalId, voter, "", govtypesv1.VoteOption_VOTE_OPTION_YES)
 		authorizeData := testsuite.PackAuthorize(msgVoteBz)
-		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Make sure that the vote gets submitted by checking that the votes tally has increased from 0 to 1
@@ -218,7 +218,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataD
 		// Generate Authorize event wrapping invalid data.
 		invalidBz := []byte("some invalid data")
 		authorizeData := testsuite.PackAuthorize(invalidBz)
-		_, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		_, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Check that the Sequencer skips the event

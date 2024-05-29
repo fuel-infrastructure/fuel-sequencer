@@ -83,8 +83,8 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackAuthorizeMulti(msgSendBz)
-		_, err = s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		authorizeData := testsuite.PackAuthorizeMulti([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
+		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
 		s.Require().NoError(err)
 
 		// 1st event of 4 processed

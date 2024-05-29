@@ -84,20 +84,20 @@ func TestEvent_Validate(t *testing.T) {
 		{
 			name: "Invalid event - DepositEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType:       types.MockDepositEventName,
+				EventType:       types.DepositEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockDepositEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.DepositEventName),
 		},
 		{
 			name: "Invalid event - AuthorizeEvent cannot be unmarshalled",
 			event: &types.Event{
-				EventType:       types.MockAuthorizeEventName,
+				EventType:       types.AuthorizeEventName,
 				Data:            []byte("invalid-data"),
 				ContractAddress: testtypes.TestEthereumProxyContractAddress,
 			},
-			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.MockAuthorizeEventName),
+			expErrMsg: fmt.Sprintf("could not unmarshal to %s:", types.AuthorizeEventName),
 		},
 	}
 
