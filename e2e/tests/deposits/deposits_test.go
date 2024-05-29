@@ -17,7 +17,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		ownedReceiverAddress := senderAddress                      // Deposit receiver; owned by the sender
+		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Seq addr corresponding to ownedReceiverAddress
 
 		// --------------------------------------- Account owned by sender
 
@@ -31,7 +32,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		amount := big.NewInt(200)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(amount, common.HexToAddress(ownedReceiverAddressSeq), duration)
+		depositData := testsuite.PackDeposit(amount, common.HexToAddress(ownedReceiverAddress), duration)
 		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
@@ -87,7 +88,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		ownedReceiverAddress := senderAddress                      // Deposit receiver; owned by the sender
+		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Seq addr corresponding to ownedReceiverAddress
 
 		// --------------------------------------- Account owned by sender
 
@@ -111,7 +113,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		sendAmount := big.NewInt(200)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(sendAmount, common.HexToAddress(ownedReceiverAddressSeq), duration)
+		depositData := testsuite.PackDeposit(sendAmount, common.HexToAddress(ownedReceiverAddress), duration)
 		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
@@ -179,7 +181,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		ownedReceiverAddress := senderAddress                      // Deposit receiver; owned by the sender
+		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Seq addr corresponding to ownedReceiverAddress
 
 		// --------------------------------------- Account owned by sender
 
@@ -212,7 +215,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		sendAmount := big.NewInt(200)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(sendAmount, common.HexToAddress(ownedReceiverAddressSeq), duration)
+		depositData := testsuite.PackDeposit(sendAmount, common.HexToAddress(ownedReceiverAddress), duration)
 		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
