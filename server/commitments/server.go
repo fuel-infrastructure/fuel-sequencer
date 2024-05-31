@@ -15,6 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
+// NOTE: the server is currently queried as follows:
+// http://localhost:1317/commitments/1/1000
+
 type DataCommitmentsServer struct {
 	clientCtx client.Context
 }
