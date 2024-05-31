@@ -1,0 +1,35 @@
+syntax = "proto3";
+package fuelsequencer.bridge;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+message SupplyDeltaInfo {
+
+  // last_supply is the last supply recorded for the bridge token.
+  string last_supply = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // delta is the amount of bridge tokens that should be minted (positive) or
+  // burned (negative) on Ethereum.
+  string delta = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // offset is used to account for changes in supply that we do not want to post
+  // to Ethereum, including deposits and withdrawals, because Ethereum will know
+  // about these anyways. Note that offset can be positive (to account for
+  // unreported burn) or negative (to account for unreported mint)
+  string offset = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}

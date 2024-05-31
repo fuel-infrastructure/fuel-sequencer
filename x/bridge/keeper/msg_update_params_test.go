@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -11,8 +12,17 @@ import (
 
 func TestMsgUpdateParams(t *testing.T) {
 	k, ms, ctx := setupMsgServer(t)
-	params := types.DefaultParams()
-	require.NoError(t, k.SetParams(ctx, params))
+	defaultParams := types.DefaultParams()
+	nonDefaultParams := types.NewParams(
+		"ufuel",
+		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
+		[]string{"/cosmos.bank.v1beta1.MsgSend"},
+		100,
+		[]string{},
+		2*time.Hour,
+		6144,
+	)
+	require.NoError(t, k.SetParams(ctx, defaultParams))
 	wctx := sdk.UnwrapSDKContext(ctx)
 
 	// default params
@@ -26,7 +36,7 @@ func TestMsgUpdateParams(t *testing.T) {
 			name: "invalid authority",
 			input: &types.MsgUpdateParams{
 				Authority: "invalid",
-				Params:    params,
+				Params:    defaultParams,
 			},
 			expErr:    true,
 			expErrMsg: "invalid authority",
@@ -40,10 +50,18 @@ func TestMsgUpdateParams(t *testing.T) {
 			expErr: false,
 		},
 		{
-			name: "all good",
+			name: "all good with default params",
 			input: &types.MsgUpdateParams{
 				Authority: k.GetAuthority(),
-				Params:    params,
+				Params:    defaultParams,
+			},
+			expErr: false,
+		},
+		{
+			name: "all good with non default params",
+			input: &types.MsgUpdateParams{
+				Authority: k.GetAuthority(),
+				Params:    nonDefaultParams,
 			},
 			expErr: false,
 		},

@@ -8,15 +8,20 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
+	_ "google.golang.org/protobuf/types/known/durationpb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -26,6 +31,39 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
+	// bridge_denom is the assumed denom for the bridged token, used when minting
+	// upon deposits, burning when withdrawing, and tracking changes in its
+	// supply that will be reported to Ethereum, amongst other scenarios.
+	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
+	// ethereum_proxy_contract_address is the contract address we expect to
+	// receive deposit and authorize messages from.
+	EthereumProxyContractAddress string `protobuf:"bytes,2,opt,name=ethereum_proxy_contract_address,json=ethereumProxyContractAddress,proto3" json:"ethereum_proxy_contract_address,omitempty"`
+	// authorize_messages_allowed is a whitelist for authorize messages that we
+	// can receive and process.
+	AuthorizeMessagesAllowed []string `protobuf:"bytes,3,rep,name=authorize_messages_allowed,json=authorizeMessagesAllowed,proto3" json:"authorize_messages_allowed,omitempty"`
+	// supply_delta_period is the frequency in block at which we report supply
+	// delta info to Ethereum.
+	SupplyDeltaPeriod uint64 `protobuf:"varint,4,opt,name=supply_delta_period,json=supplyDeltaPeriod,proto3" json:"supply_delta_period,omitempty"`
+	// vesting_start_time is the common vesting starting time for vesting accounts
+	// that will be created through deposits from Ethereum.
+	VestingStartTime time.Time `protobuf:"bytes,5,opt,name=vesting_start_time,json=vestingStartTime,proto3,stdtime" json:"vesting_start_time"`
+	// additional_blocked_addresses is a list of Cosmos SDK-based addresses that
+	// are explicitly disallowed from being controlled by authorize messages
+	// within the Sequencer system. This can include addresses of module accounts,
+	// validator operators, or any other addresses deemed necessary to protect
+	// from unauthorized control actions.
+	AdditionalBlockedAddresses []string `protobuf:"bytes,6,rep,name=additional_blocked_addresses,json=additionalBlockedAddresses,proto3" json:"additional_blocked_addresses,omitempty"`
+	// max_eth_block_update_delay is the maximum amount of time that the Sequencer
+	// allows validators to not sync up with Ethereum. Once
+	// max_eth_block_update_delay is exceeded, the Sequencer's block production
+	// will halt until validators sync up with next Ethereum block.
+	MaxEthBlockUpdateDelay time.Duration `protobuf:"bytes,7,opt,name=max_eth_block_update_delay,json=maxEthBlockUpdateDelay,proto3,stdduration" json:"max_eth_block_update_delay"`
+	// injected_event_tx_max_bytes is the maximum amount of block space that an
+	// injected event tx can take in terms of bytes. An Authorize event gets
+	// skipped and never included in a block if it can't be converted into a tx
+	// that can respect this limit. On the other hand, if a Deposit event cannot
+	// be converted into a Tx that can respect this limit, the chain halts.
+	InjectedEventTxMaxBytes uint64 `protobuf:"varint,8,opt,name=injected_event_tx_max_bytes,json=injectedEventTxMaxBytes,proto3" json:"injected_event_tx_max_bytes,omitempty"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -61,6 +99,62 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+func (m *Params) GetBridgeDenom() string {
+	if m != nil {
+		return m.BridgeDenom
+	}
+	return ""
+}
+
+func (m *Params) GetEthereumProxyContractAddress() string {
+	if m != nil {
+		return m.EthereumProxyContractAddress
+	}
+	return ""
+}
+
+func (m *Params) GetAuthorizeMessagesAllowed() []string {
+	if m != nil {
+		return m.AuthorizeMessagesAllowed
+	}
+	return nil
+}
+
+func (m *Params) GetSupplyDeltaPeriod() uint64 {
+	if m != nil {
+		return m.SupplyDeltaPeriod
+	}
+	return 0
+}
+
+func (m *Params) GetVestingStartTime() time.Time {
+	if m != nil {
+		return m.VestingStartTime
+	}
+	return time.Time{}
+}
+
+func (m *Params) GetAdditionalBlockedAddresses() []string {
+	if m != nil {
+		return m.AdditionalBlockedAddresses
+	}
+	return nil
+}
+
+func (m *Params) GetMaxEthBlockUpdateDelay() time.Duration {
+	if m != nil {
+		return m.MaxEthBlockUpdateDelay
+	}
+	return 0
+}
+
+func (m *Params) GetInjectedEventTxMaxBytes() uint64 {
+	if m != nil {
+		return m.InjectedEventTxMaxBytes
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*Params)(nil), "fuelsequencer.bridge.Params")
 }
@@ -68,19 +162,41 @@ func init() {
 func init() { proto.RegisterFile("fuelsequencer/bridge/params.proto", fileDescriptor_99c31778739894e8) }
 
 var fileDescriptor_99c31778739894e8 = []byte{
-	// 188 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4c, 0x2b, 0x4d, 0xcd,
-	0x29, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0xd2, 0x4f, 0x2a, 0xca, 0x4c, 0x49, 0x4f,
-	0xd5, 0x2f, 0x48, 0x2c, 0x4a, 0xcc, 0x2d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x41,
-	0x51, 0xa2, 0x07, 0x51, 0x22, 0x25, 0x98, 0x98, 0x9b, 0x99, 0x97, 0xaf, 0x0f, 0x26, 0x21, 0x0a,
-	0xa5, 0x44, 0xd2, 0xf3, 0xd3, 0xf3, 0xc1, 0x4c, 0x7d, 0x10, 0x0b, 0x22, 0xaa, 0x64, 0xc0, 0xc5,
-	0x16, 0x00, 0x36, 0xce, 0x4a, 0xed, 0xc5, 0x02, 0x79, 0xc6, 0xae, 0xe7, 0x1b, 0xb4, 0x64, 0x51,
-	0x2d, 0xad, 0x80, 0x59, 0x0b, 0x51, 0xe7, 0x14, 0x76, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72,
-	0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7,
-	0x72, 0x0c, 0x51, 0x36, 0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x20,
-	0x33, 0x74, 0x33, 0xf3, 0xd2, 0x8a, 0x12, 0x8b, 0x4b, 0x8a, 0x4a, 0x93, 0x4b, 0x4a, 0x8b, 0x52,
-	0x21, 0x62, 0x58, 0x0c, 0x2e, 0xa9, 0x2c, 0x48, 0x2d, 0x4e, 0x62, 0x03, 0x3b, 0xc8, 0x18, 0x10,
-	0x00, 0x00, 0xff, 0xff, 0x18, 0xd6, 0x1f, 0x32, 0xf4, 0x00, 0x00, 0x00,
+	// 539 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0x3f, 0x6f, 0xd3, 0x40,
+	0x18, 0xc6, 0x63, 0x5a, 0x4a, 0xeb, 0x32, 0x50, 0x53, 0x81, 0x31, 0xc5, 0x49, 0x19, 0x50, 0x84,
+	0x84, 0x2d, 0xc1, 0x86, 0x32, 0x90, 0x90, 0x8c, 0x95, 0xa2, 0x50, 0x18, 0x58, 0x4e, 0x67, 0xdf,
+	0x1b, 0xc7, 0x60, 0xfb, 0xcc, 0xdd, 0xeb, 0xe2, 0xf0, 0x11, 0x98, 0x3a, 0x32, 0xf2, 0x11, 0xf8,
+	0x02, 0xec, 0x1d, 0x3b, 0x32, 0x01, 0x4a, 0x06, 0xf8, 0x18, 0xe8, 0xee, 0x6c, 0x50, 0x81, 0xc5,
+	0x3a, 0xbf, 0xcf, 0xef, 0xfd, 0x73, 0xcf, 0xbd, 0xf6, 0xe1, 0xbc, 0x82, 0x4c, 0xc2, 0x9b, 0x0a,
+	0x8a, 0x18, 0x44, 0x18, 0x89, 0x94, 0x25, 0x10, 0x96, 0x54, 0xd0, 0x5c, 0x06, 0xa5, 0xe0, 0xc8,
+	0x9d, 0xfd, 0x0b, 0x48, 0x60, 0x10, 0x6f, 0x8f, 0xe6, 0x69, 0xc1, 0x43, 0xfd, 0x35, 0xa0, 0xb7,
+	0x9f, 0xf0, 0x84, 0xeb, 0x63, 0xa8, 0x4e, 0x4d, 0xb4, 0x9b, 0x70, 0x9e, 0x64, 0x10, 0xea, 0xbf,
+	0xa8, 0x9a, 0x87, 0x98, 0xe6, 0x20, 0x91, 0xe6, 0x65, 0x03, 0xf8, 0x7f, 0x03, 0xac, 0x12, 0x14,
+	0x53, 0x5e, 0x18, 0xfd, 0xee, 0xe7, 0x4d, 0x7b, 0x6b, 0xaa, 0x07, 0x72, 0x0e, 0xed, 0xab, 0xa6,
+	0x3d, 0x61, 0x50, 0xf0, 0xdc, 0xb5, 0x7a, 0x56, 0x7f, 0x67, 0xb6, 0x6b, 0x62, 0x63, 0x15, 0x72,
+	0x26, 0x76, 0x17, 0x70, 0x01, 0x02, 0xaa, 0x9c, 0x94, 0x82, 0xd7, 0x4b, 0x12, 0xf3, 0x02, 0x05,
+	0x8d, 0x91, 0x50, 0xc6, 0x04, 0x48, 0xe9, 0x5e, 0xd2, 0x59, 0x07, 0x2d, 0x36, 0x55, 0xd4, 0xd3,
+	0x06, 0x1a, 0x1a, 0xc6, 0x19, 0xd8, 0x1e, 0xad, 0x70, 0xc1, 0x45, 0xfa, 0x0e, 0x48, 0x0e, 0x52,
+	0xd2, 0x04, 0x24, 0xa1, 0x59, 0xc6, 0xdf, 0x02, 0x73, 0x37, 0x7a, 0x1b, 0xfd, 0x9d, 0x99, 0xfb,
+	0x9b, 0x38, 0x6a, 0x80, 0xa1, 0xd1, 0x9d, 0xc0, 0xbe, 0x2e, 0xab, 0xb2, 0xcc, 0x96, 0x84, 0x41,
+	0x86, 0x94, 0x94, 0x20, 0x52, 0xce, 0xdc, 0xcd, 0x9e, 0xd5, 0xdf, 0x9c, 0xed, 0x19, 0x69, 0xac,
+	0x94, 0xa9, 0x16, 0x9c, 0x99, 0xed, 0x9c, 0x80, 0xc4, 0xb4, 0x48, 0x88, 0x44, 0x2a, 0x90, 0x28,
+	0x8f, 0xdc, 0xcb, 0x3d, 0xab, 0xbf, 0xfb, 0xd0, 0x0b, 0x8c, 0x3f, 0x41, 0xeb, 0x4f, 0x70, 0xdc,
+	0x1a, 0x38, 0xda, 0x3e, 0xfb, 0xda, 0xed, 0x9c, 0x7e, 0xeb, 0x5a, 0xb3, 0x6b, 0x4d, 0xfe, 0x33,
+	0x95, 0xae, 0x00, 0xe7, 0x89, 0x7d, 0x40, 0x19, 0x4b, 0x95, 0x91, 0x34, 0x23, 0x51, 0xc6, 0xe3,
+	0xd7, 0xc0, 0x5a, 0x0f, 0x40, 0xba, 0x5b, 0xfa, 0x0e, 0xde, 0x1f, 0x66, 0x64, 0x90, 0x61, 0x4b,
+	0x38, 0xc4, 0xf6, 0x72, 0x5a, 0x13, 0xc0, 0x85, 0x49, 0x27, 0x55, 0xc9, 0x28, 0x2a, 0xef, 0x33,
+	0xba, 0x74, 0xaf, 0xe8, 0xe9, 0x6e, 0xfd, 0x33, 0xdd, 0xb8, 0x79, 0x3d, 0x33, 0xdc, 0x07, 0x35,
+	0xdc, 0x8d, 0x9c, 0xd6, 0x13, 0x5c, 0xe8, 0x06, 0xcf, 0x75, 0x8d, 0xb1, 0x2a, 0xe1, 0x0c, 0xec,
+	0xdb, 0x69, 0xf1, 0x0a, 0x62, 0x04, 0x46, 0xe0, 0x04, 0x0a, 0x24, 0x58, 0x13, 0xd5, 0x32, 0x5a,
+	0x22, 0x48, 0x77, 0x5b, 0xdb, 0x75, 0xb3, 0x45, 0x26, 0x8a, 0x38, 0xae, 0x8f, 0x68, 0x3d, 0x52,
+	0xf2, 0xe3, 0x7b, 0x3f, 0x3f, 0x76, 0xad, 0xf7, 0x3f, 0x3e, 0xdd, 0xbf, 0x73, 0x71, 0x87, 0xeb,
+	0x76, 0x8b, 0xcd, 0xd2, 0x8c, 0x5e, 0x9c, 0xad, 0x7c, 0xeb, 0x7c, 0xe5, 0x5b, 0xdf, 0x57, 0xbe,
+	0x75, 0xba, 0xf6, 0x3b, 0xe7, 0x6b, 0xbf, 0xf3, 0x65, 0xed, 0x77, 0x5e, 0x0e, 0x92, 0x14, 0x17,
+	0x55, 0x14, 0xc4, 0x3c, 0x0f, 0x55, 0x8d, 0x07, 0x69, 0x31, 0x17, 0x54, 0xa2, 0xa8, 0x62, 0xac,
+	0x04, 0x98, 0xd8, 0x7f, 0x0a, 0xe3, 0xb2, 0x04, 0x19, 0x6d, 0xe9, 0x2b, 0x3f, 0xfa, 0x15, 0x00,
+	0x00, 0xff, 0xff, 0xea, 0xe7, 0x03, 0x59, 0x43, 0x03, 0x00, 0x00,
 }
 
 func (this *Params) Equal(that interface{}) bool {
@@ -100,6 +216,40 @@ func (this *Params) Equal(that interface{}) bool {
 	if that1 == nil {
 		return this == nil
 	} else if this == nil {
+		return false
+	}
+	if this.BridgeDenom != that1.BridgeDenom {
+		return false
+	}
+	if this.EthereumProxyContractAddress != that1.EthereumProxyContractAddress {
+		return false
+	}
+	if len(this.AuthorizeMessagesAllowed) != len(that1.AuthorizeMessagesAllowed) {
+		return false
+	}
+	for i := range this.AuthorizeMessagesAllowed {
+		if this.AuthorizeMessagesAllowed[i] != that1.AuthorizeMessagesAllowed[i] {
+			return false
+		}
+	}
+	if this.SupplyDeltaPeriod != that1.SupplyDeltaPeriod {
+		return false
+	}
+	if !this.VestingStartTime.Equal(that1.VestingStartTime) {
+		return false
+	}
+	if len(this.AdditionalBlockedAddresses) != len(that1.AdditionalBlockedAddresses) {
+		return false
+	}
+	for i := range this.AdditionalBlockedAddresses {
+		if this.AdditionalBlockedAddresses[i] != that1.AdditionalBlockedAddresses[i] {
+			return false
+		}
+	}
+	if this.MaxEthBlockUpdateDelay != that1.MaxEthBlockUpdateDelay {
+		return false
+	}
+	if this.InjectedEventTxMaxBytes != that1.InjectedEventTxMaxBytes {
 		return false
 	}
 	return true
@@ -124,6 +274,64 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.InjectedEventTxMaxBytes != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.InjectedEventTxMaxBytes))
+		i--
+		dAtA[i] = 0x40
+	}
+	n1, err1 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.MaxEthBlockUpdateDelay, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.MaxEthBlockUpdateDelay):])
+	if err1 != nil {
+		return 0, err1
+	}
+	i -= n1
+	i = encodeVarintParams(dAtA, i, uint64(n1))
+	i--
+	dAtA[i] = 0x3a
+	if len(m.AdditionalBlockedAddresses) > 0 {
+		for iNdEx := len(m.AdditionalBlockedAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.AdditionalBlockedAddresses[iNdEx])
+			copy(dAtA[i:], m.AdditionalBlockedAddresses[iNdEx])
+			i = encodeVarintParams(dAtA, i, uint64(len(m.AdditionalBlockedAddresses[iNdEx])))
+			i--
+			dAtA[i] = 0x32
+		}
+	}
+	n2, err2 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.VestingStartTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.VestingStartTime):])
+	if err2 != nil {
+		return 0, err2
+	}
+	i -= n2
+	i = encodeVarintParams(dAtA, i, uint64(n2))
+	i--
+	dAtA[i] = 0x2a
+	if m.SupplyDeltaPeriod != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.SupplyDeltaPeriod))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.AuthorizeMessagesAllowed) > 0 {
+		for iNdEx := len(m.AuthorizeMessagesAllowed) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.AuthorizeMessagesAllowed[iNdEx])
+			copy(dAtA[i:], m.AuthorizeMessagesAllowed[iNdEx])
+			i = encodeVarintParams(dAtA, i, uint64(len(m.AuthorizeMessagesAllowed[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.EthereumProxyContractAddress) > 0 {
+		i -= len(m.EthereumProxyContractAddress)
+		copy(dAtA[i:], m.EthereumProxyContractAddress)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.EthereumProxyContractAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.BridgeDenom) > 0 {
+		i -= len(m.BridgeDenom)
+		copy(dAtA[i:], m.BridgeDenom)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.BridgeDenom)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -144,6 +352,36 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.BridgeDenom)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.EthereumProxyContractAddress)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	if len(m.AuthorizeMessagesAllowed) > 0 {
+		for _, s := range m.AuthorizeMessagesAllowed {
+			l = len(s)
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	if m.SupplyDeltaPeriod != 0 {
+		n += 1 + sovParams(uint64(m.SupplyDeltaPeriod))
+	}
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.VestingStartTime)
+	n += 1 + l + sovParams(uint64(l))
+	if len(m.AdditionalBlockedAddresses) > 0 {
+		for _, s := range m.AdditionalBlockedAddresses {
+			l = len(s)
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.MaxEthBlockUpdateDelay)
+	n += 1 + l + sovParams(uint64(l))
+	if m.InjectedEventTxMaxBytes != 0 {
+		n += 1 + sovParams(uint64(m.InjectedEventTxMaxBytes))
+	}
 	return n
 }
 
@@ -182,6 +420,238 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgeDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BridgeDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EthereumProxyContractAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EthereumProxyContractAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AuthorizeMessagesAllowed", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AuthorizeMessagesAllowed = append(m.AuthorizeMessagesAllowed, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaPeriod", wireType)
+			}
+			m.SupplyDeltaPeriod = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SupplyDeltaPeriod |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VestingStartTime", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.VestingStartTime, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AdditionalBlockedAddresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AdditionalBlockedAddresses = append(m.AdditionalBlockedAddresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxEthBlockUpdateDelay", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.MaxEthBlockUpdateDelay, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InjectedEventTxMaxBytes", wireType)
+			}
+			m.InjectedEventTxMaxBytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.InjectedEventTxMaxBytes |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipParams(dAtA[iNdEx:])

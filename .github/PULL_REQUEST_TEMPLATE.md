@@ -10,7 +10,7 @@ PR:
 
 - [ ] Use "Draft:" until ready for review
 - [ ] PR directed at `main` branch
-- [ ] Pull the latest changes from `main` before requesting review
+- [ ] Pull latest changes from `main`
 - [ ] Re-reviewed `Files changed`
 
 State and params:
@@ -22,14 +22,27 @@ State and params:
 Messages:
 
 - [ ] Register new messages in `codec.go`
+- [ ] Added new messages to `handlers_test.go`
 
-API:
+Queries:
 
-- [ ] Run `ignite chain build` to ensure `api/` folder is updated.
+- [ ] Added new queries to `handlers_test.go`
 
 Testing and docs:
 
-- [ ] Wrote or updated tests
-- [ ] Wrote or updated docs
-- [ ] Ran linter using `make lint`
-- [ ] Ran chain using `make run`
+- [ ] `make proto-routine` for formatting and APIs.
+- [ ] `make lint` to ensure linting rules satisfied.
+- [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
+- [ ] Run E2E tests:
+   1. Double-check `e2e/test-contracts/.env`
+   2. `make build-all-docker-images test-e2e`
+   3. `make clean` once you're done.
+- [ ] Run a local E2E setup to ensure the chain runs:
+   1. Double-check `e2e/test-contracts/.env`
+   2. `make build-eth-docker-image` to build the latest Ethereum image.
+   3. Terminal 1: `make install run-eth-docker-container run-sequencer`
+   4. Terminal 2: `make run-sidecar`
+   5. Terminal 3:
+      - `(cd e2e/test-contracts && export $(cat .env | xargs) && make deploy-contract)`
+      - `(cd e2e/test-contracts && export $(cat .env | xargs) && make call-contract)`
+   6. `make clean` once you're done.

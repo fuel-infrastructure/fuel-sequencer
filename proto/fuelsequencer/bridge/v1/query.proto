@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package fuelsequencer.bridge.v1;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "fuelsequencer/bridge/params.proto";
+import "fuelsequencer/bridge/supply_delta_info.proto";
+import "fuelsequencer/bridge/index.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+// Query defines the gRPC querier service.
+service Query {
+
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/fuelsequencer/bridge/v1/params";
+  }
+
+  // Queries the LastEthereumNonce.
+  rpc LastEthereumNonce(QueryGetLastEthereumNonceRequest)
+      returns (QueryGetLastEthereumNonceResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/last_ethereum_nonce";
+  }
+
+  // Queries the LastEthereumBlockSynced.
+  rpc LastEthereumBlockSynced(QueryGetLastEthereumBlockSyncedRequest)
+      returns (QueryGetLastEthereumBlockSyncedResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "v1/last_ethereum_block_synced";
+  }
+
+  // Queries the EthereumEventIndexOffset.
+  rpc EthereumEventIndexOffset(QueryGetEthereumEventIndexOffsetRequest)
+      returns (QueryGetEthereumEventIndexOffsetResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "v1/ethereum_event_index_offset";
+  }
+
+  // Queries the SupplyDeltaInfo.
+  rpc SupplyDeltaInfo(QueryGetSupplyDeltaInfoRequest)
+      returns (QueryGetSupplyDeltaInfoResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/supply_delta_info";
+  }
+
+  // Queries a list of SequencerAddressFromEthereumAddress items.
+  rpc SequencerAddressFromEthereumAddress(
+      QuerySequencerAddressFromEthereumAddressRequest)
+      returns (QuerySequencerAddressFromEthereumAddressResponse) {
+    option (google.api.http).get =
+        "/fuel-infrastructure/fuel-sequencer/bridge/v1/"
+        "sequencer_address_from_ethereum_address/{ethereum_address}";
+  }
+
+  // Queries the LastEthBlockUpdateTime.
+  rpc LastEthBlockUpdateTime(QueryGetLastEthBlockUpdateTimeRequest)
+      returns (QueryGetLastEthBlockUpdateTimeResponse) {
+    option (google.api.http).get = "/fuel-infrastructure/fuel-sequencer/bridge/"
+                                   "v1/last_eth_block_update_time";
+  }
+}
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+
+  // params holds all the parameters of this module.
+  Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+message QueryGetSupplyDeltaInfoRequest {}
+
+message QueryGetSupplyDeltaInfoResponse {
+  SupplyDeltaInfo SupplyDeltaInfo = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryGetLastEthereumNonceRequest {}
+
+message QueryGetLastEthereumNonceResponse { string nonce = 1; }
+
+message QueryGetLastEthereumBlockSyncedRequest {}
+
+message QueryGetLastEthereumBlockSyncedResponse { uint64 block = 1; }
+
+message QueryGetEthereumEventIndexOffsetRequest {}
+
+message QueryGetEthereumEventIndexOffsetResponse { uint64 offset = 1; }
+
+message QuerySequencerAddressFromEthereumAddressRequest {
+  string ethereum_address = 1;
+}
+
+message QuerySequencerAddressFromEthereumAddressResponse {
+  string sequencer_address = 1;
+}
+
+message QueryGetLastEthBlockUpdateTimeRequest {}
+
+message QueryGetLastEthBlockUpdateTimeResponse {
+  google.protobuf.Timestamp last_eth_block_update_time = 1
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+}

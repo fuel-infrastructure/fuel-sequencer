@@ -89,7 +89,7 @@ var (
 		authz.ModuleName,
 		genutiltypes.ModuleName,
 		// chain modules
-		bridgemoduletypes.ModuleName,
+		bridgemoduletypes.ModuleName, // Must be after modules that can change supply, since it tracks supply changes.
 		sequencingmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
@@ -118,7 +118,8 @@ var (
 		{Account: minttypes.ModuleName, Permissions: []string{authtypes.Minter}},
 		{Account: stakingtypes.BondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
 		{Account: stakingtypes.NotBondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
-		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner}},
+		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner, authtypes.Minter}},
+		{Account: bridgemoduletypes.ModuleName, Permissions: []string{authtypes.Burner, authtypes.Minter}},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 
@@ -129,6 +130,7 @@ var (
 		minttypes.ModuleName,
 		stakingtypes.BondedPoolName,
 		stakingtypes.NotBondedPoolName,
+		bridgemoduletypes.ModuleName,
 		// We allow the following module accounts to receive funds:
 		// govtypes.ModuleName
 	}

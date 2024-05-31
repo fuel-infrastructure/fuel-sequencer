@@ -14,14 +14,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -30,7 +34,7 @@ import (
 
 // NewRootCmd creates a new root command for fuelsequencerd. It is called once in the main function.
 func NewRootCmd() *cobra.Command {
-	initSDKConfig()
+	app.InitSDKConfig()
 
 	var (
 		txConfigOpts       tx.ConfigOptions
@@ -40,9 +44,27 @@ func NewRootCmd() *cobra.Command {
 	)
 
 	if err := depinject.Inject(
-		depinject.Configs(app.AppConfig(),
+		depinject.Configs(
+			app.AppConfig(),
 			depinject.Supply(
 				log.NewNopLogger(),
+				servertypes.AppOptions(AppOptionsMap{
+					flags.FlagHome: app.DefaultNodeHome, // otherwise x/upgrade creates a data/ folder at the CWD
+				}),
+				func() address.Codec {
+					return appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(
+						app.AccountAddressPrefix))
+				},
+				func() runtime.ValidatorAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valoper"),
+					)
+				},
+				func() runtime.ConsensusAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valcons"),
+					)
+				},
 			),
 			depinject.Provide(
 				ProvideClientContext,
@@ -98,8 +120,8 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
-			customCMTConfig := initCometBFTConfig()
+			customAppTemplate, customAppConfig := app.InitAppConfig()
+			customCMTConfig := app.InitCometBFTConfig()
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
@@ -154,7 +176,10 @@ func ProvideClientContext(
 		WithViper(app.Name) // env variable prefix
 
 	// Read the config again to overwrite the default values with the values from the config file
-	clientCtx, _ = config.ReadFromClientConfig(clientCtx)
+	clientCtx, err := config.ReadFromClientConfig(clientCtx)
+	if err != nil {
+		panic(err)
+	}
 
 	return clientCtx
 }

@@ -4,25 +4,37 @@ package bridge
 import (
 	_ "cosmossdk.io/api/amino"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
 )
 
 var (
-	md_GenesisState        protoreflect.MessageDescriptor
-	fd_GenesisState_params protoreflect.FieldDescriptor
+	md_GenesisState                             protoreflect.MessageDescriptor
+	fd_GenesisState_params                      protoreflect.FieldDescriptor
+	fd_GenesisState_supply_delta_info           protoreflect.FieldDescriptor
+	fd_GenesisState_last_ethereum_nonce         protoreflect.FieldDescriptor
+	fd_GenesisState_last_ethereum_block_synced  protoreflect.FieldDescriptor
+	fd_GenesisState_ethereum_event_index_offset protoreflect.FieldDescriptor
+	fd_GenesisState_last_eth_block_update_time  protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_genesis_proto_init()
 	md_GenesisState = File_fuelsequencer_bridge_genesis_proto.Messages().ByName("GenesisState")
 	fd_GenesisState_params = md_GenesisState.Fields().ByName("params")
+	fd_GenesisState_supply_delta_info = md_GenesisState.Fields().ByName("supply_delta_info")
+	fd_GenesisState_last_ethereum_nonce = md_GenesisState.Fields().ByName("last_ethereum_nonce")
+	fd_GenesisState_last_ethereum_block_synced = md_GenesisState.Fields().ByName("last_ethereum_block_synced")
+	fd_GenesisState_ethereum_event_index_offset = md_GenesisState.Fields().ByName("ethereum_event_index_offset")
+	fd_GenesisState_last_eth_block_update_time = md_GenesisState.Fields().ByName("last_eth_block_update_time")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -96,6 +108,36 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
+	if x.SupplyDeltaInfo != nil {
+		value := protoreflect.ValueOfMessage(x.SupplyDeltaInfo.ProtoReflect())
+		if !f(fd_GenesisState_supply_delta_info, value) {
+			return
+		}
+	}
+	if len(x.LastEthereumNonce) != 0 {
+		value := protoreflect.ValueOfBytes(x.LastEthereumNonce)
+		if !f(fd_GenesisState_last_ethereum_nonce, value) {
+			return
+		}
+	}
+	if x.LastEthereumBlockSynced != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.LastEthereumBlockSynced)
+		if !f(fd_GenesisState_last_ethereum_block_synced, value) {
+			return
+		}
+	}
+	if x.EthereumEventIndexOffset != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.EthereumEventIndexOffset)
+		if !f(fd_GenesisState_ethereum_event_index_offset, value) {
+			return
+		}
+	}
+	if x.LastEthBlockUpdateTime != nil {
+		value := protoreflect.ValueOfMessage(x.LastEthBlockUpdateTime.ProtoReflect())
+		if !f(fd_GenesisState_last_eth_block_update_time, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -113,6 +155,16 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		return x.Params != nil
+	case "fuelsequencer.bridge.GenesisState.supply_delta_info":
+		return x.SupplyDeltaInfo != nil
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
+		return len(x.LastEthereumNonce) != 0
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
+		return x.LastEthereumBlockSynced != uint64(0)
+	case "fuelsequencer.bridge.GenesisState.ethereum_event_index_offset":
+		return x.EthereumEventIndexOffset != uint64(0)
+	case "fuelsequencer.bridge.GenesisState.last_eth_block_update_time":
+		return x.LastEthBlockUpdateTime != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -131,6 +183,16 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		x.Params = nil
+	case "fuelsequencer.bridge.GenesisState.supply_delta_info":
+		x.SupplyDeltaInfo = nil
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
+		x.LastEthereumNonce = nil
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
+		x.LastEthereumBlockSynced = uint64(0)
+	case "fuelsequencer.bridge.GenesisState.ethereum_event_index_offset":
+		x.EthereumEventIndexOffset = uint64(0)
+	case "fuelsequencer.bridge.GenesisState.last_eth_block_update_time":
+		x.LastEthBlockUpdateTime = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -149,6 +211,21 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	switch descriptor.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		value := x.Params
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.supply_delta_info":
+		value := x.SupplyDeltaInfo
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
+		value := x.LastEthereumNonce
+		return protoreflect.ValueOfBytes(value)
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
+		value := x.LastEthereumBlockSynced
+		return protoreflect.ValueOfUint64(value)
+	case "fuelsequencer.bridge.GenesisState.ethereum_event_index_offset":
+		value := x.EthereumEventIndexOffset
+		return protoreflect.ValueOfUint64(value)
+	case "fuelsequencer.bridge.GenesisState.last_eth_block_update_time":
+		value := x.LastEthBlockUpdateTime
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
@@ -172,6 +249,16 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		x.Params = value.Message().Interface().(*Params)
+	case "fuelsequencer.bridge.GenesisState.supply_delta_info":
+		x.SupplyDeltaInfo = value.Message().Interface().(*SupplyDeltaInfo)
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
+		x.LastEthereumNonce = value.Bytes()
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
+		x.LastEthereumBlockSynced = value.Uint()
+	case "fuelsequencer.bridge.GenesisState.ethereum_event_index_offset":
+		x.EthereumEventIndexOffset = value.Uint()
+	case "fuelsequencer.bridge.GenesisState.last_eth_block_update_time":
+		x.LastEthBlockUpdateTime = value.Message().Interface().(*timestamppb.Timestamp)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -197,6 +284,22 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 			x.Params = new(Params)
 		}
 		return protoreflect.ValueOfMessage(x.Params.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.supply_delta_info":
+		if x.SupplyDeltaInfo == nil {
+			x.SupplyDeltaInfo = new(SupplyDeltaInfo)
+		}
+		return protoreflect.ValueOfMessage(x.SupplyDeltaInfo.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.last_eth_block_update_time":
+		if x.LastEthBlockUpdateTime == nil {
+			x.LastEthBlockUpdateTime = new(timestamppb.Timestamp)
+		}
+		return protoreflect.ValueOfMessage(x.LastEthBlockUpdateTime.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
+		panic(fmt.Errorf("field last_ethereum_nonce of message fuelsequencer.bridge.GenesisState is not mutable"))
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
+		panic(fmt.Errorf("field last_ethereum_block_synced of message fuelsequencer.bridge.GenesisState is not mutable"))
+	case "fuelsequencer.bridge.GenesisState.ethereum_event_index_offset":
+		panic(fmt.Errorf("field ethereum_event_index_offset of message fuelsequencer.bridge.GenesisState is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.GenesisState"))
@@ -212,6 +315,18 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.GenesisState.params":
 		m := new(Params)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.supply_delta_info":
+		m := new(SupplyDeltaInfo)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_nonce":
+		return protoreflect.ValueOfBytes(nil)
+	case "fuelsequencer.bridge.GenesisState.last_ethereum_block_synced":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "fuelsequencer.bridge.GenesisState.ethereum_event_index_offset":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "fuelsequencer.bridge.GenesisState.last_eth_block_update_time":
+		m := new(timestamppb.Timestamp)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -286,6 +401,24 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			l = options.Size(x.Params)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		if x.SupplyDeltaInfo != nil {
+			l = options.Size(x.SupplyDeltaInfo)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.LastEthereumNonce)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.LastEthereumBlockSynced != 0 {
+			n += 1 + runtime.Sov(uint64(x.LastEthereumBlockSynced))
+		}
+		if x.EthereumEventIndexOffset != 0 {
+			n += 1 + runtime.Sov(uint64(x.EthereumEventIndexOffset))
+		}
+		if x.LastEthBlockUpdateTime != nil {
+			l = options.Size(x.LastEthBlockUpdateTime)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -314,6 +447,51 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.LastEthBlockUpdateTime != nil {
+			encoded, err := options.Marshal(x.LastEthBlockUpdateTime)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x32
+		}
+		if x.EthereumEventIndexOffset != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.EthereumEventIndexOffset))
+			i--
+			dAtA[i] = 0x28
+		}
+		if x.LastEthereumBlockSynced != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.LastEthereumBlockSynced))
+			i--
+			dAtA[i] = 0x20
+		}
+		if len(x.LastEthereumNonce) > 0 {
+			i -= len(x.LastEthereumNonce)
+			copy(dAtA[i:], x.LastEthereumNonce)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.LastEthereumNonce)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if x.SupplyDeltaInfo != nil {
+			encoded, err := options.Marshal(x.SupplyDeltaInfo)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
 		}
 		if x.Params != nil {
 			encoded, err := options.Marshal(x.Params)
@@ -414,6 +592,150 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaInfo", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.SupplyDeltaInfo == nil {
+					x.SupplyDeltaInfo = &SupplyDeltaInfo{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.SupplyDeltaInfo); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LastEthereumNonce", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.LastEthereumNonce = append(x.LastEthereumNonce[:0], dAtA[iNdEx:postIndex]...)
+				if x.LastEthereumNonce == nil {
+					x.LastEthereumNonce = []byte{}
+				}
+				iNdEx = postIndex
+			case 4:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LastEthereumBlockSynced", wireType)
+				}
+				x.LastEthereumBlockSynced = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.LastEthereumBlockSynced |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 5:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EthereumEventIndexOffset", wireType)
+				}
+				x.EthereumEventIndexOffset = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.EthereumEventIndexOffset |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 6:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LastEthBlockUpdateTime", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.LastEthBlockUpdateTime == nil {
+					x.LastEthBlockUpdateTime = &timestamppb.Timestamp{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.LastEthBlockUpdateTime); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -470,6 +792,23 @@ type GenesisState struct {
 
 	// params defines all the parameters of the module.
 	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	// supply_delta_info is the starting point for changes in the bridge token
+	// supply that we should report to Ethereum.
+	SupplyDeltaInfo *SupplyDeltaInfo `protobuf:"bytes,2,opt,name=supply_delta_info,json=supplyDeltaInfo,proto3" json:"supply_delta_info,omitempty"`
+	// last_ethereum_nonce is the last nonce used in messages towards Ethereum.
+	// In other words, the next nonce to be used is this value +1.
+	LastEthereumNonce []byte `protobuf:"bytes,3,opt,name=last_ethereum_nonce,json=lastEthereumNonce,proto3" json:"last_ethereum_nonce,omitempty"`
+	// last_ethereum_block_synced is the last Ethereum block synced.
+	// In other words, the next block to be synced is this value +1.
+	LastEthereumBlockSynced uint64 `protobuf:"varint,4,opt,name=last_ethereum_block_synced,json=lastEthereumBlockSynced,proto3" json:"last_ethereum_block_synced,omitempty"`
+	// ethereum_event_index_offset is the number of events to skip
+	// from the next Ethereum block to query from the Sidecar. This
+	// is used if queried events are larger than the maximum block size.
+	EthereumEventIndexOffset uint64 `protobuf:"varint,5,opt,name=ethereum_event_index_offset,json=ethereumEventIndexOffset,proto3" json:"ethereum_event_index_offset,omitempty"`
+	// last_eth_block_update_time is the time of the last Sequencer
+	// block at which consensus was reach by the validators to sync
+	// up with an Ethereum block.
+	LastEthBlockUpdateTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=last_eth_block_update_time,json=lastEthBlockUpdateTime,proto3" json:"last_eth_block_update_time,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -499,6 +838,41 @@ func (x *GenesisState) GetParams() *Params {
 	return nil
 }
 
+func (x *GenesisState) GetSupplyDeltaInfo() *SupplyDeltaInfo {
+	if x != nil {
+		return x.SupplyDeltaInfo
+	}
+	return nil
+}
+
+func (x *GenesisState) GetLastEthereumNonce() []byte {
+	if x != nil {
+		return x.LastEthereumNonce
+	}
+	return nil
+}
+
+func (x *GenesisState) GetLastEthereumBlockSynced() uint64 {
+	if x != nil {
+		return x.LastEthereumBlockSynced
+	}
+	return 0
+}
+
+func (x *GenesisState) GetEthereumEventIndexOffset() uint64 {
+	if x != nil {
+		return x.EthereumEventIndexOffset
+	}
+	return 0
+}
+
+func (x *GenesisState) GetLastEthBlockUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastEthBlockUpdateTime
+	}
+	return nil
+}
+
 var File_fuelsequencer_bridge_genesis_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
@@ -508,27 +882,61 @@ var file_fuelsequencer_bridge_genesis_proto_rawDesc = []byte{
 	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e,
 	0x6f, 0x2f, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67,
 	0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x1a, 0x21, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x4f, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69,
-	0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x3f, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x50, 0x61,
-	0x72, 0x61, 0x6d, 0x73, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52,
-	0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xc0, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e,
+	0x6f, 0x74, 0x6f, 0x1a, 0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x21,
+	0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x1a, 0x2c, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x5f, 0x64,
+	0x65, 0x6c, 0x74, 0x61, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a,
+	0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x22, 0xe2, 0x03, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74, 0x61, 0x74,
+	0x65, 0x12, 0x3f, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x1c, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42,
+	0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61,
+	0x6d, 0x73, 0x12, 0x51, 0x0a, 0x11, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x5f, 0x64, 0x65, 0x6c,
+	0x74, 0x61, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x25, 0x2e,
 	0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72,
-	0x69, 0x64, 0x67, 0x65, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f,
-	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e,
-	0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42,
-	0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2,
-	0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c,
-	0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61,
-	0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x69, 0x64, 0x67, 0x65, 0x2e, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74,
+	0x61, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x60, 0x0a, 0x13, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x65, 0x74,
+	0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x5f, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0c, 0x42, 0x30, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e,
+	0x74, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0xa8,
+	0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x11, 0x6c, 0x61, 0x73, 0x74, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65,
+	0x75, 0x6d, 0x4e, 0x6f, 0x6e, 0x63, 0x65, 0x12, 0x3b, 0x0a, 0x1a, 0x6c, 0x61, 0x73, 0x74, 0x5f,
+	0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x73,
+	0x79, 0x6e, 0x63, 0x65, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x17, 0x6c, 0x61, 0x73,
+	0x74, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x53, 0x79,
+	0x6e, 0x63, 0x65, 0x64, 0x12, 0x3d, 0x0a, 0x1b, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d,
+	0x5f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x5f, 0x6f, 0x66, 0x66,
+	0x73, 0x65, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x18, 0x65, 0x74, 0x68, 0x65, 0x72,
+	0x65, 0x75, 0x6d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x4f, 0x66, 0x66,
+	0x73, 0x65, 0x74, 0x12, 0x60, 0x0a, 0x1a, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x65, 0x74, 0x68, 0x5f,
+	0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x74, 0x69, 0x6d,
+	0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
+	0x61, 0x6d, 0x70, 0x42, 0x08, 0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0x52, 0x16, 0x6c,
+	0x61, 0x73, 0x74, 0x45, 0x74, 0x68, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x54, 0x69, 0x6d, 0x65, 0x42, 0xe1, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64,
+	0x67, 0x65, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f,
+	0x50, 0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66,
+	0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75,
+	0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58,
+	0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02,
+	0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
+	0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -545,16 +953,20 @@ func file_fuelsequencer_bridge_genesis_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bridge_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bridge_genesis_proto_goTypes = []interface{}{
-	(*GenesisState)(nil), // 0: fuelsequencer.bridge.GenesisState
-	(*Params)(nil),       // 1: fuelsequencer.bridge.Params
+	(*GenesisState)(nil),          // 0: fuelsequencer.bridge.GenesisState
+	(*Params)(nil),                // 1: fuelsequencer.bridge.Params
+	(*SupplyDeltaInfo)(nil),       // 2: fuelsequencer.bridge.SupplyDeltaInfo
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_fuelsequencer_bridge_genesis_proto_depIdxs = []int32{
 	1, // 0: fuelsequencer.bridge.GenesisState.params:type_name -> fuelsequencer.bridge.Params
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: fuelsequencer.bridge.GenesisState.supply_delta_info:type_name -> fuelsequencer.bridge.SupplyDeltaInfo
+	3, // 2: fuelsequencer.bridge.GenesisState.last_eth_block_update_time:type_name -> google.protobuf.Timestamp
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_genesis_proto_init() }
@@ -563,6 +975,7 @@ func file_fuelsequencer_bridge_genesis_proto_init() {
 		return
 	}
 	file_fuelsequencer_bridge_params_proto_init()
+	file_fuelsequencer_bridge_supply_delta_info_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_fuelsequencer_bridge_genesis_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenesisState); i {

@@ -11,7 +11,15 @@ const (
 	MemStoreKey = "mem_bridge"
 )
 
-var ParamsKey = []byte("p_bridge")
+var (
+	ParamsKey                   = []byte("p_bridge")
+	IndexKey                    = []byte("index")
+	SupplyDeltaInfoKey          = []byte("supply_delta_info")
+	LastEthereumNonceKey        = []byte("LastEthereumNonce")
+	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
+	EthereumEventIndexOffsetKey = []byte("EthereumEventIndexOffset")
+	LastEthBlockUpdateTimeKey   = []byte("LastEthBlockUpdateTime")
+)
 
 func KeyPrefix(p string) []byte {
 	return []byte(p)

@@ -3,7 +3,7 @@ package sequencing
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 
-	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing"
+	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing/v1"
 )
 
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
@@ -17,6 +17,17 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Shows the parameters of the module",
 				},
+				{
+					RpcMethod: "TopicAll",
+					Use:       "list-topic",
+					Short:     "List all topic",
+				},
+				{
+					RpcMethod:      "Topic",
+					Use:            "show-topic [id]",
+					Short:          "Shows a topic",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "id"}},
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},
@@ -27,6 +38,10 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				{
 					RpcMethod: "UpdateParams",
 					Skip:      true, // skipped because authority gated
+				},
+				{
+					RpcMethod: "PostBlob",
+					Skip:      true, // skipped because not expected to be used from CLI
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},

@@ -9,6 +9,7 @@ import (
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -150,7 +151,33 @@ func (am AppModule) BeginBlock(_ context.Context) error {
 
 // EndBlock contains the logic that is automatically triggered at the end of each block.
 // The end block implementation is optional.
-func (am AppModule) EndBlock(_ context.Context) error {
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	index, found := am.keeper.GetIndex(ctx)
+	if !found {
+		return fmt.Errorf("expected to find Index at the end of the block")
+	}
+
+	// Check that the AnteHandler has seen all injected transactions.
+	if index.NumInjectedTxsAnte != index.NumInjectedTxsTotal {
+		return fmt.Errorf(
+			"expected AnteHandler to see all injected txs; total: %d; seen: %d",
+			index.NumInjectedTxsTotal, index.NumInjectedTxsAnte,
+		)
+	}
+
+	// Check that there was no failure of special messages
+	if index.NumFailedSpecialTxs > 0 {
+		return fmt.Errorf("expected all special transactions to pass; total failed: %d", index.NumFailedSpecialTxs)
+	}
+
+	// Remove Index in preparation for next block, since the AnteHandler uses this to look out for MsgIndex.
+	am.keeper.RemoveIndex(ctx)
+
+	// Update SupplyDeltaInfo with new changes in supply
+	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
+
 	return nil
 }
 
@@ -181,6 +208,9 @@ type ModuleInputs struct {
 
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
+	StakingKeeper types.StakingKeeper
+
+	Router *baseapp.MsgServiceRouter
 }
 
 type ModuleOutputs struct {
@@ -191,6 +221,20 @@ type ModuleOutputs struct {
 }
 
 func ProvideModule(in ModuleInputs) ModuleOutputs {
+
+	// NOTE: The below implementation was taken from the code below:
+	// https://github.com/cosmos/cosmos-sdk/blob/main/x/bank/depinject.go#L48
+	// Default behavior for blockedModuleAddresses is to regard any module mentioned in
+	// AccountKeeper's module account permissions as blocked.
+	blockedModuleAddresses := make(map[string]bool)
+	for _, permission := range in.AccountKeeper.GetModulePermissions() {
+		addrStr, err := in.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
+		if err != nil {
+			panic(err)
+		}
+		blockedModuleAddresses[addrStr] = true
+	}
+
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	if in.Config.Authority != "" {
@@ -200,7 +244,12 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Cdc,
 		in.StoreService,
 		in.Logger,
+		in.BankKeeper,
+		in.AccountKeeper,
+		in.StakingKeeper,
 		authority.String(),
+		blockedModuleAddresses,
+		in.Router,
 	)
 	m := NewAppModule(
 		in.Cdc,

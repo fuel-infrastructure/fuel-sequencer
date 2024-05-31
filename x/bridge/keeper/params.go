@@ -8,7 +8,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// GetParams get all parameters as types.Params
+// GetParams get all parameters as types.Params.
 func (k Keeper) GetParams(ctx context.Context) (params types.Params) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	bz := store.Get(types.ParamsKey)
@@ -20,7 +20,7 @@ func (k Keeper) GetParams(ctx context.Context) (params types.Params) {
 	return params
 }
 
-// SetParams set the params
+// SetParams set the params.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	bz, err := k.cdc.Marshal(&params)

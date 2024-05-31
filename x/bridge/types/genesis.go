@@ -1,5 +1,11 @@
 package types
 
+import (
+	"time"
+
+	"cosmossdk.io/math"
+)
+
 // this line is used by starport scaffolding # genesis/types/import
 
 // DefaultIndex is the default global index
@@ -8,8 +14,17 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
+		SupplyDeltaInfo: &SupplyDeltaInfo{
+			LastSupply: math.ZeroInt(),
+			Delta:      math.ZeroInt(),
+			Offset:     math.ZeroInt(),
+		},
+		LastEthereumNonce:        math.ZeroInt(),
+		LastEthereumBlockSynced:  0,
+		EthereumEventIndexOffset: 0,
+		LastEthBlockUpdateTime:   time.Time{},
+		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
 

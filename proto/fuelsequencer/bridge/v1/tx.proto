@@ -1,0 +1,166 @@
+syntax = "proto3";
+
+package fuelsequencer.bridge.v1;
+
+import "amino/amino.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "fuelsequencer/bridge/params.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // UpdateParams defines a (governance) operation for updating the module
+  // parameters. The authority defaults to the x/gov module account.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // SupplyDelta defines an operation for submitting a report to Ethereum
+  // about changes in supply of the bridged token.
+  rpc SupplyDelta(MsgSupplyDelta) returns (MsgSupplyDeltaResponse);
+
+  // WithdrawToEtheruem defines an operation for bridging tokens to Ethereum.
+  rpc WithdrawToEthereum(MsgWithdrawToEthereum)
+      returns (MsgWithdrawToEthereumResponse);
+
+  // DepositFromEthereum defines an operation for bridging tokens from Ethereum.
+  rpc DepositFromEthereum(MsgDepositFromEthereum)
+      returns (MsgDepositFromEthereumResponse);
+
+  // Index defines an operation for setting information about injected txs.
+  rpc Index(MsgIndex) returns (MsgIndexResponse);
+}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "fuelsequencer/x/bridge/MsgUpdateParams";
+
+  // authority is the address that controls the module (defaults to x/gov unless
+  // overwritten).
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // params defines the module parameters to update.
+
+  // NOTE: All parameters must be supplied.
+  Params params = 2
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
+
+message MsgSupplyDelta {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority ensures that users cannot execute this message.
+  string authority = 1;
+}
+
+message MsgSupplyDeltaResponse {
+
+  // nonce uniquely identifies any message that we send to Ethereum.
+  string nonce = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // supply_delta reports the change in the bridge token's supply due to mints
+  // and burns.
+  string supply_delta = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgWithdrawToEthereum {
+  option (cosmos.msg.v1.signer) = "from";
+
+  // from is the user address that is withdrawing the tokens from the Sequencer.
+  // It can be in Hex or Bech32 format.
+  string from = 1;
+
+  // to is the user address on Ethereum that will be receiving the tokens.
+  string to = 2;
+
+  // amount is the tokens being sent, which must be in the expected bridge
+  // token.
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+}
+
+message MsgWithdrawToEthereumResponse {
+
+  // nonce uniquely identifies any message that we send to Ethereum.
+  string nonce = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // from is the user address that is withdrawing the tokens from the Sequencer.
+  // It can be in Hex or Bech32 format, as supplied in MsgWithdrawToEthereum.
+  // This address is lowercase, regardless of the one in MsgWithdrawToEthereum.
+  string from = 2;
+
+  // to is the user address on Ethereum that will be receiving the tokens.
+  // This address is lowercase, regardless of the one in MsgWithdrawToEthereum.
+  string to = 3;
+
+  // amount is the tokens being sent, which must be the expected bridge token.
+  cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
+}
+
+message MsgDepositFromEthereum {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority ensures that users cannot execute this message.
+  string authority = 1;
+
+  // the sending Ethereum address in hex format
+  string depositor = 2;
+
+  // recipient address in hex or bech32 format. If the recipient is the null
+  // address, the Sequencer uses the depositor address as the recipient.
+  string recipient = 3;
+
+  // the amount sent encoded as string to prevent loss of precision. Sign is
+  // also preserved
+  string amount = 4;
+
+  // vesting duration encoded in string to prevent loss of precision. Sign is
+  // also preserved. This can be zero if no duration is specified.
+  string lockup = 5;
+}
+
+message MsgDepositFromEthereumResponse {}
+
+message MsgIndex {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority ensures that users cannot execute this message.
+  string authority = 1;
+
+  // num_injected_event_txs is the number of Ethereum events injected as
+  // txs in the current block, excluding MsgSupplyDelta and MsgIndex.
+  uint64 num_injected_event_txs = 2;
+
+  // new_ethereum_block is a boolean which indicates whether a new Ethereum
+  // block has been queried from the Sidecar and that the events from it were
+  // fully consumed by the Sequencer. This is needed to determine when
+  // LastEthereumBlockSynced should be incremented by MsgIndex. If
+  // false but the events list is not empty, the block was partially consumed.
+  bool new_ethereum_block = 3;
+
+  // block_number is the block that these events belong to. This is expected to
+  // be LastEthereumBlockSynced+1, since the events are from the next block.
+  uint64 block_number = 4;
+}
+
+message MsgIndexResponse {}

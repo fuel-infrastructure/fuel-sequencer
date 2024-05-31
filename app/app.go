@@ -1,11 +1,14 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	_ "cosmossdk.io/api/cosmos/tx/config/v1" // import for side-effects
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -17,14 +20,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	_ "github.com/cosmos/cosmos-sdk/x/auth" // import for side-effects
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"   // import for side-effects
@@ -52,9 +59,15 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/server/commitments"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
+
+	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/fuel-infrastructure/fuel-sequencer/docs"
@@ -104,6 +117,9 @@ type FuelSequencerApp struct {
 
 	// simulation manager
 	sm *module.SimulationManager
+
+	// sidecar
+	sidecar sidecarclient.AppSidecarClient
 }
 
 func init() {
@@ -185,7 +201,9 @@ func NewFuelSequencerApp(
 				// By default the auth module uses a Bech32 address codec,
 				// with the prefix defined in the auth module configuration.
 				//
-				// func() address.Codec { return <- custom address codec type -> }
+				func() address.Codec {
+					return appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(AccountAddressPrefix))
+				},
 
 				//
 				// STAKING
@@ -195,8 +213,16 @@ func NewFuelSequencerApp(
 				// and appends "valoper" and "valcons" for validator and consensus addresses respectively.
 				// When providing a custom address codec in auth, custom address codecs must be provided here as well.
 				//
-				// func() runtime.ValidatorAddressCodec { return <- custom validator address codec type -> }
-				// func() runtime.ConsensusAddressCodec { return <- custom consensus address codec type -> }
+				func() runtime.ValidatorAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(AccountAddressPrefix + "valoper"),
+					)
+				},
+				func() runtime.ConsensusAddressCodec {
+					return appcodec.NewFuelSequencerAddressCodec(
+						sdkAddressCodec.NewBech32Codec(AccountAddressPrefix + "valcons"),
+					)
+				},
 
 				//
 				// MINT
@@ -266,6 +292,59 @@ func NewFuelSequencerApp(
 	// }
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+
+	// SIDECAR :: Configure
+	sidecarCfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	// SIDECAR :: Create client
+	app.sidecar, err = sidecarclient.NewClientFromConfig(
+		sidecarCfg,
+		app.Logger().With("client", "sidecar"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// SIDECAR :: Connect to the client if the Sidecar is enabled
+	if sidecarCfg.Enabled {
+		go func() {
+			if err := app.sidecar.Start(context.Background()); err != nil {
+				app.Logger().Error("failed to start Sidecar client", "err", err)
+				panic(err)
+			}
+
+			app.Logger().Info("started Sidecar client", "addr", sidecarCfg.Address)
+		}()
+	}
+
+	// PREPARE AND PROCESS PROPOSAL HANDLERS
+	proposalHandler := abci.NewFuelSequencerProposalHandler(
+		app.appCodec, app.Logger(), app.StakingKeeper, app, app.sidecar, app.BridgeKeeper,
+	)
+	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
+	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
+
+	// ANTEHANDLER
+	anteHandler, err := NewAnteHandler(
+		ante.HandlerOptions{
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
+			SignModeHandler: app.txConfig.SignModeHandler(),
+			FeegrantKeeper:  nil,
+			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		},
+		app.BridgeKeeper,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ante handler: %w", err)
+	}
+	app.SetAnteHandler(anteHandler)
+
+	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
+	app.SetMempool(mempool.NoOpMempool{})
 
 	// Register legacy modules
 
@@ -365,10 +444,37 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
-	commitments.RegisterDataCommitmentsServer(apiSvr.ClientCtx, apiSvr.Router)
 
 	// register app's OpenAPI routes.
 	docs.RegisterOpenAPIService(Name, apiSvr.Router)
+}
+
+// Close closes the underlying baseapp and the Sidecar service.
+// This function blocks on the closure of the Sidecar service.
+func (app *FuelSequencerApp) Close() error {
+	if err := app.App.Close(); err != nil {
+		return err
+	}
+
+	// close the Sidecar service
+	if app.sidecar != nil {
+		app.Logger().Info("stopping Sidecar")
+		if err := app.sidecar.Stop(); err != nil {
+			app.Logger().Error("error when stopping sidecar", "err", err)
+		}
+	}
+
+	return nil
+}
+
+// NewTxBuilder returns a new instance of TxBuilder. This was added for testing purposes.
+func (app *FuelSequencerApp) NewTxBuilder() client.TxBuilder {
+	return app.txConfig.NewTxBuilder()
+}
+
+// GetTxEncoder returns the underlying TxEncoder. This was added for testing purposes.
+func (app *FuelSequencerApp) GetTxEncoder() sdk.TxEncoder {
+	return app.txConfig.TxEncoder()
 }
 
 // GetMaccPerms returns a copy of the module account permissions

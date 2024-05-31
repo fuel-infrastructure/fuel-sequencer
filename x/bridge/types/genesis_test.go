@@ -2,13 +2,15 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
+	"cosmossdk.io/math"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenesisState_Validate(t *testing.T) {
+func TestValidateGenesisState(t *testing.T) {
 	tests := []struct {
 		desc     string
 		genState *types.GenesisState
@@ -20,9 +22,18 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc:     "valid genesis state",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
-
+				Params: types.DefaultParams(),
+				SupplyDeltaInfo: &types.SupplyDeltaInfo{
+					LastSupply: math.NewInt(99),
+					Delta:      math.NewInt(34),
+					Offset:     math.NewInt(123),
+				},
+				LastEthereumNonce:        math.NewInt(3),
+				LastEthereumBlockSynced:  1,
+				EthereumEventIndexOffset: 2,
+				LastEthBlockUpdateTime:   time.Now(),
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
