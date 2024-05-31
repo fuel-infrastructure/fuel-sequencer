@@ -27,11 +27,11 @@ func (dcs DataCommitmentsServer) ServeHTTP(w http.ResponseWriter, req *http.Requ
 	//v2, _ := strconv.Atoi(values[2])
 	//v3, _ := strconv.Atoi(values[3])
 
-	height, err := getBlockHeight(dcs.clientCtx)
-	if err != nil {
-		panic(err)
-	}
-	height -= 1
+	//height, err := getBlockHeight(dcs.clientCtx)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//height -= 1
 
 	commitment, err := dcs.BridgeCommitment(dcs.clientCtx, uint64(v0), uint64(v1))
 	if err != nil {
