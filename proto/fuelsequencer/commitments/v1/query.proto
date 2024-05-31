@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package fuelsequencer.commitments.v1;
+
+import "google/api/annotations.proto";
+import "fuelsequencer/commitments/types.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types";
+
+// Query defines the gRPC querier service.
+service Query {
+
+  // BridgeCommitment collects the transactions results roots over a provided
+  // ordered range of blocks, and then creates a new merkle root. The range is
+  // end exclusive.
+  //
+  // e.g. bridge_commitment?start=1&end=2
+  rpc BridgeCommitment(QueryBridgeCommitmentRequest)
+      returns (QueryBridgeCommitmentResponse) {
+    option (google.api.http).get =
+        "/fuelsequencer/commitments/v1/bridge_commitment";
+  }
+
+  // BridgeCommitmentInclusionProof creates two inclusion proofs to verify that
+  // a transaction response is included in a BridgeCommitment. Users can also
+  // verify any data in the transactions responses for data availability. Users
+  // need to provide the height and the transaction index that the inclusion
+  // proof is for. They also need to provide the indexes of the start and end
+  // blocks for which the BridgeCommitment merkle root is constructed from. The
+  // range for BridgeCommitment is end exclusive.
+  //
+  // e.g. bridge_commitment_inclusion_proof?height=2&tx_index=0&start=2&end=10
+  rpc BridgeCommitmentInclusionProof(QueryBridgeCommitmentInclusionProofRequest)
+      returns (QueryBridgeCommitmentInclusionProofResponse) {
+    option (google.api.http).get =
+        "/fuelsequencer/commitments/v1/bridge_commitment_inclusion_proof";
+  }
+}
+
+// QueryBridgeCommitmentRequest is request type for the Query/Params RPC method.
+message QueryBridgeCommitmentRequest {
+
+  uint64 start = 1;
+
+  uint64 end = 2;
+}
+
+// QueryBridgeCommitmentResponse is response type for the Query/Params RPC
+// method.
+message QueryBridgeCommitmentResponse { string bridge_commitment_hash = 1; }
+
+// QueryBridgeCommitmentInclusionProofRequest is request type for the
+// Query/Params RPC method.
+message QueryBridgeCommitmentInclusionProofRequest {
+
+  int64 height = 1;
+
+  int64 tx_index = 2;
+
+  uint64 start = 3;
+
+  uint64 end = 4;
+}
+
+// QueryBridgeCommitmentInclusionProofResponse is response type for the
+// Query/Params RPC method.
+message QueryBridgeCommitmentInclusionProofResponse {
+
+  BridgeCommitmentLeaf bridge_commitment_leaf = 1;
+
+  BinaryMerkleProof bridge_commitment_proof = 2;
+
+  string tx_result_marshalled = 3;
+
+  BinaryMerkleProof last_results_proof = 4;
+}

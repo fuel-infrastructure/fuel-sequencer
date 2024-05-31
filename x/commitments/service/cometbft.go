@@ -1,4 +1,4 @@
-package commitments
+package service
 
 import (
 	"context"

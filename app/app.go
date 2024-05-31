@@ -60,10 +60,9 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/server/commitments"
-
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -444,10 +443,16 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
-	commitments.RegisterDataCommitmentsServer(apiSvr.ClientCtx, apiSvr.Router)
+	//commitments.RegisterDataCommitmentsServer(apiSvr.ClientCtx)
+	commitmentsservice.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register app's OpenAPI routes.
 	docs.RegisterOpenAPIService(Name, apiSvr.Router)
+}
+
+func (app *FuelSequencerApp) RegisterTendermintService(clientCtx client.Context) {
+	app.App.RegisterTendermintService(clientCtx)
+	commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry)
 }
 
 // Close closes the underlying baseapp and the Sidecar service.
