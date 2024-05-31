@@ -2148,8 +2148,8 @@ func (x *QueryBridgeCommitmentRequest) GetEnd() uint64 {
 	return 0
 }
 
-// QueryBridgeCommitmentResponse is response type for the Query/Params RPC
-// method.
+// QueryBridgeCommitmentResponse contains the merkle root of successive
+// BridgeCommitmentLeaf.
 type QueryBridgeCommitmentResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2246,17 +2246,27 @@ func (x *QueryBridgeCommitmentInclusionProofRequest) GetEnd() uint64 {
 	return 0
 }
 
-// QueryBridgeCommitmentInclusionProofResponse is response type for the
-// Query/Params RPC method.
+// QueryBridgeCommitmentInclusionProofResponse contains merkle proofs to show
+// that a transaction response was used to construct the BridgeCommitment merkle
+// root. It also includes the marshalled deterministic transaction result.
 type QueryBridgeCommitmentInclusionProofResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BridgeCommitmentLeaf  *commitments.BridgeCommitmentLeaf `protobuf:"bytes,1,opt,name=bridge_commitment_leaf,json=bridgeCommitmentLeaf,proto3" json:"bridge_commitment_leaf,omitempty"`
-	BridgeCommitmentProof *commitments.BinaryMerkleProof    `protobuf:"bytes,2,opt,name=bridge_commitment_proof,json=bridgeCommitmentProof,proto3" json:"bridge_commitment_proof,omitempty"`
-	TxResultMarshalled    string                            `protobuf:"bytes,3,opt,name=tx_result_marshalled,json=txResultMarshalled,proto3" json:"tx_result_marshalled,omitempty"`
-	LastResultsProof      *commitments.BinaryMerkleProof    `protobuf:"bytes,4,opt,name=last_results_proof,json=lastResultsProof,proto3" json:"last_results_proof,omitempty"`
+	// bridge_commitment_leaf is the bridge commitment leaf involved in the
+	// BridgeCommitmentMerkleProof and also the one containing the LastResultsHash
+	// that is the root of the LastResultsMerkleProof.
+	BridgeCommitmentLeaf *commitments.BridgeCommitmentLeaf `protobuf:"bytes,1,opt,name=bridge_commitment_leaf,json=bridgeCommitmentLeaf,proto3" json:"bridge_commitment_leaf,omitempty"`
+	// bridge_commitment_proof is a merkle proof proving a BridgeCommitmentLeaf
+	// was used to construct the BridgeCommitment merkle root.
+	BridgeCommitmentProof *commitments.BinaryMerkleProof `protobuf:"bytes,2,opt,name=bridge_commitment_proof,json=bridgeCommitmentProof,proto3" json:"bridge_commitment_proof,omitempty"`
+	// tx_result_marshalled is the marshalled deterministic form of the queried
+	// transaction's ExecTxResult.
+	TxResultMarshalled string `protobuf:"bytes,3,opt,name=tx_result_marshalled,json=txResultMarshalled,proto3" json:"tx_result_marshalled,omitempty"`
+	// last_results_proof is a merkle proof proving a transaction response was
+	// used to form the LastResultsHash merkle root.
+	LastResultsProof *commitments.BinaryMerkleProof `protobuf:"bytes,4,opt,name=last_results_proof,json=lastResultsProof,proto3" json:"last_results_proof,omitempty"`
 }
 
 func (x *QueryBridgeCommitmentInclusionProofResponse) Reset() {

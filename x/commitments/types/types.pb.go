@@ -23,7 +23,12 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type BridgeCommitmentLeaf struct {
-	Height          uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	// The ResultsHash of blocks is derived at (Height + 1) in the LastResultsHash
+	// variable in the Tendermint block header, ref:
+	// https://github.com/cometbft/cometbft/blob/v0.38.5/proto/tendermint/types/types.proto#L66.
+	// Thus, to reconstruct this root at Height X, you would need the transactions
+	// results from Height X - 1.
 	LastResultsHash string `protobuf:"bytes,2,opt,name=last_results_hash,json=lastResultsHash,proto3" json:"last_results_hash,omitempty"`
 }
 
@@ -75,7 +80,12 @@ func (m *BridgeCommitmentLeaf) GetLastResultsHash() string {
 }
 
 type BridgeCommitmentLeafRaw struct {
-	Height          uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	// The ResultsHash of blocks is derived at (Height + 1) in the LastResultsHash
+	// variable in the Tendermint block header, ref:
+	// https://github.com/cometbft/cometbft/blob/v0.38.5/proto/tendermint/types/types.proto#L66.
+	// Thus, to reconstruct this root at Height X, you would need the transactions
+	// results from Height X - 1.
 	LastResultsHash []byte `protobuf:"bytes,2,opt,name=last_results_hash,json=lastResultsHash,proto3" json:"last_results_hash,omitempty"`
 }
 

@@ -31,8 +31,7 @@ type QueryClient interface {
 	// ordered range of blocks, and then creates a new merkle root. The range is
 	// end exclusive.
 	//
-	// E
-	// Example usage: bridge_commitment_inclusion_proof?height=2&tx_index=0&start=2&end=10
+	// e.g. bridge_commitment?start=1&end=2
 	BridgeCommitment(ctx context.Context, in *QueryBridgeCommitmentRequest, opts ...grpc.CallOption) (*QueryBridgeCommitmentResponse, error)
 	// BridgeCommitmentInclusionProof creates two inclusion proofs to verify that
 	// a transaction response is included in a BridgeCommitment. Users can also
@@ -41,6 +40,8 @@ type QueryClient interface {
 	// proof is for. They also need to provide the indexes of the start and end
 	// blocks for which the BridgeCommitment merkle root is constructed from. The
 	// range for BridgeCommitment is end exclusive.
+	//
+	// e.g. bridge_commitment_inclusion_proof?height=2&tx_index=0&start=2&end=10
 	BridgeCommitmentInclusionProof(ctx context.Context, in *QueryBridgeCommitmentInclusionProofRequest, opts ...grpc.CallOption) (*QueryBridgeCommitmentInclusionProofResponse, error)
 }
 
@@ -78,8 +79,7 @@ type QueryServer interface {
 	// ordered range of blocks, and then creates a new merkle root. The range is
 	// end exclusive.
 	//
-	// E
-	// Example usage: bridge_commitment_inclusion_proof?height=2&tx_index=0&start=2&end=10
+	// e.g. bridge_commitment?start=1&end=2
 	BridgeCommitment(context.Context, *QueryBridgeCommitmentRequest) (*QueryBridgeCommitmentResponse, error)
 	// BridgeCommitmentInclusionProof creates two inclusion proofs to verify that
 	// a transaction response is included in a BridgeCommitment. Users can also
@@ -88,6 +88,8 @@ type QueryServer interface {
 	// proof is for. They also need to provide the indexes of the start and end
 	// blocks for which the BridgeCommitment merkle root is constructed from. The
 	// range for BridgeCommitment is end exclusive.
+	//
+	// e.g. bridge_commitment_inclusion_proof?height=2&tx_index=0&start=2&end=10
 	BridgeCommitmentInclusionProof(context.Context, *QueryBridgeCommitmentInclusionProofRequest) (*QueryBridgeCommitmentInclusionProofResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
