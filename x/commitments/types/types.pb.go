@@ -81,6 +81,8 @@ func (m *BridgeCommitmentLeaf) GetLastResultsHash() HexBytes {
 	return nil
 }
 
+// BinaryMerkleProof is a merkle proof with hex byte fields, since we want this
+// to be encoded in hex in results.
 type BinaryMerkleProof struct {
 	// total is the total number of items.
 	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`

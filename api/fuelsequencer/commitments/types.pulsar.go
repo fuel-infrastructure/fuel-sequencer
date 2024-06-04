@@ -1187,6 +1187,8 @@ func (x *BridgeCommitmentLeaf) GetLastResultsHash() []byte {
 	return nil
 }
 
+// BinaryMerkleProof is a merkle proof with hex byte fields, since we want this
+// to be encoded in hex in results.
 type BinaryMerkleProof struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
