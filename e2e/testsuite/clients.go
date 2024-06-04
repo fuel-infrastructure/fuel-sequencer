@@ -78,6 +78,7 @@ func (s *E2ETestSuite) initGRPCClients() {
 		ConsensusQueryClient:    consensustypes.NewQueryClient(grpcConn),
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
+		CommitmentsQueryClient:  commitmentstypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
 		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
 		MintQueryClient:         minttypes.NewQueryClient(grpcConn),
