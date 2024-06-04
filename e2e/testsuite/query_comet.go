@@ -13,6 +13,7 @@ func (s *E2ETestSuite) GetFuelSequencerHeight(ctx context.Context) (uint64, erro
 	return s.Chain.FuelSequencerHeight(ctx)
 }
 
+// Deprecated: Use QueryBridgeCommitment instead.
 func (s *E2ETestSuite) GetBridgeCommitment(ctx context.Context, start, end uint64) (bytes.HexBytes, error) {
 	client := s.getRPCClient()
 
@@ -20,9 +21,11 @@ func (s *E2ETestSuite) GetBridgeCommitment(ctx context.Context, start, end uint6
 	if err != nil {
 		return nil, err
 	}
+
 	return res.BridgeCommitment, nil
 }
 
+// Deprecated: Use QueryBridgeCommitmentInclusionProof instead.
 func (s *E2ETestSuite) GetBridgeCommitmentInclusionProof(
 	ctx context.Context, height, txIndex int64, start, end uint64,
 ) (*coretypes.ResultBridgeCommitmentInclusionProof, error) {

@@ -64,8 +64,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Check DataCommitmentStored event
 
-		expectedBridgeCommitment, err := s.GetBridgeCommitment(s.Ctx(), startBlock, targetBlock)
-		s.Require().NoError(err)
+		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, targetBlock)
 
 		actualStartBlock, err := strconv.ParseUint(eventTopic1[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
@@ -91,14 +90,14 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
 
 		txIndex := int64(1) // second tx
-		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
+		bridgeCommitmentInclusionProof := s.QueryBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
 		)
 		s.Require().NoError(err)
 
 		// Construct BridgeCommitment leaf proof from the inclusion proof data.
 
-		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
+		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentProof
 		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
 			SideNodes: testsuite.AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
@@ -107,7 +106,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Construct tx result proof from the inclusion proof data.
 
-		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsMerkleProof
+		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsProof
 		txResultProof := testsuite.BinaryMerkleProofForEthereum{
 			SideNodes: testsuite.AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(lastResultsMerkleProof.Index),
@@ -224,8 +223,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Check DataCommitmentStored event
 
-		expectedBridgeCommitment, err := s.GetBridgeCommitment(s.Ctx(), startBlock, targetBlock)
-		s.Require().NoError(err)
+		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, targetBlock)
 
 		actualStartBlock, err := strconv.ParseUint(eventTopic1[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
@@ -251,14 +249,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
 
 		txIndex := int64(1) // second tx
-		bridgeCommitmentInclusionProof, err := s.GetBridgeCommitmentInclusionProof(
+		bridgeCommitmentInclusionProof := s.QueryBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
 		)
-		s.Require().NoError(err)
 
 		// Construct BridgeCommitment leaf proof from the inclusion proof data.
 
-		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
+		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentProof
 		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
 			SideNodes: testsuite.AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
@@ -267,7 +264,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Construct tx result proof from the inclusion proof data.
 
-		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsMerkleProof
+		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsProof
 		txResultProof := testsuite.BinaryMerkleProofForEthereum{
 			SideNodes: testsuite.AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
 			Key:       big.NewInt(lastResultsMerkleProof.Index),
