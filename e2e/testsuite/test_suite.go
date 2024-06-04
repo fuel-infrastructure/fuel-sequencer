@@ -15,7 +15,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -52,10 +51,13 @@ const (
 	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
 	fuelSequencerBinary               = "fuelsequencerd"
 
-	ethereumDockerImageRepo = "fuel-rollup/ethereum"
-	ethereumDockerImageTag  = "latest"
+	ethereumNodeDockerImageRepo  = "ghcr.io/foundry-rs/foundry"
+	ethereumNodeDockerImageTag   = "nightly"
+	ethereumNodeBlockTimeSeconds = 3
 
-	ethereumBlockTimeMs              = 3000             // 3 seconds
+	ethereumDeployDockerImageRepo = "fuel-rollup/ethereum-deploy"
+	ethereumDeployDockerImageTag  = "latest"
+
 	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
 	blocksToWaitForGovProposalToPass = uint64(25)
 
@@ -108,8 +110,7 @@ var (
 	}
 
 	// FUEL_STREAM_X_CONTRACT is the address of the contract that holds bridge commitments.
-	// Blocked by https://github.com/FuelLabs/fuel-rollup/pull/29
-	FUEL_STREAM_X_CONTRACT = "TODO"
+	FUEL_STREAM_X_CONTRACT = "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1"
 	// TOKEN_CONTRACT is the address of the FUEL token contract.
 	TOKEN_CONTRACT = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 	// SEQUENCER_INTERFACE_CONTRACT is the address of the contract that has the batchAuthorize function.
@@ -139,7 +140,8 @@ type E2ETestSuite struct {
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
-	ethResource         *dockertest.Resource
+	ethNodeResource     *dockertest.Resource
+	ethDeployResource   *dockertest.Resource
 	valResources        []*dockertest.Resource
 	fuelStreamXResource *dockertest.Resource
 
@@ -174,8 +176,10 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initFuelSequencerNodes(MNEMONICS)
 	s.initEthereumNodes(MNEMONICS)
 
-	// Run the eth container, no contracts deployed yet just anvil
-	s.runEthContainer()
+	// run Ethereum node and deploy the contracts
+	s.runEthNodeContainer()
+	s.initEthereumRPCClient()
+	s.runEthDeployContainer()
 
 	// continue generating node genesis
 	s.initFuelSequencerGenesis()
@@ -187,19 +191,11 @@ func (s *E2ETestSuite) SetupTest() {
 	// set up clients
 	s.initGRPCClients()
 	s.initRPCClient()
-	s.initEthereumRPCClient()
 	s.initSidecarClient()
 
 	// We need the genesis header for solidity smart contracts
 	err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
 	s.Require().NoError(err)
-
-	// Get genesis header
-	//genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
-	//s.Require().NoError(err)
-
-	// Deploy the contracts with the header
-	//s.deployContracts(1, genesisBlockHeaderHash)
 
 	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
@@ -219,7 +215,8 @@ func (s *E2ETestSuite) TearDownTest() {
 	s.T().Log("tearing down e2e integration test suite...")
 
 	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
-	s.Require().NoError(s.dockerPool.Purge(s.ethResource))
+	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
+	s.Require().NoError(s.dockerPool.Purge(s.ethDeployResource))
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
@@ -275,31 +272,38 @@ func (s *E2ETestSuite) initEthereumNodes(mnemonics []string) {
 	}
 }
 
-func (s *E2ETestSuite) runEthContainer() {
-	s.T().Log("starting Ethereum container...")
+func (s *E2ETestSuite) runEthNodeContainer() {
+	s.T().Log("starting Ethereum node container...")
 	var err error
 	runOpts := dockertest.RunOptions{
-		Name:       "ethereum",
-		Repository: ethereumDockerImageRepo,
-		Tag:        ethereumDockerImageTag,
+		Name:       "ethereum-node",
+		Repository: ethereumNodeDockerImageRepo,
+		Tag:        ethereumNodeDockerImageTag,
 		NetworkID:  s.dockerNetwork.Network.ID,
-		Env: []string{
-			fmt.Sprintf("BLOCK_TIME_MS=%d", ethereumBlockTimeMs),
-			// fmt.Sprintf("PRIVATE_KEY="), // this can be overridden
+		Env:        []string{
+			// fmt.Sprintf("MNEMONIC="), // this can be overridden
 		},
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"8545/tcp": {{HostIP: "", HostPort: "8545"}},
 		},
 		ExposedPorts: []string{"8545/tcp"},
+		Entrypoint: []string{
+			"anvil",
+			"--host", "0.0.0.0",
+			"--mnemonic", MNEMONICS[0],
+			"--accounts", "20",
+			"--slots-in-an-epoch", "1",
+			"--block-time", fmt.Sprintf("%d", ethereumNodeBlockTimeSeconds),
+		},
 	}
 
-	s.ethResource, err = s.dockerPool.RunWithOptions(
+	s.ethNodeResource, err = s.dockerPool.RunWithOptions(
 		&runOpts,
 		noRestart,
 	)
 	s.Require().NoError(err)
 
-	ethClient, err := ethclient.Dial(fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp")))
+	ethClient, err := ethclient.Dial(fmt.Sprintf("http://%s", s.ethNodeResource.GetHostPort("8545/tcp")))
 	s.Require().NoError(err)
 
 	// Wait for the Ethereum node to respond to a request
@@ -330,38 +334,31 @@ func (s *E2ETestSuite) runEthContainer() {
 		"ethereum node failed to respond",
 	)
 
-	s.T().Logf("started Ethereum container: %s", s.ethResource.Container.ID)
+	s.T().Logf("started Ethereum node container: %s", s.ethNodeResource.Container.ID)
 }
 
-func (s *E2ETestSuite) PauseEthereum() {
-	s.Require().NoError(s.dockerPool.Client.PauseContainer(s.ethResource.Container.ID))
-}
-
-func (s *E2ETestSuite) UnpauseEthereum() {
-	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.ethResource.Container.ID))
-}
-
-func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash cmtbytes.HexBytes) {
-	s.T().Log("deploying Ethereum contracts...")
-
-	execOptions := dockertest.ExecOptions{
+func (s *E2ETestSuite) runEthDeployContainer() {
+	s.T().Log("starting Ethereum deploy container...")
+	var err error
+	runOpts := dockertest.RunOptions{
+		Name:       "ethereum-deploy",
+		Repository: ethereumDeployDockerImageRepo,
+		Tag:        ethereumDeployDockerImageTag,
+		NetworkID:  s.dockerNetwork.Network.ID,
 		Env: []string{
-			"RPC_URL=http://ethereum:8545",
-			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
-			"GUARDIAN_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // Can be anything
-			fmt.Sprintf("GENESIS_HEIGHT=%d", genesisHeight),
-			fmt.Sprintf("GENESIS_HEADER=%s", genesisHeaderHash.String()),
+			"RPC_URL=http://ethereum-node:8545",
 		},
+		Cmd: []string{"npx", "hardhat", "deploy", "--network", "localhost", "--reset"},
 	}
 
-	exitCode, err := s.ethResource.Exec(
-		[]string{"bash", "scripts/deploy_contract.sh"},
-		execOptions,
+	s.ethDeployResource, err = s.dockerPool.RunWithOptions(
+		&runOpts,
+		noRestart,
 	)
 	s.Require().NoError(err)
-	s.Require().Zero(exitCode)
 
-	// Wait for the Ethereum node to respond to a request
+	// Wait for the FuelStreamX contract to be deployed, since it's the last one to be deployed
+	s.T().Logf("polling for FuelStreamX contract %s", FUEL_STREAM_X_CONTRACT)
 	s.Require().Eventually(
 		func() bool {
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -369,21 +366,28 @@ func (s *E2ETestSuite) deployContracts(genesisHeight uint64, genesisHeaderHash c
 
 			code, err := s.Chain.ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
 			if err != nil {
-				s.T().Logf("error retreiving contract's code: %e", err)
+				s.T().Logf("error retrieving contract's code: %e", err)
 				return false
 			} else if len(code) == 0 {
-				s.T().Logf("error retreiving contract's code, contract not depeloyed")
 				return false
 			}
 
 			return true
 		},
-		1*time.Minute,
+		2*time.Minute,
 		1*time.Second,
-		"ethereum node failed to respond",
+		"failed to find deployed contracts",
 	)
 
-	s.T().Logf("deployed Ethereum contracts: %s", s.ethResource.Container.ID)
+	s.T().Logf("started Ethereum deploy container: %s", s.ethDeployResource.Container.ID)
+}
+
+func (s *E2ETestSuite) PauseEthereum() {
+	s.Require().NoError(s.dockerPool.Client.PauseContainer(s.ethNodeResource.Container.ID))
+}
+
+func (s *E2ETestSuite) UnpauseEthereum() {
+	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.ethNodeResource.Container.ID))
 }
 
 func (s *E2ETestSuite) runFuelSequencerValidators() {

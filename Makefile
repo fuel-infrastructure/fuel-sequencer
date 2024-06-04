@@ -5,7 +5,7 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-ETH_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum"
+ETH_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deploy"
 ETH_DOCKER_CONTAINER_NAME := "ethereum"
 
 FSX_DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
