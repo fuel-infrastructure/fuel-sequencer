@@ -137,7 +137,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 			txResultMarshalled,
 			txResultProof,
 		)
-		_, err = s.SendEthTransactionToFuelStreamXContract(data)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(data)
 		s.Require().NoError(err)
 	})
 }
@@ -169,7 +169,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 			withdrawerAddress, withdrawerAddress, withdrawCoin,
 		)
 		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		txReceipt, err := s.SendEthTransactionToFuelStreamXContract(authorizeData)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// The LastResultsHash is generated at the block right after the withdrawal

@@ -225,7 +225,7 @@ func (s *E2ETestSuite) TearDownTest() {
 		s.Require().NoError(s.dockerPool.Purge(vc))
 	}
 
-	// Operator and relayer should have been purged earlier, but purge just in case
+	// FuelStreamX resource should have been purged earlier, but purge just in case
 	if s.fuelStreamXResource != nil {
 		_ = s.dockerPool.Purge(s.fuelStreamXResource)
 	}
