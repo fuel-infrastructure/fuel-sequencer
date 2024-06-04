@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
+// RegisterCommitmentsService registers the bridge commitments queries on the gRPC router.
 func RegisterCommitmentsService(
 	clientCtx client.Context,
 	server gogogrpc.Server,
@@ -18,6 +19,7 @@ func RegisterCommitmentsService(
 	types.RegisterQueryServer(server, NewQueryServer(clientCtx, iRegistry))
 }
 
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for bridge commitments.
 func RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
 		panic(err)
