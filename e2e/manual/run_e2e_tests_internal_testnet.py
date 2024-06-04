@@ -92,7 +92,7 @@ SEQ.voting_period = 10
 
 # Set parameters on Sequencer
 bridge_denom = "utest"
-ethereum_proxy_contract_address = ETH_fuelstreamx_address
+ethereum_proxy_contract_address = ETH_sequencer_proxy_contract_address
 authorize_messages_allowed = ["*"]
 supply_delta_period = "100"
 vesting_start_time = "2024-01-01T00:00:00Z"
