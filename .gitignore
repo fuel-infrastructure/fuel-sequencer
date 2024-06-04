@@ -35,3 +35,6 @@ release/
 
 # Build directory
 build/
+
+# Environment
+.env

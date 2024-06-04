@@ -424,12 +424,13 @@ build-fsx-docker-image:
 	@git submodule update --remote e2e/fuelstreamx
 	@echo "✅ Finished!"
 
-build-eth-docker-image:
+build-eth-docker-image: .env
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
-	@docker build \
+	@export $$(cat .env | xargs) && docker build \
 		-t $(ETH_DOCKER_IMAGE_NAME):latest \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
+		--build-arg NPM_TOKEN=$$NPM_TOKEN \
 		./e2e/fuel-rollup/
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
 	@git submodule update --remote e2e/fuel-rollup
