@@ -443,7 +443,8 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
-	//commitments.RegisterDataCommitmentsServer(apiSvr.ClientCtx)
+
+	// Register data commitments routes.
 	commitmentsservice.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register app's OpenAPI routes.
