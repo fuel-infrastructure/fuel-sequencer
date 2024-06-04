@@ -5,18 +5,13 @@ import (
 
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 )
 
-func getNodeStatus(clientCtx client.Context) (*coretypes.ResultStatus, error) {
-	node, err := clientCtx.GetNode()
-	if err != nil {
-		return &coretypes.ResultStatus{}, err
-	}
-	return node.Status(context.Background()) // TODO: OK to use context.Background() here?
-}
+// The code in this file is similar to cosmos-sdk@v0.50.6/client/grpc/cmtservice/block.go
 
-func getBlockHeight(clientCtx client.Context) (int64, error) {
-	status, err := getNodeStatus(clientCtx)
+func getLatestBlockHeight(ctx context.Context, clientCtx client.Context) (int64, error) {
+	status, err := cmtservice.GetNodeStatus(ctx, clientCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -24,22 +19,24 @@ func getBlockHeight(clientCtx client.Context) (int64, error) {
 	return height, nil
 }
 
-func getBlock(clientCtx client.Context, height *int64) (*coretypes.ResultBlock, error) {
+func getBlock(ctx context.Context, clientCtx client.Context, height *int64) (*coretypes.ResultBlock, error) {
 	// get the node
 	node, err := clientCtx.GetNode()
 	if err != nil {
 		return nil, err
 	}
 
-	return node.Block(context.Background(), height) // TODO: OK to use context.Background() here?
+	return node.Block(ctx, height)
 }
 
-func getBlockResults(clientCtx client.Context, height *int64) (*coretypes.ResultBlockResults, error) {
+func getBlockResults(
+	ctx context.Context, clientCtx client.Context, height *int64,
+) (*coretypes.ResultBlockResults, error) {
 	// get the node
 	node, err := clientCtx.GetNode()
 	if err != nil {
 		return nil, err
 	}
 
-	return node.BlockResults(context.Background(), height) // TODO: OK to use context.Background() here?
+	return node.BlockResults(ctx, height)
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -15,7 +16,7 @@ const (
 
 // validateBridgeCommitmentRange runs basic checks on the range of heights
 // that will be used to generate bridge commitments from successive blocks.
-func validateBridgeCommitmentRange(clientCtx client.Context, start, end uint64) error {
+func validateBridgeCommitmentRange(ctx context.Context, clientCtx client.Context, start, end uint64) error {
 	if start == 0 {
 		return fmt.Errorf("the first block is 0")
 	}
@@ -30,7 +31,7 @@ func validateBridgeCommitmentRange(clientCtx client.Context, start, end uint64) 
 		return fmt.Errorf("the query exceeds the limit of allowed blocks %d", BridgeCommitmentBlocksLimit)
 	}
 	// The bridge commitment range is end exclusive.
-	height, err := getBlockHeight(clientCtx)
+	height, err := getLatestBlockHeight(ctx, clientCtx)
 	if err != nil {
 		return err
 	}
@@ -46,8 +47,10 @@ func validateBridgeCommitmentRange(clientCtx client.Context, start, end uint64) 
 
 // validateBridgeCommitmentInclusionProofRequest validates the request to generate a bridge commitment
 // inclusion proof.
-func validateBridgeCommitmentInclusionProofRequest(clientCtx client.Context, height, start, end uint64) error {
-	err := validateBridgeCommitmentRange(clientCtx, start, end)
+func validateBridgeCommitmentInclusionProofRequest(
+	ctx context.Context, clientCtx client.Context, height, start, end uint64,
+) error {
+	err := validateBridgeCommitmentRange(ctx, clientCtx, start, end)
 	if err != nil {
 		return err
 	}

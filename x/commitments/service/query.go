@@ -28,16 +28,16 @@ func NewQueryServer(
 }
 
 func (q queryServer) BridgeCommitment(
-	_ context.Context, req *types.QueryBridgeCommitmentRequest,
+	ctx context.Context, req *types.QueryBridgeCommitmentRequest,
 ) (*types.QueryBridgeCommitmentResponse, error) {
 
-	err := validateBridgeCommitmentRange(q.clientCtx, req.Start, req.End)
+	err := validateBridgeCommitmentRange(ctx, q.clientCtx, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
 
 	// Fetch data
-	leaves, err := fetchBridgeCommitmentLeaves(q.clientCtx, req.Start, req.End)
+	leaves, err := fetchBridgeCommitmentLeaves(ctx, q.clientCtx, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
@@ -55,15 +55,15 @@ func (q queryServer) BridgeCommitment(
 }
 
 func (q queryServer) BridgeCommitmentInclusionProof(
-	_ context.Context, req *types.QueryBridgeCommitmentInclusionProofRequest,
+	ctx context.Context, req *types.QueryBridgeCommitmentInclusionProofRequest,
 ) (*types.QueryBridgeCommitmentInclusionProofResponse, error) {
-	err := validateBridgeCommitmentInclusionProofRequest(q.clientCtx, uint64(req.Height), req.Start, req.End)
+	err := validateBridgeCommitmentInclusionProofRequest(ctx, q.clientCtx, uint64(req.Height), req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
 
 	// Fetch data
-	leaves, err := fetchBridgeCommitmentLeaves(q.clientCtx, req.Start, req.End)
+	leaves, err := fetchBridgeCommitmentLeaves(ctx, q.clientCtx, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 
 	// Load the transactions that composed the LastResultsHash
 	txResultHeight := req.Height - 1
-	finalizeBlockResponse, err := getBlockResults(q.clientCtx, &txResultHeight)
+	finalizeBlockResponse, err := getBlockResults(ctx, q.clientCtx, &txResultHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -130,14 +130,14 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 }
 
 func fetchBridgeCommitmentLeaves(
-	clientCtx client.Context, start, end uint64,
+	ctx context.Context, clientCtx client.Context, start, end uint64,
 ) ([]types.BridgeCommitmentLeafRaw, error) {
 
 	bridgeCommitmentLeaves := make([]types.BridgeCommitmentLeafRaw, 0, end-start)
 	for height := start; height < end; height++ {
 
 		int64Height := int64(height)
-		block, err := getBlock(clientCtx, &int64Height)
+		block, err := getBlock(ctx, clientCtx, &int64Height)
 		if block == nil || err != nil {
 			return nil, fmt.Errorf("couldn't load block %d", height)
 		}
