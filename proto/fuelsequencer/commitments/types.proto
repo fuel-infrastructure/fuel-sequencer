@@ -19,6 +19,8 @@ message BridgeCommitmentLeaf {
   bytes last_results_hash = 2 [ (gogoproto.casttype) = "HexBytes" ];
 }
 
+// BinaryMerkleProof is a merkle proof with hex byte fields, since we want this
+// to be encoded in hex in results.
 message BinaryMerkleProof {
 
   // total is the total number of items.

@@ -25,13 +25,13 @@ func TestBinaryMerkleProofIsLossless(t *testing.T) {
 	// Compute a set of proofs based on the above transactions.
 	root, proofs := merkle.ProofsFromByteSlices(rs)
 
-	// Ensure that converting the hex proof back to a merkle proof
-	// yields the original proof and that the merkle roots match.
+	// Ensure that converting the binary merkly proof back to a merkle
+	// proof yields the original proof and that the merkle roots match.
 	for _, proof := range proofs {
-		hexProof := types.NewBinaryMerkleProof(*proof)
-		proofFromHexProof := hexProof.ToMerkleProof()
+		binaryMerkleProof := types.NewBinaryMerkleProof(*proof)
+		proofFromBinaryMerkleProof := binaryMerkleProof.ToMerkleProof()
 
-		require.EqualValues(t, proof, proofFromHexProof)
-		require.EqualValues(t, root, proofFromHexProof.ComputeRootHash())
+		require.EqualValues(t, proof, proofFromBinaryMerkleProof)
+		require.EqualValues(t, root, proofFromBinaryMerkleProof.ComputeRootHash())
 	}
 }
