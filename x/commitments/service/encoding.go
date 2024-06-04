@@ -10,7 +10,7 @@ import (
 
 // encodeBridgeCommitment takes a height and a last result hash, and returns the equivalent of
 // `abi.encode(...)` in Ethereum. To match `abi.encode(...)`, the height is padded to 32 bytes.
-func encodeBridgeCommitment(leaves []types.BridgeCommitmentLeafRaw) ([][]byte, error) {
+func encodeBridgeCommitment(leaves []types.BridgeCommitmentLeaf) ([][]byte, error) {
 
 	encodedLeaves := make([][]byte, 0, len(leaves))
 	for _, leaf := range leaves {

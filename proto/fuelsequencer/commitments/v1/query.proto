@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package fuelsequencer.commitments.v1;
 
+import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "fuelsequencer/commitments/types.proto";
 
@@ -40,25 +41,34 @@ service Query {
 // QueryBridgeCommitmentRequest is request type for the Query/Params RPC method.
 message QueryBridgeCommitmentRequest {
 
+  // start is the start of the block range that the bridge commitment covers.
   uint64 start = 1;
 
+  // end is the exclusive end of the block range that the bridge commitment
+  // covers.
   uint64 end = 2;
 }
 
 // QueryBridgeCommitmentResponse contains the merkle root of successive
 // BridgeCommitmentLeaf.
-message QueryBridgeCommitmentResponse { string bridge_commitment_hash = 1; }
+message QueryBridgeCommitmentResponse {
+  bytes bridge_commitment = 1 [ (gogoproto.casttype) = "HexBytes" ];
+}
 
 // QueryBridgeCommitmentInclusionProofRequest is request type for the
 // Query/Params RPC method.
 message QueryBridgeCommitmentInclusionProofRequest {
 
+  // height is the block from which the last results hash will be obtained.
   int64 height = 1;
 
+  // tx_index is the index of the transaction at its original block height.
   int64 tx_index = 2;
 
+  // start is the start of the block range including the height.
   uint64 start = 3;
 
+  // end is the exclusive end of the block range including the height.
   uint64 end = 4;
 }
 
@@ -70,15 +80,17 @@ message QueryBridgeCommitmentInclusionProofResponse {
   // bridge_commitment_leaf is the bridge commitment leaf involved in the
   // BridgeCommitmentMerkleProof and also the one containing the LastResultsHash
   // that is the root of the LastResultsMerkleProof.
-  BridgeCommitmentLeaf bridge_commitment_leaf = 1;
+  BridgeCommitmentLeaf bridge_commitment_leaf = 1
+      [ (gogoproto.nullable) = false ];
 
   // bridge_commitment_proof is a merkle proof proving a BridgeCommitmentLeaf
   // was used to construct the BridgeCommitment merkle root.
-  BinaryMerkleProof bridge_commitment_proof = 2;
+  BinaryMerkleProof bridge_commitment_proof = 2
+      [ (gogoproto.nullable) = false ];
 
   // tx_result_marshalled is the marshalled deterministic form of the queried
   // transaction's ExecTxResult.
-  string tx_result_marshalled = 3;
+  bytes tx_result_marshalled = 3 [ (gogoproto.casttype) = "HexBytes" ];
 
   // last_results_proof is a merkle proof proving a transaction response was
   // used to form the LastResultsHash merkle root.

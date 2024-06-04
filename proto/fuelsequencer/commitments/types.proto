@@ -2,10 +2,13 @@ syntax = "proto3";
 
 package fuelsequencer.commitments;
 
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types";
 
 message BridgeCommitmentLeaf {
 
+  // height is the block from which the last results hash was derived.
   uint64 height = 1;
 
   // The ResultsHash of blocks is derived at (Height + 1) in the LastResultsHash
@@ -13,32 +16,20 @@ message BridgeCommitmentLeaf {
   // https://github.com/cometbft/cometbft/blob/v0.38.5/proto/tendermint/types/types.proto#L66.
   // Thus, to reconstruct this root at Height X, you would need the transactions
   // results from Height X - 1.
-  string last_results_hash = 2;
-}
-
-message BridgeCommitmentLeafRaw {
-
-  uint64 height = 1;
-
-  // The ResultsHash of blocks is derived at (Height + 1) in the LastResultsHash
-  // variable in the Tendermint block header, ref:
-  // https://github.com/cometbft/cometbft/blob/v0.38.5/proto/tendermint/types/types.proto#L66.
-  // Thus, to reconstruct this root at Height X, you would need the transactions
-  // results from Height X - 1.
-  bytes last_results_hash = 2;
+  bytes last_results_hash = 2 [ (gogoproto.casttype) = "HexBytes" ];
 }
 
 message BinaryMerkleProof {
 
-  // Total number of items.
+  // total is the total number of items.
   int64 total = 1;
 
-  // Index of item to prove.
+  // index is the index of the item to prove.
   int64 index = 2;
 
-  // Hash of item value.
-  string leaf_hash = 3;
+  // leaf_hash is the hash of the item value.
+  bytes leaf_hash = 3 [ (gogoproto.casttype) = "HexBytes" ];
 
-  // Hashes from leaf's sibling to a root's child.
-  repeated string aunts = 4;
+  // aunts are the hashes from the leaf's sibling to a root's child.
+  repeated bytes aunts = 4 [ (gogoproto.castrepeated) = "HexBytesSlice" ];
 }
