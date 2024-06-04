@@ -21,7 +21,6 @@ func (s *E2ETestSuite) GetBridgeCommitment(ctx context.Context, start, end uint6
 	if err != nil {
 		return nil, err
 	}
-
 	return res.BridgeCommitment, nil
 }
 
