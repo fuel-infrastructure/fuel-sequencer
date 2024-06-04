@@ -169,6 +169,8 @@ cast send \
 # Used inclusion_proof_test.go to generate data.
 # Ethereum block 5988415
 # Ethereum transaction 0xac999559993b6688fcbb20c2fbf49d174e6d8ac2913b9d0852097fa2fc72e5f3
+# EXPECTED OUTCOME: PASSED
+# ACTUAL OUTCOME: PASSED
 cast send \
     --private-key $PRIVATE_KEY \
     $FUELSTREAMX_CONTRACT_ADDRESS \
@@ -188,8 +190,10 @@ cast send \
 # End block 89364
 # Query: https://rpc-seq.simplystaking.xyz/bridge_commitment_inclusion_proof?height=89290&tx_index=1&start=89142&end=89364
 # Used inclusion_proof_test.go to generate data.
-# Ethereum block ?
-# Ethereum transaction ?
+# Ethereum block 5989125
+# Ethereum transaction 0xfdce8c65f02325282260af4c32f439c3dbd3b29fd10a3b4bb2509d1ef802813c
+# EXPECTED OUTCOME: PASSED
+# ACTUAL OUTCOME: PASSED
 cast send \
     --private-key $PRIVATE_KEY \
     $FUELSTREAMX_CONTRACT_ADDRESS \

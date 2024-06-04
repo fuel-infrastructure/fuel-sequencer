@@ -48,4 +48,11 @@ message Params {
   // will halt until validators sync up with next Ethereum block.
   google.protobuf.Duration max_eth_block_update_delay = 7
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
+
+  // injected_event_tx_max_bytes is the maximum amount of block space that an
+  // injected event tx can take in terms of bytes. An Authorize event gets
+  // skipped and never included in a block if it can't be converted into a tx
+  // that can respect this limit. On the other hand, if a Deposit event cannot
+  // be converted into a Tx that can respect this limit, the chain halts.
+  uint64 injected_event_tx_max_bytes = 8;
 }

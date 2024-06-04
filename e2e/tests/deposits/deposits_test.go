@@ -2,13 +2,13 @@ package deposits_test
 
 import (
 	"math/big"
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
@@ -17,7 +17,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		ownedReceiverAddress := senderAddress                      // Deposit receiver; owned by the sender
+		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Seq addr corresponding to ownedReceiverAddress
 
 		// --------------------------------------- Account owned by sender
 
@@ -31,8 +32,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		amount := big.NewInt(200)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(amount, ownedReceiverAddressSeq, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackDeposit(amount, common.HexToAddress(ownedReceiverAddress), duration)
+		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
@@ -48,7 +49,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 
 		ethOwnedContinuousVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, strings.ToLower(ethOwnedContinuousVestingAcc.AccountOwner))
+		s.Require().Equal(senderAddress, ethOwnedContinuousVestingAcc.AccountOwner)
 		s.Require().Equal(vestingStartTime, ethOwnedContinuousVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime, ethOwnedContinuousVestingAcc.EndTime)
 		s.Require().Equal(amountCoins, ethOwnedContinuousVestingAcc.OriginalVesting)
@@ -62,8 +63,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 
 		// Generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		depositData = testsuite.PackDeposit(amount, notOwnedReceiverAddress, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData = testsuite.PackDeposit(amount, common.HexToAddress(notOwnedReceiverAddress), duration)
+		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
@@ -72,7 +73,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist() {
 		// Make sure that the created account is a simple base account
 		baseAccount, err := s.QueryBaseAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().NoError(err)
-		s.Require().Equal(notOwnedReceiverAddressSeq, strings.ToLower(baseAccount.Address))
+		s.Require().Equal(notOwnedReceiverAddressSeq, baseAccount.Address)
 
 		// Try querying the account as a vesting account and assert failure to make sure that no vesting details were
 		// stored
@@ -87,7 +88,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		ownedReceiverAddress := senderAddress                      // Deposit receiver; owned by the sender
+		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Seq addr corresponding to ownedReceiverAddress
 
 		// --------------------------------------- Account owned by sender
 
@@ -111,8 +113,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		sendAmount := big.NewInt(200)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(sendAmount, ownedReceiverAddressSeq, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackDeposit(sendAmount, common.HexToAddress(ownedReceiverAddress), duration)
+		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -132,7 +134,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 
 		ethOwnedContinuousVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, strings.ToLower(ethOwnedContinuousVestingAcc.AccountOwner))
+		s.Require().Equal(senderAddress, ethOwnedContinuousVestingAcc.AccountOwner)
 		s.Require().Equal(vestingStartTime, ethOwnedContinuousVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime, ethOwnedContinuousVestingAcc.EndTime)
 		s.Require().Equal(vestingAmountCoins, ethOwnedContinuousVestingAcc.OriginalVesting)
@@ -153,8 +155,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 
 		// Generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		depositData = testsuite.PackDeposit(sendAmount, notOwnedReceiverAddress, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData = testsuite.PackDeposit(sendAmount, common.HexToAddress(notOwnedReceiverAddress), duration)
+		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -164,7 +166,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting() {
 		// Make sure that the created account is a simple base account
 		baseAccount, err := s.QueryBaseAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().NoError(err)
-		s.Require().Equal(notOwnedReceiverAddressSeq, strings.ToLower(baseAccount.Address))
+		s.Require().Equal(notOwnedReceiverAddressSeq, baseAccount.Address)
 
 		// Try querying the account as a vesting account and assert failure to make sure that no vesting details were
 		// stored
@@ -179,7 +181,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		ownedReceiverAddress := senderAddress                      // Deposit receiver; owned by the sender
+		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Seq addr corresponding to ownedReceiverAddress
 
 		// --------------------------------------- Account owned by sender
 
@@ -212,8 +215,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
 		sendAmount := big.NewInt(200)
 		duration := big.NewInt(63072000) // 2 years vesting
-		depositData := testsuite.PackDeposit(sendAmount, ownedReceiverAddressSeq, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData := testsuite.PackDeposit(sendAmount, common.HexToAddress(ownedReceiverAddress), duration)
+		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -233,7 +236,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 
 		ethOwnedContinuousVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, strings.ToLower(ethOwnedContinuousVestingAcc.AccountOwner))
+		s.Require().Equal(senderAddress, ethOwnedContinuousVestingAcc.AccountOwner)
 		s.Require().Equal(vestingStartTime, ethOwnedContinuousVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime, ethOwnedContinuousVestingAcc.EndTime)
 		s.Require().Equal(vestingAmountCoins, ethOwnedContinuousVestingAcc.OriginalVesting)
@@ -260,8 +263,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting() {
 
 		// Generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		depositData = testsuite.PackDeposit(sendAmount, notOwnedReceiverAddress, duration)
-		_, err = s.SendEthTransactionToFuelStreamXContract(depositData)
+		depositData = testsuite.PackDeposit(sendAmount, common.HexToAddress(notOwnedReceiverAddress), duration)
+		_, err = s.SendEthTransactionToMockEthereumContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial

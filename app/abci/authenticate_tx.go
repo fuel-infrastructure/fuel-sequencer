@@ -19,8 +19,6 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 ) (bool, error) {
 
 	switch event.EventType {
-	case sidecartypes.MockAuthorizeEventName:
-		fallthrough
 	case sidecartypes.AuthorizeEventName:
 		parsedEvent, err := event.UnmarshalParsedEvent()
 		if err != nil {
