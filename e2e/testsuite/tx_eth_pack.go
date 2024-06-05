@@ -54,7 +54,6 @@ type BinaryMerkleProofForEthereum struct {
 	NumLeaves *big.Int
 }
 
-// DEPRECATED: not actually deprecated, but currently unusable due to a missing FuelStreamXContractABI.
 func PackProcessSequencerWithdrawalMessage(
 	proofNonce *big.Int,
 	bridgeCommitmentLeaf BridgeCommitmentLeafForEthereum,
