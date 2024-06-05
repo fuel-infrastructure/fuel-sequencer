@@ -39,7 +39,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
-		s.PollForBalance(s.Ctx(), 20, ownedReceiverAddressSeq, amountCoin)
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
 
 		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
@@ -118,7 +118,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		// balance and the newly vested tokens.
 		expAmount := new(big.Int).Add(sendAmount, initAmount)
 		expAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(expAmount))
-		s.PollForBalance(s.Ctx(), 20, ownedReceiverAddressSeq, expAmountCoin)
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, expAmountCoin)
 
 		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
@@ -214,7 +214,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		// balance and the newly vested tokens.
 		expAmount := new(big.Int).Add(sendAmount, initVestingAmount)
 		expAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(expAmount))
-		s.PollForBalance(s.Ctx(), 20, ownedReceiverAddressSeq, expAmountCoin)
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, expAmountCoin)
 
 		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
