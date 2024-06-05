@@ -73,3 +73,16 @@ func PackProcessSequencerWithdrawalMessage(
 		},
 	)
 }
+
+func PackUpdateGenesisStateMessage(
+	height uint32, trustedHeader common.Hash,
+) []byte {
+	return packCall(
+		sidecartypes.FuelStreamXContractABI,
+		sidecartypes.UpdateGenesisStateFunctionName,
+		[]interface{}{
+			height,
+			trustedHeader,
+		},
+	)
+}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -16,6 +17,25 @@ import (
 )
 
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromSequencer() {
+	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
+
+		sender := testsuite.ETH_KEYS[0]
+
+		// Generate a deposit to an account owned by the sender.
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		amount := big.NewInt(200)
+		mintData := testsuite.PackMint(common.HexToAddress(sender.AddressHex), amount)
+		_, err := s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
+		depositData := testsuite.PackTransferAndCall(amount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
+		s.Require().NoError(err)
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
+		s.PollForBalance(s.Ctx(), 10, sender.AddressSeq, amountCoin)
+	})
+
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
 
 		// --------------------------------------- User withdraws on the Sequencer
@@ -33,12 +53,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// The LastResultsHash is generated at the block right after the withdrawal
 		lastResultsHashHeight := withdrawalResponse.Height + 1
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, 5*time.Second)) // ensure result generated
 
-		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
-		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
-
-		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcess()
+		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcessForBlock(lastResultsHashHeight + 1)
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
 		s.Require().NoError(err)
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
@@ -46,6 +63,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Make sure the LastResultsHash due to the transaction is included in the BridgeCommitment.
 		// Since the target block is exclusive, it has to be > not >=.
+		// If this check fails, then we need to reconfigure FuelStreamX.
 		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
 		// The two events are: HeadUpdate, DataCommitmentStored
@@ -137,7 +155,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 			txResultMarshalled,
 			txResultProof,
 		)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(data)
+		_, err = s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 	})
 }
@@ -193,12 +211,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 			}
 		}
 		s.Require().True(found)
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, 5*time.Second)) // ensure result generated
 
-		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
-		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
-
-		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcess()
+		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcessForBlock(lastResultsHashHeight + 1)
 		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
 		s.Require().NoError(err)
 		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
@@ -206,6 +221,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Make sure the LastResultsHash due to the transaction is included in the BridgeCommitment.
 		// Since the target block is exclusive, it has to be > not >=.
+		// If this check fails, then we need to reconfigure FuelStreamX.
 		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
 		// The two events are: HeadUpdate, DataCommitmentStored

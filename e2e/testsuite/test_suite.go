@@ -36,7 +36,7 @@ func init() {
 }
 
 const (
-	BridgeDenom       = "ufuel"
+	BridgeDenom       = "utest"
 	minGasPrices      = "0.01"
 	defaultTxGas      = 1000000
 	supplyDeltaPeriod = uint64(10) // default - can be overridden
@@ -51,9 +51,9 @@ const (
 	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
 	fuelSequencerBinary               = "fuelsequencerd"
 
-	ethereumNodeDockerImageRepo  = "ghcr.io/foundry-rs/foundry"
-	ethereumNodeDockerImageTag   = "nightly"
-	ethereumNodeBlockTimeSeconds = 3
+	ethereumNodeDockerImageRepo = "ghcr.io/foundry-rs/foundry"
+	ethereumNodeDockerImageTag  = "nightly"
+	// TODO? ethereumNodeBlockTimeSeconds = 3
 
 	ethereumDeployDockerImageRepo = "fuel-rollup/ethereum-deploy"
 	ethereumDeployDockerImageTag  = "latest"
@@ -175,28 +175,50 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// initialization
 	s.initFuelSequencerNodes(MNEMONICS)
-	s.initEthereumNodes(MNEMONICS)
 
-	// run Ethereum node and deploy the contracts
+	// run Ethereum node
 	s.runEthNodeContainer()
-	s.initEthereumRPCClient()
-	s.runEthDeployContainer()
 
-	// continue generating node genesis
+	// run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
-
-	// container infrastructure
 	s.runFuelSequencerValidators()
+
+	// deploy Ethereum contracts
+	s.runEthDeployContainer()
 
 	// set up clients
 	s.initGRPCClients()
 	s.initRPCClient()
+	s.initEthereumRPCClient()
 	s.initSidecarClient()
 
 	// We need the genesis header for solidity smart contracts
 	err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
 	s.Require().NoError(err)
+
+	// Get genesis header
+	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
+	s.Require().NoError(err)
+
+	// Set the genesis header
+	data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
+	_, err = s.SendEthTransactionToFuelStreamXContract(data)
+	s.Require().NoError(err)
+
+	// Ensure that FuelSequencer has approximately caught up with Ethereum.
+	// This assumes that the FuelSequencer has a shorter block time than Ethereum.
+	for {
+		fromHeight := s.QueryLastEthereumBlockSynced(s.Ctx())
+		toHeight, err := s.getEthereumRPCClient().BlockNumber(s.Ctx())
+		s.Require().NoError(err)
+		if fromHeight+5 > toHeight { // max 5 blocks difference
+			break
+		}
+
+		s.T().Logf("waiting for FuelSequencer to sync to Ethereum (%d -> %d)...", fromHeight, toHeight)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 50, toHeight)
+	}
 
 	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
@@ -278,7 +300,7 @@ func (s *E2ETestSuite) runEthNodeContainer() {
 			"--mnemonic", MNEMONICS[0],
 			"--accounts", "20",
 			"--slots-in-an-epoch", "1",
-			"--block-time", fmt.Sprintf("%d", ethereumNodeBlockTimeSeconds),
+			// TODO? "--block-time", fmt.Sprintf("%d", ethereumNodeBlockTimeSeconds),
 		},
 	}
 
@@ -342,29 +364,12 @@ func (s *E2ETestSuite) runEthDeployContainer() {
 	)
 	s.Require().NoError(err)
 
-	// Wait for the FuelStreamX contract to be deployed, since it's the last one to be deployed
-	s.T().Logf("polling for FuelStreamX contract %s", FUEL_STREAM_X_CONTRACT)
-	s.Require().Eventually(
-		func() bool {
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-			defer cancel()
-
-			code, err := s.Chain.ethClient.CodeAt(ctx, common.HexToAddress(FUEL_STREAM_X_CONTRACT), nil)
-			if err != nil {
-				s.T().Logf("error retrieving contract's code: %e", err)
-				return false
-			} else if len(code) == 0 {
-				return false
-			}
-
-			return true
-		},
-		2*time.Minute,
-		1*time.Second,
-		"failed to find deployed contracts",
-	)
-
-	s.T().Logf("started Ethereum deploy container: %s", s.ethDeployResource.Container.ID)
+	// Wait for the contracts to be deployed, i.e. for the deployment container to stop
+	s.T().Logf("waiting for Ethereum contracts to be deployed...")
+	waitContext, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	_, err = s.dockerPool.Client.WaitContainerWithContext(s.ethDeployResource.Container.ID, waitContext)
+	s.Require().NoError(err)
 }
 
 func (s *E2ETestSuite) PauseEthereum() {
