@@ -161,6 +161,25 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 }
 
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
+	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
+
+		sender := testsuite.ETH_KEYS[0]
+
+		// Generate a deposit to an account owned by the sender.
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		amount := big.NewInt(200)
+		mintData := testsuite.PackMint(common.HexToAddress(sender.AddressHex), amount)
+		_, err := s.SendEthTransactionToTokenContract(mintData)
+		s.Require().NoError(err)
+		depositData := testsuite.PackTransferAndCall(amount)
+		_, err = s.SendEthTransactionToTokenContract(depositData)
+		s.Require().NoError(err)
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
+		s.PollForBalance(s.Ctx(), 10, sender.AddressSeq, amountCoin)
+	})
+
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
 
 		withdrawerAddress := testsuite.ETH_KEYS[0].AddressHex
