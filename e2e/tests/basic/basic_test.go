@@ -19,7 +19,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().True(params.DefaultSendEnabled)
 
 		// Try getting address balances (GRPC).
-		balance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
+		balance, err := s.QueryAllBalances(s.Ctx(), testsuite.SEQ_ADDRESSES[0], nil)
 		s.Require().NoError(err)
 		expected := testsuite.InitBalanceCoin.Sub(testsuite.InitStakedCoin)
 		s.Require().True(expected.Amount.Equal(balance.Balances.AmountOf(testsuite.BridgeDenom)))
@@ -35,8 +35,8 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().Equal(sequencerHeight, uint64(block.Header.Height))
 
 		// Try transferring tokens (RPC).
-		from := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[0])
-		to := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[1])
+		from := sdk.MustAccAddressFromBech32(testsuite.SEQ_ADDRESSES[0])
+		to := sdk.MustAccAddressFromBech32(testsuite.SEQ_ADDRESSES[1])
 		amount := sdk.NewCoins(sdk.NewInt64Coin(testsuite.BridgeDenom, 100))
 		msg := banktypes.NewMsgSend(from, to, amount)
 		res, err := s.SubmitMsgs(msg)
@@ -49,7 +49,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Ensure balance was reduced (GRPC)
 		// Note: a fee was also charged.
-		updatedBalance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
+		updatedBalance, err := s.QueryAllBalances(s.Ctx(), testsuite.SEQ_ADDRESSES[0], nil)
 		s.Require().NoError(err)
 		s.Require().True(updatedBalance.Balances.IsAllLT(balance.Balances))
 	})
@@ -76,7 +76,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Try generating some events via a transaction (RPC) - via deposit.
 		depositAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(testsuite.SIGNER_ETH_ADDRESS, depositAmount)
+		mintData := testsuite.PackMint(testsuite.ETH_KEYS[0].Address, depositAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(depositAmount)
@@ -88,7 +88,9 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+		from := testsuite.ETH_KEYS[0].AddressHex
+		to := testsuite.ETH_KEYS[1].AddressHex
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
@@ -108,8 +110,8 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
-			Depositor: testsuite.SIGNER_ETH_ADDRESS_HEX,
-			Recipient: testsuite.SIGNER_ETH_ADDRESS_HEX,
+			Depositor: testsuite.ETH_KEYS[0].AddressHex,
+			Recipient: testsuite.ETH_KEYS[0].AddressHex,
 			Amount:    depositAmount.String(),
 			Lockup:    "0",
 		}))
@@ -127,7 +129,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
-			Sender: testsuite.SIGNER_ETH_ADDRESS_HEX,
+			Sender: testsuite.ETH_KEYS[0].AddressHex,
 			Data:   msgSendBz,
 		}))
 	})
@@ -151,8 +153,8 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		// Here we want to confirm that even though we're setting an infinite gas meter for MsgIndex, which is the first
 		// transaction in all blocks, the gas meter gets reset for any new transaction.
 
-		from := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[0])
-		to := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[1])
+		from := sdk.MustAccAddressFromBech32(testsuite.SEQ_ADDRESSES[0])
+		to := sdk.MustAccAddressFromBech32(testsuite.SEQ_ADDRESSES[1])
 		amount := sdk.NewCoins(sdk.NewInt64Coin(testsuite.BridgeDenom, 100))
 		msg := banktypes.NewMsgSend(from, to, amount)
 

@@ -36,11 +36,13 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+		from := testsuite.ETH_KEYS[0].AddressHex
+		to := testsuite.ETH_KEYS[1].AddressHex
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: testsuite.ETH_ADDRESSES[0],
+			Sender: testsuite.ETH_KEYS[0].AddressHex,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())

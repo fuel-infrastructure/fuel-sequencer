@@ -28,43 +28,21 @@ func packCall(abiString, method string, args []interface{}) []byte {
 	return abiEncodedCall
 }
 
-// GetEthPrivateKeyHex is expected to return 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-// unless the mnemonic has been changed.
-func (s *E2ETestSuite) GetEthPrivateKeyHex() string {
-	return s.Chain.validators[0].ethereumKey.privateKey
-}
-
-func (s *E2ETestSuite) GetEthPrivateKey() *ecdsa.PrivateKey {
-	privateKey, err := crypto.HexToECDSA(s.GetEthPrivateKeyHex()[2:])
-	s.Require().NoError(err)
-
-	return privateKey
-}
-
-func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
-	publicKey := s.GetEthPrivateKey().Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	s.Require().True(ok, "error casting public key to ECDSA")
-
-	return publicKeyECDSA
-}
-
 func (s *E2ETestSuite) SendEthTransactionToTokenContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransaction(common.HexToAddress(TOKEN_CONTRACT), data)
+	return s.SendEthTransactionFrom(ETH_KEYS[0].PrivateKey, common.HexToAddress(TOKEN_CONTRACT), data)
 }
 
 func (s *E2ETestSuite) SendEthTransactionToSequencerInterfaceContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransaction(common.HexToAddress(SEQUENCER_INTERFACE_CONTRACT), data)
+	return s.SendEthTransactionFrom(ETH_KEYS[0].PrivateKey, common.HexToAddress(SEQUENCER_INTERFACE_CONTRACT), data)
 }
 
 func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransaction(common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
+	return s.SendEthTransactionFrom(ETH_GUARDIAN.PrivateKey, common.HexToAddress(FUEL_STREAM_X_CONTRACT), data)
 }
 
-func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
+func (s *E2ETestSuite) SendEthTransactionFrom(privateKey *ecdsa.PrivateKey, toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
 
-	privateKey := s.GetEthPrivateKey()
-	publicKey := s.GetEthPublicKey()
+	publicKey := privateKey.Public().(*ecdsa.PublicKey)
 
 	fromAddress := crypto.PubkeyToAddress(*publicKey)
 	nonce, err := s.Chain.ethClient.PendingNonceAt(context.Background(), fromAddress)

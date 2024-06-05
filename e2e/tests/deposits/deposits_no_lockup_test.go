@@ -14,10 +14,10 @@ import (
 
 func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
-		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
-		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
-		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		senderAddress := testsuite.ETH_KEYS[0].AddressHex              // The depositor on Ethereum
+		notOwnedReceiverAddress := testsuite.ETH_KEYS[1].AddressHex    // Deposit receiver; not owned by the sender
+		notOwnedReceiverAddressSeq := testsuite.ETH_KEYS[1].AddressSeq // Seq addr corresponding to notOwnedReceiverAddress
+		ownedReceiverAddressSeq := testsuite.ETH_KEYS[0].AddressSeq    // Deposit receiver; owned by the sender
 
 		// --------------------------------------- Account owned by sender
 
@@ -28,9 +28,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
 		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
 		amount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), amount)
+		mintData := testsuite.PackMint(common.HexToAddress(senderAddress), amount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(amount)
@@ -56,8 +56,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
 		// Generate a deposit to an account which is not owned by the sender.
-		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		mintData = testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), amount)
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		mintData = testsuite.PackMint(common.HexToAddress(senderAddress), amount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData = testsuite.PackTransferAndCall(amount)
@@ -80,11 +80,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 
 func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that exist with no vesting and check results", func() {
-		validatorAddress := testsuite.ADDRESSES[0]                 // Address of one of the validators
-		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
-		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
-		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		validatorAddress := testsuite.SEQ_ADDRESSES[0]                 // Address of one of the validators
+		senderAddress := testsuite.ETH_KEYS[0].AddressHex              // The depositor on Ethereum
+		notOwnedReceiverAddress := testsuite.ETH_KEYS[1].AddressHex    // Deposit receiver; not owned by the sender
+		notOwnedReceiverAddressSeq := testsuite.ETH_KEYS[1].AddressSeq // Seq addr corresponding to notOwnedReceiverAddress
+		ownedReceiverAddressSeq := testsuite.ETH_KEYS[0].AddressSeq    // Deposit receiver; owned by the sender
 
 		// --------------------------------------- Account owned by sender
 
@@ -105,9 +105,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		s.Require().Equal(initBalance, balance.Balances)
 
 		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
 		sendAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		mintData := testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(sendAmount)
@@ -142,8 +142,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		s.Require().Equal(initBalance, balance.Balances)
 
 		// Generate a deposit to an account which is not owned by the sender.
-		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		mintData = testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		mintData = testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount) // TODO!
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData = testsuite.PackTransferAndCall(sendAmount)
@@ -167,11 +167,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 
 func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that exist with vesting and check results", func() {
-		validatorAddress := testsuite.ADDRESSES[0]                 // Address of one of the validators
-		senderAddress := testsuite.ETH_ADDRESSES[0]                // The depositor on Ethereum
-		notOwnedReceiverAddress := testsuite.ETH_ADDRESSES[1]      // Deposit receiver; not owned by the sender
-		notOwnedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[1] // Seq addr corresponding to notOwnedReceiverAddress
-		ownedReceiverAddressSeq := testsuite.ETH_ADDRESS_SEQ[0]    // Deposit receiver; owned by the sender
+		validatorAddress := testsuite.SEQ_ADDRESSES[0]                 // Address of one of the validators
+		senderAddress := testsuite.ETH_KEYS[0].AddressHex              // The depositor on Ethereum
+		notOwnedReceiverAddress := testsuite.ETH_KEYS[1].AddressHex    // Deposit receiver; not owned by the sender
+		notOwnedReceiverAddressSeq := testsuite.ETH_KEYS[1].AddressSeq // Seq addr corresponding to notOwnedReceiverAddress
+		ownedReceiverAddressSeq := testsuite.ETH_KEYS[0].AddressSeq    // Deposit receiver; owned by the sender
 
 		// --------------------------------------- Account owned by sender
 
@@ -201,9 +201,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		s.Require().Equal(initVestingAmountCoins, continuousVestingAccount.OriginalVesting)
 
 		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
 		sendAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		mintData := testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(sendAmount)
@@ -244,8 +244,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		s.Require().Equal(initVestingAmountCoins, continuousVestingAccount.OriginalVesting)
 
 		// Generate a deposit to an account which is not owned by the sender.
-		// Note: by default the sender is testsuite.ETH_ADDRESSES[0]
-		mintData = testsuite.PackMint(common.HexToAddress(testsuite.ETH_ADDRESSES[0]), sendAmount)
+		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		mintData = testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount) // TODO!
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData = testsuite.PackTransferAndCall(sendAmount)

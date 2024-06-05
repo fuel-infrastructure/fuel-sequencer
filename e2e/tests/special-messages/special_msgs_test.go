@@ -27,7 +27,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           testsuite.ADDRESSES[0],
+			Authority:           testsuite.SEQ_ADDRESSES[0],
 			NumInjectedEventTxs: 0,
 			NewEthereumBlock:    false,
 			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
@@ -42,9 +42,9 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgDepositFromEthereum
 
 		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: testsuite.ADDRESSES[0],
-			Depositor: testsuite.ADDRESSES[0],
-			Recipient: testsuite.ADDRESSES[1],
+			Authority: testsuite.SEQ_ADDRESSES[0],
+			Depositor: testsuite.SEQ_ADDRESSES[0],
+			Recipient: testsuite.SEQ_ADDRESSES[1],
 			Amount:    "1000",
 			Lockup:    "0",
 		}
@@ -58,7 +58,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgSupplyDelta
 
 		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: testsuite.ADDRESSES[0],
+			Authority: testsuite.SEQ_ADDRESSES[0],
 		}
 		s.Require().NoError(msgSupplyDelta.ValidateBasic())
 
@@ -108,7 +108,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           testsuite.ADDRESSES[0],
+			Authority:           testsuite.SEQ_ADDRESSES[0],
 			NumInjectedEventTxs: 0,
 			NewEthereumBlock:    false,
 			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
@@ -120,9 +120,9 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgDepositFromEthereum
 
 		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: testsuite.ADDRESSES[0],
-			Depositor: testsuite.ADDRESSES[0],
-			Recipient: testsuite.ADDRESSES[1],
+			Authority: testsuite.SEQ_ADDRESSES[0],
+			Depositor: testsuite.SEQ_ADDRESSES[0],
+			Recipient: testsuite.SEQ_ADDRESSES[1],
 			Amount:    "1000",
 			Lockup:    "0",
 		}
@@ -133,7 +133,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgSupplyDelta
 
 		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: testsuite.ADDRESSES[0],
+			Authority: testsuite.SEQ_ADDRESSES[0],
 		}
 		resp, err = s.SubmitMsgs(msgSupplyDelta)
 		s.Require().NoError(err)

@@ -11,7 +11,7 @@ import (
 //
 // Inspired from https://github.com/cosmos/ibc-go/blob/3a04e955f24332da39a86d3968fba7b47710b9e8
 func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
-	sender, err := sdk.AccAddressFromBech32(ADDRESSES[0])
+	sender, err := sdk.AccAddressFromBech32(SEQ_ADDRESSES[0])
 	s.Require().NoError(err)
 
 	msgs := []sdk.Msg{msg}

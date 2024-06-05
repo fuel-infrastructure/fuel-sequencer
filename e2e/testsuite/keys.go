@@ -5,8 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
 const DerivationPath = "m/44'/60'/0'/0/0"
@@ -49,37 +47,4 @@ func createMemoryKeyFromMnemonic(name string, mnemonic string, passphrase string
 	}
 
 	return account, &kb, nil
-}
-
-func ethereumKeyFromMnemonic(mnemonic string) (*ethereumKey, error) {
-	wallet, err := hdwallet.NewFromMnemonic(mnemonic)
-	if err != nil {
-		return nil, err
-	}
-
-	path, err := hdwallet.ParseDerivationPath(DerivationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	account, err := wallet.Derive(path, false)
-	if err != nil {
-		return nil, err
-	}
-
-	privateKeyBytes, err := wallet.PrivateKeyBytes(account)
-	if err != nil {
-		return nil, err
-	}
-
-	publicKeyBytes, err := wallet.PublicKeyBytes(account)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ethereumKey{
-		privateKey: hexutil.Encode(privateKeyBytes),
-		publicKey:  hexutil.Encode(publicKeyBytes),
-		address:    account.Address.String(),
-	}, nil
 }

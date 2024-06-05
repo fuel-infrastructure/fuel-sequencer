@@ -54,9 +54,9 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 				panic(fmt.Errorf("failed to get accounts from any: %w", err))
 			}
 
-			for _, address := range e2etestsuite.ETH_ADDRESS_SEQ {
-				baseAccount := authtypes.NewBaseAccount(sdk.MustAccAddressFromBech32(address), nil, 0, 0)
-				ethOwnedBaseAccount := bridgetypes.NewEthOwnedBaseAccount(baseAccount, address)
+			for _, address := range e2etestsuite.ETH_KEYS {
+				baseAccount := authtypes.NewBaseAccount(sdk.MustAccAddressFromBech32(address.AddressSeq), nil, 0, 0)
+				ethOwnedBaseAccount := bridgetypes.NewEthOwnedBaseAccount(baseAccount, address.AddressSeq)
 				accs = append(accs, ethOwnedBaseAccount)
 			}
 
@@ -79,8 +79,8 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			var bankGenState banktypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenState))
 
-			for _, address := range e2etestsuite.ETH_ADDRESS_SEQ {
-				balances := banktypes.Balance{Address: address, Coins: sdk.NewCoins(e2etestsuite.InitBalanceCoin)}
+			for _, address := range e2etestsuite.ETH_KEYS {
+				balances := banktypes.Balance{Address: address.AddressSeq, Coins: sdk.NewCoins(e2etestsuite.InitBalanceCoin)}
 				bankGenState.Balances = append(bankGenState.Balances, balances)
 				bankGenState.Supply = bankGenState.Supply.Add(balances.Coins...)
 			}

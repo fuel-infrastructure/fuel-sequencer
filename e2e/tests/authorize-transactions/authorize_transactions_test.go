@@ -14,8 +14,8 @@ import (
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 	s.Run("Submit an authorized MsgSend from Ethereum and check execution results on Sequencer", func() {
-		senderAddress := testsuite.ETH_ADDRESSES[0]
-		receiverAddress := testsuite.ETH_ADDRESSES[1]
+		senderAddress := testsuite.ETH_KEYS[0].AddressHex
+		receiverAddress := testsuite.ETH_KEYS[1].AddressHex
 
 		// Make sure that the balance of the sender is as expected.
 		expectedInitBalance := testsuite.InitBalanceCoin
@@ -46,13 +46,13 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOperations() {
 	s.Run("Submit authorized delegation messages from Ethereum and check execution results on Sequencer", func() {
-		validator1Acc, err := sdk.AccAddressFromBech32(testsuite.ADDRESSES[0])
+		validator1Acc, err := sdk.AccAddressFromBech32(testsuite.SEQ_ADDRESSES[0])
 		s.Require().NoError(err)
-		validator2Acc, err := sdk.AccAddressFromBech32(testsuite.ADDRESSES[1])
+		validator2Acc, err := sdk.AccAddressFromBech32(testsuite.SEQ_ADDRESSES[1])
 		s.Require().NoError(err)
 		validator1Address := sdk.ValAddress(validator1Acc.Bytes()).String()
 		validator2Address := sdk.ValAddress(validator2Acc.Bytes()).String()
-		delegatorAddress := testsuite.ETH_ADDRESSES[0]
+		delegatorAddress := testsuite.ETH_KEYS[0].AddressHex
 
 		// Make sure that the delegator's balance is as expected.
 		expectedInitDelegatorBalance := testsuite.InitBalanceCoin
@@ -154,7 +154,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawToEthereum() {
 	s.Run("Submit authorized withdraw to Ethereum from Ethereum and check execution results on Sequencer", func() {
-		withdrawerAddress := testsuite.ETH_ADDRESSES[0]
+		withdrawerAddress := testsuite.ETH_KEYS[0].AddressHex
 
 		// Make sure that the withdrawer's balance is as expected.
 		expectedInitWithdrawerBalance := testsuite.InitBalanceCoin
@@ -181,7 +181,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawT
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 	s.Run("Submit authorized vote from Ethereum and check execution results on Sequencer", func() {
-		voter := testsuite.ETH_ADDRESSES[0]
+		voter := testsuite.ETH_KEYS[0].AddressHex
 
 		// Create a new dummy proposal to vote on
 		consensusParams := s.QueryConsensusParams(s.Ctx())

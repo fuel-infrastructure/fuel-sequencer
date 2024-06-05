@@ -15,8 +15,16 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 )
 
-// RunFuelStreamXProcess runs the FuelStreamX process for 1 proof generation.
+// RunFuelStreamXProcess runs the FuelStreamX process for 1 proof generation with DEFAULT_UPDATE_DELAY_BLOCKS.
 func (s *E2ETestSuite) RunFuelStreamXProcess() (
+	startBlock, targetBlock, headerHash, bridgeCommitment string, txReceipt *ethereumtypes.Receipt,
+) {
+	return s.RunFuelStreamXProcessForBlock(int64(DEFAULT_UPDATE_DELAY_BLOCKS))
+}
+
+// RunFuelStreamXProcessForBlock runs the FuelStreamX process for 1 proof generation with an overridden
+// UPDATE_DELAY_BLOCKS so that we ensure that a specific block is covered by the bridge commitment.
+func (s *E2ETestSuite) RunFuelStreamXProcessForBlock(block int64) (
 	startBlock, targetBlock, headerHash, bridgeCommitment string, txReceipt *ethereumtypes.Receipt,
 ) {
 	s.T().Log("starting fuelstreamx container...")
@@ -33,8 +41,8 @@ func (s *E2ETestSuite) RunFuelStreamXProcess() (
 			fmt.Sprintf("TENDERMINT_RPC_URL=http://%s:26657", s.Chain.validators[0].instanceName()),
 			"CHAIN_ID=31337",
 			fmt.Sprintf("CONTRACT_ADDRESS=%s", FUEL_STREAM_X_CONTRACT),
-			fmt.Sprintf("PRIVATE_KEY=%s", s.GetEthPrivateKeyHex()),
-			fmt.Sprintf("UPDATE_DELAY_BLOCKS=%d", UPDATE_DELAY_BLOCKS),
+			fmt.Sprintf("PRIVATE_KEY=%s", ETH_GUARDIAN.PrivateKeyHex),
+			fmt.Sprintf("UPDATE_DELAY_BLOCKS=%d", block),
 		},
 	}
 
