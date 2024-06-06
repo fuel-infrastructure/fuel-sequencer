@@ -1,22 +1,28 @@
-import json
 import os
 import base64
 
 from utils.classes import FuelSequencerChain
 from utils.constants import *
 
+import logging
+import logging.handlers
 import multiprocessing
 import time
 
 
 # Issue transactions
-def process_block(current_block, order):
-    print("processing block", current_block)
+def process_block(queue, rollup, current_block, topic, order):
+    logger = logging.getLogger(f"{rollup}")
+    handler = logging.handlers.QueueHandler(queue)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
 
-    data = base64.b64encode(os.urandom(DATA_SIZE)).decode('utf-8')
-    SEQ.post_blob(sender, topic_name, f"{order}", data, gas, fee)
+    logger.info(f"processing block {current_block} for rollup {rollup} using topic {topic} order {order}")
 
-    print("finished submitting for block ", current_block)
+    # data = base64.b64encode(os.urandom(DATA_SIZE)).decode('utf-8')
+    # SEQ.post_blob(sender, topic, f"{order}", data, gas, fee)
+
+    logger.info(f"finished processing block {current_block} for rollup {rollup} using topic {topic} order {order}")
 
 
 SEQ_node = "https://rpc-seq.simplystaking.xyz"
@@ -40,15 +46,21 @@ sender = SEQ.address_alice
 gas = "1000000"
 fee = [{"amount": "25000", "denom": SEQ.fee_token}]
 
-BLOCKS_TO_LOAD_TEST = 5
+BLOCKS_TO_LOAD_TEST = 3
 DATA_SIZE = 1024
-# NUMBER_OF_PROCESSES = 4
+NUMBER_OF_PROCESSES = 4
+TOPICS = {}
 
-topic_name = base64.b64encode(os.urandom(32)).decode('utf-8')
+for i in range(NUMBER_OF_PROCESSES):
+    # Topic, Order
+    TOPICS[i] = (base64.b64encode(os.urandom(32)).decode('utf-8'), 0)
 
 if __name__ == "__main__":
+    queue = multiprocessing.Queue()
+    listener = logging.handlers.QueueListener(queue, logging.StreamHandler())
+    listener.start()
+
     starting_block = SEQ.query_last_block_height()
-    order = 0
     processed_blocks = set()
 
     processes = []
@@ -59,11 +71,14 @@ if __name__ == "__main__":
         if current_block not in processed_blocks:
             processed_blocks.add(current_block)
 
-            # Processing
-            process = multiprocessing.Process(target=process_block, args=(current_block, order))
-            process.start()
-            processes.append(process)
-            order += 1
+            # Issue a thread (mimicking a rollup)
+            for i in range(NUMBER_OF_PROCESSES):
+                # Processing
+                process = multiprocessing.Process(target=process_block,
+                                                  args=(queue, i, current_block, TOPICS[i][0], TOPICS[i][1]))
+                process.start()
+                processes.append(process)
+                TOPICS[i] = (TOPICS[i][0], TOPICS[i][1] + 1)
 
             # Stop submitting txes
             if current_block >= starting_block + BLOCKS_TO_LOAD_TEST:
@@ -76,4 +91,8 @@ if __name__ == "__main__":
     for process in processes:
         process.join()
 
-    print("Finished")
+    print("Finished issueing txes")
+
+    # Monitoring
+    for height in sorted(processed_blocks):
+        print(SEQ.query_block(height))

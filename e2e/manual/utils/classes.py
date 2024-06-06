@@ -10,6 +10,8 @@ from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 
+import tempfile
+
 
 class CosmosChain:
     def __init__(
@@ -639,12 +641,14 @@ class FuelSequencerChain(CosmosChain):
             fee: List
     ):
         msg = get_msg_post_blob(sender, topic, order, data, gas, fee)
-        temp_json_file = "temp-msg.json"
-        with open(temp_json_file, 'w') as f:
-            json.dump(msg, f)
 
-        self.sign(temp_json_file)
-        return self.broadcast(temp_json_file)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_json_file = f"{tmp_dir}/temp-{topic}-{order}.json"
+            with open(temp_json_file, 'w') as f:
+                json.dump(msg, f)
+
+            self.sign(temp_json_file)
+            return self.broadcast(temp_json_file)
 
 
 class EthereumChain(Web3):
