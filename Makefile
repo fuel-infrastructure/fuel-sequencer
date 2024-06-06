@@ -5,8 +5,11 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-ETH_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deploy"
-ETH_DOCKER_CONTAINER_NAME := "ethereum"
+ETH_NODE_DOCKER_IMAGE_NAME := "ghcr.io/foundry-rs/foundry:nightly"
+ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
+
+ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
+ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME := "ethereum-deployment"
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
@@ -318,7 +321,7 @@ test-unit:
 
 test-e2e: \
 	check-docker-image-exists \
-	check-eth-docker-image-exists \
+	check-eth-deployment-docker-image-exists \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
@@ -395,21 +398,23 @@ follow-docker-logs:
 ###                                   E2E                                   ###
 ###############################################################################
 
-build-all-docker-images: build-docker-image build-eth-docker-image
+build-all-docker-images: \
+	build-docker-image \
+	build-eth-deployment-docker-image
 
-check-eth-docker-image-exists:
-ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
-	@echo "❌ Docker image ${ETH_DOCKER_IMAGE_NAME}:latest not found";
+check-eth-deployment-docker-image-exists:
+ifeq (,$(shell docker images -q ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} 2> /dev/null))
+	@echo "❌ Docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} not found";
 	@exit 1;
 else
-	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
+	@echo "✅ Found docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME}"
 endif
 
-build-eth-docker-image: .env
+build-eth-deployment-docker-image: .env
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
 	@export $$(cat .env | xargs) && docker build \
-		-t $(ETH_DOCKER_IMAGE_NAME):latest \
+		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
 		./e2e/fuel-rollup/
@@ -417,30 +422,31 @@ build-eth-docker-image: .env
 	@git submodule update --remote e2e/fuel-rollup
 	@echo "✅ Finished!"
 
-run-eth-docker-container: check-eth-docker-image-exists
+run-eth-docker-container:
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
-    		--name $(ETH_DOCKER_CONTAINER_NAME) \
+    		--name $(ETH_NODE_DOCKER_CONTAINER_NAME) \
 			-p 8545:8545 \
-    		$(ETH_DOCKER_IMAGE_NAME):latest
+    		$(ETH_NODE_DOCKER_IMAGE_NAME) \
+    		"anvil --host 0.0.0.0 --slots-in-an-epoch 1"
 
 start-eth-docker-container:
 	@echo "🤖 Starting Docker container..."
-	@docker start $(ETH_DOCKER_CONTAINER_NAME)
+	@docker start $(ETH_NODE_DOCKER_CONTAINER_NAME)
 	@echo "✅ Started Docker container!"
 
 stop-eth-docker-container:
 	@echo "🤖 Stopping Docker container..."
-	@docker stop $(ETH_DOCKER_CONTAINER_NAME)
+	@docker stop $(ETH_NODE_DOCKER_CONTAINER_NAME)
 	@echo "✅ Stopped Docker container!"
 
 remove-eth-docker-container:
 	@echo "🤖 Removing Docker container..."
-	@docker rm -v $(ETH_DOCKER_CONTAINER_NAME)
+	@docker rm -v $(ETH_NODE_DOCKER_CONTAINER_NAME)
 	@echo "✅ Removed Docker container!"
 
 follow-eth-docker-logs:
-	@docker logs -f $(ETH_DOCKER_CONTAINER_NAME)
+	@docker logs -f $(ETH_NODE_DOCKER_CONTAINER_NAME)
 
 test-e2e-basic:
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
@@ -466,14 +472,16 @@ clean-e2e:
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
-	@docker ps -aq --filter "name=ethereum" | xargs -r docker stop
+	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
+	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
 
 	@echo "🧹 Removing Docker containers..."
 	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
-	@docker ps -aq --filter "name=ethereum" | xargs -r docker rm
+	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker rm
+	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker rm
 
 	@echo "🧹 Pruning Docker networks..."
 	@docker network prune -f

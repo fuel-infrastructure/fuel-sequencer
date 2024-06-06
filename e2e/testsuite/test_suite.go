@@ -55,8 +55,8 @@ const (
 	ethereumNodeDockerImageTag  = "nightly"
 	// TODO? ethereumNodeBlockTimeSeconds = 3
 
-	ethereumDeployDockerImageRepo = "fuel-rollup/ethereum-deploy"
-	ethereumDeployDockerImageTag  = "latest"
+	ethereumDeploymentDockerImageRepo = "fuel-rollup/ethereum-deployment"
+	ethereumDeploymentDockerImageTag  = "latest"
 
 	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
 	blocksToWaitForGovProposalToPass = uint64(25)
@@ -124,9 +124,9 @@ type E2ETestSuite struct {
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
-	ethNodeResource   *dockertest.Resource
-	ethDeployResource *dockertest.Resource
-	valResources      []*dockertest.Resource
+	ethNodeResource       *dockertest.Resource
+	ethDeploymentResource *dockertest.Resource
+	valResources          []*dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -171,7 +171,7 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initFuelSequencerNodes(MNEMONICS)
 
 	// run Ethereum node
-	s.runEthNodeContainer()
+	s.runEthereumNodeContainer()
 
 	// run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
@@ -179,7 +179,7 @@ func (s *E2ETestSuite) SetupTest() {
 	s.runFuelSequencerValidators()
 
 	// deploy Ethereum contracts
-	s.runEthDeployContainer()
+	s.runEthereumDeploymentContainer()
 
 	// set up clients
 	s.initGRPCClients()
@@ -233,7 +233,7 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
-	s.Require().NoError(s.dockerPool.Purge(s.ethDeployResource))
+	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
@@ -268,7 +268,7 @@ func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
 	}
 }
 
-func (s *E2ETestSuite) runEthNodeContainer() {
+func (s *E2ETestSuite) runEthereumNodeContainer() {
 	s.T().Log("starting Ethereum node container...")
 	var err error
 	runOpts := dockertest.RunOptions{
@@ -289,7 +289,7 @@ func (s *E2ETestSuite) runEthNodeContainer() {
 			"--mnemonic", MNEMONICS[0],
 			"--accounts", "20",
 			"--slots-in-an-epoch", "1",
-			// TODO? "--block-time", fmt.Sprintf("%d", ethereumNodeBlockTimeSeconds),
+			// Note: do not set --block-time since this is overridden by the deployment scripts.
 		},
 	}
 
@@ -333,13 +333,13 @@ func (s *E2ETestSuite) runEthNodeContainer() {
 	s.T().Logf("started Ethereum node container: %s", s.ethNodeResource.Container.ID)
 }
 
-func (s *E2ETestSuite) runEthDeployContainer() {
-	s.T().Log("starting Ethereum deploy container...")
+func (s *E2ETestSuite) runEthereumDeploymentContainer() {
+	s.T().Log("starting Ethereum deployment container to deploy contracts...")
 	var err error
 	runOpts := dockertest.RunOptions{
-		Name:       "ethereum-deploy",
-		Repository: ethereumDeployDockerImageRepo,
-		Tag:        ethereumDeployDockerImageTag,
+		Name:       "ethereum-deployment",
+		Repository: ethereumDeploymentDockerImageRepo,
+		Tag:        ethereumDeploymentDockerImageTag,
 		NetworkID:  s.dockerNetwork.Network.ID,
 		Env: []string{
 			"RPC_URL=http://ethereum-node:8545",
@@ -347,7 +347,7 @@ func (s *E2ETestSuite) runEthDeployContainer() {
 		Cmd: []string{"npx", "hardhat", "deploy", "--network", "localhost", "--reset"},
 	}
 
-	s.ethDeployResource, err = s.dockerPool.RunWithOptions(
+	s.ethDeploymentResource, err = s.dockerPool.RunWithOptions(
 		&runOpts,
 		noRestart,
 	)
@@ -357,7 +357,7 @@ func (s *E2ETestSuite) runEthDeployContainer() {
 	s.T().Logf("waiting for Ethereum contracts to be deployed...")
 	waitContext, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	_, err = s.dockerPool.Client.WaitContainerWithContext(s.ethDeployResource.Container.ID, waitContext)
+	_, err = s.dockerPool.Client.WaitContainerWithContext(s.ethDeploymentResource.Container.ID, waitContext)
 	s.Require().NoError(err)
 }
 
