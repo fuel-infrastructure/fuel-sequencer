@@ -55,14 +55,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Generate a deposit to an account which is not owned by the sender.
+		// TODO: generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_KEYS[0]
-		mintData = testsuite.PackMint(common.HexToAddress(senderAddress), amount)
-		_, err = s.SendEthTransactionToTokenContract(mintData)
-		s.Require().NoError(err)
-		depositData = testsuite.PackTransferAndCall(amount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
-		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
 		s.PollForBalance(s.Ctx(), 10, notOwnedReceiverAddress, amountCoin)
@@ -72,8 +66,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		s.Require().NoError(err)
 		s.Require().Equal(notOwnedReceiverAddressSeq, baseAccount.Address)
 
-		// Try querying the account and assert failure to make sure that the account is not an EthOwnedBaseAccount
-		_, err = s.QueryEthOwnedBaseAccount(s.Ctx(), notOwnedReceiverAddress)
+		// Try querying the account as a vesting account and assert failure to make sure that no vesting details were
+		// stored
+		_, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().Error(err)
 	})
 }
@@ -141,14 +136,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		s.Require().NoError(err)
 		s.Require().Equal(initBalance, balance.Balances)
 
-		// Generate a deposit to an account which is not owned by the sender.
+		// TODO: generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_KEYS[0]
-		mintData = testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount) // TODO!
-		_, err = s.SendEthTransactionToTokenContract(mintData)
-		s.Require().NoError(err)
-		depositData = testsuite.PackTransferAndCall(sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
-		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly deposited tokens.
@@ -159,8 +148,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		s.Require().NoError(err)
 		s.Require().Equal(notOwnedReceiverAddressSeq, baseAccount.Address)
 
-		// Try querying the account and assert failure to make sure that the account is not an EthOwnedBaseAccount
-		_, err = s.QueryEthOwnedBaseAccount(s.Ctx(), notOwnedReceiverAddress)
+		// Try querying the account as a vesting account and assert failure to make sure that no vesting details were
+		// stored
+		_, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), notOwnedReceiverAddress)
 		s.Require().Error(err)
 	})
 }
@@ -243,14 +233,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		s.Require().Equal(initVestingEndTime, continuousVestingAccount.EndTime)
 		s.Require().Equal(initVestingAmountCoins, continuousVestingAccount.OriginalVesting)
 
-		// Generate a deposit to an account which is not owned by the sender.
+		// TODO: generate a deposit to an account which is not owned by the sender.
 		// Note: by default the sender is testsuite.ETH_KEYS[0]
-		mintData = testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount) // TODO!
-		_, err = s.SendEthTransactionToTokenContract(mintData)
-		s.Require().NoError(err)
-		depositData = testsuite.PackTransferAndCall(sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
-		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// vested balance and the newly deposited tokens.
