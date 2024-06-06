@@ -468,7 +468,6 @@ test-e2e-special-messages:
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
-	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
@@ -476,7 +475,6 @@ clean-e2e:
 	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
 
 	@echo "🧹 Removing Docker containers..."
-	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
