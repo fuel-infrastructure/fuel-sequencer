@@ -62,7 +62,7 @@ func (s *E2ETestSuite) GetDataForUpdateCommitHeaderRange(
 	return
 }
 
-func (s *E2ETestSuite) GetDataForInclusionProof(
+func (s *E2ETestSuite) GetDataForBridgeCommitmentInclusionProof(
 	ctx context.Context, height, txIndex int64, start, end uint64,
 ) (
 	bcLeaf BridgeCommitmentLeafForEthereum,

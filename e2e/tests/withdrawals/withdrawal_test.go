@@ -83,7 +83,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
 		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
 		txIndex := int64(1) // second tx
-		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof := s.GetDataForInclusionProof(
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof := s.GetDataForBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
 		)
 
@@ -200,7 +200,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
 		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
 		txIndex := int64(1) // second tx
-		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof := s.GetDataForInclusionProof(
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof := s.GetDataForBridgeCommitmentInclusionProof(
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
 		)
 
