@@ -640,16 +640,15 @@ class FuelSequencerChain(CosmosChain):
             data: str,
             gas: str,
             fee: List,
-            dir: str
+            file_location: str
     ):
         msg = get_msg_post_blob(sender, topic, order, data, gas, fee)
 
-        temp_json_file = os.path.join(dir, f'temp-{topic}-{order}.json')
-        with open(temp_json_file, 'w') as f:
+        with open(file_location, 'w') as f:
             json.dump(msg, f)
 
-        self.sign(temp_json_file)
-        return self.broadcast(temp_json_file)
+        self.sign(file_location)
+        return self.broadcast(file_location)
 
 
 class EthereumChain(Web3):
