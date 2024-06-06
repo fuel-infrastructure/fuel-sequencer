@@ -1,7 +1,6 @@
 package withdrawals_test
 
 import (
-	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -9,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -31,22 +29,18 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		s.Require().NoError(err)
 		s.Require().Zero(withdrawalResponse.Code)
 
-		// The LastResultsHash is generated at the block right after the withdrawal
+		// The LastResultsHash is generated at the block right after the withdrawal.
+		// We wait two Sequencer block to ensure that we can capture it in the Bridge Commitment.
 		lastResultsHashHeight := withdrawalResponse.Height + 1
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, 10*time.Second))
 
-		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
-		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
-
-		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcess()
-		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
+		// Submit bridge commitment to FuelStreamX contract
+		startBlock := uint64(1)
+		endBlock := uint64(lastResultsHashHeight + 1)
+		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
+		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
+		receipt, err := s.SendEthTransactionToMockEthereumContract(data)
 		s.Require().NoError(err)
-		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
-		s.Require().NoError(err)
-
-		// Make sure the LastResultsHash due to the transaction is included in the BridgeCommitment.
-		// Since the target block is exclusive, it has to be > not >=.
-		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
 		// The two events are: HeadUpdate, DataCommitmentStored
 		s.Require().Len(receipt.Logs, 2)
@@ -64,7 +58,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Check DataCommitmentStored event
 
-		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, targetBlock)
+		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, endBlock)
 
 		actualStartBlock, err := strconv.ParseUint(eventTopic1[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
@@ -73,7 +67,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
 		s.Require().EqualValues(startBlock, actualStartBlock)
-		s.Require().EqualValues(targetBlock, actualTargetBlock)
+		s.Require().EqualValues(endBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
 		var event testsuite.DataCommitmentStoredEvent
@@ -88,53 +82,14 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Get BridgeCommitment inclusion proof
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
 		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
-
 		txIndex := int64(1) // second tx
-		bridgeCommitmentInclusionProof := s.QueryBridgeCommitmentInclusionProof(
-			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof := s.GetDataForInclusionProof(
+			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
 		)
-		s.Require().NoError(err)
-
-		// Construct BridgeCommitment leaf proof from the inclusion proof data.
-
-		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentProof
-		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
-			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
-			NumLeaves: big.NewInt(bridgeCommitmentMerkleProof.Total),
-		}
-
-		// Construct tx result proof from the inclusion proof data.
-
-		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsProof
-		txResultProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
-			Key:       big.NewInt(lastResultsMerkleProof.Index),
-			NumLeaves: big.NewInt(lastResultsMerkleProof.Total),
-		}
-
-		// Construct BridgeCommitmentLeaf from the inclusion proof data.
-
-		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
-			Height:      big.NewInt(int64(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.Height)),
-			ResultsHash: common.BytesToHash(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash),
-		}
-
-		// Check that the proof is able to verify the marshalled tx result.
-
-		lastResultsHash := bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash
-		txResultMarshalled := bridgeCommitmentInclusionProof.TxResultMarshalled
-		err = lastResultsMerkleProof.ToMerkleProof().Verify(lastResultsHash, txResultMarshalled)
-		s.Require().NoError(err)
 
 		// Submit transaction to Ethereum to process the withdrawal.
-
-		data := testsuite.PackProcessSequencerWithdrawalMessage(
-			event.ProofNonce,
-			bridgeCommitmentLeaf,
-			bridgeCommitmentLeafProof,
-			txResultMarshalled,
-			txResultProof,
+		data = testsuite.PackProcessSequencerWithdrawalMessage(
+			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
 		)
 		_, err = s.SendEthTransactionToMockEthereumContract(data)
 		s.Require().NoError(err)
@@ -193,19 +148,16 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		}
 		s.Require().True(found)
 
-		// We need to wait some blocks so that we're at a height that is greater than the operator UPDATE_DELAY_BLOCKS.
-		// Note: UPDATE_DELAY_BLOCKS has to be greater than the height at which we submitted the withdrawal.
-		err = s.WaitUntilSequencerBlock(s.Ctx(), testsuite.UPDATE_DELAY_BLOCKS+1, time.Minute)
+		// We wait two Sequencer block to ensure that we can capture the last results hash in the Bridge Commitment.
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, 10*time.Second))
 
-		startBlockString, targetBlockString, _, _, receipt := s.RunFuelStreamXProcess()
-		startBlock, err := strconv.ParseUint(startBlockString, 10, 64)
+		// Submit bridge commitment to FuelStreamX contract
+		startBlock := uint64(1)
+		endBlock := uint64(lastResultsHashHeight + 1)
+		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
+		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
+		receipt, err := s.SendEthTransactionToMockEthereumContract(data)
 		s.Require().NoError(err)
-		targetBlock, err := strconv.ParseUint(targetBlockString, 10, 64)
-		s.Require().NoError(err)
-
-		// Make sure the LastResultsHash due to the transaction is included in the BridgeCommitment.
-		// Since the target block is exclusive, it has to be > not >=.
-		s.Require().Greater(targetBlock, uint64(lastResultsHashHeight))
 
 		// The two events are: HeadUpdate, DataCommitmentStored
 		s.Require().Len(receipt.Logs, 2)
@@ -223,7 +175,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// Check DataCommitmentStored event
 
-		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, targetBlock)
+		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, endBlock)
 
 		actualStartBlock, err := strconv.ParseUint(eventTopic1[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
@@ -232,7 +184,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
 		s.Require().EqualValues(startBlock, actualStartBlock)
-		s.Require().EqualValues(targetBlock, actualTargetBlock)
+		s.Require().EqualValues(endBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
 		var event testsuite.DataCommitmentStoredEvent
@@ -247,52 +199,14 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Get BridgeCommitment inclusion proof
 		// - The 'last result hash' incorporating the withdrawal result is at h+1.
 		// - The withdrawal is assumed to be the second transaction in the block, following the MsgIndex.
-
 		txIndex := int64(1) // second tx
-		bridgeCommitmentInclusionProof := s.QueryBridgeCommitmentInclusionProof(
-			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, targetBlock,
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof := s.GetDataForInclusionProof(
+			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
 		)
 
-		// Construct BridgeCommitment leaf proof from the inclusion proof data.
-
-		bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentProof
-		bridgeCommitmentLeafProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
-			Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
-			NumLeaves: big.NewInt(bridgeCommitmentMerkleProof.Total),
-		}
-
-		// Construct tx result proof from the inclusion proof data.
-
-		lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsProof
-		txResultProof := testsuite.BinaryMerkleProofForEthereum{
-			SideNodes: testsuite.AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
-			Key:       big.NewInt(lastResultsMerkleProof.Index),
-			NumLeaves: big.NewInt(lastResultsMerkleProof.Total),
-		}
-
-		// Construct BridgeCommitmentLeaf from the inclusion proof data.
-
-		bridgeCommitmentLeaf := testsuite.BridgeCommitmentLeafForEthereum{
-			Height:      big.NewInt(int64(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.Height)),
-			ResultsHash: common.BytesToHash(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash),
-		}
-
-		// Check that the proof is able to verify the marshalled tx result.
-
-		lastResultsHash := bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash
-		txResultMarshalled := bridgeCommitmentInclusionProof.TxResultMarshalled
-		err = lastResultsMerkleProof.ToMerkleProof().Verify(lastResultsHash, txResultMarshalled)
-		s.Require().NoError(err)
-
 		// Submit transaction to Ethereum to process the withdrawal.
-
-		data := testsuite.PackProcessSequencerWithdrawalMessage(
-			event.ProofNonce,
-			bridgeCommitmentLeaf,
-			bridgeCommitmentLeafProof,
-			txResultMarshalled,
-			txResultProof,
+		data = testsuite.PackProcessSequencerWithdrawalMessage(
+			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
 		)
 		_, err = s.SendEthTransactionToMockEthereumContract(data)
 		s.Require().NoError(err)
