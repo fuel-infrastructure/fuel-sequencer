@@ -61,7 +61,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		endBlock := uint64(lastResultsHashHeight + 1)
 		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
 		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
-		receipt, err := s.SendEthTransactionToMockEthereumContract(data)
+		receipt, err := s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 
 		// The two events are: HeadUpdate, DataCommitmentStored
@@ -197,7 +197,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		endBlock := uint64(lastResultsHashHeight + 1)
 		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
 		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
-		receipt, err := s.SendEthTransactionToMockEthereumContract(data)
+		receipt, err := s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 
 		// The two events are: HeadUpdate, DataCommitmentStored
@@ -249,7 +249,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		data = testsuite.PackProcessSequencerWithdrawalMessage(
 			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
 		)
-		_, err = s.SendEthTransactionToMockEthereumContract(data)
+		_, err = s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 	})
 }
