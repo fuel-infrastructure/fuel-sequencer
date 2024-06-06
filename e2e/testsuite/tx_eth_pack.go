@@ -86,3 +86,19 @@ func PackUpdateGenesisStateMessage(
 		},
 	)
 }
+
+func PackUpdateCommitHeaderRangeMessage(
+	targetBlock uint64,
+	targetHeader common.Hash,
+	bridgeCommitment common.Hash,
+) []byte {
+	return packCall(
+		sidecartypes.FuelStreamXContractABI,
+		sidecartypes.UpdateCommitHeaderRangeFunctionName,
+		[]interface{}{
+			targetBlock,
+			targetHeader,
+			bridgeCommitment,
+		},
+	)
+}
