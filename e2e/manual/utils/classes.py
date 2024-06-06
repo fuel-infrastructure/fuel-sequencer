@@ -3,6 +3,7 @@ import json
 import subprocess
 import time
 from typing import List, Optional, Dict, Union, Type
+import os
 
 import requests
 from raw_msgs.msg_post_blob import get_msg_post_blob, get_msg_post_blob
@@ -638,17 +639,17 @@ class FuelSequencerChain(CosmosChain):
             order: str,
             data: str,
             gas: str,
-            fee: List
+            fee: List,
+            dir: str
     ):
         msg = get_msg_post_blob(sender, topic, order, data, gas, fee)
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            temp_json_file = f"{tmp_dir}/temp-{topic}-{order}.json"
-            with open(temp_json_file, 'w') as f:
-                json.dump(msg, f)
+        temp_json_file = os.path.join(dir, f'temp-{topic}-{order}.json')
+        with open(temp_json_file, 'w') as f:
+            json.dump(msg, f)
 
-            self.sign(temp_json_file)
-            return self.broadcast(temp_json_file)
+        self.sign(temp_json_file)
+        return self.broadcast(temp_json_file)
 
 
 class EthereumChain(Web3):

@@ -1,5 +1,7 @@
 import os
 import base64
+import json
+import sys
 
 from utils.classes import FuelSequencerChain
 from utils.constants import *
@@ -19,8 +21,8 @@ def process_block(queue, rollup, current_block, topic, order):
 
     logger.info(f"processing block {current_block} for rollup {rollup} using topic {topic} order {order}")
 
-    # data = base64.b64encode(os.urandom(DATA_SIZE)).decode('utf-8')
-    # SEQ.post_blob(sender, topic, f"{order}", data, gas, fee)
+    data = base64.b64encode(os.urandom(DATA_SIZE)).decode('utf-8')
+    SEQ.post_blob(sender, topic, f"{order}", data, gas, fee, f"{os.path.dirname(os.path.abspath(__file__))}/txs")
 
     logger.info(f"finished processing block {current_block} for rollup {rollup} using topic {topic} order {order}")
 
@@ -48,7 +50,7 @@ fee = [{"amount": "25000", "denom": SEQ.fee_token}]
 
 BLOCKS_TO_LOAD_TEST = 3
 DATA_SIZE = 1024
-NUMBER_OF_PROCESSES = 4
+NUMBER_OF_PROCESSES = 1
 TOPICS = {}
 
 for i in range(NUMBER_OF_PROCESSES):
@@ -80,7 +82,7 @@ if __name__ == "__main__":
                 processes.append(process)
                 TOPICS[i] = (TOPICS[i][0], TOPICS[i][1] + 1)
 
-            # Stop submitting txes
+            # Stop submitting txs
             if current_block >= starting_block + BLOCKS_TO_LOAD_TEST:
                 break
 
@@ -91,8 +93,15 @@ if __name__ == "__main__":
     for process in processes:
         process.join()
 
-    print("Finished issueing txes")
+    print("Finished issuing txs")
+
+    # Wait until transactions are included
+    time.sleep(12)
+    ending_block = SEQ.query_last_block_height()
 
     # Monitoring
-    for height in sorted(processed_blocks):
-        print(SEQ.query_block(height))
+    for height in range(starting_block, ending_block):
+        block = json.loads(SEQ.query_block(height))
+        txs = block.get('data', {}).get('txs', [])
+
+        print(f"block {height} had size {sys.getsizeof(txs)} bytes")
