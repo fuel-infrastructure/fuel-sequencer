@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
-	"time"
 
 	"github.com/cometbft/cometbft/crypto/merkle"
-	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	libclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/ethereum/go-ethereum/common"
+	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type BridgeCommitmentLeafForEthereum struct {
@@ -34,33 +35,34 @@ func AuntsToHashes(proof merkle.Proof) (hashes []common.Hash) {
 
 func TestBridgeCommitmentInclusionProof(t *testing.T) {
 
-	addr := "https://rpc-seq.simplystaking.xyz"
-	height := int64(89290)
-	txIndex := int64(1)
-	start := uint64(89142)
-	end := uint64(89364)
-	proofNonce := 98
+	addr := "localhost:9090"
+	height := int64(5)
+	txIndex := int64(0)
+	start := uint64(1)
+	end := uint64(10)
+	proofNonce := 0
 
-	httpClient, err := libclient.DefaultHTTPClient(addr)
-	if err != nil {
-		panic(err)
+	ctx := context.Background()
+
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	require.NoError(t, err)
+	client := commitmentstypes.NewQueryClient(conn)
+
+	req := &commitmentstypes.QueryBridgeCommitmentInclusionProofRequest{
+		Height:  height,
+		TxIndex: txIndex,
+		Start:   start,
+		End:     end,
 	}
 
-	httpClient.Timeout = 10 * time.Second
-	rpcClient, err := rpchttp.NewWithClient(addr, "/websocket", httpClient)
-	if err != nil {
-		panic(err)
-	}
-
-	ctx := context.TODO()
-	bridgeCommitmentInclusionProof, err := rpcClient.BridgeCommitmentInclusionProof(ctx, height, txIndex, start, end)
+	bridgeCommitmentInclusionProof, err := client.BridgeCommitmentInclusionProof(ctx, req)
 	if err != nil {
 		panic(err)
 	}
 
 	// Construct BridgeCommitment leaf proof from the inclusion proof data.
 
-	bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentMerkleProof
+	bridgeCommitmentMerkleProof := bridgeCommitmentInclusionProof.BridgeCommitmentProof
 	bridgeCommitmentLeafProof := BinaryMerkleProofForEthereum{
 		SideNodes: AuntsToHashes(*bridgeCommitmentMerkleProof.ToMerkleProof()),
 		Key:       big.NewInt(bridgeCommitmentMerkleProof.Index),
@@ -69,7 +71,7 @@ func TestBridgeCommitmentInclusionProof(t *testing.T) {
 
 	// Construct tx result proof from the inclusion proof data.
 
-	lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsMerkleProof
+	lastResultsMerkleProof := bridgeCommitmentInclusionProof.LastResultsProof
 	txResultProof := BinaryMerkleProofForEthereum{
 		SideNodes: AuntsToHashes(*lastResultsMerkleProof.ToMerkleProof()),
 		Key:       big.NewInt(lastResultsMerkleProof.Index),

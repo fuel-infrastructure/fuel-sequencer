@@ -28,6 +28,7 @@ const (
 
 	// FuelStreamX function names
 
-	ProcessSequencerWithdrawalMessageFunctionName = "processSequencerWithdrawalMessage"
 	UpdateGenesisStateFunctionName                = "updateGenesisState"
+	UpdateCommitHeaderRangeFunctionName           = "updateCommitHeaderRange"
+	ProcessSequencerWithdrawalMessageFunctionName = "processSequencerWithdrawalMessage"
 )

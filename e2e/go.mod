@@ -3,8 +3,6 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.21
 
 replace (
-	// Include BridgeCommitment queries
-	github.com/cometbft/cometbft => github.com/fuel-infrastructure/cometbft v0.38.6-alpha-2
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
