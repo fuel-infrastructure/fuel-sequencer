@@ -106,6 +106,7 @@ func init() {
 	TestCdc = cdc
 
 	addressCdc = appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix))
+	TestAddressCdc = addressCdc
 }
 
 type chain struct {

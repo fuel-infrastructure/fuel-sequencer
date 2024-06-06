@@ -276,9 +276,6 @@ func (s *E2ETestSuite) runEthereumNodeContainer() {
 		Repository: ethereumNodeDockerImageRepo,
 		Tag:        ethereumNodeDockerImageTag,
 		NetworkID:  s.dockerNetwork.Network.ID,
-		Env:        []string{
-			// fmt.Sprintf("MNEMONIC="), // this can be overridden
-		},
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"8545/tcp": {{HostIP: "", HostPort: "8545"}},
 		},

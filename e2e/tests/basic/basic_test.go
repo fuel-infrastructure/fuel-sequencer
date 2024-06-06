@@ -111,7 +111,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().NoError(err)
 		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
 			Depositor: testsuite.ETH_KEYS[0].AddressHex,
-			Recipient: testsuite.ETH_KEYS[0].AddressHex,
+			Recipient: testsuite.ETH_KEYS[1].AddressHex,
 			Amount:    depositAmount.String(),
 			Lockup:    "0",
 		}))
