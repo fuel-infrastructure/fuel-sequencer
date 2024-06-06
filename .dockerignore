@@ -25,5 +25,9 @@ vue/dist
 # Ignite config
 config.yml
 
+# Testing
+e2e
+testutil
+
 # Markdown files
 *.md
