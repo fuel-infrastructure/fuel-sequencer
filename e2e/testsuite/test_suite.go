@@ -79,14 +79,14 @@ var (
 		"gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage",
 	}
 
-	// SEQ_ADDRESSES are the FuelSequencer addresses derived from the above MNEMONICS.
-	SEQ_ADDRESSES = []string{
-		"fuelsequencer15yk64u7zc9g9k2yr2wmzeva5qgwxps6y3z4xeu", // first validator
-		"fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm", // alice
-		"fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m", // bob
-	}
+	// GUARDIAN_PRIVATE_KEY is the private key of the address assigned as the 'guardian'.
+	GUARDIAN_PRIVATE_KEY = "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e"
 
-	// ETH_KEYS are the Ethereum wallets derived from the above MNEMONICS, with their FuelSequencer equivalents.
+	// SEQ_KEYS are the FuelSequencer wallets derived from the above MNEMONICS, with hex versions of the addresses.
+	// This is filled-in later on, once the address codec has been initialised.
+	SEQ_KEYS []*SequencerKey
+
+	// ETH_KEYS are the Ethereum wallets derived from the above MNEMONICS, with Bech32 versions of the addresses.
 	// This is filled-in later on, once the address codec has been initialised.
 	ETH_KEYS []*EthereumKey
 
@@ -155,16 +155,23 @@ func (s *E2ETestSuite) SetupTest() {
 
 	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.dataDir)
 
-	// Print the Ethereum keys with the hex and bech32 representation of the addresses.
-	ETH_KEYS = []*EthereumKey{
-		mustNewEthereumKeyFromMnemonic(MNEMONICS[0]),
-		mustNewEthereumKeyFromMnemonic(MNEMONICS[1]),
-		mustNewEthereumKeyFromMnemonic(MNEMONICS[2]),
+	// Derive and print the Ethereum keys with the hex and bech32 representation of the addresses.
+	for _, mnemonic := range MNEMONICS {
+		ETH_KEYS = append(ETH_KEYS, mustNewEthereumKeyFromMnemonic(mnemonic))
 	}
-	ETH_GUARDIAN = mustNewEthereumKeyFromPrivateKey("df57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e")
+	ETH_GUARDIAN = mustNewEthereumKeyFromPrivateKey(GUARDIAN_PRIVATE_KEY[2:])
 	s.T().Logf("ethereum keys:")
 	for _, key := range append(ETH_KEYS, ETH_GUARDIAN) {
 		s.T().Logf("\tpriv:%s hex:%s seq:%s", key.PrivateKeyHex, key.AddressHex, key.AddressSeq)
+	}
+
+	// Derive and print the Sequencer keys with the hex and bech32 representation of the addresses.
+	for _, mnemonic := range MNEMONICS {
+		SEQ_KEYS = append(SEQ_KEYS, mustNewSequencerKeyFromMnemonic(mnemonic))
+	}
+	s.T().Logf("sequencer keys:")
+	for _, key := range SEQ_KEYS {
+		s.T().Logf("\tacc:%s val:%s hex:%s", key.AddressSeq, key.ValAddressSeq, key.AddressHex)
 	}
 
 	// initialization

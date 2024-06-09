@@ -75,7 +75,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 
 func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that exist with no vesting and check results", func() {
-		validatorAddress := testsuite.SEQ_ADDRESSES[0]                 // Address of one of the validators
+		validatorAddress := testsuite.SEQ_KEYS[0].AddressSeq           // Address of one of the validators
 		senderAddress := testsuite.ETH_KEYS[0].AddressHex              // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_KEYS[1].AddressHex    // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_KEYS[1].AddressSeq // Seq addr corresponding to notOwnedReceiverAddress
@@ -157,7 +157,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 
 func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLockup() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that exist with vesting and check results", func() {
-		validatorAddress := testsuite.SEQ_ADDRESSES[0]                 // Address of one of the validators
+		validatorAddress := testsuite.SEQ_KEYS[0].AddressSeq           // Address of one of the validators
 		senderAddress := testsuite.ETH_KEYS[0].AddressHex              // The depositor on Ethereum
 		notOwnedReceiverAddress := testsuite.ETH_KEYS[1].AddressHex    // Deposit receiver; not owned by the sender
 		notOwnedReceiverAddressSeq := testsuite.ETH_KEYS[1].AddressSeq // Seq addr corresponding to notOwnedReceiverAddress

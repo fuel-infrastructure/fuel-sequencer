@@ -10,10 +10,11 @@ import (
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
+const DerivationPath = "m/44'/60'/0'/0/0"
+
 // EthereumKey holds a private/public key pair and the resultant address, as well as hex versions of each.
 type EthereumKey struct {
-	PublicKey     *ecdsa.PublicKey
-	PrivateKey    *ecdsa.PrivateKey
+	*ecdsa.PrivateKey
 	Address       common.Address
 	PublicKeyHex  string
 	PrivateKeyHex string
@@ -58,10 +59,6 @@ func newEthereumKeyFromMnemonic(mnemonic string) (*EthereumKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	publicKeyECDSA, err := wallet.PublicKey(account)
-	if err != nil {
-		return nil, err
-	}
 
 	address := account.Address
 
@@ -76,7 +73,6 @@ func newEthereumKeyFromMnemonic(mnemonic string) (*EthereumKey, error) {
 
 	return &EthereumKey{
 		PrivateKey:    privateKeyECDSA,
-		PublicKey:     publicKeyECDSA,
 		Address:       address,
 		PrivateKeyHex: hexutil.Encode(privateKeyBytes),
 		PublicKeyHex:  hexutil.Encode(publicKeyBytes),
@@ -120,7 +116,6 @@ func newEthereumKeyFromPrivateKey(privateKey string) (*EthereumKey, error) {
 
 	return &EthereumKey{
 		PrivateKey:    privateKeyECDSA,
-		PublicKey:     publicKeyECDSA,
 		Address:       address,
 		PrivateKeyHex: hexutil.Encode(privateKeyBytes),
 		PublicKeyHex:  hexutil.Encode(publicKeyBytes),

@@ -46,12 +46,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOperations() {
 	s.Run("Submit authorized delegation messages from Ethereum and check execution results on Sequencer", func() {
-		validator1Acc, err := sdk.AccAddressFromBech32(testsuite.SEQ_ADDRESSES[0])
-		s.Require().NoError(err)
-		validator2Acc, err := sdk.AccAddressFromBech32(testsuite.SEQ_ADDRESSES[1])
-		s.Require().NoError(err)
-		validator1Address := sdk.ValAddress(validator1Acc.Bytes()).String()
-		validator2Address := sdk.ValAddress(validator2Acc.Bytes()).String()
+		validator1Address := testsuite.SEQ_KEYS[0].ValAddressSeq
+		validator2Address := testsuite.SEQ_KEYS[1].ValAddressSeq
 		delegatorAddress := testsuite.ETH_KEYS[0].AddressHex
 
 		// Make sure that the delegator's balance is as expected.

@@ -40,7 +40,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// --------------------------------------- User withdraws on the Sequencer
 
-		aliceWallet := testsuite.SEQ_ADDRESSES[0]
+		aliceWallet := testsuite.SEQ_KEYS[0].AddressSeq
 
 		withdrawMsg := bridgemoduletypes.NewMsgWithdrawToEthereum(
 			aliceWallet,
@@ -146,7 +146,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// --------------------------------------- Fund Ethereum owned account that will withdraw
 
 		msgSend := &banktypes.MsgSend{
-			FromAddress: testsuite.SEQ_ADDRESSES[0],
+			FromAddress: testsuite.SEQ_KEYS[0].AddressSeq,
 			ToAddress:   withdrawerAddress,
 			Amount:      sdk.NewCoins(withdrawCoin),
 		}
