@@ -29,7 +29,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryBridgeCommitmentRequest is request type for the Query/Params RPC method.
+// QueryBridgeCommitmentRequest is request type for the Query/BridgeCommitment
+// RPC method.
 type QueryBridgeCommitmentRequest struct {
 	// start is the start of the block range that the bridge commitment covers.
 	Start uint64 `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"`
@@ -132,7 +133,7 @@ func (m *QueryBridgeCommitmentResponse) GetBridgeCommitment() HexBytes {
 }
 
 // QueryBridgeCommitmentInclusionProofRequest is request type for the
-// Query/Params RPC method.
+// Query/BridgeCommitmentInclusionProof RPC method.
 type QueryBridgeCommitmentInclusionProofRequest struct {
 	// height is the block from which the last results hash will be obtained.
 	Height int64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`

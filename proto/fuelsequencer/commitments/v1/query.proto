@@ -38,7 +38,8 @@ service Query {
   }
 }
 
-// QueryBridgeCommitmentRequest is request type for the Query/BridgeCommitment RPC method.
+// QueryBridgeCommitmentRequest is request type for the Query/BridgeCommitment
+// RPC method.
 message QueryBridgeCommitmentRequest {
 
   // start is the start of the block range that the bridge commitment covers.
