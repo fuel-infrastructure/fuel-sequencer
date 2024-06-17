@@ -57,9 +57,6 @@ const (
 
 	governanceVotingPeriod           = time.Second * 20 // default - can be overridden
 	blocksToWaitForGovProposalToPass = uint64(25)
-
-	fuelStreamXDockerImageRepo = "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
-	fuelStreamXDockerImageTag  = "latest"
 )
 
 var (
@@ -104,8 +101,6 @@ var (
 
 	// MOCK_ETHEREUM_CONTRACT is the Ethereum contract that generates events and processes messages from the Sequencer.
 	MOCK_ETHEREUM_CONTRACT = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
-	// UPDATE_DELAY_BLOCKS is the block interval at which FuelStreamX submits bridge commitments to Ethereum.
-	UPDATE_DELAY_BLOCKS = 30
 
 	// Inflation params
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13")
@@ -129,9 +124,8 @@ type E2ETestSuite struct {
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
-	ethResource         *dockertest.Resource
-	valResources        []*dockertest.Resource
-	fuelStreamXResource *dockertest.Resource
+	ethResource  *dockertest.Resource
+	valResources []*dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -213,11 +207,6 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
-	}
-
-	// FuelStreamX resource should have been purged earlier, but purge just in case
-	if s.fuelStreamXResource != nil {
-		_ = s.dockerPool.Purge(s.fuelStreamXResource)
 	}
 
 	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))

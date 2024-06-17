@@ -20,6 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -43,8 +44,9 @@ type GRPCClients struct {
 	MintQueryClient         minttypes.QueryClient
 
 	// Custom query clients
-	BridgeQueryClient     bridgetypes.QueryClient
-	SequencingQueryClient sequencingtypes.QueryClient
+	BridgeQueryClient      bridgetypes.QueryClient
+	SequencingQueryClient  sequencingtypes.QueryClient
+	CommitmentsQueryClient commitmentstypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -76,6 +78,7 @@ func (s *E2ETestSuite) initGRPCClients() {
 		ConsensusQueryClient:    consensustypes.NewQueryClient(grpcConn),
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
+		CommitmentsQueryClient:  commitmentstypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
 		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
 		MintQueryClient:         minttypes.NewQueryClient(grpcConn),

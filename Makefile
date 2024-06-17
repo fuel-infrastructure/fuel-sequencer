@@ -8,8 +8,6 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
 ETH_DOCKER_CONTAINER_NAME := "ethereum"
 
-FSX_DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
-
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
@@ -321,7 +319,6 @@ test-unit:
 test-e2e: \
 	check-docker-image-exists \
 	check-eth-docker-image-exists \
-	check-fsx-docker-image-exist \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
@@ -398,7 +395,7 @@ follow-docker-logs:
 ###                                   E2E                                   ###
 ###############################################################################
 
-build-all-docker-images: build-docker-image build-eth-docker-image build-fsx-docker-image
+build-all-docker-images: build-docker-image build-eth-docker-image
 
 check-eth-docker-image-exists:
 ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
@@ -407,22 +404,6 @@ ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
 else
 	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
 endif
-
-check-fsx-docker-image-exist:
-ifeq (,$(shell docker images -q ${FSX_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
-	@echo "❌ Docker image ${FSX_DOCKER_IMAGE_NAME}:latest not found";
-	@exit 1;
-else
-	@echo "✅ Found docker image ${FSX_DOCKER_IMAGE_NAME}:latest"
-endif
-
-build-fsx-docker-image:
-	@echo "🤖 Updating git submodules (fuelstreamx)..."
-	@git submodule update --init --remote e2e/fuelstreamx
-	@(cd e2e/fuelstreamx && make build-manual-docker-image)
-	@echo "🤖 Cleaning up git submodules (fuelstreamx)..."
-	@git submodule update --remote e2e/fuelstreamx
-	@echo "✅ Finished!"
 
 build-eth-docker-image:
 	@echo "🤖 Updating git submodules (test-contracts)..."
@@ -477,14 +458,12 @@ test-e2e-special-messages:
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
-	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
 	@docker ps -aq --filter "name=ethereum" | xargs -r docker stop
 
 	@echo "🧹 Removing Docker containers..."
-	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
