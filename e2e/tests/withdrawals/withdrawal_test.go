@@ -30,7 +30,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		s.Require().Zero(withdrawalResponse.Code)
 
 		// The LastResultsHash is generated at the block right after the withdrawal.
-		// We wait two Sequencer block to ensure that we can capture it in the Bridge Commitment.
+		// We wait two Sequencer blocks to ensure that we can capture it in the Bridge Commitment.
 		lastResultsHashHeight := withdrawalResponse.Height + 1
 		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, 10*time.Second))
 
@@ -148,7 +148,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		}
 		s.Require().True(found)
 
-		// We wait two Sequencer block to ensure that we can capture the last results hash in the Bridge Commitment.
+		// We wait two Sequencer blocks to ensure that we can capture the last results hash in the Bridge Commitment.
 		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, 10*time.Second))
 
 		// Submit bridge commitment to FuelStreamX contract
