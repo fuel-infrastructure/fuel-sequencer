@@ -3,6 +3,7 @@ package testsuite
 import (
 	"crypto/ecdsa"
 	"errors"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -90,6 +91,9 @@ func mustNewEthereumKeyFromPrivateKey(privateKey string) *EthereumKey {
 }
 
 func newEthereumKeyFromPrivateKey(privateKey string) (*EthereumKey, error) {
+
+	// Remove 0x prefix, if included
+	privateKey, _ = strings.CutPrefix(privateKey, "0x")
 
 	privateKeyECDSA, err := crypto.HexToECDSA(privateKey)
 	if err != nil {

@@ -158,7 +158,7 @@ func (s *E2ETestSuite) SetupTest() {
 	for _, mnemonic := range MNEMONICS {
 		ETH_KEYS = append(ETH_KEYS, mustNewEthereumKeyFromMnemonic(mnemonic))
 	}
-	ETH_GUARDIAN = mustNewEthereumKeyFromPrivateKey(GUARDIAN_PRIVATE_KEY[2:])
+	ETH_GUARDIAN = mustNewEthereumKeyFromPrivateKey(GUARDIAN_PRIVATE_KEY)
 	s.T().Logf("ethereum keys:")
 	for _, key := range append(ETH_KEYS, ETH_GUARDIAN) {
 		s.T().Logf("\tpriv:%s hex:%s seq:%s", key.PrivateKeyHex, key.AddressHex, key.AddressSeq)

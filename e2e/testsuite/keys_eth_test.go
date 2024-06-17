@@ -14,7 +14,7 @@ func TestNewEthereumKeyFromMnemonic(t *testing.T) {
 	generatedKey, err := newEthereumKeyFromMnemonic(mnemonic)
 	require.NoError(t, err, "error generating ethereum key")
 
-	require.Equal(t, address, generatedKey.Address)
+	require.Equal(t, address, generatedKey.AddressHex)
 	require.Equal(t, privateKey, generatedKey.PrivateKeyHex)
 }
 
@@ -25,6 +25,6 @@ func TestNewEthereumKeyFromPrivateKey(t *testing.T) {
 	generatedKey, err := newEthereumKeyFromPrivateKey(privateKey)
 	require.NoError(t, err, "error generating ethereum key")
 
-	require.Equal(t, address, generatedKey.Address)
+	require.Equal(t, address, generatedKey.AddressHex)
 	require.Equal(t, privateKey, generatedKey.PrivateKeyHex)
 }
