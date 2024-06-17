@@ -2109,7 +2109,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// QueryBridgeCommitmentRequest is request type for the Query/Params RPC method.
+// QueryBridgeCommitmentRequest is request type for the Query/BridgeCommitment
+// RPC method.
 type QueryBridgeCommitmentRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2194,7 +2195,7 @@ func (x *QueryBridgeCommitmentResponse) GetBridgeCommitment() []byte {
 }
 
 // QueryBridgeCommitmentInclusionProofRequest is request type for the
-// Query/Params RPC method.
+// Query/BridgeCommitmentInclusionProof RPC method.
 type QueryBridgeCommitmentInclusionProofRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
