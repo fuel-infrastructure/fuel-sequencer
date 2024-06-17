@@ -71,7 +71,6 @@ var (
 	// The first mnemonic is reused for the Ethereum validator mnemonic.
 	MNEMONICS = []string{
 		// This corresponds to the typically used signer in the contracts.
-		// Private key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 		"test test test test test test test test test test test junk",
 		// Alice
 		"dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence",
