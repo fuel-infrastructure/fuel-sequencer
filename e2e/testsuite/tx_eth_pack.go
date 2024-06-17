@@ -43,17 +43,6 @@ func PackBatchAuthorize(data [][]byte) []byte {
 	)
 }
 
-type BridgeCommitmentLeafForEthereum struct {
-	Height      *big.Int
-	ResultsHash common.Hash
-}
-
-type BinaryMerkleProofForEthereum struct {
-	SideNodes []common.Hash
-	Key       *big.Int
-	NumLeaves *big.Int
-}
-
 func PackProcessSequencerWithdrawalMessage(
 	proofNonce *big.Int,
 	bridgeCommitmentLeaf BridgeCommitmentLeafForEthereum,
