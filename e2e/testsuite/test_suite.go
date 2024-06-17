@@ -53,7 +53,6 @@ const (
 
 	ethereumNodeDockerImageRepo = "ghcr.io/foundry-rs/foundry"
 	ethereumNodeDockerImageTag  = "nightly"
-	// TODO? ethereumNodeBlockTimeSeconds = 3
 
 	ethereumDeploymentDockerImageRepo = "fuel-rollup/ethereum-deployment"
 	ethereumDeploymentDockerImageTag  = "latest"
