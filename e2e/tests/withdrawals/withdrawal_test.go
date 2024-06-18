@@ -19,10 +19,10 @@ import (
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromSequencer() {
 	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
 
-		sender := testsuite.ETH_KEYS[0]
+		sender := s.EthKeys[0]
 
 		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
 		mintData := testsuite.PackMint(common.HexToAddress(sender.AddressHex), amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
@@ -40,7 +40,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 		// --------------------------------------- User withdraws on the Sequencer
 
-		aliceWallet := testsuite.SEQ_KEYS[0].AddressSeq
+		aliceWallet := s.SeqKeys[0].AddressSeq
 
 		withdrawMsg := bridgemoduletypes.NewMsgWithdrawToEthereum(
 			aliceWallet,
@@ -121,10 +121,10 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
 	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
 
-		sender := testsuite.ETH_KEYS[0]
+		sender := s.EthKeys[0]
 
 		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is testsuite.ETH_KEYS[0]
+		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
 		mintData := testsuite.PackMint(common.HexToAddress(sender.AddressHex), amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
@@ -140,13 +140,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
 
-		withdrawerAddress := testsuite.ETH_KEYS[0].AddressHex
+		withdrawerAddress := s.EthKeys[0].AddressHex
 		withdrawCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 100)
 
 		// --------------------------------------- Fund Ethereum owned account that will withdraw
 
 		msgSend := &banktypes.MsgSend{
-			FromAddress: testsuite.SEQ_KEYS[0].AddressSeq,
+			FromAddress: s.SeqKeys[0].AddressSeq,
 			ToAddress:   withdrawerAddress,
 			Amount:      sdk.NewCoins(withdrawCoin),
 		}

@@ -15,7 +15,7 @@ func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		msgs,
 		sdk.NewCoins(sdk.NewCoin(BridgeDenom, govtypesv1.DefaultMinDepositTokens)),
-		SEQ_KEYS[0].AddressSeq,
+		s.SeqKeys[0].AddressSeq,
 		"",
 		"title",
 		"summary",

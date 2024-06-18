@@ -54,7 +54,7 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 				panic(fmt.Errorf("failed to get accounts from any: %w", err))
 			}
 
-			for _, address := range e2etestsuite.ETH_KEYS {
+			for _, address := range s.EthKeys {
 				baseAccount := authtypes.NewBaseAccount(sdk.MustAccAddressFromBech32(address.AddressSeq), nil, 0, 0)
 				ethOwnedBaseAccount := bridgetypes.NewEthOwnedBaseAccount(baseAccount, address.AddressSeq)
 				accs = append(accs, ethOwnedBaseAccount)
@@ -79,7 +79,7 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			var bankGenState banktypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenState))
 
-			for _, address := range e2etestsuite.ETH_KEYS {
+			for _, address := range s.EthKeys {
 				balances := banktypes.Balance{Address: address.AddressSeq, Coins: sdk.NewCoins(e2etestsuite.InitBalanceCoin)}
 				bankGenState.Balances = append(bankGenState.Balances, balances)
 				bankGenState.Supply = bankGenState.Supply.Add(balances.Coins...)
@@ -106,6 +106,7 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			genesisState[minttypes.ModuleName] = bz
 
 			// ----- Increase the voting period substantially to allow for authorized MsgVote to go through comfortably
+
 			var govGenState govtypesv1.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState))
 

@@ -23,7 +23,7 @@ func PackTransferAndCall(amount *big.Int) []byte {
 		sidecartypes.TokenContractABI,
 		sidecartypes.TransferAndCallFunctionName,
 		[]interface{}{
-			common.HexToAddress(SEQUENCER_INTERFACE_CONTRACT),
+			common.HexToAddress(SequencerInterfaceContractAddress),
 			amount,
 		},
 	)

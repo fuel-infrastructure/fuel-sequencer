@@ -27,7 +27,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           testsuite.SEQ_KEYS[0].AddressSeq,
+			Authority:           s.SeqKeys[0].AddressSeq,
 			NumInjectedEventTxs: 0,
 			NewEthereumBlock:    false,
 			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
@@ -42,9 +42,9 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgDepositFromEthereum
 
 		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: testsuite.SEQ_KEYS[0].AddressSeq,
-			Depositor: testsuite.SEQ_KEYS[0].AddressSeq,
-			Recipient: testsuite.SEQ_KEYS[1].AddressSeq,
+			Authority: s.SeqKeys[0].AddressSeq,
+			Depositor: s.SeqKeys[0].AddressSeq,
+			Recipient: s.SeqKeys[1].AddressSeq,
 			Amount:    "1000",
 			Lockup:    "0",
 		}
@@ -58,7 +58,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgSupplyDelta
 
 		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: testsuite.SEQ_KEYS[0].AddressSeq,
+			Authority: s.SeqKeys[0].AddressSeq,
 		}
 		s.Require().NoError(msgSupplyDelta.ValidateBasic())
 
@@ -108,7 +108,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           testsuite.SEQ_KEYS[0].AddressSeq,
+			Authority:           s.SeqKeys[0].AddressSeq,
 			NumInjectedEventTxs: 0,
 			NewEthereumBlock:    false,
 			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
@@ -120,9 +120,9 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgDepositFromEthereum
 
 		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: testsuite.SEQ_KEYS[0].AddressSeq,
-			Depositor: testsuite.SEQ_KEYS[0].AddressSeq,
-			Recipient: testsuite.SEQ_KEYS[1].AddressSeq,
+			Authority: s.SeqKeys[0].AddressSeq,
+			Depositor: s.SeqKeys[0].AddressSeq,
+			Recipient: s.SeqKeys[1].AddressSeq,
 			Amount:    "1000",
 			Lockup:    "0",
 		}
@@ -133,7 +133,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgSupplyDelta
 
 		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: testsuite.SEQ_KEYS[0].AddressSeq,
+			Authority: s.SeqKeys[0].AddressSeq,
 		}
 		resp, err = s.SubmitMsgs(msgSupplyDelta)
 		s.Require().NoError(err)

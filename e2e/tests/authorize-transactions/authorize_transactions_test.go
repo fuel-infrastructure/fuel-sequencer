@@ -14,8 +14,8 @@ import (
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 	s.Run("Submit an authorized MsgSend from Ethereum and check execution results on Sequencer", func() {
-		senderAddress := testsuite.ETH_KEYS[0].AddressHex
-		receiverAddress := testsuite.ETH_KEYS[1].AddressHex
+		senderAddress := s.EthKeys[0].AddressHex
+		receiverAddress := s.EthKeys[1].AddressHex
 
 		// Make sure that the balance of the sender is as expected.
 		expectedInitBalance := testsuite.InitBalanceCoin
@@ -46,9 +46,9 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOperations() {
 	s.Run("Submit authorized delegation messages from Ethereum and check execution results on Sequencer", func() {
-		validator1Address := testsuite.SEQ_KEYS[0].ValAddressSeq
-		validator2Address := testsuite.SEQ_KEYS[1].ValAddressSeq
-		delegatorAddress := testsuite.ETH_KEYS[0].AddressHex
+		validator1Address := s.SeqKeys[0].ValAddressSeq
+		validator2Address := s.SeqKeys[1].ValAddressSeq
+		delegatorAddress := s.EthKeys[0].AddressHex
 
 		// Make sure that the delegator's balance is as expected.
 		expectedInitDelegatorBalance := testsuite.InitBalanceCoin
@@ -150,7 +150,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawToEthereum() {
 	s.Run("Submit authorized withdraw to Ethereum from Ethereum and check execution results on Sequencer", func() {
-		withdrawerAddress := testsuite.ETH_KEYS[0].AddressHex
+		withdrawerAddress := s.EthKeys[0].AddressHex
 
 		// Make sure that the withdrawer's balance is as expected.
 		expectedInitWithdrawerBalance := testsuite.InitBalanceCoin
@@ -177,7 +177,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawT
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 	s.Run("Submit authorized vote from Ethereum and check execution results on Sequencer", func() {
-		voter := testsuite.ETH_KEYS[0].AddressHex
+		voter := s.EthKeys[0].AddressHex
 
 		// Create a new dummy proposal to vote on
 		consensusParams := s.QueryConsensusParams(s.Ctx())
