@@ -113,7 +113,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 			Depositor: s.EthKeys[0].AddressHex,
 			Recipient: s.EthKeys[0].AddressHex, // sender == recipient unless otherwise specified
 			Amount:    depositAmount.String(),
-			Lockup:    "0",
+			Lockup:    "0", // the deposit initiated from Ethereum has no lockup
 		}))
 
 		// Ensure authorize event is at the expected height.
