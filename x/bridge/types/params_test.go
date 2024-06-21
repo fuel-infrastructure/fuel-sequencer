@@ -137,8 +137,8 @@ func TestValidateAuthorizeMessagesAllowed(t *testing.T) {
 		input     interface{}
 		expectErr bool
 	}{
-		{"Valid messages", []string{"message1", "message2"}, false},
-		{"Empty slice", []string{}, true},
+		{"Valid messages - non-empty slice", []string{"message1", "message2"}, false},
+		{"Valid messages - Empty slice", []string{}, false},
 		{"Slice with empty message", []string{"message1", ""}, true},
 		{"Non-slice type", "not a slice", true},
 	}
@@ -300,6 +300,20 @@ func TestParams_Validate(t *testing.T) {
 			expectErr: false,
 		},
 		{
+			name: "Valid parameters - Empty authorize messages allowed",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     []string{},
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      10000000,
+			},
+			expectErr: false,
+		},
+		{
 			name: "Invalid bridge denom (empty)",
 			params: types.Params{
 				BridgeDenom:                  "",
@@ -319,20 +333,6 @@ func TestParams_Validate(t *testing.T) {
 				BridgeDenom:                  validBridgeDenom,
 				EthereumProxyContractAddress: invalidEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
-				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
-				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
-				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
-			},
-			expectErr: true,
-		},
-		{
-			name: "Empty authorize messages allowed",
-			params: types.Params{
-				BridgeDenom:                  validBridgeDenom,
-				EthereumProxyContractAddress: validEthereumProxyContractAddress,
-				AuthorizeMessagesAllowed:     []string{},
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
@@ -486,21 +486,9 @@ func TestIsAuthorizedMessage(t *testing.T) {
 		expResult bool
 	}{
 		{
-			name: "returns true if message is authorized (messages allowed is not *)",
+			name: "returns true if message is authorized",
 			params: &types.Params{
 				AuthorizeMessagesAllowed: []string{"msg1", "msg2", sdk.MsgTypeURL(&banktypes.MsgSend{})},
-			},
-			msg: &banktypes.MsgSend{
-				FromAddress: "addr1",
-				ToAddress:   "addr2",
-				Amount:      nil,
-			},
-			expResult: true,
-		},
-		{
-			name: "returns true if message is authorized (messages allowed is *)",
-			params: &types.Params{
-				AuthorizeMessagesAllowed: []string{"*"},
 			},
 			msg: &banktypes.MsgSend{
 				FromAddress: "addr1",

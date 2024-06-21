@@ -485,7 +485,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			err := s.App.BridgeKeeper.SetParams(
 				s.Ctx(),
 				bridgetypes.Params{
-					AuthorizeMessagesAllowed:     []string{bridgetypes.AllowAllAuthorizeMessages},
+					AuthorizeMessagesAllowed:     bridgetypes.DefaultAuthorizeMessagesAllowed,
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
 					InjectedEventTxMaxBytes:      tc.injectedEventTxMaxBytes,
@@ -1099,7 +1099,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			err := s.App.BridgeKeeper.SetParams(
 				s.Ctx(),
 				bridgetypes.Params{
-					AuthorizeMessagesAllowed:     []string{bridgetypes.AllowAllAuthorizeMessages},
+					AuthorizeMessagesAllowed:     bridgetypes.DefaultAuthorizeMessagesAllowed,
 					SupplyDeltaPeriod:            tc.supplyDeltaPeriod,
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
 					MaxEthBlockUpdateDelay:       testMaxEthBlockUpdateDelay,
