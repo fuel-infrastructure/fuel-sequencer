@@ -176,13 +176,19 @@ func (s *EventsTestSuite) TestPartialBlockSync() {
 		// -------- Delay sync up
 
 		s.PauseEthereum()
-		time.Sleep(time.Second * 20) // Wait MaxEthBlockUpdateDelay is no longer valid
-
+		// Wait MaxEthBlockUpdateDelay is no longer valid (padded some seconds due to same caching on the sidecars)
+		time.Sleep(time.Second * 40)
 		s.UnpauseEthereum()
 
-		// --------
+		// -------- Check that events are eventually processed
 
-		// 1st event of 4 processed will never be processed, chain should be halted
+		// 1st event of 4 processed
 		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
+		// 2nd event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 2)
+		// 3rd event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 3)
+		// 4th event of 4 processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 	})
 }
