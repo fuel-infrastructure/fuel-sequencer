@@ -183,7 +183,7 @@ func ValidateAuthorizeMessagesAllowed(i interface{}) error {
 	}
 	for _, msg := range messages {
 		if msg == "" {
-			return ErrParamsInvalid.Wrapf("authorize message cannot be empty")
+			return ErrParamsInvalid.Wrapf("authorizeMessagesAllowed cannot contain empty string literals")
 		}
 	}
 	return nil
