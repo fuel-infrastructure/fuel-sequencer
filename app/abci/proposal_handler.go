@@ -426,7 +426,7 @@ func verifyTransactionsInProposal(ctx sdk.Context, txs [][]byte, txDecoder sdk.T
 	return nil
 }
 
-// getNewEthereumBlock returns the value for MsgIndex.NewEthereumBlock. NewEthereumBlock should be true iff the
+// getNewEthereumBlock returns the value for MsgIndex.NewEthereumBlock. NewEthereumBlock should be true if the
 // Sidecar didn't error.
 func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) bool {
 	return sidecarErr == nil
