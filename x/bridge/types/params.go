@@ -53,6 +53,15 @@ const (
 	// prevent setting InjectedEventTxMaxBytes to a very small value, and thus avoiding situations where event txs are
 	// never injected due to a strict InjectedEventTxMaxBytes.
 	MinimumInjectedEventTxMaxBytes = 1024
+
+	// DefaultMaxAuthorizeMessages is the maximum amount of Cosmos SDK messages that an Authorize transaction can have
+	// by default
+	DefaultMaxAuthorizeMessages = 10
+
+	// MinimumMaxAuthorizeMessages is the minimum value that MaxAuthorizeMessages can be set to. This is set to one to
+	// prevent mistakes that could cause all Authorize transactions to get skipped. Governance should set
+	// AuthorizeMessagesAllowed to [] if the execution of Authorize txs is to be disabled.
+	MinimumMaxAuthorizeMessages = 1
 )
 
 // ParamKeyTable the param key table for launch module
@@ -69,6 +78,7 @@ func NewParams(
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
+	maxAuthorizeMessages uint64,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -87,6 +97,7 @@ func NewParams(
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
+		MaxAuthorizeMessages:         maxAuthorizeMessages,
 	}
 }
 
@@ -100,6 +111,7 @@ func DefaultParams() Params {
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
+		DefaultMaxAuthorizeMessages,
 	)
 }
 
@@ -148,6 +160,11 @@ func (p Params) Validate() error {
 
 	// Validate the maximum bytes for injected event txs.
 	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
+		return err
+	}
+
+	// Validate the maximum amount of Cosmos SDK messages allowed in an Authorize Tx.
+	if err := ValidateMaxAuthorizeMessages(p.MaxAuthorizeMessages); err != nil {
 		return err
 	}
 
@@ -257,6 +274,22 @@ func ValidateInjectedEventTxMaxBytes(i interface{}) error {
 
 	// value cannot be less than MinimumInjectedEventTxMaxBytes, otherwise, we risk never injecting event txs in a block
 	if v < MinimumInjectedEventTxMaxBytes {
+		return ErrParamsInvalid.Wrapf(
+			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
+	}
+
+	return nil
+}
+
+func ValidateMaxAuthorizeMessages(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for maxAuthorizeMessages: %T", i)
+	}
+
+	// value cannot be less than MinimumMaxAuthorizeMessages, otherwise, we risk skipping all Authorize txs.
+	if v < MinimumMaxAuthorizeMessages {
 		return ErrParamsInvalid.Wrapf(
 			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
 		)
