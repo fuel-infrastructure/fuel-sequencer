@@ -248,10 +248,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		var fullEthereumSyncing = injectedMsgIndex.NewEthereumBlock
 		var partialEthereumSyncing = !injectedMsgIndex.NewEthereumBlock && injectedMsgIndex.NumInjectedEventTxs > 0
 
-		if fullEthereumSyncing || partialEthereumSyncing {
-
-		} else {
-
+		if !fullEthereumSyncing && !partialEthereumSyncing {
 			// No new block syncing, we only accept these blocks if MaxEthBlockUpdateDelay is not exceeded
 			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
 			ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
@@ -264,7 +261,6 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 					bridgeParams.MaxEthBlockUpdateDelay.String(),
 				)
 			}
-
 		}
 
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
