@@ -89,7 +89,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			msg:                             encodedMsgIndexPartialBlock,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   0,
-			expectLastEthBlockUpdateTime:    false,
+			expectLastEthBlockUpdateTime:    true,
 			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectIndex: types.Index{
@@ -102,7 +102,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			msg:                             encodedMsgIndexPartialBlock,
 			blockHeight:                     heightToAvoidSupplyDelta,
 			expectLastEthereumBlockSynced:   0,
-			expectLastEthBlockUpdateTime:    false,
+			expectLastEthBlockUpdateTime:    true,
 			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectIndex: types.Index{
@@ -209,7 +209,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 	numberOfEventsInPartialTx := testtypes.TestMsgIndexPartial.NumInjectedEventTxs
 
 	testBlockTime1 := time.Now().Round(0)
-	testBlockTime2 := time.Now().Round(0)
+	testBlockTime2 := time.Now().Add(time.Second * 6).Round(0)
 
 	testCases := []struct {
 		name                            string
@@ -233,8 +233,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 1},
 			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx, 0},
-			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
-			expectLastEthBlockUpdateTime:    []bool{false, true},
+			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
+			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
@@ -249,7 +249,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{1, 1},
 			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
+			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgWithEvents1.NumInjectedEventTxs},
@@ -266,8 +266,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 0},
 			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx, numberOfEventsInPartialTx},
-			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
-			expectLastEthBlockUpdateTime:    []bool{false, false},
+			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
+			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 				{NumFailedSpecialTxs: 1}, // failed!
@@ -282,8 +282,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 0},
 			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
-			expectLastEthBlockUpdateTime:    []bool{false, false},
+			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
+			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
@@ -299,8 +299,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 0},
 			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx, numberOfEventsInPartialTx},
-			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
-			expectLastEthBlockUpdateTime:    []bool{false, false},
+			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
+			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 				{NumFailedSpecialTxs: 1}, // failed!
@@ -315,7 +315,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{1, 1},
 			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime1},
+			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
@@ -448,8 +448,8 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 0},
 			expectEthereumEventsIndexOffset: []uint64{numberOfEventsInPartialTx, numberOfEventsInPartialTx * 2},
-			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
-			expectLastEthBlockUpdateTime:    []bool{false, false},
+			expectBlockTime:                 []time.Time{testBlockTime1, testBlockTime2},
+			expectLastEthBlockUpdateTime:    []bool{true, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
 				{NumInjectedTxsTotal: msgPartialBlock1.NumInjectedEventTxs},
