@@ -134,8 +134,19 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
 
-		// Trim events from tail to fit the block size allocated for events.
-		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
+		// Calculate the block space that should be reserved for event transactions. This should be dependent on the
+		// bridge usage and req.txs.
+		// NOTES:
+		// 1. If injected, the supply delta transaction is already part of req.txs, therefore, there is no need to
+		//    account for its size.
+		// 2. The TxSelector disregards bridgeParams.SequencerTxsBlockSpace if it can fit more Sequencer-native
+		//    transactions in the block after adjusting the number of event transactions.
+		sequencerTxsSize := utils.NumberOfBytes(req.Txs)
+		maxBlockSpace := uint64(req.MaxTxBytes)
+		seqTxsBlockSpace := bridgeParams.SequencerTxsBlockSpace
+		maxBytesForEvents := max(maxBlockSpace-sequencerTxsSize, maxBlockSpace-seqTxsBlockSpace)
+
+		// Trim events from tail to fit the block space allocated for events.
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
@@ -297,7 +308,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Trim events from tail to fit the block size allocated for events. Unlike the PrepareProposal step, here we do
+		// Trim events from tail to fit the block size allocated for events. Unlike the PrepareProposal step here we do
 		// not have access to the max block size, so instead we assume that the proposer proposed an optimised block.
 		// TODO: consider adding access to max block size instead of assuming the optimal number of events were proposed
 		originalNumberOfEvents := msgIndex.NumInjectedEventTxs
