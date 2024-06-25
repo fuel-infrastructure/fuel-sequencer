@@ -24,6 +24,7 @@ var (
 	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	TestInjectedEventTxMaxBytes      = uint64(20000000)
 	TestMaxAuthorizeMessages         = uint64(10)
+	TestSequencerTxsBlockSpace       = uint64(5000)
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestLastSupply                   = sdkmath.NewInt(100000000)
 	TestDelta                        = sdkmath.NewInt(5000000)
@@ -243,6 +244,7 @@ var (
 	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
 	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
 	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEventsLarger    = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3, TestEvent3} // More than 3 events
 
 	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
 	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
@@ -301,6 +303,15 @@ var (
 		},
 		Events: TestEventsReduced,
 	}
+	TestMsgIndexPartial2 = &TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    false,
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
 
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
@@ -335,6 +346,7 @@ var (
 	TestEmptySidecarResponse            = &sidecartypes.QueryBlockEventsResponse{Events: nil}
 	TestSidecarResponse                 = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
 	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestSidecarResponseLarger           = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsLarger}
 	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
