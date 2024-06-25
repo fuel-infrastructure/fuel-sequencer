@@ -47,7 +47,7 @@ const (
 	initStaked  = 100000000000 // per validator
 
 	fuelSequencerDockerImageRepo = "fuel-infrastructure/fuel-sequencer"
-	fuelSequencerDockerImageTag  = "latest"
+	fuelSequencerDockerImageTag  = "9ad49d8"
 
 	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
 	fuelSequencerBinary               = "fuelsequencerd"
