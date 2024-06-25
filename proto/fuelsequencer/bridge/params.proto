@@ -55,4 +55,13 @@ message Params {
   // that can respect this limit. On the other hand, if a Deposit event cannot
   // be converted into a Tx that can respect this limit, the chain halts.
   uint64 injected_event_tx_max_bytes = 8;
+
+  // sequencer_txs_block_space is the maximum amount of bytes allocated for
+  // Sequencer-native transactions during heavy bridge usage. Ensures blocks are
+  // not solely filled with injected transactions when Sequencer transactions
+  // are in the mempool. NOTE: The block space reserved for Sequencer
+  // transactions is dynamically adjusted depending on the number of Ethereum
+  // events in the block and the number of Sequencer transactions in the
+  // mempool.
+  uint64 sequencer_txs_block_space = 9;
 }

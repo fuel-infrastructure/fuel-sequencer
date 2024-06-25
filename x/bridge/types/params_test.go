@@ -264,6 +264,42 @@ func TestValidateInjectedEventTxMaxBytes(t *testing.T) {
 	}
 }
 
+func TestValidateSequencerTxsBlockSpace(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{
+			"Valid SequencerTxsBlockSpace - value greater than MinimumSequencerTxsBlockSpace",
+			uint64(types.MinimumSequencerTxsBlockSpace + 1),
+			false,
+		},
+		{
+			"Valid SequencerTxsBlockSpace - value equal to MinimumSequencerTxsBlockSpace",
+			uint64(types.MinimumSequencerTxsBlockSpace),
+			false,
+		},
+		{
+			"Invalid SequencerTxsBlockSpace - value less than MinimumSequencerTxsBlockSpace",
+			uint64(types.MinimumSequencerTxsBlockSpace - 1),
+			true,
+		},
+		{"Non-uint64 type", "not a uint64", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateInjectedEventTxMaxBytes(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
 	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
@@ -271,6 +307,8 @@ func TestParams_Validate(t *testing.T) {
 	validSupplyDeltaPeriod := uint64(10)
 	validVestingStartTime := time.Now()
 	validMaxEthBlockUpdateDelay := time.Hour
+	validInjectedEventTxMaxBytes := uint64(10000000)
+	validSequencerTxsBlockSpace := uint64(300000)
 
 	// Creating an invalid ethereum proxy contract address for testing
 	invalidEthereumProxyContractAddress := "0xInvalidAddress"
@@ -295,7 +333,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: false,
 		},
@@ -309,7 +348,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -323,7 +363,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -337,7 +378,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -351,7 +393,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -365,7 +408,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             time.Time{},
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -379,7 +423,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             time.Time{},
 				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -393,7 +438,8 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       time.Duration(-1),
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
 			},
 			expectErr: true,
 		},
@@ -408,6 +454,22 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      uint64(types.MinimumInjectedEventTxMaxBytes - 1),
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+			},
+			expectErr: true,
+		},
+		{
+			name: "SequencerTxsBlockSpace too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             time.Time{},
+				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       uint64(types.MinimumSequencerTxsBlockSpace - 1),
 			},
 			expectErr: true,
 		},

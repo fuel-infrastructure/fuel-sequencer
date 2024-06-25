@@ -47,6 +47,14 @@ const (
 	// prevent setting InjectedEventTxMaxBytes to a very small value, and thus avoiding situations where event txs are
 	// never injected due to a strict InjectedEventTxMaxBytes.
 	MinimumInjectedEventTxMaxBytes = 1024
+
+	// DefaultSequencerTxsBlockSpace is the default maximum block space allocated for Sequencer native transactions when
+	// the bridge is under heavy usage. This is set to 30% of total block space default value (22020096).
+	DefaultSequencerTxsBlockSpace = 6606028
+
+	// MinimumSequencerTxsBlockSpace is the minimum value that SequencerTxsBlockSpace can be set to. This minimum is set
+	// as a measure against mempool saturation and transaction censorship when the bridge is under heavy usage.
+	MinimumSequencerTxsBlockSpace = 1024
 )
 
 // ParamKeyTable the param key table for launch module
@@ -63,6 +71,7 @@ func NewParams(
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
+	sequencerTxsBlockSpace uint64,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -81,6 +90,7 @@ func NewParams(
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
+		SequencerTxsBlockSpace:       sequencerTxsBlockSpace,
 	}
 }
 
@@ -94,6 +104,7 @@ func DefaultParams() Params {
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
+		DefaultSequencerTxsBlockSpace,
 	)
 }
 
@@ -142,6 +153,11 @@ func (p Params) Validate() error {
 
 	// Validate the maximum bytes for injected event txs.
 	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
+		return err
+	}
+
+	// Validate the maximum block space for sequencer txs.
+	if err := ValidateSequencerTxsBlockSpace(p.SequencerTxsBlockSpace); err != nil {
 		return err
 	}
 
@@ -256,6 +272,23 @@ func ValidateInjectedEventTxMaxBytes(i interface{}) error {
 	if v < MinimumInjectedEventTxMaxBytes {
 		return ErrParamsInvalid.Wrapf(
 			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
+	}
+
+	return nil
+}
+
+func ValidateSequencerTxsBlockSpace(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for sequencerTxsBlockSpace: %T", i)
+	}
+
+	// value cannot be less than MinimumSequencerTxsBlockSpace, otherwise, we risk mempool saturation or transaction
+	// censorship
+	if v < MinimumSequencerTxsBlockSpace {
+		return ErrParamsInvalid.Wrapf(
+			"sequencer transactions block space cannot be less than %d: given %d", MinimumSequencerTxsBlockSpace, v,
 		)
 	}
 
