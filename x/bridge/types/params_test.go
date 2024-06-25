@@ -137,8 +137,8 @@ func TestValidateAuthorizeMessagesAllowed(t *testing.T) {
 		input     interface{}
 		expectErr bool
 	}{
-		{"Valid messages", []string{"message1", "message2"}, false},
-		{"Empty slice", []string{}, true},
+		{"Valid messages - non-empty slice", []string{"message1", "message2"}, false},
+		{"Valid messages - Empty slice", []string{}, false},
 		{"Slice with empty message", []string{"message1", ""}, true},
 		{"Non-slice type", "not a slice", true},
 	}
@@ -300,6 +300,42 @@ func TestValidateSequencerTxsBlockSpace(t *testing.T) {
 	}
 }
 
+func TestValidateMaxAuthorizeMessages(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{
+			"Valid MaxAuthorizeMessages - value greater than MinimumMaxAuthorizeMessages",
+			uint64(types.MinimumMaxAuthorizeMessages + 1),
+			false,
+		},
+		{
+			"Valid MaxAuthorizeMessages - value equal to MinimumMaxAuthorizeMessages",
+			uint64(types.MinimumMaxAuthorizeMessages),
+			false,
+		},
+		{
+			"Invalid MaxAuthorizeMessages - value less than MinimumIMaxAuthorizeMessages",
+			uint64(types.MinimumMaxAuthorizeMessages - 1),
+			true,
+		},
+		{"Non-uint64 type", "not a uint64", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateMaxAuthorizeMessages(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
 	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
@@ -309,6 +345,7 @@ func TestParams_Validate(t *testing.T) {
 	validMaxEthBlockUpdateDelay := time.Hour
 	validInjectedEventTxMaxBytes := uint64(10000000)
 	validSequencerTxsBlockSpace := uint64(300000)
+	validMaxAuthorizeMessages := uint64(10)
 
 	// Creating an invalid ethereum proxy contract address for testing
 	invalidEthereumProxyContractAddress := "0xInvalidAddress"
@@ -335,6 +372,23 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
+			},
+			expectErr: false,
+		},
+		{
+			name: "Valid parameters - Empty authorize messages allowed",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     []string{},
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: false,
 		},
@@ -350,6 +404,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -365,21 +420,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
-			},
-			expectErr: true,
-		},
-		{
-			name: "Empty authorize messages allowed",
-			params: types.Params{
-				BridgeDenom:                  validBridgeDenom,
-				EthereumProxyContractAddress: validEthereumProxyContractAddress,
-				AuthorizeMessagesAllowed:     []string{},
-				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
-				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
-				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -395,6 +436,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -410,6 +452,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -425,6 +468,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -440,6 +484,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       time.Duration(-1),
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -455,6 +500,7 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      uint64(types.MinimumInjectedEventTxMaxBytes - 1),
 				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -470,6 +516,23 @@ func TestParams_Validate(t *testing.T) {
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsBlockSpace:       uint64(types.MinimumSequencerTxsBlockSpace - 1),
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
+			},
+			expectErr: true,
+		},
+		{
+			name: "MaxAuthorizeMessages too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             time.Time{},
+				AdditionalBlockedAddresses:   []string{},
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				MaxAuthorizeMessages:         uint64(types.MinimumMaxAuthorizeMessages - 1),
 			},
 			expectErr: true,
 		},
@@ -548,21 +611,9 @@ func TestIsAuthorizedMessage(t *testing.T) {
 		expResult bool
 	}{
 		{
-			name: "returns true if message is authorized (messages allowed is not *)",
+			name: "returns true if message is authorized",
 			params: &types.Params{
 				AuthorizeMessagesAllowed: []string{"msg1", "msg2", sdk.MsgTypeURL(&banktypes.MsgSend{})},
-			},
-			msg: &banktypes.MsgSend{
-				FromAddress: "addr1",
-				ToAddress:   "addr2",
-				Amount:      nil,
-			},
-			expResult: true,
-		},
-		{
-			name: "returns true if message is authorized (messages allowed is *)",
-			params: &types.Params{
-				AuthorizeMessagesAllowed: []string{"*"},
 			},
 			msg: &banktypes.MsgSend{
 				FromAddress: "addr1",
