@@ -134,17 +134,44 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
 
+		// -----------------------------------------------------------------------------------------------------------
 		// Calculate the block space that should be reserved for event transactions. This should be dependent on the
-		// bridge usage and req.txs.
-		// NOTES:
+		// size req.txs and bridgeParams.SequencerTxsBlockSpace. NOTES:
 		// 1. If injected, the supply delta transaction is already part of req.txs, therefore, there is no need to
 		//    account for its size.
 		// 2. The TxSelector disregards bridgeParams.SequencerTxsBlockSpace if it can fit more Sequencer-native
-		//    transactions in the block after adjusting the number of event transactions.
+		//    transactions after adjusting the number of event transactions.
+		// -----------------------------------------------------------------------------------------------------------
+
 		sequencerTxsSize := utils.NumberOfBytes(req.Txs)
 		maxBlockSpace := uint64(req.MaxTxBytes)
-		seqTxsBlockSpace := bridgeParams.SequencerTxsBlockSpace
-		maxBytesForEvents := max(maxBlockSpace-sequencerTxsSize, maxBlockSpace-seqTxsBlockSpace)
+		sequencerTxsBlockSpace := bridgeParams.SequencerTxsBlockSpace
+		var maxBytesForEvents uint64
+
+		if sequencerTxsBlockSpace > maxBlockSpace {
+
+			// SequencerTxsBlockSpace is not set to a correct value, therefore, log the issue and prioritize event
+			// transactions until the issue is solved. Here we need to account for the size of supply delta txs if
+			// injected.
+			ctx.Logger().Warn(
+				"bridgeParams.SequencerTxsBlockSpace is greater than req.MaxBytes, please coordinate with "+
+					"governance to update the param!",
+				"bridgeParams.SequencerTxsBlockSpace", sequencerTxsBlockSpace,
+				"req.MaxBytes", maxBlockSpace)
+			maxBytesForEvents = maxBlockSpace - uint64(supplyDeltaBytesSize)
+		} else if sequencerTxsSize > maxBlockSpace {
+
+			// If the amount of Sequencer-native transactions given by CometBFT is bigger than the maximum block space,
+			// allocate bridgeParams.SequencerTxsBlockSpace for Sequencer-native transactions and the rest for event
+			// transactions.
+			maxBytesForEvents = maxBlockSpace - sequencerTxsBlockSpace
+		} else {
+
+			// Otherwise, reserve the maximum block space that we can for event transactions depending on whether the
+			// block space limit for Sequencer-native transactions is exceeded by the size of the transactions
+			// given by CometBFT.
+			maxBytesForEvents = max(maxBlockSpace-sequencerTxsSize, maxBlockSpace-sequencerTxsBlockSpace)
+		}
 
 		// Trim events from tail to fit the block space allocated for events.
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
