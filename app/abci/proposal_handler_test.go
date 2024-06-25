@@ -34,7 +34,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
 	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
-	ecodedMsgIndexPartialBlockWith3Events := s.EncodeMsgIndexWithEvents(testtypes.TestMsgIndexPartial2)
+	encodedMsgIndexWithFourEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithFourEvents)
+	encodedMsgIndexPartialBlockWith3Events := s.EncodeMsgIndexWithEvents(testtypes.TestMsgIndexPartial2)
 	encodedMsgIndexPartialBlock := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexPartial)
 	encodedMsgIndexWithoutEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithoutEvents)
 	encodedMsgIndexSidecarErr := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexSidecarErr)
@@ -56,6 +57,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			encodedDummyTxs[0],
 			encodedDummyTxs[1],
 			encodedDummyTxs[2],
+		),
+	)
+	totalTxsBytesWithFourEventsAndSupplyDeltaOnly := calculateTotalTxBytes(
+		append(
+			encodedMsgIndexWithFourEvents,
+			msgSupplyDeltaTx,
 		),
 	)
 
@@ -242,17 +249,18 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 
-			// Injected 4 events
+			// 4 block events
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: testtypes.TestSidecarResponseLarger, Error: nil,
+				Response: testtypes.TestSidecarResponseWithFourEvents, Error: nil,
 			},
 
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 
-				// This indicates that we should be able to fit exactly 3 events and 3 dummy txs
-				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta),
+				// We set the maximum size such that we are able to fit in four events to demonstrate that even though
+				// we can fit all events, some limited block space is reserve for Sequencer-native transactions.
+				MaxTxBytes: int64(totalTxsBytesWithFourEventsAndSupplyDeltaOnly),
 
-				// Final encoded dummy tx should be ignored since we are exactly on the limit
+				// We add another transaction to demonstrate that it gets trimmed because there is not enough space.
 				Txs: append(encodedDummyTxs, encodedDummyTxs[0]),
 
 				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
@@ -262,10 +270,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			sequencerTxsBlockSpace:       totalTxBytesWithSupplyDelta, // Limit set to the total size of dummy txs and supply delta
+
+			// Limit is set to the total size of dummy txs and supply delta
+			sequencerTxsBlockSpace: totalTxBytesWithSupplyDelta,
+
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					ecodedMsgIndexPartialBlockWith3Events,
+					encodedMsgIndexPartialBlockWith3Events,
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],

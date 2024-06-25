@@ -241,10 +241,12 @@ var (
 	TestEvent11Msg *bridgetypes.MsgDepositFromEthereum
 	TestEvent12Msg *bridgetypes.MsgDepositFromEthereum
 
-	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
-	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
-	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
-	TestEventsLarger    = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3, TestEvent3} // More than 3 events
+	TestEvents               = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestEventsDifferent      = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
+	TestEventsReduced        = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEventsWithFourEvents = []*sidecartypes.Event{
+		TestEvent1, TestEvent2, TestEvent3, TestEvent3,
+	}
 
 	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
 	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
@@ -282,6 +284,16 @@ var (
 			BlockNumber:         1,
 		},
 		Events: TestEventsDifferent,
+	}
+
+	TestMsgIndexWithFourEvents = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEventsWithFourEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: TestEventsWithFourEvents,
 	}
 
 	TestMsgIndexReduced = TestMsgIndexWithEvents{
@@ -343,10 +355,12 @@ var (
 		Events: nil,
 	}
 
-	TestEmptySidecarResponse            = &sidecartypes.QueryBlockEventsResponse{Events: nil}
-	TestSidecarResponse                 = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
-	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
-	TestSidecarResponseLarger           = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsLarger}
+	TestEmptySidecarResponse          = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse               = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced        = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestSidecarResponseWithFourEvents = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsWithFourEvents,
+	}
 	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
