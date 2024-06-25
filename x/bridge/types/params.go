@@ -11,8 +11,18 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// DefaultAuthorizeMessagesAllowed is the default messages we allow.
-	DefaultAuthorizeMessagesAllowed = []string{AllowAllAuthorizeMessages}
+
+	// DefaultAuthorizeMessagesAllowed is the Sequencer whitelisted messages we support for AuthorizeTx execution. By
+	// default, we will support staking operations, bank transfers, voting on proposals and Ethereum withdrawals.
+	DefaultAuthorizeMessagesAllowed = []string{
+		"/fuelsequencer.bridge.v1.MsgWithdrawToEthereum",
+		"/cosmos.bank.v1beta1.MsgSend",
+		"/cosmos.staking.v1beta1.MsgDelegate",
+		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
+		"/cosmos.staking.v1beta1.MsgUndelegate",
+		"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+		"/cosmos.gov.v1.MsgVote",
+	}
 
 	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
 	// up with Ethereum. This is set to 1 hour by default.
@@ -26,10 +36,6 @@ const (
 	// DefaultEthereumProxyContractAddress is the default contract address we expect to
 	// receive deposit and authorize messages from.
 	DefaultEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
-
-	// AllowAllAuthorizeMessages can be used if we want to allow
-	// all messages instead of specifying all of them one-by-one.
-	AllowAllAuthorizeMessages = "*"
 
 	// DefaultSupplyDeltaPeriod is the default frequency in block at which we report supply
 	// delta info to Ethereum.
@@ -47,6 +53,15 @@ const (
 	// prevent setting InjectedEventTxMaxBytes to a very small value, and thus avoiding situations where event txs are
 	// never injected due to a strict InjectedEventTxMaxBytes.
 	MinimumInjectedEventTxMaxBytes = 1024
+
+	// DefaultMaxAuthorizeMessages is the maximum amount of Cosmos SDK messages that an Authorize transaction can have
+	// by default
+	DefaultMaxAuthorizeMessages = 10
+
+	// MinimumMaxAuthorizeMessages is the minimum value that MaxAuthorizeMessages can be set to. This is set to one to
+	// prevent mistakes that could cause all Authorize transactions to get skipped. Governance should set
+	// AuthorizeMessagesAllowed to [] if the execution of Authorize txs is to be disabled.
+	MinimumMaxAuthorizeMessages = 1
 )
 
 // ParamKeyTable the param key table for launch module
@@ -63,6 +78,7 @@ func NewParams(
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
+	maxAuthorizeMessages uint64,
 ) Params {
 	// Setting a default start time.
 	t0, err := time.Parse(time.DateOnly, "2024-01-01")
@@ -81,6 +97,7 @@ func NewParams(
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
+		MaxAuthorizeMessages:         maxAuthorizeMessages,
 	}
 }
 
@@ -94,6 +111,7 @@ func DefaultParams() Params {
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
+		DefaultMaxAuthorizeMessages,
 	)
 }
 
@@ -145,6 +163,11 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	// Validate the maximum amount of Cosmos SDK messages allowed in an Authorize Tx.
+	if err := ValidateMaxAuthorizeMessages(p.MaxAuthorizeMessages); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -175,12 +198,9 @@ func ValidateAuthorizeMessagesAllowed(i interface{}) error {
 	if !ok {
 		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
 	}
-	if len(messages) == 0 {
-		return ErrParamsInvalid.Wrapf("authorize messages cannot be empty")
-	}
 	for _, msg := range messages {
 		if msg == "" {
-			return ErrParamsInvalid.Wrapf("authorize message cannot be empty")
+			return ErrParamsInvalid.Wrapf("authorizeMessagesAllowed cannot contain empty string literals")
 		}
 	}
 	return nil
@@ -262,6 +282,22 @@ func ValidateInjectedEventTxMaxBytes(i interface{}) error {
 	return nil
 }
 
+func ValidateMaxAuthorizeMessages(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for maxAuthorizeMessages: %T", i)
+	}
+
+	// value cannot be less than MinimumMaxAuthorizeMessages, otherwise, we risk skipping all Authorize txs.
+	if v < MinimumMaxAuthorizeMessages {
+		return ErrParamsInvalid.Wrapf(
+			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
+	}
+
+	return nil
+}
+
 // VestingTimesFromVestingDuration returns the vesting start and end time based on the VestingStartTime parameter, the
 // vestingStartTimeDelay, and a specified vesting duration, which must be greater than vestingStartTimeDelay since the
 // vesting duration is included in the vestingStartTimeDelay.
@@ -286,11 +322,6 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 // IsAuthorizedMessage returns true if the sdk.Msg TypeURL is present in Params.AuthorizeMessagesAllowed, otherwise,
 // returns false
 func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
-	// Check that wildcard * option for allowing all message types is the only string in the array, if so, return true
-	if len(p.AuthorizeMessagesAllowed) == 1 && p.AuthorizeMessagesAllowed[0] == AllowAllAuthorizeMessages {
-		return true
-	}
-
 	for _, messageAllowed := range p.AuthorizeMessagesAllowed {
 		if messageAllowed == sdk.MsgTypeURL(msg) {
 			return true

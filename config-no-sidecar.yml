@@ -125,7 +125,13 @@ genesis:
         bridge_denom: "utest"
         ethereum_proxy_contract_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"  # just an example
         authorize_messages_allowed:
-          - "*"  # allow all
+          - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
+          - "/cosmos.bank.v1beta1.MsgSend"
+          - "/cosmos.staking.v1beta1.MsgDelegate"
+          - "/cosmos.staking.v1beta1.MsgBeginRedelegate"
+          - "/cosmos.staking.v1beta1.MsgUndelegate"
+          - "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+          - "/cosmos.gov.v1.MsgVote"
         supply_delta_period: 100
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"

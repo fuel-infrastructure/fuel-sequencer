@@ -23,6 +23,7 @@ var (
 	TestSupplyDeltaPeriod            = uint64(100)
 	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	TestInjectedEventTxMaxBytes      = uint64(20000000)
+	TestMaxAuthorizeMessages         = uint64(10)
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestLastSupply                   = sdkmath.NewInt(100000000)
 	TestDelta                        = sdkmath.NewInt(5000000)
