@@ -64,11 +64,11 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
-	// LastEthBlockUpdateTime is also updated to prevent sync issues with partially synced Ethereum blocks
-	// when BlockTime exceeds MaxEthBlockUpdateDelay.
 	if !msg.NewEthereumBlock && msg.NumInjectedEventTxs > 0 {
 		newOffset := eventIndexOffset + msg.NumInjectedEventTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
+		// LastEthBlockUpdateTime is also updated to prevent sync issues with partially synced Ethereum blocks
+		// when BlockTime exceeds MaxEthBlockUpdateDelay, as an Ethereum block can be split into many Tendermint blocks.
 		k.SetLastEthBlockUpdateTime(ctx, ctx.BlockTime())
 	}
 
