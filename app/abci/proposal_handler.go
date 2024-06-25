@@ -136,7 +136,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		// -----------------------------------------------------------------------------------------------------------
 		// Calculate the block space that should be reserved for event transactions. This should be dependent on the
-		// size req.txs and bridgeParams.SequencerTxsBlockSpace. NOTES:
+		// size of req.txs and bridgeParams.SequencerTxsBlockSpace. NOTES:
 		// 1. If injected, the supply delta transaction is already part of req.txs, therefore, there is no need to
 		//    account for its size.
 		// 2. The TxSelector disregards bridgeParams.SequencerTxsBlockSpace if it can fit more Sequencer-native
@@ -168,8 +168,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		} else {
 
 			// Otherwise, reserve the maximum block space that we can for event transactions depending on whether the
-			// block space limit for Sequencer-native transactions is exceeded by the size of the transactions
-			// given by CometBFT.
+			// size of transactions given by CometBFT exceeds the block space limit for Sequencer-native transactions.
 			maxBytesForEvents = max(maxBlockSpace-sequencerTxsSize, maxBlockSpace-sequencerTxsBlockSpace)
 		}
 
