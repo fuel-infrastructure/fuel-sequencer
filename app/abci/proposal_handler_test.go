@@ -30,7 +30,8 @@ func calculateTotalTxBytes(txs [][]byte) uint64 {
 }
 
 func (s *AppTestSuite) TestPrepareProposalHandler() {
-	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
+	// Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
+	totalTxsGas := int64(3000)
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
 	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
@@ -51,6 +52,17 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			encodedDummyTxs[2],
 		),
 	)
+	totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs := calculateTotalTxBytes(
+		append(
+			encodedMsgIndexWithEvents,
+			msgSupplyDeltaTx,
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+			encodedDummyTxs[2],
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+		),
+	)
 	totalTxBytesWithSupplyDelta := calculateTotalTxBytes(
 		append(
 			[][]byte{msgSupplyDeltaTx},
@@ -59,10 +71,33 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			encodedDummyTxs[2],
 		),
 	)
+	totalTxsBytesWithEventsAndSupplyDeltaOnly := calculateTotalTxBytes(
+		append(
+			encodedMsgIndexWithEvents,
+			msgSupplyDeltaTx,
+		),
+	)
 	totalTxsBytesWithFourEventsAndSupplyDeltaOnly := calculateTotalTxBytes(
 		append(
 			encodedMsgIndexWithFourEvents,
 			msgSupplyDeltaTx,
+		),
+	)
+	totalTxBytesWithSupplyDeltaAndTwoDummyTxs := calculateTotalTxBytes(
+		append(
+			[][]byte{msgSupplyDeltaTx},
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+		),
+	)
+	totalTxBytesWithSupplyDeltaAndFiveDummyTxs := calculateTotalTxBytes(
+		append(
+			[][]byte{msgSupplyDeltaTx},
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+			encodedDummyTxs[2],
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
 		),
 	)
 
@@ -281,6 +316,109 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
+			name: "block space - sequencerTxsBlockSpace will get exceeded if there is more space for Sequencer-native" +
+				" txs",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta),
+				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Limit is set to the total size of 2 dummy txs and supply delta. This showcases that the third dummy
+			// transaction is still included in the block even though the block space for heavy usage does not allow for
+			// it.
+			sequencerTxsBlockSpace: totalTxBytesWithSupplyDeltaAndTwoDummyTxs,
+
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithEvents,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
+			name: "block space - if number of Sequencer-native txs is less than sequencerTxsBlockSpace, " +
+				"event transactions are given more space",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+
+			// We will return 4 events from the sidecar
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseWithFourEvents, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+
+				// MaxTxBytes is set to the size of three events + supply delta + 4 dummy transactions to demonstrate
+				// that event number 4 is still included in the block even though there is fixed block space reserved
+				// for when the bridge is under heavy usage.
+				MaxTxBytes: int64(totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs),
+				Txs:        [][]byte{encodedDummyTxs[0]},               // Just 1 dummy transaction
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Limit is set to the size of 4 dummy transactions and supplyDelta. This is done to demonstrate the
+			// dynamically adjusting block space in favor of event transactions when there is enough space.
+			sequencerTxsBlockSpace: totalTxBytesWithSupplyDeltaAndFiveDummyTxs,
+
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithFourEvents,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+				),
+			},
+		},
+		{
+			name:                      "sequencerTxsBlockSpace > req.MaxTxBytes - Event transactions are prioritized",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+
+				// MaxTxBytes is set to the size of three events + supply delta to demonstrate the prioritization of
+				// event transactions over Sequencer-native transactions when sequencerTxsBlockSpace is badly
+				// configured.
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDeltaOnly),
+				Txs:        [][]byte{encodedDummyTxs[0]},               // Just 1 dummy transaction
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// sequencerTxsBlockSpace > MaxTxBytes
+			sequencerTxsBlockSpace: totalTxsBytesWithEventsAndSupplyDeltaOnly + 1,
+
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithEvents,
+					msgSupplyDeltaTx,
 				),
 			},
 		},
@@ -682,6 +820,18 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				return
 			}
 			s.Require().NoError(err)
+
+			for _, response := range res.Txs {
+				tx, _ := s.App.TxDecode(response)
+				fmt.Println(tx.GetMsgs())
+			}
+
+			fmt.Println("----------------------------------------")
+
+			for _, response := range tc.expRes.Txs {
+				tx, _ := s.App.TxDecode(response)
+				fmt.Println(tx.GetMsgs())
+			}
 
 			s.Require().Equal(tc.expRes, res)
 		})
