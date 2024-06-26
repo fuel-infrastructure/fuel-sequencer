@@ -17,8 +17,8 @@ func DefaultGenesis() *GenesisState {
 		Params: DefaultParams(),
 		SupplyDeltaInfo: &SupplyDeltaInfo{
 			LastSupply: math.ZeroInt(),
-			Delta:      math.ZeroInt(),
 			Offset:     math.ZeroInt(),
+			ToReport:   math.ZeroInt(),
 		},
 		LastEthereumNonce:        math.ZeroInt(),
 		LastEthereumBlockSynced:  0,
