@@ -140,7 +140,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		*/
 
 		// The SupplyDelta tx size is considered in the calculations as we need to make sure that the supply delta tx is
-		// always injected. As can be deduced, SupplyDelta transactions are not considered to be Sequencer-native txs.
+		// always injected. As it can be deduced, SupplyDelta transactions are not considered to be Sequencer-native
+		// txs.
 		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
