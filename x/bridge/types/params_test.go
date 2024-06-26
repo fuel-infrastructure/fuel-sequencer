@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -264,33 +265,43 @@ func TestValidateInjectedEventTxMaxBytes(t *testing.T) {
 	}
 }
 
-func TestValidateSequencerTxsBlockSpace(t *testing.T) {
+func TestValidateSequencerTxsAllocation(t *testing.T) {
 	testCases := []struct {
 		name      string
 		input     interface{}
 		expectErr bool
 	}{
 		{
-			"Valid SequencerTxsBlockSpace - value greater than MinimumSequencerTxsBlockSpace",
-			uint64(types.MinimumSequencerTxsBlockSpace + 1),
+			"Valid SequencerTxsAllocation - MinimumSequencerTxsAllocation < value < MaximumSequencerTxsAllocation",
+			types.MinimumSequencerTxsAllocation.Add(sdkmath.LegacyMustNewDecFromStr("0.1")),
 			false,
 		},
 		{
-			"Valid SequencerTxsBlockSpace - value equal to MinimumSequencerTxsBlockSpace",
-			uint64(types.MinimumSequencerTxsBlockSpace),
+			"Valid SequencerTxsAllocation - value == MinimumSequencerTxsAllocation",
+			types.MinimumSequencerTxsAllocation,
 			false,
 		},
 		{
-			"Invalid SequencerTxsBlockSpace - value less than MinimumSequencerTxsBlockSpace",
-			uint64(types.MinimumSequencerTxsBlockSpace - 1),
+			"Valid SequencerTxsAllocation - value == MaximumSequencerTxsAllocation",
+			types.MaximumSequencerTxsAllocation,
+			false,
+		},
+		{
+			"Invalid SequencerTxsAllocation - value < MinimumSequencerTxsAllocation",
+			types.MinimumSequencerTxsAllocation.Sub(sdkmath.LegacyMustNewDecFromStr("0.01")),
 			true,
 		},
-		{"Non-uint64 type", "not a uint64", true},
+		{
+			"Invalid SequencerTxsAllocation - value > MaximumSequencerTxsAllocation",
+			types.MaximumSequencerTxsAllocation.Add(sdkmath.LegacyMustNewDecFromStr("0.01")),
+			true,
+		},
+		{"Non-LegacyDec type", "not a LegacyDec", true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := types.ValidateInjectedEventTxMaxBytes(tc.input)
+			err := types.ValidateSequencerTxsAllocation(tc.input)
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
@@ -344,7 +355,7 @@ func TestParams_Validate(t *testing.T) {
 	validVestingStartTime := time.Now()
 	validMaxEthBlockUpdateDelay := time.Hour
 	validInjectedEventTxMaxBytes := uint64(10000000)
-	validSequencerTxsBlockSpace := uint64(300000)
+	validSequencerTxsAllocation := sdkmath.LegacyMustNewDecFromStr("0.3")
 	validMaxAuthorizeMessages := uint64(10)
 
 	// Creating an invalid ethereum proxy contract address for testing
@@ -371,7 +382,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: false,
@@ -387,7 +398,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: false,
@@ -403,7 +414,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
@@ -419,7 +430,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
@@ -435,7 +446,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
@@ -451,7 +462,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
@@ -467,7 +478,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
@@ -483,7 +494,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       time.Duration(-1),
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
@@ -499,13 +510,13 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      uint64(types.MinimumInjectedEventTxMaxBytes - 1),
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
 		{
-			name: "SequencerTxsBlockSpace too small",
+			name: "SequencerTxsAllocation too small",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
@@ -515,8 +526,10 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       uint64(types.MinimumSequencerTxsBlockSpace - 1),
-				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
+				SequencerTxsAllocation: types.MinimumSequencerTxsAllocation.Sub(
+					sdkmath.LegacyMustNewDecFromStr("0.01"),
+				),
+				MaxAuthorizeMessages: validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -531,7 +544,7 @@ func TestParams_Validate(t *testing.T) {
 				AdditionalBlockedAddresses:   []string{},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
-				SequencerTxsBlockSpace:       validSequencerTxsBlockSpace,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
 				MaxAuthorizeMessages:         uint64(types.MinimumMaxAuthorizeMessages - 1),
 			},
 			expectErr: true,

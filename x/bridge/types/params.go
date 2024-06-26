@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -27,6 +28,19 @@ var (
 	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
 	// up with Ethereum. This is set to 1 hour by default.
 	DefaultMaxEthBlockUpdateDelay = time.Hour
+
+	// DefaultSequencerTxsAllocation is the default value for the percentage that controls the maximum amount of block
+	// space allocated to Sequencer-native transactions during heavy bridge usage.
+	DefaultSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.3")
+
+	// MinimumSequencerTxsAllocation is the minimum value that SequencerTxsAllocation can be set to. This minimum is set
+	// as a measure against mempool saturation and transaction censorship when the bridge is under heavy usage.
+	MinimumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.1")
+
+	// MaximumSequencerTxsAllocation is the maximum value that SequencerTxsAllocation can be set to. This maximum is set
+	// as a measure against mistakes. This is important because if set to a very high value, the block production
+	// algorithm may not be able to allocate block space to critical transactions.
+	MaximumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.5")
 )
 
 const (
@@ -54,14 +68,6 @@ const (
 	// never injected due to a strict InjectedEventTxMaxBytes.
 	MinimumInjectedEventTxMaxBytes = 1024
 
-	// DefaultSequencerTxsBlockSpace is the default maximum block space allocated for Sequencer native transactions when
-	// the bridge is under heavy usage. This is set to 30% of total block space default value (22020096).
-	DefaultSequencerTxsBlockSpace = 6606028
-
-	// MinimumSequencerTxsBlockSpace is the minimum value that SequencerTxsBlockSpace can be set to. This minimum is set
-	// as a measure against mempool saturation and transaction censorship when the bridge is under heavy usage.
-	MinimumSequencerTxsBlockSpace = 1024
-
 	// DefaultMaxAuthorizeMessages is the maximum amount of Cosmos SDK messages that an Authorize transaction can have
 	// by default
 	DefaultMaxAuthorizeMessages = 10
@@ -86,7 +92,7 @@ func NewParams(
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
-	sequencerTxsBlockSpace uint64,
+	sequencerTxsAllocation sdkmath.LegacyDec,
 	maxAuthorizeMessages uint64,
 ) Params {
 	// Setting a default start time.
@@ -106,7 +112,7 @@ func NewParams(
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
-		SequencerTxsBlockSpace:       sequencerTxsBlockSpace,
+		SequencerTxsAllocation:       sequencerTxsAllocation,
 		MaxAuthorizeMessages:         maxAuthorizeMessages,
 	}
 }
@@ -121,7 +127,7 @@ func DefaultParams() Params {
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
-		DefaultSequencerTxsBlockSpace,
+		DefaultSequencerTxsAllocation,
 		DefaultMaxAuthorizeMessages,
 	)
 }
@@ -175,7 +181,7 @@ func (p Params) Validate() error {
 	}
 
 	// Validate the maximum block space for sequencer txs.
-	if err := ValidateSequencerTxsBlockSpace(p.SequencerTxsBlockSpace); err != nil {
+	if err := ValidateSequencerTxsAllocation(p.SequencerTxsAllocation); err != nil {
 		return err
 	}
 
@@ -314,17 +320,19 @@ func ValidateMaxAuthorizeMessages(i interface{}) error {
 	return nil
 }
 
-func ValidateSequencerTxsBlockSpace(i interface{}) error {
-	v, ok := i.(uint64)
+func ValidateSequencerTxsAllocation(i interface{}) error {
+	v, ok := i.(sdkmath.LegacyDec)
 	if !ok {
-		return ErrParamsInvalid.Wrapf("invalid parameter type for sequencerTxsBlockSpace: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type for sequencerTxsAllocation: %T", i)
 	}
 
-	// value cannot be less than MinimumSequencerTxsBlockSpace, otherwise, we risk mempool saturation or transaction
-	// censorship
-	if v < MinimumSequencerTxsBlockSpace {
+	// value must be within allowed range
+	if v.LT(MinimumSequencerTxsAllocation) || v.GT(MaximumSequencerTxsAllocation) {
 		return ErrParamsInvalid.Wrapf(
-			"sequencer transactions block space cannot be less than %d: given %d", MinimumSequencerTxsBlockSpace, v,
+			"expected: %s <= value <= %s; actual %s",
+			MinimumSequencerTxsAllocation.String(),
+			MaximumSequencerTxsAllocation.String(),
+			v.String(),
 		)
 	}
 

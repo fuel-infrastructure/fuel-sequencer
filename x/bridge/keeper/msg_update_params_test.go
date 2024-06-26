@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -21,7 +22,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		[]string{},
 		2*time.Hour,
 		6144,
-		300000,
+		sdkmath.LegacyMustNewDecFromStr("0.3"),
 		2,
 	)
 	require.NoError(t, k.SetParams(ctx, defaultParams))

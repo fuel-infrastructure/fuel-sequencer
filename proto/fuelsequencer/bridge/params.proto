@@ -5,6 +5,7 @@ import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
+import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
@@ -56,14 +57,17 @@ message Params {
   // be converted into a Tx that can respect this limit, the chain halts.
   uint64 injected_event_tx_max_bytes = 8;
 
-  // sequencer_txs_block_space is the maximum amount of bytes allocated for
-  // Sequencer-native transactions during heavy bridge usage. Ensures blocks are
-  // not solely filled with injected transactions when Sequencer transactions
-  // are in the mempool. NOTE: The block space reserved for Sequencer
-  // transactions is dynamically adjusted depending on the number of Ethereum
-  // events in the block and the number of Sequencer transactions in the
-  // mempool.
-  uint64 sequencer_txs_block_space = 9;
+  // sequencer_txs_allocation is a percentage that controls the maximum amount
+  // of block space that is allocated to Sequencer-native transactions during
+  // heavy bridge usage. This Ensures blocks are not solely filled with event
+  // transactions if there are Sequencer transactions waiting in the mempool.
+  // NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
+  // can fit more Sequencer-native or event transactions.
+  string sequencer_txs_allocation = 9 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
 
   // max_authorize_messages is the maximum amount of Cosmos SDK messages that an
   // Authorize transaction can have
