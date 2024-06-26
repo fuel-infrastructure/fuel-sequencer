@@ -11,12 +11,12 @@ import (
 func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 
 	testSupplyDeltaInfo := testtypes.TestSupplyDeltaInfo
-	testSupplyDelta := testSupplyDeltaInfo.Delta.Add(testSupplyDeltaInfo.Offset)
+	testSupplyDelta := testSupplyDeltaInfo.ToReport
 
 	testSupplyDeltaInfoZeros := bridgetypes.SupplyDeltaInfo{
 		LastSupply: testSupplyDeltaInfo.LastSupply,
-		Delta:      sdk.ZeroInt(),
 		Offset:     sdk.ZeroInt(),
+		ToReport:   sdk.ZeroInt(),
 	}
 
 	testCases := []struct {
