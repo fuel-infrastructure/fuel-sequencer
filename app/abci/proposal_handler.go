@@ -139,18 +139,19 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		Calculate the block space that should be reserved for event transactions.
 		*/
 
-		// The SupplyDelta tx size is considered in the calculations as we need to make sure that the supply delta tx is
-		// always injected. As it can be deduced, SupplyDelta transactions are not considered to be Sequencer-native
-		// txs.
+		// The SupplyDelta tx size is considered in the calculations as we need to make sure that it is always injected
+		// when required. Note, SupplyDelta transactions are not considered to be Sequencer-native txs as these are
+		// injected by the consensus algorithm.
 		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
-		// Reserve a percentage of the maximum available block space for Sequencer-native transactions. We are sure that
-		// this will not cover the entire block space because there are maximum limits imposed on
+		// Reserve a percentage of the available block space for Sequencer-native transactions. We are sure that this
+		// will not cover the entire block space because there are limits imposed on
 		// bridgeParams.SequencerTxsAllocation.
 		// Note: We might allocate less block space than bridgeParams.SequencerTxsAllocation indicates when supply delta
-		// transactions are injected because we will take a percentage of req.MaxTxBytes - supplyDeltaBytesSize. This
-		// should be fine as long as SupplyDelta tx remains small and the MaxBytes is set to a reasonable value.
+		// transactions are injected, because, we will take a percentage of req.MaxTxBytes - supplyDeltaBytesSize. This
+		// should be fine as long as SupplyDelta tx remains small and the MaxBytes consensus parameter is set to a
+		// reasonable value.
 		sequencerTxsBlockSpace := uint64(bridgeParams.SequencerTxsAllocation.MulInt(
 			sdkmath.NewIntFromUint64(maxBlockSpace),
 		).TruncateInt64())
@@ -158,10 +159,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		var maxBytesForEvents uint64
 		if sequencerTxsSize > maxBlockSpace {
 
-			// If the amount of Sequencer-native transactions given by CometBFT is bigger than the maximum available
-			// block space, allocate bridgeParams.SequencerTxsAllocation percent of the available block space for
-			// Sequencer-native transactions and the rest for event transactions. We need to make this check because if
-			// sequencerTxsSize > maxBlockSpace we will run into overflow issues.
+			// If size of Sequencer-native transactions given by CometBFT is bigger than the available block space,
+			// allocate bridgeParams.SequencerTxsAllocation percent of the available block space to Sequencer-native
+			// transactions and the rest to event transactions. Note, we need to make this check because if
+			// sequencerTxsSize > maxBlockSpace we will run into overflow issues when subtracting two uint64 values.
 			maxBytesForEvents = maxBlockSpace - sequencerTxsBlockSpace
 		} else {
 
@@ -172,8 +173,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Trim events from tail to fit the block space allocated for events.
-		// NOTE: The TxSelector will be able to fit in more Sequencer-native transactions if there is more space in the
-		// block after adjusting the number of event transactions.
+		// NOTE: The TxSelector will be able to fit in more Sequencer-native transactions at the end if there is more
+		// space in the block after adjusting the number of event transactions.
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
