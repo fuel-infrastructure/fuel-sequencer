@@ -135,24 +135,21 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
 
-		// -----------------------------------------------------------------------------------------------------------
-		// Calculate the block space that should be reserved for event transactions. NOTES:
-		// 1. The SupplyDelta tx size is omitted from the calculations as we need to make sure that the supply delta
-		//    tx is always injected.
-		// 2. The implications of 1 are that we might allocate less block space than bridgeParams.SequencerTxsAllocation
-		//    indicates when supply delta transactions are injected because we will take a percentage of
-		//    req.MaxTxBytes - supplyDeltaTxSize
-		// 3. SupplyDelta transactions are not considered to be Sequencer-native transactions.
-		// 4. The TxSelector disregards bridgeParams.SequencerTxsAllocation if it can fit more Sequencer-native
-		//    transactions after adjusting the number of event transactions.
-		// -----------------------------------------------------------------------------------------------------------
+		/**
+		Calculate the block space that should be reserved for event transactions.
+		*/
 
+		// The SupplyDelta tx size is considered in the calculations as we need to make sure that the supply delta tx is
+		// always injected. As can be deduced, SupplyDelta transactions are not considered to be Sequencer-native txs.
 		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
 		// Reserve a percentage of the maximum available block space for Sequencer-native transactions. We are sure that
 		// this will not cover the entire block space because there are maximum limits imposed on
-		// bridgeParams.SequencerTxsAllocation
+		// bridgeParams.SequencerTxsAllocation.
+		// Note: We might allocate less block space than bridgeParams.SequencerTxsAllocation indicates when supply delta
+		// transactions are injected because we will take a percentage of req.MaxTxBytes - supplyDeltaBytesSize. This
+		// should be fine as long as SupplyDelta tx remains small and the MaxBytes is set to a reasonable value.
 		sequencerTxsBlockSpace := uint64(bridgeParams.SequencerTxsAllocation.MulInt(
 			sdkmath.NewIntFromUint64(maxBlockSpace),
 		).TruncateInt64())
@@ -174,6 +171,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Trim events from tail to fit the block space allocated for events.
+		// NOTE: The TxSelector will be able to fit in more Sequencer-native transactions if there is more space in the
+		// block after adjusting the number of event transactions.
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
