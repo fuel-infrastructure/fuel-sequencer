@@ -176,7 +176,7 @@ func (s *EventsTestSuite) TestPartialBlockSync() {
 		// -------- Delay sync up
 
 		s.PauseEthereum()
-		// Wait MaxEthBlockUpdateDelay is no longer valid (padded some seconds due to same caching on the sidecars)
+		// Wait MaxEthBlockUpdateDelay is no longer valid (padded some seconds due to caching on the sidecars)
 		time.Sleep(time.Second * 40)
 		s.UnpauseEthereum()
 
