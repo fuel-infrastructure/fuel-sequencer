@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -27,6 +28,19 @@ var (
 	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
 	// up with Ethereum. This is set to 1 hour by default.
 	DefaultMaxEthBlockUpdateDelay = time.Hour
+
+	// DefaultSequencerTxsAllocation is the default value for the percentage that controls the maximum amount of block
+	// space allocated to Sequencer-native transactions during heavy bridge usage.
+	DefaultSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.3")
+
+	// MinimumSequencerTxsAllocation is the minimum value that SequencerTxsAllocation can be set to. This minimum is set
+	// as a measure against mempool saturation and transaction censorship when the bridge is under heavy usage.
+	MinimumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.1")
+
+	// MaximumSequencerTxsAllocation is the maximum value that SequencerTxsAllocation can be set to. This maximum is set
+	// as a measure against mistakes. This is important because if set to a very high value, the block production
+	// algorithm may not be able to allocate block space to critical transactions.
+	MaximumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.5")
 )
 
 const (
@@ -78,6 +92,7 @@ func NewParams(
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
+	sequencerTxsAllocation sdkmath.LegacyDec,
 	maxAuthorizeMessages uint64,
 ) Params {
 	// Setting a default start time.
@@ -97,6 +112,7 @@ func NewParams(
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
+		SequencerTxsAllocation:       sequencerTxsAllocation,
 		MaxAuthorizeMessages:         maxAuthorizeMessages,
 	}
 }
@@ -111,6 +127,7 @@ func DefaultParams() Params {
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
+		DefaultSequencerTxsAllocation,
 		DefaultMaxAuthorizeMessages,
 	)
 }
@@ -160,6 +177,11 @@ func (p Params) Validate() error {
 
 	// Validate the maximum bytes for injected event txs.
 	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
+		return err
+	}
+
+	// Validate the maximum block space for sequencer txs.
+	if err := ValidateSequencerTxsAllocation(p.SequencerTxsAllocation); err != nil {
 		return err
 	}
 
@@ -292,6 +314,25 @@ func ValidateMaxAuthorizeMessages(i interface{}) error {
 	if v < MinimumMaxAuthorizeMessages {
 		return ErrParamsInvalid.Wrapf(
 			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
+	}
+
+	return nil
+}
+
+func ValidateSequencerTxsAllocation(i interface{}) error {
+	v, ok := i.(sdkmath.LegacyDec)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for sequencerTxsAllocation: %T", i)
+	}
+
+	// value must be within allowed range
+	if v.LT(MinimumSequencerTxsAllocation) || v.GT(MaximumSequencerTxsAllocation) {
+		return ErrParamsInvalid.Wrapf(
+			"expected: %s <= value <= %s; actual %s",
+			MinimumSequencerTxsAllocation.String(),
+			MaximumSequencerTxsAllocation.String(),
+			v.String(),
 		)
 	}
 

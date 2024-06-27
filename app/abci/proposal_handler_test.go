@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,17 +32,20 @@ func calculateTotalTxBytes(txs [][]byte) uint64 {
 }
 
 func (s *AppTestSuite) TestPrepareProposalHandler() {
-	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
+	// Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
+	totalTxsGas := int64(3000)
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
 	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
+	encodedMsgIndexWithFourEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithFourEvents)
 	encodedMsgIndexPartialBlock := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexPartial)
+	encodedMsgIndexPartialBlockWith3Events := s.EncodeMsgIndexWithEvents(testtypes.TestMsgIndexPartial2)
 	encodedMsgIndexWithoutEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithoutEvents)
 	encodedMsgIndexSidecarErr := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexSidecarErr)
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
-	totalTxsBytesWithEventsAndSupplyDelta := int64(calculateTotalTxBytes(
+	totalTxsBytesWithEventsAndSupplyDelta := calculateTotalTxBytes(
 		append(
 			encodedMsgIndexWithEvents,
 			msgSupplyDeltaTx,
@@ -48,7 +53,24 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			encodedDummyTxs[1],
 			encodedDummyTxs[2],
 		),
-	))
+	)
+	totalTxsBytesWithFourEventsAndSupplyDeltaOnly := calculateTotalTxBytes(
+		append(
+			encodedMsgIndexWithFourEvents,
+			msgSupplyDeltaTx,
+		),
+	)
+	totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs := calculateTotalTxBytes(
+		append(
+			encodedMsgIndexWithEvents,
+			msgSupplyDeltaTx,
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+			encodedDummyTxs[2],
+			encodedDummyTxs[0],
+			encodedDummyTxs[1],
+		),
+	)
 
 	four := uint64(4)
 
@@ -66,6 +88,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		ethereumProxyContractAddress   string
 		injectedEventTxMaxBytes        uint64
 		maxAuthorizeMessages           uint64
+		sequencerTxsAllocation         sdkmath.LegacyDec
 		expErrMsg                      string
 		expRes                         *abcitypes.ResponsePrepareProposal
 	}{
@@ -86,6 +109,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
 					encodedMsgIndexWithEvents,
@@ -113,6 +137,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
 			},
@@ -134,6 +159,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
 					encodedMsgIndexWithoutEvents,
@@ -160,6 +186,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
 					encodedMsgIndexSidecarErr,
@@ -177,20 +204,27 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
-				// Set to the size of a partial eth tx, so that the last event does not fit. We need to add +2 since the
-				// generated MsgIndex will have NewEthereumBlock set to true at first until the proposer updates it.
-				// When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume anything.
+				// Set to the size of a partial MsgIndex tx, so that the last event does not fit. We need to add +2
+				// since the generated MsgIndex will have NewEthereumBlock set to true at first until the proposer
+				// updates it. When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume
+				// anything.
 				MaxTxBytes: int64(calculateTotalTxBytes(encodedMsgIndexPartialBlock)) + 2,
-				Txs:        encodedDummyTxs,
-				Height:     1, // We do not expect MsgSupplyDelta to be injected
+
+				Txs:    encodedDummyTxs,
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Set to zero so that we test functionality without having to consider allocating some block space for
+			// Sequencer-native transactions.
+			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
+
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: encodedMsgIndexPartialBlock, // partial eth tx
+				Txs: encodedMsgIndexPartialBlock, // partial MsgIndex tx
 			},
 		},
 		{
@@ -209,6 +243,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "could not get last Ethereum block synced from state",
 		},
 		{
@@ -227,6 +262,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "could not get Ethereum event index offset from state",
 		},
 		{
@@ -249,6 +285,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
@@ -275,6 +312,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
@@ -294,6 +332,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "failed to calculate number of events with max bytes 0",
 		},
 		{
@@ -314,7 +353,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg:                    "failed to calculate number of events with max bytes 0",
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
+
+			expErrMsg: "failed to calculate number of events with max bytes 0",
 		},
 		{
 			name:                      "returns only supply delta and MsgIndex if it's just enough block size",
@@ -334,6 +375,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// We need to set SequencerTxsAllocation to zero so that Sequencer-native transactions are ignored.
+			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
+
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx),
 			},
@@ -347,7 +392,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to expected size - 1 to omit last tx
-				MaxTxBytes: totalTxsBytesWithEventsAndSupplyDelta - 1,
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta - 1),
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
@@ -356,6 +401,10 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Set a zero percentage so that we do not prioritize Sequencer-native transactions.
+			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
+
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
 			},
@@ -377,6 +426,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
 			},
@@ -399,6 +449,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg: "failed to trim event txs from head: insufficient no of events, expected at " +
 				"least 4 got 3",
 		},
@@ -419,6 +470,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
@@ -438,6 +490,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
 			},
@@ -459,6 +512,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      1, // To ensure deposit event is too big
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "generated raw tx bytes exceeded max bytes",
 		},
 		{
@@ -478,6 +532,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      1, // To ensure authorize event is too big
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
 			},
@@ -499,8 +554,198 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         0, // Only empty Authorize txs are allowed
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+			},
+		},
+		{
+			name:                      "heavy usage - returns all event & sequencer-native txs if right on limits",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), // All transactions should exactly fit
+				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Calculate the percentage of block space that dummy txs will take to compute the correct limit.
+			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(calculateTotalTxBytes(
+					append(
+						[][]byte{},
+						encodedDummyTxs[0],
+						encodedDummyTxs[1],
+						encodedDummyTxs[2],
+					),
+				), 10),
+			).Quo(sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(totalTxsBytesWithEventsAndSupplyDelta, 10),
+			)),
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithEvents,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
+			name: "heavy usage - allocates limited space for sequencer-native txs if too many " +
+				"events",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+
+			// 4 block events
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseWithFourEvents, Error: nil,
+			},
+
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+
+				// We set the maximum size such that we are able to fit in four events to demonstrate that even though
+				// we can fit all events, some limited block space is reserve for Sequencer-native transactions.
+				MaxTxBytes: int64(totalTxsBytesWithFourEventsAndSupplyDeltaOnly),
+
+				// We add another transaction to demonstrate that it gets trimmed because there is not enough space.
+				Txs: append(encodedDummyTxs, encodedDummyTxs[0]),
+
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  4000, // Enough gas for 4 dummy transactions so that Gas is not a variable
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Calculate the percentage of block space that dummy txs and supply delta will take to compute the correct
+			// limit.
+			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(calculateTotalTxBytes(
+					append(
+						[][]byte{},
+						encodedDummyTxs[0],
+						encodedDummyTxs[1],
+						encodedDummyTxs[2],
+					),
+				), 10),
+			).Quo(sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(totalTxsBytesWithFourEventsAndSupplyDeltaOnly, 10),
+			)),
+
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexPartialBlockWith3Events,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
+			name: "block space - sequencerTxsAllocation will get exceeded if there is more space for Sequencer-native" +
+				" txs",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta),
+				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Allocation is set such that we can fit 2 dummy txs and supply delta. This showcases that the third dummy
+			// transaction is still included in the block.
+			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(calculateTotalTxBytes(
+					append(
+						[][]byte{},
+						msgSupplyDeltaTx,
+						encodedDummyTxs[0],
+						encodedDummyTxs[1],
+					),
+				), 10),
+			).Quo(sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(totalTxsBytesWithEventsAndSupplyDelta, 10),
+			)),
+
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithEvents,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
+			name: "block space - if number of Sequencer-native txs is low, event transactions " +
+				"are given more space",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+
+			// We will return 4 events from the sidecar
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseWithFourEvents, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+
+				// MaxTxBytes is set to the size of three events + supply delta + 5 dummy transactions to demonstrate
+				// that event number 4 is still included in the block even though there is fixed block space reserved
+				// for when the bridge is under heavy usage.
+				MaxTxBytes: int64(totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs),
+				Txs:        [][]byte{encodedDummyTxs[0]},               // Just 1 dummy transaction
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Allocation is set such that we can fit 5 dummy txs and supply delta. This is done to demonstrate the
+			// dynamically adjusting block space in favor of event transactions when there is enough space.
+			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(calculateTotalTxBytes(
+					append(
+						[][]byte{},
+						msgSupplyDeltaTx,
+						encodedDummyTxs[0],
+						encodedDummyTxs[1],
+						encodedDummyTxs[2],
+						encodedDummyTxs[0],
+						encodedDummyTxs[1],
+					),
+				), 10),
+			).Quo(sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs, 10),
+			)),
+
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithFourEvents,
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+				),
 			},
 		},
 	}
@@ -531,6 +776,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 					EthereumProxyContractAddress: tc.ethereumProxyContractAddress,
 					InjectedEventTxMaxBytes:      tc.injectedEventTxMaxBytes,
 					MaxAuthorizeMessages:         tc.maxAuthorizeMessages,
+					SequencerTxsAllocation:       tc.sequencerTxsAllocation,
 				},
 			)
 			s.Require().NoError(err)
@@ -539,7 +785,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			prepareProposalHandlerCtx := s.Ctx().WithConsensusParams(
 				comettypes.ConsensusParams{
 					Block: &comettypes.BlockParams{
-						MaxBytes: 0,
+						MaxBytes: tc.requestPrepareProposal.MaxTxBytes,
 						MaxGas:   tc.maxBlockGas,
 					},
 				},

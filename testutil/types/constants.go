@@ -24,6 +24,7 @@ var (
 	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	TestInjectedEventTxMaxBytes      = uint64(20000000)
 	TestMaxAuthorizeMessages         = uint64(10)
+	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestLastSupply                   = sdkmath.NewInt(100000000)
 	TestDelta                        = sdkmath.NewInt(5000000)
@@ -240,9 +241,12 @@ var (
 	TestEvent11Msg *bridgetypes.MsgDepositFromEthereum
 	TestEvent12Msg *bridgetypes.MsgDepositFromEthereum
 
-	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
-	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
-	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEvents               = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestEventsDifferent      = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
+	TestEventsReduced        = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEventsWithFourEvents = []*sidecartypes.Event{
+		TestEvent1, TestEvent2, TestEvent3, TestEvent3,
+	}
 
 	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
 	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
@@ -282,6 +286,16 @@ var (
 		Events: TestEventsDifferent,
 	}
 
+	TestMsgIndexWithFourEvents = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEventsWithFourEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: TestEventsWithFourEvents,
+	}
+
 	TestMsgIndexReduced = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,
@@ -300,6 +314,15 @@ var (
 			BlockNumber:         1,
 		},
 		Events: TestEventsReduced,
+	}
+	TestMsgIndexPartial2 = &TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    false,
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
 	}
 
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
@@ -332,9 +355,12 @@ var (
 		Events: nil,
 	}
 
-	TestEmptySidecarResponse            = &sidecartypes.QueryBlockEventsResponse{Events: nil}
-	TestSidecarResponse                 = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
-	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestEmptySidecarResponse          = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse               = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced        = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestSidecarResponseWithFourEvents = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsWithFourEvents,
+	}
 	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -134,8 +135,41 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
 
-		// Trim events from tail to fit the block size allocated for events.
-		maxBytesForEvents := uint64(req.MaxTxBytes - supplyDeltaBytesSize)
+		// Calculate the block space that should be reserved for event transactions.
+
+		// The SupplyDelta transaction size is deducted because we have already allocated block space for it. We have
+		// not deducted the size of MsgIndex because we will check whether it fits the allocated block space when
+		// calling msgIndex.NumberOfEventsWithMaxBytes. We should never be in a position where there isn't enough block
+		// space for MsgIndex as it is relatively small.
+		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
+		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
+
+		// Reserve a percentage of the available block space for Sequencer-native transactions. We are sure that this
+		// will not cover the entire block space because there are limits imposed on
+		// bridgeParams.SequencerTxsAllocation.
+		sequencerTxsBlockSpace := uint64(bridgeParams.SequencerTxsAllocation.MulInt(
+			sdkmath.NewIntFromUint64(maxBlockSpace),
+		).TruncateInt64())
+
+		var maxBytesForEvents uint64
+		if sequencerTxsSize > maxBlockSpace {
+
+			// If size of Sequencer-native transactions given by CometBFT is bigger than the available block space,
+			// allocate bridgeParams.SequencerTxsAllocation percent of the available block space to Sequencer-native
+			// transactions and the rest to event transactions. Note, we need to make this check because if
+			// sequencerTxsSize > maxBlockSpace we will run into overflow issues when subtracting two uint64 values.
+			maxBytesForEvents = maxBlockSpace - sequencerTxsBlockSpace
+		} else {
+
+			// Otherwise, Sequencer-native transactions will be set to occupy at most
+			// bridgeParams.SequencerTxsAllocation percent of the available block space, depending on the size of
+			// Sequencer-native transactions.
+			maxBytesForEvents = max(maxBlockSpace-sequencerTxsSize, maxBlockSpace-sequencerTxsBlockSpace)
+		}
+
+		// Trim events from tail to fit the block space allocated for events.
+		// NOTE: The TxSelector will be able to fit in more Sequencer-native transactions at the end if there is more
+		// space in the block after adjusting the number of event transactions.
 		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
