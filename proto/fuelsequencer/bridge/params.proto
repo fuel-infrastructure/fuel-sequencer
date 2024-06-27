@@ -59,7 +59,7 @@ message Params {
 
   // sequencer_txs_allocation is a percentage that controls the maximum amount
   // of block space that is allocated to Sequencer-native transactions during
-  // heavy bridge usage. This Ensures blocks are not solely filled with event
+  // heavy bridge usage. This ensures blocks are not solely filled with event
   // transactions if there are Sequencer transactions waiting in the mempool.
   // NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
   // can fit more Sequencer-native or event transactions.
