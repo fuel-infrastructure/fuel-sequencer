@@ -140,7 +140,7 @@ func (s *EventsTestSuite) TestPartialBlockSync() {
 		// Set a low max bytes for txs so that events are split across multiple blocks, with a buffer of 10 bytes.
 		maxBytesForTransactions := int64(typicalMsgIndexSize + authorizeEventMsgSize + 10)
 
-		// Calculate a max block size - this is not just for txs and must consider
+		// Calculate max block size - this is not just for txs and must consider
 		// the max size of the header and other components that make up a block.
 		numberOfValidators := len(testsuite.MNEMONICS)
 		maxBytes := maxBytesForTransactions +
