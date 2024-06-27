@@ -21,8 +21,8 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		// Calculate size of transaction resulting from MsgIndex.
 		typicalMsgIndex := &bridgetypes.MsgIndex{
 			Authority:           s.GetGovernanceAddress(),
-			NumInjectedEventTxs: 4, // matches the number of events emitted by AuthorizeMulti
-			NewEthereumBlock:    true,
+			NumInjectedEventTxs: 1, // matches the number of events emitted by AuthorizeMulti, per sequencer block
+			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
 		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
@@ -107,8 +107,8 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		// Calculate size of transaction resulting from MsgIndex.
 		typicalMsgIndex := &bridgetypes.MsgIndex{
 			Authority:           s.GetGovernanceAddress(),
-			NumInjectedEventTxs: 4, // matches the number of events emitted by AuthorizeMulti
-			NewEthereumBlock:    true,
+			NumInjectedEventTxs: 1, // matches the number of events emitted by AuthorizeMulti, per sequencer block
+			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
 		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()

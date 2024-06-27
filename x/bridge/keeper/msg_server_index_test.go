@@ -225,7 +225,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 	}{
 		// ---------------------------- Combinations of Partial and Full
 		{
-			name: "Partial + Full => 0,1 synced and 0,0 offset",
+			name: "Partial + Full => 0,1 synced and N,0 offset",
 			msg: []types.MsgIndex{
 				msgPartialBlock1,
 				msgWithEvents1, // from same block
