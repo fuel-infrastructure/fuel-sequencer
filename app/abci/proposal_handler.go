@@ -137,19 +137,16 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		// Calculate the block space that should be reserved for event transactions.
 
-		// The SupplyDelta tx size is considered in the calculations as we need to make sure that it is always injected
-		// when required. Note, SupplyDelta transactions are not considered to be Sequencer-native txs as these are
-		// injected by the consensus algorithm.
+		// The SupplyDelta transaction size is deducted because we have already allocated block space for it. We have
+		// not deducted the size of MsgIndex because we will check whether it fits the allocated block space when
+		// calling msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents). We should never be in a position
+		// where there isn't enough block space for MsgIndex as it is relatively small.
 		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
 		// Reserve a percentage of the available block space for Sequencer-native transactions. We are sure that this
 		// will not cover the entire block space because there are limits imposed on
 		// bridgeParams.SequencerTxsAllocation.
-		// Note: We might allocate less block space than bridgeParams.SequencerTxsAllocation indicates when supply delta
-		// transactions are injected, because, we will take a percentage of req.MaxTxBytes - supplyDeltaBytesSize. This
-		// should be fine as long as SupplyDelta tx remains small and the MaxBytes consensus parameter is set to a
-		// reasonable value.
 		sequencerTxsBlockSpace := uint64(bridgeParams.SequencerTxsAllocation.MulInt(
 			sdkmath.NewIntFromUint64(maxBlockSpace),
 		).TruncateInt64())
