@@ -57,14 +57,14 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 		NumFailedSpecialTxs: 0, // No special txs have failed yet
 	})
 
-	if msg.NewEthereumBlock {
+	if msg.IsFullEthereumSyncing() {
 		k.SetLastEthereumBlockSynced(ctx, msg.BlockNumber)
 		k.ResetEthereumEventIndexOffset(ctx)
 		k.SetLastEthBlockUpdateTime(ctx, ctx.BlockTime())
 	}
 
 	// If no new Ethereum block, but we still received some events, then the block was partially consumed.
-	if !msg.NewEthereumBlock && msg.NumInjectedEventTxs > 0 {
+	if msg.IsPartialEthereumSyncing() {
 		newOffset := eventIndexOffset + msg.NumInjectedEventTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 		// LastEthBlockUpdateTime is also updated to prevent sync issues with partially synced Ethereum blocks

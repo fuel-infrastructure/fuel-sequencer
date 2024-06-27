@@ -245,10 +245,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
 		// for a while.
-		var fullEthereumSyncing = injectedMsgIndex.NewEthereumBlock
-		var partialEthereumSyncing = !injectedMsgIndex.NewEthereumBlock && injectedMsgIndex.NumInjectedEventTxs > 0
-
-		if !fullEthereumSyncing && !partialEthereumSyncing {
+		if injectedMsgIndex.NoEthereumSyncing() {
 			// No Ethereum syncing, therefore, we only accept this block if MaxEthBlockUpdateDelay is not exceeded
 			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
 			ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
