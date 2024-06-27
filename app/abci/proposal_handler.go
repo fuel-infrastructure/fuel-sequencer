@@ -135,9 +135,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
 
-		/**
-		Calculate the block space that should be reserved for event transactions.
-		*/
+		// Calculate the block space that should be reserved for event transactions.
 
 		// The SupplyDelta tx size is considered in the calculations as we need to make sure that it is always injected
 		// when required. Note, SupplyDelta transactions are not considered to be Sequencer-native txs as these are
