@@ -21,6 +21,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		[]string{},
 		2*time.Hour,
 		6144,
+		2,
 	)
 	require.NoError(t, k.SetParams(ctx, defaultParams))
 	wctx := sdk.UnwrapSDKContext(ctx)
