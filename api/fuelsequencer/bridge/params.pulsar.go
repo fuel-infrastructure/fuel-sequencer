@@ -1169,8 +1169,8 @@ type Params struct {
 	InjectedEventTxMaxBytes uint64 `protobuf:"varint,8,opt,name=injected_event_tx_max_bytes,json=injectedEventTxMaxBytes,proto3" json:"injected_event_tx_max_bytes,omitempty"`
 	// sequencer_txs_allocation is a percentage that controls the maximum amount
 	// of block space that is allocated to Sequencer-native transactions during
-	// heavy bridge usage. This ensures blocks are not solely filled with event
-	// transactions if there are Sequencer transactions waiting in the mempool.
+	// heavy bridge usage. This ensures Sequencer blocks are not solely filled
+	// with event transactions if the Ethereum blocks being synced are large.
 	// NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
 	// can fit more Sequencer-native or event transactions.
 	SequencerTxsAllocation string `protobuf:"bytes,9,opt,name=sequencer_txs_allocation,json=sequencerTxsAllocation,proto3" json:"sequencer_txs_allocation,omitempty"`
