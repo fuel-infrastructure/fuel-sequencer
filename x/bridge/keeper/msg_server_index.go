@@ -68,7 +68,7 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 		newOffset := eventIndexOffset + msg.NumInjectedEventTxs
 		k.SetEthereumEventIndexOffset(ctx, newOffset)
 		// LastEthBlockUpdateTime is also updated to prevent sync issues with partially synced Ethereum blocks
-		// when BlockTime exceeds MaxEthBlockUpdateDelay, as an Ethereum block can be split into many Tendermint blocks.
+		// when BlockTime exceeds MaxEthBlockUpdateDelay, as an Ethereum block can be split into many CometBFT blocks.
 		k.SetLastEthBlockUpdateTime(ctx, ctx.BlockTime())
 	}
 
