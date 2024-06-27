@@ -284,15 +284,19 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
 		// for a while.
-		lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
-		ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
-		if !injectedMsgIndex.NewEthereumBlock && ethSyncDelayExceeded {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
-				lastEthBlockUpdateTime.String(),
-				req.Time.String(),
-				bridgeParams.MaxEthBlockUpdateDelay.String(),
-			)
+		if injectedMsgIndex.NoEthereumSyncing() {
+			// No Ethereum syncing, therefore, we only accept this block if MaxEthBlockUpdateDelay is not exceeded
+			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
+			ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
+
+			if ethSyncDelayExceeded {
+				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+					"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
+					lastEthBlockUpdateTime.String(),
+					req.Time.String(),
+					bridgeParams.MaxEthBlockUpdateDelay.String(),
+				)
+			}
 		}
 
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
@@ -465,7 +469,7 @@ func verifyTransactionsInProposal(ctx sdk.Context, txs [][]byte, txDecoder sdk.T
 	return nil
 }
 
-// getNewEthereumBlock returns the value for MsgIndex.NewEthereumBlock. NewEthereumBlock should be true iff the
+// getNewEthereumBlock returns the value for MsgIndex.NewEthereumBlock. NewEthereumBlock should be true if the
 // Sidecar didn't error.
 func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) bool {
 	return sidecarErr == nil
