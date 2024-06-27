@@ -98,7 +98,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 	})
 }
 
-func (s *EventsTestSuite) TestPartialBlockSync() {
+func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 
 	s.Run("Test validators can resume the chain if block is too large and max syncup delay exceeded", func() {
 
