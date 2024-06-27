@@ -139,8 +139,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		// The SupplyDelta transaction size is deducted because we have already allocated block space for it. We have
 		// not deducted the size of MsgIndex because we will check whether it fits the allocated block space when
-		// calling msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents). We should never be in a position
-		// where there isn't enough block space for MsgIndex as it is relatively small.
+		// calling msgIndex.NumberOfEventsWithMaxBytes. We should never be in a position where there isn't enough block
+		// space for MsgIndex as it is relatively small.
 		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
