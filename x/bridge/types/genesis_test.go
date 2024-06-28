@@ -38,6 +38,23 @@ func TestValidateGenesisState(t *testing.T) {
 			},
 			valid: true,
 		},
+		{
+			desc: "invalid genesis state",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				SupplyDeltaInfo: &types.SupplyDeltaInfo{
+					LastSupply: math.NewInt(-123),
+					Delta:      math.NewInt(34),
+					Offset:     math.NewInt(123),
+				},
+				LastEthereumNonce:        math.NewInt(3),
+				LastEthereumBlockSynced:  1,
+				EthereumEventIndexOffset: 2,
+				LastEthBlockUpdateTime:   time.Now(),
+				// this line is used by starport scaffolding # types/genesis/validField
+			},
+			valid: false,
+		},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	}
 	for _, tc := range tests {
