@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
@@ -31,7 +32,77 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	// this line is used by starport scaffolding # genesis/types/validate
 
+	// Validate supply_delta_info.
+	if err := gs.SupplyDeltaInfo.ValidateBasic(); err != nil {
+		return err
+	}
+
+	// Validate last_ethereum_nonce.
+	if err := ValidateLastEthereumNonce(gs.LastEthereumNonce); err != nil {
+		return err
+	}
+
+	// Validate last_ethereum_block_synced.
+	if err := ValidateLastEthereumBlockSynced(gs.LastEthereumBlockSynced); err != nil {
+		return err
+	}
+
+	// Validate ethereum_event_index_offset.
+	if err := ValidateEthereumEventIndexOffset(gs.EthereumEventIndexOffset); err != nil {
+		return err
+	}
+
+	// Validate last_eth_block_update_time.
+	if err := ValidateEthereumEventIndexOffset(gs.LastEthBlockUpdateTime); err != nil {
+		return err
+	}
+
+	// this line is used by starport scaffolding # genesis/types/validate
 	return gs.Params.Validate()
+}
+
+func ValidateLastEthereumNonce(i interface{}) error {
+	v, ok := i.(math.Uint)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.LT(math.OneUint()) {
+		return fmt.Errorf("expected LastEthereumNonce > 0, received %d", v)
+	}
+
+	return nil
+}
+
+func ValidateLastEthereumBlockSynced(i interface{}) error {
+	v, ok := i.(math.Uint)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.LT(math.OneUint()) {
+		return fmt.Errorf("expected LastEthereumBlockSynced > 0, received %d", v)
+	}
+
+	return nil
+}
+
+func ValidateEthereumEventIndexOffset(i interface{}) error {
+	v, ok := i.(math.Uint)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.LT(math.ZeroUint()) {
+		return fmt.Errorf("expected EthereumEventIndexOffset >= 0, received %d", v)
+	}
+
+	return nil
+}
+
+func ValidateLastEthBlockUpdateTime(i interface{}) error {
+	_, ok := i.(time.Time)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
 }
