@@ -54,7 +54,7 @@ func (gs GenesisState) Validate() error {
 	}
 
 	// Validate last_eth_block_update_time.
-	if err := ValidateEthereumEventIndexOffset(gs.LastEthBlockUpdateTime); err != nil {
+	if err := ValidateLastEthBlockUpdateTime(gs.LastEthBlockUpdateTime); err != nil {
 		return err
 	}
 
@@ -63,36 +63,27 @@ func (gs GenesisState) Validate() error {
 }
 
 func ValidateLastEthereumNonce(i interface{}) error {
-	v, ok := i.(math.Uint)
+	_, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v.LT(math.OneUint()) {
-		return fmt.Errorf("expected LastEthereumNonce > 0, received %d", v)
 	}
 
 	return nil
 }
 
 func ValidateLastEthereumBlockSynced(i interface{}) error {
-	v, ok := i.(math.Uint)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v.LT(math.OneUint()) {
-		return fmt.Errorf("expected LastEthereumBlockSynced > 0, received %d", v)
 	}
 
 	return nil
 }
 
 func ValidateEthereumEventIndexOffset(i interface{}) error {
-	v, ok := i.(math.Uint)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v.LT(math.ZeroUint()) {
-		return fmt.Errorf("expected EthereumEventIndexOffset >= 0, received %d", v)
 	}
 
 	return nil
