@@ -41,8 +41,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/crisis" // import for side-effects
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/distribution" // import for side-effects
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -105,7 +103,6 @@ type FuelSequencerApp struct {
 	SlashingKeeper slashingkeeper.Keeper
 	MintKeeper     mintkeeper.Keeper
 	GovKeeper      *govkeeper.Keeper
-	CrisisKeeper   *crisiskeeper.Keeper
 	UpgradeKeeper  *upgradekeeper.Keeper
 	AuthzKeeper    authzkeeper.Keeper
 	EvidenceKeeper evidencekeeper.Keeper
@@ -247,7 +244,6 @@ func NewFuelSequencerApp(
 		&app.SlashingKeeper,
 		&app.MintKeeper,
 		&app.GovKeeper,
-		&app.CrisisKeeper,
 		&app.UpgradeKeeper,
 		&app.AuthzKeeper,
 		&app.EvidenceKeeper,
@@ -354,7 +350,8 @@ func NewFuelSequencerApp(
 
 	/****  Module Options ****/
 
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
+	// CrisisKeeper is not wired, therefore, no invariants are registered.
+	//app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
