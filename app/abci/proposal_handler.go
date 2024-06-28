@@ -211,6 +211,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// and blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
 		resp, err := h.defaultProposalHandler.PrepareProposalHandler()(ctx, req)
 		if err != nil {
+			req.Txs = [][]byte{}
 			return nil, fmt.Errorf("default proposal handler failed with error: %w", err)
 		}
 		selectedTxs := resp.Txs

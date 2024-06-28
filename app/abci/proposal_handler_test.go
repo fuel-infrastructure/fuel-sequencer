@@ -781,7 +781,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			)
 			s.Require().NoError(err)
 
-			// Set the MaxBlockGas
+			// Set the MaxBlockGas and MaxTxBytes
 			prepareProposalHandlerCtx := s.Ctx().WithConsensusParams(
 				comettypes.ConsensusParams{
 					Block: &comettypes.BlockParams{
@@ -823,6 +823,91 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			s.Require().NoError(err)
 
 			s.Require().Equal(tc.expRes, res)
+		})
+	}
+}
+
+func (s *AppTestSuite) TestPrepareProposalHandler_ReqTxsValueWhenErrorOccurs() {
+	// In this test we will check the contents of req.Txs when an error occurs in the PrepareProposalHandler. This is
+	// important to check out because the baseApp will be using the contents of req.Txs when an error occurs.
+
+	testCases := []struct {
+		name                      string
+		expQueryBlockEventsCalled int
+		expQueryBlockEventsReq    *sidecartypes.QueryBlockEventsRequest
+		queryBlockEventsRet       apptesting.MockQueryBlockEventsResponse
+		requestPrepareProposal    *abcitypes.RequestPrepareProposal
+		expReqTxs                 [][]byte
+	}{
+		{
+			name:                      "req.Txs is empty if default PrepareProposalHandler errors",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestEmptySidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        [][]byte{[]byte("badly-encoded-tx")},
+				Height:     2, // Not expected to be a supply delta height
+			},
+			expReqTxs: [][]byte{},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			// Set bridge module params
+			err := s.App.BridgeKeeper.SetParams(
+				s.Ctx(),
+				bridgetypes.Params{
+					AuthorizeMessagesAllowed:     bridgetypes.DefaultAuthorizeMessagesAllowed,
+					SupplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+					EthereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+					InjectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+					MaxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+					SequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
+				},
+			)
+			s.Require().NoError(err)
+
+			// Set the MaxBlockGas and MaxTxBytes
+			prepareProposalHandlerCtx := s.Ctx().WithConsensusParams(
+				comettypes.ConsensusParams{
+					Block: &comettypes.BlockParams{
+						MaxBytes: tc.requestPrepareProposal.MaxTxBytes,
+						MaxGas:   int64(3000),
+					},
+				},
+			)
+
+			// Set sidecar mock
+			ctrl := gomock.NewController(s.T())
+			defer ctrl.Finish()
+			sidecarClientMock := sidecartestutil.NewMockAppSidecarClient(ctrl)
+			if tc.expQueryBlockEventsCalled > 0 {
+				// If we expect queryBlockEvents to be called, then we must expect the function to be called with
+				// certain parameters for expQueryBlockEventsCalled times
+				sidecarClientMock.EXPECT().GetBlockEvents(
+					gomock.Eq(prepareProposalHandlerCtx), gomock.Eq(tc.expQueryBlockEventsReq),
+				).Return(
+					tc.queryBlockEventsRet.Response,
+					tc.queryBlockEventsRet.Error,
+				).Times(tc.expQueryBlockEventsCalled)
+			} else {
+				// If queryBlockEvents is expected to not be called, then we must expect the function to be called 0
+				// times with any parameters
+				sidecarClientMock.EXPECT().GetBlockEvents(gomock.Any(), gomock.Any()).Times(0)
+			}
+
+			// Execute PrepareProposalHandler
+			propHandler := s.GetTestProposalHandler(sidecarClientMock)
+			_, err = propHandler.PrepareProposalHandler()(prepareProposalHandlerCtx, tc.requestPrepareProposal)
+
+			s.Require().Error(err)
+			s.Require().Equal(tc.requestPrepareProposal.Txs, tc.expReqTxs)
 		})
 	}
 }
@@ -1442,7 +1527,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			)
 			s.Require().NoError(err)
 
-			// Set the MaxBlockGas
+			// Set the MaxBlockGas and MaxTxBytes
 			processProposalHandlerCtx := s.Ctx().WithConsensusParams(
 				comettypes.ConsensusParams{
 					Block: &comettypes.BlockParams{
