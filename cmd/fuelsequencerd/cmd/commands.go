@@ -162,19 +162,19 @@ func startSidecarServerCmd() *cobra.Command {
 	// Sidecar
 	cmd.Flags().StringVar(&scrCfg.host, FlagSidecarHost, "localhost", "host for the gRPC server to listen on")
 	cmd.Flags().StringVar(&scrCfg.port, FlagSidecarPort, "8080", "port for the gRPC server to listen on")
-	cmd.Flags().BoolVar(&scrCfg.development, FlagSidecarDevelopment, false, "Starts the sidecar in development mode")
+	cmd.Flags().BoolVar(&scrCfg.development, FlagSidecarDevelopment, false, "starts the sidecar in development mode")
 
 	// Ethereum
-	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "Ethereum node WebSocket endpoint")
+	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "the ethereum node WebSocket endpoint")
 	cmd.Flags().StringVar(&ethCfg.contractAddrHex, FlagEthereumContractAddr, "", "address in hex format of the contract to monitor for logs")
 	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of Ethereum blocks queried at one go")
 	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*5, "minimum wait between successive queries for logs")
 	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the Ethereum block to start querying from")
-	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last Ethereum block to query")
+	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last Ethereum block to query. Syncing stops after this block, which can cause the validator to propose empty blocks, leading to slashing")
 
 	// Sequencer
-	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "Sequencer's gRPC endpoint")
-	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "Sequencer's CometBFT RPC endpoint")
+	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
+	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "the sequencer's CometBFT RPC endpoint")
 
 	return cmd
 }
