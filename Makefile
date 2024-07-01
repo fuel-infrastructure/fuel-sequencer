@@ -265,9 +265,9 @@ run-sidecar:
 		--port "$(SIDECAR_PORT)" \
 		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
         --sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
-        --sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
