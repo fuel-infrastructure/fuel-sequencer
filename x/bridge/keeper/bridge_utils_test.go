@@ -132,3 +132,7 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestIsAddressBlocked() {
+	// TODO
+}

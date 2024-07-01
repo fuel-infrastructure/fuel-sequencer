@@ -97,7 +97,7 @@ func (h *FuelSequencerProposalHandler) authenticateTx(
 				)
 			}
 
-			// Check if signer is a blocked address.
+			// Check if the bech32 signer is a blocked address.
 			if blockedAddresses[signerAddress] {
 				return bridgetypes.ErrInvalidSigner.Wrapf(
 					"signer %s is a blocked address ", signerAddress,

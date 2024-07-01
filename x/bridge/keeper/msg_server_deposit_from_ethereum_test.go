@@ -4,6 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -20,17 +21,18 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 	fromAccTwo, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom2)
 
 	testCases := []struct {
-		name           string
-		msgs           []*types.MsgDepositFromEthereum
-		toAcc          *sdk.AccAddress
-		fromAcc        *sdk.AccAddress
-		expFromBalance sdkmath.Int
-		expToBalance   sdkmath.Int
-		expSupplyDelta *types.SupplyDeltaInfo
-		expGovBal      sdkmath.Int
-		isToEthOwned   bool
-		isFromEthOwned bool
-		expErrMsg      string
+		name             string
+		blockedAddresses []string
+		msgs             []*types.MsgDepositFromEthereum
+		toAcc            *sdk.AccAddress
+		fromAcc          *sdk.AccAddress
+		expFromBalance   sdkmath.Int
+		expToBalance     sdkmath.Int
+		expSupplyDelta   *types.SupplyDeltaInfo
+		expGovBal        sdkmath.Int
+		isToEthOwned     bool
+		isFromEthOwned   bool
+		expErrMsg        string
 	}{
 		{
 			name: "successful - mint to Recipient address",
@@ -195,6 +197,40 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
+			name:             "failure - depositor address (in hex) is blocked - mint to governance",
+			blockedAddresses: []string{testtypes.TestEvent1Msg.Depositor},
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent1Msg,
+			},
+			fromAcc:        &fromAccOne,
+			toAcc:          &toAccOne,
+			expFromBalance: sdkmath.NewInt(0),
+			expToBalance:   sdkmath.NewInt(0),
+			expSupplyDelta: &types.SupplyDeltaInfo{
+				Offset: sdkmath.NewInt(-102),
+			},
+			expGovBal:      sdkmath.NewInt(102),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
+		},
+		{
+			name:             "failure - depositor address (in bech32) is blocked - mint to governance",
+			blockedAddresses: []string{sdk.AccAddress(common.FromHex(testtypes.TestEvent1Msg.Depositor)).String()},
+			msgs: []*types.MsgDepositFromEthereum{
+				testtypes.TestEvent1Msg,
+			},
+			fromAcc:        &fromAccOne,
+			toAcc:          &toAccOne,
+			expFromBalance: sdkmath.NewInt(0),
+			expToBalance:   sdkmath.NewInt(0),
+			expSupplyDelta: &types.SupplyDeltaInfo{
+				Offset: sdkmath.NewInt(-102),
+			},
+			expGovBal:      sdkmath.NewInt(102),
+			isToEthOwned:   false,
+			isFromEthOwned: false,
+		},
+		{
 			name: "failure - invalid authority address",
 			msgs: []*types.MsgDepositFromEthereum{
 				{Authority: "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"},
@@ -206,6 +242,13 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.SetupTest()
+
+			// Block addresses, maybe
+			if len(tc.blockedAddresses) > 0 {
+				params := s.App.BridgeKeeper.GetParams(s.Ctx())
+				params.AdditionalBlockedAddresses = append(params.AdditionalBlockedAddresses, tc.blockedAddresses...)
+				s.Require().NoError(s.App.BridgeKeeper.SetParams(s.Ctx(), params))
+			}
 
 			// Get the message server
 			msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)

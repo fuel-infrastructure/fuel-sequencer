@@ -52,9 +52,27 @@ func (k Keeper) processDepositEvent(
 		return
 	}
 
-	// sequencerAddr to be determined based on data provided in event.
+	// Check that Depositor is not a blocked address
+	isBlocked, err := k.IsAddressBlocked(ctx, depositEvent.Depositor, params.AdditionalBlockedAddresses)
+	if err != nil {
+		k.Logger().Error(
+			"failed to check if depositor address is blocked - minting to governance address instead",
+			"event", depositEvent,
+			"err", err,
+		)
+		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
+		return
+	} else if isBlocked {
+		k.Logger().Error(
+			"depositor address is blocked - minting to governance address instead",
+			"event", depositEvent,
+		)
+		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
+		return
+	}
+
+	// sequencerAddr, i.e. the actual recipient address, is to be determined based on the event data.
 	var sequencerAddr sdk.AccAddress
-	var err error
 
 	// Generate a potential sequencer address from the Ethereum 'Depositor' address.
 	potentialSequencerAddr, seqErr := k.GenerateSequencerAddressFromEthereumAddress(depositEvent.Depositor)

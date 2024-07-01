@@ -24,15 +24,22 @@ func (k Keeper) BurnCoinsFromAddress(ctx sdk.Context, address sdk.AccAddress, am
 	return nil
 }
 
-// GetAllBlockedAddresses retrieves all the blocked addresses made up of validator and module addresses.
+// GetAllBlockedAddresses retrieves all the blocked addresses in bech32 form, made up of validator and module addresses.
 func (k Keeper) GetAllBlockedAddresses(
 	ctx sdk.Context,
 	paramsBlockedAddresses []string,
 ) (map[string]bool, error) {
 
-	// Attempt to retrieve blocked addressed from params and set them as blocked.
-	for _, paramsBlockedAddr := range paramsBlockedAddresses {
-		k.blockedAddresses[paramsBlockedAddr] = true
+	allBlockedAddresses := make(map[string]bool)
+
+	// Retrieve blocked addresses from keeper.
+	for blockedAddr := range k.blockedAddresses {
+		allBlockedAddresses[blockedAddr] = true
+	}
+
+	// Retrieve blocked addresses from params.
+	for _, blockedAddr := range paramsBlockedAddresses {
+		allBlockedAddresses[blockedAddr] = true
 	}
 
 	// Attempt to retrieve all the validators.
@@ -48,11 +55,34 @@ func (k Keeper) GetAllBlockedAddresses(
 			return nil, err
 		}
 
-		k.blockedAddresses[sdk.AccAddress(valAddr.Bytes()).String()] = true
+		allBlockedAddresses[sdk.AccAddress(valAddr.Bytes()).String()] = true
 	}
 
 	// Block Authority
-	k.blockedAddresses[k.GetAuthority()] = true
+	allBlockedAddresses[k.GetAuthority()] = true
 
-	return k.blockedAddresses, nil
+	return allBlockedAddresses, nil
+}
+
+// IsAddressBlocked checks if an address (bech32 or hex) is a blocked address.
+func (k Keeper) IsAddressBlocked(ctx sdk.Context, address string, paramsBlockedAddresses []string) (bool, error) {
+
+	blockedAddresses, err := k.GetAllBlockedAddresses(ctx, paramsBlockedAddresses)
+	if err != nil {
+		return false, err
+	}
+
+	// If address is blocked, we have our answer.
+	if blockedAddresses[address] {
+		return true, nil
+	}
+
+	// In case the address is hex, parse address to get AccAddress to then derive the bech32 form.
+	// This allows us to also catch blocked hex addresses that were blocked only as bech32.
+	addressBz, err := k.GetAddressCodec().StringToBytes(address)
+	if err != nil {
+		return false, err
+	}
+
+	return blockedAddresses[sdk.AccAddress(addressBz).String()], nil
 }
