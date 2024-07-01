@@ -14,7 +14,7 @@ const (
 	FlagSidecarEnabled        = "sidecar.enabled"
 	FlagSidecarAddress        = "sidecar.address"
 	FlagSidecarTimeout        = "sidecar.timeout"
-	FlagSidecarPathToCertFile = "sidecar.cert_file"
+	FlagSidecarPathToCertFile = "sidecar.path_to_cert_file"
 
 	DefaultSidecarEnabled        = true
 	DefaultSidecarAddress        = "localhost:8080"
