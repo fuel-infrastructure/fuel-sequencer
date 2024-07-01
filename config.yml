@@ -104,6 +104,7 @@ genesis:
           - "/cosmos.gov.v1.MsgVote"
         supply_delta_period: 100
         injected_event_tx_max_bytes: 20000000
+        vesting_start_time: "2024-07-01T12:34:56.123456789Z"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"
     sequencing:
