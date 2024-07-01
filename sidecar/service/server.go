@@ -18,6 +18,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -64,7 +65,7 @@ func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServ
 	return ss
 }
 
-func (ss *SidecarServer) InitializeServer(host, port string) error {
+func (ss *SidecarServer) InitializeServer(host, port, pathToCertFile, pathToKeyFile string) error {
 	serverEndpoint := fmt.Sprintf("%s:%s", host, port)
 	ss.httpSrv = &http.Server{
 		Addr:              serverEndpoint,
@@ -82,8 +83,22 @@ func (ss *SidecarServer) InitializeServer(host, port string) error {
 		}),
 	)
 
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	if err := types.RegisterSidecarHandlerFromEndpoint(context.Background(), ss.gatewayMux, serverEndpoint, opts); err != nil {
+	// Set up a secure sidecar server if configured by the operator
+	var serverCreds credentials.TransportCredentials
+	var err error
+	if pathToCertFile == "" || pathToKeyFile == "" {
+		serverCreds = insecure.NewCredentials()
+	} else {
+		serverCreds, err = credentials.NewServerTLSFromFile(pathToCertFile, pathToKeyFile)
+		if err != nil {
+			panic(fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err))
+		}
+	}
+
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(serverCreds)}
+	if err = types.RegisterSidecarHandlerFromEndpoint(
+		context.Background(), ss.gatewayMux, serverEndpoint, opts,
+	); err != nil {
 		return err
 	}
 
