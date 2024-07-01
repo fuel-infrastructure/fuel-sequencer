@@ -74,7 +74,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
+		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(
+			ctx, bridgeParams.AdditionalBlockedAddresses,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get blocked addresses: %w", err)
 		}
@@ -262,7 +264,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
+		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(
+			ctx, bridgeParams.AdditionalBlockedAddresses,
+		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to get blocked addresses: %w", err,

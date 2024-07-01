@@ -64,7 +64,7 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 	}
 }
 
-func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
+func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 
 	var addressesToBlock []string
 
@@ -118,7 +118,7 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 			// The authority address is blocked
 			tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, s.App.BridgeKeeper.GetAuthority())
 
-			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedAddresses(ctx, tc.paramsBlockedAddresses)
+			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedBech32Addresses(ctx, tc.paramsBlockedAddresses)
 			s.Require().NoError(err)
 
 			// Verify that all expected addresses are marked as blocked

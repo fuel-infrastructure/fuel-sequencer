@@ -24,8 +24,12 @@ func (k Keeper) BurnCoinsFromAddress(ctx sdk.Context, address sdk.AccAddress, am
 	return nil
 }
 
-// GetAllBlockedAddresses retrieves all the blocked addresses in bech32 form, made up of validator and module addresses.
-func (k Keeper) GetAllBlockedAddresses(
+// GetAllBlockedBech32Addresses retrieves all the blocked addresses in bech32 form.
+// This list is made up of validator and module addresses from three sources:
+// 1. The keeper's list of blockedAddresses, which by default mimics the bank module's block list.
+// 2. The additional blocked addresses argument, expected to be derived from the bridge module params.
+// 3. The operator address of the full list of validators.
+func (k Keeper) GetAllBlockedBech32Addresses(
 	ctx sdk.Context,
 	paramsBlockedAddresses []string,
 ) (map[string]bool, error) {
@@ -67,7 +71,7 @@ func (k Keeper) GetAllBlockedAddresses(
 // IsAddressBlocked checks if an address (bech32 or hex) is a blocked address.
 func (k Keeper) IsAddressBlocked(ctx sdk.Context, address string, paramsBlockedAddresses []string) (bool, error) {
 
-	blockedAddresses, err := k.GetAllBlockedAddresses(ctx, paramsBlockedAddresses)
+	blockedAddresses, err := k.GetAllBlockedBech32Addresses(ctx, paramsBlockedAddresses)
 	if err != nil {
 		return false, err
 	}
