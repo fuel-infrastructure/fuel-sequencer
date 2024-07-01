@@ -19,6 +19,9 @@ func (h *FuelSequencerProposalHandler) authenticateEvent(
 ) (bool, error) {
 
 	switch event.EventType {
+	case sidecartypes.DepositEventName:
+		// Note: deposits from blocked addresses are considered valid at this stage. This is instead handled
+		// by the message handler, which mints to the governance address if the depositor address is blocked.
 	case sidecartypes.AuthorizeEventName:
 		parsedEvent, err := event.UnmarshalParsedEvent()
 		if err != nil {
