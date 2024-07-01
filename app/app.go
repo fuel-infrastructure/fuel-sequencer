@@ -315,7 +315,7 @@ func NewFuelSequencerApp(
 				panic(err)
 			}
 
-			app.Logger().Info("started Sidecar client", "addr", sidecarCfg.Address)
+			app.Logger().Info("started Sidecar client", "sidecar server address", sidecarCfg.Address)
 		}()
 	}
 

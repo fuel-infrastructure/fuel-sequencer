@@ -11,19 +11,27 @@ import (
 )
 
 const (
-	FlagSidecarEnabled = "sidecar.enabled"
-	FlagSidecarAddress = "sidecar.address"
-	FlagSidecarTimeout = "sidecar.timeout"
+	FlagSidecarEnabled        = "sidecar.enabled"
+	FlagSidecarAddress        = "sidecar.address"
+	FlagSidecarTimeout        = "sidecar.timeout"
+	FlagSidecarPathToCertFile = "sidecar.cert_file"
 
-	DefaultSidecarEnabled = true
-	DefaultSidecarAddress = "localhost:8080"
-	DefaultSidecarTimeout = time.Second * 5
+	DefaultSidecarEnabled        = true
+	DefaultSidecarAddress        = "localhost:8080"
+	DefaultSidecarTimeout        = time.Second * 5
+	DefaultSidecarPathToCertFile = ""
 )
 
 func AddStartCmdFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Bool(FlagSidecarEnabled, DefaultSidecarEnabled, "Sidecar querying enabled")
-	startCmd.Flags().String(FlagSidecarAddress, DefaultSidecarAddress, "Sidecar client address")
+	startCmd.Flags().String(FlagSidecarAddress, DefaultSidecarAddress, "Sidecar server address")
 	startCmd.Flags().Duration(FlagSidecarTimeout, DefaultSidecarTimeout, "Sidecar queries timeout")
+	startCmd.Flags().String(
+		FlagSidecarPathToCertFile,
+		DefaultSidecarPathToCertFile,
+		"Path to the certificate file of the sidecar server for secure communication. This needs to be specified if "+
+			"the sidecar server was configured with TLS",
+	)
 }
 
 // SidecarConfig contains the application side Sidecar configurations that must
@@ -38,6 +46,9 @@ type SidecarConfig struct {
 
 	// Timeout defines how long the client should wait for responses.
 	Timeout time.Duration `mapstructure:"timeout"`
+
+	// PathToCertFile defines the path to the certificate file of the sidecar server.
+	PathToCertFile string `mapstructure:"pathToCertFile"`
 }
 
 func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg SidecarConfig, err error) {
@@ -59,6 +70,13 @@ func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg SidecarConfig, er
 	// get the Sidecar client timeout
 	if v := opts.Get(FlagSidecarTimeout); v != nil {
 		if cfg.Timeout, err = cast.ToDurationE(v); err != nil {
+			return
+		}
+	}
+
+	// get the path to the sidecar server certificate file
+	if v := opts.Get(FlagSidecarPathToCertFile); v != nil {
+		if cfg.PathToCertFile, err = cast.ToStringE(v); err != nil {
 			return
 		}
 	}
