@@ -151,6 +151,7 @@ func (s *KeeperTestSuite) TestIsAddressBlocked() {
 		addrsBlockedByKeeperHex = append(addrsBlockedByKeeperHex, addrHex)
 	}
 
+	// Grab samples from the above lists.
 	addrBlockedByKeeperBech32 := addrsBlockedByKeeperBech32[0]
 	addrBlockedByKeeperHex := addrsBlockedByKeeperHex[0]
 
