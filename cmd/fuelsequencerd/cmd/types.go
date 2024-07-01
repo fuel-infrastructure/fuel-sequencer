@@ -24,7 +24,7 @@ const (
 
 	FlagSidecarGrpcUrl              = "sidecar_grpc_url"
 	FlagQueryTimeout                = "query_timeout"
-	FlagSidecarClientPathToCertFile = "sidecar_client_path_to_cert_file"
+	FlagSidecarClientPathToCertFile = "sidecar_path_to_cert_file"
 )
 
 type sidecarConfig struct {
