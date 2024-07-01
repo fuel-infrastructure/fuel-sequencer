@@ -53,7 +53,7 @@ func (k Keeper) processDepositEvent(
 	}
 
 	// Check that Depositor is not a blocked address
-	isBlocked, err := k.IsAddressBlocked(ctx, depositEvent.Depositor, params.AdditionalBlockedAddresses)
+	depositorIsBlocked, err := k.IsAddressBlocked(ctx, depositEvent.Depositor, params.AdditionalBlockedAddresses)
 	if err != nil {
 		k.Logger().Error(
 			"failed to check if depositor address is blocked - minting to governance address instead",
@@ -62,7 +62,7 @@ func (k Keeper) processDepositEvent(
 		)
 		k.mintToGovernanceAddress(ctx, tokenToMint, depositEvent, supplyDeltaInfo)
 		return
-	} else if isBlocked {
+	} else if depositorIsBlocked {
 		k.Logger().Error(
 			"depositor address is blocked - minting to governance address instead",
 			"event", depositEvent,

@@ -72,13 +72,7 @@ func (k Keeper) IsAddressBlocked(ctx sdk.Context, address string, paramsBlockedA
 		return false, err
 	}
 
-	// If address is blocked, we have our answer.
-	if blockedAddresses[address] {
-		return true, nil
-	}
-
-	// In case the address is hex, parse address to get AccAddress to then derive the bech32 form.
-	// This allows us to also catch blocked hex addresses that were blocked only as bech32.
+	// Since blocked addresses are bech32, we should try converting the address to bech32 just in case it's hex.
 	addressBz, err := k.GetAddressCodec().StringToBytes(address)
 	if err != nil {
 		return false, err
