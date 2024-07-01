@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"cosmossdk.io/math"
 	cmjson "github.com/cometbft/cometbft/libs/json"
@@ -179,6 +180,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
+	bridgeGenState.Params.VestingStartTime = time.Now()
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz
