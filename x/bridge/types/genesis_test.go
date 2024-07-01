@@ -11,20 +11,34 @@ import (
 )
 
 func TestValidateGenesisState(t *testing.T) {
+	vestinStartingTime := time.Now()
+
 	tests := []struct {
 		desc     string
 		genState *types.GenesisState
 		valid    bool
 	}{
+		// Default is not valid due to vestingStartTime
 		{
-			desc:     "default is valid",
+			desc:     "default is not valid",
 			genState: types.DefaultGenesis(),
-			valid:    true,
+			valid:    false,
 		},
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
+				Params: types.NewParams(
+					types.DefaultBridgeDenom,
+					types.DefaultEthereumProxyContractAddress,
+					types.DefaultAuthorizeMessagesAllowed,
+					types.DefaultSupplyDeltaPeriod,
+					vestinStartingTime,
+					nil,
+					types.DefaultMaxEthBlockUpdateDelay,
+					types.DefaultInjectedEventTxMaxBytes,
+					types.DefaultSequencerTxsAllocation,
+					types.DefaultMaxAuthorizeMessages,
+				),
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
 					LastSupply: math.NewInt(99),
 					Delta:      math.NewInt(34),

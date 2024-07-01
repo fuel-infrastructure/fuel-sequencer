@@ -19,6 +19,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
 		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
+		time.Now(),
 		[]string{},
 		2*time.Hour,
 		6144,
@@ -53,12 +54,13 @@ func TestMsgUpdateParams(t *testing.T) {
 			expErr: false,
 		},
 		{
-			name: "all good with default params",
+			name: "not good with default params due to vestingStartTime",
 			input: &types.MsgUpdateParams{
 				Authority: k.GetAuthority(),
 				Params:    defaultParams,
 			},
-			expErr: false,
+			expErr:    true,
+			expErrMsg: "vesting start time must be set and cannot be the zero value",
 		},
 		{
 			name: "all good with non default params",
@@ -72,13 +74,21 @@ func TestMsgUpdateParams(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := ms.UpdateParams(wctx, tc.input)
 
-			if tc.expErr {
+			// Validate the message first
+			err := tc.input.ValidateBasic()
+			if err != nil && tc.expErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tc.expErrMsg)
 			} else {
-				require.NoError(t, err)
+				_, err = ms.UpdateParams(wctx, tc.input)
+
+				if tc.expErr {
+					require.Error(t, err)
+					require.Contains(t, err.Error(), tc.expErrMsg)
+				} else {
+					require.NoError(t, err)
+				}
 			}
 		})
 	}

@@ -89,26 +89,19 @@ func NewParams(
 	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
+	vestingStartTime time.Time,
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
 	sequencerTxsAllocation sdkmath.LegacyDec,
 	maxAuthorizeMessages uint64,
 ) Params {
-	// Setting a default start time.
-	t0, err := time.Parse(time.DateOnly, "2024-01-01")
-	if err != nil {
-
-		// Panic if we error here, because shouldn't.
-		panic(err)
-	}
-
 	return Params{
 		BridgeDenom:                  bridgeDenom,
 		EthereumProxyContractAddress: ethereumProxyContractAddress,
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
-		VestingStartTime:             t0,
+		VestingStartTime:             vestingStartTime,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
@@ -119,11 +112,15 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
+	// Default vestingStartTime
+	var vestingStartTime time.Time
+
 	return NewParams(
 		DefaultBridgeDenom,
 		DefaultEthereumProxyContractAddress,
 		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
+		vestingStartTime,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
