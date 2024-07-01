@@ -197,23 +197,6 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name:             "failure - depositor address (in hex) is blocked - mint to governance",
-			blockedAddresses: []string{testtypes.TestEvent1Msg.Depositor},
-			msgs: []*types.MsgDepositFromEthereum{
-				testtypes.TestEvent1Msg,
-			},
-			fromAcc:        &fromAccOne,
-			toAcc:          &toAccOne,
-			expFromBalance: sdkmath.NewInt(0),
-			expToBalance:   sdkmath.NewInt(0),
-			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(-102),
-			},
-			expGovBal:      sdkmath.NewInt(102),
-			isToEthOwned:   false,
-			isFromEthOwned: false,
-		},
-		{
 			name:             "failure - depositor address (in bech32) is blocked - mint to governance",
 			blockedAddresses: []string{sdk.AccAddress(common.FromHex(testtypes.TestEvent1Msg.Depositor)).String()},
 			msgs: []*types.MsgDepositFromEthereum{
