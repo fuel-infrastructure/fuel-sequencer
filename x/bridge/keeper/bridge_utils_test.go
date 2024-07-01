@@ -5,6 +5,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 )
@@ -134,5 +135,84 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 }
 
 func (s *KeeperTestSuite) TestIsAddressBlocked() {
-	// TODO
+
+	// This is the list of addresses expected to be blocked by the keeper by default, in bech32 and hex formats.
+	var addrsBlockedByKeeperBech32 []string
+	var addrsBlockedByKeeperHex []string
+
+	for _, permission := range s.App.AccountKeeper.GetModulePermissions() {
+		addrBech32, err := s.App.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
+		if err != nil {
+			s.Require().NoError(err)
+		}
+		addrHex := common.BytesToAddress(permission.GetAddress()).Hex()
+
+		addrsBlockedByKeeperBech32 = append(addrsBlockedByKeeperBech32, addrBech32)
+		addrsBlockedByKeeperHex = append(addrsBlockedByKeeperHex, addrHex)
+	}
+
+	addrBlockedByKeeperBech32 := addrsBlockedByKeeperBech32[0]
+	addrBlockedByKeeperHex := addrsBlockedByKeeperHex[0]
+
+	testCases := []struct {
+		name                string
+		blockedAddressesArg []string
+		address             string
+		expectBlocked       bool
+		expectErrMsg        string
+	}{
+		{
+			name:          "NO if it is not a blocked address (bech32)",
+			address:       testtypes.TestSeqAddr1Str,
+			expectBlocked: false,
+		},
+		{
+			name:          "NO if it is not a blocked address (hex)",
+			address:       testtypes.TestEthAddr1Str,
+			expectBlocked: false,
+		},
+		{
+			name:                "YES if bech32 and is specified in the blocked addresses arg as bech32",
+			address:             testtypes.TestSeqAddr1Str,
+			blockedAddressesArg: []string{testtypes.TestSeqAddr1Str}, // blocked as bech32
+			expectBlocked:       true,
+		},
+		{
+			name:                "YES if hex and is specified in the blocked addresses arg as bech32",
+			address:             testtypes.TestEthAddr1Str,
+			blockedAddressesArg: []string{testtypes.TestSeqAddr1Str}, // blocked as bech32
+			expectBlocked:       true,
+		},
+		{
+			name:          "YES if bech32 and is an address blocked by the keeper as bech32",
+			address:       addrBlockedByKeeperBech32,
+			expectBlocked: true,
+		},
+		{
+			name:          "YES if hex and is an address blocked by the keeper as bech32",
+			address:       addrBlockedByKeeperHex,
+			expectBlocked: true,
+		},
+		{
+			name:         "err if not a valid address",
+			address:      "invalid-address",
+			expectErrMsg: "decoding bech32 failed: invalid separator index -1",
+			// The error message is in terms of bech32 because bech32 parsing is the fallback when an address is not hex
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			blocked, err := s.App.BridgeKeeper.IsAddressBlocked(s.Ctx(), tc.address, tc.blockedAddressesArg)
+			if tc.expectErrMsg != "" {
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expectErrMsg)
+				return
+			}
+			s.Require().NoError(err)
+			s.Require().Equal(tc.expectBlocked, blocked)
+		})
+	}
 }
