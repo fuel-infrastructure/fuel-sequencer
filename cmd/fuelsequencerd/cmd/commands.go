@@ -168,14 +168,14 @@ func startSidecarServerCmd() *cobra.Command {
 		&scrCfg.pathToKeyFile,
 		FlagSidecarPathToKeyFile,
 		"",
-		"Path to the private key file of the sidecar server for secure communication. Specify this value if you want "+
+		"path to the private key file of the sidecar server for secure communication. Specify this value if you want "+
 			"to setup a sidecar server with TLS.",
 	)
 	cmd.Flags().StringVar(
 		&scrCfg.pathToCertFile,
 		FlagSidecarPathToCertFile,
 		"",
-		"Path to the certificate file of the sidecar server for secure communication. Specify this value if you want "+
+		"path to the certificate file of the sidecar server for secure communication. Specify this value if you want "+
 			"to setup a sidecar server with TLS.",
 	)
 
@@ -194,7 +194,7 @@ func startSidecarServerCmd() *cobra.Command {
 		&seqCfg.pathToCertFile,
 		FlagSequencerPathToCertFile,
 		"",
-		"Path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
+		"path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
 			"if the Sequencer infrastructure was set up using TLS.",
 	)
 
@@ -402,7 +402,7 @@ func querySidecarServerCmd() *cobra.Command {
 		FlagSidecarClientPathToCertFile,
 		"c",
 		"",
-		"Path to the certificate file of the sidecar server for secure communication. "+
+		"path to the certificate file of the sidecar server for secure communication. "+
 			"This needs to be specified if the sidecar server was configured with TLS",
 	)
 
