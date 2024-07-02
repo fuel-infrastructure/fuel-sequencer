@@ -27,7 +27,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -37,6 +36,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
@@ -81,7 +81,8 @@ func initRootCmd(
 }
 
 func addStartFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd)
+	// Crisis module is not wired, therefore, no related flags need to be added
+	//crisis.AddModuleInitFlags(startCmd)
 	sidecarconfig.AddStartCmdFlags(startCmd)
 }
 
@@ -163,6 +164,20 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().StringVar(&scrCfg.host, FlagSidecarHost, "localhost", "host for the gRPC server to listen on")
 	cmd.Flags().StringVar(&scrCfg.port, FlagSidecarPort, "8080", "port for the gRPC server to listen on")
 	cmd.Flags().BoolVar(&scrCfg.development, FlagSidecarDevelopment, false, "starts the sidecar in development mode")
+	cmd.Flags().StringVar(
+		&scrCfg.pathToKeyFile,
+		FlagSidecarPathToKeyFile,
+		"",
+		"Path to the private key file of the sidecar server for secure communication. Specify this value if you want "+
+			"to setup a sidecar server with TLS.",
+	)
+	cmd.Flags().StringVar(
+		&scrCfg.pathToCertFile,
+		FlagSidecarPathToCertFile,
+		"",
+		"Path to the certificate file of the sidecar server for secure communication. Specify this value if you want "+
+			"to setup a sidecar server with TLS.",
+	)
 
 	// Ethereum
 	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "the ethereum node WebSocket endpoint")
@@ -175,6 +190,13 @@ func startSidecarServerCmd() *cobra.Command {
 	// Sequencer
 	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
 	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "the sequencer's CometBFT RPC endpoint")
+	cmd.Flags().StringVar(
+		&seqCfg.pathToCertFile,
+		FlagSequencerPathToCertFile,
+		"",
+		"Path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
+			"if the Sequencer infrastructure was set up using TLS.",
+	)
 
 	return cmd
 }
@@ -241,7 +263,19 @@ func startSidecar(
 
 	// Create a connection to the Cosmos gRPC server.
 	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
-	grpcConn, err := grpc.Dial(seqCfg.grpcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	// Set up a secure connection if configured by the operator
+	var seqConnCreds credentials.TransportCredentials
+	if seqCfg.pathToCertFile == "" {
+		seqConnCreds = insecure.NewCredentials()
+	} else {
+		seqConnCreds, err = credentials.NewClientTLSFromFile(seqCfg.pathToCertFile, "")
+		if err != nil {
+			panic(fmt.Errorf("failed to load Sequencer infrastructure TLS credentials; error: %w", err))
+		}
+	}
+
+	grpcConn, err := grpc.Dial(seqCfg.grpcUrl, grpc.WithTransportCredentials(seqConnCreds))
 	if err != nil {
 		return err
 	}
@@ -342,7 +376,7 @@ func startSidecar(
 		cancel()
 	}()
 
-	if err := srv.InitializeServer(scrCfg.host, scrCfg.port); err != nil {
+	if err := srv.InitializeServer(scrCfg.host, scrCfg.port, scrCfg.pathToCertFile, scrCfg.pathToKeyFile); err != nil {
 		logger.Error("failed to initialize the server", zap.Error(err))
 	}
 
@@ -364,6 +398,13 @@ func querySidecarServerCmd() *cobra.Command {
 
 	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "Sidecar's gRPC URL")
 	cmd.Flags().DurationP(FlagQueryTimeout, "t", time.Second*5, "how long to wait before timing out")
+	cmd.Flags().StringP(
+		FlagSidecarClientPathToCertFile,
+		"c",
+		"",
+		"Path to the certificate file of the sidecar server for secure communication. "+
+			"This needs to be specified if the sidecar server was configured with TLS",
+	)
 
 	return cmd
 }
@@ -374,6 +415,10 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	queryTimeout, err := cmd.Flags().GetDuration(FlagQueryTimeout)
+	if err != nil {
+		return err
+	}
+	pathToCertFile, err := cmd.Flags().GetString(FlagSidecarClientPathToCertFile)
 	if err != nil {
 		return err
 	}
@@ -389,7 +434,18 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid Sidecar address: %w", err)
 	}
 
-	conn, err := grpc.Dial(sidecarGrpcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// Set up a secure connection with the sidecar if configured by the operator
+	var sidecarConnCreds credentials.TransportCredentials
+	if pathToCertFile == "" {
+		sidecarConnCreds = insecure.NewCredentials()
+	} else {
+		sidecarConnCreds, err = credentials.NewClientTLSFromFile(pathToCertFile, "")
+		if err != nil {
+			return fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err)
+		}
+	}
+
+	conn, err := grpc.Dial(sidecarGrpcUrl, grpc.WithTransportCredentials(sidecarConnCreds))
 	if err != nil {
 		return fmt.Errorf("failed to connect to Sidecar service: %v", err)
 	}

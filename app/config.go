@@ -66,9 +66,10 @@ func InitAppConfig() (string, interface{}) {
 	customAppConfig := CustomAppConfig{
 		Config: *srvCfg,
 		SidecarConfig: sidecarconfig.SidecarConfig{
-			Enabled: sidecarconfig.DefaultSidecarEnabled,
-			Address: sidecarconfig.DefaultSidecarAddress,
-			Timeout: sidecarconfig.DefaultSidecarTimeout,
+			Enabled:        sidecarconfig.DefaultSidecarEnabled,
+			Address:        sidecarconfig.DefaultSidecarAddress,
+			Timeout:        sidecarconfig.DefaultSidecarTimeout,
+			PathToCertFile: sidecarconfig.DefaultSidecarPathToCertFile,
 		},
 	}
 
@@ -81,7 +82,10 @@ enabled = true
 address = "localhost:8080"
 # This defines how long the client should wait for responses.
 # This should be reasonably lower than the expected block time.
-timeout = "5s"`
+timeout = "5s"
+# This defines the path to the certificate file for secure communication with the sidecar server.
+# Should only be modified if the sidecar is to be configured with TLS.
+path_to_cert_file = ""`
 
 	return customAppTemplate, customAppConfig
 }
