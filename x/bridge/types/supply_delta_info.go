@@ -28,8 +28,8 @@ func ValidateLastSupply(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if v.LT(math.ZeroInt()) {
-		return fmt.Errorf("expected LastSupply > 0, received %s", v.String())
+	if v.IsNegative() {
+		return fmt.Errorf("expected LastSupply >= 0, received %s", v.String())
 	}
 	return nil
 }
