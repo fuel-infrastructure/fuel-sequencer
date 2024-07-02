@@ -83,6 +83,6 @@ func (k Keeper) UpdateSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper ty
 	// Reset Offset
 	supplyDeltaInfo.Offset = sdkmath.ZeroInt()
 
-	// Update SupplyDeltaInfo. ToReport will be used by MsgSupplyDelta to be reported on Ethereum
+	// Update SupplyDeltaInfo. ToReport will be used by MsgSupplyDelta to report supply updates to Ethereum
 	k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
 }
