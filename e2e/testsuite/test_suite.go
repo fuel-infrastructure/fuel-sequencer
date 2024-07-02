@@ -106,6 +106,8 @@ var (
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13")
 	InflationMax        = sdkmath.LegacyMustNewDecFromStr("0.2")
 	InflationMin        = sdkmath.LegacyMustNewDecFromStr("0.07")
+	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
+	BlocksPerYear       = uint64(6311520)
 
 	// Vesting params
 	VestingStartTimeDelay = time.Hour * 24 * 365

@@ -145,7 +145,11 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock contains the logic that is automatically triggered at the beginning of each block.
 // The begin block implementation is optional.
-func (am AppModule) BeginBlock(_ context.Context) error {
+func (am AppModule) BeginBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Update SupplyDeltaInfo with new changes in supply
+	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
 	return nil
 }
 
@@ -174,9 +178,6 @@ func (am AppModule) EndBlock(goCtx context.Context) error {
 
 	// Remove Index in preparation for next block, since the AnteHandler uses this to look out for MsgIndex.
 	am.keeper.RemoveIndex(ctx)
-
-	// Update SupplyDeltaInfo with new changes in supply
-	am.keeper.UpdateSupplyDeltaInfoWithNewDelta(ctx, am.bankKeeper)
 
 	return nil
 }

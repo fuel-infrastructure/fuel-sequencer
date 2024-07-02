@@ -19,8 +19,8 @@ func TestGenesis(t *testing.T) {
 
 		SupplyDeltaInfo: &types.SupplyDeltaInfo{
 			LastSupply: math.NewInt(99),
-			Delta:      math.NewInt(87),
 			Offset:     math.NewInt(123),
+			ToReport:   math.NewInt(87),
 		},
 
 		LastEthereumNonce:        math.NewInt(75),
