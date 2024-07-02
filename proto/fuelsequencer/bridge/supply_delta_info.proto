@@ -8,8 +8,8 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 
 message SupplyDeltaInfo {
 
-  // last_supply is the last supply of the bridge token that was supplied to
-  // Ethereum.
+  // last_supply is the supply of the bridge token that was recorded 
+  // when the most recent report to Ethereum was constructed.
   string last_supply = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
