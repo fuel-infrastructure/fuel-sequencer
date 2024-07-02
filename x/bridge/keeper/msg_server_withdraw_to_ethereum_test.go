@@ -48,8 +48,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			},
 			&types.SupplyDeltaInfo{
 				LastSupply: amount,
-				Delta:      amount,
 				Offset:     amount,
+				ToReport:   amount,
 			},
 			true,
 			"",
@@ -69,8 +69,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			},
 			&types.SupplyDeltaInfo{
 				LastSupply: amount,
-				Delta:      amount,
 				Offset:     amount,
+				ToReport:   amount,
 			},
 			true,
 			"",
@@ -90,8 +90,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			},
 			&types.SupplyDeltaInfo{
 				LastSupply: amount,
-				Delta:      amount,
 				Offset:     amount,
+				ToReport:   amount,
 			},
 			true,
 			"",
@@ -111,8 +111,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			},
 			&types.SupplyDeltaInfo{
 				LastSupply: amount,
-				Delta:      amount,
 				Offset:     amount,
+				ToReport:   amount,
 			},
 			true,
 			"",
@@ -127,8 +127,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			nil,
 			&types.SupplyDeltaInfo{
 				LastSupply: math.ZeroInt(),
-				Delta:      math.ZeroInt(),
 				Offset:     math.ZeroInt(),
+				ToReport:   math.ZeroInt(),
 			},
 			true,
 			"invalid token denom",
@@ -143,8 +143,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			nil,
 			&types.SupplyDeltaInfo{
 				LastSupply: math.ZeroInt(),
-				Delta:      math.ZeroInt(),
 				Offset:     math.ZeroInt(),
+				ToReport:   math.ZeroInt(),
 			},
 			false,
 			"failed to decode from address",
@@ -159,8 +159,8 @@ func (s *KeeperTestSuite) TestWithdrawToEthereum() {
 			nil,
 			&types.SupplyDeltaInfo{
 				LastSupply: math.ZeroInt(),
-				Delta:      math.ZeroInt(),
 				Offset:     math.ZeroInt(),
+				ToReport:   math.ZeroInt(),
 			},
 			false,
 			"failed to burn bridge tokens",
