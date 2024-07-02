@@ -27,8 +27,8 @@ func TestValidateGenesisState(t *testing.T) {
 				Params: types.DefaultParams(),
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
 					LastSupply: math.NewInt(99),
-					Delta:      math.NewInt(34),
 					Offset:     math.NewInt(123),
+					ToReport:   math.NewInt(34),
 				},
 				LastEthereumNonce:        math.NewInt(3),
 				LastEthereumBlockSynced:  1,

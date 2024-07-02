@@ -8,6 +8,8 @@ const (
 	FlagSidecarHost                  = "host"
 	FlagSidecarPort                  = "port"
 	FlagSidecarDevelopment           = "development"
+	FlagSidecarPathToKeyFile         = "sidecar_path_to_key_file"
+	FlagSidecarPathToCertFile        = "sidecar_path_to_cert_file"
 	FlagEthereumWebSocketUrl         = "eth_ws_url"
 	FlagEthereumContractAddr         = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
@@ -16,22 +18,27 @@ const (
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
 	FlagSequencerRpcUrl              = "sequencer_rpc_url"
+	FlagSequencerPathToCertFile      = "sequencer_path_to_cert_file"
 
 	// Sidecar client flags
 
-	FlagSidecarGrpcUrl = "sidecar_grpc_url"
-	FlagQueryTimeout   = "query_timeout"
+	FlagSidecarGrpcUrl              = "sidecar_grpc_url"
+	FlagQueryTimeout                = "query_timeout"
+	FlagSidecarClientPathToCertFile = "sidecar_path_to_cert_file"
 )
 
 type sidecarConfig struct {
-	host        string
-	port        string
-	development bool
+	host           string
+	port           string
+	development    bool
+	pathToCertFile string
+	pathToKeyFile  string
 }
 
 type sequencerConfig struct {
-	grpcUrl string
-	rpcUrl  string
+	grpcUrl        string
+	rpcUrl         string
+	pathToCertFile string
 }
 
 type ethereumConfig struct {

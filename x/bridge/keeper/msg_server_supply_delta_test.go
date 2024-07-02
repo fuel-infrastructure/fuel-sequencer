@@ -11,12 +11,12 @@ import (
 func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 
 	testSupplyDeltaInfo := testtypes.TestSupplyDeltaInfo
-	testSupplyDelta := testSupplyDeltaInfo.Delta.Add(testSupplyDeltaInfo.Offset)
+	testSupplyDelta := testSupplyDeltaInfo.ToReport
 
-	testSupplyDeltaInfoZeros := bridgetypes.SupplyDeltaInfo{
+	testSupplyDeltaInfoZero := bridgetypes.SupplyDeltaInfo{
 		LastSupply: testSupplyDeltaInfo.LastSupply,
-		Delta:      sdk.ZeroInt(),
-		Offset:     sdk.ZeroInt(),
+		Offset:     testtypes.TestOffset, // Offset is not reset unless BeginBlock is executed
+		ToReport:   sdk.ZeroInt(),
 	}
 
 	testCases := []struct {
@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZero,                   // reset ToReport to zero
 			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
 			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
 				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
@@ -58,7 +58,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZero,                   // reset ToReport to zero
 			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
 			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
 				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
@@ -100,12 +100,12 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			name:              "valid MsgSupplyDelta - SupplyDelta is zero",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testSupplyDeltaInfoZeros,               // zeros
+			supplyDeltaInfo:   testSupplyDeltaInfoZero,                // zeros
 			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZero,                   // reset ToReport to zero
 			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
 			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
 				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
