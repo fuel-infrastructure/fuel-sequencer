@@ -36,7 +36,7 @@ func (k Keeper) GetAllBlockedAddresses(
 	}
 
 	// Attempt to retrieve all the validators.
-	validators, err := k.stakingKeeper.GetAllValidators(ctx)
+	validators, err := k.stakingKeeper.GetLastValidators(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -100,7 +100,7 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 
 			ctx := s.Ctx()
 
-			vals, err := s.App.StakingKeeper.GetAllValidators(ctx)
+			vals, err := s.App.StakingKeeper.GetLastValidators(ctx)
 			s.Require().NoError(err)
 
 			// Verify that there is at least one validator
