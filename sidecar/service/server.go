@@ -83,16 +83,18 @@ func (ss *SidecarServer) InitializeServer(host, port, pathToCertFile, pathToKeyF
 		}),
 	)
 
-	// Set up a secure sidecar server if configured by the operator
+	// Set up a secure sidecar server if properly configured by the operator
 	var serverCreds credentials.TransportCredentials
 	var err error
-	if pathToCertFile == "" || pathToKeyFile == "" {
+	if pathToCertFile == "" && pathToKeyFile == "" {
 		serverCreds = insecure.NewCredentials()
-	} else {
+	} else if pathToCertFile != "" && pathToKeyFile != "" {
 		serverCreds, err = credentials.NewServerTLSFromFile(pathToCertFile, pathToKeyFile)
 		if err != nil {
 			panic(fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err))
 		}
+	} else {
+		panic("both path to certificate file and path to key file must be either empty or non-empty")
 	}
 
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(serverCreds)}
