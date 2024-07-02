@@ -41,20 +41,6 @@ func (k Keeper) MustGetSupplyDeltaInfo(ctx context.Context) types.SupplyDeltaInf
 	return val
 }
 
-// MustResetSupplyDeltaInfo resets the offset and delta values. NOTE: LastSupply is not safe to reset as this needs to
-// be continuously tracked by the blockchain. MustResetSupplyDeltaInfo panics if SupplyDeltaInfo is not found
-func (k Keeper) MustResetSupplyDeltaInfo(ctx context.Context) {
-	val, found := k.GetSupplyDeltaInfo(ctx)
-	if !found {
-		panic("expected to find supply delta info")
-	}
-
-	val.Delta = sdkmath.ZeroInt()
-	val.Offset = sdkmath.ZeroInt()
-
-	k.SetSupplyDeltaInfo(ctx, val)
-}
-
 // RemoveSupplyDeltaInfo removes supplyDeltaInfo from the store
 func (k Keeper) RemoveSupplyDeltaInfo(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
@@ -62,24 +48,27 @@ func (k Keeper) RemoveSupplyDeltaInfo(ctx context.Context) {
 	store.Delete([]byte{0})
 }
 
-// UpdateSupplyDeltaInfoWithNewDelta notes down any changes in supply of the bridge token
+// UpdateSupplyDeltaInfoWithNewDelta constructs SupplyDeltaInfo that will be used by MsgSupplyDelta.
 func (k Keeper) UpdateSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper types.BankKeeper) {
+	// Check if MsgSupplyDelta will be injected in this block
+	bridgeParams := k.GetParams(ctx)
+	injectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(ctx.BlockHeight()))
+	if !injectMsgSupplyDelta {
+		return
+	}
 
 	// Get latest recorded supply and actual supply.
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
-	latestSupply := bankKeeper.GetSupply(ctx, k.GetParams(ctx).BridgeDenom).Amount
+	currentSupply := bankKeeper.GetSupply(ctx, k.GetParams(ctx).BridgeDenom).Amount
 
-	// Update if supply has changed.
-	if !latestSupply.Equal(supplyDeltaInfo.LastSupply) {
+	// ToReport = (CurrentSupply - LastSupply) + offset
+	// This will report the supply change from the previous MsgSupplyDelta to Height - 1
+	supplyDeltaInfo.ToReport = currentSupply.Sub(supplyDeltaInfo.LastSupply).Add(supplyDeltaInfo.Offset)
+	// Update LastSupply to the new supply
+	supplyDeltaInfo.LastSupply = currentSupply
+	// Reset Offset
+	supplyDeltaInfo.Offset = sdkmath.ZeroInt()
 
-		// If positive, new delta will add to the stored delta.
-		// Otherwise, it will subtract from the stored delta.
-		newDelta := latestSupply.Sub(supplyDeltaInfo.LastSupply)
-		supplyDeltaInfo.Delta = supplyDeltaInfo.Delta.Add(newDelta)
-
-		ctx.Logger().Debug("recorded change in bridge token supply", "delta", newDelta, "supply", latestSupply)
-
-		supplyDeltaInfo.LastSupply = latestSupply
-		k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
-	}
+	// Update SupplyDeltaInfo. ToReport will be used by MsgSupplyDelta to report supply updates to Ethereum
+	k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
 }

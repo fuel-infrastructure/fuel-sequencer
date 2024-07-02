@@ -37,8 +37,40 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 			}
 
 			// Search for event showing successful execution
-			_, eventFound := s.SearchForEventInBlockResults(s.Ctx(), supplyDeltaEvent.Type, block)
+			event, eventFound := s.SearchForEventInBlockResults(s.Ctx(), supplyDeltaEvent.Type, block)
 			s.Require().Equal(expectMsgSupplyDelta, eventFound)
+
+			if expectMsgSupplyDelta {
+				nonceAttribute := event.Attributes[0]
+				s.Require().EqualValues("nonce", nonceAttribute.Key)
+				s.Require().EqualValues("1", nonceAttribute.Value[1:len(nonceAttribute.Value)-1])
+
+				supplyDeltaAttribute := event.Attributes[1]
+				s.Require().EqualValues("supply_delta", supplyDeltaAttribute.Key)
+				// 210000000000 Initial balance per Validator
+				// 3 Validators
+				// Total Supply = 630000000000
+				//
+				// Bonded ratio = (100000000000 * 3) / (210000000000 * 3)
+				// 				= 0.47619047619
+				//
+				// InflationRateChange = 0.13
+				// InflationMin 	   = 0.07
+				// GoalBonded          = 0.67
+				// BlocksPerYear       = 6311520
+				//
+				// Inflation = ((1 - (0.47619047619 / 0.67)) * 0.13)
+				//           = 0.03760483297 < 0.07 (since less than InflationMin)
+				//           = 0.07
+				//
+				// Tokens minted per block = (630000000000 / 6311520) * 0.07
+				//                         = 6987.22336299
+				//                         = 6987
+				//
+				// Supply delta = 630000000000 + (6987 * 10) where 10 is the SupplyDeltaPeriod
+				//              = 630000069870
+				s.Require().EqualValues("630000069870", supplyDeltaAttribute.Value[1:len(supplyDeltaAttribute.Value)-1])
+			}
 		}
 	})
 }
