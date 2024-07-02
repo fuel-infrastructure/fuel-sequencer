@@ -396,7 +396,7 @@ func querySidecarServerCmd() *cobra.Command {
 		Aliases: []string{"qse"},
 	}
 
-	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "Sidecar's gRPC URL")
+	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "sidecar's gRPC URL")
 	cmd.Flags().DurationP(FlagQueryTimeout, "t", time.Second*5, "how long to wait before timing out")
 	cmd.Flags().StringP(
 		FlagSidecarClientPathToCertFile,
