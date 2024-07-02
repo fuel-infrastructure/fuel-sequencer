@@ -27,7 +27,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -82,7 +81,8 @@ func initRootCmd(
 }
 
 func addStartFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd)
+	// Crisis module is not wired, therefore, no related flags need to be added
+	//crisis.AddModuleInitFlags(startCmd)
 	sidecarconfig.AddStartCmdFlags(startCmd)
 }
 

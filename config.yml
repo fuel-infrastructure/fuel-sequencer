@@ -71,10 +71,6 @@ genesis:
         max_bytes: "22020096"
         max_gas: "300000000"
   app_state:
-    crisis:
-      constant_fee:
-        amount: "1000"
-        denom: "utest"
     gov:
       params:
         voting_period: "10s"
