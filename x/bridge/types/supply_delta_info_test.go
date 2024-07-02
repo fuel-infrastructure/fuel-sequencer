@@ -1,0 +1,50 @@
+package types_test
+
+import (
+	sdk "cosmossdk.io/math"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
+func TestSupplyDeltaInfo_ValidateBasic(t *testing.T) {
+	validLastSupply := sdk.NewInt(100_000_000_000)
+	validDelta := sdk.NewInt(-320_000_000)
+	validOffset := sdk.NewInt(650_000)
+
+	tests := []struct {
+		desc            string
+		supplyDeltaInfo types.SupplyDeltaInfo
+		valid           bool
+	}{
+		{
+			desc: "default is valid",
+			supplyDeltaInfo: types.SupplyDeltaInfo{
+				LastSupply: validLastSupply,
+				Delta:      validDelta,
+				Offset:     validOffset,
+			},
+			valid: true,
+		},
+		{
+			desc: "invalid last supply",
+			supplyDeltaInfo: types.SupplyDeltaInfo{
+				LastSupply: sdk.NewInt(-1),
+				Delta:      validDelta,
+				Offset:     validOffset,
+			},
+			valid: false,
+		},
+		// this line is used by starport scaffolding # types/genesis/testcase
+	}
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := tc.supplyDeltaInfo.ValidateBasic()
+			if tc.valid {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}

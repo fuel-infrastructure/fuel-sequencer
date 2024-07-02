@@ -39,7 +39,7 @@ func TestValidateGenesisState(t *testing.T) {
 			valid: true,
 		},
 		{
-			desc: "invalid genesis state",
+			desc: "invalid genesis state - negative last supply",
 			genState: &types.GenesisState{
 				Params: types.DefaultParams(),
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
@@ -48,6 +48,22 @@ func TestValidateGenesisState(t *testing.T) {
 					Offset:     math.NewInt(123),
 				},
 				LastEthereumNonce:        math.NewInt(3),
+				LastEthereumBlockSynced:  1,
+				EthereumEventIndexOffset: 2,
+				LastEthBlockUpdateTime:   time.Now(),
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid genesis state - negative last ethereum nonce",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				SupplyDeltaInfo: &types.SupplyDeltaInfo{
+					LastSupply: math.NewInt(99),
+					Delta:      math.NewInt(34),
+					Offset:     math.NewInt(123),
+				},
+				LastEthereumNonce:        math.NewInt(-1),
 				LastEthereumBlockSynced:  1,
 				EthereumEventIndexOffset: 2,
 				LastEthBlockUpdateTime:   time.Now(),

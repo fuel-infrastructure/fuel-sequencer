@@ -33,27 +33,22 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 
-	// Validate supply_delta_info.
 	if err := gs.SupplyDeltaInfo.ValidateBasic(); err != nil {
 		return err
 	}
 
-	// Validate last_ethereum_nonce.
 	if err := ValidateLastEthereumNonce(gs.LastEthereumNonce); err != nil {
 		return err
 	}
 
-	// Validate last_ethereum_block_synced.
 	if err := ValidateLastEthereumBlockSynced(gs.LastEthereumBlockSynced); err != nil {
 		return err
 	}
 
-	// Validate ethereum_event_index_offset.
 	if err := ValidateEthereumEventIndexOffset(gs.EthereumEventIndexOffset); err != nil {
 		return err
 	}
 
-	// Validate last_eth_block_update_time.
 	if err := ValidateLastEthBlockUpdateTime(gs.LastEthBlockUpdateTime); err != nil {
 		return err
 	}
@@ -62,15 +57,22 @@ func (gs GenesisState) Validate() error {
 	return gs.Params.Validate()
 }
 
+// ValidateLastEthereumNonce validates that the last Ethereum nonce is non-negative.
+// The default expected nonce should be 0 since a +1 is always added to the nonce before it is used.
 func ValidateLastEthereumNonce(i interface{}) error {
-	_, ok := i.(math.Int)
+	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNegative() {
+		return fmt.Errorf("expected LastEthereumNonce >= 0, received %s", v.String())
 	}
 
 	return nil
 }
 
+// ValidateLastEthereumBlockSynced validates that the type of LastEthereumBlockSynced is correct.
+// Since we always sync to the next Ethereum block (+1), LastEthereumBlockSynced can be 0.
 func ValidateLastEthereumBlockSynced(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
