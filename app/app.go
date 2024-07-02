@@ -351,6 +351,7 @@ func NewFuelSequencerApp(
 	/****  Module Options ****/
 
 	// CrisisKeeper is not wired, therefore, no invariants are registered.
+	// Justification: https://github.com/cosmos/cosmos-sdk/issues/15706
 	//app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
