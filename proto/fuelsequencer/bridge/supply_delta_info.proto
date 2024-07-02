@@ -27,7 +27,7 @@ message SupplyDeltaInfo {
   ];
 
   // to_report is the amount of bridge tokens that should be minted (positive)
-  // or burned (negative) on Ethereum. Reset after being supplied to Ethereum.
+  // or burned (negative) on Ethereum. Reset after being relayed to Ethereum.
   string to_report = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
