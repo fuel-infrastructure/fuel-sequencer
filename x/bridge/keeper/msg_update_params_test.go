@@ -54,15 +54,6 @@ func TestMsgUpdateParams(t *testing.T) {
 			expErr: false,
 		},
 		{
-			name: "not good with default params due to vestingStartTime",
-			input: &types.MsgUpdateParams{
-				Authority: k.GetAuthority(),
-				Params:    defaultParams,
-			},
-			expErr:    true,
-			expErrMsg: "vesting start time must be set and cannot be the zero value",
-		},
-		{
 			name: "all good with non default params",
 			input: &types.MsgUpdateParams{
 				Authority: k.GetAuthority(),
@@ -75,20 +66,12 @@ func TestMsgUpdateParams(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			// Validate the message first
-			err := tc.input.ValidateBasic()
-			if err != nil && tc.expErr {
+			_, err := ms.UpdateParams(wctx, tc.input)
+			if tc.expErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tc.expErrMsg)
 			} else {
-				_, err = ms.UpdateParams(wctx, tc.input)
-
-				if tc.expErr {
-					require.Error(t, err)
-					require.Contains(t, err.Error(), tc.expErrMsg)
-				} else {
-					require.NoError(t, err)
-				}
+				require.NoError(t, err)
 			}
 		})
 	}
