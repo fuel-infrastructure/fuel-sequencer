@@ -15,7 +15,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 
 	testSupplyDeltaInfoZeros := bridgetypes.SupplyDeltaInfo{
 		LastSupply: testSupplyDeltaInfo.LastSupply,
-		Offset:     sdk.ZeroInt(),
+		Offset:     testtypes.TestOffset, // Offset is not reset unless BeginBlock is executed
 		ToReport:   sdk.ZeroInt(),
 	}
 
@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset ToReport to zero
 			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
 			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
 				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
@@ -58,7 +58,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset ToReport to zero
 			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
 			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
 				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
@@ -105,7 +105,7 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
-			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset to zero
+			expSupplyDeltaInfo:   testSupplyDeltaInfoZeros,                  // reset ToReport to zero
 			expLastEthereumNonce: testtypes.TestLastEthereumNonce.AddRaw(1), // incremented
 			expResponse: &bridgetypes.MsgSupplyDeltaResponse{
 				Nonce:       testtypes.TestLastEthereumNonce.AddRaw(1), // incremented

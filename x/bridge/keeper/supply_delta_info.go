@@ -41,20 +41,6 @@ func (k Keeper) MustGetSupplyDeltaInfo(ctx context.Context) types.SupplyDeltaInf
 	return val
 }
 
-// MustResetSupplyDeltaInfo resets the offset and toReport values. NOTE: LastSupply is not safe to reset as this needs to
-// be continuously tracked by the blockchain. MustResetSupplyDeltaInfo panics if SupplyDeltaInfo is not found
-func (k Keeper) MustResetSupplyDeltaInfo(ctx context.Context) {
-	val, found := k.GetSupplyDeltaInfo(ctx)
-	if !found {
-		panic("expected to find supply delta info")
-	}
-
-	val.Offset = sdkmath.ZeroInt()
-	val.ToReport = sdkmath.ZeroInt()
-
-	k.SetSupplyDeltaInfo(ctx, val)
-}
-
 // RemoveSupplyDeltaInfo removes supplyDeltaInfo from the store
 func (k Keeper) RemoveSupplyDeltaInfo(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))

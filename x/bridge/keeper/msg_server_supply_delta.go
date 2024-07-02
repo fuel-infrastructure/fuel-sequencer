@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -43,8 +44,9 @@ func (k msgServer) supplyDelta(ctx sdk.Context) (*types.MsgSupplyDeltaResponse, 
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
 	supplyDelta := supplyDeltaInfo.ToReport
 
-	// Reset SupplyDeltaInfo
-	k.MustResetSupplyDeltaInfo(ctx)
+	// Reset the toReport value
+	supplyDeltaInfo.ToReport = sdkmath.ZeroInt()
+	k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
 
 	// Emit event
 	err := ctx.EventManager().EmitTypedEvent(&types.EventSupplyDeltaReported{SupplyDelta: supplyDelta, Nonce: nonce})
