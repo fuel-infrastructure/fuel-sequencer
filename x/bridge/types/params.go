@@ -112,7 +112,7 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
-	// Default vestingStartTime
+	// Default vestingStartTime, intentionally invalid to enforce explicit setting of this value.
 	var vestingStartTime time.Time
 
 	return NewParams(
