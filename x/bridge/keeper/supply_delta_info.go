@@ -76,7 +76,7 @@ func (k Keeper) UpdateSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper ty
 	currentSupply := bankKeeper.GetSupply(ctx, k.GetParams(ctx).BridgeDenom).Amount
 
 	// ToReport = (CurrentSupply - LastSupply) + offset
-	// This will report the supply change from the latest MsgSupplyDelta to Height - 1
+	// This will report the supply change from the previous MsgSupplyDelta to Height - 1
 	supplyDeltaInfo.ToReport = currentSupply.Sub(supplyDeltaInfo.LastSupply).Add(supplyDeltaInfo.Offset)
 	// Update LastSupply to the new supply
 	supplyDeltaInfo.LastSupply = currentSupply
