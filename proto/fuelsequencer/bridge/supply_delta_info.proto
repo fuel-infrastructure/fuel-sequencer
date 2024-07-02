@@ -16,7 +16,7 @@ message SupplyDeltaInfo {
     (gogoproto.nullable) = false
   ];
 
-  // offset is used to account for changes in supply that we do not want to post
+  // offset is used to account for changes in supply that we do not want to report
   // to Ethereum, including deposits and withdrawals, because Ethereum will know
   // about these anyways. Note that offset can be positive (to account for
   // unreported burn) or negative (to account for unreported mint).
