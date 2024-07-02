@@ -580,16 +580,16 @@ type SupplyDeltaInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// last_supply is the last supply of the bridge token that was supplied to
-	// Ethereum.
+	// last_supply is the supply of the bridge token that was recorded
+	// when the most recent report to Ethereum was constructed.
 	LastSupply string `protobuf:"bytes,1,opt,name=last_supply,json=lastSupply,proto3" json:"last_supply,omitempty"`
-	// offset is used to account for changes in supply that we do not want to post
-	// to Ethereum, including deposits and withdrawals, because Ethereum will know
-	// about these anyways. Note that offset can be positive (to account for
-	// unreported burn) or negative (to account for unreported mint).
+	// offset is used to account for changes in supply that we do not want to
+	// report to Ethereum, including deposits and withdrawals, because Ethereum
+	// will know about these anyways. Note that offset can be positive (to account
+	// for unreported burn) or negative (to account for unreported mint).
 	Offset string `protobuf:"bytes,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	// to_report is the amount of bridge tokens that should be minted (positive)
-	// or burned (negative) on Ethereum. Reset after being supplied to Ethereum.
+	// or burned (negative) on Ethereum. Reset after being relayed to Ethereum.
 	ToReport string `protobuf:"bytes,3,opt,name=to_report,json=toReport,proto3" json:"to_report,omitempty"`
 }
 
