@@ -67,7 +67,6 @@ func (k Keeper) UpdateSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper ty
 	// Check if MsgSupplyDelta will be injected in this block
 	bridgeParams := k.GetParams(ctx)
 	injectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(ctx.BlockHeight()))
-
 	if !injectMsgSupplyDelta {
 		return
 	}
