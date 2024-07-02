@@ -11,7 +11,7 @@ import (
 )
 
 func TestValidateGenesisState(t *testing.T) {
-	vestinStartingTime := time.Now()
+	vestingStartingTime := time.Now()
 
 	tests := []struct {
 		desc     string
@@ -32,7 +32,7 @@ func TestValidateGenesisState(t *testing.T) {
 					types.DefaultEthereumProxyContractAddress,
 					types.DefaultAuthorizeMessagesAllowed,
 					types.DefaultSupplyDeltaPeriod,
-					vestinStartingTime,
+					vestingStartingTime,
 					nil,
 					types.DefaultMaxEthBlockUpdateDelay,
 					types.DefaultInjectedEventTxMaxBytes,
