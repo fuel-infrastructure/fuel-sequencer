@@ -151,7 +151,8 @@ func (ss *SidecarServer) StartServer(ctx context.Context) error {
 	eg.Go(func() error {
 		ss.logger.Info("starting grpc server", zap.String("address", ss.httpSrv.Addr))
 		if ss.httpSrv.TLSConfig != nil {
-			// Use ListenAndServeTLS for HTTPS
+			// Use ListenAndServeTLS for HTTPS. certFile and keyFile can be left as empty string as we expect the
+			// certificate to be loaded in the initializeServer function.
 			if err := ss.httpSrv.ListenAndServeTLS("", ""); err != http.ErrServerClosed {
 				return fmt.Errorf("[grpc server] server ListenAndServeTLS: %w", err)
 			}
