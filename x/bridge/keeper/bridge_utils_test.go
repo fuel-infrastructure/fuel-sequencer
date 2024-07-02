@@ -115,6 +115,7 @@ func (s *KeeperTestSuite) TestGetAllBlockedAddresses() {
 
 			// Confirm the difference between the 'LastValidators' and the full list of validators.
 			allVals, err := s.App.StakingKeeper.GetAllValidators(ctx)
+			s.Require().NoError(err)
 			s.Require().Greater(len(allVals), len(vals))
 
 			// Verify that there is at least one validator
