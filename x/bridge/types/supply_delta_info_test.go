@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"cosmossdk.io/math"
 	sdk "cosmossdk.io/math"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
@@ -19,13 +18,9 @@ func TestSupplyDeltaInfo_ValidateBasic(t *testing.T) {
 		valid           bool
 	}{
 		{
-			desc: "default is valid",
-			supplyDeltaInfo: types.SupplyDeltaInfo{
-				LastSupply: math.ZeroInt(),
-				Offset:     math.ZeroInt(),
-				ToReport:   math.ZeroInt(),
-			},
-			valid: true,
+			desc:            "default is valid",
+			supplyDeltaInfo: *types.DefaultGenesis().SupplyDeltaInfo,
+			valid:           true,
 		},
 		{
 			desc: "non-default is valid",
