@@ -24,15 +24,23 @@ func (k Keeper) BurnCoinsFromAddress(ctx sdk.Context, address sdk.AccAddress, am
 	return nil
 }
 
-// GetAllBlockedAddresses retrieves all the blocked addresses made up of validator and module addresses.
-func (k Keeper) GetAllBlockedAddresses(
-	ctx sdk.Context,
-	paramsBlockedAddresses []string,
-) (map[string]bool, error) {
+// GetAllBlockedBech32Addresses retrieves all the blocked addresses in bech32 form.
+// This list is made up of validator and module addresses from three sources:
+// 1. The keeper's list of blockedAddresses, which by default mimics the bank module's block list.
+// 2. The additional blocked addresses parameter of the bridge module.
+// 3. The operator address of the full list of validators.
+func (k Keeper) GetAllBlockedBech32Addresses(ctx sdk.Context) (map[string]bool, error) {
 
-	// Attempt to retrieve blocked addressed from params and set them as blocked.
-	for _, paramsBlockedAddr := range paramsBlockedAddresses {
-		k.blockedAddresses[paramsBlockedAddr] = true
+	blocked := make(map[string]bool)
+
+	// Retrieve blocked addresses from keeper.
+	for blockedAddr := range k.blockedAddresses {
+		blocked[blockedAddr] = true
+	}
+
+	// Retrieve blocked addresses from params.
+	for _, blockedAddr := range k.GetParams(ctx).AdditionalBlockedAddresses {
+		blocked[blockedAddr] = true
 	}
 
 	// Attempt to retrieve all the validators.
@@ -48,11 +56,28 @@ func (k Keeper) GetAllBlockedAddresses(
 			return nil, err
 		}
 
-		k.blockedAddresses[sdk.AccAddress(valAddr.Bytes()).String()] = true
+		blocked[sdk.AccAddress(valAddr.Bytes()).String()] = true
 	}
 
 	// Block Authority
-	k.blockedAddresses[k.GetAuthority()] = true
+	blocked[k.GetAuthority()] = true
 
-	return k.blockedAddresses, nil
+	return blocked, nil
+}
+
+// IsAddressBlocked checks if an address (bech32 or hex) is a blocked address.
+func (k Keeper) IsAddressBlocked(ctx sdk.Context, address string) (bool, error) {
+
+	blockedBech32Addresses, err := k.GetAllBlockedBech32Addresses(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	// Since blocked addresses are bech32, we should try converting the address to bech32 just in case it's hex.
+	addressBz, err := k.GetAddressCodec().StringToBytes(address)
+	if err != nil {
+		return false, err
+	}
+
+	return blockedBech32Addresses[sdk.AccAddress(addressBz).String()], nil
 }

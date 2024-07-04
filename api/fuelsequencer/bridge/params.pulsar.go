@@ -1150,8 +1150,8 @@ type Params struct {
 	// vesting_start_time is the common vesting starting time for vesting accounts
 	// that will be created through deposits from Ethereum.
 	VestingStartTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=vesting_start_time,json=vestingStartTime,proto3" json:"vesting_start_time,omitempty"`
-	// additional_blocked_addresses is a list of Cosmos SDK-based addresses that
-	// are explicitly disallowed from being controlled by authorize messages
+	// additional_blocked_addresses is a list of Cosmos SDK-based bech32 addresses
+	// that are explicitly disallowed from being controlled by authorize messages
 	// within the Sequencer system. This can include addresses of module accounts,
 	// validator operators, or any other addresses deemed necessary to protect
 	// from unauthorized control actions.
