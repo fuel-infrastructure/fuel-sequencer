@@ -82,16 +82,16 @@ func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 	fromAccTwo := sdk.MustAccAddressFromBech32(testtypes.TestFrom2Seq)
 
 	testCases := []struct {
-		name                     string
-		paramsBlockedAddresses   []string
-		notBlockedAddresses      []string
-		expectedBlockedAddresses []string
+		name                            string
+		additionalBlockedAddressesParam []string
+		notBlockedAddresses             []string
+		expectedBlockedAddresses        []string
 	}{
 		{
-			name:                     "successfully retrieved blocked addresses",
-			paramsBlockedAddresses:   []string{fromAccOne.String()},
-			notBlockedAddresses:      []string{fromAccTwo.String()},
-			expectedBlockedAddresses: addressesToBlock,
+			name:                            "successfully retrieved blocked addresses",
+			additionalBlockedAddressesParam: []string{fromAccOne.String()},
+			notBlockedAddresses:             []string{fromAccTwo.String()},
+			expectedBlockedAddresses:        addressesToBlock,
 		},
 	}
 
@@ -100,6 +100,11 @@ func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 			s.SetupTest()
 
 			ctx := s.Ctx()
+
+			// Set additional blocked addresses
+			bridgeParams := s.App.BridgeKeeper.GetParams(ctx)
+			bridgeParams.AdditionalBlockedAddresses = tc.additionalBlockedAddressesParam
+			s.Require().NoError(s.App.BridgeKeeper.SetParams(ctx, bridgeParams))
 
 			vals, err := s.App.StakingKeeper.GetAllValidators(ctx)
 			s.Require().NoError(err)
@@ -118,7 +123,10 @@ func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 			// The authority address is blocked
 			tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, s.App.BridgeKeeper.GetAuthority())
 
-			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedBech32Addresses(ctx, tc.paramsBlockedAddresses)
+			// The additional blocked addresses are blocked
+			tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, tc.additionalBlockedAddressesParam...)
+
+			blockedAddresses, err := s.App.BridgeKeeper.GetAllBlockedBech32Addresses(ctx)
 			s.Require().NoError(err)
 
 			// Verify that all expected addresses are marked as blocked
@@ -156,11 +164,11 @@ func (s *KeeperTestSuite) TestIsAddressBlocked() {
 	addrBlockedByKeeperHex := addrsBlockedByKeeperHex[0]
 
 	testCases := []struct {
-		name                string
-		blockedAddressesArg []string
-		address             string
-		expectBlocked       bool
-		expectErrMsg        string
+		name                            string
+		additionalBlockedAddressesParam []string
+		address                         string
+		expectBlocked                   bool
+		expectErrMsg                    string
 	}{
 		{
 			name:          "NO if it is not a blocked address (bech32)",
@@ -173,16 +181,16 @@ func (s *KeeperTestSuite) TestIsAddressBlocked() {
 			expectBlocked: false,
 		},
 		{
-			name:                "YES if bech32 and is specified in the blocked addresses arg as bech32",
-			address:             testtypes.TestSeqAddr1Str,
-			blockedAddressesArg: []string{testtypes.TestSeqAddr1Str}, // blocked as bech32
-			expectBlocked:       true,
+			name:                            "YES if bech32 and is specified in the blocked addresses arg as bech32",
+			address:                         testtypes.TestSeqAddr1Str,
+			additionalBlockedAddressesParam: []string{testtypes.TestSeqAddr1Str}, // blocked as bech32
+			expectBlocked:                   true,
 		},
 		{
-			name:                "YES if hex and is specified in the blocked addresses arg as bech32",
-			address:             testtypes.TestEthAddr1Str,
-			blockedAddressesArg: []string{testtypes.TestSeqAddr1Str}, // blocked as bech32
-			expectBlocked:       true,
+			name:                            "YES if hex and is specified in the blocked addresses arg as bech32",
+			address:                         testtypes.TestEthAddr1Str,
+			additionalBlockedAddressesParam: []string{testtypes.TestSeqAddr1Str}, // blocked as bech32
+			expectBlocked:                   true,
 		},
 		{
 			name:          "YES if bech32 and is an address blocked by the keeper as bech32",
@@ -206,7 +214,14 @@ func (s *KeeperTestSuite) TestIsAddressBlocked() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			blocked, err := s.App.BridgeKeeper.IsAddressBlocked(s.Ctx(), tc.address, tc.blockedAddressesArg)
+			// Set additional blocked addresses
+			bridgeParams := s.App.BridgeKeeper.GetParams(s.Ctx())
+			bridgeParams.AdditionalBlockedAddresses = append(
+				bridgeParams.AdditionalBlockedAddresses, tc.additionalBlockedAddressesParam...,
+			)
+			s.Require().NoError(s.App.BridgeKeeper.SetParams(s.Ctx(), bridgeParams))
+
+			blocked, err := s.App.BridgeKeeper.IsAddressBlocked(s.Ctx(), tc.address)
 			if tc.expectErrMsg != "" {
 				s.Require().Error(err)
 				s.Require().ErrorContains(err, tc.expectErrMsg)
