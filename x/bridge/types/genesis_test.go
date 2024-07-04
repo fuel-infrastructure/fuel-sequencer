@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"testing"
 	"time"
 
@@ -16,15 +17,27 @@ func TestValidateGenesisState(t *testing.T) {
 		genState *types.GenesisState
 		valid    bool
 	}{
+		// Default is not valid due to vestingStartTime
 		{
-			desc:     "default is valid",
+			desc:     "default is not valid",
 			genState: types.DefaultGenesis(),
-			valid:    true,
+			valid:    false,
 		},
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
+				Params: types.NewParams(
+					types.DefaultBridgeDenom,
+					types.DefaultEthereumProxyContractAddress,
+					types.DefaultAuthorizeMessagesAllowed,
+					types.DefaultSupplyDeltaPeriod,
+					testutiltypes.TestVestingStartingTime,
+					nil,
+					types.DefaultMaxEthBlockUpdateDelay,
+					types.DefaultInjectedEventTxMaxBytes,
+					types.DefaultSequencerTxsAllocation,
+					types.DefaultMaxAuthorizeMessages,
+				),
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{
 					LastSupply: math.NewInt(99),
 					Offset:     math.NewInt(123),
@@ -37,6 +50,38 @@ func TestValidateGenesisState(t *testing.T) {
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
+		},
+		{
+			desc: "invalid genesis state - negative last supply",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				SupplyDeltaInfo: &types.SupplyDeltaInfo{
+					LastSupply: math.NewInt(-123),
+					Offset:     math.NewInt(123),
+					ToReport:   math.NewInt(34),
+				},
+				LastEthereumNonce:        math.NewInt(3),
+				LastEthereumBlockSynced:  1,
+				EthereumEventIndexOffset: 2,
+				LastEthBlockUpdateTime:   time.Now(),
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid genesis state - negative last ethereum nonce",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				SupplyDeltaInfo: &types.SupplyDeltaInfo{
+					LastSupply: math.NewInt(99),
+					Offset:     math.NewInt(123),
+					ToReport:   math.NewInt(34),
+				},
+				LastEthereumNonce:        math.NewInt(-1),
+				LastEthereumBlockSynced:  1,
+				EthereumEventIndexOffset: 2,
+				LastEthBlockUpdateTime:   time.Now(),
+			},
+			valid: false,
 		},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	}
