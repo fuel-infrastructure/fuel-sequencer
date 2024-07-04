@@ -9,9 +9,6 @@ import (
 
 // this line is used by starport scaffolding # genesis/types/import
 
-// DefaultIndex is the default global index
-const DefaultIndex uint64 = 1
-
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
@@ -32,6 +29,7 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+	// this line is used by starport scaffolding # genesis/types/validate
 
 	if err := gs.SupplyDeltaInfo.ValidateBasic(); err != nil {
 		return err
@@ -53,12 +51,11 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	// this line is used by starport scaffolding # genesis/types/validate
 	return gs.Params.Validate()
 }
 
 // ValidateLastEthereumNonce validates that the last Ethereum nonce is non-negative.
-// The expected nonce should be 0 since a +1 is always added to the nonce before it is used.
+// The expected nonce should be 0 since a (+1) is always added to the nonce before it is used.
 func ValidateLastEthereumNonce(i interface{}) error {
 	v, ok := i.(math.Int)
 	if !ok {
@@ -82,6 +79,7 @@ func ValidateLastEthereumBlockSynced(i interface{}) error {
 	return nil
 }
 
+// ValidateEthereumEventIndexOffset validates that the type of ValidateEthereumEventIndexOffset is correct.
 func ValidateEthereumEventIndexOffset(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
@@ -91,6 +89,7 @@ func ValidateEthereumEventIndexOffset(i interface{}) error {
 	return nil
 }
 
+// ValidateLastEthBlockUpdateTime validates that the type of ValidateLastEthBlockUpdateTime is correct.
 func ValidateLastEthBlockUpdateTime(i interface{}) error {
 	_, ok := i.(time.Time)
 	if !ok {
