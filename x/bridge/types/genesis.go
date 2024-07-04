@@ -58,7 +58,7 @@ func (gs GenesisState) Validate() error {
 }
 
 // ValidateLastEthereumNonce validates that the last Ethereum nonce is non-negative.
-// The default expected nonce should be 0 since a +1 is always added to the nonce before it is used.
+// The expected nonce should be 0 since a +1 is always added to the nonce before it is used.
 func ValidateLastEthereumNonce(i interface{}) error {
 	v, ok := i.(math.Int)
 	if !ok {
