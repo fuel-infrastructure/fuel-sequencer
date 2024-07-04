@@ -9,8 +9,8 @@ import (
 
 func TestSupplyDeltaInfo_ValidateBasic(t *testing.T) {
 	validLastSupply := sdk.NewInt(100_000_000_000)
-	validDelta := sdk.NewInt(-320_000_000)
 	validOffset := sdk.NewInt(650_000)
+	validToReport := sdk.NewInt(-320_000_000)
 
 	tests := []struct {
 		desc            string
@@ -21,8 +21,8 @@ func TestSupplyDeltaInfo_ValidateBasic(t *testing.T) {
 			desc: "default is valid",
 			supplyDeltaInfo: types.SupplyDeltaInfo{
 				LastSupply: validLastSupply,
-				Delta:      validDelta,
 				Offset:     validOffset,
+				ToReport:   validToReport,
 			},
 			valid: true,
 		},
@@ -30,8 +30,8 @@ func TestSupplyDeltaInfo_ValidateBasic(t *testing.T) {
 			desc: "invalid last supply",
 			supplyDeltaInfo: types.SupplyDeltaInfo{
 				LastSupply: sdk.NewInt(-1),
-				Delta:      validDelta,
 				Offset:     validOffset,
+				ToReport:   validToReport,
 			},
 			valid: false,
 		},

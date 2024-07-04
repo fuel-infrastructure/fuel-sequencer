@@ -12,12 +12,12 @@ func (t *SupplyDeltaInfo) ValidateBasic() error {
 		return errors.Wrap(err, "invalid LastSupply")
 	}
 
-	if err := ValidateDelta(t.Delta); err != nil {
-		return errors.Wrap(err, "invalid Delta")
-	}
-
 	if err := ValidateOffset(t.Offset); err != nil {
 		return errors.Wrap(err, "invalid Offset")
+	}
+
+	if err := ValidateToReport(t.ToReport); err != nil {
+		return errors.Wrap(err, "invalid ToReport")
 	}
 
 	return nil
@@ -34,7 +34,7 @@ func ValidateLastSupply(i interface{}) error {
 	return nil
 }
 
-func ValidateDelta(i interface{}) error {
+func ValidateOffset(i interface{}) error {
 	_, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -42,7 +42,7 @@ func ValidateDelta(i interface{}) error {
 	return nil
 }
 
-func ValidateOffset(i interface{}) error {
+func ValidateToReport(i interface{}) error {
 	_, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
