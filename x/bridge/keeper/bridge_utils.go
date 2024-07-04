@@ -43,7 +43,7 @@ func (k Keeper) GetAllBlockedBech32Addresses(ctx sdk.Context) (map[string]bool, 
 		blocked[blockedAddr] = true
 	}
 
-	// Attempt to retrieve all the validators.
+	// Attempt to retrieve all the bonded validators.
 	validators, err := k.stakingKeeper.GetLastValidators(ctx)
 	if err != nil {
 		return nil, err
