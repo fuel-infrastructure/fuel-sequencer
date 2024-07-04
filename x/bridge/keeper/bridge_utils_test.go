@@ -4,7 +4,10 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
@@ -106,8 +109,22 @@ func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 			bridgeParams.AdditionalBlockedAddresses = tc.additionalBlockedAddressesParam
 			s.Require().NoError(s.App.BridgeKeeper.SetParams(ctx, bridgeParams))
 
-			vals, err := s.App.StakingKeeper.GetAllValidators(ctx)
+			// Create validator which will not get included in the GetLastValidators call
+			valPubKey := simtestutil.CreateTestPubKeys(1)[0]
+			valAddr := sdk.ValAddress(valPubKey.Address().Bytes())
+			addTokens := s.App.StakingKeeper.TokensFromConsensusPower(ctx, 10)
+			extraValidator := testutil.NewValidator(s.T(), valAddr, valPubKey)
+			extraValidator, _, err := s.App.StakingKeeper.AddValidatorTokensAndShares(ctx, extraValidator, addTokens)
 			s.Require().NoError(err)
+			s.Require().Equal(addTokens, extraValidator.Tokens)
+
+			vals, err := s.App.StakingKeeper.GetLastValidators(ctx)
+			s.Require().NoError(err)
+
+			// Confirm the difference between the 'LastValidators' and the full list of validators.
+			allVals, err := s.App.StakingKeeper.GetAllValidators(ctx)
+			s.Require().NoError(err)
+			s.Require().Greater(len(allVals), len(vals))
 
 			// Verify that there is at least one validator
 			s.Require().GreaterOrEqual(len(vals), 1)
@@ -119,6 +136,12 @@ func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 				accAddrFromValAddr := sdk.AccAddress(valAddr.Bytes()).String()
 				tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, accAddrFromValAddr)
 			}
+
+			// 'Extra' validator is not blocked
+			extraValAddr, err := sdk.ValAddressFromBech32(extraValidator.OperatorAddress)
+			s.Require().NoError(err)
+			accAddrFromExtraValAddr := sdk.AccAddress(extraValAddr.Bytes()).String()
+			tc.notBlockedAddresses = append(tc.notBlockedAddresses, accAddrFromExtraValAddr)
 
 			// The authority address is blocked
 			tc.expectedBlockedAddresses = append(tc.expectedBlockedAddresses, s.App.BridgeKeeper.GetAuthority())
