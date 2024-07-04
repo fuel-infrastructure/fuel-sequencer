@@ -74,7 +74,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
+		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get blocked addresses: %w", err)
 		}
@@ -123,7 +123,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedAddresses,
+			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex and event txs: %w", err)
@@ -262,7 +262,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		blockedAddresses, err := h.bridgeKeeper.GetAllBlockedAddresses(ctx, bridgeParams.AdditionalBlockedAddresses)
+		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to get blocked addresses: %w", err,
@@ -320,7 +320,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Generate the MsgIndex that should be included at index 0 in the block proposal
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedAddresses,
+			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
 		)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -478,7 +478,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	blockNumber uint64,
 	sidecarErr error,
 	params *bridgetypes.Params,
-	blockedAddresses map[string]bool,
+	blockedBech32Addresses map[string]bool,
 ) (msgIndex *bridgetypes.MsgIndex, eventTxs [][]byte, err error) {
 
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
@@ -524,7 +524,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			)
 		}
 
-		authenticated, err := h.authenticateEvent(event, eventTx, params, blockedAddresses)
+		authenticated, err := h.authenticateEvent(event, eventTx, params, blockedBech32Addresses)
 		if err != nil {
 
 			// At this stage it is safe to assume that garbage payloads sent in Authorize events by users would have
