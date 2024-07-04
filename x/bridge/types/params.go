@@ -41,6 +41,10 @@ var (
 	// as a measure against mistakes. This is important because if set to a very high value, the block production
 	// algorithm may not be able to allocate block space to critical transactions.
 	MaximumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.5")
+
+	// DefaultVestingStartTime is the default vesting start time, intentionally invalid to enforce explicit setting of
+	// this value.
+	DefaultVestingStartTime = time.Time{}
 )
 
 const (
@@ -89,26 +93,19 @@ func NewParams(
 	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
+	vestingStartTime time.Time,
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
 	sequencerTxsAllocation sdkmath.LegacyDec,
 	maxAuthorizeMessages uint64,
 ) Params {
-	// Setting a default start time.
-	t0, err := time.Parse(time.DateOnly, "2024-01-01")
-	if err != nil {
-
-		// Panic if we error here, because shouldn't.
-		panic(err)
-	}
-
 	return Params{
 		BridgeDenom:                  bridgeDenom,
 		EthereumProxyContractAddress: ethereumProxyContractAddress,
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
-		VestingStartTime:             t0,
+		VestingStartTime:             vestingStartTime,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
@@ -124,6 +121,7 @@ func DefaultParams() Params {
 		DefaultEthereumProxyContractAddress,
 		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
+		DefaultVestingStartTime,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,

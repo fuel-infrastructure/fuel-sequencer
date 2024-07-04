@@ -100,10 +100,6 @@ genesis:
         max_bytes: "22020096"
         max_gas: "300000000"
   app_state:
-    crisis:
-      constant_fee:
-        amount: "1000"
-        denom: "utest"
     gov:
       params:
         voting_period: "10s"
@@ -133,6 +129,7 @@ genesis:
           - "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
           - "/cosmos.gov.v1.MsgVote"
         supply_delta_period: 100
+        vesting_start_time: "2024-01-01T00:00:00.000000000Z"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"
     sequencing:

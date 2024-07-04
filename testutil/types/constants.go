@@ -9,6 +9,7 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"time"
 )
 
 var (
@@ -26,13 +27,14 @@ var (
 	TestMaxAuthorizeMessages         = uint64(10)
 	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
+	TestVestingStartingTime          = time.Now()
 	TestLastSupply                   = sdkmath.NewInt(100000000)
-	TestDelta                        = sdkmath.NewInt(5000000)
+	TestToReport                     = sdkmath.NewInt(5000000)
 	TestOffset                       = sdkmath.NewInt(-2000000)
 	TestSupplyDeltaInfo              = bridgetypes.SupplyDeltaInfo{
 		LastSupply: TestLastSupply,
-		Delta:      TestDelta,
 		Offset:     TestOffset,
+		ToReport:   TestToReport,
 	}
 	TestFrom1    = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 	TestFrom2    = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
