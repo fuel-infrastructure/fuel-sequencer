@@ -49,7 +49,7 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 			expErrMsg: "vesting start time must be set and cannot be the zero value",
 		},
 		{
-			name: "not good with due to wrong authority",
+			name: "not good due to wrong authority",
 			msgUpdateParams: &types.MsgUpdateParams{
 				Authority: "incorrect",
 				Params:    nonDefaultParams,
