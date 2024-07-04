@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"testing"
 	"time"
 
@@ -11,8 +12,6 @@ import (
 )
 
 func TestValidateGenesisState(t *testing.T) {
-	vestingStartingTime := time.Now()
-
 	tests := []struct {
 		desc     string
 		genState *types.GenesisState
@@ -32,7 +31,7 @@ func TestValidateGenesisState(t *testing.T) {
 					types.DefaultEthereumProxyContractAddress,
 					types.DefaultAuthorizeMessagesAllowed,
 					types.DefaultSupplyDeltaPeriod,
-					vestingStartingTime,
+					testutiltypes.TestVestingStartingTime,
 					nil,
 					types.DefaultMaxEthBlockUpdateDelay,
 					types.DefaultInjectedEventTxMaxBytes,

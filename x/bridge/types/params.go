@@ -41,6 +41,10 @@ var (
 	// as a measure against mistakes. This is important because if set to a very high value, the block production
 	// algorithm may not be able to allocate block space to critical transactions.
 	MaximumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.5")
+
+	// DefaultVestingStartTime is the default vesting start time, intentionally invalid to enforce explicit setting of
+	// this value.
+	DefaultVestingStartTime = time.Time{}
 )
 
 const (
@@ -112,15 +116,12 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
-	// Default vestingStartTime, intentionally invalid to enforce explicit setting of this value.
-	var vestingStartTime time.Time
-
 	return NewParams(
 		DefaultBridgeDenom,
 		DefaultEthereumProxyContractAddress,
 		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
-		vestingStartTime,
+		DefaultVestingStartTime,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
