@@ -15,10 +15,10 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	minttestutil "github.com/cosmos/cosmos-sdk/x/mint/testutil"
-	"github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/keeper"
+	minttestutil "github.com/fuel-infrastructure/fuel-sequencer/x/mint/testutil"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
 
 type IntegrationTestSuite struct {

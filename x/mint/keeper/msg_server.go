@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/errors"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
 
 var _ types.MsgServer = msgServer{}

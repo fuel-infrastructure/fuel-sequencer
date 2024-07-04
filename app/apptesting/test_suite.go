@@ -20,9 +20,9 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	minttypes "github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 
 	"github.com/stretchr/testify/suite"
 )
