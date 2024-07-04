@@ -78,7 +78,7 @@ require (
 	cloud.google.com/go/storage v1.36.0 // indirect
 	connectrpc.com/connect v1.15.0 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
-	cosmossdk.io/collections v0.4.0
+	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/x/tx v0.13.2 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect

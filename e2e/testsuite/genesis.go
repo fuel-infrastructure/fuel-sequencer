@@ -19,8 +19,8 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	minttypes "github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
 
 type ModifyGenesisFunc func(codec.Codec, map[string]json.RawMessage) error

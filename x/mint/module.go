@@ -2,149 +2,59 @@ package mint
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-
+	modulev1 "cosmossdk.io/api/cosmos/mint/module/v1"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
-	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/mint/module/v1"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/mint/exported"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
-
-// ConsensusVersion defines the current x/mint module consensus version.
-const ConsensusVersion = 1
-
-var (
-	_ module.AppModuleBasic = AppModule{}
-	_ module.HasGenesis     = AppModule{}
-	_ module.HasServices    = AppModule{}
-
-	_ appmodule.AppModule       = AppModule{}
-	_ appmodule.HasBeginBlocker = AppModule{}
-)
-
-// AppModuleBasic defines the basic application module used by the mint module.
-type AppModuleBasic struct {
-	cdc codec.Codec
-}
-
-// Name returns the mint module's name.
-func (AppModuleBasic) Name() string {
-	return types.ModuleName
-}
-
-// RegisterLegacyAminoCodec registers the mint module's types on the given LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
-
-// RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(r cdctypes.InterfaceRegistry) {
-	types.RegisterInterfaces(r)
-}
-
-// DefaultGenesis returns default genesis state as raw bytes for the mint
-// module.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
-}
-
-// ValidateGenesis performs genesis state validation for the mint module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	}
-
-	return types.ValidateGenesis(data)
-}
-
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the mint module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
-	}
-}
 
 // AppModule implements an application module for the mint module.
 type AppModule struct {
-	AppModuleBasic
+	mint.AppModule
 
-	keeper     keeper.Keeper
-	authKeeper types.AccountKeeper
+	keeper       mintkeeper.Keeper
+	bridgeKeeper types.BridgeKeeper
 
 	// inflationCalculator is used to calculate the inflation rate during BeginBlock.
 	// If inflationCalculator is nil, the default inflation calculation logic is used.
-	inflationCalculator types.InflationCalculationFn
+	inflationCalculator minttypes.InflationCalculationFn
 }
 
 // NewAppModule creates a new AppModule object. If the InflationCalculationFn
 // argument is nil, then the SDK's default inflation function will be used.
 func NewAppModule(
 	cdc codec.Codec,
-	keeper keeper.Keeper,
-	ak types.AccountKeeper,
-	ic types.InflationCalculationFn,
+	keeper mintkeeper.Keeper,
+	ak minttypes.AccountKeeper,
+	bk types.BridgeKeeper,
+	ic minttypes.InflationCalculationFn,
+	ss exported.Subspace,
 ) AppModule {
 	if ic == nil {
-		ic = types.DefaultInflationCalculationFn
+		ic = minttypes.DefaultInflationCalculationFn
 	}
 
 	return AppModule{
-		AppModuleBasic:      AppModuleBasic{cdc: cdc},
+		AppModule:           mint.NewAppModule(cdc, keeper, ak, ic, ss),
 		keeper:              keeper,
-		authKeeper:          ak,
+		bridgeKeeper:        bk,
 		inflationCalculator: ic,
 	}
 }
 
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
-
-// IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule) IsAppModule() {}
-
-// RegisterServices registers a gRPC query service to respond to the
-// module-specific gRPC queries.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
-}
-
-// InitGenesis performs genesis initialization for the mint module. It returns
-// no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
-	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-
-	am.keeper.InitGenesis(ctx, am.authKeeper, &genesisState)
-}
-
-// ExportGenesis returns the exported genesis state as raw bytes for the mint
-// module.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := am.keeper.ExportGenesis(ctx)
-	return cdc.MustMarshalJSON(gs)
-}
-
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
-
 // BeginBlock returns the begin blocker for the mint module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
-	return BeginBlocker(ctx, am.keeper, am.inflationCalculator)
+	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper, am.inflationCalculator)
 }
 
 //
@@ -152,7 +62,8 @@ func (am AppModule) BeginBlock(ctx context.Context) error {
 //
 
 func init() {
-	appmodule.Register(&modulev1.Module{},
+	appmodule.Register(
+		&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
 	)
 }
@@ -164,21 +75,18 @@ type ModuleInputs struct {
 	Config                 *modulev1.Module
 	StoreService           store.KVStoreService
 	Cdc                    codec.Codec
-	InflationCalculationFn types.InflationCalculationFn `optional:"true"`
+	InflationCalculationFn minttypes.InflationCalculationFn `optional:"true"`
 
-	AccountKeeper types.AccountKeeper
-	BankKeeper    types.BankKeeper
-	StakingKeeper types.StakingKeeper
+	// LegacySubspace is used solely for migration of x/params managed parameters
+	LegacySubspace exported.Subspace `optional:"true"`
+
+	AccountKeeper minttypes.AccountKeeper
+	BankKeeper    minttypes.BankKeeper
+	StakingKeeper minttypes.StakingKeeper
+	BridgeKeeper  types.BridgeKeeper
 }
 
-type ModuleOutputs struct {
-	depinject.Out
-
-	MintKeeper keeper.Keeper
-	Module     appmodule.AppModule
-}
-
-func ProvideModule(in ModuleInputs) ModuleOutputs {
+func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
 	feeCollectorName := in.Config.FeeCollectorName
 	if feeCollectorName == "" {
 		feeCollectorName = authtypes.FeeCollectorName
@@ -190,7 +98,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
-	k := keeper.NewKeeper(
+	k := mintkeeper.NewKeeper(
 		in.Cdc,
 		in.StoreService,
 		in.StakingKeeper,
@@ -200,8 +108,8 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority.String(),
 	)
 
-	// when no inflation calculation function is provided it will use the default types.DefaultInflationCalculationFn
-	m := NewAppModule(in.Cdc, k, in.AccountKeeper, in.InflationCalculationFn)
+	// when no inflation calculation function is provided it will use the default minttypes.DefaultInflationCalculationFn
+	m := NewAppModule(in.Cdc, k, in.AccountKeeper, in.BridgeKeeper, in.InflationCalculationFn, in.LegacySubspace)
 
-	return ModuleOutputs{MintKeeper: k, Module: m}
+	return mint.ModuleOutputs{MintKeeper: k, Module: m}
 }

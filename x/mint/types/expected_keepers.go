@@ -1,32 +1,12 @@
-package types // noalias
+package types
 
 import (
-	context "context"
+	"context"
 
-	"cosmossdk.io/math"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// StakingKeeper defines the expected staking keeper
-type StakingKeeper interface {
-	StakingTokenSupply(ctx context.Context) (math.Int, error)
-	BondedRatio(ctx context.Context) (math.LegacyDec, error)
-}
-
-// AccountKeeper defines the contract required for account APIs.
-type AccountKeeper interface {
-	GetModuleAddress(name string) sdk.AccAddress
-
-	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
-	SetModuleAccount(context.Context, sdk.ModuleAccountI)
-	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
-}
-
-// BankKeeper defines the contract needed to be fulfilled for banking and supply
-// dependencies.
-type BankKeeper interface {
-	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	SendCoinsFromModuleToModule(ctx context.Context, senderModule, recipientModule string, amt sdk.Coins) error
-	MintCoins(ctx context.Context, name string, amt sdk.Coins) error
+// BridgeKeeper defines the contract needed to be fulfilled for bridge module dependencies.
+type BridgeKeeper interface {
+	GetParams(ctx context.Context) bridgetypes.Params
 }

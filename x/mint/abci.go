@@ -5,13 +5,19 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
 
 // BeginBlocker mints new tokens for the previous block.
-func BeginBlocker(ctx context.Context, k keeper.Keeper, ic types.InflationCalculationFn) error {
-	defer telemetry.ModuleMeasureSince(types.ModuleName, telemetry.Now(), telemetry.MetricKeyBeginBlocker)
+func BeginBlocker(
+	ctx context.Context,
+	k mintkeeper.Keeper,
+	bk types.BridgeKeeper,
+	ic minttypes.InflationCalculationFn,
+) error {
+	defer telemetry.ModuleMeasureSince(minttypes.ModuleName, telemetry.Now(), telemetry.MetricKeyBeginBlocker)
 
 	// fetch stored minter & params
 	minter, err := k.Minter.Get(ctx)
@@ -24,11 +30,7 @@ func BeginBlocker(ctx context.Context, k keeper.Keeper, ic types.InflationCalcul
 		return err
 	}
 
-	// recalculate inflation rate
-	totalStakingSupply, err := k.StakingTokenSupply(ctx)
-	if err != nil {
-		return err
-	}
+	totalSupply := bk.GetParams(ctx).BridgeDenomTotalSupply
 
 	bondedRatio, err := k.BondedRatio(ctx)
 	if err != nil {
@@ -36,7 +38,7 @@ func BeginBlocker(ctx context.Context, k keeper.Keeper, ic types.InflationCalcul
 	}
 
 	minter.Inflation = ic(ctx, minter, params, bondedRatio)
-	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalStakingSupply)
+	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalSupply)
 	if err = k.Minter.Set(ctx, minter); err != nil {
 		return err
 	}
@@ -57,16 +59,16 @@ func BeginBlocker(ctx context.Context, k keeper.Keeper, ic types.InflationCalcul
 	}
 
 	if mintedCoin.Amount.IsInt64() {
-		defer telemetry.ModuleSetGauge(types.ModuleName, float32(mintedCoin.Amount.Int64()), "minted_tokens")
+		defer telemetry.ModuleSetGauge(minttypes.ModuleName, float32(mintedCoin.Amount.Int64()), "minted_tokens")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeMint,
-			sdk.NewAttribute(types.AttributeKeyBondedRatio, bondedRatio.String()),
-			sdk.NewAttribute(types.AttributeKeyInflation, minter.Inflation.String()),
-			sdk.NewAttribute(types.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
+			minttypes.EventTypeMint,
+			sdk.NewAttribute(minttypes.AttributeKeyBondedRatio, bondedRatio.String()),
+			sdk.NewAttribute(minttypes.AttributeKeyInflation, minter.Inflation.String()),
+			sdk.NewAttribute(minttypes.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, mintedCoin.Amount.String()),
 		),
 	)
