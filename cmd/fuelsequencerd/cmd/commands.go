@@ -163,38 +163,38 @@ func startSidecarServerCmd() *cobra.Command {
 	// Sidecar
 	cmd.Flags().StringVar(&scrCfg.host, FlagSidecarHost, "localhost", "host for the gRPC server to listen on")
 	cmd.Flags().StringVar(&scrCfg.port, FlagSidecarPort, "8080", "port for the gRPC server to listen on")
-	cmd.Flags().BoolVar(&scrCfg.development, FlagSidecarDevelopment, false, "Starts the sidecar in development mode")
+	cmd.Flags().BoolVar(&scrCfg.development, FlagSidecarDevelopment, false, "starts the sidecar in development mode")
 	cmd.Flags().StringVar(
 		&scrCfg.pathToKeyFile,
 		FlagSidecarPathToKeyFile,
 		"",
-		"Path to the private key file of the sidecar server for secure communication. Specify this value if you want "+
+		"path to the private key file of the sidecar server for secure communication. Specify this value if you want "+
 			"to setup a sidecar server with TLS.",
 	)
 	cmd.Flags().StringVar(
 		&scrCfg.pathToCertFile,
 		FlagSidecarPathToCertFile,
 		"",
-		"Path to the certificate file of the sidecar server for secure communication. Specify this value if you want "+
+		"path to the certificate file of the sidecar server for secure communication. Specify this value if you want "+
 			"to setup a sidecar server with TLS.",
 	)
 
 	// Ethereum
-	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "Ethereum node WebSocket endpoint")
+	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "the ethereum node WebSocket endpoint")
 	cmd.Flags().StringVar(&ethCfg.contractAddrHex, FlagEthereumContractAddr, "", "address in hex format of the contract to monitor for logs")
-	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of Ethereum blocks queried at one go")
+	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of ethereum blocks queried at one go")
 	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*5, "minimum wait between successive queries for logs")
-	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the Ethereum block to start querying from")
-	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last Ethereum block to query")
+	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the ethereum block to start querying from")
+	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last ethereum block to sync - incorrect use can cause the validator to propose empty blocks, leading to slashing!")
 
 	// Sequencer
-	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "Sequencer's gRPC endpoint")
-	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "Sequencer's CometBFT RPC endpoint")
+	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
+	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "the sequencer's CometBFT RPC endpoint")
 	cmd.Flags().StringVar(
 		&seqCfg.pathToCertFile,
 		FlagSequencerPathToCertFile,
 		"",
-		"Path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
+		"path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
 			"if the Sequencer infrastructure was set up using TLS.",
 	)
 
@@ -396,13 +396,13 @@ func querySidecarServerCmd() *cobra.Command {
 		Aliases: []string{"qse"},
 	}
 
-	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "Sidecar's gRPC URL")
+	cmd.Flags().StringP(FlagSidecarGrpcUrl, "s", "localhost:8080", "sidecar's gRPC URL")
 	cmd.Flags().DurationP(FlagQueryTimeout, "t", time.Second*5, "how long to wait before timing out")
 	cmd.Flags().StringP(
 		FlagSidecarClientPathToCertFile,
 		"c",
 		"",
-		"Path to the certificate file of the sidecar server for secure communication. "+
+		"path to the certificate file of the sidecar server for secure communication. "+
 			"This needs to be specified if the sidecar server was configured with TLS",
 	)
 

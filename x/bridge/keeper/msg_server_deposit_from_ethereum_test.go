@@ -7,6 +7,7 @@ import (
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"time"
 )
 
 func (s *KeeperTestSuite) TestDepositFromEthereum() {
@@ -209,6 +210,15 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 
 			// Get the message server
 			msgServer := keeper.NewMsgServerImpl(s.App.BridgeKeeper)
+
+			// Set the VestingStartTime since by default it's not valid
+			defaultParams := types.DefaultParams()
+			defaultParams.VestingStartTime = time.Now()
+			_, err := msgServer.UpdateParams(s.Ctx(), &types.MsgUpdateParams{
+				Authority: s.App.BridgeKeeper.GetAuthority(),
+				Params:    defaultParams,
+			})
+			s.Require().NoError(err)
 
 			for _, msg := range tc.msgs {
 				_, err = msgServer.DepositFromEthereum(s.Ctx(), msg)

@@ -367,9 +367,9 @@ func TestParams_Validate(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "Valid parameters - default params",
+			name:      "Invalid parameters - default params",
 			params:    types.DefaultParams(),
-			expectErr: false,
+			expectErr: true,
 		},
 		{
 			name: "Valid parameters - non-default params",
