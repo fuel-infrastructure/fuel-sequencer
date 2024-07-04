@@ -19,6 +19,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
 		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
+		time.Now(),
 		[]string{},
 		2*time.Hour,
 		6144,
@@ -53,14 +54,6 @@ func TestMsgUpdateParams(t *testing.T) {
 			expErr: false,
 		},
 		{
-			name: "all good with default params",
-			input: &types.MsgUpdateParams{
-				Authority: k.GetAuthority(),
-				Params:    defaultParams,
-			},
-			expErr: false,
-		},
-		{
 			name: "all good with non default params",
 			input: &types.MsgUpdateParams{
 				Authority: k.GetAuthority(),
@@ -72,8 +65,8 @@ func TestMsgUpdateParams(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := ms.UpdateParams(wctx, tc.input)
 
+			_, err := ms.UpdateParams(wctx, tc.input)
 			if tc.expErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tc.expErrMsg)
