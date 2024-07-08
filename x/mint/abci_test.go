@@ -8,13 +8,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
 )
 
-func (s *MintModuleTestSuite) TestBeginBlocker_ExpectsBridgeDenomEqualMintDenom() {
-
-	inflationCalculationFn := minttypes.DefaultInflationCalculationFn
-	err := mint.BeginBlocker(s.Ctx(), s.App.MintKeeper, s.App.BridgeKeeper, inflationCalculationFn)
-	s.Require().ErrorContains(err, "mismatching bridge and mint denoms: ufuel != stake")
-}
-
 func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParams() {
 
 	bondDenom := sdk.DefaultBondDenom

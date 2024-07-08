@@ -2,7 +2,6 @@ package mint
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,15 +33,9 @@ func BeginBlocker(
 		return err
 	}
 
-	bridgeParams := bk.GetParams(ctx)
-
-	// Ensure that the denom that we will be minting matches the BridgeDenom.
-	if bridgeParams.BridgeDenom != params.MintDenom {
-		return fmt.Errorf("mismatching bridge and mint denoms: %s != %s", bridgeParams.BridgeDenom, params.MintDenom)
-	}
-
 	// Use BridgeDenomTotalSupply as the supply for the NextAnnualProvisions calculation.
-	totalSupply := bridgeParams.BridgeDenomTotalSupply
+	// This replaces the supply from the StakingTokenSupply call to the staking module.
+	totalSupply := bk.GetParams(ctx).BridgeDenomTotalSupply
 
 	bondedRatio, err := k.BondedRatio(ctx)
 	if err != nil {
