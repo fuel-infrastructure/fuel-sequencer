@@ -80,6 +80,9 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	}
 }
 
+// TestAppConfiguration_AppBeginBlockerRunsCustomMintLogic uses the App's BeginBlocker and tests that the correct
+// mint module BeginBlocker is called. It does this just by ensuring there is only 1 mint event, and that the
+// custom minting logic is being used, i.e. the inflation logic depends on the bridge module BridgeDenomTotalSupply.
 func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMintLogic() {
 
 	bondDenom := sdk.DefaultBondDenom
