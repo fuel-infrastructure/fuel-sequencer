@@ -14,8 +14,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // AppModule implements an application module for the mint module.
@@ -87,29 +85,28 @@ type ModuleInputs struct {
 }
 
 func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
-	feeCollectorName := in.Config.FeeCollectorName
-	if feeCollectorName == "" {
-		feeCollectorName = authtypes.FeeCollectorName
-	}
+	mintModuleOut := mint.ProvideModule(mint.ModuleInputs{
+		In:                     in.In,
+		ModuleKey:              in.ModuleKey,
+		Config:                 in.Config,
+		StoreService:           in.StoreService,
+		Cdc:                    in.Cdc,
+		InflationCalculationFn: in.InflationCalculationFn,
+		LegacySubspace:         in.LegacySubspace,
+		AccountKeeper:          in.AccountKeeper,
+		BankKeeper:             in.BankKeeper,
+		StakingKeeper:          in.StakingKeeper,
+	})
 
-	// default to governance authority if not provided
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
-	if in.Config.Authority != "" {
-		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
-	}
-
-	k := mintkeeper.NewKeeper(
+	// override mint module's AppModule with custom one
+	mintModuleOut.Module = NewAppModule(
 		in.Cdc,
-		in.StoreService,
-		in.StakingKeeper,
+		mintModuleOut.MintKeeper,
 		in.AccountKeeper,
-		in.BankKeeper,
-		feeCollectorName,
-		authority.String(),
+		in.BridgeKeeper,
+		in.InflationCalculationFn,
+		in.LegacySubspace,
 	)
 
-	// when no inflation calculation function is provided it will use the default minttypes.DefaultInflationCalculationFn
-	m := NewAppModule(in.Cdc, k, in.AccountKeeper, in.BridgeKeeper, in.InflationCalculationFn, in.LegacySubspace)
-
-	return mint.ModuleOutputs{MintKeeper: k, Module: m}
+	return mintModuleOut
 }
