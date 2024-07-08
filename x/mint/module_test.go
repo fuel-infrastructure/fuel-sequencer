@@ -3,7 +3,6 @@ package mint_test
 import (
 	"testing"
 
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
@@ -11,8 +10,6 @@ import (
 
 type MintModuleTestSuite struct {
 	apptesting.KeeperTestHelper
-
-	queryClient minttypes.QueryClient
 }
 
 func (s *MintModuleTestSuite) SetupTest() {
