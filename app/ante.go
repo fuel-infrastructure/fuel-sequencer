@@ -132,7 +132,6 @@ func (d SequencerNativeTxsDecorator) AnteHandle(
 
 	txSize := uint64(len(ctx.TxBytes()))
 	params := d.sequencingKeeper.GetParams(ctx)
-
 	if txSize > params.SequencerTxMaxBytes {
 		return ctx, fmt.Errorf("transaction is too large; %d > %d", txSize, params.SequencerTxMaxBytes)
 	}
