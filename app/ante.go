@@ -124,8 +124,7 @@ func NewSequencerNativeTxsDecorator(sequencingKeeper sequencingkeeper.Keeper) Se
 func (d SequencerNativeTxsDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
-	// Limits should not be applied during genesis as params.SequencerTxMaxBytes will be zero until the genesis values
-	// are set.
+	// Limits should not be applied during genesis as SequencerTxMaxBytes will be zero.
 	if ctx.BlockHeight() == 0 {
 		return next(ctx, tx, simulate)
 	}
