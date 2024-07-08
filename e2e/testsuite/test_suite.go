@@ -38,7 +38,7 @@ func init() {
 
 const (
 	BridgeDenom            = "ufuel"
-	BridgeDenomTotalSupply = 1_000_000
+	BridgeDenomTotalSupply = 10_000_000_000
 
 	minGasPrices      = "0.01"
 	defaultTxGas      = 1000000

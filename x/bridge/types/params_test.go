@@ -349,7 +349,7 @@ func TestValidateMaxAuthorizeMessages(t *testing.T) {
 
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
-	validBridgeDenomTotalSupply := sdkmath.NewInt(1_000_000)
+	validBridgeDenomTotalSupply := sdkmath.NewInt(10_000_000_000)
 	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	validAuthorizeMessagesAllowed := []string{"authorizeMessage1", "authorizeMessage2"}
 	validSupplyDeltaPeriod := uint64(10)

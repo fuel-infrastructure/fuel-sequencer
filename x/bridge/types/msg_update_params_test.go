@@ -31,7 +31,7 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 
 	nonDefaultParams := types.NewParams(
 		"ufuel",
-		sdkmath.NewInt(1_000_000),
+		sdkmath.NewInt(10_000_000_000),
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
 		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
