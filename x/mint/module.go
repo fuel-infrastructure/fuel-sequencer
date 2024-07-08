@@ -16,15 +16,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
-// AppModule implements an application module for the mint module.
+// AppModule is an application module that incorporates the Cosmos SDK mint module, to override some of its logic,
+// namely the BeginBlock, which is overridden so that inflation is based on a supply value reported by Bridge module.
 type AppModule struct {
 	mint.AppModule
 
-	keeper       mintkeeper.Keeper
-	bridgeKeeper types.BridgeKeeper
-
-	// inflationCalculator is used to calculate the inflation rate during BeginBlock.
-	// If inflationCalculator is nil, the default inflation calculation logic is used.
+	// All needed to call the BeginBlocker
+	keeper              mintkeeper.Keeper
+	bridgeKeeper        types.BridgeKeeper
 	inflationCalculator minttypes.InflationCalculationFn
 }
 
@@ -50,7 +49,7 @@ func NewAppModule(
 	}
 }
 
-// BeginBlock returns the begin blocker for the mint module.
+// BeginBlock overrides the BeginBlock of the mint module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
 	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper, am.inflationCalculator)
 }
@@ -66,6 +65,7 @@ func init() {
 	)
 }
 
+// ModuleInputs is almost identical to the original mint module ModuleInputs, but adds a BridgeKeeper dependency.
 type ModuleInputs struct {
 	depinject.In
 
@@ -84,8 +84,9 @@ type ModuleInputs struct {
 	BridgeKeeper  types.BridgeKeeper
 }
 
+// ProvideModule calls the original mint module ProvideModule but then overrides the AppModule with the custom one.
 func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
-	mintModuleOut := mint.ProvideModule(mint.ModuleInputs{
+	out := mint.ProvideModule(mint.ModuleInputs{
 		In:                     in.In,
 		ModuleKey:              in.ModuleKey,
 		Config:                 in.Config,
@@ -99,14 +100,14 @@ func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
 	})
 
 	// override mint module's AppModule with custom one
-	mintModuleOut.Module = NewAppModule(
+	out.Module = NewAppModule(
 		in.Cdc,
-		mintModuleOut.MintKeeper,
+		out.MintKeeper,
 		in.AccountKeeper,
 		in.BridgeKeeper,
 		in.InflationCalculationFn,
 		in.LegacySubspace,
 	)
 
-	return mintModuleOut
+	return out
 }

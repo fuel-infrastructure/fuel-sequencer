@@ -11,7 +11,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
 
-// BeginBlocker mints new tokens for the previous block.
+// BeginBlocker was copied from https://github.com/cosmos/cosmos-sdk/blob/v0.50.6/x/mint/abci.go.
+// It is almost identical to the original, but uses BridgeDenomTotalSupply from the bridge module
+// instead of getting the StakingTokenSupply from the Staking module.
+// tokens being minted by
 func BeginBlocker(
 	ctx context.Context,
 	k mintkeeper.Keeper,
