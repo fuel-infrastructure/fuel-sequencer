@@ -2,24 +2,31 @@ package mint_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
 )
 
 func (s *MintModuleTestSuite) TestBeginBlocker_ExpectsBridgeDenomEqualMintDenom() {
-	_, err := s.BeginBlock()
+
+	inflationCalculationFn := minttypes.DefaultInflationCalculationFn
+	err := mint.BeginBlocker(s.Ctx(), s.App.MintKeeper, s.App.BridgeKeeper, inflationCalculationFn)
 	s.Require().ErrorContains(err, "mismatching bridge and mint denoms: ufuel != stake")
 }
 
 func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParams() {
 
-	bondDenom := types.DefaultBondDenom
+	bondDenom := sdk.DefaultBondDenom
+	inflation := sdkmath.LegacyMustNewDecFromStr("0.1")
+	inflationCalculationFn := minttypes.DefaultInflationCalculationFn
+	feeCollector := s.App.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 
 	// Simplify mint module params so that we have a constant 10% inflation.
 	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
 	s.Require().NoError(err)
-	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.1")
-	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.1")
+	mintParams.InflationMin = inflation
+	mintParams.InflationMax = inflation
 	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0")
 	s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
 
@@ -42,19 +49,79 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	// and that it's transferring the minted tokens to the fee collector.
 	for i := int64(1); i <= 10; i++ {
 
-		bb, err := s.BeginBlock()
-		s.Require().NoError(err)
-		s.AssertEventInEventsList(bb.Events, minttypes.EventTypeMint, 1)
-
-		supplyAfter, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
+		beginBlockerCtx := s.Ctx()
+		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, inflationCalculationFn)
 		s.Require().NoError(err)
 
 		// Inflation = 0.1
 		// BridgeDenomTotalSupply = 10000000000
-		// Tokens minted per block = (10000000000 / 6311520) * 0.1
-		//                         = 158.440439070144751
+		// AnnualProvisions = 10000000000 * 0.1
+		//                  = 1000000000
+		// Tokens minted per block = 1000000000 / 6311520
+		//                         = 158.4404390701448
 		//                         = 158
 
+		// Check events
+		s.AssertEventEmitted(beginBlockerCtx, minttypes.EventTypeMint, 1)
+		event := s.FindEvent(beginBlockerCtx.EventManager().Events(), minttypes.EventTypeMint)
+		eventAttributes := s.ExtractAttributes(event)
+		s.Require().NotEmpty(eventAttributes[minttypes.AttributeKeyBondedRatio]) // the value is not important
+		s.Require().Equal(eventAttributes[minttypes.AttributeKeyInflation], "0.100000000000000000")
+		s.Require().Equal(eventAttributes[minttypes.AttributeKeyAnnualProvisions], "1000000000.000000000000000000")
+		s.Require().Equal(eventAttributes[sdk.AttributeKeyAmount], "158")
+
+		// Check minter attributes
+		minter, err := s.App.MintKeeper.Minter.Get(s.Ctx())
+		s.Require().NoError(err)
+		s.Require().True(minter.Inflation.Equal(inflation))
+		s.Require().True(minter.AnnualProvisions.Equal(sdkmath.LegacyMustNewDecFromStr("1000000000"))) // 0.1 * supply
+
+		// Check fee collector balance is increasing by 158 each time
+		feeCollectorBalance := s.App.BankKeeper.GetBalance(s.Ctx(), feeCollector, bondDenom)
+		s.Require().True(feeCollectorBalance.Amount.Equal(sdkmath.NewInt(158 * i)))
+
+		// Check supply is increasing by 158 each time
+		supplyAfter, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
+		s.Require().NoError(err)
 		s.Require().True(supplyAfter.Equal(supplyBefore.AddRaw(158 * i)))
 	}
+}
+
+func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMintLogic() {
+
+	bondDenom := sdk.DefaultBondDenom
+
+	// Simplify mint module params so that we have a constant 10% inflation.
+	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
+	s.Require().NoError(err)
+	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.1")
+	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.1")
+	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0")
+	s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
+
+	// Override BridgeDenomTotalSupply so that we know what supply value will be used.
+	bridgeParams := s.App.BridgeKeeper.GetParams(s.Ctx())
+	bridgeParams.BridgeDenom = bondDenom
+	bridgeParams.BridgeDenomTotalSupply = sdkmath.NewInt(10_000_000_000)
+	s.Require().NoError(s.App.BridgeKeeper.SetParams(s.Ctx(), bridgeParams))
+
+	// Record supply from the staking module perspective
+	supplyBefore, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
+	s.Require().NoError(err)
+
+	bb, err := s.App.BeginBlocker(s.Ctx())
+	s.Require().NoError(err)
+	s.AssertEventInEventsList(bb.Events, minttypes.EventTypeMint, 1)
+
+	// Inflation = 0.1
+	// BridgeDenomTotalSupply = 10000000000
+	// AnnualProvisions = 10000000000 * 0.1
+	//                  = 1000000000
+	// Tokens minted per block = 1000000000 / 6311520
+	//                         = 158.4404390701448
+	//                         = 158
+
+	supplyAfter, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().True(supplyAfter.Equal(supplyBefore.AddRaw(158)))
 }
