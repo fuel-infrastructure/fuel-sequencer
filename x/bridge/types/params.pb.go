@@ -37,10 +37,14 @@ type Params struct {
 	// upon deposits, burning when withdrawing, and tracking changes in its
 	// supply that will be reported to Ethereum, amongst other scenarios.
 	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
-	// bridge_denom_total_supply is the assumed global total supply of the bridged
-	// token, mostly intended to be used as the supply when calculating inflation.
-	// Unless this parameter is updated, inflation will mint the same amount of
-	// tokens every block.
+	// bridge_denom_total_supply is the assumed total supply of the bridge token.
+	// It is intended to be used instead of the staking token supply reported by
+	// the staking module, when calculating inflation. The staking module does
+	// not know about tokens that have not been bridged to the Sequencer, so
+	// we would under-mint if we use the supply reported by the staking module.
+	//
+	// Unless this parameter is changed, the mint module will simply mint the
+	// same amount of tokens at every block based on the value of this param.
 	BridgeDenomTotalSupply cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=bridge_denom_total_supply,json=bridgeDenomTotalSupply,proto3,customtype=cosmossdk.io/math.Int" json:"bridge_denom_total_supply"`
 	// ethereum_proxy_contract_address is the contract address we expect to
 	// receive deposit and authorize messages from.
