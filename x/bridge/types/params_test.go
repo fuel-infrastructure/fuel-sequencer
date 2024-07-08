@@ -109,6 +109,29 @@ func TestValidateBridgeDenom(t *testing.T) {
 	}
 }
 
+func TestValidateBridgeDenomTotalSupply(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid supply", sdkmath.NewInt(10), false},
+		{"Zero supply", sdkmath.NewInt(0), true},
+		{"Non-Int type", "not an Int", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateBridgeDenomTotalSupply(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestValidateEthereumProxyContractAddress(t *testing.T) {
 	testCases := []struct {
 		name      string
