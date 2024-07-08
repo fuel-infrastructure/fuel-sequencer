@@ -1202,7 +1202,7 @@ type Params struct {
 	// upon deposits, burning when withdrawing, and tracking changes in its
 	// supply that will be reported to Ethereum, amongst other scenarios.
 	BridgeDenom string `protobuf:"bytes,1,opt,name=bridge_denom,json=bridgeDenom,proto3" json:"bridge_denom,omitempty"`
-	// bridge_denom_total_supply is the assumed total supply of the bridge token.
+	// bridge_denom_total_supply is the assumed total supply of the bridged token.
 	// It is intended to be used instead of the staking token supply reported by
 	// the staking module, when calculating inflation. The staking module does
 	// not know about tokens that have not been bridged to the Sequencer, so
