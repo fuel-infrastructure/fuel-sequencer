@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -9,7 +11,6 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"time"
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestVestingStartingTime          = time.Now()
+	TestBridgeDenomTotalSupply       = sdkmath.NewInt(1000000)
 	TestLastSupply                   = sdkmath.NewInt(100000000)
 	TestToReport                     = sdkmath.NewInt(5000000)
 	TestOffset                       = sdkmath.NewInt(-2000000)

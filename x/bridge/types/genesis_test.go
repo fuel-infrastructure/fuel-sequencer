@@ -1,9 +1,10 @@
 package types_test
 
 import (
-	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"testing"
 	"time"
+
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 
 	"cosmossdk.io/math"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -17,7 +18,7 @@ func TestValidateGenesisState(t *testing.T) {
 		genState *types.GenesisState
 		valid    bool
 	}{
-		// Default is not valid due to vestingStartTime
+		// Default genesis is not valid since some default parameters are invalid
 		{
 			desc:     "default is not valid",
 			genState: types.DefaultGenesis(),
@@ -28,6 +29,7 @@ func TestValidateGenesisState(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.NewParams(
 					types.DefaultBridgeDenom,
+					testutiltypes.TestBridgeDenomTotalSupply,
 					types.DefaultEthereumProxyContractAddress,
 					types.DefaultAuthorizeMessagesAllowed,
 					types.DefaultSupplyDeltaPeriod,
