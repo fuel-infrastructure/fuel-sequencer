@@ -8,7 +8,7 @@ ARG RUNNER_IMAGE="alpine:3.19"
 # Builder
 # --------------------------------------------------------
 
-FROM golang:${GO_VERSION}-alpine3.19 as builder
+FROM golang:${GO_VERSION}-alpine3.19 AS builder
 
 # Set the working directory inside the container.
 WORKDIR /fuel-sequencer
@@ -51,7 +51,7 @@ RUN mkdir -p /etc/sudoers.d \
 
 # Set home directory to /home/fuelsequencer
 USER 1000
-ENV HOME /home/fuelsequencer
+ENV HOME=/home/fuelsequencer
 WORKDIR $HOME
 
 # Expose chain ports
