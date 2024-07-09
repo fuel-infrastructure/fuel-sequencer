@@ -36,7 +36,7 @@ func init() {
 }
 
 const (
-	BridgeDenom = "utest"
+	BridgeDenom            = "utest"
 	BridgeDenomTotalSupply = 10_000_000_000
 
 	// Gas configs
@@ -69,7 +69,7 @@ const (
 	// GuardianPrivateKey is the private key of the address assigned as the 'guardian'.
 	GuardianPrivateKey = "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e"
 	// FuelStreamXContractAddress is the address of the contract that holds bridge commitments.
-	FuelStreamXContractAddress = "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1"
+	FuelStreamXContractAddress = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed"
 	// TokenContractAddress is the address of the FUEL token contract.
 	TokenContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 	// SequencerInterfaceContractAddress is the address of the contract that has the batchAuthorize function.

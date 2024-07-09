@@ -64,7 +64,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		receipt, err := s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 
-		// The two events are: HeadUpdate, DataCommitmentStored
+		// The two events are: HeadUpdate, BridgeCommitmentStored
 		s.Require().Len(receipt.Logs, 2)
 
 		// Extract log 1's topics and data
@@ -78,7 +78,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		fuelStreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
-		// Check DataCommitmentStored event
+		// Check BridgeCommitmentStored event
 
 		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, endBlock)
 
@@ -87,13 +87,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		actualTargetBlock, err := strconv.ParseUint(eventTopic2[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
 
-		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
+		s.Require().Equal(testsuite.BridgeCommitmentStoredEventHash, eventTopic0)
 		s.Require().EqualValues(startBlock, actualStartBlock)
 		s.Require().EqualValues(endBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
-		var event testsuite.DataCommitmentStoredEvent
-		err = fuelStreamxABI.UnpackIntoInterface(&event, testsuite.DataCommitmentStoredEventName, eventData)
+		var event testsuite.BridgeCommitmentStoredEvent
+		err = fuelStreamxABI.UnpackIntoInterface(&event, testsuite.BridgeCommitmentStoredEventName, eventData)
 		s.Require().NoError(err)
 
 		expectedProofNonce := 1
@@ -200,7 +200,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		receipt, err := s.SendEthTransactionToFuelStreamXContract(data)
 		s.Require().NoError(err)
 
-		// The two events are: HeadUpdate, DataCommitmentStored
+		// The two events are: HeadUpdate, BridgeCommitmentStored
 		s.Require().Len(receipt.Logs, 2)
 
 		// Extract log 1's topics and data
@@ -214,7 +214,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		fuelStreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
-		// Check DataCommitmentStored event
+		// Check BridgeCommitmentStored event
 
 		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, endBlock)
 
@@ -223,13 +223,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		actualTargetBlock, err := strconv.ParseUint(eventTopic2[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
 
-		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
+		s.Require().Equal(testsuite.BridgeCommitmentStoredEventHash, eventTopic0)
 		s.Require().EqualValues(startBlock, actualStartBlock)
 		s.Require().EqualValues(endBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
-		var event testsuite.DataCommitmentStoredEvent
-		err = fuelStreamxABI.UnpackIntoInterface(&event, testsuite.DataCommitmentStoredEventName, eventData)
+		var event testsuite.BridgeCommitmentStoredEvent
+		err = fuelStreamxABI.UnpackIntoInterface(&event, testsuite.BridgeCommitmentStoredEventName, eventData)
 		s.Require().NoError(err)
 
 		expectedProofNonce := 1
