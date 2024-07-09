@@ -118,7 +118,10 @@ func NewSequencerNativeTxsDecorator(sequencingKeeper sequencingkeeper.Keeper) Se
 }
 
 // AnteHandle implements a custom AnteHandler decorator for Sequencer-native transactions. This decorator will error
-// if the size of the tx exceeds SequencerTxMaxBytes.
+// if the size of the tx exceeds SequencerTxMaxBytes. This is done to avoid having large transactions sitting in the
+// mempool forever due to never having enough block space. This happens when
+// size(tx) > RequestPrepareProposal.MaxBytes - size(MsgIndexTx).
+//
 // Note: If an error is returned from AnteHandle during CheckTx, the Tx will get rejected immediately and will not be
 // inserted in the mempool/block.
 func (d SequencerNativeTxsDecorator) AnteHandle(
