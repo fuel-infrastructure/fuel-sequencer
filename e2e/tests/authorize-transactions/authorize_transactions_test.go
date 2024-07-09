@@ -228,8 +228,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataD
 
 func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_AuthorizeWithManyMessagesIsSkipped() {
 	s.Run("An AuthorizeEvent with more messages than MaxAuthorizeMessages is skipped", func() {
-		senderAddress := testsuite.ETH_ADDRESSES[0]
-		receiverAddress := testsuite.ETH_ADDRESSES[1]
+		senderAddress := s.EthKeys[0].AddressHex
+		receiverAddress := s.EthKeys[1].AddressHex
 
 		// Generate Authorize tx with 100 MsgSends.
 		sendAmount, ok := sdkmath.NewIntFromString("10")
@@ -245,7 +245,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_AuthorizeWit
 
 		// Send Authorize tx
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		_, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
+		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// Make sure that the Sequencer skips the event

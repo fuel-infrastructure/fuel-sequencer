@@ -1,8 +1,10 @@
 package events_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
 	cmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
@@ -10,7 +12,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"time"
 )
 
 // TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
@@ -42,7 +43,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: s.EthKeys[0].AddressHex,
+			Sender: from,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
@@ -124,11 +125,13 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+		from := s.EthKeys[0].AddressHex
+		to := s.EthKeys[1].AddressHex
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: testsuite.ETH_ADDRESSES[0],
+			Sender: from,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
