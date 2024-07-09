@@ -26,6 +26,12 @@ const (
 	TestAppSidecarEnabled = false
 )
 
+var (
+	TestAppGenesisAccountBalance = math.NewInt(100_000_000_000_000)
+	TestAppGenesisStakedAmount   = sdk.DefaultPowerReduction // used by simtestutil.GenesisStateWithValSet
+	TestAppGenesisSupply         = TestAppGenesisAccountBalance.Add(TestAppGenesisStakedAmount)
+)
+
 // This function is required so that configuration functions are called once in testing
 func init() {
 	fuelsequencerapp.InitSDKConfig()
@@ -87,7 +93,7 @@ func GetDefaultGenesisStateBytes(app *fuelsequencerapp.FuelSequencerApp) []byte 
 		balances := []banktypes.Balance{
 			{
 				Address: acc.GetAddress().String(),
-				Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100000000000000))),
+				Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, TestAppGenesisAccountBalance)),
 			},
 		}
 

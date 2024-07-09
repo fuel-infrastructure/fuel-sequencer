@@ -63,13 +63,13 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				//           = 0.03760483297 < 0.07 (since less than InflationMin)
 				//           = 0.07
 				//
-				// Tokens minted per block = (630000000000 / 6311520) * 0.07
-				//                         = 6987.22336299
-				//                         = 6987
+				// Tokens minted per block = (10000000000 / 6311520) * 0.07 where 10000000000 is the BridgeDenomTotalSupply
+				//                         = 110.908307349101326
+				//                         = 110
 				//
-				// Supply delta = 630000000000 + (6987 * 10) where 10 is the SupplyDeltaPeriod
-				//              = 630000069870
-				s.Require().EqualValues("630000069870", supplyDeltaAttribute.Value[1:len(supplyDeltaAttribute.Value)-1])
+				// Supply delta = 630000000000 + (110 * 10) where 10 is the SupplyDeltaPeriod
+				//              = 630000001100
+				s.Require().EqualValues("630000001100", supplyDeltaAttribute.Value[1:len(supplyDeltaAttribute.Value)-1])
 			}
 		}
 	})
