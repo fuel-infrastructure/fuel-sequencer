@@ -40,8 +40,8 @@ type Params struct {
 	// bridge_denom_total_supply is the assumed total supply of the bridged token.
 	// It is intended to be used instead of the staking token supply reported by
 	// the staking module, when calculating inflation. The staking module does
-	// not know about tokens that have not been bridged to the Sequencer, so
-	// we would under-mint if we use the supply reported by the staking module.
+	// not know about tokens that have not been bridged to the Sequencer, so we
+	// would mint the wrong amount if we use the staking module's supply value.
 	//
 	// Unless this parameter is changed, the mint module will simply mint the
 	// same amount of tokens at every block based on the value of this param.

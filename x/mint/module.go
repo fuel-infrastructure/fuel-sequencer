@@ -21,7 +21,8 @@ import (
 type AppModule struct {
 	mint.AppModule
 
-	// All needed to call the BeginBlocker
+	// The below fields are not exported by mint.AppModule, but they are needed to call the BeginBlocker in BeginBlock,
+	// so we have copies of them here that we can set in NewAppModule for usage in BeginBlock.
 	keeper              mintkeeper.Keeper
 	bridgeKeeper        types.BridgeKeeper
 	inflationCalculator minttypes.InflationCalculationFn

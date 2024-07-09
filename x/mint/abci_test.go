@@ -73,16 +73,16 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 		feeCollectorBalance := s.App.BankKeeper.GetBalance(s.Ctx(), feeCollector, bondDenom)
 		s.Require().True(feeCollectorBalance.Amount.Equal(sdkmath.NewInt(158 * i)))
 
-		// Check supply is increasing by 158 each time
+		// Check supply is increasing by 158 each time, confirming that the custom minting logic is being used
 		supplyAfter, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
 		s.Require().NoError(err)
 		s.Require().True(supplyAfter.Equal(supplyBefore.AddRaw(158 * i)))
 	}
 }
 
-// TestAppConfiguration_AppBeginBlockerRunsCustomMintLogic uses the App's BeginBlocker and tests that the correct
-// mint module BeginBlocker is called. It does this just by ensuring there is only 1 mint event, and that the
-// custom minting logic is being used, i.e. the inflation logic depends on the bridge module BridgeDenomTotalSupply.
+// TestAppConfiguration_AppBeginBlockerRunsCustomMintLogic uses the App's BeginBlocker instead of the mint module one
+// directly. It tests that the correct mint module BeginBlocker is called, ensuring that we've correctly wired-up the
+// app. It does this just by ensuring there is only 1 mint event, and that the custom minting logic is being used.
 func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMintLogic() {
 
 	bondDenom := sdk.DefaultBondDenom
@@ -105,6 +105,7 @@ func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMint
 	supplyBefore, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
 	s.Require().NoError(err)
 
+	// Use app's BeginBlocker to ensure the app is correctly wired-up with the custom minting logic.
 	bb, err := s.App.BeginBlocker(s.Ctx())
 	s.Require().NoError(err)
 	s.AssertEventInEventsList(bb.Events, minttypes.EventTypeMint, 1)
@@ -117,6 +118,7 @@ func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMint
 	//                         = 158.4404390701448
 	//                         = 158
 
+	// Check supply is increasing by 158 each time, confirming that the custom minting logic is being used
 	supplyAfter, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().True(supplyAfter.Equal(supplyBefore.AddRaw(158)))
