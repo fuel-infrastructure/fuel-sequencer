@@ -35,7 +35,7 @@ func NewAnteHandler(
 
 		// Executed after InjectedTxsDecorator to make sure that we are not applying unnecessary limits to injected txs.
 		// Note: Injected txs are not expected to reach this point.
-		NewSequencerNativeTxsDecorator(sequencingkeeper),
+		NewSequencerNativeTxsDecorator(sequencingKeeper),
 
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
