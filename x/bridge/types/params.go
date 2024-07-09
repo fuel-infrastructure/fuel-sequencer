@@ -45,6 +45,10 @@ var (
 	// DefaultVestingStartTime is the default vesting start time, intentionally invalid to enforce explicit setting of
 	// this value.
 	DefaultVestingStartTime = time.Time{}
+
+	// DefaultBridgeDenomTotalSupply is the default bridge denom total supply, intentionally invalid to enforce explicit
+	// setting of this value.
+	DefaultBridgeDenomTotalSupply = sdkmath.ZeroInt()
 )
 
 const (
@@ -90,6 +94,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance.
 func NewParams(
 	bridgeDenom string,
+	bridgeDenomTotalSupply sdkmath.Int,
 	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
@@ -102,6 +107,7 @@ func NewParams(
 ) Params {
 	return Params{
 		BridgeDenom:                  bridgeDenom,
+		BridgeDenomTotalSupply:       bridgeDenomTotalSupply,
 		EthereumProxyContractAddress: ethereumProxyContractAddress,
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
@@ -118,6 +124,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultBridgeDenom,
+		DefaultBridgeDenomTotalSupply,
 		DefaultEthereumProxyContractAddress,
 		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
@@ -138,52 +145,46 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // Validate validates the set of params.
 func (p Params) Validate() error {
 
-	// Validate bridge_denom.
 	if err := ValidateBridgeDenom(p.BridgeDenom); err != nil {
 		return err
 	}
 
-	// Validate the ethereum proxy contract address.
+	if err := ValidateBridgeDenomTotalSupply(p.BridgeDenomTotalSupply); err != nil {
+		return err
+	}
+
 	if err := ValidateEthereumProxyContractAddress(p.EthereumProxyContractAddress); err != nil {
 		return err
 	}
 
-	// Validate the authorize messages allowed.
 	if err := ValidateAuthorizeMessagesAllowed(p.AuthorizeMessagesAllowed); err != nil {
 		return err
 	}
 
-	// Validate supply delta period.
 	if err := ValidateSupplyDeltaPeriod(p.SupplyDeltaPeriod); err != nil {
 		return err
 	}
 
-	// Validate the vesting start time.
 	if err := ValidateVestingStartTime(p.VestingStartTime); err != nil {
 		return err
 	}
 
-	// Validate blocked addresses.
 	if err := ValidateBlockedAddresses(p.AdditionalBlockedAddresses); err != nil {
 		return err
 	}
 
-	// Validate tolerance for no Ethereum block syncing.
 	if err := ValidateMaxEthBlockUpdateDelay(p.MaxEthBlockUpdateDelay); err != nil {
 		return err
 	}
 
-	// Validate the maximum bytes for injected event txs.
 	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
 		return err
 	}
 
-	// Validate the maximum block space for sequencer txs.
 	if err := ValidateSequencerTxsAllocation(p.SequencerTxsAllocation); err != nil {
 		return err
 	}
 
-	// Validate the maximum amount of Cosmos SDK messages allowed in an Authorize Tx.
 	if err := ValidateMaxAuthorizeMessages(p.MaxAuthorizeMessages); err != nil {
 		return err
 	}
@@ -198,6 +199,17 @@ func ValidateBridgeDenom(i interface{}) error {
 	}
 	if v == "" {
 		return ErrParamsInvalid.Wrapf("bridge denom cannot be empty")
+	}
+	return nil
+}
+
+func ValidateBridgeDenomTotalSupply(i interface{}) error {
+	v, ok := i.(sdkmath.Int)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type: %T", i)
+	}
+	if !v.IsPositive() {
+		return ErrParamsInvalid.Wrapf("bridge denom total supply must be positive, got: %s", v.String())
 	}
 	return nil
 }

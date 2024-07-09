@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -9,7 +11,6 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"time"
 )
 
 var (
@@ -23,14 +24,15 @@ var (
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod            = uint64(100)
 	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
-	TestInjectedEventTxMaxBytes      = uint64(20000000)
+	TestInjectedEventTxMaxBytes      = uint64(20_000_000)
 	TestMaxAuthorizeMessages         = uint64(10)
 	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestVestingStartingTime          = time.Now()
-	TestLastSupply                   = sdkmath.NewInt(100000000)
-	TestToReport                     = sdkmath.NewInt(5000000)
-	TestOffset                       = sdkmath.NewInt(-2000000)
+	TestBridgeDenomTotalSupply       = sdkmath.NewInt(10_000_000_000)
+	TestLastSupply                   = sdkmath.NewInt(100_000_000)
+	TestToReport                     = sdkmath.NewInt(5_000_000)
+	TestOffset                       = sdkmath.NewInt(-2_000_000)
 	TestSupplyDeltaInfo              = bridgetypes.SupplyDeltaInfo{
 		LastSupply: TestLastSupply,
 		Offset:     TestOffset,

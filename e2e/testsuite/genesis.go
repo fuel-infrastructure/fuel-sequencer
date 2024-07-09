@@ -183,6 +183,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	vestingStartingTime, err := time.Parse(time.RFC3339, "2024-01-01T00:00:00.000000000Z")
 	s.Require().NoError(err)
 	bridgeGenState.Params.VestingStartTime = vestingStartingTime
+	bridgeGenState.Params.BridgeDenomTotalSupply = math.NewInt(BridgeDenomTotalSupply)
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz

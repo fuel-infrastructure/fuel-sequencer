@@ -83,6 +83,9 @@ genesis:
             denom: "utest"
     mint:
       params:
+        inflation_max: "0.06"
+        inflation_min: "0.06"
+        inflation_rate_change: "0.0"
         mint_denom: "utest"
     staking:
       params:
@@ -90,6 +93,7 @@ genesis:
     bridge:
       params:
         bridge_denom: "utest"
+        bridge_denom_total_supply: "10000000000"  # 10 bil
         ethereum_proxy_contract_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"  # just an example
         authorize_messages_allowed:
           - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"

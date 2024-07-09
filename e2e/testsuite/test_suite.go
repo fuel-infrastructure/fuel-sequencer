@@ -37,7 +37,9 @@ func init() {
 }
 
 const (
-	BridgeDenom       = "ufuel"
+	BridgeDenom            = "ufuel"
+	BridgeDenomTotalSupply = 10_000_000_000
+
 	minGasPrices      = "0.01"
 	defaultTxGas      = 1000000
 	supplyDeltaPeriod = uint64(10) // default - can be overridden
