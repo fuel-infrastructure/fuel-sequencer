@@ -41,5 +41,13 @@ Testing and docs:
    1. Ensure `.env` file is set up.
    2. Terminal 1: `make install run-eth-docker-container run-sequencer`
    3. Terminal 2: `make run-sidecar`
-   4. Terminal 3: `bash scripts/call_contract.sh`
+   4. Terminal 3:
+      - `bash scripts/call_contract.sh`
+      - Sanity checks:
+        ```
+        fuelsequencerd q bank balances 0x62d221db49aef5632f59b900b2ca90e52ecc0a80 # expect balance to increase
+        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect balance to increase
+        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # expect balance to decrease
+        fuelsequencerd q block-results 100 # expect supply delta event to be reported
+        ```
    5. `make clean` once you're done.

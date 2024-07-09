@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -39,12 +40,13 @@ func (k msgServer) supplyDelta(ctx sdk.Context) (*types.MsgSupplyDeltaResponse, 
 	// Increment LastEthereumNonce and get the result so that it is added to MsgSupplyDeltaResponse.
 	nonce := k.MustGetNextEthereumNonce(ctx)
 
-	// Calculate the supply delta to be reported.
+	// Get the supply delta to be reported from state
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
-	supplyDelta := supplyDeltaInfo.Delta.Add(supplyDeltaInfo.Offset)
+	supplyDelta := supplyDeltaInfo.ToReport
 
-	// Reset SupplyDeltaInfo
-	k.MustResetSupplyDeltaInfo(ctx)
+	// Reset the toReport value
+	supplyDeltaInfo.ToReport = sdkmath.ZeroInt()
+	k.SetSupplyDeltaInfo(ctx, supplyDeltaInfo)
 
 	// Emit event
 	err := ctx.EventManager().EmitTypedEvent(&types.EventSupplyDeltaReported{SupplyDelta: supplyDelta, Nonce: nonce})

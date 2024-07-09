@@ -57,5 +57,5 @@ func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
 
 	// Wait for proposal to pass.
 	pass := govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED
-	s.PollForProposalStatus(s.Ctx(), blocksToWaitForGovProposalToPass, 1, pass)
+	s.PollForProposalStatus(s.Ctx(), blocksToWaitForGovProposalToPass, proposalId, pass)
 }

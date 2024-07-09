@@ -69,8 +69,9 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 		allowedAddrsMap[addr] = true
 	}
 
-	/* Just to be safe, assert the invariants on current state. */
-	app.CrisisKeeper.AssertInvariants(ctx)
+	///* Just to be safe, assert the invariants on current state. */
+	// CrisisKeeper is not wired, therefore, no invariants need to be checked.
+	//app.CrisisKeeper.AssertInvariants(ctx)
 
 	/* Handle fee distribution state. */
 

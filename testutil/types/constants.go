@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -22,15 +24,19 @@ var (
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod            = uint64(100)
 	TestEthereumProxyContractAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
-	TestInjectedEventTxMaxBytes      = uint64(20000000)
+	TestInjectedEventTxMaxBytes      = uint64(20_000_000)
+	TestMaxAuthorizeMessages         = uint64(10)
+	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
-	TestLastSupply                   = sdkmath.NewInt(100000000)
-	TestDelta                        = sdkmath.NewInt(5000000)
-	TestOffset                       = sdkmath.NewInt(-2000000)
+	TestVestingStartingTime          = time.Now()
+	TestBridgeDenomTotalSupply       = sdkmath.NewInt(10_000_000_000)
+	TestLastSupply                   = sdkmath.NewInt(100_000_000)
+	TestToReport                     = sdkmath.NewInt(5_000_000)
+	TestOffset                       = sdkmath.NewInt(-2_000_000)
 	TestSupplyDeltaInfo              = bridgetypes.SupplyDeltaInfo{
 		LastSupply: TestLastSupply,
-		Delta:      TestDelta,
 		Offset:     TestOffset,
+		ToReport:   TestToReport,
 	}
 	TestFrom1    = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 	TestFrom2    = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
@@ -239,9 +245,12 @@ var (
 	TestEvent11Msg *bridgetypes.MsgDepositFromEthereum
 	TestEvent12Msg *bridgetypes.MsgDepositFromEthereum
 
-	TestEvents          = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
-	TestEventsDifferent = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
-	TestEventsReduced   = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEvents               = []*sidecartypes.Event{TestEvent1, TestEvent2, TestEvent3}
+	TestEventsDifferent      = []*sidecartypes.Event{TestEvent3, TestEvent1, TestEvent2} // jumbled up
+	TestEventsReduced        = []*sidecartypes.Event{TestEvent1, TestEvent2}
+	TestEventsWithFourEvents = []*sidecartypes.Event{
+		TestEvent1, TestEvent2, TestEvent3, TestEvent3,
+	}
 
 	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
 	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
@@ -281,6 +290,16 @@ var (
 		Events: TestEventsDifferent,
 	}
 
+	TestMsgIndexWithFourEvents = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEventsWithFourEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: TestEventsWithFourEvents,
+	}
+
 	TestMsgIndexReduced = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,
@@ -299,6 +318,15 @@ var (
 			BlockNumber:         1,
 		},
 		Events: TestEventsReduced,
+	}
+	TestMsgIndexPartial2 = &TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    false,
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
 	}
 
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
@@ -331,9 +359,12 @@ var (
 		Events: nil,
 	}
 
-	TestEmptySidecarResponse            = &sidecartypes.QueryBlockEventsResponse{Events: nil}
-	TestSidecarResponse                 = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
-	TestSidecarResponseReduced          = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestEmptySidecarResponse          = &sidecartypes.QueryBlockEventsResponse{Events: nil}
+	TestSidecarResponse               = &sidecartypes.QueryBlockEventsResponse{Events: TestEvents}
+	TestSidecarResponseReduced        = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsReduced}
+	TestSidecarResponseWithFourEvents = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsWithFourEvents,
+	}
 	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}

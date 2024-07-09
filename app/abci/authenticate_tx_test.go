@@ -40,7 +40,7 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 				},
 			},
 			blockedAddresses:   map[string]bool{},
-			authorizedMessages: []string{"*"},
+			authorizedMessages: types.DefaultAuthorizeMessagesAllowed,
 		},
 		{
 			name:   "errors if signer address is blocked",
@@ -58,7 +58,7 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 				},
 			},
 			blockedAddresses:   map[string]bool{testtypes.TestFrom1Seq: true},
-			authorizedMessages: []string{"*"},
+			authorizedMessages: types.DefaultAuthorizeMessagesAllowed,
 			expErrMsg:          fmt.Sprintf("signer %s is a blocked address", testtypes.TestFrom1Seq),
 		},
 		{
@@ -77,7 +77,7 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 				},
 			},
 			blockedAddresses:   map[string]bool{},
-			authorizedMessages: []string{"*"},
+			authorizedMessages: types.DefaultAuthorizeMessagesAllowed,
 			expErrMsg:          "could not generate Sequencer address from Ethereum address",
 		},
 		{

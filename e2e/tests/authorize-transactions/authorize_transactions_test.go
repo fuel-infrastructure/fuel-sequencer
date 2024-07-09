@@ -7,6 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -219,6 +220,38 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataD
 
 		// Check that the Sequencer skips the event
 		re := regexp.MustCompile("skipping event; failed to encode event as raw tx bytes with err")
+		s.Require().Eventually(func() bool {
+			return len(s.FindSequencerLogs(re)) > 0
+		}, time.Minute, time.Second)
+	})
+}
+
+func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_AuthorizeWithManyMessagesIsSkipped() {
+	s.Run("An AuthorizeEvent with more messages than MaxAuthorizeMessages is skipped", func() {
+		senderAddress := testsuite.ETH_ADDRESSES[0]
+		receiverAddress := testsuite.ETH_ADDRESSES[1]
+
+		// Generate Authorize tx with 100 MsgSends.
+		sendAmount, ok := sdkmath.NewIntFromString("10")
+		s.Require().True(ok)
+		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
+		sendCoins := sdk.NewCoins(sendCoin)
+		msgSend := banktypes.MsgSend{
+			FromAddress: senderAddress,
+			ToAddress:   receiverAddress,
+			Amount:      sendCoins,
+		}
+		msgSendBz := s.E2ETestSuite.GenerateNMsgsBz(&msgSend, 100)
+
+		// Send Authorize tx
+		authorizeData := testsuite.PackAuthorize(msgSendBz)
+		_, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Make sure that the Sequencer skips the event
+		re := regexp.MustCompile(
+			"skipping event; failed to encode event as raw tx bytes with err: authorize event has too many messages",
+		)
 		s.Require().Eventually(func() bool {
 			return len(s.FindSequencerLogs(re)) > 0
 		}, time.Minute, time.Second)

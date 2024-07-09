@@ -171,8 +171,11 @@ run-client-binary:
 run-sidecar-binary:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
 	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SIDECAR_PATH_TO_CERT_FILE ?= "")
+	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
@@ -184,8 +187,11 @@ run-sidecar-binary:
 	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) \
 		--host "$(SIDECAR_HOST)" \
 		--port "$(SIDECAR_PORT)" \
+		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
@@ -238,8 +244,11 @@ run-sequencer-no-sidecar: proto-go-gen serve-no-sidecar
 run-sidecar:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
 	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SIDECAR_PATH_TO_CERT_FILE ?= "")
+	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
@@ -259,11 +268,17 @@ run-sidecar:
 		--port "$(SIDECAR_PORT)" \
 		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
 		--development "$(DEVELOPMENT)"
+
+init:
+	ignite chain init --skip-proto --build.tags ledger
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
