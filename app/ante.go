@@ -29,7 +29,8 @@ func NewAnteHandler(
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
-		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		// Outermost AnteDecorator. SetUpContext must be called first.
+		ante.NewSetUpContextDecorator(), 
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		NewInjectedTxsDecorator(bridgeKeeper),
 
