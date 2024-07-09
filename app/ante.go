@@ -14,7 +14,7 @@ import (
 func NewAnteHandler(
 	options ante.HandlerOptions,
 	bridgeKeeper bridgekeeper.Keeper,
-	sequencingkeeper sequencingkeeper.Keeper,
+	sequencingKeeper sequencingkeeper.Keeper,
 ) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
 		return nil, sdkerrors.ErrLogic.Wrap("account keeper is required for ante builder")
