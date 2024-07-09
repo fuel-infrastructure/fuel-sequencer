@@ -31,14 +31,51 @@ func TestValidateMaxBlobSizeBytes(t *testing.T) {
 	}
 }
 
+func TestValidateSequencerTxMaxBytes(t *testing.T) {
+	cases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid input", uint64(1000), false},
+		{"Zero value", uint64(0), true},
+		{"Invalid type", "invalid-type", true},
+		{"Large input", uint64(104857601), true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateSequencerTxMaxBytes(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestParams_Validate(t *testing.T) {
 	cases := []struct {
 		name      string
 		param     types.Params
 		expectErr bool
 	}{
-		{"Valid Params", types.Params{MaxBlobSizeBytes: 1000}, false},
-		{"Invalid Params", types.Params{MaxBlobSizeBytes: 0}, true},
+		{
+			"Valid Params",
+			types.Params{MaxBlobSizeBytes: 1000, SequencerTxMaxBytes: 100},
+			false,
+		},
+		{
+			"Invalid Params - invalid MaxBlobSizeBytes",
+			types.Params{MaxBlobSizeBytes: 0, SequencerTxMaxBytes: 100},
+			true,
+		},
+		{
+			"Invalid Params - invalid SequencerTxMaxBytes",
+			types.Params{MaxBlobSizeBytes: 1000, SequencerTxMaxBytes: 0},
+			true,
+		},
 	}
 
 	for _, c := range cases {
