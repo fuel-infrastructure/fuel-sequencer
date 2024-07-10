@@ -55,7 +55,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
@@ -64,6 +63,8 @@ import (
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
+
+	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
 )
 
 const (
