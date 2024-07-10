@@ -16,11 +16,6 @@ const (
 	DefaultSequencerTxMaxBytes = 20971520 // 20 MB
 )
 
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
 // NewParams creates a new Params instance
 func NewParams(maxBlobSizeBytes, sequencerTxMaxBytes uint64) Params {
 	return Params{
@@ -34,7 +29,9 @@ func DefaultParams() Params {
 	return NewParams(DefaultMaxBlobSize, DefaultSequencerTxMaxBytes)
 }
 
-// ParamSetPairs get the params.ParamSet
+// ParamSetPairs implements params.ParamSet
+//
+// Deprecated.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{}
 }
