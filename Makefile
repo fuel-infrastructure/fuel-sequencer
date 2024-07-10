@@ -206,9 +206,6 @@ protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
-cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
-protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
-
 proto-go-gen:
     # This runs ./scripts/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
@@ -221,12 +218,17 @@ proto-format:
 		find ./proto -name "*.proto" -exec clang-format -i {} \; ; fi
 	@echo "✅ Finished formatting Protobuf files!"
 
-# This command makes use of Ignite's new way of specifying docs.
-# This can be improved later on with a non-Ignite approach.
 proto-swagger-gen:
-	@echo "🤖 Generating Swagger files..."
-	@ignite generate openapi
-	@echo "✅ Finished generating Swagger files!"
+	@echo "🤖 Generating API docs..."
+	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
+
+	@go run github.com/rakyll/statik -src=client/docs/swagger-ui -dest=client/docs -f -m
+	@if [ -n "$(git status --porcelain)" ]; then \
+        echo "❌ API docs are out of sync!";\
+        exit 1;\
+    else \
+        echo "✅ Finished API docs generation!";\
+    fi
 
 proto-routine: proto-format proto-go-gen proto-swagger-gen
 
