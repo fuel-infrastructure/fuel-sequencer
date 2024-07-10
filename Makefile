@@ -206,6 +206,9 @@ protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
+cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
+protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
+
 proto-go-gen:
     # This runs ./scripts/protocgen-pulsar.sh as well, under the hood.
 	@echo "🤖 Generating Go code from protobuf..."
@@ -220,15 +223,7 @@ proto-format:
 
 proto-swagger-gen:
 	@echo "🤖 Generating API docs..."
-	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
-
-	@go run github.com/rakyll/statik -src=client/docs/swagger-ui -dest=client/docs -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "❌ API docs are out of sync!";\
-        exit 1;\
-    else \
-        echo "✅ Finished API docs generation!";\
-    fi
+	@$(protoSwaggerImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-routine: proto-format proto-go-gen proto-swagger-gen
 
