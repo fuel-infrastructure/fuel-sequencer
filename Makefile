@@ -225,7 +225,7 @@ proto-format:
 # This can be improved later on with a non-Ignite approach.
 proto-swagger-gen:
 	@echo "🤖 Generating Swagger files..."
-	@ignite generate openapi
+	@ignite generate openapi --clear-cache
 	@echo "✅ Finished generating Swagger files!"
 
 proto-routine: proto-format proto-go-gen proto-swagger-gen
