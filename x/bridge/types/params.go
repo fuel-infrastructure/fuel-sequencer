@@ -86,11 +86,6 @@ const (
 	MinimumMaxAuthorizeMessages = 1
 )
 
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
 // NewParams creates a new Params instance.
 func NewParams(
 	bridgeDenom string,
@@ -137,7 +132,9 @@ func DefaultParams() Params {
 	)
 }
 
-// ParamSetPairs get the params.ParamSet
+// ParamSetPairs implements params.ParamSet
+//
+// Deprecated.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{}
 }

@@ -221,12 +221,9 @@ proto-format:
 		find ./proto -name "*.proto" -exec clang-format -i {} \; ; fi
 	@echo "✅ Finished formatting Protobuf files!"
 
-# This command makes use of Ignite's new way of specifying docs.
-# This can be improved later on with a non-Ignite approach.
 proto-swagger-gen:
-	@echo "🤖 Generating Swagger files..."
-	@ignite generate openapi
-	@echo "✅ Finished generating Swagger files!"
+	@echo "🤖 Generating API docs..."
+	@$(protoSwaggerImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-routine: proto-format proto-go-gen proto-swagger-gen
 
