@@ -13,9 +13,7 @@ import (
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -33,8 +31,6 @@ type GRPCClients struct {
 
 	// Cosmos SDK query clients
 	GovQueryClient          govtypesv1.QueryClient
-	GroupsQueryClient       grouptypes.QueryClient
-	ParamsQueryClient       paramsproposaltypes.QueryClient
 	AuthQueryClient         authtypes.QueryClient
 	AuthZQueryClient        authz.QueryClient
 	BankQueryClient         banktypes.QueryClient
@@ -69,8 +65,6 @@ func (s *E2ETestSuite) initGRPCClients() {
 
 	s.Chain.grpcClients = &GRPCClients{
 		GovQueryClient:          govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:       grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:       paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:         authtypes.NewQueryClient(grpcConn),
 		AuthZQueryClient:        authz.NewQueryClient(grpcConn),
 		BankQueryClient:         banktypes.NewQueryClient(grpcConn),
