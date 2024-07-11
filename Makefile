@@ -428,19 +428,16 @@ else
 endif
 
 # Builds contract deployment container for automated E2E tests
+# Note: this assumes evm_setIntervalMining is set to 3.
 build-eth-deployment-docker-image: .env
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
-	@echo "⚠️ Setting interval mining to higher value [3] (fuel-rollup)..."
-	@perl -pi -e 's/"evm_setIntervalMining", \[1\]/"evm_setIntervalMining", \[3\]/g' ./e2e/fuel-rollup/deploy/hardhat/999.setIntervalMining.ts
 	@echo "🤖 Building Docker image..."
 	@export $$(cat .env | xargs) && docker build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
 		./e2e/fuel-rollup/
-	@echo "⚠️ Reverting interval mining to original value [1] (fuel-rollup)..."
-	@perl -pi -e 's/"evm_setIntervalMining", \[3\]/"evm_setIntervalMining", \[1\]/g' ./e2e/fuel-rollup/deploy/hardhat/999.setIntervalMining.ts
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
 	@git submodule update --remote e2e/fuel-rollup
 	@echo "✅ Finished!"
