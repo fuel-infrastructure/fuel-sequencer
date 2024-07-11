@@ -8,8 +8,7 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-#ETH_NODE_DOCKER_IMAGE_NAME := "ghcr.io/foundry-rs/foundry:nightly"
-#ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
+ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
 
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME := "ethereum-deployment"
@@ -456,32 +455,6 @@ remove-eth-e2e-containers:
 	@echo "🤖 Removing Docker containers..."
 	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
 	@echo "✅ Removed Docker containers!"
-
-#run-eth-docker-container:
-#	@echo "🤖 Running Docker container..."
-#	@docker run -d \
-#		--name $(ETH_NODE_DOCKER_CONTAINER_NAME) \
-#		-p 8545:8545 \
-#		$(ETH_NODE_DOCKER_IMAGE_NAME) \
-#		"anvil --host 0.0.0.0 --slots-in-an-epoch 1"
-#
-#start-eth-docker-container:
-#	@echo "🤖 Starting Docker container..."
-#	@docker start $(ETH_NODE_DOCKER_CONTAINER_NAME)
-#	@echo "✅ Started Docker container!"
-#
-#stop-eth-docker-container:
-#	@echo "🤖 Stopping Docker container..."
-#	@docker stop $(ETH_NODE_DOCKER_CONTAINER_NAME)
-#	@echo "✅ Stopped Docker container!"
-#
-#remove-eth-docker-container:
-#	@echo "🤖 Removing Docker container..."
-#	@docker rm -v $(ETH_NODE_DOCKER_CONTAINER_NAME)
-#	@echo "✅ Removed Docker container!"
-#
-#follow-eth-docker-logs:
-#	@docker logs -f $(ETH_NODE_DOCKER_CONTAINER_NAME)
 
 test-e2e-basic:
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
