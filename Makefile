@@ -448,10 +448,10 @@ build-eth-deployment-docker-image: .env
 run-eth-docker-container:
 	@echo "🤖 Running Docker image..."
 	@docker run -d \
-    		--name $(ETH_NODE_DOCKER_CONTAINER_NAME) \
-			-p 8545:8545 \
-    		$(ETH_NODE_DOCKER_IMAGE_NAME) \
-    		"anvil --host 0.0.0.0 --slots-in-an-epoch 1"
+		--name $(ETH_NODE_DOCKER_CONTAINER_NAME) \
+		-p 8545:8545 \
+		$(ETH_NODE_DOCKER_IMAGE_NAME) \
+		"anvil --host 0.0.0.0 --slots-in-an-epoch 1"
 
 start-eth-docker-container:
 	@echo "🤖 Starting Docker container..."
