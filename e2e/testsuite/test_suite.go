@@ -302,7 +302,7 @@ func (s *E2ETestSuite) runEthereumNodeContainer() {
 			"--mnemonic", MNEMONICS[0],
 			"--accounts", "20",
 			"--slots-in-an-epoch", "1",
-			// Note: do not set --block-time since this is overridden by the deployment scripts.
+			// Note: do not set --block-time since this is overridden by the deployment container's hardhat scripts.
 		},
 	}
 
