@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+# Include the .env file if it exists
+-include .env
+
 DOCKER := $(shell which docker)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
