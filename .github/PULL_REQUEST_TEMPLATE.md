@@ -37,7 +37,7 @@ Testing and docs:
    1. Ensure `.env` file is set up.
    2. `make build-all-docker-images test-e2e`
    3. `make clean` once you're done.
-- [ ] Run a local E2E setup to ensure the chain runs: (TODO: PROBABLY NEED TO UPDATE)
+- [ ] Run a local E2E setup to ensure the chain runs:
    1. Ensure `.env` file is set up.
    2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
    3. Terminal 2: `make run-sidecar`
