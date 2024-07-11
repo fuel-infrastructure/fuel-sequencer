@@ -8,8 +8,8 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-ETH_NODE_DOCKER_IMAGE_NAME := "ghcr.io/foundry-rs/foundry:nightly"
-ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
+#ETH_NODE_DOCKER_IMAGE_NAME := "ghcr.io/foundry-rs/foundry:nightly"
+#ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
 
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME := "ethereum-deployment"
@@ -386,7 +386,7 @@ build-docker-image:
 DATA_FOLDER="/data/fuelsequencer"
 COMMAND?=""
 run-docker-container: check-docker-image-exists
-	@echo "🤖 Running Docker image..."
+	@echo "🤖 Running Docker container..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
@@ -428,6 +428,7 @@ else
 	@echo "✅ Found docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME}"
 endif
 
+# Builds contract deployment container for automated E2E tests
 build-eth-deployment-docker-image: .env
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
@@ -445,31 +446,42 @@ build-eth-deployment-docker-image: .env
 	@git submodule update --remote e2e/fuel-rollup
 	@echo "✅ Finished!"
 
-run-eth-docker-container:
-	@echo "🤖 Running Docker image..."
-	@docker run -d \
-		--name $(ETH_NODE_DOCKER_CONTAINER_NAME) \
-		-p 8545:8545 \
-		$(ETH_NODE_DOCKER_IMAGE_NAME) \
-		"anvil --host 0.0.0.0 --slots-in-an-epoch 1"
+# Runs node and contract deployment containers
+run-eth-e2e-containers: .env
+	@echo "🤖 Running Docker containers..."
+	@export $$(cat .env | xargs) && docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build eth_node deploy
 
-start-eth-docker-container:
-	@echo "🤖 Starting Docker container..."
-	@docker start $(ETH_NODE_DOCKER_CONTAINER_NAME)
-	@echo "✅ Started Docker container!"
+# Removes node and contract deployment containers
+remove-eth-e2e-containers:
+	@echo "🤖 Removing Docker containers..."
+	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
+	@echo "✅ Removed Docker containers!"
 
-stop-eth-docker-container:
-	@echo "🤖 Stopping Docker container..."
-	@docker stop $(ETH_NODE_DOCKER_CONTAINER_NAME)
-	@echo "✅ Stopped Docker container!"
-
-remove-eth-docker-container:
-	@echo "🤖 Removing Docker container..."
-	@docker rm -v $(ETH_NODE_DOCKER_CONTAINER_NAME)
-	@echo "✅ Removed Docker container!"
-
-follow-eth-docker-logs:
-	@docker logs -f $(ETH_NODE_DOCKER_CONTAINER_NAME)
+#run-eth-docker-container:
+#	@echo "🤖 Running Docker container..."
+#	@docker run -d \
+#		--name $(ETH_NODE_DOCKER_CONTAINER_NAME) \
+#		-p 8545:8545 \
+#		$(ETH_NODE_DOCKER_IMAGE_NAME) \
+#		"anvil --host 0.0.0.0 --slots-in-an-epoch 1"
+#
+#start-eth-docker-container:
+#	@echo "🤖 Starting Docker container..."
+#	@docker start $(ETH_NODE_DOCKER_CONTAINER_NAME)
+#	@echo "✅ Started Docker container!"
+#
+#stop-eth-docker-container:
+#	@echo "🤖 Stopping Docker container..."
+#	@docker stop $(ETH_NODE_DOCKER_CONTAINER_NAME)
+#	@echo "✅ Stopped Docker container!"
+#
+#remove-eth-docker-container:
+#	@echo "🤖 Removing Docker container..."
+#	@docker rm -v $(ETH_NODE_DOCKER_CONTAINER_NAME)
+#	@echo "✅ Removed Docker container!"
+#
+#follow-eth-docker-logs:
+#	@docker logs -f $(ETH_NODE_DOCKER_CONTAINER_NAME)
 
 test-e2e-basic:
 	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
@@ -496,6 +508,7 @@ clean-e2e:
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
 	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
 	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
+	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
 
 	@echo "🧹 Removing Docker containers..."
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm

@@ -20,12 +20,9 @@ Dependencies:
 To run the FuelSequencer with enabled Sidecar and an Ethereum node:
 
 ```bash
-TODO: PROBABLY NEED TO UPDATE
-
-make build-eth-docker-image                          # terminal 1
-make install run-eth-docker-container run-sequencer  # terminal 1
-make run-sidecar                                     # terminal 2
-make clean                                           # once you're done
+make install run-eth-e2e-containers run-sequencer  # terminal 1
+make run-sidecar                                   # terminal 2
+make clean                                         # once you're done
 ```
 
 To run the FuelSequencer on its own, you can run a version with disabled Sidecar:
@@ -38,7 +35,7 @@ make clean # once you're done
 To run just the Sidecar and an Ethereum node:
 
 ```bash
-make install run-eth-docker-container run-sidecar
+make install run-eth-e2e-containers run-sidecar
 make clean # once you're done
 ```
 

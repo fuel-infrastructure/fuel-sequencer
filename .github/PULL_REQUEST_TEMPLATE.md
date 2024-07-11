@@ -39,7 +39,7 @@ Testing and docs:
    3. `make clean` once you're done.
 - [ ] Run a local E2E setup to ensure the chain runs: (TODO: PROBABLY NEED TO UPDATE)
    1. Ensure `.env` file is set up.
-   2. Terminal 1: `make install run-eth-docker-container run-sequencer`
+   2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
    3. Terminal 2: `make run-sidecar`
    4. Terminal 3:
       - `bash scripts/call_contract.sh`
