@@ -26,27 +26,27 @@ accounts:
   - name: validator5
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer1m49gpe7zssmp7tdx4y492dhy6v0v3zylnqnlwr  # TODO: update
+    address: fuelsequencer17vq6n8525h75spt02mpagwwedcn5t6y0jt4d4p
   - name: validator6
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer18cydqds6gmmtgajummqy69trleccmqumqzck7d  # TODO: update
+    address: fuelsequencer1u8tcvmeeetvqd0lhvh0p96zhm2uhj06ju3c7f5
   - name: validator7
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer1u0desns4gp9nwcpezuvh4pc4ghmsa7plxetfvw  # TODO: update
+    address: fuelsequencer1ggz0ycdq8gh39wsdar43cxd8ktlmtzmqdp300w
   - name: validator8
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer1tzkes5r3c32tchs8483qscnlfn0rsmz8cjawll  # TODO: update
+    address: fuelsequencer19rr9phy8gtdwm7ymfuunf7nd3tl8us73emjv7a
   - name: validator9
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer1mdrg4sh0ayp0ldzevyaypyfjdc3zfehzppf5d8  # TODO: update
+    address: fuelsequencer1p0zl92vr236qt65gmr53y3dtuy4t2mlz90w3c9
   - name: validator10
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer1634yjndt9479pm3drwveg4rm5wlalfgyzxmf36  # TODO: update
+    address: fuelsequencer1dzzzz0hnmferfffkt8a4p0590rqcxy9evllc6u
   - name: validator11
     coins:
       - 20000000000000000000000utest
