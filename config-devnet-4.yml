@@ -59,7 +59,11 @@ validators:
   - name: alice
     bonded: 1000000utest
     home: ./data/fuelsequencer
+    app:
+      sidecar:
+        enabled: false  # to be able to run this config file more easily
 genesis:
+  app_version: "seq-devnet-4"  # manually overridden since we have two tags at the same commit
   genesis_time: "2024-07-15T14:00:00Z"
   chain_id: "seq-devnet-4"
   app_state:
