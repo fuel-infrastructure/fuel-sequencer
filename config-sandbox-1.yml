@@ -41,9 +41,9 @@ validators:
       grpc:
         address: 0.0.0.0:9090
 genesis:
-  app_version: "fuelsequencer-test-3"  # manually overridden for a more meaningful app version
+  app_version: "seq-sandbox-1"  # manually overridden for a more meaningful app version
   genesis_time: "2024-07-15T00:00:00Z"
-  chain_id: "fuelsequencer-test-3"
+  chain_id: "seq-sandbox-1"
   app_state:
     bridge:
       params:
