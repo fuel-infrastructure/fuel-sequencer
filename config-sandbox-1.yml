@@ -55,7 +55,7 @@ genesis:
         max_eth_block_update_delay: "14400s"
         injected_event_tx_max_bytes: "1900000"
         max_authorize_messages: "5"
-      last_ethereum_block_synced: "6321400"
+      last_ethereum_block_synced: "6316000"
     distribution:
       params:
         community_tax: "0.000000000000000000"
