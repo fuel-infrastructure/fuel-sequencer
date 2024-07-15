@@ -4,57 +4,57 @@ build:
   main: ./cmd/fuelsequencerd
 accounts:
   - name: alice
+    mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
     coins:
       - 9999760000000000000000000000utest
-    mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
-  - name: validator1
-    coins:
-      - 20000000000000000000000utest
+  - name: simply-validator-1
     address: fuelsequencer1cv0rl38sckgwyrkdd5vanyzf6v8clf808ttyf4
-  - name: validator2
     coins:
       - 20000000000000000000000utest
+  - name: simply-validator-2
     address: fuelsequencer1ddjv8z30raavjc8ku6n6mqlm9rjhezs2u4jetp
-  - name: validator3
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer14x7vdjp8nm86d2s03rg9z2z8jdu20x280mxgm0
-  - name: validator4
+  - name: simply-validator-3
+    address: fuelsequencer1quxarnmuxwemqfhv2zx5h7lnawext599ewuuxr
     coins:
       - 20000000000000000000000utest
+  - name: simply-validator-4
+    address: fuelsequencer1r83j4xwydjrv0lyqdz2fvf2fls4gefdntt087d
+    coins:
+      - 20000000000000000000000utest
+  - name: chorus-validator-1
     address: fuelsequencer1262eh7nej33nq82f5jts6xjhy446m37qqrugzu
-  - name: validator5
     coins:
       - 20000000000000000000000utest
+  - name: chorus-validator-2
     address: fuelsequencer17vq6n8525h75spt02mpagwwedcn5t6y0jt4d4p
-  - name: validator6
     coins:
       - 20000000000000000000000utest
+  - name: chorus-validator-3
     address: fuelsequencer1u8tcvmeeetvqd0lhvh0p96zhm2uhj06ju3c7f5
-  - name: validator7
     coins:
       - 20000000000000000000000utest
+  - name: chorus-validator-4
     address: fuelsequencer1ggz0ycdq8gh39wsdar43cxd8ktlmtzmqdp300w
-  - name: validator8
     coins:
       - 20000000000000000000000utest
+  - name: informal-validator-1
+    address: fuelsequencer14x7vdjp8nm86d2s03rg9z2z8jdu20x280mxgm0
+    coins:
+      - 20000000000000000000000utest
+  - name: informal-validator-2
     address: fuelsequencer19rr9phy8gtdwm7ymfuunf7nd3tl8us73emjv7a
-  - name: validator9
     coins:
       - 20000000000000000000000utest
+  - name: informal-validator-3
     address: fuelsequencer1p0zl92vr236qt65gmr53y3dtuy4t2mlz90w3c9
-  - name: validator10
     coins:
       - 20000000000000000000000utest
+  - name: informal-validator-4
     address: fuelsequencer1dzzzz0hnmferfffkt8a4p0590rqcxy9evllc6u
-  - name: validator11
     coins:
       - 20000000000000000000000utest
-    address: fuelsequencer1rlz437aqxq92cchj4rt0r2w83zj6l3puq0f75y  # TODO: update
-  - name: validator12
-    coins:
-      - 20000000000000000000000utest
-    address: fuelsequencer10zxzgecrwytjrwvmgxd3j50plv9ky53kgfwhj3  # TODO: update
 validators:
   - name: alice
     bonded: 1000000utest
@@ -77,7 +77,7 @@ genesis:
         max_eth_block_update_delay: "14400s"
         injected_event_tx_max_bytes: "1900000"
         max_authorize_messages: "5"
-      # TODO: last_ethereum_block_synced: ""
+      last_ethereum_block_synced: "6315300"
     distribution:
       params:
         community_tax: "0.000000000000000000"
