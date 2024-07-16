@@ -3,6 +3,7 @@ build:
   binary: fuelsequencerd
   main: ./cmd/fuelsequencerd
 accounts:
+  # TODO: Increase balances or lower gov min_deposit param if you're going to use this config file. Otherwise, you will not be easily able to afford submitting a proposal.
   - name: alice
     coins:
       - 200000000utest
