@@ -94,6 +94,7 @@ SEQ.submit_param_change_proposal_legacy(get_set_voting_period_low_proposal())
 SEQ.voting_period = 10
 
 # Set parameters on Sequencer
+deposit = "2500000000000000000000utest"
 bridge_denom = "utest"
 bridge_denom_total_supply = "10000000000000000000000000000"
 ethereum_proxy_contract_address = ETH_sequencer_proxy_contract_address
@@ -111,9 +112,10 @@ vesting_start_time = "2024-01-01T00:00:00Z"
 additional_blocked_addresses = []
 max_eth_block_update_delay = "4h"
 injected_event_tx_max_bytes = "1900000"
-sequencer_txs_allocation = "300000000000000000"
+sequencer_txs_allocation = "0.300000000000000000"
 max_authorize_messages = "5"
 SEQ.submit_gov_proposal(get_update_bridge_module_params_proposal(
+    deposit=deposit,
     bridge_denom=bridge_denom,
     bridge_denom_total_supply=bridge_denom_total_supply,
     ethereum_proxy_contract_address=ethereum_proxy_contract_address,

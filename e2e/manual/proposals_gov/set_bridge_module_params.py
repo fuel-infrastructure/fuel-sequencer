@@ -2,6 +2,7 @@ from typing import Dict, List
 
 
 def get_update_bridge_module_params_proposal(
+    deposit: str,
     bridge_denom: str,
     bridge_denom_total_supply: str,
     ethereum_proxy_contract_address: str,
@@ -17,7 +18,7 @@ def get_update_bridge_module_params_proposal(
     return {
         "title": "Proposal title",
         "summary": "Proposal summary",
-        "deposit": "10000000utest",
+        "deposit": deposit,
         "messages": [
             {
                 "@type": "/fuelsequencer.bridge.v1.MsgUpdateParams",
