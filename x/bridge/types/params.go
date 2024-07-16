@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -11,12 +12,43 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// DefaultAuthorizeMessagesAllowed is the default messages we allow.
-	DefaultAuthorizeMessagesAllowed = []string{AllowAllAuthorizeMessages}
+
+	// DefaultAuthorizeMessagesAllowed is the Sequencer whitelisted messages we support for AuthorizeTx execution. By
+	// default, we will support staking operations, bank transfers, voting on proposals and Ethereum withdrawals.
+	DefaultAuthorizeMessagesAllowed = []string{
+		"/fuelsequencer.bridge.v1.MsgWithdrawToEthereum",
+		"/cosmos.bank.v1beta1.MsgSend",
+		"/cosmos.staking.v1beta1.MsgDelegate",
+		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
+		"/cosmos.staking.v1beta1.MsgUndelegate",
+		"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+		"/cosmos.gov.v1.MsgVote",
+	}
 
 	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
 	// up with Ethereum. This is set to 1 hour by default.
 	DefaultMaxEthBlockUpdateDelay = time.Hour
+
+	// DefaultSequencerTxsAllocation is the default value for the percentage that controls the maximum amount of block
+	// space allocated to Sequencer-native transactions during heavy bridge usage.
+	DefaultSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.3")
+
+	// MinimumSequencerTxsAllocation is the minimum value that SequencerTxsAllocation can be set to. This minimum is set
+	// as a measure against mempool saturation and transaction censorship when the bridge is under heavy usage.
+	MinimumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.1")
+
+	// MaximumSequencerTxsAllocation is the maximum value that SequencerTxsAllocation can be set to. This maximum is set
+	// as a measure against mistakes. This is important because if set to a very high value, the block production
+	// algorithm may not be able to allocate block space to critical transactions.
+	MaximumSequencerTxsAllocation = sdkmath.LegacyMustNewDecFromStr("0.5")
+
+	// DefaultVestingStartTime is the default vesting start time, intentionally invalid to enforce explicit setting of
+	// this value.
+	DefaultVestingStartTime = time.Time{}
+
+	// DefaultBridgeDenomTotalSupply is the default bridge denom total supply, intentionally invalid to enforce explicit
+	// setting of this value.
+	DefaultBridgeDenomTotalSupply = sdkmath.ZeroInt()
 )
 
 const (
@@ -26,10 +58,6 @@ const (
 	// DefaultEthereumProxyContractAddress is the default contract address we expect to
 	// receive deposit and authorize messages from.
 	DefaultEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
-
-	// AllowAllAuthorizeMessages can be used if we want to allow
-	// all messages instead of specifying all of them one-by-one.
-	AllowAllAuthorizeMessages = "*"
 
 	// DefaultSupplyDeltaPeriod is the default frequency in block at which we report supply
 	// delta info to Ethereum.
@@ -47,40 +75,43 @@ const (
 	// prevent setting InjectedEventTxMaxBytes to a very small value, and thus avoiding situations where event txs are
 	// never injected due to a strict InjectedEventTxMaxBytes.
 	MinimumInjectedEventTxMaxBytes = 1024
-)
 
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
+	// DefaultMaxAuthorizeMessages is the maximum amount of Cosmos SDK messages that an Authorize transaction can have
+	// by default
+	DefaultMaxAuthorizeMessages = 10
+
+	// MinimumMaxAuthorizeMessages is the minimum value that MaxAuthorizeMessages can be set to. This is set to one to
+	// prevent mistakes that could cause all Authorize transactions to get skipped. Governance should set
+	// AuthorizeMessagesAllowed to [] if the execution of Authorize txs is to be disabled.
+	MinimumMaxAuthorizeMessages = 1
+)
 
 // NewParams creates a new Params instance.
 func NewParams(
 	bridgeDenom string,
+	bridgeDenomTotalSupply sdkmath.Int,
 	ethereumProxyContractAddress string,
 	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
+	vestingStartTime time.Time,
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
 	injectedEventTxMaxBytes uint64,
+	sequencerTxsAllocation sdkmath.LegacyDec,
+	maxAuthorizeMessages uint64,
 ) Params {
-	// Setting a default start time.
-	t0, err := time.Parse(time.DateOnly, "2024-01-01")
-	if err != nil {
-
-		// Panic if we error here, because shouldn't.
-		panic(err)
-	}
-
 	return Params{
 		BridgeDenom:                  bridgeDenom,
+		BridgeDenomTotalSupply:       bridgeDenomTotalSupply,
 		EthereumProxyContractAddress: ethereumProxyContractAddress,
 		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
-		VestingStartTime:             t0,
+		VestingStartTime:             vestingStartTime,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
 		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
+		SequencerTxsAllocation:       sequencerTxsAllocation,
+		MaxAuthorizeMessages:         maxAuthorizeMessages,
 	}
 }
 
@@ -88,16 +119,22 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultBridgeDenom,
+		DefaultBridgeDenomTotalSupply,
 		DefaultEthereumProxyContractAddress,
 		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
+		DefaultVestingStartTime,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
 		DefaultInjectedEventTxMaxBytes,
+		DefaultSequencerTxsAllocation,
+		DefaultMaxAuthorizeMessages,
 	)
 }
 
-// ParamSetPairs get the params.ParamSet
+// ParamSetPairs implements params.ParamSet
+//
+// Deprecated.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{}
 }
@@ -105,43 +142,47 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // Validate validates the set of params.
 func (p Params) Validate() error {
 
-	// Validate bridge_denom.
 	if err := ValidateBridgeDenom(p.BridgeDenom); err != nil {
 		return err
 	}
 
-	// Validate the ethereum proxy contract address.
+	if err := ValidateBridgeDenomTotalSupply(p.BridgeDenomTotalSupply); err != nil {
+		return err
+	}
+
 	if err := ValidateEthereumProxyContractAddress(p.EthereumProxyContractAddress); err != nil {
 		return err
 	}
 
-	// Validate the authorize messages allowed.
 	if err := ValidateAuthorizeMessagesAllowed(p.AuthorizeMessagesAllowed); err != nil {
 		return err
 	}
 
-	// Validate supply delta period.
 	if err := ValidateSupplyDeltaPeriod(p.SupplyDeltaPeriod); err != nil {
 		return err
 	}
 
-	// Validate the vesting start time.
 	if err := ValidateVestingStartTime(p.VestingStartTime); err != nil {
 		return err
 	}
 
-	// Validate blocked addresses.
 	if err := ValidateBlockedAddresses(p.AdditionalBlockedAddresses); err != nil {
 		return err
 	}
 
-	// Validate tolerance for no Ethereum block syncing.
 	if err := ValidateMaxEthBlockUpdateDelay(p.MaxEthBlockUpdateDelay); err != nil {
 		return err
 	}
 
-	// Validate the maximum bytes for injected event txs.
 	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
+		return err
+	}
+
+	if err := ValidateSequencerTxsAllocation(p.SequencerTxsAllocation); err != nil {
+		return err
+	}
+
+	if err := ValidateMaxAuthorizeMessages(p.MaxAuthorizeMessages); err != nil {
 		return err
 	}
 
@@ -155,6 +196,17 @@ func ValidateBridgeDenom(i interface{}) error {
 	}
 	if v == "" {
 		return ErrParamsInvalid.Wrapf("bridge denom cannot be empty")
+	}
+	return nil
+}
+
+func ValidateBridgeDenomTotalSupply(i interface{}) error {
+	v, ok := i.(sdkmath.Int)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type: %T", i)
+	}
+	if !v.IsPositive() {
+		return ErrParamsInvalid.Wrapf("bridge denom total supply must be positive, got: %s", v.String())
 	}
 	return nil
 }
@@ -175,12 +227,9 @@ func ValidateAuthorizeMessagesAllowed(i interface{}) error {
 	if !ok {
 		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
 	}
-	if len(messages) == 0 {
-		return ErrParamsInvalid.Wrapf("authorize messages cannot be empty")
-	}
 	for _, msg := range messages {
 		if msg == "" {
-			return ErrParamsInvalid.Wrapf("authorize message cannot be empty")
+			return ErrParamsInvalid.Wrapf("authorizeMessagesAllowed cannot contain empty string literals")
 		}
 	}
 	return nil
@@ -262,6 +311,41 @@ func ValidateInjectedEventTxMaxBytes(i interface{}) error {
 	return nil
 }
 
+func ValidateMaxAuthorizeMessages(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for maxAuthorizeMessages: %T", i)
+	}
+
+	// value cannot be less than MinimumMaxAuthorizeMessages, otherwise, we risk skipping all Authorize txs.
+	if v < MinimumMaxAuthorizeMessages {
+		return ErrParamsInvalid.Wrapf(
+			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
+		)
+	}
+
+	return nil
+}
+
+func ValidateSequencerTxsAllocation(i interface{}) error {
+	v, ok := i.(sdkmath.LegacyDec)
+	if !ok {
+		return ErrParamsInvalid.Wrapf("invalid parameter type for sequencerTxsAllocation: %T", i)
+	}
+
+	// value must be within allowed range
+	if v.LT(MinimumSequencerTxsAllocation) || v.GT(MaximumSequencerTxsAllocation) {
+		return ErrParamsInvalid.Wrapf(
+			"expected: %s <= value <= %s; actual %s",
+			MinimumSequencerTxsAllocation.String(),
+			MaximumSequencerTxsAllocation.String(),
+			v.String(),
+		)
+	}
+
+	return nil
+}
+
 // VestingTimesFromVestingDuration returns the vesting start and end time based on the VestingStartTime parameter, the
 // vestingStartTimeDelay, and a specified vesting duration, which must be greater than vestingStartTimeDelay since the
 // vesting duration is included in the vestingStartTimeDelay.
@@ -286,11 +370,6 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 // IsAuthorizedMessage returns true if the sdk.Msg TypeURL is present in Params.AuthorizeMessagesAllowed, otherwise,
 // returns false
 func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
-	// Check that wildcard * option for allowing all message types is the only string in the array, if so, return true
-	if len(p.AuthorizeMessagesAllowed) == 1 && p.AuthorizeMessagesAllowed[0] == AllowAllAuthorizeMessages {
-		return true
-	}
-
 	for _, messageAllowed := range p.AuthorizeMessagesAllowed {
 		if messageAllowed == sdk.MsgTypeURL(msg) {
 			return true

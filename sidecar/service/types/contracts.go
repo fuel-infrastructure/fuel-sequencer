@@ -14,4 +14,5 @@ const (
 	MockAuthorizeFunctionName                         = "authorize"
 	MockDepositFunctionName                           = "deposit"
 	MockProcessSequencerWithdrawalMessageFunctionName = "processSequencerWithdrawalMessage"
+	MockUpdateCommitHeaderRangeFunctionName           = "updateCommitHeaderRange"
 )

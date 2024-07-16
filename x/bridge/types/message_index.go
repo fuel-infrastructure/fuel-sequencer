@@ -245,3 +245,19 @@ func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) error {
 
 	return m.FromSdkTx(tx)
 }
+
+// IsFullEthereumSyncing returns true if an Ethereum block was fully consumed by the Sequencer.
+func (m *MsgIndex) IsFullEthereumSyncing() bool {
+	return m.NewEthereumBlock
+}
+
+// IsPartialEthereumSyncing returns true if an Ethereum block was not fully consumed by the Sequencer
+// and that the events in the Ethereum block will be split into multiple Sequencer blocks.
+func (m *MsgIndex) IsPartialEthereumSyncing() bool {
+	return !m.NewEthereumBlock && m.NumInjectedEventTxs > 0
+}
+
+// NoEthereumSyncing returns true if there are no new Ethereum blocks to consume.
+func (m *MsgIndex) NoEthereumSyncing() bool {
+	return !m.IsFullEthereumSyncing() && !m.IsPartialEthereumSyncing()
+}

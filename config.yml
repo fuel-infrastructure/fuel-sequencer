@@ -62,6 +62,7 @@ validators:
       enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
       address: localhost:8080
       timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
+      path_to_cert_file: ""
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:
@@ -70,10 +71,6 @@ genesis:
         max_bytes: "22020096"
         max_gas: "300000000"
   app_state:
-    crisis:
-      constant_fee:
-        amount: "1000"
-        denom: "utest"
     gov:
       params:
         voting_period: "10s"
@@ -86,6 +83,9 @@ genesis:
             denom: "utest"
     mint:
       params:
+        inflation_max: "0.06"
+        inflation_min: "0.06"
+        inflation_rate_change: "0.0"
         mint_denom: "utest"
     staking:
       params:
@@ -93,11 +93,19 @@ genesis:
     bridge:
       params:
         bridge_denom: "utest"
+        bridge_denom_total_supply: "10000000000"  # 10 bil
         ethereum_proxy_contract_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"  # just an example
         authorize_messages_allowed:
-          - "*"  # allow all
+          - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
+          - "/cosmos.bank.v1beta1.MsgSend"
+          - "/cosmos.staking.v1beta1.MsgDelegate"
+          - "/cosmos.staking.v1beta1.MsgBeginRedelegate"
+          - "/cosmos.staking.v1beta1.MsgUndelegate"
+          - "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+          - "/cosmos.gov.v1.MsgVote"
         supply_delta_period: 100
         injected_event_tx_max_bytes: 20000000
+        vesting_start_time: "2024-01-01T00:00:00.000000000Z"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"
     sequencing:

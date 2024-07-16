@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"math/big"
@@ -18,6 +19,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -64,14 +66,37 @@ func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServ
 	return ss
 }
 
-func (ss *SidecarServer) InitializeServer(host, port string) error {
+func (ss *SidecarServer) InitializeServer(host, port, pathToCertFile, pathToKeyFile string) error {
 	serverEndpoint := fmt.Sprintf("%s:%s", host, port)
-	ss.httpSrv = &http.Server{
-		Addr:              serverEndpoint,
-		ReadHeaderTimeout: DefaultServerShutdownTimeout,
+
+	// TLS is enabled if and only if both pathToCertFile and pathToKeyFile are not empty
+	tlsEnabled := pathToCertFile != "" && pathToKeyFile != ""
+
+	// If TLS is not enabled we expect that both pathToCertFile and pathToKeyFile are empty, otherwise, this hints to
+	// a possible misconfiguration.
+	if !tlsEnabled && !(pathToCertFile == "" && pathToKeyFile == "") {
+		panic("both path to certificate file and path to key file must be either empty or non-empty")
 	}
 
-	ss.grpcSrv = grpc.NewServer()
+	// Make use of certificates if indicated by the operator
+	var certificate tls.Certificate
+	var serverCredentials credentials.TransportCredentials
+	var err error
+	if tlsEnabled {
+		certificate, err = tls.LoadX509KeyPair(pathToCertFile, pathToKeyFile)
+		if err != nil {
+			panic(fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err))
+		}
+
+		serverCredentials = credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{certificate},
+			MinVersion:   tls.VersionTLS12,
+		})
+	} else {
+		serverCredentials = insecure.NewCredentials()
+	}
+
+	ss.grpcSrv = grpc.NewServer(grpc.Creds(serverCredentials))
 	types.RegisterSidecarServer(ss.grpcSrv, ss)
 
 	ss.gatewayMux = runtime.NewServeMux(
@@ -82,15 +107,28 @@ func (ss *SidecarServer) InitializeServer(host, port string) error {
 		}),
 	)
 
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	if err := types.RegisterSidecarHandlerFromEndpoint(context.Background(), ss.gatewayMux, serverEndpoint, opts); err != nil {
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(serverCredentials)}
+	if err = types.RegisterSidecarHandlerFromEndpoint(
+		context.Background(), ss.gatewayMux, serverEndpoint, opts,
+	); err != nil {
 		return err
 	}
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", ss.routeRequest)
 
-	ss.httpSrv.Handler = h2c.NewHandler(router, &http2.Server{})
+	ss.httpSrv = &http.Server{
+		Addr:              serverEndpoint,
+		Handler:           h2c.NewHandler(router, &http2.Server{}),
+		ReadHeaderTimeout: DefaultServerShutdownTimeout,
+	}
+
+	if tlsEnabled {
+		ss.httpSrv.TLSConfig = &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{certificate},
+		}
+	}
 
 	return nil
 }
@@ -112,8 +150,17 @@ func (ss *SidecarServer) StartServer(ctx context.Context) error {
 
 	eg.Go(func() error {
 		ss.logger.Info("starting grpc server", zap.String("address", ss.httpSrv.Addr))
-		if err := ss.httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-			return fmt.Errorf("[grpc server] server ListenAndServe: %w", err)
+		if ss.httpSrv.TLSConfig != nil {
+			// Use ListenAndServeTLS for HTTPS. certFile and keyFile can be left as empty string as we expect the
+			// certificate to be loaded in the initializeServer function.
+			if err := ss.httpSrv.ListenAndServeTLS("", ""); err != http.ErrServerClosed {
+				return fmt.Errorf("[grpc server] server ListenAndServeTLS: %w", err)
+			}
+		} else {
+			// Use ListenAndServe for HTTP
+			if err := ss.httpSrv.ListenAndServe(); err != http.ErrServerClosed {
+				return fmt.Errorf("[grpc server] server ListenAndServe: %w", err)
+			}
 		}
 		return nil
 	})

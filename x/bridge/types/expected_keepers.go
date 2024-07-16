@@ -38,7 +38,8 @@ type BankKeeper interface {
 
 // StakingKeeper defines the expected interface for the Staking module.
 type StakingKeeper interface {
-	GetAllValidators(ctx context.Context) ([]stakingtypes.Validator, error)
+	// GetLastValidators gets the bonded validators
+	GetLastValidators(ctx context.Context) ([]stakingtypes.Validator, error)
 }
 
 // ParamSubspace defines the expected Subspace interface for parameters.

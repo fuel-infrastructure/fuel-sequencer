@@ -23,7 +23,6 @@ import (
 	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -41,8 +40,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/crisis" // import for side-effects
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/distribution" // import for side-effects
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -51,8 +48,6 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	_ "github.com/cosmos/cosmos-sdk/x/group/module" // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/mint"         // import for side-effects
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/slashing" // import for side-effects
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
@@ -60,16 +55,17 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	"github.com/fuel-infrastructure/fuel-sequencer/docs"
+	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
 )
 
 const (
@@ -105,7 +101,6 @@ type FuelSequencerApp struct {
 	SlashingKeeper slashingkeeper.Keeper
 	MintKeeper     mintkeeper.Keeper
 	GovKeeper      *govkeeper.Keeper
-	CrisisKeeper   *crisiskeeper.Keeper
 	UpgradeKeeper  *upgradekeeper.Keeper
 	AuthzKeeper    authzkeeper.Keeper
 	EvidenceKeeper evidencekeeper.Keeper
@@ -247,7 +242,6 @@ func NewFuelSequencerApp(
 		&app.SlashingKeeper,
 		&app.MintKeeper,
 		&app.GovKeeper,
-		&app.CrisisKeeper,
 		&app.UpgradeKeeper,
 		&app.AuthzKeeper,
 		&app.EvidenceKeeper,
@@ -315,7 +309,7 @@ func NewFuelSequencerApp(
 				panic(err)
 			}
 
-			app.Logger().Info("started Sidecar client", "addr", sidecarCfg.Address)
+			app.Logger().Info("started Sidecar client", "sidecar server address", sidecarCfg.Address)
 		}()
 	}
 
@@ -336,6 +330,7 @@ func NewFuelSequencerApp(
 			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		},
 		app.BridgeKeeper,
+		app.SequencingKeeper,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ante handler: %w", err)
@@ -354,7 +349,9 @@ func NewFuelSequencerApp(
 
 	/****  Module Options ****/
 
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
+	// CrisisKeeper is not wired, therefore, no invariants are registered.
+	// Justification: https://github.com/cosmos/cosmos-sdk/issues/15706
+	//app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
@@ -440,12 +437,17 @@ func (app *FuelSequencerApp) SimulationManager() *module.SimulationManager {
 func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
-	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
+	if err := docs.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
 
-	// register app's OpenAPI routes.
-	docs.RegisterOpenAPIService(Name, apiSvr.Router)
+	// Register data commitments routes.
+	commitmentsservice.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
+}
+
+func (app *FuelSequencerApp) RegisterTendermintService(clientCtx client.Context) {
+	app.App.RegisterTendermintService(clientCtx)
+	commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry)
 }
 
 // Close closes the underlying baseapp and the Sidecar service.
