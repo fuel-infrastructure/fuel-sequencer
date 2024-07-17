@@ -986,8 +986,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEventsAndSupplyDelta,
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Txs:             validTxsWithEventsAndSupplyDelta,
+				Height:          int64(testtypes.TestSupplyDeltaPeriod * 2),
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1003,8 +1004,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1021,8 +1023,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error:    nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsPartialBlock,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsPartialBlock,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1038,8 +1041,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: &sidecartypes.QueryBlockEventsResponse{}, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithoutEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithoutEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1058,9 +1062,10 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error:    errors.New("block not yet processed 1"),
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsSidecarErr,                // Problem is both with validator and the proposer
-				Height: 1,                                 // We do not expect MsgSupplyDelta to be injected
-				Time:   testCurrentTimeDoesNotExceedDelay, // Block time within syncing delay
+				Txs:             validTxsSidecarErr,                // Problem is both with validator and the proposer
+				Height:          1,                                 // We do not expect MsgSupplyDelta to be injected
+				Time:            testCurrentTimeDoesNotExceedDelay, // Block time within syncing delay
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1076,9 +1081,10 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsReq:        nil,
 			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsSidecarErr,          // Problem is both with validator and the proposer
-				Height: 1,                           // We do not expect MsgSupplyDelta to be injected
-				Time:   testCurrentTimeExceedsDelay, // Block time exceeds syncing delay
+				Txs:             validTxsSidecarErr,          // Problem is both with validator and the proposer
+				Height:          1,                           // We do not expect MsgSupplyDelta to be injected
+				Time:            testCurrentTimeExceedsDelay, // Block time exceeds syncing delay
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1098,8 +1104,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    nil,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             nil,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1114,8 +1121,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    encodedDummyTxs,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             encodedDummyTxs,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1130,8 +1138,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    [][]byte{[]byte("invalid-MsgSupplyDelta")},
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             [][]byte{[]byte("invalid-MsgSupplyDelta")},
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1147,8 +1156,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsReq:        nil,
 			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1164,8 +1174,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsReq:         nil,
 			queryBlockEventsRet:            apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1185,8 +1196,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
-				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents, // Problem is with validator not the proposer
+				Height:          1,                  // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1210,8 +1222,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
-				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents, // Problem is with validator not the proposer
+				Height:          1,                  // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1230,8 +1243,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error:    errors.New("block not yet processed 1"),
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsSidecarErr, // Problem is both with validator and the proposer
-				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsSidecarErr, // Problem is both with validator and the proposer
+				Height:          1,                  // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1248,8 +1262,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error:    errors.New("block not yet processed 1"),
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
-				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents, // Problem is with validator not the proposer
+				Height:          1,                  // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1267,15 +1282,17 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithDifferentEvents, // Different events injected by proposer
-				Height: 1,                           // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithDifferentEvents, // Different events injected by proposer
+				Height:          1,                           // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
+			expErrMsg: "generated injected txs do not match the ones from the block proposal " +
+				"(proposer: fuelsequencervalcons183gwcqwk6sfhk3drp07yz9d5uln2g8qduhfmxv)",
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
@@ -1286,15 +1303,17 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithoutEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithoutEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg:                    "failed to trim event txs from tail: cannot trim all 3 events",
+			expErrMsg: "failed to trim event txs from tail " +
+				"(proposer: fuelsequencervalcons183gwcqwk6sfhk3drp07yz9d5uln2g8qduhfmxv): cannot trim all 3 events",
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
@@ -1305,8 +1324,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestEmptySidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1324,8 +1344,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseReduced, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1343,15 +1364,17 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEventsReduced,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEventsReduced,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
+			expErrMsg: "generated injected txs do not match the ones from the block proposal " +
+				"(proposer: fuelsequencervalcons183gwcqwk6sfhk3drp07yz9d5uln2g8qduhfmxv)",
 		},
 		{
 			name:                      "returns error if block exceeds MaxBlockGas",
@@ -1361,8 +1384,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas - 1, // Set to total - 1 so that MaxBlockGas is exceeded
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1380,8 +1404,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				// MsgSupplyDelta not injected even though expected in height
-				Txs:    validTxsWithEventsWithMissingSupplyDelta[:1],
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Txs:             validTxsWithEventsWithMissingSupplyDelta[:1],
+				Height:          int64(testtypes.TestSupplyDeltaPeriod * 2),
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1399,8 +1424,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				// MsgSupplyDelta not injected even though expected in height
-				Txs:    validTxsWithEventsWithMissingSupplyDelta,
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Txs:             validTxsWithEventsWithMissingSupplyDelta,
+				Height:          int64(testtypes.TestSupplyDeltaPeriod * 2),
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1422,8 +1448,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithEvents,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1441,8 +1468,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkipped,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithLargeAuthorizeSkipped,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1459,8 +1487,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkipped,
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithLargeAuthorizeSkipped,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1479,9 +1508,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				// If a big deposit is also matched at PrepareProposal no MsgIndex tx is returned, thus we would
 				// error when we try to parse a MsgIndex. To make ProcessProposal error at generateMsgIndexAndEventTxs
 				// we need to make use of a different set of txs (one which has a MsgIndex)
-				Txs: validTxsWithEvents,
-
-				Height: 1, // We do not expect MsgSupplyDelta to be injected
+				Txs:             validTxsWithEvents,
+				Height:          1, // We do not expect MsgSupplyDelta to be injected
+				ProposerAddress: testtypes.TestConsAddr,
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
