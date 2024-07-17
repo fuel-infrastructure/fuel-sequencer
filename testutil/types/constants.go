@@ -19,10 +19,6 @@ var (
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
-	TestConsAddrStr = "fuelsequencervalcons183gwcqwk6sfhk3drp07yz9d5uln2g8qduhfmxv"
-	TestConsAddr, _ = sdk.ConsAddressFromBech32(TestConsAddrStr)
-	// Consensus addresses can be generated via sdk.ConsAddress(ed25519.GenPrivKey().PubKey().Address())
-
 	FirstAccountSequence             = uint64(0)
 	TestToken                        = "token"
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
