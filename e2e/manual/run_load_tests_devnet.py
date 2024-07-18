@@ -31,18 +31,15 @@ SEQ = FuelSequencerChain(
 )
 SEQ.wait_for_txs = False
 SEQ.gas_prices = f"10000000000{SEQ.fee_token}"
-SEQ.add_keys(names=[KEY], mnemonics=[MNEMONIC])
 
 # Load test configuration
 MAX_TEMP_FILES = 10
 BLOCKS_TO_LOAD_TEST = 999999
-BLOB_SIZE_BYTES = 600000
+BLOB_SIZE_BYTES = 100000
 # Max BLOB_SIZE_BYTES: 1048576
 # Ref: https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
 # Max block size: 2000000
 # Ref: https://rpc-seq.simplystaking.xyz/consensus_params
-print(f"Running for {BLOCKS_TO_LOAD_TEST} blocks "
-      f"with blobs of {BLOB_SIZE_BYTES} bytes")
 
 # MsgPostBlob transaction configuration
 gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
@@ -137,6 +134,12 @@ def post_blob(
 
 
 if __name__ == "__main__":
+    print(f"Running load test for {BLOCKS_TO_LOAD_TEST} blocks "
+          f"with blobs of {BLOB_SIZE_BYTES} bytes")
+
+    # Ensure key is in place
+    SEQ.add_keys(names=[KEY], mnemonics=[MNEMONIC])
+
     # Get account number and starting sequence
     account = json.loads(SEQ.query_account(SENDER))['account']['value']
     acc_num = account['account_number'] if 'account_number' in account else 0
