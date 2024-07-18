@@ -29,7 +29,6 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -69,7 +68,6 @@ func init() {
 		slashing.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		gov.AppModuleBasic{},
-		crisis.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		bridge.AppModuleBasic{},
@@ -286,14 +284,6 @@ func (c *chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.
 		return cmtbytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
 	}
 	return res.BlockID.Hash, nil
-}
-
-func (c *chain) BridgeCommitment(ctx context.Context, start, end uint64) (cmtbytes.HexBytes, error) {
-	res, err := c.rpcClient.BridgeCommitment(ctx, start, end)
-	if err != nil {
-		return cmtbytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
-	}
-	return res.BridgeCommitment, nil
 }
 
 func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {

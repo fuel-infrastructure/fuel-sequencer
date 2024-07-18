@@ -1,14 +1,21 @@
 package app
 
 import (
+	"fmt"
+
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 )
 
-func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keeper) (sdk.AnteHandler, error) {
+func NewAnteHandler(
+	options ante.HandlerOptions,
+	bridgeKeeper bridgekeeper.Keeper,
+	sequencingKeeper sequencingkeeper.Keeper,
+) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
 		return nil, sdkerrors.ErrLogic.Wrap("account keeper is required for ante builder")
 	}
@@ -22,15 +29,27 @@ func NewAnteHandler(options ante.HandlerOptions, bridgeKeeper bridgekeeper.Keepe
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
-		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		// Outermost AnteDecorator. SetUpContext must be called first.
+		ante.NewSetUpContextDecorator(),
+
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		NewInjectedTxsDecorator(bridgeKeeper),
+
+		// Executed after InjectedTxsDecorator to make sure that we are not applying unnecessary limits to injected txs.
+		// Note: Injected txs are not expected to reach this point.
+		NewSequencerNativeTxsDecorator(sequencingKeeper),
+
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
-		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
+		ante.NewDeductFeeDecorator(
+			options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker,
+		),
+
+		// SetPubKeyDecorator must be called before all signature verification decorators
+		ante.NewSetPubKeyDecorator(options.AccountKeeper),
+
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
@@ -50,8 +69,7 @@ func NewInjectedTxsDecorator(bridgeKeeper bridgekeeper.Keeper) InjectedTxsDecora
 	}
 }
 
-// AnteHandle implements the AnteHandler decorator for injected transactions. If an error is returned from AnteHandle
-// during CheckTx, the Tx will get rejected immediately and will not be inserted in the mempool/block.
+// AnteHandle implements the AnteHandler decorator for injected transactions.
 func (d InjectedTxsDecorator) AnteHandle(
 	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
 ) (sdk.Context, error) {
@@ -89,6 +107,40 @@ func (d InjectedTxsDecorator) AnteHandle(
 
 	// Revert the gas meter because if we reach this stage, the tx is not an injected one.
 	ctx = ctx.WithGasMeter(cachedGasMeter)
+
+	return next(ctx, tx, simulate)
+}
+
+type SequencerNativeTxsDecorator struct {
+	sequencingKeeper sequencingkeeper.Keeper
+}
+
+func NewSequencerNativeTxsDecorator(sequencingKeeper sequencingkeeper.Keeper) SequencerNativeTxsDecorator {
+	return SequencerNativeTxsDecorator{
+		sequencingKeeper: sequencingKeeper,
+	}
+}
+
+// AnteHandle implements a custom AnteHandler decorator for Sequencer-native transactions. This decorator will error
+// if the size of the tx exceeds SequencerTxMaxBytes. This is done to avoid having large transactions sitting in the
+// mempool forever due to never having enough block space. This happens when
+// size(tx) > RequestPrepareProposal.MaxBytes - size(MsgIndexTx).
+//
+// Note: If an error is returned from AnteHandle during CheckTx, the Tx will get rejected immediately and will not be
+// inserted in the mempool/block.
+func (d SequencerNativeTxsDecorator) AnteHandle(
+	ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler,
+) (sdk.Context, error) {
+	// Limits should not be applied during genesis as SequencerTxMaxBytes will be zero.
+	if ctx.BlockHeight() == 0 {
+		return next(ctx, tx, simulate)
+	}
+
+	txSize := uint64(len(ctx.TxBytes()))
+	params := d.sequencingKeeper.GetParams(ctx)
+	if txSize > params.SequencerTxMaxBytes {
+		return ctx, fmt.Errorf("transaction is too large; %d > %d", txSize, params.SequencerTxMaxBytes)
+	}
 
 	return next(ctx, tx, simulate)
 }

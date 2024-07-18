@@ -411,6 +411,9 @@ class CosmosChain:
         return self.tx(
             f"staking redelegate {src_validator_addr} {dst_validator_addr} {amount}")
 
+    def withdraw_all_rewards(self):
+        return self.tx("distribution withdraw-all-rewards")
+
     def ibc_transfer(self, channel_id: str, receiver_addr: str,
                      amount: str) -> str:
         return self.tx(
@@ -555,6 +558,9 @@ class CosmosChain:
 
     def query_community_pool(self):
         return self.query("distribution community-pool")
+
+    def query_delegation(self, delegator_addr: str):
+        return self.query(f"distribution rewards {delegator_addr}")
 
     def wait_for_tx(self, tx_hash: str) -> str:
         # Stash errors_enabled and set actual one to False
