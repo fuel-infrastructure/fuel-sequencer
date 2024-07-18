@@ -16,29 +16,35 @@ SEQ_node = "https://rpc-seq.simplystaking.xyz"
 SEQ_chain = "seq-devnet-4"
 SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
 
+KEY = key_name_alice
+MNEMONIC = mnemonic_alice
+SENDER = FuelSequencerChain.address_alice
+
 SEQ = FuelSequencerChain(
     binary=SEQ_bin,
     node=SEQ_node,
     chain_id=SEQ_chain,
-    key_name=key_name_alice,
+    key_name=KEY,
     voting_period=10,
     fee_token="utest",
-    gov_voters=["alice"],
+    gov_voters=["<unused>"],
 )
 SEQ.wait_for_txs = False
 SEQ.gas_prices = f"10000000000{SEQ.fee_token}"
+SEQ.add_keys(names=[KEY], mnemonics=[MNEMONIC])
 
 # Load test configuration
 MAX_TEMP_FILES = 10
-BLOCKS_TO_LOAD_TEST = 1
-BLOB_SIZE_BYTES = 700000
+BLOCKS_TO_LOAD_TEST = 999999
+BLOB_SIZE_BYTES = 600000
 # Max BLOB_SIZE_BYTES: 1048576
 # Ref: https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
+# Max block size: 2000000
+# Ref: https://rpc-seq.simplystaking.xyz/consensus_params
 print(f"Running for {BLOCKS_TO_LOAD_TEST} blocks "
       f"with blobs of {BLOB_SIZE_BYTES} bytes")
 
 # MsgPostBlob transaction configuration
-sender = SEQ.address_alice
 gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
 fee_amount = int(gas) * int(SEQ.gas_prices.replace(SEQ.fee_token, ""))
 fee = [{"amount": f"{fee_amount}", "denom": SEQ.fee_token}]
@@ -48,14 +54,19 @@ def get_temp_txs_folder():
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_txs")
 
 
+def get_temp_tx_file_prefix():
+    return f"temp.{SEQ.key_name}"
+
+
 def get_temp_tx_files(rollup, order) -> Tuple[str, str]:
+    filename_prefix = get_temp_tx_file_prefix()
     tx_file_path = os.path.join(
         get_temp_txs_folder(),
-        f"temp.{rollup}.{order % MAX_TEMP_FILES}.json"
+        f"{filename_prefix}.{rollup}.{order % MAX_TEMP_FILES}.json"
     )
     result_file_path = os.path.join(
         get_temp_txs_folder(),
-        f"temp.{rollup}.{order % MAX_TEMP_FILES}-result.json"
+        f"{filename_prefix}.{rollup}.{order % MAX_TEMP_FILES}-result.json"
     )
     return tx_file_path, result_file_path
 
@@ -103,7 +114,7 @@ def post_blob(
     SEQ.account_sequence = int(acc_starting_seq) + int(order)
 
     result = SEQ.post_blob_from_file(
-        sender, topic, f"{order}", data, gas, fee, tx_file_path
+        SENDER, topic, f"{order}", data, gas, fee, tx_file_path
     )
     with open(result_file_path, 'w') as f:
         f.write(result)
@@ -127,15 +138,16 @@ def post_blob(
 
 if __name__ == "__main__":
     # Get account number and starting sequence
-    account = json.loads(SEQ.query_account(sender))['account']['value']
+    account = json.loads(SEQ.query_account(SENDER))['account']['value']
     acc_num = account['account_number'] if 'account_number' in account else 0
-    acc_starting_seq = account['sequence']
+    acc_starting_seq = account['sequence'] if 'sequence' in account else 0
 
     # Pre-test cleanup
+    filename_prefix = get_temp_tx_file_prefix()
     for file in os.listdir(get_temp_txs_folder()):
-        if file.startswith("temp"):
+        if file.startswith(filename_prefix):
             os.remove(os.path.join(get_temp_txs_folder(), file))
-    print("Cleaned up previous test files")
+    print(f"Cleaned up previous test files ({filename_prefix}*)")
 
     # Generate a topic with a unique ID and starting order of 0
     topic_id = base64.b64encode(os.urandom(32)).decode('utf-8')
