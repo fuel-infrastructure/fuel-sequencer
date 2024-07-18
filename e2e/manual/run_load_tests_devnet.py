@@ -145,49 +145,52 @@ if __name__ == "__main__":
     )
     listener.start()
 
-    starting_block = SEQ.query_last_block_height()
-    processed_blocks = set()
+    # Calculate block range that test will run for
+    start_block = SEQ.query_last_block_height()
+    last_block = start_block + BLOCKS_TO_LOAD_TEST - 1
+    prev_block = start_block - 1
 
     processes = []
 
     while True:
-        current_block = SEQ.query_last_block_height()
+        curr_block = SEQ.query_last_block_height()
 
-        # Stop submitting txs
-        if current_block >= starting_block + BLOCKS_TO_LOAD_TEST:
+        # Wait for a new block
+        if curr_block == prev_block:
+            time.sleep(0.5)
+            continue
+
+        print(f'detected block={curr_block}')
+
+        # Processing
+        process = multiprocessing.Process(
+            target=post_blob,
+            args=(
+                logging_queue, 0, curr_block,
+                topic_id, topic_order, acc_num, acc_starting_seq,
+            )
+        )
+        process.start()
+        processes.append(process)
+
+        topic_order += 1
+
+        # Last block reached
+        if curr_block >= last_block:
             break
 
-        if current_block not in processed_blocks:
-            print(f'Detected block {current_block}')
-
-            processed_blocks.add(current_block)
-
-            # Processing
-            process = multiprocessing.Process(
-                target=post_blob,
-                args=(
-                    logging_queue, 0, current_block,
-                    topic_id, topic_order, acc_num, acc_starting_seq,
-                )
-            )
-            process.start()
-            processes.append(process)
-
-            topic_order += 1
-
-        # wait for new block to be produced
-        time.sleep(0.5)
+        prev_block = curr_block
 
     # Wait for all processes to finish
     for process in processes:
         process.join()
 
-    print("Finished issuing txs")
+    print("finished issuing txs")
 
     # Wait until transactions are included
     time.sleep(12)
     ending_block = SEQ.query_last_block_height()
 
     # Monitoring
-    for height in range(starting_block, ending_block):
+    for height in range(start_block, ending_block):
         print_block_size(height)
