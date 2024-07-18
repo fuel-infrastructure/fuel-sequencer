@@ -25,7 +25,7 @@ def pretty(in_json: str):
 
 
 SEQ_node = "https://rpc-seq.simplystaking.xyz"
-SEQ_chain = "seq-devnet-3"
+SEQ_chain = "seq-devnet-4"
 SEQ_bin = "fuelsequencerd"
 
 ETH_rpc = "https://ethereum-sepolia-rpc.publicnode.com"
@@ -60,6 +60,7 @@ SEQ = FuelSequencerChain(
     fee_token="utest",
     gov_voters=["alice"],
 )
+SEQ.gas_prices = "10000000000utest"
 
 ETH = EthereumChain(
     Web3.HTTPProvider(ETH_rpc),
