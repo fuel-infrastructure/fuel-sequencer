@@ -31,9 +31,11 @@ SEQ.gas_prices = f"10000000000{SEQ.fee_token}"
 # Load test configuration
 MAX_TEMP_FILES = 10
 BLOCKS_TO_LOAD_TEST = 1
-BLOB_SIZE_BYTES = 650000
+BLOB_SIZE_BYTES = 700000
 # Max BLOB_SIZE_BYTES: 1048576
 # Ref: https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
+print(f"Running for {BLOCKS_TO_LOAD_TEST} blocks "
+      f"with blobs of {BLOB_SIZE_BYTES} bytes")
 
 # MsgPostBlob transaction configuration
 sender = SEQ.address_alice
@@ -150,8 +152,7 @@ if __name__ == "__main__":
     last_block = start_block + BLOCKS_TO_LOAD_TEST - 1
     prev_block = start_block - 1
 
-    processes = []
-
+    process = None
     while True:
         curr_block = SEQ.query_last_block_height()
 
@@ -160,7 +161,7 @@ if __name__ == "__main__":
             time.sleep(0.5)
             continue
 
-        print(f'detected block={curr_block}')
+        print(f'Detected block={curr_block}')
 
         # Processing
         process = multiprocessing.Process(
@@ -171,7 +172,6 @@ if __name__ == "__main__":
             )
         )
         process.start()
-        processes.append(process)
 
         topic_order += 1
 
@@ -181,16 +181,8 @@ if __name__ == "__main__":
 
         prev_block = curr_block
 
-    # Wait for all processes to finish
-    for process in processes:
+    # Wait for last process to finish
+    if process:
         process.join()
 
-    print("finished issuing txs")
-
-    # Wait until transactions are included
-    time.sleep(12)
-    ending_block = SEQ.query_last_block_height()
-
-    # Monitoring
-    for height in range(start_block, ending_block):
-        print_block_size(height)
+    print("Done")
