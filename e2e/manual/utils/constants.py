@@ -1,5 +1,5 @@
 mnemonic_alice = "dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence"
-mnemonic_bob = "voyage rail fat orange visit possible improve grape festival left tent endorse planet main canyon close dragon feel list mechanic abandon sun bullet strong"
+mnemonic_bob = "gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage"
 mnemonic_charlie = "bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve"
 mnemonic_dexter = "bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing"
 
