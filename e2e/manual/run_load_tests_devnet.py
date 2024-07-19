@@ -1,13 +1,13 @@
+import argparse
 import base64
 import json
-import logging
 import logging.handlers
 import multiprocessing
-import os
 import sys
 import time
-from typing import Tuple
 
+from load_test.post_blob import PostBlobRequest, post_blob_async
+from load_test.utils import *
 from utils.classes import FuelSequencerChain
 from utils.constants import *
 
@@ -16,144 +16,69 @@ SEQ_node = "https://rpc-seq.simplystaking.xyz"
 SEQ_chain = "seq-devnet-4"
 SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
 
-KEY = key_name_alice
-MNEMONIC = mnemonic_alice
-SENDER = FuelSequencerChain.address_alice
-
-SEQ = FuelSequencerChain(
-    binary=SEQ_bin,
-    node=SEQ_node,
-    chain_id=SEQ_chain,
-    key_name=KEY,
-    voting_period=10,
-    fee_token="utest",
-    gov_voters=["<unused>"],
-)
-SEQ.wait_for_txs = False
-SEQ.gas_prices = f"10000000000{SEQ.fee_token}"
-
 # Load test configuration
-MAX_TEMP_FILES = 10
 BLOCKS_TO_LOAD_TEST = 999999
 SHUT_DOWN_ON_TX_ERR = True
-BLOB_SIZE_BYTES = 100000
+BLOB_SIZE_BYTES = 40000
 # Max BLOB_SIZE_BYTES: 1048576
 # Ref: https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
 # Max block size: 2000000
 # Ref: https://rpc-seq.simplystaking.xyz/consensus_params
 
-# MsgPostBlob transaction configuration
-gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
-fee_amount = int(gas) * int(SEQ.gas_prices.replace(SEQ.fee_token, ""))
-fee = [{"amount": f"{fee_amount}", "denom": SEQ.fee_token}]
-
-
-def get_temp_txs_folder():
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_txs")
-
-
-def get_temp_tx_file_prefix():
-    return f"temp.{SEQ.key_name}"
-
-
-def get_temp_tx_files(rollup, order) -> Tuple[str, str]:
-    filename_prefix = get_temp_tx_file_prefix()
-    tx_file_path = os.path.join(
-        get_temp_txs_folder(),
-        f"{filename_prefix}.{rollup}.{order % MAX_TEMP_FILES}.json"
-    )
-    result_file_path = os.path.join(
-        get_temp_txs_folder(),
-        f"{filename_prefix}.{rollup}.{order % MAX_TEMP_FILES}-result.json"
-    )
-    return tx_file_path, result_file_path
-
-
-def print_block_size(height: int):
-    block = json.loads(SEQ.query_block(height))
-    txs = block.get('data', {}).get('txs', [])
-
-    block_size = sum(sys.getsizeof(item) for item in txs)
-    print(f"Block {height} had size {block_size} bytes")
-
-
-# Issue transactions
-def post_blob(
-        logging_queue: multiprocessing.Queue,
-        rollup: int,
-        block: int,
-        topic: str,
-        order: int,
-        acc_num: int,
-        acc_starting_seq: int,
-        stop_event: multiprocessing.Event,
-):
-    logger = logging.getLogger(f"{rollup}")
-    handler = logging.handlers.QueueHandler(logging_queue)
-    formatter = logging.Formatter(
-        '%(asctime)s %(levelname)-6s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
-
-    logger.info(
-        f"processing block={block} rollup={rollup} topic={topic} order={order}"
-    )
-
-    data = base64.b64encode(os.urandom(BLOB_SIZE_BYTES)).decode('utf-8')
-    tx_file_path, result_file_path = get_temp_tx_files(rollup, order)
-
-    # Configure offline signing...
-    # Sequence is the starting sequence plus the topic order
-    # e.g. for start sequence 100, and order 5, the sequence will be 105
-    SEQ.offline_signing = True
-    SEQ.account_number = acc_num
-    SEQ.account_sequence = int(acc_starting_seq) + int(order)
-
-    result = SEQ.post_blob_from_file(
-        SENDER, topic, f"{order}", data, gas, fee, tx_file_path
-    )
-    with open(result_file_path, 'w') as f:
-        f.write(result)
-
-    # Try to parse tx hash
-    try:
-        result = json.loads(result)
-        if result['code'] != 0:
-            tx_info = result['raw_log']
-        else:
-            tx_info = f"{EXPLORER_TX_URL}{result['txhash']}"
-    except Exception:
-        tx_info = "ERR"
-
-    logger.info(
-        f"finished block={block} rollup={rollup} "
-        f"topic={topic} order={order} acc_num={SEQ.account_number} "
-        f"acc_seq={SEQ.account_sequence} tx :: {tx_info}"
-    )
-
-    if result['code'] != 0:
-        stop_event.set()
-
-
 if __name__ == "__main__":
+    # Create the parser
+    parser = argparse.ArgumentParser(description="Parse key and mnemonic")
+
+    # Add arguments
+    parser.add_argument('--key', type=str, required=False, help='key name')
+    parser.add_argument('--mnemonic', type=str, required=False, help='mnemonic')
+
+    # Parse the arguments
+    args = parser.parse_args()
+    if args.key and args.mnemonic:
+        print("Using supplied key and mnemonic")
+        key = args.key
+        mnemonic = args.mnemonic
+    elif not (args.key or args.mnemonic):
+        print("Defaulting to alice's key and mnemonic")
+        key = key_name_alice
+        mnemonic = mnemonic_alice
+    else:
+        sys.exit("must set both or none of --key and --mnemonic")
+
+    seq = FuelSequencerChain(
+        binary=SEQ_bin,
+        node=SEQ_node,
+        chain_id=SEQ_chain,
+        key_name=key,
+        voting_period=10,
+        fee_token="utest",
+        gov_voters=["<unused>"],
+    )
+    seq.wait_for_txs = False
+    seq.gas_prices = f"10000000000{seq.fee_token}"
+
+    # MsgPostBlob transaction configuration
+    gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
+    fee_amount = int(gas) * int(seq.gas_prices.replace(seq.fee_token, ""))
+    fee = [{"amount": f"{fee_amount}", "denom": seq.fee_token}]
+
+    # Ensure key is in place
+    seq.add_keys(names=[key], mnemonics=[mnemonic])
+
     stop_event = multiprocessing.Event()
 
     print(f"Running load test for {BLOCKS_TO_LOAD_TEST} blocks "
           f"with blobs of {BLOB_SIZE_BYTES} bytes")
 
-    # Ensure key is in place
-    SEQ.add_keys(names=[KEY], mnemonics=[MNEMONIC])
-
     # Get account number and starting sequence
-    account = json.loads(SEQ.query_account(SENDER))['account']['value']
+    sender = seq.keys(f"show {key} -a")
+    account = json.loads(seq.query_account(sender))['account']['value']
     acc_num = account['account_number'] if 'account_number' in account else 0
     acc_starting_seq = account['sequence'] if 'sequence' in account else 0
 
     # Pre-test cleanup
-    filename_prefix = get_temp_tx_file_prefix()
+    filename_prefix = get_temp_tx_file_prefix(seq.key_name)
     for file in os.listdir(get_temp_txs_folder()):
         if file.startswith(filename_prefix):
             os.remove(os.path.join(get_temp_txs_folder(), file))
@@ -170,13 +95,13 @@ if __name__ == "__main__":
     listener.start()
 
     # Calculate block range that test will run for
-    start_block = SEQ.query_last_block_height()
+    start_block = seq.query_last_block_height()
     last_block = start_block + BLOCKS_TO_LOAD_TEST - 1
     prev_block = start_block - 1
 
     process = None
     while not (stop_event.is_set() and SHUT_DOWN_ON_TX_ERR):
-        curr_block = SEQ.query_last_block_height()
+        curr_block = seq.query_last_block_height()
 
         # Wait for a new block
         if curr_block == prev_block:
@@ -186,12 +111,22 @@ if __name__ == "__main__":
         print(f'Detected block={curr_block}')
 
         # Processing
-        process = multiprocessing.Process(
-            target=post_blob,
-            args=(
-                logging_queue, 0, curr_block, topic_id, topic_order,
-                acc_num, acc_starting_seq, stop_event,
-            )
+        process = post_blob_async(
+            PostBlobRequest(
+                0,
+                curr_block,
+                topic_id,
+                topic_order,
+                acc_num,
+                acc_starting_seq,
+                BLOB_SIZE_BYTES,
+                gas,
+                fee,
+                seq,
+                EXPLORER_TX_URL,
+            ),
+            logging_queue,
+            stop_event,
         )
         process.start()
 
