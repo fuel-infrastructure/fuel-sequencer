@@ -19,7 +19,7 @@ SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
 # Load test configuration
 BLOCKS_TO_LOAD_TEST = 999999
 SHUT_DOWN_ON_TX_ERR = True
-BLOB_SIZE_BYTES = 40000
+BLOB_SIZE_BYTES = 740000
 # Max BLOB_SIZE_BYTES: 1048576
 # Ref: https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
 # Max block size: 2000000
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     # MsgPostBlob transaction configuration
     gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
-    fee_amount = int(gas) * int(seq.gas_prices.replace(seq.fee_token, ""))
+    fee_amount = int(int(gas) * float(seq.gas_prices.replace(seq.fee_token, "")))
     fee = [{"amount": f"{fee_amount}", "denom": seq.fee_token}]
 
     # Ensure key is in place
