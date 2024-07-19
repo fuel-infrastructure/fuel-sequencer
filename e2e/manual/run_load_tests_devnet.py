@@ -35,6 +35,7 @@ SEQ.gas_prices = f"10000000000{SEQ.fee_token}"
 # Load test configuration
 MAX_TEMP_FILES = 10
 BLOCKS_TO_LOAD_TEST = 999999
+SHUT_DOWN_ON_TX_ERR = True
 BLOB_SIZE_BYTES = 100000
 # Max BLOB_SIZE_BYTES: 1048576
 # Ref: https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
@@ -85,6 +86,7 @@ def post_blob(
         order: int,
         acc_num: int,
         acc_starting_seq: int,
+        stop_event: multiprocessing.Event,
 ):
     logger = logging.getLogger(f"{rollup}")
     handler = logging.handlers.QueueHandler(logging_queue)
@@ -132,8 +134,13 @@ def post_blob(
         f"acc_seq={SEQ.account_sequence} tx :: {tx_info}"
     )
 
+    if result['code'] != 0:
+        stop_event.set()
+
 
 if __name__ == "__main__":
+    stop_event = multiprocessing.Event()
+
     print(f"Running load test for {BLOCKS_TO_LOAD_TEST} blocks "
           f"with blobs of {BLOB_SIZE_BYTES} bytes")
 
@@ -168,7 +175,7 @@ if __name__ == "__main__":
     prev_block = start_block - 1
 
     process = None
-    while True:
+    while not (stop_event.is_set() and SHUT_DOWN_ON_TX_ERR):
         curr_block = SEQ.query_last_block_height()
 
         # Wait for a new block
@@ -182,8 +189,8 @@ if __name__ == "__main__":
         process = multiprocessing.Process(
             target=post_blob,
             args=(
-                logging_queue, 0, curr_block,
-                topic_id, topic_order, acc_num, acc_starting_seq,
+                logging_queue, 0, curr_block, topic_id, topic_order,
+                acc_num, acc_starting_seq, stop_event,
             )
         )
         process.start()
@@ -199,5 +206,3 @@ if __name__ == "__main__":
     # Wait for last process to finish
     if process:
         process.join()
-
-    print("Done")
