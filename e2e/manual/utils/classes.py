@@ -5,7 +5,7 @@ import time
 from typing import List, Optional, Dict, Union, Type
 
 import requests
-from raw_msgs.msg_post_blob import get_msg_post_blob, get_msg_post_blob
+from raw_msgs.msg_post_blob import get_msg_post_blob
 from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
@@ -38,6 +38,11 @@ class CosmosChain:
         self.gas_prices = f"0.025{fee_token}"
         self.broadcast_mode = "sync"
         self.wait_for_txs = True
+
+        # Offline signing disabled by default
+        self.offline_signing = False
+        self.account_number = None
+        self.account_sequence = None
 
         # Older chains use base64 events
         self.base64_events = True
@@ -96,8 +101,13 @@ class CosmosChain:
             return self.wait_for_tx(tx_hash)
 
     def sign(self, file: str):
+        offline = (
+            f"--offline "
+            f"--account-number={self.account_number} "
+            f"--sequence={self.account_sequence}"
+        ) if self.offline_signing else ""
         return self.tx(
-            f"sign {file} --output-document={file}",
+            f"sign {file} --output-document={file} {offline}",
             wait_for_txs=False,
         )
 
@@ -404,7 +414,8 @@ class CosmosChain:
         return self.tx(
             f"staking unbond {validator_addr} {amount}")
 
-    def redelegate(self, src_validator_addr: str, dst_validator_addr: str, amount: str) -> str:
+    def redelegate(self, src_validator_addr: str, dst_validator_addr: str,
+                   amount: str) -> str:
         return self.tx(
             f"staking redelegate {src_validator_addr} {dst_validator_addr} {amount}")
 
@@ -651,6 +662,24 @@ class FuelSequencerChain(CosmosChain):
 
         self.sign(temp_json_file)
         return self.broadcast(temp_json_file)
+
+    def post_blob_from_file(
+            self,
+            sender: str,
+            topic: str,
+            order: str,
+            data: str,
+            gas: Union[str, int],
+            fee: List,
+            file_path: str
+    ):
+        msg = get_msg_post_blob(sender, topic, order, data, gas, fee)
+
+        with open(file_path, 'w') as f:
+            json.dump(msg, f)
+
+        self.sign(file_path)
+        return self.broadcast(file_path)
 
 
 class EthereumChain(Web3):
