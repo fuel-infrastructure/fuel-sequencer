@@ -43,9 +43,9 @@ def run_report(start_height: int, end_height: int):
     seconds_per_block = block_range_time / (end_height - start_height)
     print(
         f"From {start_height} to {end_height}:\n"
-        f"\tNumber of blocks: {end_height - start_height}\n"
-        f"\tTime elapsed: {block_range_time}\n"
-        f"\tSeconds per block: {seconds_per_block}"
+        f"- Number of blocks: {end_height - start_height}\n"
+        f"- Time elapsed: {block_range_time}\n"
+        f"- Seconds per block: {seconds_per_block}"
     )
 
     previous_block_timestamp = None
@@ -73,7 +73,5 @@ def run_report(start_height: int, end_height: int):
 
 
 for i in range(len(start_heights)):
-    print("---------------------------------")
-    print(f"Start height: {start_heights[i]}")
-    print(f"End height: {end_heights[i]}")
+    print("---")
     run_report(start_heights[i], end_heights[i])
