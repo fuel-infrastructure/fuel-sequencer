@@ -24,7 +24,7 @@ start_heights = [latest_height - 200]
 
 # Optional: manual override of heights
 # start_heights = []
-# latest_heights = []
+# end_heights = []
 
 
 def base64_decoded_size(encoded_str):
