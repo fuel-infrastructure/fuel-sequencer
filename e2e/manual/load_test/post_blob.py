@@ -1,11 +1,11 @@
 import base64
 import json
-import logging.handlers
 import multiprocessing
 import os
 from typing import List
 
-from load_test.utils import get_temp_tx_files
+from load_test.utils import get_temp_tx_files, get_logger, \
+    get_tx_info_from_tx_result
 
 
 class PostBlobRequest:
@@ -42,18 +42,11 @@ def post_blob(
         logging_queue: multiprocessing.Queue,
         stop_event: multiprocessing.Event,
 ):
-    logger = logging.getLogger(f"{req.rollup}")
-    handler = logging.handlers.QueueHandler(logging_queue)
-    formatter = logging.Formatter(
-        '%(asctime)s %(levelname)-6s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
+    logger = get_logger(str(req.rollup), logging_queue)
 
     logger.info(
-        f"processing block={req.block} rollup={req.rollup} topic={req.topic_id} order={req.topic_order}"
+        f"processing block={req.block} rollup={req.rollup} "
+        f"topic={req.topic_id} order={req.topic_order}"
     )
 
     data = base64.b64encode(os.urandom(req.blob_size_bytes)).decode('utf-8')
@@ -75,20 +68,13 @@ def post_blob(
     )
     with open(result_file_path, 'w') as f:
         f.write(result)
+    result = json.loads(result)
 
-    # Try to parse tx hash
-    try:
-        result = json.loads(result)
-        if result['code'] != 0:
-            tx_info = result['raw_log']
-        else:
-            tx_info = f"{req.explorer_tx_url}{result['txhash']}"
-    except Exception:
-        tx_info = "ERR"
-
+    tx_info = get_tx_info_from_tx_result(result, req.explorer_tx_url)
     logger.info(
         f"finished block={req.block} rollup={req.rollup} "
-        f"topic={req.topic_id} order={req.topic_order} acc_num={req.seq.account_number} "
+        f"topic={req.topic_id} order={req.topic_order} "
+        f"acc_num={req.seq.account_number} "
         f"acc_seq={req.seq.account_sequence} tx :: {tx_info}"
     )
 
