@@ -52,6 +52,10 @@ validators:
       # height (this gives us a chance to receive some more precommits, even
       # though we already have +2/3).
       timeout_commit: "1s"
+    mempool:
+      max_tx_bytes: "10000000" # 10MB
+    rpc:
+      max_body_bytes: "10000000" # 10MB
   home: ./data/fuelsequencer
   app:
     api:
