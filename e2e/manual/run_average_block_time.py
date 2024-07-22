@@ -15,16 +15,18 @@ def get_latest_block():
     return get_block("")
 
 
+# Calculate block range based on latest height
 latest_block = get_latest_block()
 latest_height = int(latest_block['block']['header']['height'])
-print(f"Latest height: {latest_height}")
-start_height = latest_height - 1000
-print(f"Start height: {latest_height}")
-
+end_height = latest_height
+start_height = end_height - 100
 
 # Optional: manual override of heights
 # start_height =
 # latest_height =
+
+print(f"Start height: {start_height}")
+print(f"End height: {end_height}")
 
 
 def base64_decoded_size(encoded_str):
@@ -33,8 +35,22 @@ def base64_decoded_size(encoded_str):
     return (l * 3) // 4 - p
 
 
+# Calculate overall average
+start_block = get_block(start_height)
+start_block_timestamp = parser.parse(start_block['block']['header']['time'])
+end_block = get_block(end_height)
+end_block_timestamp = parser.parse(end_block['block']['header']['time'])
+block_range_time = (end_block_timestamp - start_block_timestamp)
+seconds_per_block = block_range_time / (end_height - start_height)
+print(
+    f"From {start_height} to {end_height}:\n"
+    f"\tNumber of blocks: {end_height - start_height}\n"
+    f"\tTime elapsed: {block_range_time}\n"
+    f"\tSeconds per block: {seconds_per_block}"
+)
+
 previous_block_timestamp = None
-for n in range(start_height, latest_height):
+for n in range(start_height, end_height):
 
     try:
         block = get_block(n)
