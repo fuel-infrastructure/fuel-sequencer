@@ -53,7 +53,8 @@ validators:
       # though we already have +2/3).
       timeout_commit: "1s"
     mempool:
-      max_tx_bytes: "10000000" # 10MB
+      max_tx_bytes: "1153434"  # 1.1MiB
+      max_txs_bytes: "20971520"  # 20MiB
     rpc:
       max_body_bytes: "10000000" # 10MB
   home: ./data/fuelsequencer
