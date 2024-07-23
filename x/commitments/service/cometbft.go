@@ -19,14 +19,14 @@ func getLatestBlockHeight(ctx context.Context, clientCtx client.Context) (int64,
 	return height, nil
 }
 
-func getBlock(ctx context.Context, clientCtx client.Context, height *int64) (*coretypes.ResultBlock, error) {
+func getCommit(ctx context.Context, clientCtx client.Context, height *int64) (*coretypes.ResultCommit, error) {
 	// get the node
 	node, err := clientCtx.GetNode()
 	if err != nil {
 		return nil, err
 	}
 
-	return node.Block(ctx, height)
+	return node.Commit(ctx, height)
 }
 
 func getBlockResults(
