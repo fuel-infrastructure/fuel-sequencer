@@ -6,6 +6,7 @@ from typing import List, Optional, Dict, Union, Type
 
 import requests
 from raw_msgs.msg_post_blob import get_msg_post_blob
+from utils.constants import PROPOSAL_STATUS_MAP
 from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
@@ -207,7 +208,8 @@ class CosmosChain:
         output = self.query(f"gov proposal {proposal_id}")
         print(f"PROPOSAL: {output}")
         json_output = json.loads(output)
-        print(f"PROPOSAL STATUS: {json_output['status']}")
+        proposal_status = PROPOSAL_STATUS_MAP[json_output['proposal']['status']]
+        print(f"PROPOSAL STATUS: {proposal_status}")
 
         return proposal_id
 

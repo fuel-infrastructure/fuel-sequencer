@@ -19,7 +19,7 @@ SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
 # Load test configuration
 BLOCKS_TO_LOAD_TEST = 999999
 SHUT_DOWN_ON_TX_ERR = True
-BLOB_SIZE_BYTES = 1000000
+BLOB_SIZE_BYTES = 1048576
 # Max blob size:
 #   https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
 # Max block size:

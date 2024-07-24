@@ -14,10 +14,12 @@ def get_update_bridge_module_params_proposal(
     injected_event_tx_max_bytes: str,
     sequencer_txs_allocation: str,
     max_authorize_messages: str,
+    proposal_title: str = "Proposal title",
+    proposal_summary: str = "Proposal summary",
 ) -> Dict:
     return {
-        "title": "Proposal title",
-        "summary": "Proposal summary",
+        "title": proposal_title,
+        "summary": proposal_summary,
         "deposit": deposit,
         "messages": [
             {

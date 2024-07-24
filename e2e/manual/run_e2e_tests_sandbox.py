@@ -9,6 +9,10 @@ from proposals_gov.grant_authorisation import \
     get_grant_authorisation_proposal as get_grant_authorisation_proposal_by_gov
 from proposals_gov.set_bridge_module_params import \
     get_update_bridge_module_params_proposal
+from proposals_gov.set_consensus_module_params import \
+    get_update_consensus_module_params_proposal
+from proposals_gov.set_sequencing_module_params import \
+    get_update_sequencing_module_params_proposal
 from proposals_gov.set_voting_period_low import \
     get_set_voting_period_low_proposal
 from proposals_gov.software_upgrade import get_software_upgrade_proposal
@@ -93,7 +97,9 @@ pretty(SEQ.query_balance_by_key_name(key_name_alice))
 SEQ.submit_param_change_proposal_legacy(get_set_voting_period_low_proposal())
 SEQ.voting_period = 10
 
-# Set parameters on Sequencer
+# Query current bridge parameters
+pretty(SEQ.query_module_params("bridge"))
+# Set bridge parameters on Sequencer
 deposit = "2500000000000000000000utest"
 bridge_denom = "utest"
 bridge_denom_total_supply = "10000000000000000000000000000"
@@ -107,8 +113,8 @@ authorize_messages_allowed = [
     "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
     "/cosmos.gov.v1.MsgVote"
 ]
-supply_delta_period = "14400"
-vesting_start_time = "2023-07-17T00:00:00Z"
+supply_delta_period = "100"
+vesting_start_time = "2024-01-01T00:00:00Z"
 additional_blocked_addresses = []
 max_eth_block_update_delay = "4h"
 injected_event_tx_max_bytes = "1900000"
@@ -127,6 +133,38 @@ SEQ.submit_gov_proposal(get_update_bridge_module_params_proposal(
     injected_event_tx_max_bytes=injected_event_tx_max_bytes,
     sequencer_txs_allocation=sequencer_txs_allocation,
     max_authorize_messages=max_authorize_messages,
+))
+
+# Query current sequencing parameters
+pretty(SEQ.query_module_params("sequencing"))
+# Set sequencing parameters on Sequencer
+deposit = "2500000000000000000000utest"
+max_blob_size_bytes = "1048576"
+sequencer_tx_max_bytes = "1572864"
+SEQ.submit_gov_proposal(get_update_sequencing_module_params_proposal(
+    deposit=deposit,
+    max_blob_size_bytes=max_blob_size_bytes,
+    sequencer_tx_max_bytes=sequencer_tx_max_bytes,
+))
+
+# Query current consensus parameters
+pretty(SEQ.query_module_params("consensus"))
+# Set consensus parameters on Sequencer
+deposit = "2500000000000000000000utest"
+block_max_bytes = "2000000"
+block_max_gas = "100000000"
+evidence_max_age_num_blocks = "100000"
+evidence_max_age_duration = "48h"
+evidence_max_bytes = "1048576"
+validator_pub_key_types = ["ed25519"]
+SEQ.submit_gov_proposal(get_update_consensus_module_params_proposal(
+    deposit=deposit,
+    block_max_bytes=block_max_bytes,
+    block_max_gas=block_max_gas,
+    evidence_max_age_num_blocks=evidence_max_age_num_blocks,
+    evidence_max_age_duration=evidence_max_age_duration,
+    evidence_max_bytes=evidence_max_bytes,
+    validator_pub_key_types=validator_pub_key_types,
 ))
 
 # Perform a deposit on Ethereum without vesting
@@ -200,8 +238,18 @@ SEQ.submit_gov_proposal(get_software_upgrade_proposal(
     name=name, height=height, info=info))
 
 # Generate large voting power changes
-SEQ.delegate("fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca", "10000000utest")
+SEQ.delegate(
+    "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
+    "10000000utest",
+)
 # Wait for a while before submitting the next...
-SEQ.redelegate("fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca", "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f", "10000000utest")
+SEQ.redelegate(
+    "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
+    "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f",
+    "10000000utest",
+)
 # Wait for a while before submitting the next...
-SEQ.unbond("fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f", "10000000utest")
+SEQ.unbond(
+    "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f",
+    "10000000utest",
+)
