@@ -148,7 +148,7 @@ func TestEncodeDepositEvent(t *testing.T) {
 
 func TestDecodeTx(t *testing.T) {
 
-	dataBase64 := ""
+	dataBase64 := "Cl8KXQohL2Z1ZWxzZXF1ZW5jZXIuYnJpZGdlLnYxLk1zZ0luZGV4EjgKNGZ1ZWxzZXF1ZW5jZXIxMGQwN3kyNjVnbW11dnQ0ejB3OWF3ODgwam5zcjcwMGpkamZ2azMgARICEgA="
 	dataBz, err := base64.StdEncoding.DecodeString(dataBase64)
 	if err != nil {
 		panic(err)
