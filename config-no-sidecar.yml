@@ -61,7 +61,6 @@ validators:
   app:
     api:
       swagger: true
-      rpc-max-body-bytes: "10000000" # 10MB
     grpc:
       address: 0.0.0.0:9090
     sidecar:
