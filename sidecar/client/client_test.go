@@ -78,3 +78,79 @@ func TestNewClientFromConfig_NoOpClientIfSidecarConfigDisabled(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &sidecarclient.NoOpClient{}, client)
 }
+
+func TestNewClient(t *testing.T) {
+	validGRPCClientFields := testGRPCClientFields{
+		logger:         testutil.ValidLogger,
+		addr:           testutil.ValidSidecarConfig.Address,
+		timeout:        testutil.ValidSidecarConfig.Timeout,
+		pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+	}
+
+	testCases := []struct {
+		name                string
+		fnInput             testGRPCClientFields
+		expErrMsg           string
+		expGRPCClientFields testGRPCClientFields
+	}{
+		{
+			name:                "Returns expected client if function input is valid",
+			fnInput:             validGRPCClientFields,
+			expGRPCClientFields: validGRPCClientFields,
+		},
+		{
+			name: "Returns error if logger is nil",
+			fnInput: testGRPCClientFields{
+				logger:         nil,
+				addr:           testutil.ValidSidecarConfig.Address,
+				timeout:        testutil.ValidSidecarConfig.Timeout,
+				pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+			},
+			expErrMsg: "logger cannot be nil",
+		},
+		{
+			name: "Returns error if address is invalid - space between host and port",
+			fnInput: testGRPCClientFields{
+				logger:         testutil.ValidLogger,
+				addr:           "1.1.1.1 :80",
+				timeout:        testutil.ValidSidecarConfig.Timeout,
+				pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+			},
+			expErrMsg: "invalid Sidecar address",
+		},
+		{
+			name: "Returns error if address is invalid - invalid characters and structure",
+			fnInput: testGRPCClientFields{
+				logger:         testutil.ValidLogger,
+				addr:           "!@#$%^&*()",
+				timeout:        testutil.ValidSidecarConfig.Timeout,
+				pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+			},
+			expErrMsg: "invalid Sidecar address",
+		},
+		// TODO: Might add test case for "" address after adding validation in NewClientFromConfig and NewClient.
+		//     : test case should also be added for previous set of cases
+		// TODO: Add invalid timeout test.
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			appSidecarClient, err := sidecarclient.NewClient(
+				tc.fnInput.logger, tc.fnInput.addr, tc.fnInput.timeout, tc.fnInput.pathToCertFile,
+			)
+			if len(tc.expErrMsg) > 0 {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+
+			grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
+			require.True(t, ok)
+			require.Equal(t, tc.expGRPCClientFields.addr, grpcClient.Addr())
+			require.Equal(t, tc.expGRPCClientFields.timeout, grpcClient.Timeout())
+			require.Equal(t, tc.expGRPCClientFields.logger, grpcClient.Logger())
+			require.Equal(t, tc.expGRPCClientFields.pathToCertFile, grpcClient.PathToCertFile())
+		})
+	}
+}

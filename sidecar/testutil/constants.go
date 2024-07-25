@@ -12,19 +12,19 @@ var (
 		Enabled:        true,
 		Address:        "localhost:8000",
 		Timeout:        3 * time.Second,
-		PathToCertFile: "",
+		PathToCertFile: "path/to/cert/file",
 	}
 	InvalidSidecarConfig = sidecarconfig.SidecarConfig{
 		Enabled:        true,
 		Address:        "localhost:8000",
 		Timeout:        0, // Timeout cannot be zero
-		PathToCertFile: "",
+		PathToCertFile: "path/to/cert/file",
 	}
 	DisabledSidecarConfig = sidecarconfig.SidecarConfig{
 		Enabled:        false,
 		Address:        "localhost:8000",
 		Timeout:        3 * time.Second,
-		PathToCertFile: "",
+		PathToCertFile: "path/to/cert/file",
 	}
 
 	ValidLogger = log.NewNopLogger()
