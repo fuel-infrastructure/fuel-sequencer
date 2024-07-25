@@ -71,7 +71,7 @@ func NewClient(
 		return nil, fmt.Errorf("logger cannot be nil")
 	}
 
-	// If the sidecar is to be enabled, the server address cannot be empty
+	// If the sidecar was enabled, the server address cannot be empty
 	if address == "" {
 		return nil, fmt.Errorf("sidecar address cannot be empty")
 	}

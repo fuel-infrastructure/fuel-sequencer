@@ -90,7 +90,7 @@ func (cfg *SidecarConfig) ValidateBasic() error {
 		return nil
 	}
 
-	// If the sidecar is to be enabled, the server address cannot be empty
+	// If the sidecar was enabled, the server address cannot be empty
 	if cfg.Address == "" {
 		return fmt.Errorf("sidecar address cannot be empty")
 	}
