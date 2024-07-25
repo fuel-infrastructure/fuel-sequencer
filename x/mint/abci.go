@@ -46,6 +46,7 @@ func BeginBlocker(
 	//}
 	//
 	// Here, the bonded ratio is set to zero just for the sake of emitting it as an attribute in the mint event.
+	// This was done to maintain the structure of the events emitted by the mint module and avoid potential breaks.
 	dummyBondedRatio := math.LegacyZeroDec()
 
 	// Since we have no bonded ratio, and we want the inflation rate to be fixed, we can skip this calculation.
