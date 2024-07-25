@@ -51,9 +51,7 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				// 3 Validators
 				// Total Supply = 630000000000
 				//
-				// Bonded ratio = (100000000000 * 3) / (210000000000 * 3)
-				// 				= 0.47619047619
-				//
+				// Bonded ratio        = (unused)
 				// InflationRateChange = (unused)
 				// InflationMin 	   = (unused)
 				// GoalBonded          = (unused)
