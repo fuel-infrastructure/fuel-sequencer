@@ -124,16 +124,16 @@ def run_report_3(start_height: int, end_height: int):
 
 # Report 1
 for i in range(len(start_heights)):
-    print(f"--- (Report 1.{i})")
+    print(f"\n--- (Report 1.{i})")
     run_report_1(start_heights[i], end_heights[i])
 
 # Report 2
 for i, signer in enumerate(signers):
-    print(f"--- (Report 2.{i})")
-    for i in range(len(start_heights)):
-        run_report_2(start_heights[i], end_heights[i], signer)
+    print(f"\n--- (Report 2.{i})")
+    for j in range(len(start_heights)):
+        run_report_2(start_heights[j], end_heights[j], signer)
 
 # Report 3
 for i in range(len(start_heights)):
-    print(f"--- (Report 3.{i})")
+    print(f"\n--- (Report 3.{i})")
     run_report_3(start_heights[i], end_heights[i])
