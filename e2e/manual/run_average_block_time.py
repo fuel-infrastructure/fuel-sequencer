@@ -33,8 +33,7 @@ def base64_decoded_size(encoded_str):
     return (l * 3) // 4 - p
 
 
-def run_report(start_height: int, end_height: int):
-    # Calculate overall average
+def run_report_1(start_height: int, end_height: int):
     start_block = get_block(start_height)
     start_block_timestamp = parser.parse(start_block['block']['header']['time'])
     end_block = get_block(end_height)
@@ -48,6 +47,8 @@ def run_report(start_height: int, end_height: int):
         f"- Seconds per block: {seconds_per_block}"
     )
 
+
+def run_report_2(start_height: int, end_height: int):
     previous_block_timestamp = None
     for n in range(start_height, end_height):
 
@@ -72,6 +73,12 @@ def run_report(start_height: int, end_height: int):
         time.sleep(1)
 
 
+# Report 1
 for i in range(len(start_heights)):
     print("---")
-    run_report(start_heights[i], end_heights[i])
+    run_report_1(start_heights[i], end_heights[i])
+
+# Report 2
+for i in range(len(start_heights)):
+    print("---")
+    run_report_2(start_heights[i], end_heights[i])
