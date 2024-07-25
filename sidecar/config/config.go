@@ -90,6 +90,11 @@ func (cfg *SidecarConfig) ValidateBasic() error {
 		return nil
 	}
 
+	// If the sidecar is to be enabled, the server address cannot be empty
+	if cfg.Address == "" {
+		return fmt.Errorf("sidecar address cannot be empty")
+	}
+
 	// Prepending a "//" allows addresses without a scheme.
 	if _, err := url.Parse("//" + cfg.Address); err != nil {
 		return fmt.Errorf("sidecar address must be valid: %w", err)

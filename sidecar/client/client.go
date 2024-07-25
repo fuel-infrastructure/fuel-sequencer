@@ -71,6 +71,11 @@ func NewClient(
 		return nil, fmt.Errorf("logger cannot be nil")
 	}
 
+	// If the sidecar is to be enabled, the server address cannot be empty
+	if address == "" {
+		return nil, fmt.Errorf("sidecar address cannot be empty")
+	}
+
 	// Prepending a "//" allows addresses without a scheme.
 	if _, err := url.Parse("//" + address); err != nil {
 		return nil, fmt.Errorf("invalid Sidecar address: %w", err)

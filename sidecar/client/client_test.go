@@ -109,7 +109,7 @@ func TestNewClient(t *testing.T) {
 			expErrMsg: "logger cannot be nil",
 		},
 		{
-			name: "Returns error if address is invalid - space between host and port",
+			name: "Returns error if address is invalid (space between host and port)",
 			fnInput: testGRPCClientFields{
 				logger:         testutil.ValidLogger,
 				addr:           "1.1.1.1 :80",
@@ -119,7 +119,7 @@ func TestNewClient(t *testing.T) {
 			expErrMsg: "invalid Sidecar address",
 		},
 		{
-			name: "Returns error if address is invalid - invalid characters and structure",
+			name: "Returns error if address is invalid (invalid characters and structure)",
 			fnInput: testGRPCClientFields{
 				logger:         testutil.ValidLogger,
 				addr:           "!@#$%^&*()",
@@ -128,9 +128,36 @@ func TestNewClient(t *testing.T) {
 			},
 			expErrMsg: "invalid Sidecar address",
 		},
-		// TODO: Might add test case for "" address after adding validation in NewClientFromConfig and NewClient.
-		//     : test case should also be added for previous set of cases
-		// TODO: Add invalid timeout test.
+		{
+			name: "Returns error if address is invalid (empty address)",
+			fnInput: testGRPCClientFields{
+				logger:         testutil.ValidLogger,
+				addr:           "",
+				timeout:        testutil.ValidSidecarConfig.Timeout,
+				pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+			},
+			expErrMsg: "sidecar address cannot be empty",
+		},
+		{
+			name: "Returns error if timeout is invalid (zero)",
+			fnInput: testGRPCClientFields{
+				logger:         testutil.ValidLogger,
+				addr:           testutil.ValidSidecarConfig.Address,
+				timeout:        0,
+				pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+			},
+			expErrMsg: "timeout must be positive",
+		},
+		{
+			name: "Returns error if timeout is invalid (negative)",
+			fnInput: testGRPCClientFields{
+				logger:         testutil.ValidLogger,
+				addr:           testutil.ValidSidecarConfig.Address,
+				timeout:        -1,
+				pathToCertFile: testutil.ValidSidecarConfig.PathToCertFile,
+			},
+			expErrMsg: "timeout must be positive",
+		},
 	}
 
 	for _, tc := range testCases {
