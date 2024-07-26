@@ -372,7 +372,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		err = injectedMsgIndex.Equal(msgIndex, injectedEventTxs, eventTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"generated injected txs do not match the ones from the block proposal: %w", err,
+				"generated injected txs do not match the ones from the block proposal "+
+					"(injected MsgIndex: %s) (generated MsgIndex: %s): %w",
+				injectedMsgIndex.String(), msgIndex.String(), err,
 			)
 		}
 
