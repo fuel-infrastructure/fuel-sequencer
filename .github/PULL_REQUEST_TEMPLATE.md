@@ -30,7 +30,6 @@ Queries:
 
 Testing and docs:
 
-- [ ] `make format` for formatting Go code.
 - [ ] `make proto-routine` for formatting and APIs.
 - [ ] `make lint` to ensure linting rules satisfied.
 - [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
