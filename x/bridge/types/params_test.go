@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -108,6 +109,29 @@ func TestValidateBridgeDenom(t *testing.T) {
 	}
 }
 
+func TestValidateBridgeDenomTotalSupply(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{"Valid supply", sdkmath.NewInt(10), false},
+		{"Zero supply", sdkmath.NewInt(0), true},
+		{"Non-Int type", "not an Int", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateBridgeDenomTotalSupply(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestValidateEthereumProxyContractAddress(t *testing.T) {
 	testCases := []struct {
 		name      string
@@ -137,8 +161,8 @@ func TestValidateAuthorizeMessagesAllowed(t *testing.T) {
 		input     interface{}
 		expectErr bool
 	}{
-		{"Valid messages", []string{"message1", "message2"}, false},
-		{"Empty slice", []string{}, true},
+		{"Valid messages - non-empty slice", []string{"message1", "message2"}, false},
+		{"Valid messages - Empty slice", []string{}, false},
 		{"Slice with empty message", []string{"message1", ""}, true},
 		{"Non-slice type", "not a slice", true},
 	}
@@ -264,13 +288,100 @@ func TestValidateInjectedEventTxMaxBytes(t *testing.T) {
 	}
 }
 
+func TestValidateSequencerTxsAllocation(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{
+			"Valid SequencerTxsAllocation - MinimumSequencerTxsAllocation < value < MaximumSequencerTxsAllocation",
+			types.MinimumSequencerTxsAllocation.Add(sdkmath.LegacyMustNewDecFromStr("0.1")),
+			false,
+		},
+		{
+			"Valid SequencerTxsAllocation - value == MinimumSequencerTxsAllocation",
+			types.MinimumSequencerTxsAllocation,
+			false,
+		},
+		{
+			"Valid SequencerTxsAllocation - value == MaximumSequencerTxsAllocation",
+			types.MaximumSequencerTxsAllocation,
+			false,
+		},
+		{
+			"Invalid SequencerTxsAllocation - value < MinimumSequencerTxsAllocation",
+			types.MinimumSequencerTxsAllocation.Sub(sdkmath.LegacyMustNewDecFromStr("0.01")),
+			true,
+		},
+		{
+			"Invalid SequencerTxsAllocation - value > MaximumSequencerTxsAllocation",
+			types.MaximumSequencerTxsAllocation.Add(sdkmath.LegacyMustNewDecFromStr("0.01")),
+			true,
+		},
+		{"Non-LegacyDec type", "not a LegacyDec", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateSequencerTxsAllocation(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateMaxAuthorizeMessages(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{
+			"Valid MaxAuthorizeMessages - value greater than MinimumMaxAuthorizeMessages",
+			uint64(types.MinimumMaxAuthorizeMessages + 1),
+			false,
+		},
+		{
+			"Valid MaxAuthorizeMessages - value equal to MinimumMaxAuthorizeMessages",
+			uint64(types.MinimumMaxAuthorizeMessages),
+			false,
+		},
+		{
+			"Invalid MaxAuthorizeMessages - value less than MinimumIMaxAuthorizeMessages",
+			uint64(types.MinimumMaxAuthorizeMessages - 1),
+			true,
+		},
+		{"Non-uint64 type", "not a uint64", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateMaxAuthorizeMessages(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
+	validBridgeDenomTotalSupply := sdkmath.NewInt(10_000_000_000)
 	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
 	validAuthorizeMessagesAllowed := []string{"authorizeMessage1", "authorizeMessage2"}
 	validSupplyDeltaPeriod := uint64(10)
 	validVestingStartTime := time.Now()
 	validMaxEthBlockUpdateDelay := time.Hour
+	validInjectedEventTxMaxBytes := uint64(10000000)
+	validSequencerTxsAllocation := sdkmath.LegacyMustNewDecFromStr("0.3")
+	validMaxAuthorizeMessages := uint64(10)
+	validAdditionalBlockedAddresses := []string(nil)
 
 	// Creating an invalid ethereum proxy contract address for testing
 	invalidEthereumProxyContractAddress := "0xInvalidAddress"
@@ -281,21 +392,41 @@ func TestParams_Validate(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "Valid parameters - default params",
+			name:      "Invalid parameters - default params",
 			params:    types.DefaultParams(),
-			expectErr: false,
+			expectErr: true,
 		},
 		{
 			name: "Valid parameters - non-default params",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
+			},
+			expectErr: false,
+		},
+		{
+			name: "Valid parameters - Empty authorize messages allowed",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     []string{},
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: false,
 		},
@@ -307,9 +438,11 @@ func TestParams_Validate(t *testing.T) {
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -317,27 +450,16 @@ func TestParams_Validate(t *testing.T) {
 			name: "Invalid ethereum proxy contract address",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: invalidEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
-			},
-			expectErr: true,
-		},
-		{
-			name: "Empty authorize messages allowed",
-			params: types.Params{
-				BridgeDenom:                  validBridgeDenom,
-				EthereumProxyContractAddress: validEthereumProxyContractAddress,
-				AuthorizeMessagesAllowed:     []string{},
-				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
-				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
-				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -345,13 +467,16 @@ func TestParams_Validate(t *testing.T) {
 			name: "Zero supply delta period",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            0,
 				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -359,13 +484,16 @@ func TestParams_Validate(t *testing.T) {
 			name: "Zero vesting start time",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             time.Time{},
-				AdditionalBlockedAddresses:   []string{},
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -373,13 +501,16 @@ func TestParams_Validate(t *testing.T) {
 			name: "bad blocked address",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
-				VestingStartTime:             time.Time{},
+				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -387,13 +518,16 @@ func TestParams_Validate(t *testing.T) {
 			name: "negative tolerance for no Ethereum block syncing",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
 				VestingStartTime:             validVestingStartTime,
-				AdditionalBlockedAddresses:   []string{},
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       time.Duration(-1),
-				InjectedEventTxMaxBytes:      10000000,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -401,13 +535,69 @@ func TestParams_Validate(t *testing.T) {
 			name: "InjectedEventTxMaxBytes too small",
 			params: types.Params{
 				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
 				EthereumProxyContractAddress: validEthereumProxyContractAddress,
 				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
 				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
-				VestingStartTime:             time.Time{},
-				AdditionalBlockedAddresses:   []string{},
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
 				InjectedEventTxMaxBytes:      uint64(types.MinimumInjectedEventTxMaxBytes - 1),
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
+			},
+			expectErr: true,
+		},
+		{
+			name: "SequencerTxsAllocation too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation: types.MinimumSequencerTxsAllocation.Sub(
+					sdkmath.LegacyMustNewDecFromStr("0.01"),
+				),
+				MaxAuthorizeMessages: validMaxAuthorizeMessages,
+			},
+			expectErr: true,
+		},
+		{
+			name: "MaxAuthorizeMessages too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         uint64(types.MinimumMaxAuthorizeMessages - 1),
+			},
+			expectErr: true,
+		},
+		{
+			name: "BridgeDenomTotalSupply too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       sdkmath.ZeroInt(), // 0 is too small
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				AuthorizeMessagesAllowed:     validAuthorizeMessagesAllowed,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+				MaxAuthorizeMessages:         validMaxAuthorizeMessages,
 			},
 			expectErr: true,
 		},
@@ -486,21 +676,9 @@ func TestIsAuthorizedMessage(t *testing.T) {
 		expResult bool
 	}{
 		{
-			name: "returns true if message is authorized (messages allowed is not *)",
+			name: "returns true if message is authorized",
 			params: &types.Params{
 				AuthorizeMessagesAllowed: []string{"msg1", "msg2", sdk.MsgTypeURL(&banktypes.MsgSend{})},
-			},
-			msg: &banktypes.MsgSend{
-				FromAddress: "addr1",
-				ToAddress:   "addr2",
-				Amount:      nil,
-			},
-			expResult: true,
-		},
-		{
-			name: "returns true if message is authorized (messages allowed is *)",
-			params: &types.Params{
-				AuthorizeMessagesAllowed: []string{"*"},
 			},
 			msg: &banktypes.MsgSend{
 				FromAddress: "addr1",

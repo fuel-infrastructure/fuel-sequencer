@@ -13,13 +13,12 @@ import (
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -32,8 +31,6 @@ type GRPCClients struct {
 
 	// Cosmos SDK query clients
 	GovQueryClient          govtypesv1.QueryClient
-	GroupsQueryClient       grouptypes.QueryClient
-	ParamsQueryClient       paramsproposaltypes.QueryClient
 	AuthQueryClient         authtypes.QueryClient
 	AuthZQueryClient        authz.QueryClient
 	BankQueryClient         banktypes.QueryClient
@@ -43,8 +40,9 @@ type GRPCClients struct {
 	MintQueryClient         minttypes.QueryClient
 
 	// Custom query clients
-	BridgeQueryClient     bridgetypes.QueryClient
-	SequencingQueryClient sequencingtypes.QueryClient
+	BridgeQueryClient      bridgetypes.QueryClient
+	SequencingQueryClient  sequencingtypes.QueryClient
+	CommitmentsQueryClient commitmentstypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -67,8 +65,6 @@ func (s *E2ETestSuite) initGRPCClients() {
 
 	s.Chain.grpcClients = &GRPCClients{
 		GovQueryClient:          govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:       grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:       paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:         authtypes.NewQueryClient(grpcConn),
 		AuthZQueryClient:        authz.NewQueryClient(grpcConn),
 		BankQueryClient:         banktypes.NewQueryClient(grpcConn),
@@ -76,6 +72,7 @@ func (s *E2ETestSuite) initGRPCClients() {
 		ConsensusQueryClient:    consensustypes.NewQueryClient(grpcConn),
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
+		CommitmentsQueryClient:  commitmentstypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
 		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
 		MintQueryClient:         minttypes.NewQueryClient(grpcConn),

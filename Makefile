@@ -8,8 +8,6 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 ETH_DOCKER_IMAGE_NAME := "fuel-infrastructure/contracts-docker-e2e"
 ETH_DOCKER_CONTAINER_NAME := "ethereum"
 
-FSX_DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-stream-x-manual-docker-e2e"
-
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
@@ -170,8 +168,11 @@ run-client-binary:
 run-sidecar-binary:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
 	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SIDECAR_PATH_TO_CERT_FILE ?= "")
+	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
@@ -183,8 +184,11 @@ run-sidecar-binary:
 	@$(BUILDDIR)/sidecar-$(VERSION)-$(ARCH) \
 		--host "$(SIDECAR_HOST)" \
 		--port "$(SIDECAR_PORT)" \
+		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
@@ -217,12 +221,9 @@ proto-format:
 		find ./proto -name "*.proto" -exec clang-format -i {} \; ; fi
 	@echo "✅ Finished formatting Protobuf files!"
 
-# This command makes use of Ignite's new way of specifying docs.
-# This can be improved later on with a non-Ignite approach.
 proto-swagger-gen:
-	@echo "🤖 Generating Swagger files..."
-	@ignite generate openapi
-	@echo "✅ Finished generating Swagger files!"
+	@echo "🤖 Generating API docs..."
+	@$(protoSwaggerImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-routine: proto-format proto-go-gen proto-swagger-gen
 
@@ -237,8 +238,11 @@ run-sequencer-no-sidecar: proto-go-gen serve-no-sidecar
 run-sidecar:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
 	@$(eval SIDECAR_PORT ?= "8080")
+	@$(eval SIDECAR_PATH_TO_CERT_FILE ?= "")
+	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853")
@@ -258,11 +262,17 @@ run-sidecar:
 		--port "$(SIDECAR_PORT)" \
 		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
 		--development "$(DEVELOPMENT)"
+
+init:
+	ignite chain init --skip-proto --build.tags ledger
 
 serve:
 	ignite chain serve -v --reset-once --skip-proto --build.tags ledger
@@ -309,6 +319,11 @@ lint:
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
 	@echo "✅ Finished running linter!"
 
+format:
+	@echo "🔎 Running formatter..."
+	@gofmt -s -w .
+	@echo "✅ Finished running formatter!"
+
 ###############################################################################
 ###                                  Tests                                  ###
 ###############################################################################
@@ -321,7 +336,6 @@ test-unit:
 test-e2e: \
 	check-docker-image-exists \
 	check-eth-docker-image-exists \
-	check-fsx-docker-image-exist \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
@@ -398,7 +412,7 @@ follow-docker-logs:
 ###                                   E2E                                   ###
 ###############################################################################
 
-build-all-docker-images: build-docker-image build-eth-docker-image build-fsx-docker-image
+build-all-docker-images: build-docker-image build-eth-docker-image
 
 check-eth-docker-image-exists:
 ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
@@ -407,22 +421,6 @@ ifeq (,$(shell docker images -q ${ETH_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
 else
 	@echo "✅ Found docker image ${ETH_DOCKER_IMAGE_NAME}:latest"
 endif
-
-check-fsx-docker-image-exist:
-ifeq (,$(shell docker images -q ${FSX_DOCKER_IMAGE_NAME}:latest 2> /dev/null))
-	@echo "❌ Docker image ${FSX_DOCKER_IMAGE_NAME}:latest not found";
-	@exit 1;
-else
-	@echo "✅ Found docker image ${FSX_DOCKER_IMAGE_NAME}:latest"
-endif
-
-build-fsx-docker-image:
-	@echo "🤖 Updating git submodules (fuelstreamx)..."
-	@git submodule update --init --remote e2e/fuelstreamx
-	@(cd e2e/fuelstreamx && make build-manual-docker-image)
-	@echo "🤖 Cleaning up git submodules (fuelstreamx)..."
-	@git submodule update --remote e2e/fuelstreamx
-	@echo "✅ Finished!"
 
 build-eth-docker-image:
 	@echo "🤖 Updating git submodules (test-contracts)..."
@@ -477,14 +475,12 @@ test-e2e-special-messages:
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
-	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
 	@docker ps -aq --filter "name=ethereum" | xargs -r docker stop
 
 	@echo "🧹 Removing Docker containers..."
-	@docker ps -aq --filter "name=fuelstreamx" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
 	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm

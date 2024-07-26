@@ -37,8 +37,36 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 			}
 
 			// Search for event showing successful execution
-			_, eventFound := s.SearchForEventInBlockResults(s.Ctx(), supplyDeltaEvent.Type, block)
+			event, eventFound := s.SearchForEventInBlockResults(s.Ctx(), supplyDeltaEvent.Type, block)
 			s.Require().Equal(expectMsgSupplyDelta, eventFound)
+
+			if expectMsgSupplyDelta {
+				nonceAttribute := event.Attributes[0]
+				s.Require().EqualValues("nonce", nonceAttribute.Key)
+				s.Require().EqualValues("1", nonceAttribute.Value[1:len(nonceAttribute.Value)-1])
+
+				supplyDeltaAttribute := event.Attributes[1]
+				s.Require().EqualValues("supply_delta", supplyDeltaAttribute.Key)
+				// 210000000000 Initial balance per Validator
+				// 3 Validators
+				// Total Supply = 630000000000
+				//
+				// Bonded ratio        = (unused)
+				// InflationRateChange = (unused)
+				// InflationMin        = (unused)
+				// GoalBonded          = (unused)
+				// BlocksPerYear       = 6311520
+				//
+				// Inflation = 0.10
+				//
+				// Tokens minted per block = (10000000000 / 6311520) * 0.10 where 10000000000 is the BridgeDenomTotalSupply
+				//                         = 158.4404390701
+				//                         = 158
+				//
+				// Supply delta = 630000000000 + (158 * 10) where 10 is the SupplyDeltaPeriod
+				//              = 630000001580
+				s.Require().EqualValues("630000001580", supplyDeltaAttribute.Value[1:len(supplyDeltaAttribute.Value)-1])
+			}
 		}
 	})
 }

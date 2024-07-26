@@ -28,7 +28,7 @@ type (
 		// should be the x/gov module account.
 		authority string
 
-		// blockedAddresses is the list of blocked addresses
+		// blockedAddresses is the list of blocked bech32 addresses
 		blockedAddresses map[string]bool
 
 		// Msg server router

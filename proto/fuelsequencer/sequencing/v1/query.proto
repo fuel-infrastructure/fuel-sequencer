@@ -22,14 +22,12 @@ service Query {
 
   // Queries a Topic by Id.
   rpc Topic(QueryGetTopicRequest) returns (QueryGetTopicResponse) {
-    option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/sequencing/v1/topic/{id}";
+    option (google.api.http).get = "/fuelsequencer/sequencing/v1/topic/{id}";
   }
 
   // Queries all Topics.
   rpc TopicAll(QueryAllTopicRequest) returns (QueryAllTopicResponse) {
-    option (google.api.http).get =
-        "/fuel-infrastructure/fuel-sequencer/sequencing/v1/topic";
+    option (google.api.http).get = "/fuelsequencer/sequencing/v1/topic";
   }
 }
 

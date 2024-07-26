@@ -3,6 +3,7 @@ package events_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -28,6 +29,7 @@ func (s *EventsTestSuite) SetupTest() {
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[bridgetypes.ModuleName], &bridgeGenState))
 
 			bridgeGenState.Params.SupplyDeltaPeriod = uint64(1000)
+			bridgeGenState.Params.MaxEthBlockUpdateDelay = time.Second * 20
 
 			bz, err := cdc.MarshalJSON(&bridgeGenState)
 			s.Require().NoError(err)

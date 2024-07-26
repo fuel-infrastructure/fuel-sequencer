@@ -11,6 +11,7 @@ import (
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -32,6 +33,8 @@ type GRPCClient struct {
 	conn *grpc.ClientConn
 	// timeout for the client, event requests will block for this duration.
 	timeout time.Duration
+	// pathToCertFile defines the path to the certificate file of the sidecar server.
+	pathToCertFile string
 }
 
 // NewClientFromConfig creates a new grpc client of the Sidecar service with the given
@@ -53,7 +56,7 @@ func NewClientFromConfig(
 		return nil, fmt.Errorf("logger cannot be nil")
 	}
 
-	return NewClient(logger, cfg.Address, cfg.Timeout)
+	return NewClient(logger, cfg.Address, cfg.Timeout, cfg.PathToCertFile)
 }
 
 // NewClient creates a new grpc client of the Sidecar
@@ -62,6 +65,7 @@ func NewClient(
 	logger log.Logger,
 	address string,
 	timeout time.Duration,
+	pathToCertFile string,
 ) (AppSidecarClient, error) {
 	if logger == nil {
 		return nil, fmt.Errorf("logger cannot be nil")
@@ -77,9 +81,10 @@ func NewClient(
 	}
 
 	client := &GRPCClient{
-		logger:  logger,
-		addr:    address,
-		timeout: timeout,
+		logger:         logger,
+		addr:           address,
+		timeout:        timeout,
+		pathToCertFile: pathToCertFile,
 	}
 
 	return client, nil
@@ -88,16 +93,27 @@ func NewClient(
 // Start starts the GRPC client. This method dials the remote
 // Sidecar service and errors if the connection fails.
 func (c *GRPCClient) Start(ctx context.Context) error {
-	c.logger.Info("starting GRPC Sidecar client", "addr", c.addr)
+	c.logger.Info("starting GRPC Sidecar client", "sidecar server address", c.addr)
+
+	// Set up a secure connection with the sidecar server if configured by the operator
+	var sidecarConnCreds credentials.TransportCredentials
+	var err error
+	if c.pathToCertFile == "" {
+		sidecarConnCreds = insecure.NewCredentials()
+	} else {
+		sidecarConnCreds, err = credentials.NewClientTLSFromFile(c.pathToCertFile, "")
+		if err != nil {
+			return fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err)
+		}
+	}
 
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(sidecarConnCreds),
 	}
 
 	// dial the client, but defer to context closure, if necessary
 	var (
 		conn *grpc.ClientConn
-		err  error
 		done = make(chan struct{})
 	)
 	go func() {

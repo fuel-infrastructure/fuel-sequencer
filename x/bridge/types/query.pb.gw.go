@@ -549,17 +549,17 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "bridge", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastEthereumNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "last_ethereum_nonce"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LastEthereumNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "bridge", "v1", "last_ethereum_nonce"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastEthereumBlockSynced_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "last_ethereum_block_synced"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LastEthereumBlockSynced_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "bridge", "v1", "last_ethereum_block_synced"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_EthereumEventIndexOffset_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "ethereum_event_index_offset"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_EthereumEventIndexOffset_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "bridge", "v1", "ethereum_event_index_offset"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SupplyDeltaInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "supply_delta_info"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SupplyDeltaInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "bridge", "v1", "supply_delta_info"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SequencerAddressFromEthereumAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "sequencer_address_from_ethereum_address", "ethereum_address"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SequencerAddressFromEthereumAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"fuelsequencer", "bridge", "v1", "sequencer_address_from_ethereum_address", "ethereum_address"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastEthBlockUpdateTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"fuel-infrastructure", "fuel-sequencer", "bridge", "v1", "last_eth_block_update_time"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LastEthBlockUpdateTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "bridge", "v1", "last_eth_block_update_time"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

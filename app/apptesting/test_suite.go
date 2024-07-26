@@ -91,7 +91,12 @@ func (s *KeeperTestHelper) MintCoins(coins sdk.Coins) {
 	s.Require().NoError(err)
 }
 
-// EndBlock ends the block.
+// BeginBlock runs the app's BeginBlocker.
+func (s *KeeperTestHelper) BeginBlock() (sdk.BeginBlock, error) {
+	return s.App.BeginBlocker(s.Ctx())
+}
+
+// EndBlock runs the app's EndBlocker.
 func (s *KeeperTestHelper) EndBlock() (sdk.EndBlock, error) {
 	return s.App.EndBlocker(s.Ctx())
 }

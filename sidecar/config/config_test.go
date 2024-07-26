@@ -10,18 +10,21 @@ import (
 func TestSidecarConfig_ValidateBasic(t *testing.T) {
 
 	type fields struct {
-		Enabled bool
-		Address string
-		Timeout time.Duration
+		Enabled        bool
+		Address        string
+		Timeout        time.Duration
+		PathToCertFile string
 	}
 
 	invalidTimeoutValue := time.Duration(0) // zero
 	validTimeoutValue := time.Duration(1)   // non-zero
+	validPathToCertFile := ""
 	validFieldsWithAddress := func(address string) fields {
 		return fields{
-			Enabled: true,
-			Address: address,
-			Timeout: validTimeoutValue,
+			Enabled:        true,
+			Address:        address,
+			Timeout:        validTimeoutValue,
+			PathToCertFile: validPathToCertFile,
 		}
 	}
 
@@ -33,9 +36,10 @@ func TestSidecarConfig_ValidateBasic(t *testing.T) {
 		{
 			name: "disabled sidecar => valid config regardless of other values",
 			fields: fields{
-				Enabled: false,
-				Address: "not a valid address",
-				Timeout: invalidTimeoutValue,
+				Enabled:        false,
+				Address:        "not a valid address",
+				Timeout:        invalidTimeoutValue,
+				PathToCertFile: validPathToCertFile,
 			},
 		},
 		{
@@ -80,9 +84,10 @@ func TestSidecarConfig_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			cfg := &config.SidecarConfig{
-				Enabled: tt.fields.Enabled,
-				Address: tt.fields.Address,
-				Timeout: tt.fields.Timeout,
+				Enabled:        tt.fields.Enabled,
+				Address:        tt.fields.Address,
+				Timeout:        tt.fields.Timeout,
+				PathToCertFile: tt.fields.PathToCertFile,
 			}
 
 			if err := cfg.ValidateBasic(); (err != nil) != tt.wantErr {

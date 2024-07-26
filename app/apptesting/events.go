@@ -1,17 +1,21 @@
 package apptesting
 
 import (
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/exp/slices"
 )
 
-// AssertEventEmitted asserts that ctx's event manager has emitted the given number of events
-// of the given type.
+// AssertEventEmitted asserts that ctx's event manager has emitted the given number of events of the given type.
 func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected string, numEventsExpected int) {
-	allEvents := ctx.EventManager().Events()
+	s.AssertEventInEventsList(ctx.EventManager().Events().ToABCIEvents(), eventTypeExpected, numEventsExpected)
+}
+
+// AssertEventInEventsList asserts that the events list argument has the given number of events of the given type.
+func (s *KeeperTestHelper) AssertEventInEventsList(events []abci.Event, eventTypeExpected string, numEventsExpected int) {
 	// filter out other events
 	eventCounter := 0
-	for _, event := range allEvents {
+	for _, event := range events {
 		if event.Type == eventTypeExpected {
 			eventCounter += 1
 		}
