@@ -181,3 +181,5 @@ func TestNewClient(t *testing.T) {
 		})
 	}
 }
+
+// TODO: Tests for start, stop etc. I think it is best to mock the sidecar server.
