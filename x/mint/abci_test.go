@@ -15,12 +15,18 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	inflationCalculationFn := minttypes.DefaultInflationCalculationFn
 	feeCollector := s.App.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 
+	// Set the inflation rate via the minter
+	minter, err := s.App.MintKeeper.Minter.Get(s.Ctx())
+	s.Require().NoError(err)
+	minter.Inflation = inflation
+	s.Require().NoError(s.App.MintKeeper.Minter.Set(s.Ctx(), minter))
+
 	// Simplify mint module params so that we have a constant 10% inflation.
 	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
 	s.Require().NoError(err)
-	mintParams.InflationMin = inflation
-	mintParams.InflationMax = inflation
-	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0")
+	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.0")        // this is not used
+	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.0")        // this is not used
+	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0") // this is not used
 	s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
 
 	// Override BridgeDenomTotalSupply so that we know what supply value will be used.
@@ -87,12 +93,18 @@ func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMint
 
 	bondDenom := sdk.DefaultBondDenom
 
+	// Set the inflation rate via the minter
+	minter, err := s.App.MintKeeper.Minter.Get(s.Ctx())
+	s.Require().NoError(err)
+	minter.Inflation = sdkmath.LegacyMustNewDecFromStr("0.1")
+	s.Require().NoError(s.App.MintKeeper.Minter.Set(s.Ctx(), minter))
+
 	// Simplify mint module params so that we have a constant 10% inflation.
 	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
 	s.Require().NoError(err)
-	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.1")
-	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.1")
-	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0")
+	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.0")        // this is not used
+	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.0")        // this is not used
+	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0") // this is not used
 	s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
 
 	// Override BridgeDenomTotalSupply so that we know what supply value will be used.
