@@ -72,9 +72,6 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
-		proposerConsAddress := sdk.ConsAddress(req.ProposerAddress)
-		ctx.Logger().Info("preparing proposal", "proposer", proposerConsAddress, "num_txs", len(req.Txs))
-
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
 		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
@@ -123,8 +120,6 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		if sidecarErr != nil {
 			ctx.Logger().Warn("observed sidecar error at PrepareProposal", "err", sidecarErr)
 			// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
-		} else {
-			ctx.Logger().Info("received sidecar response at PrepareProposal", "num_events", len(response.Events))
 		}
 
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
