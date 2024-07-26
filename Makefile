@@ -324,6 +324,11 @@ lint:
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
 	@echo "✅ Finished running linter!"
 
+format:
+	@echo "🔎 Running formatter..."
+	@gofmt -s -w .
+	@echo "✅ Finished running formatter!"
+
 ###############################################################################
 ###                                  Tests                                  ###
 ###############################################################################
