@@ -53,7 +53,7 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				//
 				// Bonded ratio        = (unused)
 				// InflationRateChange = (unused)
-				// InflationMin 	   = (unused)
+				// InflationMin        = (unused)
 				// GoalBonded          = (unused)
 				// BlocksPerYear       = 6311520
 				//
