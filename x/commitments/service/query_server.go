@@ -138,17 +138,17 @@ func fetchBridgeCommitmentLeaves(
 	for height := start; height < end; height++ {
 
 		int64Height := int64(height)
-		block, err := getBlock(ctx, clientCtx, &int64Height)
+		commit, err := getCommit(ctx, clientCtx, &int64Height)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load block %d: %s", height, err.Error())
 		}
-		if block == nil {
-			return nil, fmt.Errorf("couldn't load block %d", height)
+		if commit == nil {
+			return nil, fmt.Errorf("couldn't load commit %d", height)
 		}
 
 		bridgeCommitmentLeaves = append(bridgeCommitmentLeaves, types.BridgeCommitmentLeaf{
 			Height:          height,
-			LastResultsHash: block.Block.Header.LastResultsHash,
+			LastResultsHash: commit.Header.LastResultsHash,
 		})
 	}
 

@@ -11,26 +11,94 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestProtoSerialization(t *testing.T) {
+func TestProtoSerialization_MsgSend(t *testing.T) {
+
 	// Construct the MsgSend with your specified addresses
-	amt, _ := sdkmath.NewIntFromString("10")
-	msgsend := &banktypes.MsgSend{
-		FromAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-		ToAddress:   "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a",
+	amt, _ := sdkmath.NewIntFromString("1")
+	msgSend := &banktypes.MsgSend{
+		FromAddress: "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		ToAddress:   "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
 		Amount: []sdk.Coin{
-			{Denom: "ufuel", Amount: amt}, // Example amount, adjust as needed
+			{Denom: "utest", Amount: amt}, // Example amount, adjust as needed
 		},
 	}
-	anymsgsend, _ := codectypes.NewAnyWithValue(msgsend)
+	anyMsgSend, _ := codectypes.NewAnyWithValue(msgSend)
 
 	// Serialize the message to bytes
-	data, _ := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: []*codectypes.Any{anymsgsend}})
+	messages := []*codectypes.Any{
+		anyMsgSend,
+	}
+	data, _ := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: messages})
+	fmt.Printf("Transaction size (bytes): %d\n", len(data))
+
+	// Convert the serialized bytes to a hex string
+	hexData := fmt.Sprintf("0x%s", hex.EncodeToString(data))
+	fmt.Printf("Serialized Hex Data: %s\n", hexData)
+}
+
+func TestProtoSerialization_VarietyOfMessages(t *testing.T) {
+
+	// Construct the MsgSend with your specified addresses
+	amt, _ := sdkmath.NewIntFromString("100")
+	msgDelegate := &stakingtypes.MsgDelegate{
+		DelegatorAddress: "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		ValidatorAddress: "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
+		Amount: sdk.Coin{
+			Denom: "utest", Amount: amt, // Example amount, adjust as needed
+		},
+	}
+	msgBeginRedelegate := &stakingtypes.MsgBeginRedelegate{
+		DelegatorAddress:    "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		ValidatorSrcAddress: "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
+		ValidatorDstAddress: "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f",
+		Amount: sdk.Coin{
+			Denom: "utest", Amount: amt.QuoRaw(2), // Example amount, adjust as needed
+		},
+	}
+	msgUndelegate := &stakingtypes.MsgUndelegate{
+		DelegatorAddress: "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		ValidatorAddress: "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
+		Amount: sdk.Coin{
+			Denom: "utest", Amount: amt.QuoRaw(2), // Example amount, adjust as needed
+		},
+	}
+	msgWithdrawToEthereum := &bridgetypes.MsgWithdrawToEthereum{
+		From: "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		To:   "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		Amount: sdk.Coin{
+			Denom: "utest", Amount: amt, // Example amount, adjust as needed
+		},
+	}
+	msgSend := &banktypes.MsgSend{
+		FromAddress: "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		ToAddress:   "0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8",
+		Amount: []sdk.Coin{
+			{Denom: "utest", Amount: amt}, // Example amount, adjust as needed
+		},
+	}
+	anyMsgDelegate, _ := codectypes.NewAnyWithValue(msgDelegate)
+	anyMsgBeginRedelegate, _ := codectypes.NewAnyWithValue(msgBeginRedelegate)
+	anyMsgUndelegate, _ := codectypes.NewAnyWithValue(msgUndelegate)
+	anyMsgWithdrawToEthereum, _ := codectypes.NewAnyWithValue(msgWithdrawToEthereum)
+	anyMsgSend, _ := codectypes.NewAnyWithValue(msgSend)
+
+	// Serialize the message to bytes
+	messages := []*codectypes.Any{
+		anyMsgDelegate,
+		anyMsgBeginRedelegate,
+		anyMsgUndelegate,
+		anyMsgWithdrawToEthereum,
+		anyMsgSend,
+	}
+	data, _ := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: messages})
+	fmt.Printf("Transaction size (bytes): %d\n", len(data))
 
 	// Convert the serialized bytes to a hex string
 	hexData := fmt.Sprintf("0x%s", hex.EncodeToString(data))
@@ -85,6 +153,7 @@ func TestDecodeTx(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("SIZE: %d\n", len(dataBz))
 
 	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
 	if err != nil {

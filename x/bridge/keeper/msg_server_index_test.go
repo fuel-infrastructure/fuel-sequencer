@@ -282,7 +282,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 0},
 			expectEthereumEventsIndexOffset: []uint64{0, numberOfEventsInPartialTx},
-			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
+			expectBlockTime:                 []time.Time{{}, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
@@ -332,7 +332,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 1},
 			expectEthereumEventsIndexOffset: []uint64{0, 0},
-			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
+			expectBlockTime:                 []time.Time{{}, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
@@ -365,7 +365,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 1},
 			expectEthereumEventsIndexOffset: []uint64{0, 0},
-			expectBlockTime:                 []time.Time{time.Time{}, testBlockTime2},
+			expectBlockTime:                 []time.Time{{}, testBlockTime2},
 			expectLastEthBlockUpdateTime:    []bool{false, true},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},
@@ -465,7 +465,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			blockTime:                       []time.Time{testBlockTime1, testBlockTime2},
 			expectLastEthereumBlockSynced:   []uint64{0, 0},
 			expectEthereumEventsIndexOffset: []uint64{0, 0},
-			expectBlockTime:                 []time.Time{time.Time{}, time.Time{}},
+			expectBlockTime:                 []time.Time{{}, {}},
 			expectLastEthBlockUpdateTime:    []bool{false, false},
 			expectIndex: []types.Index{
 				{NumInjectedTxsTotal: msgNoNewBlock1.NumInjectedEventTxs},

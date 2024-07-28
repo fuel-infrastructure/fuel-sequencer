@@ -2,11 +2,12 @@ package basic_test
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type BasicTestSuite struct {
@@ -27,11 +28,15 @@ func (s *BasicTestSuite) SetupTest() {
 			var mintGenState minttypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[minttypes.ModuleName], &mintGenState))
 
+			// Params
 			mintGenState.Params.InflationRateChange = e2etestsuite.InflationRateChange
 			mintGenState.Params.InflationMax = e2etestsuite.InflationMax
 			mintGenState.Params.InflationMin = e2etestsuite.InflationMin
 			mintGenState.Params.GoalBonded = e2etestsuite.GoalBonded
 			mintGenState.Params.BlocksPerYear = e2etestsuite.BlocksPerYear
+
+			// Minter
+			mintGenState.Minter.Inflation = e2etestsuite.Inflation
 
 			bz, err := cdc.MarshalJSON(&mintGenState)
 			s.Require().NoError(err)
