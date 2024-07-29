@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -182,4 +183,40 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
-// TODO: Tests for start, stop etc. I think it is best to mock the sidecar server.
+func TestStart(t *testing.T) {
+	// Create a TestSidecarServer. Let the OS pick the port.
+	testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0")
+	testSidecarServer.Start()
+	defer testSidecarServer.Stop()
+
+	// Create the SidecarClient configuration
+	timeout := 5 * time.Second
+	address := testSidecarServer.GetAddress()
+	configuration := sidecarconfig.SidecarConfig{
+		Enabled:        true,
+		Address:        address,
+		Timeout:        timeout,
+		PathToCertFile: "",
+	}
+
+	// Create AppSidecarClient from configuration
+	appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, log.NewNopLogger())
+	require.NoError(t, err, "expected no error when creating client")
+
+	// Create context
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// Start client. This should create an insecure connection with the Sidecar server
+	err = appSidecarClient.Start(ctx)
+	require.NoError(t, err, "expected no error when starting client")
+
+	// Check client state
+	grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
+	require.True(t, ok)
+	require.NotNil(t, grpcClient.Conn())
+	require.NotNil(t, grpcClient.Client())
+	require.NotNil(t, grpcClient.Mutex())
+}
+
+// TODO: Test stop and QueryBlockEvents
