@@ -39,6 +39,6 @@ The recommended approach is to:
 
 - Run `python3 run_account_restore_keys.py` to restore accounts.
 - Run `python3 run_account_funding.py` to fund the accounts, if need be.
-- Run `while true; do python3 run_load_tests_devnet.py --key "<KEY>" --mnemonic "<MNEMONIC>"; done` to run a load test worker.
+- Run `while true; do python3 run_load_tests_devnet.py --key "$KEY" --mnemonic "$MNEMONIC"; done` to run a load test worker.
 
 You can run multiple workers as long as you use a different key and mnemonic pair. The pairs must match the restored keys.
