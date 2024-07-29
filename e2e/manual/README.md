@@ -1,7 +1,7 @@
 # Manual E2E Testing Scripts
 
 - [E2E Test Scripts](#e2e-test-scripts)
-- [Load Test Scripts](#load-test-scripts)
+- [Devnet Load Test Scripts](#devnet-load-test-scripts)
 
 ## E2E Test Scripts
 
@@ -33,7 +33,9 @@ The manual E2E testing framework also comes with an event extractor which can be
 - If a proposal does not pass and you want to know why it didn't, run the following on one of the EntryPoint nodes: `sudo journalctl --reverse -u fuelsequencerd | grep "proposal tallied"`. This will go through logs in reverse chronological order and look up proposal passes/fails.
 - If transactions are not going through, consider disabling `wait_for_txs` (e.g. `SEQ.wait_for_txs = False`) so that you can see error messages.
 
-## Load Test Scripts
+## Devnet Load Test Scripts
+
+> These scripts can be used for non-devnet networks but the URLs, and possibly other configurations, within the scripts need to be adjusted.
 
 The recommended approach is to:
 
