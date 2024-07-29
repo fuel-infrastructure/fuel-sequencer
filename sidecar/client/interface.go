@@ -39,5 +39,5 @@ func (NoOpClient) Stop() error {
 func (c NoOpClient) GetBlockEvents(
 	_ context.Context, _ *sidecartypes.QueryBlockEventsRequest, _ ...grpc.CallOption,
 ) (*sidecartypes.QueryBlockEventsResponse, error) {
-	return nil, nil
+	return &sidecartypes.QueryBlockEventsResponse{}, nil
 }
