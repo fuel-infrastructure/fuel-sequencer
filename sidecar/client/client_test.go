@@ -207,7 +207,7 @@ func TestStart(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	// Start client. This should create an insecure connection with the Sidecar server
+	// Start AppSidecarClient. This will error if the client could not establish a connection with the Server.
 	err = appSidecarClient.Start(ctx)
 	require.NoError(t, err, "expected no error when starting client")
 
