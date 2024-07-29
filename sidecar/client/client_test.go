@@ -184,39 +184,68 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestStart(t *testing.T) {
-	// Create a TestSidecarServer. Let the OS pick the port.
-	testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0")
-	testSidecarServer.Start()
-	defer testSidecarServer.Stop()
-
-	// Create the SidecarClient configuration
-	timeout := 5 * time.Second
-	address := testSidecarServer.GetAddress()
-	configuration := sidecarconfig.SidecarConfig{
-		Enabled:        true,
-		Address:        address,
-		Timeout:        timeout,
-		PathToCertFile: "",
+	testCases := []struct {
+		name    string
+		withTLS bool
+	}{
+		{
+			"With TLS",
+			true,
+		},
+		{
+			"Without TLS",
+			false,
+		},
 	}
 
-	// Create AppSidecarClient from configuration
-	appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, log.NewNopLogger())
-	require.NoError(t, err, "expected no error when creating client")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a TestSidecarServer for the AppSidecarClient to connect with.
+			var testSidecarServer *testutil.TestSidecarServer
+			pathToCertFile := ""
+			pathToKeyFile := "../testutil/certificates/server.key.pem"
+			sidecarServerAddress := "localhost:0" // OS picks the port
+			if tc.withTLS {
+				pathToCertFile = "../testutil/certificates/server.crt.pem"
+				testSidecarServer = testutil.MustMakeTestTLSSidecarServer(
+					sidecarServerAddress, pathToCertFile, pathToKeyFile,
+				)
+			} else {
+				testSidecarServer = testutil.MustMakeTestSidecarServer(sidecarServerAddress)
+			}
+			testSidecarServer.Start()
+			defer testSidecarServer.Stop()
 
-	// Create context
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+			// Create the SidecarClient configuration
+			timeout := 5 * time.Second
+			address := testSidecarServer.GetAddress()
+			configuration := sidecarconfig.SidecarConfig{
+				Enabled:        true,
+				Address:        address,
+				Timeout:        timeout,
+				PathToCertFile: pathToCertFile,
+			}
 
-	// Start AppSidecarClient. This will error if the client could not establish a connection with the Server.
-	err = appSidecarClient.Start(ctx)
-	require.NoError(t, err, "expected no error when starting client")
+			// Create AppSidecarClient from configuration
+			appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, log.NewNopLogger())
+			require.NoError(t, err, "expected no error when creating client")
 
-	// Check client state
-	grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
-	require.True(t, ok)
-	require.NotNil(t, grpcClient.Conn())
-	require.NotNil(t, grpcClient.Client())
-	require.NotNil(t, grpcClient.Mutex())
+			// Create context
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+
+			// Start AppSidecarClient. This will error if the client could not establish a connection with the Server.
+			err = appSidecarClient.Start(ctx)
+			require.NoError(t, err, "expected no error when starting client")
+
+			// Check client state
+			grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
+			require.True(t, ok)
+			require.NotNil(t, grpcClient.Conn())
+			require.NotNil(t, grpcClient.Client())
+			require.NotNil(t, grpcClient.Mutex())
+		})
+	}
 }
 
-// TODO: Test stop and QueryBlockEvents
+// TODO: Test stop and QueryBlockEvents (Might need to use go mocks for last test)
