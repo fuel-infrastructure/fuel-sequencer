@@ -1,9 +1,11 @@
 package testutil
 
 import (
+	"context"
 	"net"
 
 	"cosmossdk.io/errors"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -13,6 +15,7 @@ import (
 type TestSidecarServer struct {
 	server *grpc.Server
 	lis    net.Listener
+	events []*sidecartypes.Event
 }
 
 // MustMakeTestSidecarServer creates an insecure GRPC server if pathToCertFile or pathToKeyFile are an empty string,
@@ -36,7 +39,11 @@ func MustMakeTestSidecarServer(address string, pathToCertFile, pathToKeyFile str
 		s = grpc.NewServer(grpc.Creds(creds))
 	}
 
-	return &TestSidecarServer{server: s, lis: lis}
+	// Register the TestSidecarServer as a SidecarServer in order to register all endpoints
+	testSidecarServer := &TestSidecarServer{server: s, lis: lis}
+	sidecartypes.RegisterSidecarServer(s, testSidecarServer)
+
+	return testSidecarServer
 }
 
 func (d *TestSidecarServer) Start() {
@@ -53,4 +60,17 @@ func (d *TestSidecarServer) Stop() {
 
 func (d *TestSidecarServer) GetAddress() string {
 	return d.lis.Addr().String()
+}
+
+// GetBlockEvents is used as a mock to the Sidecar server's GetBlockEvents RPC method. It returns the value stored
+// in testSidecarServer.events
+func (d *TestSidecarServer) GetBlockEvents(_ context.Context, _ *sidecartypes.QueryBlockEventsRequest) (
+	*sidecartypes.QueryBlockEventsResponse, error,
+) {
+	return &sidecartypes.QueryBlockEventsResponse{Events: d.events}, nil
+}
+
+// SetEvents sets d.events to the specified value. It is useful for mocking the GetBlockEvents RPC call.
+func (d *TestSidecarServer) SetEvents(events []*sidecartypes.Event) {
+	d.events = events
 }

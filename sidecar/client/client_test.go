@@ -2,13 +2,16 @@ package client_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
+	apptesttypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/connectivity"
 )
@@ -265,4 +268,40 @@ func TestStop_DoesNotErrorIfClientDidNotStart(t *testing.T) {
 	require.Nil(t, grpcClient.Conn())
 }
 
-// TODO: QueryBlockEvents (Might need to use go mocks for last test)
+func TestGetBlockEvents(t *testing.T) {
+	// TODO: Proper test with and without TLS. The following code is to make sure that the connection works. Refactor it
+
+	// Create a TestSidecarServer for the AppSidecarClient to connect with. We use localhost:0 so that the
+	// OS picks up an available port.
+	testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0", "", "")
+	testSidecarServer.Start()
+	defer testSidecarServer.Stop()
+
+	// Create the SidecarClient configuration
+	timeout := 10 * time.Second
+	address := testSidecarServer.GetAddress()
+	configuration := sidecarconfig.SidecarConfig{
+		Enabled:        true,
+		Address:        address,
+		Timeout:        timeout,
+		PathToCertFile: "",
+	}
+
+	// Create AppSidecarClient from configuration
+	appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, testutil.ValidLogger)
+	require.NoError(t, err, "expected no error when creating client")
+
+	// Create context
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// Start AppSidecarClient. This will error if the client could not establish a connection with the Server.
+	err = appSidecarClient.Start(ctx)
+	require.NoError(t, err, "expected no error when starting client")
+
+	// Get block events
+	testSidecarServer.SetEvents(apptesttypes.TestEvents)
+	resp, err := appSidecarClient.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"})
+	require.NoError(t, err)
+	fmt.Println(resp.Events)
+}
