@@ -9,20 +9,18 @@ from load_test.post_blob import PostBlobRequest, post_blob_async
 from load_test.utils import *
 from utils.classes import FuelSequencerChain
 from utils.constants import *
+from utils.networks import Networks, NetworkConfig
 
-EXPLORER_TX_URL = "https://seq.simplystaking.xyz/fuel/tx/"
-SEQ_node = "https://rpc-seq.simplystaking.xyz"
-SEQ_chain = "seq-devnet-4"
-SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
+NETWORK = Networks.SANDBOX  # Change me to load test other networks!
+CONFIG = NetworkConfig(NETWORK)
+print(f"Running load test on {NETWORK}")
 
 # Load test configuration
 BLOCKS_TO_LOAD_TEST = 999999
 SHUT_DOWN_ON_TX_ERR = True
 BLOB_SIZE_BYTES = 1048576
-# Max blob size:
-#   https://rest-seq.simplystaking.xyz/fuelsequencer/sequencing/v1/params
-# Max block size:
-#   https://rpc-seq.simplystaking.xyz/consensus_params
+# Max blob size: <REST>/fuelsequencer/sequencing/v1/params
+# Max block size: <RPC>/consensus_params
 
 if __name__ == "__main__":
     # Create the parser
@@ -46,20 +44,21 @@ if __name__ == "__main__":
         sys.exit("must set both or none of --key and --mnemonic")
 
     seq = FuelSequencerChain(
-        binary=SEQ_bin,
-        node=SEQ_node,
-        chain_id=SEQ_chain,
+        binary=CONFIG.seq_bin,
+        node=CONFIG.seq_node,
+        chain_id=CONFIG.seq_chain,
         key_name=key,
         voting_period=10,
-        fee_token="utest",
+        fee_token=CONFIG.fee_token,
         gov_voters=["<unused>"],
     )
     seq.wait_for_txs = False
-    seq.gas_prices = f"10000000000{seq.fee_token}"
+    seq.gas_prices = CONFIG.gas_price
 
     # MsgPostBlob transaction configuration
     gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
-    fee_amount = int(int(gas) * float(seq.gas_prices.replace(seq.fee_token, "")))
+    fee_amount = int(
+        int(gas) * float(seq.gas_prices.replace(seq.fee_token, "")))
     fee = [{"amount": f"{fee_amount}", "denom": seq.fee_token}]
 
     # Ensure key is in place
@@ -122,7 +121,7 @@ if __name__ == "__main__":
                 gas,
                 fee,
                 seq,
-                EXPLORER_TX_URL,
+                CONFIG.explorer_tx_url,
             ),
             logging_queue,
             stop_event,

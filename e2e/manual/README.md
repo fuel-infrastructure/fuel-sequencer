@@ -33,14 +33,14 @@ The manual E2E testing framework also comes with an event extractor which can be
 - If a proposal does not pass and you want to know why it didn't, run the following on one of the EntryPoint nodes: `sudo journalctl --reverse -u fuelsequencerd | grep "proposal tallied"`. This will go through logs in reverse chronological order and look up proposal passes/fails.
 - If transactions are not going through, consider disabling `wait_for_txs` (e.g. `SEQ.wait_for_txs = False`) so that you can see error messages.
 
-## Devnet Load Test Scripts
+## Load Test Scripts
 
-> These scripts can be used for non-devnet networks but the URLs, and possibly other configurations, within the scripts need to be adjusted.
+> These scripts can be used for non-devnet networks but the configuration need to be adjusted from the scripts!
 
 The recommended approach is to:
 
 - Run `python3 run_account_restore_keys.py` to restore accounts.
 - Run `python3 run_account_funding.py` to fund the accounts, if need be.
-- Run `while true; do python3 run_load_tests_devnet.py --key "$KEY" --mnemonic "$MNEMONIC"; done` to run a load test worker.
+- Run `while true; do python3 run_load_tests.py --key "$KEY" --mnemonic "$MNEMONIC"; done` to run a load test worker.
 
 You can run multiple workers as long as you use a different key and mnemonic pair. The pairs must match the restored keys.

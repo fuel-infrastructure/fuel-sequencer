@@ -1,0 +1,49 @@
+from enum import Enum
+
+
+class Networks(Enum):
+    DEVNET = "DEVNET"
+    SANDBOX = "SANDBOX"
+    LOCAL = "LOCAL"
+
+
+class NetworkConfig:
+
+    def __init__(self, network: Networks):
+        self.explorer_tx_url = EXPLORER_TX_URLS[network]
+        self.seq_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
+        self.seq_node = SEQ_NODES[network]
+        self.seq_chain = SEQ_CHAINS[network]
+        self.fee_token = FEE_TOKENS[network]
+        self.gas_price = GAS_PRICES[network]
+
+
+EXPLORER_TX_URLS = {
+    Networks.DEVNET: "https://seq.simplystaking.xyz/fuel/tx/",
+    Networks.SANDBOX: "http://80.64.208.225:1317/cosmos/tx/v1beta1/txs/",
+    Networks.LOCAL: "http://localhost:1317/cosmos/tx/v1beta1/txs/",
+}
+
+SEQ_NODES = {
+    Networks.DEVNET: "https://rpc-seq.simplystaking.xyz",
+    Networks.SANDBOX: "http://80.64.208.225:26657",
+    Networks.LOCAL: "http://localhost:26657",
+}
+
+SEQ_CHAINS = {
+    Networks.DEVNET: "seq-devnet-4",
+    Networks.SANDBOX: "seq-sandbox-1",
+    Networks.LOCAL: "fuelsequencer-1",
+}
+
+FEE_TOKENS = {
+    Networks.DEVNET: "utest",
+    Networks.SANDBOX: "utest",
+    Networks.LOCAL: "utest",
+}
+
+GAS_PRICES = {
+    Networks.DEVNET: f"10000000000{FEE_TOKENS[Networks.DEVNET]}",
+    Networks.SANDBOX: f"0.025{FEE_TOKENS[Networks.SANDBOX]}",
+    Networks.LOCAL: f"0.025{FEE_TOKENS[Networks.LOCAL]}",
+}

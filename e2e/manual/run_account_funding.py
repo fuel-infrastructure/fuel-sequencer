@@ -2,22 +2,22 @@ import json
 
 from utils.classes import FuelSequencerChain
 from utils.constants import *
+from utils.networks import Networks, NetworkConfig
 
-EXPLORER_TX_URL = "https://seq.simplystaking.xyz/fuel/tx/"
-SEQ_node = "https://rpc-seq.simplystaking.xyz"
-SEQ_chain = "seq-devnet-4"
-SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
+NETWORK = Networks.SANDBOX  # Change me to load test other networks!
+CONFIG = NetworkConfig(NETWORK)
+print(f"Running funding on {NETWORK}")
 
 SEQ = FuelSequencerChain(
-    binary=SEQ_bin,
-    node=SEQ_node,
-    chain_id=SEQ_chain,
+    binary=CONFIG.seq_bin,
+    node=CONFIG.seq_node,
+    chain_id=CONFIG.seq_chain,
     key_name=key_name_alice,
     voting_period=10,
-    fee_token="utest",
+    fee_token=CONFIG.fee_token,
     gov_voters=["<unused>"],
 )
-SEQ.gas_prices = f"10000000000{SEQ.fee_token}"
+SEQ.gas_prices = CONFIG.gas_price
 
 MIN_BALANCE = int(1 * 1e18)
 FUND_AMOUNT = int(1e6 * 1e18)

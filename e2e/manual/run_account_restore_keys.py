@@ -1,18 +1,12 @@
 from utils.classes import FuelSequencerChain
-from utils.constants import *
-
-EXPLORER_TX_URL = "https://seq.simplystaking.xyz/fuel/tx/"
-SEQ_node = "https://rpc-seq.simplystaking.xyz"
-SEQ_chain = "seq-devnet-4"
-SEQ_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
 
 SEQ = FuelSequencerChain(
-    binary=SEQ_bin,
-    node=SEQ_node,
-    chain_id=SEQ_chain,
-    key_name=key_name_alice,
-    voting_period=10,
-    fee_token="utest",
+    binary="fuelsequencerd",  # needs to be in $GOPATH/bin
+    node="<unused>",
+    chain_id="<unused>",
+    key_name="<unused>",
+    voting_period=0,
+    fee_token="<unused>",
     gov_voters=["<unused>"],
 )
 
