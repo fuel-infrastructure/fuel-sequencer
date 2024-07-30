@@ -11,11 +11,13 @@ class NetworkConfig:
 
     def __init__(self, network: Networks):
         self.explorer_tx_url = EXPLORER_TX_URLS[network]
+
         self.seq_bin = "fuelsequencerd"  # needs to be in $GOPATH/bin
-        self.seq_node = SEQ_NODES[network]
+        self.seq_rpc = SEQ_NODES[network]
+        self.seq_rest = SEQ_RESTS[network]
         self.seq_chain = SEQ_CHAINS[network]
-        self.fee_token = FEE_TOKENS[network]
-        self.gas_price = GAS_PRICES[network]
+        self.seq_fee_token = FEE_TOKENS[network]
+        self.seq_gas_price = GAS_PRICES[network]
 
 
 EXPLORER_TX_URLS = {
@@ -28,6 +30,12 @@ SEQ_NODES = {
     Networks.DEVNET: "https://rpc-seq.simplystaking.xyz",
     Networks.SANDBOX: "http://80.64.208.225:26657",
     Networks.LOCAL: "http://localhost:26657",
+}
+
+SEQ_RESTS = {
+    Networks.DEVNET: "https://rest-seq.simplystaking.xyz",
+    Networks.SANDBOX: "http://80.64.208.225:1317",
+    Networks.LOCAL: "http://localhost:1317",
 }
 
 SEQ_CHAINS = {

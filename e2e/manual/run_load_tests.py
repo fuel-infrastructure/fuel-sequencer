@@ -45,15 +45,15 @@ if __name__ == "__main__":
 
     seq = FuelSequencerChain(
         binary=CONFIG.seq_bin,
-        node=CONFIG.seq_node,
+        node=CONFIG.seq_rpc,
         chain_id=CONFIG.seq_chain,
         key_name=key,
         voting_period=10,
-        fee_token=CONFIG.fee_token,
+        fee_token=CONFIG.seq_fee_token,
         gov_voters=["<unused>"],
     )
     seq.wait_for_txs = False
-    seq.gas_prices = CONFIG.gas_price
+    seq.gas_prices = CONFIG.seq_gas_price
 
     # MsgPostBlob transaction configuration
     gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte

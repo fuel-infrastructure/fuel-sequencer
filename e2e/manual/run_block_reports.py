@@ -4,8 +4,14 @@ from typing import Optional, Union
 import requests
 from dateutil import parser
 
-sequencer_rpc = "https://rpc-seq.simplystaking.xyz"
-sequencer_rest = "https://rest-seq.simplystaking.xyz"
+from utils.networks import NetworkConfig, Networks
+
+NETWORK = Networks.SANDBOX  # Change me to load test other networks!
+CONFIG = NetworkConfig(NETWORK)
+print(f"Running block reports on {NETWORK}")
+
+sequencer_rpc = CONFIG.seq_rpc
+sequencer_rest = CONFIG.seq_rest
 commit_query = "/commit?height="
 block_query = "/block?height="
 account_query = "/cosmos/auth/v1beta1/account_info/"

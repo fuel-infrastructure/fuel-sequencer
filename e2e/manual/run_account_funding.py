@@ -10,14 +10,14 @@ print(f"Running funding on {NETWORK}")
 
 SEQ = FuelSequencerChain(
     binary=CONFIG.seq_bin,
-    node=CONFIG.seq_node,
+    node=CONFIG.seq_rpc,
     chain_id=CONFIG.seq_chain,
     key_name=key_name_alice,
     voting_period=10,
-    fee_token=CONFIG.fee_token,
+    fee_token=CONFIG.seq_fee_token,
     gov_voters=["<unused>"],
 )
-SEQ.gas_prices = CONFIG.gas_price
+SEQ.gas_prices = CONFIG.seq_gas_price
 
 MIN_BALANCE = int(1 * 1e18)
 FUND_AMOUNT = int(1e6 * 1e18)
