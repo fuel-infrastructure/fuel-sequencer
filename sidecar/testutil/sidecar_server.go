@@ -15,31 +15,26 @@ type TestSidecarServer struct {
 	lis    net.Listener
 }
 
-func MustMakeTestTLSSidecarServer(address string, pathToCertFile, pathToKeyFile string) *TestSidecarServer {
+// MustMakeTestSidecarServer creates an insecure GRPC server if pathToCertFile or pathToKeyFile are an empty string,
+// otherwise, it creates a TLS server.
+func MustMakeTestSidecarServer(address string, pathToCertFile, pathToKeyFile string) *TestSidecarServer {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		panic(errors.Wrapf(err, "failed to listen on %s", address))
 	}
 
-	// Create a secure grpc.Server
-	creds, err := credentials.NewServerTLSFromFile(pathToCertFile, pathToKeyFile)
-	if err != nil {
-		panic(errors.Wrap(err, "failed to load TLS credentials"))
+	// Default to insecure credentials if either pathToKeyFIle or pathToCertFile are empty, otherwise, use TLS.
+	var s *grpc.Server
+	if pathToKeyFile == "" || pathToCertFile == "" {
+		s = grpc.NewServer()
+	} else {
+		creds, err := credentials.NewServerTLSFromFile(pathToCertFile, pathToKeyFile)
+		if err != nil {
+			panic(errors.Wrap(err, "failed to load TLS credentials"))
+		}
+
+		s = grpc.NewServer(grpc.Creds(creds))
 	}
-
-	s := grpc.NewServer(grpc.Creds(creds))
-
-	return &TestSidecarServer{server: s, lis: lis}
-}
-
-func MustMakeTestSidecarServer(address string) *TestSidecarServer {
-	lis, err := net.Listen("tcp", address)
-	if err != nil {
-		panic(errors.Wrapf(err, "failed to listen on %s", address))
-	}
-
-	// Create an insecure grpc.Server
-	s := grpc.NewServer()
 
 	return &TestSidecarServer{server: s, lis: lis}
 }

@@ -186,33 +186,27 @@ func TestNewClient(t *testing.T) {
 
 func TestStartAndStop(t *testing.T) {
 	testCases := []struct {
-		name    string
-		withTLS bool
+		name           string
+		pathToCertFile string
+		pathToKeyFile  string
 	}{
 		{
 			"With TLS",
-			true,
+			"../testutil/certificates/server-cert.pem",
+			"../testutil/certificates/server-key.pem",
 		},
 		{
 			"Without TLS",
-			false,
+			"",
+			"",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a TestSidecarServer for the AppSidecarClient to connect with.
-			var testSidecarServer *testutil.TestSidecarServer
-			pathToCertFile := ""
-			pathToKeyFile := "../testutil/certificates/server-key.pem"
-			if tc.withTLS {
-				pathToCertFile = "../testutil/certificates/server-cert.pem"
-				testSidecarServer = testutil.MustMakeTestTLSSidecarServer(
-					"localhost:0", pathToCertFile, pathToKeyFile, // OS picks the port
-				)
-			} else {
-				testSidecarServer = testutil.MustMakeTestSidecarServer("localhost:0") // OS picks the port
-			}
+			// Create a TestSidecarServer for the AppSidecarClient to connect with. We use localhost:0 so that the
+			// OS picks up an available port.
+			testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0", tc.pathToCertFile, tc.pathToKeyFile)
 			testSidecarServer.Start()
 			defer testSidecarServer.Stop()
 
@@ -223,7 +217,7 @@ func TestStartAndStop(t *testing.T) {
 				Enabled:        true,
 				Address:        address,
 				Timeout:        timeout,
-				PathToCertFile: pathToCertFile,
+				PathToCertFile: tc.pathToCertFile,
 			}
 
 			// Create AppSidecarClient from configuration
