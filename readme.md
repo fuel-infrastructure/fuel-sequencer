@@ -182,7 +182,9 @@ make test-unit
 
 ### E2E tests
 
-You will need a Sequencer image, Ethereum image, and the FuelStreamX images:
+You will need a Sequencer image and Ethereum deployment image:
+
+> Ensure .env file is set up before running this!
 
 ```bash
 make build-all-docker-images
