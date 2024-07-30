@@ -13,7 +13,6 @@ from utils.networks import Networks, NetworkConfig
 
 NETWORK = Networks.SANDBOX  # Change me to load test other networks!
 CONFIG = NetworkConfig(NETWORK)
-print(f"Running load test on {NETWORK}")
 
 # Load test configuration
 BLOCKS_TO_LOAD_TEST = 999999
@@ -23,6 +22,8 @@ BLOB_SIZE_BYTES = 1048576
 # Max block size: <RPC>/consensus_params
 
 if __name__ == "__main__":
+    print(f"Running load test on {NETWORK}")
+
     # Create the parser
     parser = argparse.ArgumentParser(description="Parse key and mnemonic")
 
