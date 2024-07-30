@@ -10,6 +10,7 @@ import (
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/connectivity"
 )
 
 // testGRPCClientFields is a structure defining the fields of GRPCClient that are of interest for testing purposes.
@@ -203,21 +204,20 @@ func TestStart(t *testing.T) {
 			// Create a TestSidecarServer for the AppSidecarClient to connect with.
 			var testSidecarServer *testutil.TestSidecarServer
 			pathToCertFile := ""
-			pathToKeyFile := "../testutil/certificates/server.key.pem"
-			sidecarServerAddress := "localhost:0" // OS picks the port
+			pathToKeyFile := "../testutil/certificates/server-key.pem"
 			if tc.withTLS {
-				pathToCertFile = "../testutil/certificates/server.crt.pem"
+				pathToCertFile = "../testutil/certificates/server-cert.pem"
 				testSidecarServer = testutil.MustMakeTestTLSSidecarServer(
-					sidecarServerAddress, pathToCertFile, pathToKeyFile,
+					"localhost:0", pathToCertFile, pathToKeyFile, // OS picks the port
 				)
 			} else {
-				testSidecarServer = testutil.MustMakeTestSidecarServer(sidecarServerAddress)
+				testSidecarServer = testutil.MustMakeTestSidecarServer("localhost:0") // OS picks the port
 			}
 			testSidecarServer.Start()
 			defer testSidecarServer.Stop()
 
 			// Create the SidecarClient configuration
-			timeout := 5 * time.Second
+			timeout := 10 * time.Second
 			address := testSidecarServer.GetAddress()
 			configuration := sidecarconfig.SidecarConfig{
 				Enabled:        true,
@@ -241,9 +241,12 @@ func TestStart(t *testing.T) {
 			// Check client state
 			grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
 			require.True(t, ok)
-			require.NotNil(t, grpcClient.Conn())
 			require.NotNil(t, grpcClient.Client())
 			require.NotNil(t, grpcClient.Mutex())
+
+			// Wait 5 seconds and check that the connection was established
+			time.Sleep(time.Second * 5)
+			require.Equal(t, connectivity.Ready, grpcClient.Conn().GetState())
 		})
 	}
 }
