@@ -184,7 +184,7 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
-func TestStart(t *testing.T) {
+func TestStartAndStop(t *testing.T) {
 	testCases := []struct {
 		name    string
 		withTLS bool
@@ -227,7 +227,7 @@ func TestStart(t *testing.T) {
 			}
 
 			// Create AppSidecarClient from configuration
-			appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, log.NewNopLogger())
+			appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, testutil.ValidLogger)
 			require.NoError(t, err, "expected no error when creating client")
 
 			// Create context
@@ -247,8 +247,28 @@ func TestStart(t *testing.T) {
 			// Wait 5 seconds and check that the connection was established
 			time.Sleep(time.Second * 5)
 			require.Equal(t, connectivity.Ready, grpcClient.Conn().GetState())
+
+			// Stop AppSidecarClient and confirm that the connection was shut down.
+			err = appSidecarClient.Stop()
+			require.NoError(t, err)
+			require.Equal(t, connectivity.Shutdown, grpcClient.Conn().GetState())
 		})
 	}
 }
 
-// TODO: Test stop and QueryBlockEvents (Might need to use go mocks for last test)
+func TestStop_DoesNotErrorIfClientDidNotStart(t *testing.T) {
+	// Create AppSidecarClient from configuration
+	appSidecarClient, err := sidecarclient.NewClientFromConfig(testutil.ValidSidecarConfig, testutil.ValidLogger)
+	require.NoError(t, err, "expected no error when creating client")
+
+	// Stop AppSidecarClient and confirm that the client did not error
+	err = appSidecarClient.Stop()
+	require.NoError(t, err)
+
+	// Make sure that the connection is still nil
+	grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
+	require.True(t, ok)
+	require.Nil(t, grpcClient.Conn())
+}
+
+// TODO: QueryBlockEvents (Might need to use go mocks for last test)
