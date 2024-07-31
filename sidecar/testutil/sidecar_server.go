@@ -48,14 +48,15 @@ func MustMakeTestSidecarServer(address string, pathToCertFile, pathToKeyFile str
 
 func (d *TestSidecarServer) Start() {
 	go func() {
-		if err := d.server.Serve(d.lis); err != nil {
+		// Serve. If the server has stopped we don't want to panic as this means that the test stopped the server.
+		if err := d.server.Serve(d.lis); err != nil && err != grpc.ErrServerStopped {
 			panic(errors.Wrap(err, "failed to serve"))
 		}
 	}()
 }
 
 func (d *TestSidecarServer) Stop() {
-	d.server.Stop()
+	d.server.GracefulStop()
 }
 
 func (d *TestSidecarServer) GetAddress() string {

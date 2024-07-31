@@ -2,7 +2,6 @@ package client_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -194,12 +193,12 @@ func TestStartAndStop(t *testing.T) {
 		pathToKeyFile  string
 	}{
 		{
-			"With TLS",
+			"Start establishes connection and stop closes it (with TLS)",
 			"../testutil/certificates/server-cert.pem",
 			"../testutil/certificates/server-key.pem",
 		},
 		{
-			"Without TLS",
+			"Start establishes connection and stop closes it (without TLS)",
 			"",
 			"",
 		},
@@ -269,39 +268,96 @@ func TestStop_DoesNotErrorIfClientDidNotStart(t *testing.T) {
 }
 
 func TestGetBlockEvents(t *testing.T) {
-	// TODO: Proper test with and without TLS. The following code is to make sure that the connection works. Refactor it
-
-	// Create a TestSidecarServer for the AppSidecarClient to connect with. We use localhost:0 so that the
-	// OS picks up an available port.
-	testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0", "", "")
-	testSidecarServer.Start()
-	defer testSidecarServer.Stop()
-
-	// Create the SidecarClient configuration
-	timeout := 10 * time.Second
-	address := testSidecarServer.GetAddress()
-	configuration := sidecarconfig.SidecarConfig{
-		Enabled:        true,
-		Address:        address,
-		Timeout:        timeout,
-		PathToCertFile: "",
+	testCases := []struct {
+		name           string
+		pathToCertFile string
+		pathToKeyFile  string
+		startClient    bool
+		expErrMsg      string
+	}{
+		{
+			"Returns block events if query successful (with TLS)",
+			"../testutil/certificates/server-cert.pem",
+			"../testutil/certificates/server-key.pem",
+			true,
+			"",
+		},
+		{
+			"Returns block events if query successful (without TLS)",
+			"",
+			"",
+			true,
+			"",
+		},
+		{
+			"errors if client not started (with TLS)",
+			"../testutil/certificates/server-cert.pem",
+			"../testutil/certificates/server-key.pem",
+			false,
+			"sidecar client not started",
+		},
+		{
+			"errors if client not started (without TLS)",
+			"",
+			"",
+			false,
+			"sidecar client not started",
+		},
 	}
 
-	// Create AppSidecarClient from configuration
-	appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, testutil.ValidLogger)
-	require.NoError(t, err, "expected no error when creating client")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a TestSidecarServer for the AppSidecarClient to connect with. We use localhost:0 so that the
+			// OS picks up an available port.
+			testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0", tc.pathToCertFile, tc.pathToKeyFile)
+			testSidecarServer.Start()
+			defer testSidecarServer.Stop()
 
-	// Create context
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+			// Create the SidecarClient configuration
+			timeout := 10 * time.Second
+			address := testSidecarServer.GetAddress()
+			configuration := sidecarconfig.SidecarConfig{
+				Enabled:        true,
+				Address:        address,
+				Timeout:        timeout,
+				PathToCertFile: tc.pathToCertFile,
+			}
 
-	// Start AppSidecarClient. This will error if the client could not establish a connection with the Server.
-	err = appSidecarClient.Start(ctx)
-	require.NoError(t, err, "expected no error when starting client")
+			// Create AppSidecarClient from configuration
+			appSidecarClient, err := sidecarclient.NewClientFromConfig(configuration, testutil.ValidLogger)
+			require.NoError(t, err, "expected no error when creating client")
 
-	// Get block events
-	testSidecarServer.SetEvents(apptesttypes.TestEvents)
-	resp, err := appSidecarClient.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"})
-	require.NoError(t, err)
-	fmt.Println(resp.Events)
+			// Create context
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+
+			// Start AppSidecarClient if enabled in test
+			if tc.startClient {
+				err = appSidecarClient.Start(ctx)
+				require.NoError(t, err, "expected no error when starting client")
+			}
+
+			// Mock the events returned by GetBlockEvents
+			testSidecarServer.SetEvents(apptesttypes.TestEvents)
+
+			// Call GetBlockEvents
+			resp, err := appSidecarClient.GetBlockEvents(ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"})
+
+			if len(tc.expErrMsg) > 0 {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+
+			// Make sure that the correct events are returned
+			require.Equal(t, apptesttypes.TestEvents, resp.Events)
+
+			// Stop AppSidecarClient if startup was enabled in test
+			if tc.startClient {
+				err = appSidecarClient.Stop()
+				require.NoError(t, err)
+			}
+		})
+	}
 }
