@@ -80,14 +80,22 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		senderMintData := testsuite.PackMintToken(s.EthKeys[0].Address, depositAmount)
 		_, err = s.SendEthTransactionToTokenContract(senderMintData)
 		s.Require().NoError(err)
+		// ...check that the V2 tokens are in the sender's balance.
+		balance, err := s.QueryEthereumTokenBalance(s.Ctx(), s.EthKeys[0].Address)
+		s.Require().NoError(err)
+		s.Require().Equal(depositAmount, balance)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, depositAmount)
-		depositTxReceipt, err := s.SendEthTransactionToTokenContract(approveData)
+		_, err = s.SendEthTransactionToTokenContract(approveData)
 		s.Require().NoError(err)
 		// ...deposit.
 		depositData := testsuite.PackDeposit(depositAmount)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
+		depositTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
+		// ...check that the V2 tokens have left the sender's balance.
+		balance, err = s.QueryEthereumTokenBalance(s.Ctx(), s.EthKeys[0].Address)
+		s.Require().NoError(err)
+		s.Require().Zero(balance.Sign())
 
 		// Generate a MsgSend
 		sendAmount, ok := sdkmath.NewIntFromString("10")
