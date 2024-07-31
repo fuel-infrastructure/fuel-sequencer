@@ -26,7 +26,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		mintData := testsuite.PackMintToken(common.HexToAddress(sender.AddressHex), amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		depositData := testsuite.PackTransferAndCall(amount)
+		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, amount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 
@@ -128,7 +128,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		mintData := testsuite.PackMintToken(common.HexToAddress(sender.AddressHex), amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		depositData := testsuite.PackTransferAndCall(amount)
+		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, amount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 

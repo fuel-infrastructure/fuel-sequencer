@@ -79,7 +79,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		mintData := testsuite.PackMintToken(s.EthKeys[0].Address, depositAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		depositData := testsuite.PackTransferAndCall(depositAmount)
+		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, depositAmount)
 		depositTxReceipt, err := s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
 

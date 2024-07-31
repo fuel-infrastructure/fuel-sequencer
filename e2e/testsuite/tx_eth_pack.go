@@ -54,12 +54,12 @@ func PackMintMigratedToken(address common.Address, amount *big.Int) []byte {
 	return PackMintERC20Token(MigratedTokenContractABI, address, amount)
 }
 
-func PackTransferAndCall(amount *big.Int) []byte {
+func PackTransferAndCall(address common.Address, amount *big.Int) []byte {
 	return packCall(
 		TokenContractABI,
 		TransferAndCallFunctionName,
 		[]interface{}{
-			SequencerInterfaceContractAddress,
+			address,
 			amount,
 		},
 	)
