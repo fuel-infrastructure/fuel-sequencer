@@ -68,12 +68,6 @@ const (
 
 	// GuardianPrivateKey is the private key of the address assigned as the 'guardian'.
 	GuardianPrivateKey = "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e"
-	// FuelStreamXContractAddress is the address of the contract that holds bridge commitments.
-	FuelStreamXContractAddress = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed"
-	// TokenContractAddress is the address of the FUEL token contract.
-	TokenContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-	// SequencerInterfaceContractAddress is the address of the contract that has the batchAuthorize function.
-	SequencerInterfaceContractAddress = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
 )
 
 var (
@@ -100,10 +94,39 @@ var (
 	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
 	BlocksPerYear       = uint64(6311520)
 
+	// NOTE: the below contract address were obtained from the logs of the Ethereum deployment Docker container.
+
+	// FuelStreamXContractAddressStr is the address of the contract that holds bridge commitments.
+	FuelStreamXContractAddressStr = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed"
+	FuelStreamXContractAddress    = common.HexToAddress(FuelStreamXContractAddressStr)
+	// TokenContractAddressStr is the address of the FUEL V2 token contract.
+	TokenContractAddressStr = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+	TokenContractAddress    = common.HexToAddress(TokenContractAddressStr)
+	// SequencerInterfaceContractAddressStr is the address of the contract that has the batchAuthorize function.
+	SequencerInterfaceContractAddressStr = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+	SequencerInterfaceContractAddress    = common.HexToAddress(SequencerInterfaceContractAddressStr)
+	// MigratedTokenContractAddressStr is the address of the FUEL V1 token contract.
+	MigratedTokenContractAddressStr = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+	MigratedTokenContractAddress    = common.HexToAddress(MigratedTokenContractAddressStr)
+	// VaultContractAddressStr is the address of the vault contract.
+	VaultContractAddressStr = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+	VaultContractAddress    = common.HexToAddress(VaultContractAddressStr)
+	// SequencerProxyContractAddressStr is the address of the contract that emits Deposit and Authorize events.
+	SequencerProxyContractAddressStr = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+	SequencerProxyContractAddress    = common.HexToAddress(SequencerProxyContractAddressStr)
+	// TokenMigratorContractAddressStr is the address of the V1 to V2 token migrator contract.
+	TokenMigratorContractAddressStr = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+	TokenMigratorContractAddress    = common.HexToAddress(TokenMigratorContractAddressStr)
+	// FaucetContractAddressStr is the address of the token faucet contract.
+	FaucetContractAddressStr = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+	FaucetContractAddress    = common.HexToAddress(FaucetContractAddressStr)
+
 	// Vesting params
+
 	VestingStartTimeDelay = time.Hour * 24 * 365
 
 	// Logging
+
 	LogLevel = zaptest.Level(zap.DebugLevel)
 )
 

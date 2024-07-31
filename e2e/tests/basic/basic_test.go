@@ -76,7 +76,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Try generating some events via a transaction (RPC) - via deposit.
 		depositAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(s.EthKeys[0].Address, depositAmount)
+		mintData := testsuite.PackMintToken(s.EthKeys[0].Address, depositAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(depositAmount)

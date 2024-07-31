@@ -29,15 +29,23 @@ func packCall(abiString, method string, args []interface{}) []byte {
 }
 
 func (s *E2ETestSuite) SendEthTransactionToTokenContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, common.HexToAddress(TokenContractAddress), data)
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, TokenContractAddress, data)
 }
 
 func (s *E2ETestSuite) SendEthTransactionToSequencerInterfaceContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, common.HexToAddress(SequencerInterfaceContractAddress), data)
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, SequencerInterfaceContractAddress, data)
 }
 
 func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransactionFrom(s.EthGuardian.PrivateKey, common.HexToAddress(FuelStreamXContractAddress), data)
+	return s.SendEthTransactionFrom(s.EthGuardian.PrivateKey, FuelStreamXContractAddress, data)
+}
+
+func (s *E2ETestSuite) SendEthTransactionToMigratedTokenContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, MigratedTokenContractAddress, data)
+}
+
+func (s *E2ETestSuite) SendEthTransactionToTokenMigratorContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, TokenMigratorContractAddress, data)
 }
 
 func (s *E2ETestSuite) SendEthTransactionFrom(privateKey *ecdsa.PrivateKey, toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {

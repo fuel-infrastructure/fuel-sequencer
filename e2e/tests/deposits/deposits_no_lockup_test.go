@@ -30,9 +30,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(senderAddress), amount)
+		mintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), amount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
+		bal, err := s.QueryEthereumTokenBalance(s.Ctx(), common.HexToAddress(senderAddress))
+		s.Require().NoError(err)
+		s.Require().Equal(amount, bal)
 		depositData := testsuite.PackTransferAndCall(amount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
@@ -102,9 +105,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount)
+		mintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
+		bal, err := s.QueryEthereumTokenBalance(s.Ctx(), common.HexToAddress(senderAddress))
+		s.Require().NoError(err)
+		s.Require().Equal(sendAmount, bal)
 		depositData := testsuite.PackTransferAndCall(sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)
@@ -193,9 +199,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(senderAddress), sendAmount)
+		mintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
+		bal, err := s.QueryEthereumTokenBalance(s.Ctx(), common.HexToAddress(senderAddress))
+		s.Require().NoError(err)
+		s.Require().Equal(sendAmount, bal)
 		depositData := testsuite.PackTransferAndCall(sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(depositData)
 		s.Require().NoError(err)

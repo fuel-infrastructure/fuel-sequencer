@@ -4,13 +4,22 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
-func PackMint(address common.Address, amount *big.Int) []byte {
+func PackBalanceOfERC20Token(tokenContractAbi string, address common.Address) []byte {
 	return packCall(
-		sidecartypes.TokenContractABI,
-		sidecartypes.MintFunctionName,
+		tokenContractAbi,
+		BalanceOfQueryName,
+		[]interface{}{
+			address,
+		},
+	)
+}
+
+func PackApproveERC20Token(abi string, address common.Address, amount *big.Int) []byte {
+	return packCall(
+		abi,
+		ApproveFunctionName,
 		[]interface{}{
 			address,
 			amount,
@@ -18,13 +27,51 @@ func PackMint(address common.Address, amount *big.Int) []byte {
 	)
 }
 
+func PackApproveToken(address common.Address, amount *big.Int) []byte {
+	return PackApproveERC20Token(TokenContractABI, address, amount)
+}
+
+func PackApproveMigratedToken(address common.Address, amount *big.Int) []byte {
+	return PackApproveERC20Token(MigratedTokenContractABI, address, amount)
+}
+
+func PackMintERC20Token(abi string, address common.Address, amount *big.Int) []byte {
+	return packCall(
+		abi,
+		MintFunctionName,
+		[]interface{}{
+			address,
+			amount,
+		},
+	)
+}
+
+func PackMintToken(address common.Address, amount *big.Int) []byte {
+	return PackMintERC20Token(TokenContractABI, address, amount)
+}
+
+func PackMintMigratedToken(address common.Address, amount *big.Int) []byte {
+	return PackMintERC20Token(MigratedTokenContractABI, address, amount)
+}
+
 func PackTransferAndCall(amount *big.Int) []byte {
 	return packCall(
-		sidecartypes.TokenContractABI,
-		sidecartypes.TransferAndCallFunctionName,
+		TokenContractABI,
+		TransferAndCallFunctionName,
 		[]interface{}{
-			common.HexToAddress(SequencerInterfaceContractAddress),
+			SequencerInterfaceContractAddress,
 			amount,
+		},
+	)
+}
+
+func PackMigrate(amount *big.Int, validator common.Address) []byte {
+	return packCall(
+		TokenMigratorContractABI,
+		MigrateFunctionName,
+		[]interface{}{
+			amount,
+			validator,
 		},
 	)
 }
@@ -35,8 +82,8 @@ func PackAuthorize(data []byte) []byte {
 
 func PackBatchAuthorize(data [][]byte) []byte {
 	return packCall(
-		sidecartypes.SequencerInterfaceContractABI,
-		sidecartypes.BatchAuthorizeFunctionName,
+		SequencerInterfaceContractABI,
+		BatchAuthorizeFunctionName,
 		[]interface{}{
 			data,
 		},
@@ -51,8 +98,8 @@ func PackProcessSequencerWithdrawalMessage(
 	txResultProof BinaryMerkleProofForEthereum,
 ) []byte {
 	return packCall(
-		sidecartypes.FuelStreamXContractABI,
-		sidecartypes.ProcessSequencerWithdrawalMessageFunctionName,
+		FuelStreamXContractABI,
+		ProcessSequencerWithdrawalMessageFunctionName,
 		[]interface{}{
 			proofNonce,
 			bridgeCommitmentLeaf,
@@ -67,8 +114,8 @@ func PackUpdateGenesisStateMessage(
 	height uint32, trustedHeader common.Hash,
 ) []byte {
 	return packCall(
-		sidecartypes.FuelStreamXContractABI,
-		sidecartypes.UpdateGenesisStateFunctionName,
+		FuelStreamXContractABI,
+		UpdateGenesisStateFunctionName,
 		[]interface{}{
 			height,
 			trustedHeader,
@@ -82,8 +129,8 @@ func PackUpdateCommitHeaderRangeMessage(
 	bridgeCommitment common.Hash,
 ) []byte {
 	return packCall(
-		sidecartypes.FuelStreamXContractABI,
-		sidecartypes.UpdateCommitHeaderRangeFunctionName,
+		FuelStreamXContractABI,
+		UpdateCommitHeaderRangeFunctionName,
 		[]interface{}{
 			targetBlock,
 			targetHeader,

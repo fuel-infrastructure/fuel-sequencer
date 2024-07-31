@@ -12,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -24,7 +23,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(sender.AddressHex), amount)
+		mintData := testsuite.PackMintToken(common.HexToAddress(sender.AddressHex), amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(amount)
@@ -75,7 +74,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelStreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.FuelStreamXContractABI))
+		fuelStreamxABI, err := abi.JSON(strings.NewReader(testsuite.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
 		// Check BridgeCommitmentStored event
@@ -126,7 +125,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		mintData := testsuite.PackMint(common.HexToAddress(sender.AddressHex), amount)
+		mintData := testsuite.PackMintToken(common.HexToAddress(sender.AddressHex), amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
 		depositData := testsuite.PackTransferAndCall(amount)
@@ -211,7 +210,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelStreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.FuelStreamXContractABI))
+		fuelStreamxABI, err := abi.JSON(strings.NewReader(testsuite.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
 		// Check BridgeCommitmentStored event
