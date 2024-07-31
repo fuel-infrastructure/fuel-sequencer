@@ -87,10 +87,12 @@ genesis:
           - amount: "20000000"
             denom: "utest"
     mint:
+      minter:
+        inflation: "0.06"
       params:
-        inflation_max: "0.06"
-        inflation_min: "0.06"
-        inflation_rate_change: "0.0"
+        inflation_max: "0.06"         # unused
+        inflation_min: "0.06"         # unused
+        inflation_rate_change: "0.0"  # unused
         mint_denom: "utest"
     staking:
       params:

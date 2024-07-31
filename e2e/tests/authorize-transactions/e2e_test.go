@@ -97,9 +97,12 @@ func (s *AuthorizeTransactionsTestSuite) SetupTest() {
 			var mintGenState minttypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[minttypes.ModuleName], &mintGenState))
 
+			mintGenState.Minter.Inflation = e2etestsuite.Inflation
 			mintGenState.Params.InflationRateChange = e2etestsuite.InflationRateChange
 			mintGenState.Params.InflationMax = e2etestsuite.InflationMax
 			mintGenState.Params.InflationMin = e2etestsuite.InflationMin
+			mintGenState.Params.GoalBonded = e2etestsuite.GoalBonded
+			mintGenState.Params.BlocksPerYear = e2etestsuite.BlocksPerYear
 
 			bz, err = cdc.MarshalJSON(&mintGenState)
 			s.Require().NoError(err)

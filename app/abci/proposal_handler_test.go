@@ -1259,7 +1259,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "insufficient no of events, expected at least 3 got 0",
 		},
 		{
-			name:                          "returns error if generated MsgIndex not equal to block proposer's",
+			name:                          "returns error if events queried from sidecar not equal to block proposer's",
 			removeLastEthereumBlockSynced: false,
 			expQueryBlockEventsCalled:     1,
 			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
@@ -1275,7 +1275,10 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
+			expErrMsg: `generated injected txs do not match the ones from the block proposal ` +
+				`(injected MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:3 new_ethereum_block:true block_number:1 ) ` +
+				`(generated MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:3 new_ethereum_block:true block_number:1 ): ` +
+				`event transactions are not equal`,
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
@@ -1351,7 +1354,10 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg:                    "generated injected txs do not match the ones from the block proposal",
+			expErrMsg: `generated injected txs do not match the ones from the block proposal ` +
+				`(injected MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:2 new_ethereum_block:true block_number:1 ) ` +
+				`(generated MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:2 block_number:1 ): ` +
+				`new Ethereum block (true) != (false)`,
 		},
 		{
 			name:                      "returns error if block exceeds MaxBlockGas",
