@@ -246,6 +246,9 @@ func (s *E2ETestSuite) SetupTest() {
 			break
 		}
 
+		// Add a small buffer to account for delays between the BlockNumber query and the polling of Ethereum block
+		toHeight += 1
+
 		s.T().Logf("waiting for FuelSequencer to sync to Ethereum (%d -> %d)...", fromHeight, toHeight)
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 50, toHeight)
 	}
