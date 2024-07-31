@@ -61,6 +61,14 @@ def post_blob(
     req.seq.account_number = req.acc_num
     req.seq.account_sequence = int(req.acc_starting_seq) + int(req.topic_order)
 
+    # Return if stop event was set
+    if stop_event.is_set():
+        logger.warn(
+            f"cancelling block={req.block} rollup={req.rollup} "
+            f"topic={req.topic_id} order={req.topic_order}"
+        )
+        return
+
     sender = req.seq.keys(f"show {req.seq.key_name} -a")
     result = req.seq.post_blob_from_file(
         sender, req.topic_id, f"{req.topic_order}", data, req.tx_gas,
