@@ -76,11 +76,17 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Try generating some events via a transaction (RPC) - via deposit.
 		depositAmount := big.NewInt(200)
-		mintData := testsuite.PackMintToken(s.EthKeys[0].Address, depositAmount)
-		_, err = s.SendEthTransactionToTokenContract(mintData)
+		// ...mint V2 tokens to sender.
+		senderMintData := testsuite.PackMintToken(s.EthKeys[0].Address, depositAmount)
+		_, err = s.SendEthTransactionToTokenContract(senderMintData)
 		s.Require().NoError(err)
-		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, depositAmount)
-		depositTxReceipt, err := s.SendEthTransactionToTokenContract(depositData)
+		// ...approve V2 tokens for use by sequencer interface contract.
+		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, depositAmount)
+		depositTxReceipt, err := s.SendEthTransactionToTokenContract(approveData)
+		s.Require().NoError(err)
+		// ...deposit.
+		depositData := testsuite.PackDeposit(depositAmount)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
 
 		// Generate a MsgSend

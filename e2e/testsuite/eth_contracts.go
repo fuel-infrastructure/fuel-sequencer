@@ -31,12 +31,9 @@ const (
 	MintFunctionName    = "mint"
 	BalanceOfQueryName  = "balanceOf"
 
-	// V2 token contract
-
-	TransferAndCallFunctionName = "transferAndCall"
-
 	// SequencerInterface contract
 
+	DepositFunctionName        = "deposit"
 	BatchAuthorizeFunctionName = "batchAuthorize"
 
 	// FuelStreamX contract

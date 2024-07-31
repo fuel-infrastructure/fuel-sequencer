@@ -54,17 +54,6 @@ func PackMintMigratedToken(address common.Address, amount *big.Int) []byte {
 	return PackMintERC20Token(MigratedTokenContractABI, address, amount)
 }
 
-func PackTransferAndCall(address common.Address, amount *big.Int) []byte {
-	return packCall(
-		TokenContractABI,
-		TransferAndCallFunctionName,
-		[]interface{}{
-			address,
-			amount,
-		},
-	)
-}
-
 func PackMigrate(amount *big.Int, validator common.Address) []byte {
 	return packCall(
 		TokenMigratorContractABI,
@@ -72,6 +61,16 @@ func PackMigrate(amount *big.Int, validator common.Address) []byte {
 		[]interface{}{
 			amount,
 			validator,
+		},
+	)
+}
+
+func PackDeposit(amount *big.Int) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		DepositFunctionName,
+		[]interface{}{
+			amount,
 		},
 	)
 }

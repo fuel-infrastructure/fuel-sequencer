@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -23,11 +22,17 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		mintData := testsuite.PackMintToken(common.HexToAddress(sender.AddressHex), amount)
+		// ...mint V2 tokens to sender.
+		mintData := testsuite.PackMintToken(sender.Address, amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
+		// ...approve V2 tokens for use by sequencer interface contract.
+		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
+		_, err = s.SendEthTransactionToTokenContract(approveData)
+		s.Require().NoError(err)
+		// ...deposit.
+		depositData := testsuite.PackDeposit(amount)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
@@ -125,11 +130,17 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		mintData := testsuite.PackMintToken(common.HexToAddress(sender.AddressHex), amount)
+		// ...mint V2 tokens to sender.
+		mintData := testsuite.PackMintToken(sender.Address, amount)
 		_, err := s.SendEthTransactionToTokenContract(mintData)
 		s.Require().NoError(err)
-		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
+		// ...approve V2 tokens for use by sequencer interface contract.
+		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
+		_, err = s.SendEthTransactionToTokenContract(approveData)
+		s.Require().NoError(err)
+		// ...deposit.
+		depositData := testsuite.PackDeposit(amount)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer

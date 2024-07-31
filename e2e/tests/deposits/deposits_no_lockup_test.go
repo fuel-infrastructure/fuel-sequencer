@@ -27,18 +27,22 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
-		amount := big.NewInt(200)
+		sendAmount := big.NewInt(200)
 		// ...mint V2 tokens to sender.
-		mintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), amount)
-		_, err = s.SendEthTransactionToTokenContract(mintData)
+		senderMintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(senderMintData)
 		s.Require().NoError(err)
-		// ...transfer and call.
-		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
+		// ...approve V2 tokens for use by sequencer interface contract.
+		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(approveData)
+		s.Require().NoError(err)
+		// ...deposit.
+		depositData := testsuite.PackDeposit(sendAmount)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer
-		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
 		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
 
 		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
@@ -79,12 +83,16 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
 		// ...mint V2 tokens to sender.
-		mintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(mintData)
+		senderMintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(senderMintData)
 		s.Require().NoError(err)
-		// ...transfer and call.
-		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
+		// ...approve V2 tokens for use by sequencer interface contract.
+		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(approveData)
+		s.Require().NoError(err)
+		// ...deposit.
+		depositData := testsuite.PackDeposit(sendAmount)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
@@ -140,12 +148,16 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
 		// ...mint V2 tokens to sender.
-		mintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(mintData)
+		senderMintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(senderMintData)
 		s.Require().NoError(err)
-		// ...transfer and call.
-		depositData := testsuite.PackTransferAndCall(testsuite.SequencerInterfaceContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(depositData)
+		// ...approve V2 tokens for use by sequencer interface contract.
+		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
+		_, err = s.SendEthTransactionToTokenContract(approveData)
+		s.Require().NoError(err)
+		// ...deposit.
+		depositData := testsuite.PackDeposit(sendAmount)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
