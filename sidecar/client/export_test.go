@@ -1,7 +1,6 @@
 package client
 
 import (
-	"sync"
 	"time"
 
 	"cosmossdk.io/log"
@@ -37,9 +36,4 @@ func (c *GRPCClient) Conn() *grpc.ClientConn {
 // Client is an export of c.client. This should only be used for testing purposes.
 func (c *GRPCClient) Client() sidecartypes.SidecarClient {
 	return c.client
-}
-
-// Mutex is an export of c.mutex. This should only be used for testing purposes.
-func (c *GRPCClient) Mutex() sync.Mutex {
-	return c.mutex
 }

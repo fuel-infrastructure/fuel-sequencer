@@ -194,14 +194,12 @@ func TestStartAndStop(t *testing.T) {
 		pathToKeyFile  string
 	}{
 		{
-			"Start establishes connection and stop closes it (with TLS)",
-			"../testutil/certificates/server-cert.pem",
-			"../testutil/certificates/server-key.pem",
+			name:           "Start establishes connection and stop closes it (with TLS)",
+			pathToCertFile: "../testutil/certificates/server-cert.pem",
+			pathToKeyFile:  "../testutil/certificates/server-key.pem",
 		},
 		{
-			"Start establishes connection and stop closes it (without TLS)",
-			"",
-			"",
+			name: "Start establishes connection and stop closes it (without TLS)",
 		},
 	}
 
@@ -239,7 +237,6 @@ func TestStartAndStop(t *testing.T) {
 			grpcClient, ok := appSidecarClient.(*sidecarclient.GRPCClient)
 			require.True(t, ok)
 			require.NotNil(t, grpcClient.Client())
-			require.NotNil(t, grpcClient.Mutex())
 
 			// Wait 5 seconds and check that the connection was established
 			time.Sleep(time.Second * 5)
@@ -277,32 +274,26 @@ func TestGetBlockEvents(t *testing.T) {
 		expErrMsg      string
 	}{
 		{
-			"Returns block events if query successful (with TLS)",
-			"../testutil/certificates/server-cert.pem",
-			"../testutil/certificates/server-key.pem",
-			true,
-			"",
+			name:           "Returns block events if query successful (with TLS)",
+			pathToCertFile: "../testutil/certificates/server-cert.pem",
+			pathToKeyFile:  "../testutil/certificates/server-key.pem",
+			startClient:    true,
 		},
 		{
-			"Returns block events if query successful (without TLS)",
-			"",
-			"",
-			true,
-			"",
+			name:        "Returns block events if query successful (without TLS)",
+			startClient: true,
 		},
 		{
-			"errors if client not started (with TLS)",
-			"../testutil/certificates/server-cert.pem",
-			"../testutil/certificates/server-key.pem",
-			false,
-			"sidecar client not started",
+			name:           "errors if client not started (with TLS)",
+			pathToCertFile: "../testutil/certificates/server-cert.pem",
+			pathToKeyFile:  "../testutil/certificates/server-key.pem",
+			startClient:    false,
+			expErrMsg:      "sidecar client not started",
 		},
 		{
-			"errors if client not started (without TLS)",
-			"",
-			"",
-			false,
-			"sidecar client not started",
+			name:        "errors if client not started (without TLS)",
+			startClient: false,
+			expErrMsg:   "sidecar client not started",
 		},
 	}
 
