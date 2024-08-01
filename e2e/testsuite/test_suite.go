@@ -95,9 +95,10 @@ var (
 	BlocksPerYear       = uint64(6311520)
 
 	// NOTE: the below contract address were obtained from the logs of the Ethereum deployment Docker container.
+	// TODO: we might want to grab these from the Docker container logs instead, to ensure they are up-to-date.
 
 	// FuelStreamXContractAddressStr is the address of the contract that holds bridge commitments.
-	FuelStreamXContractAddressStr = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed"
+	FuelStreamXContractAddressStr = "0xc351628EB244ec633d5f21fBD6621e1a683B1181"
 	FuelStreamXContractAddress    = common.HexToAddress(FuelStreamXContractAddressStr)
 	// TokenContractAddressStr is the address of the FUEL V2 token contract.
 	TokenContractAddressStr = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
