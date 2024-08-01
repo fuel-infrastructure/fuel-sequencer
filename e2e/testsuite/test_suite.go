@@ -206,21 +206,17 @@ func (s *E2ETestSuite) SetupTest() {
 	// initialization
 	s.initFuelSequencerNodes(MNEMONICS)
 
-	// run Ethereum node
+	// run Ethereum node and deploy contracts
 	s.runEthereumNodeContainer()
+	s.runEthereumDeploymentContainer()
+	s.initEthereumRPCClient()
 
 	// run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
 	s.runFuelSequencerValidators()
-
-	// deploy Ethereum contracts
-	s.runEthereumDeploymentContainer()
-
-	// set up clients
 	s.initGRPCClients()
 	s.initRPCClient()
-	s.initEthereumRPCClient()
 	s.initSidecarClient()
 
 	// We need the genesis header for solidity smart contracts
@@ -235,23 +231,6 @@ func (s *E2ETestSuite) SetupTest() {
 	data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
 	_, err = s.SendEthTransactionToFuelStreamXContract(data)
 	s.Require().NoError(err)
-
-	// Ensure that FuelSequencer has approximately caught up with Ethereum.
-	// This assumes that the FuelSequencer has a shorter block time than Ethereum.
-	for {
-		fromHeight := s.QueryLastEthereumBlockSynced(s.Ctx())
-		toHeight, err := s.getEthereumRPCClient().BlockNumber(s.Ctx())
-		s.Require().NoError(err)
-		if fromHeight+5 > toHeight { // max 5 blocks difference
-			break
-		}
-
-		// Add a small buffer to account for delays between the BlockNumber query and the polling of Ethereum block
-		toHeight += 1
-
-		s.T().Logf("waiting for FuelSequencer to sync to Ethereum (%d -> %d)...", fromHeight, toHeight)
-		s.PollForLastEthereumBlockSynced(s.Ctx(), 50, toHeight)
-	}
 
 	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
