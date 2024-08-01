@@ -10,6 +10,7 @@ import (
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil/servers"
 	apptesttypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/connectivity"
@@ -208,7 +209,7 @@ func TestStartAndStop(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a TestSidecarServer for the AppSidecarClient to connect with. We use localhost:0 so that the
 			// OS picks up an available port.
-			testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0", tc.pathToCertFile, tc.pathToKeyFile)
+			testSidecarServer := servers.MustMakeTestSidecarServer("localhost:0", tc.pathToCertFile, tc.pathToKeyFile)
 			testSidecarServer.Start()
 			defer testSidecarServer.Stop()
 
@@ -309,7 +310,7 @@ func TestGetBlockEvents(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a TestSidecarServer for the AppSidecarClient to connect with. We use localhost:0 so that the
 			// OS picks up an available port.
-			testSidecarServer := testutil.MustMakeTestSidecarServer("localhost:0", tc.pathToCertFile, tc.pathToKeyFile)
+			testSidecarServer := servers.MustMakeTestSidecarServer("localhost:0", tc.pathToCertFile, tc.pathToKeyFile)
 			testSidecarServer.Start()
 			defer testSidecarServer.Stop()
 
