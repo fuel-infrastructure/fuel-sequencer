@@ -51,12 +51,14 @@ func (s *E2ETestSuite) QueryEthereumErc20Balance(
 	return balance, nil
 }
 
+// QueryEthereumMigratedTokenBalance queries the migrated token (FUEL V1) balance of the specified account.
 func (s *E2ETestSuite) QueryEthereumMigratedTokenBalance(
 	ctx context.Context, account common.Address,
 ) (*big.Int, error) {
 	return s.QueryEthereumErc20Balance(ctx, account, MigratedTokenContractAddress, MigratedTokenContractABI)
 }
 
+// QueryEthereumTokenBalance queries the token (FUEL V2) balance of the specified account.
 func (s *E2ETestSuite) QueryEthereumTokenBalance(
 	ctx context.Context, account common.Address,
 ) (*big.Int, error) {

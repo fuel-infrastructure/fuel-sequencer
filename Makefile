@@ -3,15 +3,22 @@
 # Include the .env file if it exists
 -include .env
 
+# Sequencer's Docker image and container names.
 DOCKER := $(shell which docker)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
-
+# Name of the Ethereum contract deployment image.
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
+
+# Ethereum containers' names when they are run from the E2E tests.
+ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME := "ethereum-deployment"
+
+# Ethereum containers' names when they are run from the docker-compose.
+ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE := "eth_node"
+ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE := "deploy"
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
@@ -147,7 +154,7 @@ build-fuelsequencerd:
 	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
 	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 $(MAIN)
-	
+
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
 	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 $(MAIN)
 
@@ -257,6 +264,10 @@ run-sidecar:
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
+	done
+	@echo "Waiting for Ethereum deployment container '$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)' to stop..."
+	@while [ -n "$$(docker ps -q -f name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE))" ]; do \
+		sleep 1; \
 	done
 	@echo "Waiting for Sequencer node $(SEQUENCER_RPC_URL) to start..."
 	@while ! curl -s -X GET --max-time 1 "$(SEQUENCER_RPC_URL)" | grep -q "result"; do \

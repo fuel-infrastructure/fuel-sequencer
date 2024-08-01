@@ -43,6 +43,10 @@ Testing and docs:
    3. Terminal 2: `make run-sidecar`
    4. Terminal 3:
       - `bash scripts/call_contract.sh`
+      - Wait for the Sequencer to sync the Ethereum blocks containing the contract calls:
+        ```
+        fuelsequencerd q bridge show-last-ethereum-block-synced
+        ```
       - Sanity checks:
         ```
         fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect +10
