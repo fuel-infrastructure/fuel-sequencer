@@ -35,7 +35,7 @@ The manual E2E testing framework also comes with an event extractor which can be
 
 ## Load Test Scripts
 
-> These scripts can be used for non-devnet networks but the configuration need to be adjusted from the scripts!
+> These scripts can be used for Devnet, Sandbox, and Localhost networks but the configuration need to be adjusted from the scripts!
 
 The recommended approach is to:
 
@@ -44,3 +44,23 @@ The recommended approach is to:
 - Run `while true; do python3 run_load_tests.py --key "$KEY" --mnemonic "$MNEMONIC"; done` to run a load test worker.
 
 You can run multiple workers as long as you use a different key and mnemonic pair. The pairs must match the restored keys.
+
+You can also use the following service file, making sure to fill in the link-to placeholders for the Sequencer clone and Python:
+
+```service
+[Unit]
+Description=Sequencer Load Testing
+After=network.target
+
+[Service]
+Type=simple
+User=miguel
+WorkingDirectory=/LINK/TO/fuel-sequencer/e2e/manual/
+ExecStart=/LINK/TO/python3 /LINK/TO/fuel-sequencer/e2e/manual/run_load_tests.py
+Restart=always
+RestartSec=0
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
+```
