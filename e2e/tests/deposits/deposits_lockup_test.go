@@ -49,7 +49,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup(
 		// Calculate expected values
 		bridgeParams := s.QueryBridgeParams(s.Ctx())
 		vestingStartTime := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
-		vestingEndTime := vestingStartTime.Add(testsuite.VestingStartTimeDelay)
+		vestingEndTime := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration)
 
 		ethOwnedVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
@@ -118,7 +118,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		// Calculate expected values
 		bridgeParams := s.QueryBridgeParams(s.Ctx())
 		vestingStartTime := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
-		vestingEndTime := vestingStartTime.Add(testsuite.VestingStartTimeDelay)
+		vestingEndTime := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration)
 
 		ethOwnedVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
@@ -196,7 +196,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 		// Calculate expected values
 		bridgeParams = s.QueryBridgeParams(s.Ctx())
 		vestingStartTime := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
-		vestingEndTime := vestingStartTime.Add(testsuite.VestingStartTimeDelay)
+		vestingEndTime := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration)
 
 		ethOwnedVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)

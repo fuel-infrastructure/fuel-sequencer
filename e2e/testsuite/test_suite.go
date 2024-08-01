@@ -124,7 +124,8 @@ var (
 
 	// Vesting params
 
-	VestingStartTimeDelay = time.Hour * 24 * 365
+	VestingStartTimeDelay = time.Hour * 24 * 365 * 1 // 1 year
+	VestingDuration       = time.Hour * 24 * 365 * 2 // 2 years, as specified in the Ethereum Docker images.
 
 	// Logging
 
