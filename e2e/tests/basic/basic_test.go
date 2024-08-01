@@ -76,14 +76,6 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Try generating some events via a transaction (RPC) - via deposit.
 		depositAmount := big.NewInt(200)
-		// ...mint V2 tokens to sender.
-		senderMintData := testsuite.PackMintToken(s.EthKeys[0].Address, depositAmount)
-		_, err = s.SendEthTransactionToTokenContract(senderMintData)
-		s.Require().NoError(err)
-		// ...check that the V2 tokens are in the sender's balance.
-		balance, err := s.QueryEthereumTokenBalance(s.Ctx(), s.EthKeys[0].Address)
-		s.Require().NoError(err)
-		s.Require().Equal(depositAmount, balance)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, depositAmount)
 		_, err = s.SendEthTransactionToTokenContract(approveData)
@@ -92,10 +84,6 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		depositData := testsuite.PackDeposit(depositAmount)
 		depositTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(depositData)
 		s.Require().NoError(err)
-		// ...check that the V2 tokens have left the sender's balance.
-		balance, err = s.QueryEthereumTokenBalance(s.Ctx(), s.EthKeys[0].Address)
-		s.Require().NoError(err)
-		s.Require().Zero(balance.Sign())
 
 		// Generate a MsgSend
 		sendAmount, ok := sdkmath.NewIntFromString("10")

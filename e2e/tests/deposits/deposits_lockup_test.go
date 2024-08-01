@@ -29,10 +29,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup(
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		// ...mint V1 tokens to sender.
-		senderMintData := testsuite.PackMintMigratedToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToMigratedTokenContract(senderMintData)
-		s.Require().NoError(err)
 		// ...approve V1 tokens for use by token migrator.
 		approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, sendAmount)
 		_, err = s.SendEthTransactionToMigratedTokenContract(approveData)
@@ -97,10 +93,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		// ...mint V1 tokens to sender.
-		senderMintData := testsuite.PackMintMigratedToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToMigratedTokenContract(senderMintData)
-		s.Require().NoError(err)
 		// ...approve V1 tokens for use by token migrator.
 		approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, sendAmount)
 		_, err = s.SendEthTransactionToMigratedTokenContract(approveData)
@@ -179,10 +171,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		// ...mint V1 tokens to sender.
-		senderMintData := testsuite.PackMintMigratedToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToMigratedTokenContract(senderMintData)
-		s.Require().NoError(err)
 		// ...approve V1 tokens for use by token migrator.
 		approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, sendAmount)
 		_, err = s.SendEthTransactionToMigratedTokenContract(approveData)

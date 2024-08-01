@@ -22,13 +22,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		// ...mint V2 tokens to sender.
-		mintData := testsuite.PackMintToken(sender.Address, amount)
-		_, err := s.SendEthTransactionToTokenContract(mintData)
-		s.Require().NoError(err)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err = s.SendEthTransactionToTokenContract(approveData)
+		_, err := s.SendEthTransactionToTokenContract(approveData)
 		s.Require().NoError(err)
 		// ...deposit.
 		depositData := testsuite.PackDeposit(amount)
@@ -130,13 +126,9 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		amount := big.NewInt(200)
-		// ...mint V2 tokens to sender.
-		mintData := testsuite.PackMintToken(sender.Address, amount)
-		_, err := s.SendEthTransactionToTokenContract(mintData)
-		s.Require().NoError(err)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err = s.SendEthTransactionToTokenContract(approveData)
+		_, err := s.SendEthTransactionToTokenContract(approveData)
 		s.Require().NoError(err)
 		// ...deposit.
 		depositData := testsuite.PackDeposit(amount)

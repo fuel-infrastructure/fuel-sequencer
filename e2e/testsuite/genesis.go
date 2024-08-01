@@ -180,7 +180,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 	ethBlockNumber, err := s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
 	s.Require().NoError(err)
-	s.Logger().Info(fmt.Sprintf("set last Ethereum block synced to %d", ethBlockNumber))
+	s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
 
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))

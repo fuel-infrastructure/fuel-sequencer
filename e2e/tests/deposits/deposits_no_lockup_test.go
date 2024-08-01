@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
@@ -28,10 +27,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		// ...mint V2 tokens to sender.
-		senderMintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(senderMintData)
-		s.Require().NoError(err)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(approveData)
@@ -82,10 +77,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		// ...mint V2 tokens to sender.
-		senderMintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(senderMintData)
-		s.Require().NoError(err)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(approveData)
@@ -147,10 +138,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		// Generate a deposit to an account owned by the sender.
 		// Note: by default the sender is s.EthKeys[0]
 		sendAmount := big.NewInt(200)
-		// ...mint V2 tokens to sender.
-		senderMintData := testsuite.PackMintToken(common.HexToAddress(senderAddress), sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(senderMintData)
-		s.Require().NoError(err)
 		// ...approve V2 tokens for use by sequencer interface contract.
 		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
 		_, err = s.SendEthTransactionToTokenContract(approveData)
