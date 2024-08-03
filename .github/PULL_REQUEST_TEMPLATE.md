@@ -42,7 +42,7 @@ Testing and docs:
    2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
    3. Terminal 2: `make run-sidecar`
    4. Terminal 3:
-      - Waiting for the Ethereum deployment container to stop.
+      - Wait for the Ethereum deployment container to stop.
       - `bash scripts/call_contract.sh`
       - Wait for the Sequencer to sync the Ethereum blocks containing the contract calls:
         ```
