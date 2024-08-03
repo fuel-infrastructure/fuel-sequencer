@@ -184,7 +184,8 @@ make test-unit
 
 You will need a Sequencer image and Ethereum deployment image:
 
-> Ensure .env file is set up before running this!
+> Ensure e2e/fuel-rollup/.npmrc file is set up before running this! \
+> It should contain `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`
 
 ```bash
 make build-all-docker-images

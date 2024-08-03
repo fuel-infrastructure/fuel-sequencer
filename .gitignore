@@ -31,6 +31,3 @@ release/
 # Build directories
 build/
 tmp-swagger-gen/
-
-# Environment
-.env

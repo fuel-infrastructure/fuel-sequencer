@@ -1,8 +1,5 @@
 #!/usr/bin/make -f
 
-# Include the .env file if it exists
--include .env
-
 # Sequencer's Docker image and container names.
 DOCKER := $(shell which docker)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
@@ -442,13 +439,13 @@ endif
 
 # Builds contract deployment container for automated E2E tests
 # Note: this assumes evm_setIntervalMining is set to 3.
-build-eth-deployment-docker-image: .env
+build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
 	@echo "⚠️ Setting vesting period to higher value [2 years] (fuel-rollup)..."
 	@perl -pi -e 's/VESTING_PERIOD = 300/VESTING_PERIOD = 63072000/g' ./e2e/fuel-rollup/deploy/hardhat/006.migrator.ts
 	@echo "🤖 Building Docker image..."
-	@export $$(cat .env | xargs) && docker build \
+	@docker build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
@@ -460,9 +457,9 @@ build-eth-deployment-docker-image: .env
 	@echo "✅ Finished!"
 
 # Runs node and contract deployment containers
-run-eth-e2e-containers: .env
+run-eth-e2e-containers: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Running Docker containers..."
-	@export $$(cat .env | xargs) && docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build eth_node deploy
+	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build eth_node deploy
 
 # Removes node and contract deployment containers
 remove-eth-e2e-containers:
