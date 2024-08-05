@@ -5,6 +5,7 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 )
 
 func InitSDKConfig() {
@@ -35,15 +36,17 @@ func InitCometBFTConfig() *cmtcfg.Config {
 	return cfg
 }
 
+// CustomAppConfig defines a configuration for a custom app.toml file.
+// It essentially just adds the Sidecar and Commitments config to the typical Cosmos SDK Config.
+type CustomAppConfig struct {
+	serverconfig.Config `mapstructure:",squash"`
+	SidecarConfig       sidecarconfig.SidecarConfig `mapstructure:"sidecar"`
+	CommitmentsConfig   commitmentsconfig.Config    `mapstructure:"commitments"`
+}
+
 // InitAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
 func InitAppConfig() (string, interface{}) {
-	// CustomAppConfig defines a configuration for a custom app.toml file.
-	// It essentially just adds SidecarConfig to the typical Cosmos SDK Config.
-	type CustomAppConfig struct {
-		serverconfig.Config `mapstructure:",squash"`
-		SidecarConfig       sidecarconfig.SidecarConfig `mapstructure:"sidecar"`
-	}
 
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
@@ -71,6 +74,9 @@ func InitAppConfig() (string, interface{}) {
 			Timeout:        sidecarconfig.DefaultSidecarTimeout,
 			PathToCertFile: sidecarconfig.DefaultSidecarPathToCertFile,
 		},
+		CommitmentsConfig: commitmentsconfig.Config{
+			ApiEnabled: commitmentsconfig.DefaultCommitmentsApiEnabled,
+		},
 	}
 
 	// Note: do not indent the below section, otherwise it will be indented in the config file as well.
@@ -85,7 +91,13 @@ address = "localhost:8080"
 timeout = "5s"
 # This defines the path to the certificate file for secure communication with the sidecar server.
 # Should only be modified if the sidecar is to be configured with TLS.
-path_to_cert_file = ""`
+path_to_cert_file = ""
+
+[commitments]
+# This dictates whether the commitments API (with bridge commitment queries) is enabled.
+# Warning: The queries in this API are resource intensive and could be used to commit DOS.
+#          If enabled, the queries should only be exposed to trusted clients.
+api-enabled = false`
 
 	return customAppTemplate, customAppConfig
 }

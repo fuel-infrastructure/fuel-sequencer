@@ -31,7 +31,6 @@ import (
 func init() {
 	app.InitSDKConfig()
 	app.InitCometBFTConfig()
-	app.InitAppConfig()
 
 	sdk.DefaultBondDenom = BridgeDenom
 }

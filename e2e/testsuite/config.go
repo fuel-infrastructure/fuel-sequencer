@@ -8,6 +8,7 @@ import (
 
 	cmconfig "github.com/cometbft/cometbft/config"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/spf13/viper"
 )
 
@@ -52,12 +53,14 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		// set application configuration
 		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
 
-		appConfig := srvconfig.DefaultConfig()
+		_, appConfigInterface := app.InitAppConfig()
+		appConfig := appConfigInterface.(app.CustomAppConfig)
 		appConfig.API.Enable = true
 		appConfig.API.Address = "tcp://0.0.0.0:1317"
 		appConfig.GRPC.Address = "0.0.0.0:9090"
 		appConfig.Pruning = "nothing"
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
+		appConfig.CommitmentsConfig.ApiEnabled = true
 
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
