@@ -53,8 +53,8 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		// set application configuration
 		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
 
-		_, appConfigInterface := app.InitAppConfig()
-		appConfig := appConfigInterface.(app.CustomAppConfig)
+		customAppTemplate, customAppConfig := app.InitAppConfig()
+		appConfig := customAppConfig.(app.CustomAppConfig)
 		appConfig.API.Enable = true
 		appConfig.API.Address = "tcp://0.0.0.0:1317"
 		appConfig.GRPC.Address = "0.0.0.0:9090"
@@ -62,6 +62,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
 		appConfig.CommitmentsConfig.ApiEnabled = true
 
+		srvconfig.SetConfigTemplate(customAppTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
 }
