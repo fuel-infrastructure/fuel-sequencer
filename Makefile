@@ -459,7 +459,9 @@ build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 # Runs node and contract deployment containers
 run-eth-e2e-containers: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Running Docker containers..."
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build eth_node deploy
+	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build \
+		"$(ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE)" \
+		"$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)"
 
 # Removes node and contract deployment containers
 remove-eth-e2e-containers:
