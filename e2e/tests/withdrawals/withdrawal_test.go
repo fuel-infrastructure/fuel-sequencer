@@ -17,23 +17,13 @@ import (
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromSequencer() {
 	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
 
-		sender := s.EthKeys[0]
-
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit
 		amount := big.NewInt(200)
-		// ...approve V2 tokens for use by sequencer interface contract.
-		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err := s.SendEthTransactionToTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...deposit.
-		depositData := testsuite.PackDeposit(amount)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencer(amount)
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
-		s.PollForBalance(s.Ctx(), 10, sender.AddressSeq, amountCoin)
+		s.PollForBalance(s.Ctx(), 10, s.EthKeys[0].AddressSeq, amountCoin)
 	})
 
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
@@ -121,23 +111,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
 	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
 
-		sender := s.EthKeys[0]
-
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit
 		amount := big.NewInt(200)
-		// ...approve V2 tokens for use by sequencer interface contract.
-		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
-		_, err := s.SendEthTransactionToTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...deposit.
-		depositData := testsuite.PackDeposit(amount)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencer(amount)
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
-		s.PollForBalance(s.Ctx(), 10, sender.AddressSeq, amountCoin)
+		s.PollForBalance(s.Ctx(), 10, s.EthKeys[0].AddressSeq, amountCoin)
 	})
 
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {

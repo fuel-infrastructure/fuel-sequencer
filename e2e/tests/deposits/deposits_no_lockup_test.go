@@ -24,17 +24,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup() 
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit!
 		sendAmount := big.NewInt(200)
-		// ...approve V2 tokens for use by sequencer interface contract.
-		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...deposit.
-		depositData := testsuite.PackDeposit(sendAmount)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencer(sendAmount)
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
@@ -74,17 +66,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_NoL
 		s.Require().NoError(err)
 		s.Require().Equal(initBalance, balance.Balances)
 
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit!
 		sendAmount := big.NewInt(200)
-		// ...approve V2 tokens for use by sequencer interface contract.
-		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...deposit.
-		depositData := testsuite.PackDeposit(sendAmount)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencer(sendAmount)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly vested tokens.
@@ -135,17 +119,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_NoLoc
 		s.Require().Equal(initVestingEndTime, continuousVestingAccount.EndTime)
 		s.Require().Equal(initVestingAmountCoins, continuousVestingAccount.OriginalVesting)
 
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit!
 		sendAmount := big.NewInt(200)
-		// ...approve V2 tokens for use by sequencer interface contract.
-		approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...deposit.
-		depositData := testsuite.PackDeposit(sendAmount)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencer(sendAmount)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly vested tokens.

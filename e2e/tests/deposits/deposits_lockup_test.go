@@ -8,9 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 )
 
 func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup() {
@@ -26,21 +24,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup(
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit!
 		sendAmount := big.NewInt(200)
-		// ...approve V1 tokens for use by token migrator.
-		approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToMigratedTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...mint V2 tokens to token migrator.
-		migratorMintData := testsuite.PackMintToken(testsuite.TokenMigratorContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(migratorMintData)
-		s.Require().NoError(err)
-		// ...migrate V1 tokens to V2 tokens.
-		depositData := testsuite.PackMigrate(sendAmount, common.HexToAddress(keeper.NullEthereumAddress))
-		_, err = s.SendEthTransactionToTokenMigratorContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencerFromMigration(sendAmount)
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
@@ -90,21 +76,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().NoError(err)
 		s.Require().Equal(initBalance, balance.Balances)
 
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit!
 		sendAmount := big.NewInt(200)
-		// ...approve V1 tokens for use by token migrator.
-		approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToMigratedTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...mint V2 tokens to token migrator.
-		migratorMintData := testsuite.PackMintToken(testsuite.TokenMigratorContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(migratorMintData)
-		s.Require().NoError(err)
-		// ...migrate V1 tokens to V2 tokens.
-		depositData := testsuite.PackMigrate(sendAmount, common.HexToAddress(keeper.NullEthereumAddress))
-		_, err = s.SendEthTransactionToTokenMigratorContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencerFromMigration(sendAmount)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly vested tokens.
@@ -168,21 +142,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 		s.Require().Equal(initVestingEndTime, continuousVestingAccount.EndTime)
 		s.Require().Equal(initVestingAmountCoins, continuousVestingAccount.OriginalVesting)
 
-		// Generate a deposit to an account owned by the sender.
-		// Note: by default the sender is s.EthKeys[0]
+		// Deposit!
 		sendAmount := big.NewInt(200)
-		// ...approve V1 tokens for use by token migrator.
-		approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToMigratedTokenContract(approveData)
-		s.Require().NoError(err)
-		// ...mint V2 tokens to token migrator.
-		migratorMintData := testsuite.PackMintToken(testsuite.TokenMigratorContractAddress, sendAmount)
-		_, err = s.SendEthTransactionToTokenContract(migratorMintData)
-		s.Require().NoError(err)
-		// ...migrate V1 tokens to V2 tokens.
-		depositData := testsuite.PackMigrate(sendAmount, common.HexToAddress(keeper.NullEthereumAddress))
-		_, err = s.SendEthTransactionToTokenMigratorContract(depositData)
-		s.Require().NoError(err)
+		_ = s.DepositTokenToSequencerFromMigration(sendAmount)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly vested tokens.
