@@ -34,11 +34,11 @@ Testing and docs:
 - [ ] `make lint` to ensure linting rules satisfied.
 - [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
 - [ ] Run E2E tests:
-   1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`.
+   1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. `make build-all-docker-images test-e2e`
    3. `make clean` once you're done.
 - [ ] Run a local E2E setup to ensure the chain runs:
-   1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`.
+   1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
    3. Terminal 2: `make run-sidecar`
    4. Terminal 3:
