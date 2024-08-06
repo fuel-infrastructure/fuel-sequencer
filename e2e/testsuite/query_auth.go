@@ -62,6 +62,32 @@ func (s *E2ETestSuite) QueryEthOwnedContinuousVestingAccount(
 	return ethOwnedContinuousVestingAccount, nil
 }
 
+// QueryEthOwnedBaseAccount returns an EthOwnedBaseAccount corresponding to the given address if no errors.
+func (s *E2ETestSuite) QueryEthOwnedBaseAccount(
+	ctx context.Context, address string,
+) (*bridgetypes.EthOwnedBaseAccount, error) {
+	authClient := s.getGRPCClients().AuthQueryClient
+	resp, err := authClient.Account(ctx, &authtypes.QueryAccountRequest{Address: address})
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := encodingConfig
+
+	var account sdktypes.AccountI
+	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
+		return nil, err
+	}
+	ethOwnedBaseAccount, ok := account.(*bridgetypes.EthOwnedBaseAccount)
+	if !ok {
+		return nil, fmt.Errorf(
+			"failed to cast account: %T as EthOwnedBaseAccount", ethOwnedBaseAccount,
+		)
+	}
+
+	return ethOwnedBaseAccount, nil
+}
+
 // QueryBaseAccount returns a BaseAccount corresponding to the given address if no errors.
 func (s *E2ETestSuite) QueryBaseAccount(ctx context.Context, address string) (*authtypes.BaseAccount, error) {
 	authClient := s.getGRPCClients().AuthQueryClient
