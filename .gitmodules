@@ -1,4 +1,4 @@
-[submodule "e2e/test-contracts"]
-	path = e2e/test-contracts
-	url = https://github.com/fuel-infrastructure/test-contracts
+[submodule "e2e/fuel-rollup"]
+	path = e2e/fuel-rollup
+	url = https://github.com/FuelLabs/fuel-rollup
 	branch = main

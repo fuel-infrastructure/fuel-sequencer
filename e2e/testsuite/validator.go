@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,8 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
 	fuelsequencerapp "github.com/fuel-infrastructure/fuel-sequencer/app"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
@@ -45,19 +42,12 @@ type validator struct {
 	privateKey   cryptotypes.PrivKey
 	consensusKey privval.FilePVKey
 	nodeKey      p2p.NodeKey
-	ethereumKey  ethereumKey
 
 	// FuelSequencer ports set during startup.
 	hostRPCPort     string
 	hostAPIPort     string
 	hostGRPCPort    string
 	sidecarGRPCPort string
-}
-
-type ethereumKey struct {
-	publicKey  string
-	privateKey string
-	address    string
 }
 
 func (v *validator) instanceName() string {
@@ -205,39 +195,6 @@ func (v *validator) createKey(name string) error { //nolint:unused
 	}
 
 	return v.createKeyFromMnemonic(name, mnemonic, "")
-}
-
-func (v *validator) generateEthereumKey() error { //nolint:unused
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-		return err
-	}
-
-	privateKeyBytes := crypto.FromECDSA(privateKey)
-
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return fmt.Errorf("unexpected public key type; expected: %T, got: %T", &ecdsa.PublicKey{}, publicKey)
-	}
-
-	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-	v.ethereumKey = ethereumKey{
-		privateKey: hexutil.Encode(privateKeyBytes),
-		publicKey:  hexutil.Encode(publicKeyBytes),
-		address:    crypto.PubkeyToAddress(*publicKeyECDSA).Hex(),
-	}
-
-	return nil
-}
-
-func (v *validator) generateEthereumKeyFromMnemonic(mnemonic string) error {
-	ethKey, err := ethereumKeyFromMnemonic(mnemonic)
-	if err != nil {
-		return err
-	}
-	v.ethereumKey = *ethKey
-	return nil
 }
 
 func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
