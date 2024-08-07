@@ -39,7 +39,7 @@ func TestQuerySequencerGenesisForLastEthereumBlockSynced(t *testing.T) {
 					InitialHeight: int64(1),
 				},
 			},
-			setServerUrl: "http://localhost:1",
+			setServerUrl: "http://localhost:1", // NOTE: test might fail if http://localhost:1 is listening
 			expErrMsg:    "connection refused",
 		},
 		{
@@ -50,7 +50,7 @@ func TestQuerySequencerGenesisForLastEthereumBlockSynced(t *testing.T) {
 					InitialHeight: int64(1),
 				},
 			},
-			setServerUrl: "http://12.34.56.78:1",
+			setServerUrl: "http://12.34.56.78:1", // NOTE: test might fail if http://12.34.56.78:1 is listening
 			expErrMsg:    "context deadline exceeded",
 		},
 	}
