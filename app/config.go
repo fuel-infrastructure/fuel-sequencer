@@ -82,22 +82,22 @@ func InitAppConfig() (string, interface{}) {
 	// Note: do not indent the below section, otherwise it will be indented in the config file as well.
 	customAppTemplate := serverconfig.DefaultConfigTemplate + `
 [sidecar]
-# This dictates whether the Sidecar will be queried.
-enabled = true
+# This dictates whether the Sidecar will be queriedddd.
+enabled = {{ .SidecarConfig.Enabled }}
 # This defines the Sidecar server to listen to.
-address = "localhost:8080"
+address = "{{ .SidecarConfig.Address }}"
 # This defines how long the client should wait for responses.
 # This should be reasonably lower than the expected block time.
-timeout = "5s"
+timeout = "{{ .SidecarConfig.Timeout }}"
 # This defines the path to the certificate file for secure communication with the sidecar server.
 # Should only be modified if the sidecar is to be configured with TLS.
-path_to_cert_file = ""
+path_to_cert_file = "{{ .SidecarConfig.PathToCertFile }}"
 
 [commitments]
 # This dictates whether the commitments API (with bridge commitment queries) is enabled.
 # Warning: The queries in this API are resource intensive and could be used to commit DOS.
 #          If enabled, the queries should only be exposed to trusted clients.
-api-enabled = false`
+api-enabled = {{ .CommitmentsConfig.ApiEnabled }}`
 
 	return customAppTemplate, customAppConfig
 }
