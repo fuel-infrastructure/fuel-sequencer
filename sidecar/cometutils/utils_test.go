@@ -18,7 +18,7 @@ func TestQuerySequencerGenesisForLastEthereumBlockSynced(t *testing.T) {
 		name                       string
 		mockGenesis                *cmtcoretypes.ResultGenesis
 		expLastEthereumBlockSynced uint64
-		setBadServerUrl            bool
+		setServerUrl               string
 		expErrMsg                  string
 	}{
 		{
@@ -32,15 +32,26 @@ func TestQuerySequencerGenesisForLastEthereumBlockSynced(t *testing.T) {
 			expLastEthereumBlockSynced: 12345,
 		},
 		{
-			name: "Returns error and LastEthereumBlockSynced 0 if could not connect with server",
+			name: "Returns error and LastEthereumBlockSynced 0 if could not connect with server (connection refused)",
 			mockGenesis: &cmtcoretypes.ResultGenesis{
 				Genesis: &cmttypes.GenesisDoc{
 					AppState:      json.RawMessage(`{"bridge": {"last_ethereum_block_synced": "12345"}}`),
 					InitialHeight: int64(1),
 				},
 			},
-			setBadServerUrl: true,
-			expErrMsg:       "connection refused",
+			setServerUrl: "http://localhost:1", // NOTE: test might fail if http://localhost:1 is listening
+			expErrMsg:    "connection refused",
+		},
+		{
+			name: "Returns error and LastEthereumBlockSynced 0 if could not connect with server (timeout)",
+			mockGenesis: &cmtcoretypes.ResultGenesis{
+				Genesis: &cmttypes.GenesisDoc{
+					AppState:      json.RawMessage(`{"bridge": {"last_ethereum_block_synced": "12345"}}`),
+					InitialHeight: int64(1),
+				},
+			},
+			setServerUrl: "http://12.34.56.78:1", // NOTE: test might fail if http://12.34.56.78:1 is listening
+			expErrMsg:    "context deadline exceeded",
 		},
 	}
 
@@ -51,9 +62,9 @@ func TestQuerySequencerGenesisForLastEthereumBlockSynced(t *testing.T) {
 			serverURL := mockTendermintServer.Start()
 			defer mockTendermintServer.Stop()
 
-			// Set bad server URL if dictated by test
-			if tc.setBadServerUrl {
-				serverURL = "http://localhost:0" // The OS will never assign port 0 to a server
+			// Override server URL if dictated by test
+			if tc.setServerUrl != "" {
+				serverURL = tc.setServerUrl
 			}
 
 			// Set mock value
