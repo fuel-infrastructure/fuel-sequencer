@@ -27,11 +27,41 @@ func (s *E2ETestSuite) DepositTokenToSequencer(amount *big.Int) *ethereumtypes.R
 	return receipt
 }
 
+// DepositAndDelegateTokenToSequencer generates a depositAndDelegate to an account owned by the sender by depositing
+// V2 tokens, which results in a deposit with no lockup. This is followed by an authorize which delegates the tokens.
+// The returned transaction receipt is the one from the last transaction.
+//
+// Note: by default the sender is s.EthKeys[0]
+func (s *E2ETestSuite) DepositAndDelegateTokenToSequencer(
+	amount *big.Int, validator common.Address,
+) *ethereumtypes.Receipt {
+
+	// ...approve V2 tokens for use by sequencer interface contract.
+	approveData := PackApproveToken(SequencerInterfaceContractAddress, amount)
+	_, err := s.SendEthTransactionToTokenContract(approveData)
+	s.Require().NoError(err)
+
+	// ...deposit.
+	depositData := PackDepositAndDelegate(amount, validator)
+	receipt, err := s.SendEthTransactionToSequencerInterfaceContract(depositData)
+	s.Require().NoError(err)
+
+	return receipt
+}
+
+// DepositTokenToSequencerFromMigrationNoDelegation calls DepositTokenToSequencerFromMigration with a null Ethereum
+// address as the validator to delegate to, meaning that there will be no delegation.
+func (s *E2ETestSuite) DepositTokenToSequencerFromMigrationNoDelegation(amount *big.Int) *ethereumtypes.Receipt {
+	return s.DepositTokenToSequencerFromMigration(amount, common.HexToAddress(keeper.NullEthereumAddress))
+}
+
 // DepositTokenToSequencerFromMigration generates a deposit to an account owned by the sender by migrating V1 tokens to
 // V2 tokens, which results in a deposit with lockup. The returned receipt is the one from the last transaction.
 //
 // Note: by default the sender is s.EthKeys[0]
-func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(amount *big.Int) *ethereumtypes.Receipt {
+func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(
+	amount *big.Int, validator common.Address,
+) *ethereumtypes.Receipt {
 
 	// ...approve V1 tokens for use by token migrator.
 	approveData := PackApproveMigratedToken(TokenMigratorContractAddress, amount)
@@ -44,7 +74,7 @@ func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(amount *big.Int) *et
 	s.Require().NoError(err)
 
 	// ...migrate V1 tokens to V2 tokens.
-	depositData := PackMigrate(amount, common.HexToAddress(keeper.NullEthereumAddress))
+	depositData := PackMigrate(amount, validator)
 	receipt, err := s.SendEthTransactionToTokenMigratorContract(depositData)
 	s.Require().NoError(err)
 

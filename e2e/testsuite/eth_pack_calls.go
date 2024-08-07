@@ -75,6 +75,17 @@ func PackDeposit(amount *big.Int) []byte {
 	)
 }
 
+func PackDepositAndDelegate(amount *big.Int, validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		DepositAndDelegateFunctionName,
+		[]interface{}{
+			amount,
+			validator,
+		},
+	)
+}
+
 func PackAuthorize(data []byte) []byte {
 	return PackBatchAuthorize([][]byte{data})
 }

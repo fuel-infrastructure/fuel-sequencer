@@ -33,8 +33,9 @@ const (
 
 	// SequencerInterface contract
 
-	DepositFunctionName        = "deposit"
-	BatchAuthorizeFunctionName = "batchAuthorize"
+	DepositFunctionName            = "deposit"
+	DepositAndDelegateFunctionName = "depositAndDelegate"
+	BatchAuthorizeFunctionName     = "batchAuthorize"
 
 	// FuelStreamX contract
 
