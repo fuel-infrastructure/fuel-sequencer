@@ -270,7 +270,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		h.logger.Info("processing proposal", "num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]))
+		h.logger.Info("processing proposal",
+			"num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]), "req.time", req.Time,
+		)
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
@@ -305,6 +307,11 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 					bridgeParams.MaxEthBlockUpdateDelay.String(),
 				)
 			}
+
+			// FOR DEVNET PURPOSES ONLY - We need to validate InjectedMsgIndex and make sure that gas limits are not
+			// reached. Consider setting generatedMsgIndex to injectedMsgIndex
+			h.logger.Info("assuming proposer's sidecar needs to sync with Ethereum")
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 		}
 
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
