@@ -146,10 +146,29 @@ func TestEncodeDepositEvent(t *testing.T) {
 	fmt.Println(dataBase64)
 }
 
-func TestDecodeTx(t *testing.T) {
+func TestDecodeTx_Base64(t *testing.T) {
 
 	dataBase64 := "Cl8KXQohL2Z1ZWxzZXF1ZW5jZXIuYnJpZGdlLnYxLk1zZ0luZGV4EjgKNGZ1ZWxzZXF1ZW5jZXIxMGQwN3kyNjVnbW11dnQ0ejB3OWF3ODgwam5zcjcwMGpkamZ2azMgARICEgA="
 	dataBz, err := base64.StdEncoding.DecodeString(dataBase64)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("SIZE: %d\n", len(dataBz))
+
+	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
+	if err != nil {
+		panic(err)
+	}
+
+	for i, msg := range tx.GetMsgs() {
+		fmt.Printf("MSG %d: %s\n", i, msg)
+	}
+}
+
+func TestDecodeTx_Hex(t *testing.T) {
+
+	dataHex := "0a620a600a212f6675656c73657175656e6365722e6272696467652e76312e4d7367496e646578123b0a346675656c73657175656e636572313064303779323635676d6d757674347a30773961773838306a6e73723730306a646a66766b3320c4b6850312021200"
+	dataBz, err := hex.DecodeString(dataHex)
 	if err != nil {
 		panic(err)
 	}

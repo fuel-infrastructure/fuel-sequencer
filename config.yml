@@ -96,7 +96,7 @@ genesis:
       params:
         bridge_denom: "utest"
         bridge_denom_total_supply: "10000000000"  # 10 bil
-        ethereum_proxy_contract_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"  # just an example
+        ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
         authorize_messages_allowed:
           - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
           - "/cosmos.bank.v1beta1.MsgSend"
