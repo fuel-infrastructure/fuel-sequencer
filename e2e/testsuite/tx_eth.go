@@ -36,7 +36,21 @@ func (s *E2ETestSuite) SendEthTransactionToSequencerInterfaceContract(data []byt
 	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, SequencerInterfaceContractAddress, data)
 }
 
-func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContract(data []byte) (*ethereumtypes.Receipt, error) {
+// SendEthTransactionToFuelStreamXContractAsUser sends a transaction to FuelStreamX as the anvil-generated key at index
+// 1, which does not have elevated privileges. The use of index 1 further distinguishes this function from:
+// - SendEthTransactionToFuelStreamXContractAsDeployer which uses the anvil-generated key at index 0 (== s.EthKeys[0]).
+// - SendEthTransactionToFuelStreamXContractAsGuardian which uses the anvil-generated key at index 19.
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContractAsUser(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthUser.PrivateKey, FuelStreamXContractAddress, data)
+}
+
+// SendEthTransactionToFuelStreamXContractAsDeployer sends a transaction to FuelStreamX as the contract deployer.
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContractAsDeployer(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthDeployer.PrivateKey, FuelStreamXContractAddress, data)
+}
+
+// SendEthTransactionToFuelStreamXContractAsGuardian sends a transaction to FuelStreamX as the contract guardian.
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContractAsGuardian(data []byte) (*ethereumtypes.Receipt, error) {
 	return s.SendEthTransactionFrom(s.EthGuardian.PrivateKey, FuelStreamXContractAddress, data)
 }
 

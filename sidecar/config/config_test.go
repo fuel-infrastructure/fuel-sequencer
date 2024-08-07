@@ -48,6 +48,11 @@ func TestSidecarConfig_ValidateBasic(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "invalid address (empty) => invalid config",
+			fields:  validFieldsWithAddress(""),
+			wantErr: true,
+		},
+		{
 			name:   "valid address (localhost:8080) and timeout => valid config",
 			fields: validFieldsWithAddress("localhost:8080"),
 		},
