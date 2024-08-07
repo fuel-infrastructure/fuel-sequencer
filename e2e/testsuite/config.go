@@ -53,7 +53,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		// set application configuration
 		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
 
-		customAppTemplate, customAppConfig := app.InitAppConfig()
+		customAppTemplate, customAppConfig := app.DefaultCustomAppConfig()
 		appConfig := customAppConfig.(app.CustomAppConfig)
 		appConfig.API.Enable = true
 		appConfig.API.Address = "tcp://0.0.0.0:1317"

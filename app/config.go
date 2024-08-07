@@ -44,9 +44,9 @@ type CustomAppConfig struct {
 	CommitmentsConfig   commitmentsconfig.Config    `mapstructure:"commitments"`
 }
 
-// InitAppConfig helps to override default appConfig template and configs.
+// DefaultCustomAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
-func InitAppConfig() (string, interface{}) {
+func DefaultCustomAppConfig() (string, interface{}) {
 
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
