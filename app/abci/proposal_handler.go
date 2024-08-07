@@ -323,6 +323,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				BlockNumber:         ethBlockToQuery,
 			}
 			eventTxs = [][]byte{} // No event transactions expected
+
+			h.logger.Info("proposer did not sync with Ethereum; skipping query to sidecar", "height", req.Height)
 		} else {
 
 			// Query the events of the next Ethereum block.
