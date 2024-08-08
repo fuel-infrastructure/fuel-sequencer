@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -20,8 +19,7 @@ import (
 )
 
 type FuelSequencerProposalHandler struct {
-	cdc                    codec.Codec // codec
-	logger                 log.Logger
+	cdc                    codec.Codec                     // codec
 	valStore               baseapp.ValidatorStore          // to get the current validators' pubkeys
 	txVerifier             baseapp.ProposalTxVerifier      // a utility for transaction verification
 	sidecar                sidecarclient.AppSidecarClient  // a client to query the Sidecar service
@@ -32,7 +30,6 @@ type FuelSequencerProposalHandler struct {
 // NewFuelSequencerProposalHandler defines a custom FuelSequencer proposal handler object
 func NewFuelSequencerProposalHandler(
 	cdc codec.Codec,
-	logger log.Logger,
 	valStore baseapp.ValidatorStore,
 	txVerifier baseapp.ProposalTxVerifier,
 	sidecar sidecarclient.AppSidecarClient,
@@ -40,7 +37,6 @@ func NewFuelSequencerProposalHandler(
 ) *FuelSequencerProposalHandler {
 	return &FuelSequencerProposalHandler{
 		cdc:                    cdc,
-		logger:                 logger,
 		valStore:               valStore,
 		txVerifier:             txVerifier,
 		sidecar:                sidecar,
@@ -128,7 +124,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
+			ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex and event txs: %w", err)
@@ -225,7 +221,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, err
 		}
 
-		h.logger.Debug("prepared proposal", "txs", len(selectedTxs))
+		ctx.Logger().Debug("prepared proposal", "txs", len(selectedTxs))
 
 		return &abci.ResponsePrepareProposal{Txs: selectedTxs}, nil
 	}
@@ -324,7 +320,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			}
 			eventTxs = [][]byte{} // No event transactions expected
 
-			h.logger.Info("proposer did not sync with Ethereum; skipping query to sidecar", "height", req.Height)
+			ctx.Logger().Info("proposer did not sync with Ethereum; skipping query to sidecar", "height", req.Height)
 		} else {
 
 			// Query the events of the next Ethereum block.
@@ -338,7 +334,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 			// Generate the MsgIndex and event transactions based on the queried events of LastEthereumBlockSynced + 1
 			msgIndex, eventTxs, err = h.generateMsgIndexAndEventTxs(
-				response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
+				ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
 			)
 			if err != nil {
 				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
@@ -430,7 +426,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
-		h.logger.Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
+		ctx.Logger().Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
@@ -501,6 +497,7 @@ func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) boo
 // generateMsgIndexAndEventTxs generates MsgIndex and transactions from events based on the response of the sidecar.
 // It errors upon invalid events from the sidecar. Returned errors have the capability of halting block production.
 func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
+	ctx sdk.Context,
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
@@ -535,7 +532,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				h.logger.Warn(fmt.Sprintf(
+				ctx.Logger().Warn(fmt.Sprintf(
 					"skipping event; failed to encode event as raw tx bytes with err: %s; event: %s",
 					err.Error(),
 					event,
@@ -562,7 +559,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		if authenticated {
 			eventTxs = append(eventTxs, eventTx)
 		} else {
-			h.logger.Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
 		}
 	}
 
