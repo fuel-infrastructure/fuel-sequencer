@@ -257,7 +257,7 @@ func (m *MsgIndex) IsPartialEthereumSyncing() bool {
 	return !m.NewEthereumBlock && m.NumInjectedEventTxs > 0
 }
 
-// NoEthereumSyncing returns true if there are no new Ethereum blocks to consume.
+// NoEthereumSyncing returns true if there are no new or partial Ethereum blocks to consume.
 func (m *MsgIndex) NoEthereumSyncing() bool {
 	return !m.IsFullEthereumSyncing() && !m.IsPartialEthereumSyncing()
 }

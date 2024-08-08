@@ -1051,12 +1051,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			name:                          "accepts block if no new Ethereum block and delay not exceeded",
 			removeLastEthereumBlockSynced: false,
 			setLastEthBlockUpdateTime:     true,
-			expQueryBlockEventsCalled:     1,
-			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: nil,
-				Error:    errors.New("block not yet processed 1"),
-			},
+			expQueryBlockEventsCalled:     0,
+			expQueryBlockEventsReq:        nil,
+			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:    validTxsSidecarErr,                // Problem is both with validator and the proposer
 				Height: 1,                                 // We do not expect MsgSupplyDelta to be injected
@@ -1160,9 +1157,11 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		{
 			name:                           "returns error if EthereumEventIndexOffset not found",
 			removeEthereumEventIndexOffset: true,
-			expQueryBlockEventsCalled:      0,
-			expQueryBlockEventsReq:         nil,
-			queryBlockEventsRet:            apptesting.MockQueryBlockEventsResponse{},
+			expQueryBlockEventsCalled:      1,
+			expQueryBlockEventsReq:         &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
@@ -1219,25 +1218,6 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
-		},
-		{
-			name:                          "accepts block if matches MsgIndex indicating error",
-			removeLastEthereumBlockSynced: false,
-			expQueryBlockEventsCalled:     1,
-			expQueryBlockEventsReq:        &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: nil,
-				Error:    errors.New("block not yet processed 1"),
-			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsSidecarErr, // Problem is both with validator and the proposer
-				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
-			},
-			maxBlockGas:                  totalTxsGas,
-			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
-			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
-			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 		},
 		{
 			name:                      "returns error if sidecar errors for validators but not for proposer",
