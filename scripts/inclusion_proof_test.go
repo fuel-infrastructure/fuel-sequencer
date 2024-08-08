@@ -46,6 +46,7 @@ func TestBridgeCommitmentInclusionProof(t *testing.T) {
 
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	require.NoError(t, err)
+	defer conn.Close()
 	client := commitmentstypes.NewQueryClient(conn)
 
 	req := &commitmentstypes.QueryBridgeCommitmentInclusionProofRequest{
