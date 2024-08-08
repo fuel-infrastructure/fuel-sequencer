@@ -44,6 +44,7 @@ func TestBridgeCommitmentInclusionProof(t *testing.T) {
 
 	ctx := context.Background()
 
+	//nolint:staticcheck
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	require.NoError(t, err)
 	defer conn.Close()
