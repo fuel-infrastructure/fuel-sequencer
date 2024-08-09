@@ -43,6 +43,7 @@ Testing and docs:
    3. Terminal 2: `make run-sidecar`
    4. Terminal 3:
       - Wait for the Ethereum deployment container to stop.
+      - `bash scripts/get_contract_addresses.sh` to confirm contract addresses (especially for `ethereum_proxy_contract_address` in `config.yml`)
       - `bash scripts/call_contract.sh`
       - Wait for the Sequencer to sync the Ethereum blocks containing the contract calls:
         ```

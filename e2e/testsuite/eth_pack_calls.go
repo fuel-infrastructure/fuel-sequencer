@@ -16,6 +16,17 @@ func PackBalanceOfERC20Token(tokenContractAbi string, address common.Address) []
 	)
 }
 
+func PackHasRole(abi string, role common.Hash, address common.Address) []byte {
+	return packCall(
+		abi,
+		HasRoleQueryName,
+		[]interface{}{
+			role,
+			address,
+		},
+	)
+}
+
 func PackApproveERC20Token(abi string, address common.Address, amount *big.Int) []byte {
 	return packCall(
 		abi,
@@ -71,6 +82,17 @@ func PackDeposit(amount *big.Int) []byte {
 		DepositFunctionName,
 		[]interface{}{
 			amount,
+		},
+	)
+}
+
+func PackDepositAndDelegate(amount *big.Int, validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		DepositAndDelegateFunctionName,
+		[]interface{}{
+			amount,
+			validator,
 		},
 	)
 }

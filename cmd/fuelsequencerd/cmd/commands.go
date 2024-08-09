@@ -277,6 +277,7 @@ func startSidecar(
 		}
 	}
 
+	//nolint:staticcheck
 	grpcConn, err := grpc.Dial(seqCfg.grpcUrl, grpc.WithTransportCredentials(seqConnCreds))
 	if err != nil {
 		return err
@@ -447,6 +448,7 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	//nolint:staticcheck
 	conn, err := grpc.Dial(sidecarGrpcUrl, grpc.WithTransportCredentials(sidecarConnCreds))
 	if err != nil {
 		return fmt.Errorf("failed to connect to Sidecar service: %v", err)
