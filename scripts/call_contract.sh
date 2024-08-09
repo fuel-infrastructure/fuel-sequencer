@@ -1,8 +1,34 @@
 #!/usr/bin/env bash
 
+# -------------------------------- Get contract addresses from running container
+
+ETH_DEPLOYMENT_CONTAINER_NAME=deploy
+
+set -e
+
+logs=$(docker logs $ETH_DEPLOYMENT_CONTAINER_NAME)
+
+get_address_from_first_match() {
+    local reString="$1"
+    if [[ $logs =~ $reString ]]; then
+        echo "${BASH_REMATCH[1]}"
+    else
+        echo "No match found for regex: $reString" >&2
+        exit 1
+    fi
+}
+
+SequencerInterfaceContractAddress=$(get_address_from_first_match "Deployed SequencerInterface at (0x[a-fA-F0-9]{40})")
+TokenContractAddress=$(get_address_from_first_match "Deployed Token at (0x[a-fA-F0-9]{40})")
+
+echo "$SequencerInterfaceContractAddress :: SequencerInterface contract"
+echo "$TokenContractAddress :: Token contract"
+
+# -------------------------------- Call the contracts
+
 PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-TOKEN_CONTRACT=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
-SEQUENCER_INTERFACE_CONTRACT=0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
+TOKEN_CONTRACT="$TokenContractAddress"
+SEQUENCER_INTERFACE_CONTRACT="$SequencerInterfaceContractAddress"
 RPC_URL=http://localhost:8545
 
 echo ""

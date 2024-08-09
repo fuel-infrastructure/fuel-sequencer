@@ -123,6 +123,8 @@ func (c *GRPCClient) Start(ctx context.Context) error {
 	)
 	go func() {
 		defer close(done)
+
+		//nolint:staticcheck
 		conn, err = grpc.DialContext(ctx, c.addr, opts...)
 	}()
 

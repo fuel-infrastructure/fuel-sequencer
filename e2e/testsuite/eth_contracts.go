@@ -1,6 +1,10 @@
 package testsuite
 
-import sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+)
 
 const (
 	// SequencerProxyContractABI is an alias of sidecartypes.SequencerProxyContractABI
@@ -25,6 +29,10 @@ const (
 
 // Function and query names
 const (
+	// General
+
+	HasRoleQueryName = "hasRole"
+
 	// Token contracts (V1 token and V2 token)
 
 	ApproveFunctionName = "approve"
@@ -33,8 +41,9 @@ const (
 
 	// SequencerInterface contract
 
-	DepositFunctionName        = "deposit"
-	BatchAuthorizeFunctionName = "batchAuthorize"
+	DepositFunctionName            = "deposit"
+	DepositAndDelegateFunctionName = "depositAndDelegate"
+	BatchAuthorizeFunctionName     = "batchAuthorize"
 
 	// FuelStreamX contract
 
@@ -45,4 +54,10 @@ const (
 	// TokenMigrator contract
 
 	MigrateFunctionName = "migrate"
+)
+
+// Roles
+var (
+	DefaultAdminRoleHash = new(common.Hash).Hex() // the admin role is the zeros hash
+	GuardianRoleHash     = crypto.Keccak256Hash([]byte("GUARDIAN_ROLE")).Hex()
 )
