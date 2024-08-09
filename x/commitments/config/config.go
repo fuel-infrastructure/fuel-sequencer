@@ -23,7 +23,7 @@ func AddStartCmdFlags(startCmd *cobra.Command) {
 // Config contains the application side Commitments configurations that must be set in the app.toml file.
 type Config struct {
 
-	// Enabled dictates whether the Commitments API is enabled. This defaults to false, and was put in place to prevent
+	// ApiEnabled dictates whether the Commitments API is enabled. This defaults to false, and was put in place to prevent
 	// accidental exposure of the Bridge Commitment queries which can be used to perform a DOS attack if not protected.
 	ApiEnabled bool `mapstructure:"api-enabled"`
 }
