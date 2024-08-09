@@ -13,9 +13,10 @@ const (
 	// DefaultSequencerTxMaxBytes is the default max size in bytes for Sequencer-native transactions. This is set to
 	// 1153434 bytes with the assumption that it will fit in the max block size configured for the Sequencer, even after
 	// accounting for the block space taken up by non-tx data (header, evidence etc.) and MsgIndex transaction size.
-	// Ref for 'non-tx data': https://github.com/cometbft/cometbft/blob/v0.38.6/types/block.go#L278
-	
-	// It is also assumed that MaxBlobSizeBytes is not set to a value greater than 1048576 bytes
+	// Ref for 'non-tx data': https://github.com/cometbft/cometbft/blob/v0.38.6/types/block.go#L278.
+	//
+	// If the chain is configured with DefaultSequencerTxMaxBytes, MaxBlobSizeBytes should not exceed 1048576 bytes
+	// (1MiB). Violating this condition may result in MsgPostBlob transactions being rejected.
 	DefaultSequencerTxMaxBytes = 1_153_434 // ~1.1 MiB
 )
 
