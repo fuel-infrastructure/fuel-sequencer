@@ -14,6 +14,8 @@ const (
 	// 1153434 bytes with the assumption that it will fit in the max block size configured for the Sequencer, even after
 	// accounting for the block space taken up by non-tx data (header, evidence etc.) and MsgIndex transaction size.
 	// Ref for 'non-tx data': https://github.com/cometbft/cometbft/blob/v0.38.6/types/block.go#L278
+	
+	// It is also assumed that MaxBlobSizeBytes is not set to a value greater than 1048576 bytes
 	DefaultSequencerTxMaxBytes = 1_153_434 // ~1.1 MiB
 )
 
