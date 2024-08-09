@@ -82,7 +82,7 @@ func DefaultCustomAppConfig() (string, interface{}) {
 	// Note: do not indent the below section, otherwise it will be indented in the config file as well.
 	customAppTemplate := serverconfig.DefaultConfigTemplate + `
 [sidecar]
-# This dictates whether the Sidecar will be queriedddd.
+# This dictates whether the Sidecar will be queried.
 enabled = {{ .SidecarConfig.Enabled }}
 # This defines the Sidecar server to listen to.
 address = "{{ .SidecarConfig.Address }}"
