@@ -63,6 +63,8 @@ validators:
       address: localhost:8080
       timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
       path_to_cert_file: ""
+    commitments:
+      api-enabled: true
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:

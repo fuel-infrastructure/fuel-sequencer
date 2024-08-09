@@ -57,6 +57,7 @@ import (
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
 
@@ -114,6 +115,9 @@ type FuelSequencerApp struct {
 
 	// sidecar
 	sidecar sidecarclient.AppSidecarClient
+
+	// commitments
+	commitmentsConfig commitmentsconfig.Config
 }
 
 func init() {
@@ -286,6 +290,17 @@ func NewFuelSequencerApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
+	// COMMITMENTS :: Configure
+	commitmentsCfg, err := commitmentsconfig.NewConfigFromAppOptions(appOpts)
+	if err != nil {
+		panic(err)
+	}
+	err = commitmentsCfg.ValidateBasic()
+	if err != nil {
+		panic(err)
+	}
+	app.commitmentsConfig = commitmentsCfg
+
 	// SIDECAR :: Configure
 	sidecarCfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
 	if err != nil {
@@ -441,13 +456,18 @@ func (app *FuelSequencerApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig con
 		panic(err)
 	}
 
-	// Register data commitments routes.
-	commitmentsservice.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
+	if app.commitmentsConfig.ApiEnabled {
+		// Register bridge commitments routes.
+		commitmentsservice.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
+	}
 }
 
 func (app *FuelSequencerApp) RegisterTendermintService(clientCtx client.Context) {
 	app.App.RegisterTendermintService(clientCtx)
-	commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry)
+
+	if app.commitmentsConfig.ApiEnabled {
+		commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry)
+	}
 }
 
 // Close closes the underlying baseapp and the Sidecar service.

@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -84,6 +85,7 @@ func addStartFlags(startCmd *cobra.Command) {
 	// Crisis module is not wired, therefore, no related flags need to be added
 	//crisis.AddModuleInitFlags(startCmd)
 	sidecarconfig.AddStartCmdFlags(startCmd)
+	commitmentsconfig.AddStartCmdFlags(startCmd)
 }
 
 // genesisCommand builds genesis-related `fuelsequencerd genesis` command. Users may provide application specific commands as a parameter
