@@ -1,4 +1,4 @@
 [submodule "e2e/fuel-rollup"]
 	path = e2e/fuel-rollup
 	url = https://github.com/FuelLabs/fuel-rollup
-	branch = 8342317d07ed79972e6d7375dbd5fe25fb3ee2da
+	branch = main
