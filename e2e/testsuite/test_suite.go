@@ -10,6 +10,7 @@ import (
 	"os"
 	osuser "os/user"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"testing"
 	"time"
@@ -106,33 +107,32 @@ var (
 	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
 	BlocksPerYear       = uint64(6311520)
 
-	// NOTE: the below contract address were obtained from the logs of the Ethereum deployment Docker container.
-	// TODO: we might want to grab these from the Docker container logs instead, to ensure they are up-to-date.
+	// NOTE: the below contract address are obtained from the logs of the Ethereum deployment Docker container.
 
 	// FuelStreamXContractAddressStr is the address of the contract that holds bridge commitments.
-	FuelStreamXContractAddressStr = "0xc351628EB244ec633d5f21fBD6621e1a683B1181"
-	FuelStreamXContractAddress    = common.HexToAddress(FuelStreamXContractAddressStr)
+	FuelStreamXContractAddressStr = ""
+	FuelStreamXContractAddress    = common.Address{}
 	// TokenContractAddressStr is the address of the FUEL V2 token contract.
-	TokenContractAddressStr = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-	TokenContractAddress    = common.HexToAddress(TokenContractAddressStr)
+	TokenContractAddressStr = ""
+	TokenContractAddress    = common.Address{}
 	// SequencerInterfaceContractAddressStr is the address of the contract that has the batchAuthorize function.
-	SequencerInterfaceContractAddressStr = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-	SequencerInterfaceContractAddress    = common.HexToAddress(SequencerInterfaceContractAddressStr)
+	SequencerInterfaceContractAddressStr = ""
+	SequencerInterfaceContractAddress    = common.Address{}
 	// MigratedTokenContractAddressStr is the address of the FUEL V1 token contract.
-	MigratedTokenContractAddressStr = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
-	MigratedTokenContractAddress    = common.HexToAddress(MigratedTokenContractAddressStr)
+	MigratedTokenContractAddressStr = ""
+	MigratedTokenContractAddress    = common.Address{}
 	// VaultContractAddressStr is the address of the vault contract.
-	VaultContractAddressStr = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
-	VaultContractAddress    = common.HexToAddress(VaultContractAddressStr)
+	VaultContractAddressStr = ""
+	VaultContractAddress    = common.Address{}
 	// SequencerProxyContractAddressStr is the address of the contract that emits Deposit and Authorize events.
-	SequencerProxyContractAddressStr = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
-	SequencerProxyContractAddress    = common.HexToAddress(SequencerProxyContractAddressStr)
+	SequencerProxyContractAddressStr = ""
+	SequencerProxyContractAddress    = common.Address{}
 	// TokenMigratorContractAddressStr is the address of the V1 to V2 token migrator contract.
-	TokenMigratorContractAddressStr = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
-	TokenMigratorContractAddress    = common.HexToAddress(TokenMigratorContractAddressStr)
+	TokenMigratorContractAddressStr = ""
+	TokenMigratorContractAddress    = common.Address{}
 	// FaucetContractAddressStr is the address of the token faucet contract.
-	FaucetContractAddressStr = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
-	FaucetContractAddress    = common.HexToAddress(FaucetContractAddressStr)
+	FaucetContractAddressStr = ""
+	FaucetContractAddress    = common.Address{}
 
 	// Vesting params
 
@@ -222,15 +222,18 @@ func (s *E2ETestSuite) SetupTest() {
 		s.T().Logf("\tacc:%s val:%s hex:%s", key.AddressSeq, key.ValAddressSeq, key.AddressHex)
 	}
 
-	// initialization
+	// Initialization
 	s.initFuelSequencerNodes(MNEMONICS)
 
-	// run Ethereum node and deploy contracts
+	// Run Ethereum node and deploy contracts
 	s.runEthereumNodeContainer()
 	s.runEthereumDeploymentContainer()
 	s.initEthereumRPCClient()
 
-	// run FuelSequencer nodes and sidecars
+	// Deployment is done so we can get the contract addresses
+	s.setContractAddresses()
+
+	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
 	s.runFuelSequencerValidators()
@@ -245,6 +248,13 @@ func (s *E2ETestSuite) SetupTest() {
 	// Get genesis header
 	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
 	s.Require().NoError(err)
+
+	// Check that the deployer has the DEFAULT_ADMIN_ROLE, allowing them to set the genesis header
+	hasRole, err := s.QueryEthereumAddressHasRole_FuelStreamXContract(
+		s.Ctx(), s.EthDeployer.Address, common.HexToHash(DefaultAdminRoleHash),
+	)
+	s.Require().NoError(err)
+	s.Require().True(hasRole)
 
 	// Set the genesis header
 	data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
@@ -399,6 +409,51 @@ func (s *E2ETestSuite) runEthereumDeploymentContainer() {
 	defer cancel()
 	_, err = s.dockerPool.Client.WaitContainerWithContext(s.ethDeploymentResource.Container.ID, waitContext)
 	s.Require().NoError(err)
+}
+
+func (s *E2ETestSuite) setContractAddresses() {
+
+	logs := s.logsByContainerID(s.ethDeploymentResource.Container.ID)
+
+	getAddressFromFirstMatch := func(reString string) (string, common.Address) {
+		re := regexp.MustCompile(reString)
+		matches := re.FindAllStringSubmatch(logs, -1)
+		s.Require().Len(matches, 1)
+		return matches[0][1], common.HexToAddress(matches[0][1])
+	}
+	FuelStreamXContractAddressStr, FuelStreamXContractAddress = getAddressFromFirstMatch(
+		`Deployed FuelStreamX at (0x[a-fA-F0-9]{40})`,
+	)
+	SequencerInterfaceContractAddressStr, SequencerInterfaceContractAddress = getAddressFromFirstMatch(
+		`Deployed SequencerInterface at (0x[a-fA-F0-9]{40})`,
+	)
+	MigratedTokenContractAddressStr, MigratedTokenContractAddress = getAddressFromFirstMatch(
+		`deploying "MigratedToken" \(tx: 0x[a-fA-F0-9]{64}\)\.\.\.: deployed at (0x[a-fA-F0-9]{40})`,
+	)
+	VaultContractAddressStr, VaultContractAddress = getAddressFromFirstMatch(
+		`Deployed Vault at (0x[a-fA-F0-9]{40})`,
+	)
+	SequencerProxyContractAddressStr, SequencerProxyContractAddress = getAddressFromFirstMatch(
+		`Deployed SequencerProxy at (0x[a-fA-F0-9]{40})`,
+	)
+	TokenMigratorContractAddressStr, TokenMigratorContractAddress = getAddressFromFirstMatch(
+		`Deployed TokenMigrator at (0x[a-fA-F0-9]{40})`,
+	)
+	TokenContractAddressStr, TokenContractAddress = getAddressFromFirstMatch(
+		`Deployed Token at (0x[a-fA-F0-9]{40})`,
+	)
+	FaucetContractAddressStr, FaucetContractAddress = getAddressFromFirstMatch(
+		`deploying "TokenFaucet" \(tx: 0x[a-fA-F0-9]{64}\)\.\.\.: deployed at (0x[a-fA-F0-9]{40})`,
+	)
+
+	s.T().Logf("%s :: FuelStreamX contract", FuelStreamXContractAddressStr)
+	s.T().Logf("%s :: SequencerInterface contract", SequencerInterfaceContractAddressStr)
+	s.T().Logf("%s :: MigratedToken contract", MigratedTokenContractAddressStr)
+	s.T().Logf("%s :: Vault contract", VaultContractAddressStr)
+	s.T().Logf("%s :: SequencerProxy contract", SequencerProxyContractAddressStr)
+	s.T().Logf("%s :: TokenMigrator contract", TokenMigratorContractAddressStr)
+	s.T().Logf("%s :: Token contract", TokenContractAddressStr)
+	s.T().Logf("%s :: Faucet contract", FaucetContractAddressStr)
 }
 
 func (s *E2ETestSuite) PauseEthereum() {
