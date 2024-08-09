@@ -12,7 +12,6 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 
 	bondDenom := sdk.DefaultBondDenom
 	inflation := sdkmath.LegacyMustNewDecFromStr("0.1")
-	inflationCalculationFn := minttypes.DefaultInflationCalculationFn
 	feeCollector := s.App.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 
 	// Set the inflation rate via the minter
@@ -49,7 +48,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	for i := int64(1); i <= 10; i++ {
 
 		beginBlockerCtx := s.Ctx()
-		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, inflationCalculationFn)
+		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper)
 		s.Require().NoError(err)
 
 		// Inflation = 0.1
