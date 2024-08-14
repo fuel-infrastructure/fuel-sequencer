@@ -108,7 +108,7 @@ func (s *E2ETestSuite) getRPCClient() *rpchttp.HTTP {
 // initEthereumRPCClient establishes an RPC client to the Ethereum node.
 func (s *E2ETestSuite) initEthereumRPCClient() {
 
-	url := fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp"))
+	url := fmt.Sprintf("http://%s", s.ethNodeResource.GetHostPort("8545/tcp"))
 	ethClient, err := ethclient.Dial(url)
 	s.Require().NoError(err)
 

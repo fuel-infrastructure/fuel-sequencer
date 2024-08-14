@@ -20,10 +20,9 @@ Dependencies:
 To run the FuelSequencer with enabled Sidecar and an Ethereum node:
 
 ```bash
-make build-eth-docker-image                          # terminal 1
-make install run-eth-docker-container run-sequencer  # terminal 1
-make run-sidecar                                     # terminal 2
-make clean                                           # once you're done
+make install run-eth-e2e-containers run-sequencer  # terminal 1
+make run-sidecar                                   # terminal 2
+make clean                                         # once you're done
 ```
 
 To run the FuelSequencer on its own, you can run a version with disabled Sidecar:
@@ -36,7 +35,7 @@ make clean # once you're done
 To run just the Sidecar and an Ethereum node:
 
 ```bash
-make install run-eth-docker-container run-sidecar
+make install run-eth-e2e-containers run-sidecar
 make clean # once you're done
 ```
 
@@ -183,7 +182,11 @@ make test-unit
 
 ### E2E tests
 
-You will need a Sequencer image, Ethereum image, and the FuelStreamX images:
+You will need a Sequencer image and Ethereum deployment image:
+
+> Ensure e2e/fuel-rollup/.npmrc file is set up before running this! \
+> It should contain `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. \
+> `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
 
 ```bash
 make build-all-docker-images
