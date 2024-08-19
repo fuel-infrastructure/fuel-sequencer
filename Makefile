@@ -267,6 +267,8 @@ run-sidecar:
 	@while ! curl -s -X GET --max-time 1 "$(SEQUENCER_RPC_URL)" | grep -q "result"; do \
 		sleep 1; \
 	done
+	@echo "Waiting for Sequencer gRPC $(SEQUENCER_GRPC_URL) to be accessible..."
+	@sleep 3  # buffer for Sequencer gRPC server to start properly
 	@fuelsequencerd start-sidecar \
 		--host "$(SIDECAR_HOST)" \
 		--port "$(SIDECAR_PORT)" \
