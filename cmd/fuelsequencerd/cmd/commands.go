@@ -190,7 +190,6 @@ func startSidecarServerCmd() *cobra.Command {
 
 	// Sequencer
 	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
-	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "the sequencer's CometBFT RPC endpoint")
 	cmd.Flags().StringVar(
 		&seqCfg.pathToCertFile,
 		FlagSequencerPathToCertFile,
