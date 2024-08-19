@@ -266,7 +266,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		ctx.Logger().Info("processing proposal", "num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]))
+		ctx.Logger().Info("processing proposal",
+			"num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]), "req.time", req.Time,
+		)
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
@@ -351,8 +353,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 					"failed to generate MsgIndex and event txs: %w", err,
 				)
 			}
+			ctx.Logger().Info("generated index at ProcessProposal", "msg_index", msgIndex.String())
 		}
-		ctx.Logger().Info("generated index at ProcessProposal", "msg_index", msgIndex.String())
 
 		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
 		if !found {
