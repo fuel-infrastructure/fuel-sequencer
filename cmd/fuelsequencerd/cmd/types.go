@@ -36,7 +36,6 @@ type sidecarConfig struct {
 
 type sequencerConfig struct {
 	grpcUrl        string
-	rpcUrl         string
 	pathToCertFile string
 }
 
