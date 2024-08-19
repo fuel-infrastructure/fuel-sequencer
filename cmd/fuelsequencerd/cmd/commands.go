@@ -316,10 +316,10 @@ func startSidecar(
 
 	// If the startBlock is 0, we've failed to set it through the various attempts (unsafe flag / genesis / node).
 	if startBlock.Cmp(big.NewInt(0)) == 0 {
-		logger.Panic(fmt.Sprintf(
-			"did not find a start block; ensure Sequencer is available at grpc=%s, rpc=%s",
-			seqCfg.grpcUrl, seqCfg.rpcUrl,
-		))
+		return fmt.Errorf(
+			"did not find a start block, but maybe Sequencer hasn't started; ensure Sequencer is available at %s",
+			seqCfg.grpcUrl,
+		)
 	}
 
 	logger.Info("dialling Ethereum node", zap.String("ws_url", ethCfg.webSocketUrl))
