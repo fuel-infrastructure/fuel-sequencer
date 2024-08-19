@@ -369,7 +369,6 @@ func startSidecar(
 		scEthClient,
 		scSequencerClient,
 		eventStore,
-		scrCfg.development,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
