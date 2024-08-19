@@ -338,7 +338,7 @@ func startSidecar(
 
 	// If the startBlock is 0, we've failed to set it through the various attempts (unsafe flag / genesis / node).
 	if startBlock.Cmp(big.NewInt(0)) == 0 {
-		panic(fmt.Sprintf(
+		logger.Panic(fmt.Sprintf(
 			"did not find a start block; ensure Sequencer is available at grpc=%s, rpc=%s",
 			seqCfg.grpcUrl, seqCfg.rpcUrl,
 		))
