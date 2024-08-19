@@ -41,7 +41,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	cometutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/cometutils"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
@@ -287,28 +286,8 @@ func startSidecar(
 	scSequencerClient := scsequencerclient.NewClient(grpcConn)
 
 	// If the unsafe start block is not set then we attempt to query the
-	// last Ethereum block synced from the genesis file and the Sequencer.
+	// last Ethereum block synced from the Sequencer.
 	if ethCfg.unsafeStartBlock == 0 {
-
-		// Only try quering the genesis file if the sequencer RPC URL was specified.
-		if seqCfg.rpcUrl != "" {
-			lastEthereumBlockSynced, err := cometutils.QuerySequencerGenesisForLastEthereumBlockSynced(
-				ctx, seqCfg.rpcUrl,
-			)
-			if err != nil {
-				logger.Error(
-					"failed to read the response body of the genesis file",
-					zap.String("rpc_url", seqCfg.rpcUrl),
-					zap.Error(err),
-				)
-			} else {
-				startBlock = big.NewInt(int64(lastEthereumBlockSynced + 1))
-				logger.Info(
-					"ethereum start block set to LastEthereumBlockSynced+1 from Sequencer genesis",
-					zap.String("start_block", startBlock.String()),
-				)
-			}
-		}
 
 		// Try querying the last Ethereum block synced from the Sequencer.
 		lastEthereumBlockSynced, err := scSequencerClient.FetchLastEthereumBlockSynced(ctx)
