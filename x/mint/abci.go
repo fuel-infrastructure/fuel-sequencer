@@ -14,13 +14,7 @@ import (
 // BeginBlocker was copied from https://github.com/cosmos/cosmos-sdk/blob/v0.50.6/x/mint/abci.go.
 // It is almost identical to the original, but uses BridgeDenomTotalSupply from the bridge module
 // instead of getting the StakingTokenSupply from the Staking module.
-// tokens being minted by
-func BeginBlocker(
-	ctx context.Context,
-	k mintkeeper.Keeper,
-	bk types.BridgeKeeper,
-	ic minttypes.InflationCalculationFn,
-) error {
+func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeeper) error {
 	defer telemetry.ModuleMeasureSince(minttypes.ModuleName, telemetry.Now(), telemetry.MetricKeyBeginBlocker)
 
 	// fetch stored minter & params

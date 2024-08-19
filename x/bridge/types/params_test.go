@@ -138,7 +138,7 @@ func TestValidateEthereumProxyContractAddress(t *testing.T) {
 		input     interface{}
 		expectErr bool
 	}{
-		{"Valid address", "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853", false},
+		{"Valid address", "0x0165878A594ca255338adfa4d48449f69242Eb8F", false},
 		{"Invalid address", "0x123", true},
 		{"Non-string address", 12345, true},
 	}
@@ -373,7 +373,7 @@ func TestValidateMaxAuthorizeMessages(t *testing.T) {
 func TestParams_Validate(t *testing.T) {
 	validBridgeDenom := "ufuel"
 	validBridgeDenomTotalSupply := sdkmath.NewInt(10_000_000_000)
-	validEthereumProxyContractAddress := "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	validEthereumProxyContractAddress := "0x0165878A594ca255338adfa4d48449f69242Eb8F"
 	validAuthorizeMessagesAllowed := []string{"authorizeMessage1", "authorizeMessage2"}
 	validSupplyDeltaPeriod := uint64(10)
 	validVestingStartTime := time.Now()

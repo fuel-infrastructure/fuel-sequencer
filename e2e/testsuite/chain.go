@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/x/evidence"
 	"cosmossdk.io/x/upgrade"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -16,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -36,6 +38,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -56,6 +60,9 @@ var (
 	encodingConfig testutil.TestEncodingConfig
 	cdc            codec.Codec
 	TestCdc        codec.Codec // an exported alias of cdc
+
+	addressCdc     address.Codec
+	TestAddressCdc address.Codec // an exported alias of cdc
 )
 
 func init() {
@@ -95,6 +102,9 @@ func init() {
 
 	cdc = encodingConfig.Codec
 	TestCdc = cdc
+
+	addressCdc = appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix))
+	TestAddressCdc = addressCdc
 }
 
 type chain struct {

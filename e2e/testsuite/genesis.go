@@ -176,14 +176,19 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
+	vestingStartingTime, err := time.Parse(time.DateOnly, "2024-01-01")
+	s.Require().NoError(err)
+	ethBlockNumber, err := s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
+	s.Require().NoError(err)
+	s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
+
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
-	vestingStartingTime, err := time.Parse(time.RFC3339, "2024-01-01T00:00:00.000000000Z")
-	s.Require().NoError(err)
 	bridgeGenState.Params.VestingStartTime = vestingStartingTime
 	bridgeGenState.Params.BridgeDenomTotalSupply = math.NewInt(BridgeDenomTotalSupply)
+	bridgeGenState.LastEthereumBlockSynced = ethBlockNumber
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz

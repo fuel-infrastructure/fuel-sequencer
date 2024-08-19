@@ -34,22 +34,25 @@ Testing and docs:
 - [ ] `make lint` to ensure linting rules satisfied.
 - [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
 - [ ] Run E2E tests:
-   1. Double-check `e2e/test-contracts/.env`
+   1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. `make build-all-docker-images test-e2e`
    3. `make clean` once you're done.
 - [ ] Run a local E2E setup to ensure the chain runs:
-   1. Double-check `e2e/test-contracts/.env`
-   2. `make build-eth-docker-image` to build the latest Ethereum image.
-   3. Terminal 1: `make install run-eth-docker-container run-sequencer`
-   4. Terminal 2: `make run-sidecar`
-   5. Terminal 3:
-      - `(cd e2e/test-contracts && export $(cat .env | xargs) && make deploy-contract)`
-      - `(cd e2e/test-contracts && export $(cat .env | xargs) && make call-contract)`
+   1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
+   2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
+   3. Terminal 2: `make run-sidecar`
+   4. Terminal 3:
+      - Wait for the Ethereum deployment container to stop.
+      - `bash scripts/get_contract_addresses.sh` to confirm contract addresses (especially for `ethereum_proxy_contract_address` in `config.yml`)
+      - `bash scripts/call_contract.sh`
+      - Wait for the Sequencer to sync the Ethereum blocks containing the contract calls:
+        ```
+        fuelsequencerd q bridge show-last-ethereum-block-synced
+        ```
       - Sanity checks:
         ```
-        fuelsequencerd q bank balances 0x62d221db49aef5632f59b900b2ca90e52ecc0a80 # expect balance to increase
-        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect balance to increase
-        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # expect balance to decrease
+        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect +10
+        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # expect +90 (+100-10)
         fuelsequencerd q block-results 100 # expect supply delta event to be reported
         ```
-   6. `make clean` once you're done.
+   5. `make clean` once you're done.

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -21,8 +20,7 @@ import (
 )
 
 type FuelSequencerProposalHandler struct {
-	cdc                    codec.Codec // codec
-	logger                 log.Logger
+	cdc                    codec.Codec                     // codec
 	valStore               baseapp.ValidatorStore          // to get the current validators' pubkeys
 	txVerifier             baseapp.ProposalTxVerifier      // a utility for transaction verification
 	sidecar                sidecarclient.AppSidecarClient  // a client to query the Sidecar service
@@ -33,7 +31,6 @@ type FuelSequencerProposalHandler struct {
 // NewFuelSequencerProposalHandler defines a custom FuelSequencer proposal handler object
 func NewFuelSequencerProposalHandler(
 	cdc codec.Codec,
-	logger log.Logger,
 	valStore baseapp.ValidatorStore,
 	txVerifier baseapp.ProposalTxVerifier,
 	sidecar sidecarclient.AppSidecarClient,
@@ -41,7 +38,6 @@ func NewFuelSequencerProposalHandler(
 ) *FuelSequencerProposalHandler {
 	return &FuelSequencerProposalHandler{
 		cdc:                    cdc,
-		logger:                 logger,
 		valStore:               valStore,
 		txVerifier:             txVerifier,
 		sidecar:                sidecar,
@@ -129,7 +125,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
+			ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex and event txs: %w", err)
@@ -229,7 +225,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, err
 		}
 
-		h.logger.Info("prepared proposal",
+		ctx.Logger().Info("prepared proposal",
 			"num_txs", len(selectedTxs),
 			"msg_index", msgIndex.String(),
 			"msg_index_bz", hex.EncodeToString(msgIndexBz),
@@ -270,7 +266,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		h.logger.Info("processing proposal", "num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]))
+		ctx.Logger().Info("processing proposal", "num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]))
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
@@ -290,13 +286,32 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
-		// for a while.
-		if injectedMsgIndex.NoEthereumSyncing() {
-			// No Ethereum syncing, therefore, we only accept this block if MaxEthBlockUpdateDelay is not exceeded
-			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
-			ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
+		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
+		if !found {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"could not get last Ethereum block synced from state",
+			)
+		}
+		ethBlockToQuery := lastEthereumBlockSynced + 1
 
+		// If the proposer fails to synchronize with the Ethereum height LastEthereumBlockSynced + 1, assume their
+		// sidecar is out of sync and requires more time to catch up. Therefore, a block proposal is only considered
+		// valid if it accurately reflects the absence of event transactions. This is permissible only until
+		// MaxEthBlockUpdateDelay is exceeded. Beyond this point, verifiers will expect synchronization with Ethereum.
+		//
+		// This approach prevents a scenario where consensus among validators cannot be achieved. Some validators may be
+		// stuck on a block proposal showing no Ethereum synchronization, while others, whose sidecars indicate they
+		// have synchronized with Ethereum, would not agree with that proposal.
+		// REF: https://github.com/cometbft/cometbft/blob/8cd4a692d0fbd70f183e28f4507641c799a8f14f/consensus/state.go#L1347-L1352
+		var msgIndex *bridgetypes.MsgIndex
+		var eventTxs [][]byte
+		if injectedMsgIndex.NoEthereumSyncing() {
+
+			// Reject block if MaxEthBlockUpdateDelay is exceeded
+			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
+			ethSyncDelayExceeded := found && req.Time.After(
+				lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay),
+			)
 			if ethSyncDelayExceeded {
 				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 					"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
@@ -305,41 +320,46 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 					bridgeParams.MaxEthBlockUpdateDelay.String(),
 				)
 			}
-		}
 
-		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
-		if !found {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"could not get last Ethereum block synced from state",
+			// Otherwise, generate a MsgIndexTx that indicates no Ethereum syncing
+			msgIndex = &bridgetypes.MsgIndex{
+				Authority:           h.bridgeKeeper.GetAuthority(),
+				NumInjectedEventTxs: 0,
+				NewEthereumBlock:    false,
+				BlockNumber:         ethBlockToQuery,
+			}
+			eventTxs = [][]byte{} // No event transactions expected
+
+			ctx.Logger().Info("proposer did not sync with Ethereum; skipping query to sidecar", "height", req.Height)
+		} else {
+
+			// Query the events of the next Ethereum block.
+			response, sidecarErr := h.sidecar.GetBlockEvents(
+				ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
 			)
+			if sidecarErr != nil {
+				ctx.Logger().Warn("observed sidecar error at ProcessProposal", "err", sidecarErr)
+				// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
+			}
+
+			// Generate the MsgIndex and event transactions based on the queried events of LastEthereumBlockSynced + 1
+			msgIndex, eventTxs, err = h.generateMsgIndexAndEventTxs(
+				ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
+			)
+			if err != nil {
+				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+					"failed to generate MsgIndex and event txs: %w", err,
+				)
+			}
 		}
+		ctx.Logger().Info("generated index at ProcessProposal", "msg_index", msgIndex.String())
+
 		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
 		if !found {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
 				"could not get Ethereum event index offset from state",
 			)
 		}
-
-		// Query the events of the next Ethereum block.
-		ethBlockToQuery := lastEthereumBlockSynced + 1
-		response, sidecarErr := h.sidecar.GetBlockEvents(
-			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
-		)
-		if sidecarErr != nil {
-			ctx.Logger().Warn("observed sidecar error at ProcessProposal", "err", sidecarErr)
-			// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
-		}
-
-		// Generate the MsgIndex that should be included at index 0 in the block proposal
-		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
-		)
-		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to generate MsgIndex and event txs: %w", err,
-			)
-		}
-		ctx.Logger().Info("generated index at ProcessProposal", "msg_index", msgIndex.String())
 
 		// Trim events from head to skip the events that were already processed.
 		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
@@ -419,7 +439,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
-		h.logger.Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
+		ctx.Logger().Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
@@ -490,6 +510,7 @@ func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) boo
 // generateMsgIndexAndEventTxs generates MsgIndex and transactions from events based on the response of the sidecar.
 // It errors upon invalid events from the sidecar. Returned errors have the capability of halting block production.
 func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
+	ctx sdk.Context,
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
@@ -524,7 +545,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				h.logger.Warn(fmt.Sprintf(
+				ctx.Logger().Warn(fmt.Sprintf(
 					"skipping event; failed to encode event as raw tx bytes with err: %s; event: %s",
 					err.Error(),
 					event,
@@ -551,7 +572,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		if authenticated {
 			eventTxs = append(eventTxs, eventTx)
 		} else {
-			h.logger.Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
 		}
 	}
 
