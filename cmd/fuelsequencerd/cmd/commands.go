@@ -239,7 +239,7 @@ func startSidecar(
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethCfg.maxBlockRange)
 	}
 
-	// Check if the unsafe start block is provided and use it instead of querying the genesis.
+	// Check if the unsafe start block is provided and use it.
 	startBlock := big.NewInt(0)
 	if ethCfg.unsafeStartBlock > 0 {
 		startBlock = big.NewInt(ethCfg.unsafeStartBlock)
