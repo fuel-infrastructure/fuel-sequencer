@@ -112,14 +112,31 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 
 	// Set up the operation to fetch logs from Ethereum.
 	// Note: returning an error inside means we should retry.
+	//
+	// Two special cases:
+	// - If a retry was requested with a nil error, a dummy error is returned to guarantee the retry.
+	// - If an error is returned with no retry request, PermanentError is used to guarantee no retry.
 	operation := backoff.Operation(func() error {
 		if err := s.catchUpWithEthereumLogs(ctx, backOff); err != nil {
 			return err
 		}
-		if err, retry := s.subscribeToNewEthereumLogs(ctx, backOff); retry {
-			return err
+
+		err, retry := s.subscribeToNewEthereumLogs(ctx, backOff)
+		if retry {
+			// Retry
+			if err != nil {
+				return err
+			} else {
+				return fmt.Errorf("retrying with no error")
+			}
+		} else {
+			// No retry
+			if err != nil {
+				return &backoff.PermanentError{Err: err}
+			} else {
+				return nil
+			}
 		}
-		return nil
 	})
 
 	// Set up a notify function to log the retry.
