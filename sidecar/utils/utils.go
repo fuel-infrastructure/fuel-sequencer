@@ -1,16 +1,11 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/icza/dyno"
-
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
@@ -68,35 +63,6 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.E
 	}
 
 	return &event, err
-}
-
-// MustGetLastEthereumBlockSyncedFromGenesis processes the genesis from an http response and returns
-// the last ethereum block synced from the sequencer chain.
-func MustGetLastEthereumBlockSyncedFromGenesis(genbz []byte) uint64 {
-	g := make(map[string]interface{})
-	err := json.Unmarshal(genbz, &g)
-	if err != nil {
-		log.Fatalf("failed to unmarshal genesis file: %v", err)
-	}
-
-	lastEthereumBlockSynced, err := dyno.Get(g, "bridge", "last_ethereum_block_synced")
-	if err != nil {
-		log.Fatalf("failed to extract LastEthereumBlockSynced from genesis file: %v", err)
-	}
-
-	// Convert the last ethereum block synced from interface to string.
-	num, ok := lastEthereumBlockSynced.(string)
-	if !ok {
-		log.Fatalf("failed to convert LastEthereumBlockSynced interface to string")
-	}
-
-	// Convert the string into uint64 and return.
-	lastEthereumBlockSyncedUint, err := strconv.ParseUint(num, 10, 64)
-	if err != nil {
-		log.Fatalf("failed to convert LastEthereumBlockSynced from string to uint64: %v", err)
-	}
-
-	return lastEthereumBlockSyncedUint
 }
 
 // ValidateIsLogSequential checks if the log is sequential based on TxIndex and LogIndex.

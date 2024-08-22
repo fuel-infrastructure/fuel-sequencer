@@ -4,7 +4,6 @@
 SIDECAR_HOST="0.0.0.0"
 SIDECAR_PORT="8080"
 SEQUENCER_GRPC_URL="127.0.0.1:9090"
-SEQUENCER_RPC_URL="http://127.0.0.1:26657"
 ETH_WS_URL="ws://ethereum-node:8545"
 ETH_CONTRACT_ADDRESS="0x0165878A594ca255338adfa4d48449f69242Eb8F"
 ETH_MAX_BLOCK_RANGE="100"
@@ -23,7 +22,6 @@ fuelsequencerd start \
 fuelsequencerd start-sidecar \
   --host "$SIDECAR_HOST" \
   --port "$SIDECAR_PORT" \
-  --sequencer_rpc_url "$SEQUENCER_RPC_URL" \
   --sequencer_grpc_url "$SEQUENCER_GRPC_URL" \
   --eth_ws_url "$ETH_WS_URL" \
   --eth_contract_address "$ETH_CONTRACT_ADDRESS" \

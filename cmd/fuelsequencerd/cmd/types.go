@@ -17,7 +17,6 @@ const (
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
-	FlagSequencerRpcUrl              = "sequencer_rpc_url"
 	FlagSequencerPathToCertFile      = "sequencer_path_to_cert_file"
 
 	// Sidecar client flags
@@ -37,7 +36,6 @@ type sidecarConfig struct {
 
 type sequencerConfig struct {
 	grpcUrl        string
-	rpcUrl         string
 	pathToCertFile string
 }
 
