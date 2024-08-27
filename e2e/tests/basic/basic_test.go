@@ -149,13 +149,12 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Get last Ethereum block synced
 		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		lookOutFor := lastEthereumBlockSynced + 5
 
 		// Subscribe for 5 Ethereum blocks from now
-		query := fmt.Sprintf(`
-			fuelsequencer.bridge.EventEthereumBlockSynced.block_number='"%d"' 
-			AND
-			fuelsequencer.bridge.EventEthereumBlockSynced.full_sync='true'
-		`, lastEthereumBlockSynced+5)
+		blockNumberKey := "fuelsequencer.bridge.EventEthereumBlockSynced.block_number"
+		fullSyncKey := "fuelsequencer.bridge.EventEthereumBlockSynced.full_sync"
+		query := fmt.Sprintf(`%s='"%d"' AND %s='true'`, blockNumberKey, lookOutFor, fullSyncKey)
 		s.Logger().Info("subscribing to new Ethereum block", zap.String("query", query))
 		sub, err := s.Chain.SubscribeToSequencer(s.Ctx(), query)
 		s.Require().NoError(err)
@@ -163,7 +162,9 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		// Check that we eventually detect the event
 		s.Require().Eventually(func() bool {
 			select {
-			case _ = <-sub:
+			case res := <-sub:
+				s.Require().Equal([]string{fmt.Sprintf(`"%d"`, lookOutFor)}, res.Events[blockNumberKey])
+				s.Require().Equal([]string{"true"}, res.Events[fullSyncKey])
 				return true // found
 			default:
 				return false // not found yet
