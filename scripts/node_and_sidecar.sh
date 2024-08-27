@@ -10,6 +10,7 @@ ETH_MAX_BLOCK_RANGE="100"
 ETH_MIN_LOGS_QUERY_INTERVAL="1s" # this is low because this script is used for E2E purposes where the block time is 1s
 ETH_UNSAFE_START_BLOCK="1"
 DEVELOPMENT="true"
+PROMETHEUS_ENABLED="true"
 
 # Start FuelSequencer node (TODO: make customisable)
 fuelsequencerd start \
@@ -29,6 +30,7 @@ fuelsequencerd start-sidecar \
   --eth_min_logs_query_interval "$ETH_MIN_LOGS_QUERY_INTERVAL" \
   --unsafe_eth_start_block "$ETH_UNSAFE_START_BLOCK" \
   --development "$DEVELOPMENT" \
+  --prometheus_enabled "$PROMETHEUS_ENABLED" \
   &
 
 # Wait for all background jobs to finish

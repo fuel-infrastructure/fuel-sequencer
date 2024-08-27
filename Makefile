@@ -255,6 +255,7 @@ run-sidecar:
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
 	@$(eval DEVELOPMENT ?= "true")
+	@$(eval PROMETHEUS_ENABLED ?= "true")
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
@@ -280,7 +281,8 @@ run-sidecar:
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
-		--development "$(DEVELOPMENT)"
+		--development "$(DEVELOPMENT)" \
+		--prometheus_enabled "$(PROMETHEUS_ENABLED)"
 
 init:
 	ignite chain init --skip-proto --build.tags ledger
