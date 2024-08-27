@@ -440,16 +440,12 @@ endif
 build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
-	@echo "⚠️ Setting vesting period to higher value [2 years] (fuel-rollup)..."
-	@perl -pi -e 's/VESTING_PERIOD = 300/VESTING_PERIOD = 63072000/g' ./e2e/fuel-rollup/deploy/hardhat/006.migrator.ts
 	@echo "🤖 Building Docker image..."
 	@docker build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
 		./e2e/fuel-rollup/
-	@echo "⚠️ Setting vesting period to original value [5 minutes] (fuel-rollup)..."
-	@perl -pi -e 's/VESTING_PERIOD = 63072000/VESTING_PERIOD = 300/g' ./e2e/fuel-rollup/deploy/hardhat/006.migrator.ts
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
 	@git submodule update --remote e2e/fuel-rollup
 	@echo "✅ Finished!"
