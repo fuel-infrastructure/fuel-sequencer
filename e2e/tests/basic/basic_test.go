@@ -1,6 +1,7 @@
 package basic_test
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"go.uber.org/zap"
 )
 
 func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
@@ -141,6 +143,32 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		// Get last Ethereum block synced again and make sure it updated
 		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
 		s.Require().Greater(lastEthereumBlockSynced, lastEthereumBlockSyncedOld)
+	})
+
+	s.Run("Ensure we can subscribe to fully synced Ethereum blocks", func() {
+
+		// Get last Ethereum block synced
+		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+
+		// Subscribe for 5 Ethereum blocks from now
+		query := fmt.Sprintf(`
+			fuelsequencer.bridge.EventEthereumBlockSynced.block_number='"%d"' 
+			AND
+			fuelsequencer.bridge.EventEthereumBlockSynced.full_sync='true'
+		`, lastEthereumBlockSynced+5)
+		s.Logger().Info("subscribing to new Ethereum block", zap.String("query", query))
+		sub, err := s.Chain.SubscribeToSequencer(s.Ctx(), query)
+		s.Require().NoError(err)
+
+		// Check that we eventually detect the event
+		s.Require().Eventually(func() bool {
+			select {
+			case _ = <-sub:
+				return true // found
+			default:
+				return false // not found yet
+			}
+		}, time.Minute/2, time.Second)
 	})
 
 	s.Run("Ensure user transactions are still subject to a finite gas meter", func() {
