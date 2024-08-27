@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -21,6 +22,11 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 	heightToAvoidSupplyDelta := int64(999)
 	heightForSupplyDelta := int64(testtypes.TestSupplyDeltaPeriod)
 
+	// Get Ethereum block synced event type
+	ethBlockSyncedEvent, err := sdk.TypedEventToEvent(&types.EventEthereumBlockSynced{})
+	s.Require().NoError(err)
+	ethBlockSyncedEventType := ethBlockSyncedEvent.Type
+
 	testCases := []struct {
 		name                            string
 		supplyDeltaPeriod               uint64
@@ -33,6 +39,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 		expectIndex                     types.Index
 		expectLastEthereumBlockSynced   int64
 		expectLastEthBlockUpdateTime    bool
+		expectEthereumBlockSyncedEvent  *types.EventEthereumBlockSynced
 	}{
 		{
 			name:              "MsgIndex with wrong block number => reverted",
@@ -69,6 +76,10 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectIndex: types.Index{
 				NumInjectedTxsTotal: encodedMsgIndexWithEvents.NumInjectedEventTxs,
 			},
+			expectEthereumBlockSyncedEvent: &types.EventEthereumBlockSynced{
+				BlockNumber: 1,
+				FullSync:    true,
+			},
 		},
 		{
 			name:                            "MsgIndex without events => new block and offset stays at zero",
@@ -82,18 +93,9 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectIndex: types.Index{
 				NumInjectedTxsTotal: encodedMsgIndexWithoutEvents.NumInjectedEventTxs,
 			},
-		},
-		{
-			name:                            "MsgIndex with partial events => no new block but offset updated",
-			supplyDeltaPeriod:               testtypes.TestSupplyDeltaPeriod,
-			msg:                             encodedMsgIndexPartialBlock,
-			blockHeight:                     heightToAvoidSupplyDelta,
-			expectLastEthereumBlockSynced:   0,
-			expectLastEthBlockUpdateTime:    true,
-			expectEthereumEventsIndexOffset: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
-			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
-			expectIndex: types.Index{
-				NumInjectedTxsTotal: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
+			expectEthereumBlockSyncedEvent: &types.EventEthereumBlockSynced{
+				BlockNumber: 1,
+				FullSync:    true,
 			},
 		},
 		{
@@ -107,6 +109,10 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectNumInjectedTxsTotal:       encodedMsgIndexPartialBlock.NumInjectedEventTxs,
 			expectIndex: types.Index{
 				NumInjectedTxsTotal: encodedMsgIndexPartialBlock.NumInjectedEventTxs,
+			},
+			expectEthereumBlockSyncedEvent: &types.EventEthereumBlockSynced{
+				BlockNumber: 1,
+				FullSync:    false,
 			},
 		},
 		{
@@ -120,6 +126,10 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			expectNumInjectedTxsTotal:       encodedMsgIndexWithEvents.NumInjectedEventTxs + 1, // +1 for MsgSupplyDelta
 			expectIndex: types.Index{
 				NumInjectedTxsTotal: encodedMsgIndexWithEvents.NumInjectedEventTxs + 1, // +1 for MsgSupplyDelta
+			},
+			expectEthereumBlockSyncedEvent: &types.EventEthereumBlockSynced{
+				BlockNumber: 1,
+				FullSync:    true,
 			},
 		},
 		{
@@ -148,7 +158,8 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 				s.App.BridgeKeeper.SetIndex(s.Ctx(), *tc.setIndex)
 			}
 
-			_, err = msgServer.Index(s.Ctx().WithBlockTime(testBlockTime).WithBlockHeight(tc.blockHeight), &tc.msg)
+			msgIndexCtx := s.Ctx().WithBlockTime(testBlockTime).WithBlockHeight(tc.blockHeight)
+			_, err = msgServer.Index(msgIndexCtx, &tc.msg)
 			if tc.expectErrMsg != "" {
 				s.Require().ErrorContains(err, tc.expectErrMsg)
 				return
@@ -178,6 +189,17 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 			} else {
 				s.Require().False(found)
 				s.Require().Equal(time.Time{}, lastEthBlockUpdateTime)
+			}
+
+			// Check events
+			if tc.expectEthereumBlockSyncedEvent != nil {
+				expectEvent, err := sdk.TypedEventToEvent(tc.expectEthereumBlockSyncedEvent)
+				s.Require().NoError(err)
+
+				event := s.FindEvent(msgIndexCtx.EventManager().Events(), ethBlockSyncedEventType)
+				s.Require().Equal(expectEvent, event)
+			} else {
+				s.AssertEventEmitted(msgIndexCtx, sdk.EventTypeMessage, 0) // not emitted
 			}
 		})
 	}
