@@ -11,7 +11,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
-	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 	"go.uber.org/zap"
@@ -23,8 +23,11 @@ import (
 type Sidecar struct {
 	logger *zap.Logger
 
-	// Ethereum client used for querying data from an Ethereum node.
-	ethClient *ethclient.EthWrappedClient
+	// Ethereum RPC client used for querying data from an Ethereum node.
+	ethRpcClient *ethwrappedclient.EthRpcClient
+
+	// Ethereum WS client used for subscribing to block headers from an Ethereum node.
+	ethWsClient *ethwrappedclient.EthWsClient
 
 	// SequencerClient is used for querying data from a Sequencer node.
 	sequencerClient *sequencerclient.SequencerClient
@@ -43,13 +46,15 @@ type Sidecar struct {
 // NewSidecar initializes a new Sidecar instance.
 func NewSidecar(
 	logger *zap.Logger,
-	ethClient *ethclient.EthWrappedClient,
+	ethRpcClient *ethwrappedclient.EthRpcClient,
+	ethWsClient *ethwrappedclient.EthWsClient,
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
 ) *Sidecar {
 	return &Sidecar{
 		logger:          logger,
-		ethClient:       ethClient,
+		ethRpcClient:    ethRpcClient,
+		ethWsClient:     ethWsClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
 	}
@@ -60,6 +65,8 @@ func (s *Sidecar) Start(ctx context.Context) error {
 	defer s.ShutDown()
 
 	s.logger.Info("starting log fetching")
+
+	// TODO: Do check for rpc as well
 
 	// Initial check to verify Ethereum client connectivity and log subscription capability.
 	// Note: if a non-websocket URL is provided, this check will fail as well.
@@ -219,6 +226,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
+				// TODO: Do Unsubscribe jic?
 				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
 			}
 
@@ -341,4 +349,12 @@ func (s *Sidecar) IsStopped() bool {
 func (s *Sidecar) ShutDown() {
 	s.logger.Warn("shutting down sidecar")
 	s.stopped.Store(true)
+
+	// RPC connection needs to be closed since we have already dialed.
+	s.logger.Warn("closing RPC connection with Ethereum node")
+	s.ethRpcClient.Close()
+
+	// WS connection needs to be closed since we have already dialed.
+	s.logger.Warn("closing WS connection with Ethereum node")
+	s.ethWsClient.Close()
 }
