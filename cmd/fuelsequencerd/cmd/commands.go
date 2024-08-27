@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/instrumentation/prometheus"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -152,12 +153,13 @@ func startSidecarServerCmd() *cobra.Command {
 	scrCfg := sidecarConfig{}
 	seqCfg := sequencerConfig{}
 	ethCfg := ethereumConfig{}
+	prmCfg := prometheus.Config{}
 
 	cmd := &cobra.Command{
 		Use:   "start-sidecar",
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return startSidecar(scrCfg, seqCfg, ethCfg)
+			return startSidecar(scrCfg, seqCfg, ethCfg, prmCfg)
 		},
 	}
 
@@ -198,6 +200,12 @@ func startSidecarServerCmd() *cobra.Command {
 			"if the Sequencer infrastructure was set up using TLS.",
 	)
 
+	// Prometheus
+	cmd.Flags().BoolVar(&prmCfg.Enabled, FlagPrometheusEnabled, false, "enables serving of prometheus metrics under /metrics")
+	cmd.Flags().StringVar(&prmCfg.ListenAddress, FlagPrometheusListenAddress, ":9091", "address to listen for prometheus collectors")
+	cmd.Flags().IntVar(&prmCfg.MaxOpenConnections, FlagPrometheusMaxOpenConnections, 3, "max number of simultaneous connections")
+	cmd.Flags().StringVar(&prmCfg.Namespace, FlagPrometheusNamespace, "sidecar", "instrumentation namespace")
+
 	return cmd
 }
 
@@ -205,6 +213,7 @@ func startSidecar(
 	scrCfg sidecarConfig,
 	seqCfg sequencerConfig,
 	ethCfg ethereumConfig,
+	prmCfg prometheus.Config,
 ) error {
 	sigs := make(chan os.Signal, 1)
 
@@ -335,18 +344,30 @@ func startSidecar(
 		return err
 	}
 
+	// Set up prometheus metrics
+	var scMetrics *sidecar.Metrics
+	var storeMetrics *scstore.Metrics
+	if prmCfg.Enabled {
+		scMetrics = sidecar.PrometheusMetrics(prmCfg.Namespace)
+		storeMetrics = scstore.PrometheusMetrics(prmCfg.Namespace)
+	} else {
+		scMetrics = sidecar.NopMetrics()
+		storeMetrics = scstore.NopMetrics()
+	}
+
 	// Create the sidecar ethereum client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
 
 	// Create the store
-	eventStore := scstore.NewEventStore(startBlock, endBlock, big.NewInt(ethCfg.maxBlockRange))
+	eventStore := scstore.NewEventStore(startBlock, endBlock, big.NewInt(ethCfg.maxBlockRange), storeMetrics)
 
 	sideCar := sidecar.NewSidecar(
 		logger,
 		scEthClient,
 		scSequencerClient,
 		eventStore,
+		scMetrics,
 	)
 	srv := sidecarserver.NewSidecarServer(sideCar, logger)
 
@@ -355,6 +376,13 @@ func startSidecar(
 		logger.Info("received interrupt or terminate signal, closing sidecar")
 		cancel()
 	}()
+
+	// Start prometheus server in the background
+	if prmCfg.Enabled {
+		prometheusSrv := prometheus.NewMetricsServer(logger, prmCfg)
+		prometheusSrv.Start()
+		defer prometheusSrv.Stop()
+	}
 
 	if err := srv.InitializeServer(scrCfg.host, scrCfg.port, scrCfg.pathToCertFile, scrCfg.pathToKeyFile); err != nil {
 		logger.Error("failed to initialize the server", zap.Error(err))

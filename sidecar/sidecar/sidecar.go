@@ -32,6 +32,9 @@ type Sidecar struct {
 	// eventStore stores all the necessary information needed to run the sidecar.
 	eventStore *store.EventStore
 
+	// metrics is the set of all Prometheus metrics exposed by Sidecar.
+	metrics *Metrics
+
 	// stopped indicates if the main process of the sidecar has been stopped or not. By default, this is false.
 	stopped atomic.Bool
 
@@ -46,12 +49,14 @@ func NewSidecar(
 	ethClient *ethclient.EthWrappedClient,
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
+	metrics *Metrics,
 ) *Sidecar {
 	return &Sidecar{
 		logger:          logger,
 		ethClient:       ethClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
+		metrics:         metrics,
 	}
 }
 
@@ -96,6 +101,8 @@ func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
 		return endQueryBlock, nil
 	}
 
+	heightFloat64, _ := finalizedEthHeight.Float64()
+	s.metrics.MaxSyncableBlock.Set(heightFloat64)
 	return finalizedEthHeight, nil
 }
 
@@ -175,6 +182,8 @@ func (s *Sidecar) catchUpWithEthereumLogs(
 			zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 		)
 
+		s.metrics.CatchingUp.Set(1)
+		defer s.metrics.CatchingUp.Set(0)
 		return s.fetchAndStoreLogsUptoBlock(ctx, maxSyncableBlock)
 	} else {
 		s.logger.Debug("already in sync with ethereum",

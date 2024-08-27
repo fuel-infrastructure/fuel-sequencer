@@ -18,6 +18,10 @@ const (
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
 	FlagSequencerPathToCertFile      = "sequencer_path_to_cert_file"
+	FlagPrometheusEnabled            = "prometheus_enabled"
+	FlagPrometheusListenAddress      = "prometheus_listen_address"
+	FlagPrometheusMaxOpenConnections = "prometheus_max_open_connections"
+	FlagPrometheusNamespace          = "prometheus_namespace"
 
 	// Sidecar client flags
 
