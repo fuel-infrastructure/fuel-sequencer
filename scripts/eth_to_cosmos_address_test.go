@@ -11,23 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConvertCosmosToHexAddressAndViceVersa(t *testing.T) {
+func TestConvertHexToCosmosAddressAndViceVersa(t *testing.T) {
 
-	// Cosmos account or valoper address in bech32 format
-	cosmosAddress := "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn"
+	// Ethereum address in hex format
+	ethereumAddress := "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
+	ethereumAddress = strings.TrimPrefix(ethereumAddress, "0x")
 
-	// Decode the bech32 encoded Cosmos address
-	var addrBz []byte
-	valoper := sdk.PrefixValidator + sdk.PrefixOperator
-	if strings.Contains(cosmosAddress, valoper) {
-		valAddr, err := sdk.ValAddressFromBech32(cosmosAddress)
-		require.NoError(t, err)
-		addrBz = valAddr.Bytes()
-	} else {
-		accAddr, err := sdk.AccAddressFromBech32(cosmosAddress)
-		require.NoError(t, err)
-		addrBz = accAddr.Bytes()
-	}
+	// Decode the hex encoded Ethereum address
+	addrBz, err := hex.DecodeString(ethereumAddress)
+	require.NoError(t, err)
 
 	// Convert byte slice to hexadecimal string
 	hexAddress := hex.EncodeToString(addrBz)

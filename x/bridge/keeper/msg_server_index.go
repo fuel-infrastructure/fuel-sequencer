@@ -72,5 +72,16 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 		k.SetLastEthBlockUpdateTime(ctx, ctx.BlockTime())
 	}
 
+	// If some syncing took place, emit an event.
+	if msg.IsPartialEthereumSyncing() || msg.IsFullEthereumSyncing() {
+		err = ctx.EventManager().EmitTypedEvent(&types.EventEthereumBlockSynced{
+			BlockNumber: msg.BlockNumber,
+			FullSync:    msg.IsFullEthereumSyncing(),
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &types.MsgIndexResponse{}, nil
 }

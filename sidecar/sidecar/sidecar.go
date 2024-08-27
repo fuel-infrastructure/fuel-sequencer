@@ -35,12 +35,6 @@ type Sidecar struct {
 	// stopped indicates if the main process of the sidecar has been stopped or not. By default, this is false.
 	stopped atomic.Bool
 
-	// development is a boolean variable which indicates whether the sidecar should be run in development mode. If true
-	// the sidecar will possess a development logger and will bypass some logic which is not available in development
-	// mode. Ex. net_peerCount method is not available on anvil nodes, so logic around it needs to be bypassed in
-	// development mode.
-	development bool
-
 	// fetchAndStoreLock makes fetching and storing of logs sequential to prevent duplicate queries if multiple blocks
 	// are received rapidly, since the last synced block value from the previous fetch would not have been updated yet.
 	fetchAndStoreLock sync.Mutex
@@ -52,14 +46,12 @@ func NewSidecar(
 	ethClient *ethclient.EthWrappedClient,
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
-	development bool,
 ) *Sidecar {
 	return &Sidecar{
 		logger:          logger,
 		ethClient:       ethClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
-		development:     development,
 	}
 }
 
@@ -120,14 +112,31 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 
 	// Set up the operation to fetch logs from Ethereum.
 	// Note: returning an error inside means we should retry.
+	//
+	// Two special cases:
+	// - If a retry was requested with a nil error, a dummy error is returned to guarantee the retry.
+	// - If an error is returned with no retry request, PermanentError is used to guarantee no retry.
 	operation := backoff.Operation(func() error {
 		if err := s.catchUpWithEthereumLogs(ctx, backOff); err != nil {
 			return err
 		}
-		if err, retry := s.subscribeToNewEthereumLogs(ctx, backOff); retry {
-			return err
+
+		err, retry := s.subscribeToNewEthereumLogs(ctx, backOff)
+		if retry {
+			// Retry
+			if err != nil {
+				return err
+			} else {
+				return fmt.Errorf("retrying with no error")
+			}
+		} else {
+			// No retry
+			if err != nil {
+				return &backoff.PermanentError{Err: err}
+			} else {
+				return nil
+			}
 		}
-		return nil
 	})
 
 	// Set up a notify function to log the retry.

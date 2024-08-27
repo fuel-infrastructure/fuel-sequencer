@@ -107,16 +107,6 @@ func (ec *EthWrappedClient) FinalizedBlockNumber(ctx context.Context) (*big.Int,
 	return head.Number, nil
 }
 
-// SyncProgress checks if the Ethereum node is synced.
-func (ec *EthWrappedClient) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error) {
-	return ec.ethClient.SyncProgress(ctx)
-}
-
-// PeerCount checks if the peer count of the Ethereum node.
-func (ec *EthWrappedClient) PeerCount(ctx context.Context) (uint64, error) {
-	return ec.ethClient.PeerCount(ctx)
-}
-
 // FetchAndProcessLogs fetches the logs from the blockchain and processes them.
 // It returns the events and the last block that it synced up to.
 // Upon failure, no events and no last block synced are returned.

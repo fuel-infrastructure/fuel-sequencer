@@ -180,10 +180,8 @@ run-sidecar-binary:
 	@$(eval SIDECAR_PATH_TO_CERT_FILE ?= "")
 	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
-	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
-	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
@@ -195,7 +193,6 @@ run-sidecar-binary:
 		--port "$(SIDECAR_PORT)" \
 		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
-		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
@@ -250,7 +247,7 @@ run-sidecar:
 	@$(eval SIDECAR_PATH_TO_CERT_FILE ?= "")
 	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
-	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")
+	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")  # for the wait below
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
@@ -270,10 +267,11 @@ run-sidecar:
 	@while ! curl -s -X GET --max-time 1 "$(SEQUENCER_RPC_URL)" | grep -q "result"; do \
 		sleep 1; \
 	done
+	@echo "Waiting for Sequencer gRPC $(SEQUENCER_GRPC_URL) to be accessible..."
+	@sleep 3  # buffer for Sequencer gRPC server to start properly
 	@fuelsequencerd start-sidecar \
 		--host "$(SIDECAR_HOST)" \
 		--port "$(SIDECAR_PORT)" \
-		--sequencer_rpc_url "$(SEQUENCER_RPC_URL)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
@@ -442,16 +440,12 @@ endif
 build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
-	@echo "⚠️ Setting vesting period to higher value [2 years] (fuel-rollup)..."
-	@perl -pi -e 's/VESTING_PERIOD = 300/VESTING_PERIOD = 63072000/g' ./e2e/fuel-rollup/deploy/hardhat/006.migrator.ts
 	@echo "🤖 Building Docker image..."
 	@docker build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
 		./e2e/fuel-rollup/
-	@echo "⚠️ Setting vesting period to original value [5 minutes] (fuel-rollup)..."
-	@perl -pi -e 's/VESTING_PERIOD = 63072000/VESTING_PERIOD = 300/g' ./e2e/fuel-rollup/deploy/hardhat/006.migrator.ts
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
 	@git submodule update --remote e2e/fuel-rollup
 	@echo "✅ Finished!"

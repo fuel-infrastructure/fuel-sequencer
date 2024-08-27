@@ -13,6 +13,7 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmrand "github.com/cometbft/cometbft/libs/rand"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -278,6 +279,14 @@ func (c *chain) sendMsgs(
 	}
 
 	return &res, nil
+}
+
+func (c *chain) SubscribeToSequencer(ctx context.Context, query string) (<-chan coretypes.ResultEvent, error) {
+	res, err := c.rpcClient.Subscribe(ctx, "", query)
+	if err != nil {
+		return nil, fmt.Errorf("rpc client status: %w", err)
+	}
+	return res, nil
 }
 
 func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
