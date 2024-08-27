@@ -98,6 +98,8 @@ func (s *E2ETestSuite) initRPCClient() {
 		panic(err)
 	}
 
+	s.Require().NoError(rpcClient.Start())
+
 	s.Chain.rpcClient = rpcClient
 }
 

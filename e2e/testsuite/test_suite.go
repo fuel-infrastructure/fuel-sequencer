@@ -277,6 +277,7 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.T().Log("tearing down e2e integration test suite...")
 
+	s.Require().NoError(s.Chain.rpcClient.Stop())
 	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
 	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
