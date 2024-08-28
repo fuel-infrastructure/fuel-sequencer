@@ -13,8 +13,8 @@ type EthWrappedClient struct {
 	// ethClient is the direct ethereum client we'll be interacting with.
 	//
 	// NOTE:
-	// 1. A http URL should be dialed if we are to make use of RPC calls.
-	// 2. A websocket URL should be dialed if we are to make use of subscriptions.
+	// 1. An http URL should be dialed if we'll use RPC calls.
+	// 2. A websocket URL should be dialed if we'll use subscriptions.
 	ethClient *ethclient.Client
 }
 
