@@ -182,6 +182,7 @@ run-sidecar-binary:
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
+	@$(eval ETH_RPC_URL ?= "http://localhost:8545")
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
@@ -196,6 +197,7 @@ run-sidecar-binary:
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
+		--eth_rpc_url "$(ETH_RPC_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
@@ -250,7 +252,7 @@ run-sidecar:
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")  # for the wait below
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
-	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below
+	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below and Sidecar RPC calls
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
@@ -278,6 +280,7 @@ run-sidecar:
 		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
+		--eth_rpc_url "$(ETH_RPC_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
