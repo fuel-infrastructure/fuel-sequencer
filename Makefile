@@ -181,7 +181,7 @@ run-sidecar-binary:
 	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
-	@$(eval ETH_WS_URL ?= "ws://localhost:8546")
+	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
@@ -251,7 +251,7 @@ run-sidecar:
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")  # for the wait below
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
-	@$(eval ETH_WS_URL ?= "ws://localhost:8546")
+	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below and Sidecar RPC calls
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
