@@ -166,9 +166,7 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 }
 
 // catchUpWithEthereumLogs syncs logs from the last synced block up to the last finalized Ethereum block.
-func (s *Sidecar) catchUpWithEthereumLogs(
-	ctx context.Context, backOff *backoff.ExponentialBackOff,
-) error {
+func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.ExponentialBackOff) error {
 
 	// Get the max syncable block (considers finalized Ethereum height and the end query block)
 	maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
@@ -211,7 +209,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 
 	// Subscribe to new Ethereum block headers.
 	ch := make(chan *ethereumtypes.Header)
-	sub, err := s.ethClient.SubscribeNewHead(ctx, ch)
+	sub, err := s.ethWsClient.SubscribeNewHead(ctx, ch)
 	if err != nil {
 		s.logger.Error("error when subscribing to logs", zap.Error(err))
 		return err, true // retry
@@ -231,7 +229,6 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
-				// TODO: Do Unsubscribe jic?
 				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
 			}
 
@@ -262,10 +259,6 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			// Fetch the last synced Ethereum block before querying for new logs
 			lastSyncedBlockBySequencer, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
 			if err != nil {
-				// Log the error if the last synced Ethereum block is not obtained.
-				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
-				// is skipped the Sequencer will not be able to produce the first block and the sidecar would not be
-				// able to query the Sequencer, causing a deadlock.
 				s.logger.Error("failed to obtain LastEthereumBlockSynced from Sequencer", zap.Error(err))
 			} else {
 				s.logger.Debug(
@@ -283,14 +276,14 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 	}
 }
 
-// fetchAndProcessLogs fetches and processes logs based on next block to query, target block, and query max range.
+// fetchAndStoreLogsUptoBlock fetches and processes logs based on next block to query, target block, and query max range
 func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.Int) error {
 	s.fetchAndStoreLock.Lock()
 	defer s.fetchAndStoreLock.Unlock()
 
 	for {
 		// Fetch logs (note: this is rate-limited under the hood)
-		eventsMap, newLastSyncedBlock, err := s.ethClient.FetchAndProcessLogs(
+		eventsMap, newLastSyncedBlock, err := s.ethRpcClient.FetchAndProcessLogs(
 			ctx, s.eventStore.GetNextQueryBlock(), toBlock, s.eventStore.GetMaxQueryRange(),
 		)
 		if err != nil {
