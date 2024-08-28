@@ -42,7 +42,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
-	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
+	scethwrappedclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
@@ -181,12 +181,40 @@ func startSidecarServerCmd() *cobra.Command {
 	)
 
 	// Ethereum
-	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "the ethereum node WebSocket endpoint")
-	cmd.Flags().StringVar(&ethCfg.contractAddrHex, FlagEthereumContractAddr, "", "address in hex format of the contract to monitor for logs")
-	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of ethereum blocks queried at one go")
-	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*5, "minimum wait between successive queries for logs")
-	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the ethereum block to start querying from")
-	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last ethereum block to sync - incorrect use can cause the validator to propose empty blocks, leading to slashing!")
+	cmd.Flags().StringVar(
+		&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8546", "the ethereum node WebSocket endpoint",
+	)
+	cmd.Flags().StringVar(
+		&ethCfg.rpcUrl, FlagEthereumRpcUrl, "http://127.0.0.1:8545", "the ethereum node RPC endpoint",
+	)
+	cmd.Flags().StringVar(
+		&ethCfg.contractAddrHex,
+		FlagEthereumContractAddr,
+		"",
+		"address in hex format of the contract to monitor for logs",
+	)
+	cmd.Flags().Int64Var(
+		&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of ethereum blocks queried at one go",
+	)
+	cmd.Flags().DurationVar(
+		&ethCfg.minLogsQueryInterval,
+		FlagEthereumMinLogsQueryInterval,
+		time.Second*5,
+		"minimum wait between successive queries for logs",
+	)
+	cmd.Flags().Int64Var(
+		&ethCfg.unsafeStartBlock,
+		FlagEthereumUnsafeStartBlock,
+		0,
+		"the ethereum block to start querying from",
+	)
+	cmd.Flags().Int64Var(
+		&ethCfg.unsafeEndBlock,
+		FlagEthereumUnsafeEndBlock,
+		0,
+		"the last ethereum block to sync - incorrect use can cause the validator to propose empty blocks, leading to "+
+			"slashing!",
+	)
 
 	// Sequencer
 	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
@@ -323,7 +351,13 @@ func startSidecar(
 	}
 
 	logger.Info("dialling Ethereum node", zap.String("ws_url", ethCfg.webSocketUrl))
-	ethClient, err := ethclient.Dial(ethCfg.webSocketUrl)
+	ethWsClient, err := ethclient.Dial(ethCfg.webSocketUrl)
+	if err != nil {
+		return err
+	}
+
+	logger.Info("dialling Ethereum node", zap.String("rpc_url", ethCfg.rpcUrl))
+	ethRpcClient, err := ethclient.Dial(ethCfg.rpcUrl)
 	if err != nil {
 		return err
 	}
@@ -335,16 +369,22 @@ func startSidecar(
 		return err
 	}
 
-	// Create the sidecar ethereum client
+	// Create the sidecar's ethereum WS client
+	scEthWsClient := scethwrappedclient.NewEthWsClient(logger, ethWsClient)
+
+	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
-	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
+	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
+		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval,
+	)
 
 	// Create the store
 	eventStore := scstore.NewEventStore(startBlock, endBlock, big.NewInt(ethCfg.maxBlockRange))
 
 	sideCar := sidecar.NewSidecar(
 		logger,
-		scEthClient,
+		scEthRpcClient,
+		scEthWsClient,
 		scSequencerClient,
 		eventStore,
 	)

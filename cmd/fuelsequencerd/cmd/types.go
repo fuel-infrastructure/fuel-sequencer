@@ -11,6 +11,7 @@ const (
 	FlagSidecarPathToKeyFile         = "sidecar_path_to_key_file"
 	FlagSidecarPathToCertFile        = "sidecar_path_to_cert_file"
 	FlagEthereumWebSocketUrl         = "eth_ws_url"
+	FlagEthereumRpcUrl               = "eth_rpc_url"
 	FlagEthereumContractAddr         = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
 	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
@@ -41,6 +42,7 @@ type sequencerConfig struct {
 
 type ethereumConfig struct {
 	webSocketUrl         string
+	rpcUrl               string
 	contractAddrHex      string
 	maxBlockRange        int64
 	minLogsQueryInterval time.Duration

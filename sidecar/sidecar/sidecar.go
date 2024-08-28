@@ -11,7 +11,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
-	ethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 	"go.uber.org/zap"
@@ -23,8 +23,11 @@ import (
 type Sidecar struct {
 	logger *zap.Logger
 
-	// Ethereum client used for querying data from an Ethereum node.
-	ethClient *ethclient.EthWrappedClient
+	// Ethereum RPC client used for querying data from an Ethereum node.
+	ethRpcClient *ethwrappedclient.EthRpcClient
+
+	// Ethereum WS client used for subscribing to block headers from an Ethereum node.
+	ethWsClient *ethwrappedclient.EthWsClient
 
 	// SequencerClient is used for querying data from a Sequencer node.
 	sequencerClient *sequencerclient.SequencerClient
@@ -43,13 +46,15 @@ type Sidecar struct {
 // NewSidecar initializes a new Sidecar instance.
 func NewSidecar(
 	logger *zap.Logger,
-	ethClient *ethclient.EthWrappedClient,
+	ethRpcClient *ethwrappedclient.EthRpcClient,
+	ethWsClient *ethwrappedclient.EthWsClient,
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
 ) *Sidecar {
 	return &Sidecar{
 		logger:          logger,
-		ethClient:       ethClient,
+		ethRpcClient:    ethRpcClient,
+		ethWsClient:     ethWsClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
 	}
@@ -61,14 +66,21 @@ func (s *Sidecar) Start(ctx context.Context) error {
 
 	s.logger.Info("starting log fetching")
 
-	// Initial check to verify Ethereum client connectivity and log subscription capability.
+	// Initial check to verify Ethereum WS client connectivity and log subscription capability.
 	// Note: if a non-websocket URL is provided, this check will fail as well.
-	sub, err := s.ethClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
+	sub, err := s.ethWsClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
 	if err != nil {
 		s.logger.Error("failed initial Ethereum subscription check", zap.Error(err))
 		return err
 	}
 	sub.Unsubscribe()
+
+	// Initial check to verify Ethereum RPC client connectivity and querying.
+	_, err = s.ethRpcClient.BlockNumber(context.Background())
+	if err != nil {
+		s.logger.Error("failed initial Ethereum RPC call check", zap.Error(err))
+		return err
+	}
 
 	return s.startFetchingLogs(ctx)
 }
@@ -79,7 +91,7 @@ func (s *Sidecar) Start(ctx context.Context) error {
 func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
 
 	// Get the height of the last finalized block.
-	finalizedEthHeight, err := s.ethClient.FinalizedBlockNumber(ctx)
+	finalizedEthHeight, err := s.ethRpcClient.FinalizedBlockNumber(ctx)
 	if err != nil {
 		s.logger.Error("could not get the height of the last finalized block from Ethereum node", zap.Error(err))
 		return nil, err
@@ -154,9 +166,7 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 }
 
 // catchUpWithEthereumLogs syncs logs from the last synced block up to the last finalized Ethereum block.
-func (s *Sidecar) catchUpWithEthereumLogs(
-	ctx context.Context, backOff *backoff.ExponentialBackOff,
-) error {
+func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.ExponentialBackOff) error {
 
 	// Get the max syncable block (considers finalized Ethereum height and the end query block)
 	maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
@@ -199,7 +209,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 
 	// Subscribe to new Ethereum block headers.
 	ch := make(chan *ethereumtypes.Header)
-	sub, err := s.ethClient.SubscribeNewHead(ctx, ch)
+	sub, err := s.ethWsClient.SubscribeNewHead(ctx, ch)
 	if err != nil {
 		s.logger.Error("error when subscribing to logs", zap.Error(err))
 		return err, true // retry
@@ -249,10 +259,6 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			// Fetch the last synced Ethereum block before querying for new logs
 			lastSyncedBlockBySequencer, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
 			if err != nil {
-				// Log the error if the last synced Ethereum block is not obtained.
-				// Note; We should still attempt to process Ethereum blocks. Reason being is that if the processing
-				// is skipped the Sequencer will not be able to produce the first block and the sidecar would not be
-				// able to query the Sequencer, causing a deadlock.
 				s.logger.Error("failed to obtain LastEthereumBlockSynced from Sequencer", zap.Error(err))
 			} else {
 				s.logger.Debug(
@@ -270,14 +276,14 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 	}
 }
 
-// fetchAndProcessLogs fetches and processes logs based on next block to query, target block, and query max range.
+// fetchAndStoreLogsUptoBlock fetches and processes logs based on next block to query, target block, and query max range
 func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.Int) error {
 	s.fetchAndStoreLock.Lock()
 	defer s.fetchAndStoreLock.Unlock()
 
 	for {
 		// Fetch logs (note: this is rate-limited under the hood)
-		eventsMap, newLastSyncedBlock, err := s.ethClient.FetchAndProcessLogs(
+		eventsMap, newLastSyncedBlock, err := s.ethRpcClient.FetchAndProcessLogs(
 			ctx, s.eventStore.GetNextQueryBlock(), toBlock, s.eventStore.GetMaxQueryRange(),
 		)
 		if err != nil {
@@ -341,4 +347,12 @@ func (s *Sidecar) IsStopped() bool {
 func (s *Sidecar) ShutDown() {
 	s.logger.Warn("shutting down sidecar")
 	s.stopped.Store(true)
+
+	// RPC connection needs to be closed since we have already dialed.
+	s.logger.Warn("closing RPC connection with Ethereum node")
+	s.ethRpcClient.Close()
+
+	// WS connection needs to be closed since we have already dialed.
+	s.logger.Warn("closing WS connection with Ethereum node")
+	s.ethWsClient.Close()
 }
