@@ -66,16 +66,21 @@ func (s *Sidecar) Start(ctx context.Context) error {
 
 	s.logger.Info("starting log fetching")
 
-	// TODO: Do check for rpc as well
-
-	// Initial check to verify Ethereum client connectivity and log subscription capability.
+	// Initial check to verify Ethereum WS client connectivity and log subscription capability.
 	// Note: if a non-websocket URL is provided, this check will fail as well.
-	sub, err := s.ethClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
+	sub, err := s.ethWsClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
 	if err != nil {
 		s.logger.Error("failed initial Ethereum subscription check", zap.Error(err))
 		return err
 	}
 	sub.Unsubscribe()
+
+	// Initial check to verify Ethereum RPC client connectivity and querying.
+	_, err = s.ethRpcClient.BlockNumber(context.Background())
+	if err != nil {
+		s.logger.Error("failed initial Ethereum RPC call check", zap.Error(err))
+		return err
+	}
 
 	return s.startFetchingLogs(ctx)
 }
@@ -86,7 +91,7 @@ func (s *Sidecar) Start(ctx context.Context) error {
 func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
 
 	// Get the height of the last finalized block.
-	finalizedEthHeight, err := s.ethClient.FinalizedBlockNumber(ctx)
+	finalizedEthHeight, err := s.ethRpcClient.FinalizedBlockNumber(ctx)
 	if err != nil {
 		s.logger.Error("could not get the height of the last finalized block from Ethereum node", zap.Error(err))
 		return nil, err
