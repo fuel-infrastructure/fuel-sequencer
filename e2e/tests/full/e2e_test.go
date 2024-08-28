@@ -28,6 +28,11 @@ func (s *FullTestSuite) SetupTest() {
 	err = os.RemoveAll("./fixtures/sequencer")
 	s.Require().NoError(err)
 
+	err = os.MkdirAll("./fixtures/ethereum", 0755)
+	s.Require().NoError(err)
+	err = os.MkdirAll("./fixtures/sequencer", 0755)
+	s.Require().NoError(err)
+
 	setLowSupplyDeltaPeriod := e2etestsuite.ModifyGenesisFunc(
 		func(cdc codec.Codec, genesisState map[string]json.RawMessage) error {
 
