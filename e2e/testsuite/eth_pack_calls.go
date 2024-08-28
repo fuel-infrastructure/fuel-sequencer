@@ -159,3 +159,23 @@ func PackUpdateCommitHeaderRangeMessage(
 		},
 	)
 }
+
+func PackProcessSequencerSupplyDeltaMessage(
+	proofNonce *big.Int,
+	bridgeCommitmentLeaf BridgeCommitmentLeafForEthereum,
+	bridgeCommitmentLeafProof BinaryMerkleProofForEthereum,
+	txResultMarshalled []byte,
+	txResultProof BinaryMerkleProofForEthereum,
+) []byte {
+	return packCall(
+		FuelStreamXContractABI,
+		ProcessSequencerSupplyDeltaMessageFunctionName,
+		[]interface{}{
+			proofNonce,
+			bridgeCommitmentLeaf,
+			bridgeCommitmentLeafProof,
+			txResultMarshalled,
+			txResultProof,
+		},
+	)
+}

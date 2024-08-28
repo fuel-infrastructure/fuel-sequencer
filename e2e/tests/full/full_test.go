@@ -41,7 +41,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		s.Require().NoError(err)
 		s.Require().Equal(senderAddress, ethOwnedBaseAcc.AccountOwner)
 
-		fmt.Println(fmt.Sprintf("FIXTURE: deposit on ethereum on block %s", receiptDeposit.BlockNumber.String()))
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit on block %s", receiptDeposit.BlockNumber.String()))
 
 		// --------------------------------------- Authorize
 
@@ -68,7 +68,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		// Confirm that the delegation went through and is as expected.
 		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
 
-		fmt.Println(fmt.Sprintf("FIXTURE: authorize on ethereum on block %s", receiptAuthorize.BlockNumber.String()))
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: authorize on block %s", receiptAuthorize.BlockNumber.String()))
 	})
 
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
@@ -121,6 +121,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			}
 		}
 		s.Require().True(found)
+		fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: withdrawal on block %d", lastResultsHashHeight-1))
 
 		// We wait two Sequencer blocks to ensure that we can capture the last results hash in the Bridge Commitment.
 		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, 10*time.Second))
@@ -143,6 +144,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		eventTopic2 := receipt.Logs[1].Topics[2].Hex()
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
+
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: bridge commitment %s", receipt.BlockNumber.String()))
 
 		fuelStreamxABI, err := abi.JSON(strings.NewReader(testsuite.FuelStreamXContractABI))
 		s.Require().NoError(err)
@@ -178,14 +181,76 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
 		)
 
+		fmt.Println(fmt.Sprintf(
+			"FIXTURE SEQUENCER: proof height %d & txIndex %d & startBlock %d & endBlock %d",
+			lastResultsHashHeight, txIndex, startBlock, endBlock),
+		)
+
 		// Submit transaction to Ethereum to process the withdrawal.
 		data = testsuite.PackProcessSequencerWithdrawalMessage(
 			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
 		)
-		_, err = s.SendEthTransactionToFuelStreamXContractAsUser(data)
+		receiptWithdrawal, err := s.SendEthTransactionToFuelStreamXContractAsUser(data)
 		s.Require().NoError(err)
 
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: withdrawal on block %s", receiptWithdrawal.BlockNumber.String()))
+
+		// ------------------------------------- Supply delta execution
+
+		lastResultsHashHeightSupplyDelta := int64(6)
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof = s.GetDataForBridgeCommitmentInclusionProof(
+			s.Ctx(), lastResultsHashHeightSupplyDelta, txIndex, startBlock, endBlock,
+		)
+
+		fmt.Println(fmt.Sprintf(
+			"FIXTURE SEQUENCER: proof height %d & txIndex %d & startBlock %d & endBlock %d",
+			lastResultsHashHeightSupplyDelta, txIndex, startBlock, endBlock),
+		)
+
+		dataSupplyDelta := testsuite.PackProcessSequencerSupplyDeltaMessage(
+			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
+		)
+
+		receiptSupplyDelta, err := s.SendEthTransactionToFuelStreamXContractAsUser(dataSupplyDelta)
+		s.Require().NoError(err)
+
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: supply delta on block %s", receiptSupplyDelta.BlockNumber.String()))
+
 		// -------------------------------------- Multiple withdrawals in same transaction
+
+		withdrawMsg1 := bridgemoduletypes.NewMsgWithdrawToEthereum(
+			s.SeqKeys[0].AddressSeq,
+			"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+			sdk.NewInt64Coin(testsuite.BridgeDenom, 123),
+		)
+		withdrawMsg2 := bridgemoduletypes.NewMsgWithdrawToEthereum(
+			s.SeqKeys[0].AddressSeq,
+			"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+			sdk.NewInt64Coin(testsuite.BridgeDenom, 400),
+		)
+		withdrawalResponse, err := s.SubmitMsgs(withdrawMsg1, withdrawMsg2)
+		s.Require().NoError(err)
+		s.Require().Zero(withdrawalResponse.Code)
+
+		fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: mutliple withdrawals %d", withdrawalResponse.Height))
+
+		// -------------------------------------- Withdrawal and Supply delta in same block
+
+		for {
+			withdrawMsgInfinite := bridgemoduletypes.NewMsgWithdrawToEthereum(
+				s.SeqKeys[0].AddressSeq,
+				"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+				sdk.NewInt64Coin(testsuite.BridgeDenom, 100),
+			)
+			withdrawalResponse, err := s.SubmitMsgs(withdrawMsgInfinite)
+			s.Require().NoError(err)
+			s.Require().Zero(withdrawalResponse.Code)
+
+			if withdrawalResponse.Height%5 == 0 {
+				fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: withdrawal + supply delta %d", withdrawalResponse.Height))
+				break
+			}
+		}
 
 	})
 }

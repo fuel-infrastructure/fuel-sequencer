@@ -28,7 +28,7 @@ func (s *FullTestSuite) SetupTest() {
 			var bridgeGenState bridgetypes.GenesisState
 			s.Require().NoError(cdc.UnmarshalJSON(genesisState[bridgetypes.ModuleName], &bridgeGenState))
 
-			bridgeGenState.Params.SupplyDeltaPeriod = uint64(3)
+			bridgeGenState.Params.SupplyDeltaPeriod = uint64(5)
 
 			bz, err := cdc.MarshalJSON(&bridgeGenState)
 			s.Require().NoError(err)
