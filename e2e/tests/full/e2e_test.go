@@ -2,6 +2,7 @@ package full_test
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,6 +22,11 @@ func TestFullTestSuite(t *testing.T) {
 
 // SetupTest sets a high supply delta period so that we can really focus on Ethereum events.
 func (s *FullTestSuite) SetupTest() {
+
+	err := os.RemoveAll("./fixtures/ethereum")
+	s.Require().NoError(err)
+	err = os.RemoveAll("./fixtures/sequencer")
+	s.Require().NoError(err)
 
 	setLowSupplyDeltaPeriod := e2etestsuite.ModifyGenesisFunc(
 		func(cdc codec.Codec, genesisState map[string]json.RawMessage) error {

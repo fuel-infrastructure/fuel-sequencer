@@ -1,8 +1,12 @@
 package full_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/big"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -11,12 +15,47 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+// Ethereum RPC call
+type RPCRequest struct {
+	JsonRPC string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	ID      int           `json:"id"`
+}
+
+type EthLogsParams struct {
+	FromBlock string `json:"fromBlock"`
+	ToBlock   string `json:"toBlock"`
+	Address   string `json:"address"`
+}
+
 func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
+	var fixtureEthereumDepositBlock string
+	var fixtureEthereumAuthorizeBlock string
+	var fixtureEthereumBridgeCommitmentBlock string
+	var fixtureEthereumWithdrawalBlock string
+	var fixtureEthereumSupplyDeltaBlock string
+
+	var fixtureSequencerWithdrawalBlock int64
+	var fixtureSequencerMultipleWithdrawalsBlock int64
+	var fixtureSequencerWithdrawalSupplyDeltaBlock int64
+
+	var fixtureSequencerProofHeight int64
+	var fixtureSequencerTxIndex int64
+	var fixtureSequencerStartBlock uint64
+	var fixtureSequencerEndBlock uint64
+
+	var fixtureSequencerSupplyProofHeight int64
+	var fixtureSequencerSupplyTxIndex int64
+	var fixtureSequencerSupplyStartBlock uint64
+	var fixtureSequencerSupplyEndBlock uint64
+
 	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
 		senderAddress := s.EthKeys[0].AddressHex
 		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq
@@ -41,7 +80,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		s.Require().NoError(err)
 		s.Require().Equal(senderAddress, ethOwnedBaseAcc.AccountOwner)
 
-		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit on block %s", receiptDeposit.BlockNumber.String()))
+		fixtureEthereumDepositBlock = hexutil.EncodeUint64(receiptDeposit.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit on block %s", fixtureEthereumDepositBlock))
 
 		// --------------------------------------- Authorize
 
@@ -68,7 +108,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		// Confirm that the delegation went through and is as expected.
 		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
 
-		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: authorize on block %s", receiptAuthorize.BlockNumber.String()))
+		fixtureEthereumAuthorizeBlock = hexutil.EncodeUint64(receiptAuthorize.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: authorize on block %s", fixtureEthereumAuthorizeBlock))
 	})
 
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
@@ -121,7 +162,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			}
 		}
 		s.Require().True(found)
-		fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: withdrawal on block %d", lastResultsHashHeight-1))
+		fixtureSequencerWithdrawalBlock = lastResultsHashHeight - 1
+		fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: withdrawal on block %d", fixtureSequencerWithdrawalBlock))
 
 		// We wait two Sequencer blocks to ensure that we can capture the last results hash in the Bridge Commitment.
 		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, 10*time.Second))
@@ -145,7 +187,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: bridge commitment %s", receipt.BlockNumber.String()))
+		fixtureEthereumBridgeCommitmentBlock = hexutil.EncodeUint64(receipt.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: bridge commitment %s", fixtureEthereumBridgeCommitmentBlock))
 
 		fuelStreamxABI, err := abi.JSON(strings.NewReader(testsuite.FuelStreamXContractABI))
 		s.Require().NoError(err)
@@ -181,9 +224,13 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
 		)
 
+		fixtureSequencerProofHeight = lastResultsHashHeight
+		fixtureSequencerTxIndex = txIndex
+		fixtureSequencerStartBlock = startBlock
+		fixtureSequencerEndBlock = endBlock
 		fmt.Println(fmt.Sprintf(
 			"FIXTURE SEQUENCER: proof height %d & txIndex %d & startBlock %d & endBlock %d",
-			lastResultsHashHeight, txIndex, startBlock, endBlock),
+			fixtureSequencerProofHeight, fixtureSequencerTxIndex, fixtureSequencerStartBlock, fixtureSequencerEndBlock),
 		)
 
 		// Submit transaction to Ethereum to process the withdrawal.
@@ -193,7 +240,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		receiptWithdrawal, err := s.SendEthTransactionToFuelStreamXContractAsUser(data)
 		s.Require().NoError(err)
 
-		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: withdrawal on block %s", receiptWithdrawal.BlockNumber.String()))
+		fixtureEthereumWithdrawalBlock = hexutil.EncodeUint64(receiptWithdrawal.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: withdrawal on block %s", fixtureEthereumWithdrawalBlock))
 
 		// ------------------------------------- Supply delta execution
 
@@ -202,10 +250,17 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			s.Ctx(), lastResultsHashHeightSupplyDelta, txIndex, startBlock, endBlock,
 		)
 
+		fixtureSequencerSupplyProofHeight = lastResultsHashHeightSupplyDelta
+		fixtureSequencerSupplyTxIndex = txIndex
+		fixtureSequencerSupplyStartBlock = startBlock
+		fixtureSequencerSupplyEndBlock = endBlock
 		fmt.Println(fmt.Sprintf(
 			"FIXTURE SEQUENCER: proof height %d & txIndex %d & startBlock %d & endBlock %d",
-			lastResultsHashHeightSupplyDelta, txIndex, startBlock, endBlock),
-		)
+			fixtureSequencerSupplyProofHeight,
+			fixtureSequencerSupplyTxIndex,
+			fixtureSequencerSupplyStartBlock,
+			fixtureSequencerSupplyEndBlock,
+		))
 
 		dataSupplyDelta := testsuite.PackProcessSequencerSupplyDeltaMessage(
 			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
@@ -214,7 +269,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		receiptSupplyDelta, err := s.SendEthTransactionToFuelStreamXContractAsUser(dataSupplyDelta)
 		s.Require().NoError(err)
 
-		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: supply delta on block %s", receiptSupplyDelta.BlockNumber.String()))
+		fixtureEthereumSupplyDeltaBlock = hexutil.EncodeUint64(receiptSupplyDelta.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: supply delta on block %s", fixtureEthereumSupplyDeltaBlock))
 
 		// -------------------------------------- Multiple withdrawals in same transaction
 
@@ -232,7 +288,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		s.Require().NoError(err)
 		s.Require().Zero(withdrawalResponse.Code)
 
-		fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: mutliple withdrawals %d", withdrawalResponse.Height))
+		fixtureSequencerMultipleWithdrawalsBlock = withdrawalResponse.Height
+		fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: mutliple withdrawals %d", fixtureSequencerMultipleWithdrawalsBlock))
 
 		// -------------------------------------- Withdrawal and Supply delta in same block
 
@@ -247,10 +304,152 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			s.Require().Zero(withdrawalResponse.Code)
 
 			if withdrawalResponse.Height%5 == 0 {
-				fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: withdrawal + supply delta %d", withdrawalResponse.Height))
+				fixtureSequencerWithdrawalSupplyDeltaBlock = withdrawalResponse.Height
+				fmt.Println(fmt.Sprintf("FIXTURE SEQUENCER: withdrawal + supply delta %d", fixtureSequencerWithdrawalSupplyDeltaBlock))
 				break
 			}
 		}
 
+		// ------- Sequencer
+
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block?height=%d", 5)) // Supply delta
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block?height=%d", fixtureSequencerWithdrawalBlock))
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block?height=%d", fixtureSequencerMultipleWithdrawalsBlock))
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block?height=%d", fixtureSequencerWithdrawalSupplyDeltaBlock))
+
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block_results?height=%d", 5)) // Supply delta
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block_results?height=%d", fixtureSequencerWithdrawalBlock))
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block_results?height=%d", fixtureSequencerMultipleWithdrawalsBlock))
+		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block_results?height=%d", fixtureSequencerWithdrawalSupplyDeltaBlock))
+
+		s.apiCallHelperTendermint("http://localhost:1317/fuelsequencer/commitments/v1/", fmt.Sprintf("bridge_commitment_inclusion_proof?height=%d&txindex=%d&start=%d&end=%d",
+			fixtureSequencerProofHeight,
+			fixtureSequencerTxIndex,
+			fixtureSequencerStartBlock,
+			fixtureSequencerEndBlock,
+		))
+		s.apiCallHelperTendermint("http://localhost:1317/fuelsequencer/commitments/v1/", fmt.Sprintf("bridge_commitment_inclusion_proof?height=%d&txindex=%d&start=%d&end=%d",
+			fixtureSequencerSupplyProofHeight,
+			fixtureSequencerSupplyTxIndex,
+			fixtureSequencerSupplyStartBlock,
+			fixtureSequencerSupplyEndBlock,
+		))
+
+		// ------- Ethereum
+
+		blocks := []string{
+			fixtureEthereumDepositBlock,
+			fixtureEthereumAuthorizeBlock,
+			fixtureEthereumBridgeCommitmentBlock,
+			fixtureEthereumWithdrawalBlock,
+			fixtureEthereumSupplyDeltaBlock,
+		}
+
+		for i, block := range blocks {
+			s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+				JsonRPC: "2.0",
+				Method:  "eth_getBlockByNumber",
+				Params:  []interface{}{block, false},
+				ID:      i + 1,
+			}, fmt.Sprintf("eth_getBlockByNumber?height=%s", block))
+		}
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumDepositBlock,
+				ToBlock:   fixtureEthereumDepositBlock,
+				Address:   s.GetSequencerProxyAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositBlock))
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumAuthorizeBlock,
+				ToBlock:   fixtureEthereumAuthorizeBlock,
+				Address:   s.GetSequencerProxyAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumAuthorizeBlock))
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumBridgeCommitmentBlock,
+				ToBlock:   fixtureEthereumBridgeCommitmentBlock,
+				Address:   s.GetFuelStreamXAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumBridgeCommitmentBlock))
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumWithdrawalBlock,
+				ToBlock:   fixtureEthereumWithdrawalBlock,
+				Address:   s.GetFuelStreamXAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumWithdrawalBlock))
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumSupplyDeltaBlock,
+				ToBlock:   fixtureEthereumSupplyDeltaBlock,
+				Address:   s.GetFuelStreamXAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumSupplyDeltaBlock))
 	})
+}
+
+func (s *FullTestSuite) apiCallHelperTendermint(url string, query string) {
+	response, err := http.Get(fmt.Sprintf("%s%s", url, query))
+	s.Require().NoError(err)
+	s.Require().True(response.StatusCode == http.StatusOK)
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	s.Require().NoError(err)
+
+	// Pretty print the JSON for better readability
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, body, "", "  ")
+	s.Require().NoError(err)
+
+	err = ioutil.WriteFile(fmt.Sprintf("fixtures/sequencer/%s.json", query), prettyJSON.Bytes(), 0644)
+	s.Require().NoError(err)
+}
+
+func (s *FullTestSuite) apiCallHelperEthereum(url string, query RPCRequest, fileName string) {
+	jsonBody, err := json.Marshal(query)
+	s.Require().NoError(err)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	s.Require().NoError(err)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	s.Require().NoError(err)
+
+	// Pretty print the JSON for better readability
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, body, "", "  ")
+	s.Require().NoError(err)
+
+	err = ioutil.WriteFile(fmt.Sprintf("fixtures/ethereum/%s.json", fileName), prettyJSON.Bytes(), 0644)
+	s.Require().NoError(err)
 }
