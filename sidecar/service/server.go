@@ -1,4 +1,4 @@
-package sidecar
+package service
 
 import (
 	"context"
@@ -37,7 +37,7 @@ type SidecarServer struct { //nolint
 	types.UnimplementedSidecarServer
 
 	// expected implementation of the sidecar
-	s sidecar.SidecarService
+	s sidecar.SidecarI
 
 	// underlying grpc-server -- serves all grpc requests
 	grpcSrv *grpc.Server
@@ -56,7 +56,7 @@ type SidecarServer struct { //nolint
 }
 
 // NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
-func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServer {
+func NewSidecarServer(s sidecar.SidecarI, logger *zap.Logger) *SidecarServer {
 	ss := &SidecarServer{
 		s:          s,
 		logger:     logger,
