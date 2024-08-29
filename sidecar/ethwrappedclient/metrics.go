@@ -1,6 +1,8 @@
 package ethwrappedclient
 
 import (
+	"time"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-kit/kit/metrics/discard"
 	"github.com/go-kit/kit/metrics/prometheus"
@@ -15,12 +17,20 @@ const (
 // Metrics contains metrics exposed by this package.
 type Metrics struct {
 	// Histogram of how long it takes to receive queried Ethereum logs.
-	LogsQueryResponseSeconds metrics.Histogram
+	LogsQueryDelaySeconds metrics.Histogram
 	// Counter of how many errors were observed when querying Ethereum logs.
 	LogsQueryErrorCount metrics.Counter
 }
 
 func (m *Metrics) setStartingValues() {}
+
+func (m *Metrics) ObserveLogsQueryDelay(from, to time.Time) {
+	m.ObserveLogsQueryDelaySeconds(to.Sub(from).Seconds())
+}
+
+func (m *Metrics) ObserveLogsQueryDelaySeconds(seconds float64) {
+	m.LogsQueryDelaySeconds.Observe(seconds)
+}
 
 func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	labels := []string{}
@@ -28,10 +38,10 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 		labels = append(labels, labelsAndValues[i])
 	}
 	m := &Metrics{
-		LogsQueryResponseSeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
+		LogsQueryDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
-			Name:      "logs_query_response_seconds",
+			Name:      "logs_query_delay_seconds",
 			Help:      "Histogram of how long it takes to receive queried Ethereum logs.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
@@ -50,8 +60,8 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 func NopMetrics() *Metrics {
 	m := &Metrics{
-		LogsQueryResponseSeconds: discard.NewHistogram(),
-		LogsQueryErrorCount:      discard.NewCounter(),
+		LogsQueryDelaySeconds: discard.NewHistogram(),
+		LogsQueryErrorCount:   discard.NewCounter(),
 	}
 
 	m.setStartingValues()

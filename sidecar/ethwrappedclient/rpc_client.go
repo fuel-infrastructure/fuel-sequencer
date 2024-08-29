@@ -101,7 +101,7 @@ func (ec *EthRpcClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.
 
 	// Calculate the response time (note: defer has to use a function here to also defer the calculation of time.Now())
 	queriedAt := time.Now()
-	defer func() { ec.metrics.LogsQueryResponseSeconds.Observe(time.Now().Sub(queriedAt).Seconds()) }()
+	defer func() { ec.metrics.ObserveLogsQueryDelay(queriedAt, time.Now()) }()
 
 	return ec.ethClient.FilterLogs(ctx, query)
 }
