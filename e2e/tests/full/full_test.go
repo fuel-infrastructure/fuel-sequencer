@@ -322,13 +322,13 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block_results?height=%d", fixtureSequencerMultipleWithdrawalsBlock))
 		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block_results?height=%d", fixtureSequencerWithdrawalSupplyDeltaBlock))
 
-		s.apiCallHelperTendermint("http://localhost:1317/fuelsequencer/commitments/v1/", fmt.Sprintf("bridge_commitment_inclusion_proof?height=%d&txindex=%d&start=%d&end=%d",
+		s.apiCallHelperTendermint("http://localhost:1317/fuelsequencer/commitments/v1/", fmt.Sprintf("bridge_commitment_inclusion_proof?height=%d&tx_index=%d&start=%d&end=%d",
 			fixtureSequencerProofHeight,
 			fixtureSequencerTxIndex,
 			fixtureSequencerStartBlock,
 			fixtureSequencerEndBlock,
 		))
-		s.apiCallHelperTendermint("http://localhost:1317/fuelsequencer/commitments/v1/", fmt.Sprintf("bridge_commitment_inclusion_proof?height=%d&txindex=%d&start=%d&end=%d",
+		s.apiCallHelperTendermint("http://localhost:1317/fuelsequencer/commitments/v1/", fmt.Sprintf("bridge_commitment_inclusion_proof?height=%d&tx_index=%d&start=%d&end=%d",
 			fixtureSequencerSupplyProofHeight,
 			fixtureSequencerSupplyTxIndex,
 			fixtureSequencerSupplyStartBlock,
