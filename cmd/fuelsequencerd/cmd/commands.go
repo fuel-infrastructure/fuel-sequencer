@@ -442,11 +442,15 @@ func startSidecar(
 	}
 
 	if err := srv.InitializeServer(scrCfg.host, scrCfg.port, scrCfg.pathToCertFile, scrCfg.pathToKeyFile); err != nil {
+		errMsg := "failed to initialize the server"
 		logger.Error("failed to initialize the server", zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	if err := srv.StartServer(ctx); err != nil {
-		logger.Error("stopping server", zap.Error(err))
+		errMsg := "unexpected server error"
+		logger.Error(errMsg, zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	return nil

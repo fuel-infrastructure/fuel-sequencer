@@ -3,7 +3,7 @@ package prometheus
 import "time"
 
 type Config struct {
-	// Enabled enables serving of prometheus metrics under /metrics
+	// Enabled enables serving of prometheus metrics under ListenAddress
 	Enabled bool
 
 	// ListenAddress is the address to listen for prometheus collectors
