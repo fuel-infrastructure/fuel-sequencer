@@ -115,8 +115,7 @@ func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
 		return endQueryBlock, nil
 	}
 
-	heightFloat64, _ := finalizedEthHeight.Float64()
-	s.metrics.MaxSyncableBlock.Set(heightFloat64)
+	s.metrics.SetMaxSyncableBlock(finalizedEthHeight)
 	return finalizedEthHeight, nil
 }
 
@@ -238,8 +237,8 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			sub.Unsubscribe()
 			return err, true // retry
 		case header := <-ch:
-			delay := time.Now().Sub(time.Unix(int64(header.Time), 0)).Seconds()
-			s.metrics.HeaderReceiveDelaySeconds.Observe(delay)
+			s.metrics.ObserveHeaderReceiveDelay(time.Unix(int64(header.Time), 0), time.Now())
+			s.metrics.SetLastEthereumHeaderSeen(header.Number)
 
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {

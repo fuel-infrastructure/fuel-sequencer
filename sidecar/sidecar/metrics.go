@@ -1,6 +1,9 @@
 package sidecar
 
 import (
+	"math/big"
+	"time"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-kit/kit/metrics/discard"
 	"github.com/go-kit/kit/metrics/prometheus"
@@ -18,11 +21,31 @@ type Metrics struct {
 	CatchingUp metrics.Gauge
 	// The last Ethereum block that the Sidecar can sync at the moment.
 	MaxSyncableBlock metrics.Gauge
+	// The most recent Ethereum header that the Sidecar detected.
+	LastEthereumHeaderSeen metrics.Gauge
 	// Histogram of delays in receiving Ethereum headers.
 	HeaderReceiveDelaySeconds metrics.Histogram
 }
 
 func (m *Metrics) setStartingValues() {}
+
+func (m *Metrics) ObserveHeaderReceiveDelay(from, to time.Time) {
+	m.ObserveHeaderReceiveDelaySeconds(to.Sub(from).Seconds())
+}
+
+func (m *Metrics) ObserveHeaderReceiveDelaySeconds(seconds float64) {
+	m.HeaderReceiveDelaySeconds.Observe(seconds)
+}
+
+func (m *Metrics) SetLastEthereumHeaderSeen(block *big.Int) {
+	blockF64, _ := block.Float64()
+	m.LastEthereumHeaderSeen.Set(blockF64)
+}
+
+func (m *Metrics) SetMaxSyncableBlock(block *big.Int) {
+	blockF64, _ := block.Float64()
+	m.MaxSyncableBlock.Set(blockF64)
+}
 
 func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	labels := []string{}
@@ -42,13 +65,19 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Name:      "max_syncable_block",
 			Help:      "The last Ethereum block that the Sidecar can sync at the moment.",
 		}, labels).With(labelsAndValues...),
+		LastEthereumHeaderSeen: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: namespace,
+			Subsystem: MetricsSubsystem,
+			Name:      "last_ethereum_header_seen",
+			Help:      "The most recent Ethereum header that the Sidecar detected.",
+		}, labels).With(labelsAndValues...),
 		HeaderReceiveDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "header_receive_delay_seconds",
 			Help:      "Histogram of delays in receiving Ethereum headers.",
 
-			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 5),
+			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
 	}
 
@@ -60,6 +89,7 @@ func NopMetrics() *Metrics {
 	m := &Metrics{
 		CatchingUp:                discard.NewGauge(),
 		MaxSyncableBlock:          discard.NewGauge(),
+		LastEthereumHeaderSeen:    discard.NewGauge(),
 		HeaderReceiveDelaySeconds: discard.NewHistogram(),
 	}
 
