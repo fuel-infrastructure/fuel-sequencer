@@ -5,7 +5,7 @@
 - Run the Sidecar at http://localhost:8080
 - `docker-compose up -d`.
 - Go to http://localhost:3000 and login with username `admin` and password `admin`.
-- Go to http://localhost:3000/connections/datasources/new and add a Prometheus data source with URL http://prometheus:9090.
+- Go to http://localhost:3000/connections/datasources/new and add a Prometheus data source with URL http://prometheus:9090 and scrape interval set to **1s**, for finer grain data.
 - Go to http://localhost:3000/dashboard/new and import the `dashboard.json` file included here.
 
 ## Updating dashboard.json
