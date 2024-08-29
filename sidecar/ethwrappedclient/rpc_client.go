@@ -116,7 +116,7 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 		toBlock = maxToBlock
 	}
 
-	// Filter the logs from the next query block to the to block (note: this is rate-limited under the hood).
+	// Query the logs from the block range (note: this is rate-limited under the hood).
 	logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
 	if err != nil {
 		return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())
