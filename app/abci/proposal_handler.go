@@ -35,7 +35,7 @@ func NewFuelSequencerProposalHandler(
 	sidecar sidecarclient.AppSidecarClient,
 	bridgeKeeper bridgekeeper.Keeper,
 ) *FuelSequencerProposalHandler {
-	return &FuelSequencerProposalHandler{
+	proposalHandler := &FuelSequencerProposalHandler{
 		cdc:                    cdc,
 		valStore:               valStore,
 		txVerifier:             txVerifier,
@@ -43,6 +43,11 @@ func NewFuelSequencerProposalHandler(
 		bridgeKeeper:           bridgeKeeper,
 		defaultProposalHandler: baseapp.NewDefaultProposalHandler(nil, txVerifier),
 	}
+
+	// Set TxSelector to our custom fuelSequencerTxSelector
+	proposalHandler.defaultProposalHandler.SetTxSelector(NewFuelSequencerTxSelector())
+
+	return proposalHandler
 }
 
 // PrepareProposalHandler defines the logic that is executed by the block proposer when they are crafting a new block.
@@ -68,6 +73,7 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
+		// TODO: Continue from here. We should migrate all txs size calculation in all files to use our utils.go
 		proposerConsAddress := sdk.ConsAddress(req.ProposerAddress)
 		ctx.Logger().Info("preparing proposal", "proposer", proposerConsAddress, "num_txs", len(req.Txs))
 
