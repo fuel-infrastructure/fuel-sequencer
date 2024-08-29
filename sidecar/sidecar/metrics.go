@@ -25,6 +25,8 @@ type Metrics struct {
 	LastHeaderSeen metrics.Gauge
 	// Delays in receiving Ethereum headers.
 	HeaderDelaySeconds metrics.Histogram
+	// The time that the Sidecar started as a Unix timestamp in seconds.
+	startTime metrics.Gauge
 }
 
 func newMetrics(
@@ -32,16 +34,20 @@ func newMetrics(
 	maxSyncableBlock metrics.Gauge,
 	lastHeaderSeen metrics.Gauge,
 	headerDelaySeconds metrics.Histogram,
+	startTime metrics.Gauge,
 ) *Metrics {
 	return &Metrics{
 		CatchingUp:         catchingUp,
 		MaxSyncableBlock:   maxSyncableBlock,
 		LastHeaderSeen:     lastHeaderSeen,
 		HeaderDelaySeconds: headerDelaySeconds,
+		startTime:          startTime,
 	}
 }
 
-func (m *Metrics) setStartingValues() {}
+func (m *Metrics) setStartingValues() {
+	m.startTime.Set(float64(time.Now().Unix()))
+}
 
 func (m *Metrics) ObserveHeaderDelay(from, to time.Time) {
 	m.HeaderDelaySeconds.Observe(to.Sub(from).Seconds())
@@ -89,6 +95,12 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
+		prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: namespace,
+			Subsystem: MetricsSubsystem,
+			Name:      "start_time",
+			Help:      "The time that the Sidecar started as a Unix timestamp in seconds.",
+		}, labels).With(labelsAndValues...),
 	)
 
 	m.setStartingValues()
@@ -101,5 +113,6 @@ func NoopMetrics() *Metrics {
 		discard.NewGauge(),
 		discard.NewGauge(),
 		discard.NewHistogram(),
+		discard.NewGauge(),
 	)
 }
