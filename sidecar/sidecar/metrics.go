@@ -22,24 +22,20 @@ type Metrics struct {
 	// The last Ethereum block that the Sidecar can sync at the moment.
 	MaxSyncableBlock metrics.Gauge
 	// The most recent Ethereum header that the Sidecar detected.
-	LastEthereumHeaderSeen metrics.Gauge
+	LastHeaderSeen metrics.Gauge
 	// Histogram of delays in receiving Ethereum headers.
-	HeaderReceiveDelaySeconds metrics.Histogram
+	HeaderDelaySeconds metrics.Histogram
 }
 
 func (m *Metrics) setStartingValues() {}
 
-func (m *Metrics) ObserveHeaderReceiveDelay(from, to time.Time) {
-	m.ObserveHeaderReceiveDelaySeconds(to.Sub(from).Seconds())
+func (m *Metrics) ObserveHeaderDelay(from, to time.Time) {
+	m.HeaderDelaySeconds.Observe(to.Sub(from).Seconds())
 }
 
-func (m *Metrics) ObserveHeaderReceiveDelaySeconds(seconds float64) {
-	m.HeaderReceiveDelaySeconds.Observe(seconds)
-}
-
-func (m *Metrics) SetLastEthereumHeaderSeen(block *big.Int) {
+func (m *Metrics) SetLastHeaderSeen(block *big.Int) {
 	blockF64, _ := block.Float64()
-	m.LastEthereumHeaderSeen.Set(blockF64)
+	m.LastHeaderSeen.Set(blockF64)
 }
 
 func (m *Metrics) SetMaxSyncableBlock(block *big.Int) {
@@ -65,16 +61,16 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Name:      "max_syncable_block",
 			Help:      "The last Ethereum block that the Sidecar can sync at the moment.",
 		}, labels).With(labelsAndValues...),
-		LastEthereumHeaderSeen: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+		LastHeaderSeen: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
-			Name:      "last_ethereum_header_seen",
+			Name:      "last_header_seen",
 			Help:      "The most recent Ethereum header that the Sidecar detected.",
 		}, labels).With(labelsAndValues...),
-		HeaderReceiveDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
+		HeaderDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
-			Name:      "header_receive_delay_seconds",
+			Name:      "header_delay_seconds",
 			Help:      "Histogram of delays in receiving Ethereum headers.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
@@ -87,10 +83,10 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 func NopMetrics() *Metrics {
 	m := &Metrics{
-		CatchingUp:                discard.NewGauge(),
-		MaxSyncableBlock:          discard.NewGauge(),
-		LastEthereumHeaderSeen:    discard.NewGauge(),
-		HeaderReceiveDelaySeconds: discard.NewHistogram(),
+		CatchingUp:         discard.NewGauge(),
+		MaxSyncableBlock:   discard.NewGauge(),
+		LastHeaderSeen:     discard.NewGauge(),
+		HeaderDelaySeconds: discard.NewHistogram(),
 	}
 
 	m.setStartingValues()

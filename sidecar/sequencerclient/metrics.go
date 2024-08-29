@@ -25,11 +25,7 @@ type Metrics struct {
 func (m *Metrics) setStartingValues() {}
 
 func (m *Metrics) ObserveLEBSQueryDelay(from, to time.Time) {
-	m.ObserveLEBSQueryDelaySeconds(to.Sub(from).Seconds())
-}
-
-func (m *Metrics) ObserveLEBSQueryDelaySeconds(seconds float64) {
-	m.LEBSQueryDelaySeconds.Observe(seconds)
+	m.LEBSQueryDelaySeconds.Observe(to.Sub(from).Seconds())
 }
 
 func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {

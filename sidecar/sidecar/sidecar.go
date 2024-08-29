@@ -237,8 +237,8 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			sub.Unsubscribe()
 			return err, true // retry
 		case header := <-ch:
-			s.metrics.ObserveHeaderReceiveDelay(time.Unix(int64(header.Time), 0), time.Now())
-			s.metrics.SetLastEthereumHeaderSeen(header.Number)
+			s.metrics.ObserveHeaderDelay(time.Unix(int64(header.Time), 0), time.Now())
+			s.metrics.SetLastHeaderSeen(header.Number)
 
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
