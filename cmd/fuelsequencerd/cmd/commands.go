@@ -314,16 +314,19 @@ func startSidecar(
 	var storeMetrics *scstore.Metrics
 	var ethclientMetrics *scethwrappedclient.Metrics
 	var seqclientMetrics *scsequencerclient.Metrics
+	var scserverMetrics *sidecarserver.Metrics
 	if prmCfg.Enabled {
 		scMetrics = sidecar.PrometheusMetrics(prmCfg.Namespace)
 		storeMetrics = scstore.PrometheusMetrics(prmCfg.Namespace)
 		ethclientMetrics = scethwrappedclient.PrometheusMetrics(prmCfg.Namespace)
 		seqclientMetrics = scsequencerclient.PrometheusMetrics(prmCfg.Namespace)
+		scserverMetrics = sidecarserver.PrometheusMetrics(prmCfg.Namespace)
 	} else {
 		scMetrics = sidecar.NoopMetrics()
 		storeMetrics = scstore.NoopMetrics()
 		ethclientMetrics = scethwrappedclient.NoopMetrics()
 		seqclientMetrics = scsequencerclient.NoopMetrics()
+		scserverMetrics = sidecarserver.NoopMetrics()
 	}
 
 	// Create a connection to the Cosmos gRPC server.
@@ -426,7 +429,7 @@ func startSidecar(
 		eventStore,
 		scMetrics,
 	)
-	srv := sidecarserver.NewSidecarServer(sideCar, logger)
+	srv := sidecarserver.NewSidecarServer(sideCar, logger, scserverMetrics)
 
 	go func() {
 		<-sigs
