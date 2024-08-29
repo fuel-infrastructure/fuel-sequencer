@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 )
 
@@ -21,6 +22,23 @@ func (s *E2ETestSuite) DepositTokenToSequencer(amount *big.Int) *ethereumtypes.R
 
 	// ...deposit.
 	depositData := PackDeposit(amount)
+	receipt, err := s.SendEthTransactionToSequencerInterfaceContract(depositData)
+	s.Require().NoError(err)
+
+	return receipt
+}
+
+func (s *E2ETestSuite) DepositForToSequencer(
+	amount *big.Int, recipient common.Address,
+) *ethereumtypes.Receipt {
+
+	// ...approve V2 tokens for use by sequencer interface contract.
+	approveData := PackApproveToken(SequencerInterfaceContractAddress, amount)
+	_, err := s.SendEthTransactionToTokenContract(approveData)
+	s.Require().NoError(err)
+
+	// ...deposit.
+	depositData := PackDepositFor(amount, recipient)
 	receipt, err := s.SendEthTransactionToSequencerInterfaceContract(depositData)
 	s.Require().NoError(err)
 

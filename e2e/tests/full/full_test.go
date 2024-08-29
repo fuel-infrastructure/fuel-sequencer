@@ -15,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -42,6 +43,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 	var fixtureEthereumWithdrawalBlock string
 	var fixtureEthereumSupplyDeltaBlock string
 	var fixtureEthereumDepositWithLockupBlock string
+	var fixtureEthereumDepositWithRecipientBlock string
 
 	var fixtureSequencerWithdrawalBlock int64
 	var fixtureSequencerMultipleWithdrawalsBlock int64
@@ -318,6 +320,14 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		fixtureEthereumDepositWithLockupBlock = hexutil.EncodeUint64(receiptDepositWithLockup.BlockNumber.Uint64())
 		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit with lockup on block %s", fixtureEthereumDepositWithLockupBlock))
 
+		// -------------------------------------- Deposit with recipient
+
+		recipient := common.HexToAddress("0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97")
+		receiptDepositWithRecipient := s.DepositForToSequencer(sendAmount, recipient)
+
+		fixtureEthereumDepositWithRecipientBlock = hexutil.EncodeUint64(receiptDepositWithRecipient.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit with different recipient on block %s", fixtureEthereumDepositWithRecipientBlock))
+
 		// ------- Sequencer
 
 		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block?height=%d", 5)) // Supply delta
@@ -352,6 +362,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			fixtureEthereumWithdrawalBlock,
 			fixtureEthereumSupplyDeltaBlock,
 			fixtureEthereumDepositWithLockupBlock,
+			fixtureEthereumDepositWithRecipientBlock,
 		}
 
 		for i, block := range blocks {
@@ -428,6 +439,17 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositWithLockupBlock))
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumDepositWithRecipientBlock,
+				ToBlock:   fixtureEthereumDepositWithRecipientBlock,
+				Address:   s.GetSequencerProxyAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositWithRecipientBlock))
 	})
 }
 
