@@ -389,21 +389,24 @@ func startSidecar(
 	// Set up prometheus metrics
 	var scMetrics *sidecar.Metrics
 	var storeMetrics *scstore.Metrics
+	var ethclientMetrics *scethwrappedclient.Metrics
 	if prmCfg.Enabled {
 		scMetrics = sidecar.PrometheusMetrics(prmCfg.Namespace)
 		storeMetrics = scstore.PrometheusMetrics(prmCfg.Namespace)
+		ethclientMetrics = scethwrappedclient.PrometheusMetrics(prmCfg.Namespace)
 	} else {
 		scMetrics = sidecar.NopMetrics()
 		storeMetrics = scstore.NopMetrics()
+		ethclientMetrics = scethwrappedclient.NopMetrics()
 	}
 
 	// Create the sidecar's ethereum WS client
-	scEthWsClient := scethwrappedclient.NewEthWsClient(logger, ethWsClient)
+	scEthWsClient := scethwrappedclient.NewEthWsClient(logger, ethWsClient, ethclientMetrics)
 
 	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
-		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval,
+		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethclientMetrics,
 	)
 
 	// Create the store

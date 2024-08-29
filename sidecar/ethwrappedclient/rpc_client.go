@@ -39,11 +39,13 @@ func NewEthRpcClient(
 	contractAddress common.Address,
 	contractAbi abi.ABI,
 	minLogsQueryInterval time.Duration,
+	metrics *Metrics,
 ) *EthRpcClient {
 	return &EthRpcClient{
 		EthWrappedClient: &EthWrappedClient{
 			logger:    logger,
 			ethClient: ethClient,
+			metrics:   metrics,
 		},
 		contractAddress:  contractAddress,
 		contractABI:      contractAbi,
@@ -96,6 +98,10 @@ func (ec *EthRpcClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.
 		ToBlock:   toBlock,
 		Addresses: []common.Address{ec.contractAddress},
 	}
+
+	// Calculate the response time (note: defer has to use a function here to also defer the calculation of time.Now())
+	queriedAt := time.Now()
+	defer func() { ec.metrics.LogsQueryResponseTimeSeconds.Observe(time.Now().Sub(queriedAt).Seconds()) }()
 
 	return ec.ethClient.FilterLogs(ctx, query)
 }

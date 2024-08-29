@@ -16,6 +16,9 @@ type EthWrappedClient struct {
 	// 1. An http URL should be dialed if we'll use RPC calls.
 	// 2. A websocket URL should be dialed if we'll use subscriptions.
 	ethClient *ethclient.Client
+
+	// metrics is the set of all Prometheus metrics exposed by EthWrappedClient.
+	metrics *Metrics
 }
 
 // Close closes the underlying RPC connection.

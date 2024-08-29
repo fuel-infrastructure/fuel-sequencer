@@ -16,11 +16,12 @@ type EthWsClient struct {
 }
 
 // NewEthWsClient creates a new NewEthWsClient instance.
-func NewEthWsClient(logger *zap.Logger, ethClient *ethclient.Client) *EthWsClient {
+func NewEthWsClient(logger *zap.Logger, ethClient *ethclient.Client, metrics *Metrics) *EthWsClient {
 	return &EthWsClient{
 		EthWrappedClient: &EthWrappedClient{
 			logger:    logger,
 			ethClient: ethClient,
+			metrics:   metrics,
 		},
 	}
 }
