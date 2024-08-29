@@ -174,14 +174,16 @@ func (ec *EthRpcClient) processLogs(
 		}
 
 		if err := utils.ValidateIsLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex); err != nil {
-			ec.logger.Error("failed sequential validation", zap.Error(err))
-			return nil, err
+			errMsg := "failed sequential validation"
+			ec.logger.Error(errMsg, zap.Error(err))
+			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
 		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI)
 		if err != nil {
-			ec.logger.Error("error processing log", zap.Error(err))
-			return nil, fmt.Errorf("error processing log %s", err)
+			errMsg := "error processing log"
+			ec.logger.Error(errMsg, zap.Error(err))
+			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
 		// If the event is nil it means we've processed an unrecognized event, and we can skip it.
