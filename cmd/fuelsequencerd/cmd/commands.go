@@ -238,6 +238,9 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().IntVar(
 		&prmCfg.MaxOpenConnections, FlagPrometheusMaxOpenConnections, 3, "max number of simultaneous connections",
 	)
+	cmd.Flags().DurationVar(
+		&prmCfg.ReadHeaderTimeout, FlagPrometheusReadHeaderTimeout, time.Second*10, "amount of time allowed to read request headers",
+	)
 	cmd.Flags().StringVar(
 		&prmCfg.Namespace, FlagPrometheusNamespace, "sidecar", "instrumentation namespace",
 	)

@@ -22,6 +22,7 @@ const (
 	FlagPrometheusEnabled            = "prometheus_enabled"
 	FlagPrometheusListenAddress      = "prometheus_listen_address"
 	FlagPrometheusMaxOpenConnections = "prometheus_max_open_connections"
+	FlagPrometheusReadHeaderTimeout  = "prometheus_read_header_timeout"
 	FlagPrometheusNamespace          = "prometheus_namespace"
 
 	// Sidecar client flags

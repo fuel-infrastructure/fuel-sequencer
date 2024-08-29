@@ -3,15 +3,11 @@ package prometheus
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
-
-// TODO: should this be configurable
-const readHeaderTimeout = 10 * time.Second
 
 type MetricsServer struct {
 	log *zap.Logger
@@ -36,7 +32,7 @@ func (s *MetricsServer) Start() {
 				promhttp.HandlerOpts{MaxRequestsInFlight: s.cfg.MaxOpenConnections},
 			),
 		),
-		ReadHeaderTimeout: readHeaderTimeout,
+		ReadHeaderTimeout: s.cfg.ReadHeaderTimeout,
 	}
 
 	s.log.Info("starting metrics server", zap.String("address", s.cfg.ListenAddress))
