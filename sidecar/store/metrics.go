@@ -1,6 +1,8 @@
 package store
 
 import (
+	"math/big"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-kit/kit/metrics/discard"
 	"github.com/go-kit/kit/metrics/prometheus"
@@ -25,6 +27,16 @@ type Metrics struct {
 }
 
 func (m *Metrics) setStartingValues() {}
+
+func (m *Metrics) SetLastSyncedBlock(block *big.Int) {
+	blockF64, _ := block.Float64()
+	m.LastSyncedBlock.Set(blockF64)
+}
+
+func (m *Metrics) SetStartQueryBlock(block *big.Int) {
+	blockF64, _ := block.Float64()
+	m.StartQueryBlock.Set(blockF64)
+}
 
 func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	labels := []string{}

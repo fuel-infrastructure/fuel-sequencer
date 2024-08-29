@@ -91,9 +91,7 @@ func (store *EventStore) GetStoredEvents(blockNumber *big.Int) ([]sidecartypes.E
 // unsafeSetStartQueryBlock sets the value of startQueryBlock without locking.
 func (store *EventStore) unsafeSetStartQueryBlock(blockNumber *big.Int) {
 	store.startQueryBlock = new(big.Int).Set(blockNumber)
-
-	float, _ := blockNumber.Float64()
-	store.metrics.StartQueryBlock.Set(float)
+	store.metrics.SetStartQueryBlock(blockNumber)
 }
 
 // GetStartQueryBlock returns the startQueryBlock safely.
@@ -130,9 +128,7 @@ func (store *EventStore) SetLastSyncedBlock(blockNumber *big.Int) {
 // unsafeSetLastSyncedBlock sets the value of lastSyncedBlock without locking.
 func (store *EventStore) unsafeSetLastSyncedBlock(blockNumber *big.Int) {
 	store.lastSyncedBlock = new(big.Int).Set(blockNumber)
-
-	lastSyncedBlockF64, _ := blockNumber.Float64()
-	store.metrics.LastSyncedBlock.Set(lastSyncedBlockF64)
+	store.metrics.SetLastSyncedBlock(blockNumber)
 }
 
 // GetLastSyncedBlock returns the lastSyncedBlock safely.
