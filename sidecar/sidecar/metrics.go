@@ -9,7 +9,7 @@ import (
 
 const (
 	// MetricsSubsystem is a subsystem shared by all metrics exposed by this package.
-	MetricsSubsystem = "sidecar"
+	MetricsSubsystem = "core"
 )
 
 // Metrics contains metrics exposed by this package.
