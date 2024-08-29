@@ -233,5 +233,22 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		)
 		_, err = s.SendEthTransactionToFuelStreamXContractAsUser(data)
 		s.Require().NoError(err)
+
+		// --------------------------------------- Check that we cannot use e.g. MsgIndexResponse as a withdrawal
+
+		// Get BridgeCommitment inclusion proof
+		// - The 'last result hash' incorporating the index message result is at h+1.
+		// - The index message is assumed to be the first transaction in the block.
+		txIndex = int64(0) // first tx
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof = s.GetDataForBridgeCommitmentInclusionProof(
+			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
+		)
+
+		// Submit transaction to Ethereum to process the index and expect an error.
+		data = testsuite.PackProcessSequencerWithdrawalMessage(
+			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
+		)
+		_, err = s.SendEthTransactionToFuelStreamXContractAsUser(data)
+		s.Require().Error(err)
 	})
 }
