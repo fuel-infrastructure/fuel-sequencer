@@ -306,6 +306,23 @@ func startSidecar(
 		endBlock = nil
 	}
 
+	// Set up prometheus metrics
+	var scMetrics *sidecar.Metrics
+	var storeMetrics *scstore.Metrics
+	var ethclientMetrics *scethwrappedclient.Metrics
+	var seqclientMetrics *scsequencerclient.Metrics
+	if prmCfg.Enabled {
+		scMetrics = sidecar.PrometheusMetrics(prmCfg.Namespace)
+		storeMetrics = scstore.PrometheusMetrics(prmCfg.Namespace)
+		ethclientMetrics = scethwrappedclient.PrometheusMetrics(prmCfg.Namespace)
+		seqclientMetrics = scsequencerclient.PrometheusMetrics(prmCfg.Namespace)
+	} else {
+		scMetrics = sidecar.NopMetrics()
+		storeMetrics = scstore.NopMetrics()
+		ethclientMetrics = scethwrappedclient.NopMetrics()
+		seqclientMetrics = scsequencerclient.NopMetrics()
+	}
+
 	// Create a connection to the Cosmos gRPC server.
 	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
 
@@ -327,7 +344,7 @@ func startSidecar(
 	}
 
 	// Create the sequencer client
-	scSequencerClient := scsequencerclient.NewClient(grpcConn)
+	scSequencerClient := scsequencerclient.NewClient(grpcConn, seqclientMetrics)
 
 	// If the unsafe start block is not set then we attempt to query the
 	// last Ethereum block synced from the Sequencer.
@@ -384,20 +401,6 @@ func startSidecar(
 	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.SequencerProxyContractABI))
 	if err != nil {
 		return err
-	}
-
-	// Set up prometheus metrics
-	var scMetrics *sidecar.Metrics
-	var storeMetrics *scstore.Metrics
-	var ethclientMetrics *scethwrappedclient.Metrics
-	if prmCfg.Enabled {
-		scMetrics = sidecar.PrometheusMetrics(prmCfg.Namespace)
-		storeMetrics = scstore.PrometheusMetrics(prmCfg.Namespace)
-		ethclientMetrics = scethwrappedclient.PrometheusMetrics(prmCfg.Namespace)
-	} else {
-		scMetrics = sidecar.NopMetrics()
-		storeMetrics = scstore.NopMetrics()
-		ethclientMetrics = scethwrappedclient.NopMetrics()
 	}
 
 	// Create the sidecar's ethereum WS client
