@@ -75,16 +75,18 @@ func (s *Sidecar) Start(ctx context.Context) error {
 	// Note: if a non-websocket URL is provided, this check will fail as well.
 	sub, err := s.ethWsClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
 	if err != nil {
-		s.logger.Error("failed initial Ethereum subscription check", zap.Error(err))
-		return err
+		errMsg := "failed initial Ethereum subscription check"
+		s.logger.Error(errMsg, zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 	sub.Unsubscribe()
 
 	// Initial check to verify Ethereum RPC client connectivity and querying.
 	_, err = s.ethRpcClient.BlockNumber(context.Background())
 	if err != nil {
-		s.logger.Error("failed initial Ethereum RPC call check", zap.Error(err))
-		return err
+		errMsg := "failed initial Ethereum RPC call check"
+		s.logger.Error(errMsg, zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	return s.startFetchingLogs(ctx)
