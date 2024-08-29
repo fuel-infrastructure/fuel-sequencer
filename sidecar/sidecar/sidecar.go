@@ -300,7 +300,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 			ctx, s.eventStore.GetNextQueryBlock(), toBlock, s.eventStore.GetMaxQueryRange(),
 		)
 		if err != nil {
-			s.logger.Error("error fetching logs", zap.Error(err))
+			s.logger.Error("fetch and process logs failed", zap.Error(err))
 			return err
 		}
 
