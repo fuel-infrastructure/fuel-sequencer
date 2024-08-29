@@ -41,6 +41,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 	var fixtureEthereumBridgeCommitmentBlock string
 	var fixtureEthereumWithdrawalBlock string
 	var fixtureEthereumSupplyDeltaBlock string
+	var fixtureEthereumDepositWithLockupBlock string
 
 	var fixtureSequencerWithdrawalBlock int64
 	var fixtureSequencerMultipleWithdrawalsBlock int64
@@ -310,6 +311,13 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			}
 		}
 
+		// -------------------------------------- Deposit with lockup
+		sendAmount := big.NewInt(246)
+		receiptDepositWithLockup := s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount)
+
+		fixtureEthereumDepositWithLockupBlock = hexutil.EncodeUint64(receiptDepositWithLockup.BlockNumber.Uint64())
+		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit with lockup on block %s", fixtureEthereumDepositWithLockupBlock))
+
 		// ------- Sequencer
 
 		s.apiCallHelperTendermint("http://localhost:26657/", fmt.Sprintf("block?height=%d", 5)) // Supply delta
@@ -343,6 +351,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			fixtureEthereumBridgeCommitmentBlock,
 			fixtureEthereumWithdrawalBlock,
 			fixtureEthereumSupplyDeltaBlock,
+			fixtureEthereumDepositWithLockupBlock,
 		}
 
 		for i, block := range blocks {
@@ -408,6 +417,17 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumSupplyDeltaBlock))
+
+		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
+			JsonRPC: "2.0",
+			Method:  "eth_getLogs",
+			Params: []interface{}{EthLogsParams{
+				FromBlock: fixtureEthereumDepositWithLockupBlock,
+				ToBlock:   fixtureEthereumDepositWithLockupBlock,
+				Address:   s.GetSequencerProxyAddress().String(),
+			}},
+			ID: 1,
+		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositWithLockupBlock))
 	})
 }
 
