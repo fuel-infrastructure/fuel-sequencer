@@ -9,13 +9,15 @@ import (
 
 const (
 	// MetricsSubsystem is a subsystem shared by all metrics exposed by this package.
-	MetricsSubsystem = "eth_client"
+	MetricsSubsystem = "eth"
 )
 
 // Metrics contains metrics exposed by this package.
 type Metrics struct {
 	// Histogram of how long it takes to receive queried Ethereum logs.
-	LogsQueryResponseTimeSeconds metrics.Histogram
+	LogsQueryResponseSeconds metrics.Histogram
+	// Counter of how many errors were observed when querying Ethereum logs.
+	LogsQueryErrorCount metrics.Counter
 }
 
 func (m *Metrics) setStartingValues() {}
@@ -26,13 +28,19 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 		labels = append(labels, labelsAndValues[i])
 	}
 	m := &Metrics{
-		LogsQueryResponseTimeSeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
+		LogsQueryResponseSeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
-			Name:      "logs_query_response_time_seconds",
+			Name:      "logs_query_response_seconds",
 			Help:      "Histogram of how long it takes to receive queried Ethereum logs.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
+		}, labels).With(labelsAndValues...),
+		LogsQueryErrorCount: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: namespace,
+			Subsystem: MetricsSubsystem,
+			Name:      "logs_query_error_count",
+			Help:      "Counter of how many errors were observed when querying Ethereum logs.",
 		}, labels).With(labelsAndValues...),
 	}
 
@@ -42,7 +50,8 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 func NopMetrics() *Metrics {
 	m := &Metrics{
-		LogsQueryResponseTimeSeconds: discard.NewHistogram(),
+		LogsQueryResponseSeconds: discard.NewHistogram(),
+		LogsQueryErrorCount:      discard.NewCounter(),
 	}
 
 	m.setStartingValues()

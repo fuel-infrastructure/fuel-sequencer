@@ -101,7 +101,7 @@ func (ec *EthRpcClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.
 
 	// Calculate the response time (note: defer has to use a function here to also defer the calculation of time.Now())
 	queriedAt := time.Now()
-	defer func() { ec.metrics.LogsQueryResponseTimeSeconds.Observe(time.Now().Sub(queriedAt).Seconds()) }()
+	defer func() { ec.metrics.LogsQueryResponseSeconds.Observe(time.Now().Sub(queriedAt).Seconds()) }()
 
 	return ec.ethClient.FilterLogs(ctx, query)
 }
@@ -125,6 +125,7 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 	// Query the logs from the block range (note: this is rate-limited under the hood).
 	logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
 	if err != nil {
+		ec.metrics.LogsQueryErrorCount.Add(1)
 		return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())
 	}
 
