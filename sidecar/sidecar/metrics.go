@@ -18,6 +18,8 @@ type Metrics struct {
 	CatchingUp metrics.Gauge
 	// The last Ethereum block that the Sidecar can sync at the moment.
 	MaxSyncableBlock metrics.Gauge
+	// Histogram of delays in receiving Ethereum headers.
+	HeaderReceiveDelaySeconds metrics.Histogram
 }
 
 func (m *Metrics) setStartingValues() {}
@@ -40,6 +42,14 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Name:      "max_syncable_block",
 			Help:      "The last Ethereum block that the Sidecar can sync at the moment.",
 		}, labels).With(labelsAndValues...),
+		HeaderReceiveDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
+			Namespace: namespace,
+			Subsystem: MetricsSubsystem,
+			Name:      "header_receive_delay_seconds",
+			Help:      "Histogram of delays in receiving Ethereum headers.",
+
+			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 5),
+		}, labels).With(labelsAndValues...),
 	}
 
 	m.setStartingValues()
@@ -48,8 +58,9 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 func NopMetrics() *Metrics {
 	m := &Metrics{
-		CatchingUp:       discard.NewGauge(),
-		MaxSyncableBlock: discard.NewGauge(),
+		CatchingUp:                discard.NewGauge(),
+		MaxSyncableBlock:          discard.NewGauge(),
+		HeaderReceiveDelaySeconds: discard.NewHistogram(),
 	}
 
 	m.setStartingValues()
