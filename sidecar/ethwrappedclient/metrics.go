@@ -16,9 +16,9 @@ const (
 
 // Metrics contains metrics exposed by this package.
 type Metrics struct {
-	// Histogram of how long it takes to receive queried Ethereum logs.
+	// How long it takes to receive queried Ethereum logs.
 	LogsQueryDelaySeconds metrics.Histogram
-	// Counter of how many errors were observed when querying Ethereum logs.
+	// How many errors were observed when querying Ethereum logs.
 	LogsQueryErrorCount metrics.Counter
 }
 
@@ -48,7 +48,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "logs_query_delay_seconds",
-			Help:      "Histogram of how long it takes to receive queried Ethereum logs.",
+			Help:      "How long it takes to receive queried Ethereum logs.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
@@ -56,7 +56,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "logs_query_error_count",
-			Help:      "Counter of how many errors were observed when querying Ethereum logs.",
+			Help:      "How many errors were observed when querying Ethereum logs.",
 		}, labels).With(labelsAndValues...),
 	)
 

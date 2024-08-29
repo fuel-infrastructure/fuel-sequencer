@@ -23,7 +23,7 @@ type Metrics struct {
 	MaxSyncableBlock metrics.Gauge
 	// The most recent Ethereum header that the Sidecar detected.
 	LastHeaderSeen metrics.Gauge
-	// Histogram of delays in receiving Ethereum headers.
+	// Delays in receiving Ethereum headers.
 	HeaderDelaySeconds metrics.Histogram
 }
 
@@ -85,7 +85,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "header_delay_seconds",
-			Help:      "Histogram of delays in receiving Ethereum headers.",
+			Help:      "Delays in receiving Ethereum headers.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),

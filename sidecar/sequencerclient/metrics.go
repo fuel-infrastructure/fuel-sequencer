@@ -16,9 +16,9 @@ const (
 
 // Metrics contains metrics exposed by this package.
 type Metrics struct {
-	// Histogram of how long it takes to receive queries LastEthereumBlockSynced.
+	// How long it takes to receive queries LastEthereumBlockSynced.
 	LEBSQueryDelaySeconds metrics.Histogram
-	// Counter of how many errors were observed when querying the LastEthereumBlockSynced.
+	// How many errors were observed when querying the LastEthereumBlockSynced.
 	LEBSQueryErrorCount metrics.Counter
 }
 
@@ -48,7 +48,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "lebs_query_delay_seconds",
-			Help:      "Histogram of how long it takes to receive queries LastEthereumBlockSynced.",
+			Help:      "How long it takes to receive queries LastEthereumBlockSynced.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
@@ -56,7 +56,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "lebs_query_error_count",
-			Help:      "Counter of how many errors were observed when querying the LastEthereumBlockSynced.",
+			Help:      "How many errors were observed when querying the LastEthereumBlockSynced.",
 		}, labels).With(labelsAndValues...),
 	)
 
