@@ -20,9 +20,7 @@ type Metrics struct {
 	MaxSyncableBlock metrics.Gauge
 }
 
-func (m *Metrics) setStartingValues() {
-	m.CatchingUp.Set(0) // not catching up by default
-}
+func (m *Metrics) setStartingValues() {}
 
 func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	labels := []string{}

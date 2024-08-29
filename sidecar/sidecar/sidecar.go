@@ -215,6 +215,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 	s.logger.Info("subscribing to new ethereum block headers",
 		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
 	)
+	s.metrics.CatchingUp.Set(0) // not catching up
 
 	// Subscribe to new Ethereum block headers.
 	ch := make(chan *ethereumtypes.Header)
