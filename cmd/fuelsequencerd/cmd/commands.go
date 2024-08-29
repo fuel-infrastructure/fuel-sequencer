@@ -320,10 +320,10 @@ func startSidecar(
 		ethclientMetrics = scethwrappedclient.PrometheusMetrics(prmCfg.Namespace)
 		seqclientMetrics = scsequencerclient.PrometheusMetrics(prmCfg.Namespace)
 	} else {
-		scMetrics = sidecar.NopMetrics()
-		storeMetrics = scstore.NopMetrics()
-		ethclientMetrics = scethwrappedclient.NopMetrics()
-		seqclientMetrics = scsequencerclient.NopMetrics()
+		scMetrics = sidecar.NoopMetrics()
+		storeMetrics = scstore.NoopMetrics()
+		ethclientMetrics = scethwrappedclient.NoopMetrics()
+		seqclientMetrics = scsequencerclient.NoopMetrics()
 	}
 
 	// Create a connection to the Cosmos gRPC server.

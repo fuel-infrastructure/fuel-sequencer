@@ -27,6 +27,20 @@ type Metrics struct {
 	HeaderDelaySeconds metrics.Histogram
 }
 
+func newMetrics(
+	catchingUp metrics.Gauge,
+	maxSyncableBlock metrics.Gauge,
+	lastHeaderSeen metrics.Gauge,
+	headerDelaySeconds metrics.Histogram,
+) *Metrics {
+	return &Metrics{
+		CatchingUp:         catchingUp,
+		MaxSyncableBlock:   maxSyncableBlock,
+		LastHeaderSeen:     lastHeaderSeen,
+		HeaderDelaySeconds: headerDelaySeconds,
+	}
+}
+
 func (m *Metrics) setStartingValues() {}
 
 func (m *Metrics) ObserveHeaderDelay(from, to time.Time) {
@@ -48,26 +62,26 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	for i := 0; i < len(labelsAndValues); i += 2 {
 		labels = append(labels, labelsAndValues[i])
 	}
-	m := &Metrics{
-		CatchingUp: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+	m := newMetrics(
+		prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "catching_up",
 			Help:      "Whether the sidecar is catching up to ethereum. 1 if yes, 0 if no.",
 		}, labels).With(labelsAndValues...),
-		MaxSyncableBlock: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+		prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "max_syncable_block",
 			Help:      "The last Ethereum block that the Sidecar can sync at the moment.",
 		}, labels).With(labelsAndValues...),
-		LastHeaderSeen: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+		prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "last_header_seen",
 			Help:      "The most recent Ethereum header that the Sidecar detected.",
 		}, labels).With(labelsAndValues...),
-		HeaderDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
+		prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "header_delay_seconds",
@@ -75,20 +89,17 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
-	}
+	)
 
 	m.setStartingValues()
 	return m
 }
 
-func NopMetrics() *Metrics {
-	m := &Metrics{
-		CatchingUp:         discard.NewGauge(),
-		MaxSyncableBlock:   discard.NewGauge(),
-		LastHeaderSeen:     discard.NewGauge(),
-		HeaderDelaySeconds: discard.NewHistogram(),
-	}
-
-	m.setStartingValues()
-	return m
+func NoopMetrics() *Metrics {
+	return newMetrics(
+		discard.NewGauge(),
+		discard.NewGauge(),
+		discard.NewGauge(),
+		discard.NewHistogram(),
+	)
 }

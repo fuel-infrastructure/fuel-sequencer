@@ -22,6 +22,16 @@ type Metrics struct {
 	LEBSQueryErrorCount metrics.Counter
 }
 
+func newMetrics(
+	lebsQueryDelaySeconds metrics.Histogram,
+	lebsQueryErrorCount metrics.Counter,
+) *Metrics {
+	return &Metrics{
+		LEBSQueryDelaySeconds: lebsQueryDelaySeconds,
+		LEBSQueryErrorCount:   lebsQueryErrorCount,
+	}
+}
+
 func (m *Metrics) setStartingValues() {}
 
 func (m *Metrics) ObserveLEBSQueryDelay(from, to time.Time) {
@@ -33,8 +43,8 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	for i := 0; i < len(labelsAndValues); i += 2 {
 		labels = append(labels, labelsAndValues[i])
 	}
-	m := &Metrics{
-		LEBSQueryDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
+	m := newMetrics(
+		prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "lebs_query_delay_seconds",
@@ -42,24 +52,21 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
-		LEBSQueryErrorCount: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "lebs_query_error_count",
 			Help:      "Counter of how many errors were observed when querying the LastEthereumBlockSynced.",
 		}, labels).With(labelsAndValues...),
-	}
+	)
 
 	m.setStartingValues()
 	return m
 }
 
-func NopMetrics() *Metrics {
-	m := &Metrics{
-		LEBSQueryDelaySeconds: discard.NewHistogram(),
-		LEBSQueryErrorCount:   discard.NewCounter(),
-	}
-
-	m.setStartingValues()
-	return m
+func NoopMetrics() *Metrics {
+	return newMetrics(
+		discard.NewHistogram(),
+		discard.NewCounter(),
+	)
 }

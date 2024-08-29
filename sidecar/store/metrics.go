@@ -26,6 +26,20 @@ type Metrics struct {
 	BlocksPruned metrics.Counter
 }
 
+func newMetrics(
+	lastSyncedBlock metrics.Gauge,
+	startQueryBlock metrics.Gauge,
+	eventsProcessed metrics.Counter,
+	blocksPruned metrics.Counter,
+) *Metrics {
+	return &Metrics{
+		LastSyncedBlock: lastSyncedBlock,
+		StartQueryBlock: startQueryBlock,
+		EventsProcessed: eventsProcessed,
+		BlocksPruned:    blocksPruned,
+	}
+}
+
 func (m *Metrics) setStartingValues() {}
 
 func (m *Metrics) SetLastSyncedBlock(block *big.Int) {
@@ -43,45 +57,42 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	for i := 0; i < len(labelsAndValues); i += 2 {
 		labels = append(labels, labelsAndValues[i])
 	}
-	m := &Metrics{
-		LastSyncedBlock: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+	m := newMetrics(
+		prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "last_synced_block",
 			Help:      "The last Ethereum block synced by the Sidecar.",
 		}, labels).With(labelsAndValues...),
-		StartQueryBlock: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+		prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "start_query_block",
 			Help:      "The oldest Ethereum block that the Sidecar has in state, if any.",
 		}, labels).With(labelsAndValues...),
-		EventsProcessed: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "events_processed",
 			Help:      "The number of events processed by the Sidecar.",
 		}, labels).With(labelsAndValues...),
-		BlocksPruned: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
 			Name:      "blocks_pruned",
 			Help:      "The number of old Ethereum blocks pruned by the Sidecar.",
 		}, labels).With(labelsAndValues...),
-	}
+	)
 
 	m.setStartingValues()
 	return m
 }
 
-func NopMetrics() *Metrics {
-	m := &Metrics{
-		LastSyncedBlock: discard.NewGauge(),
-		StartQueryBlock: discard.NewGauge(),
-		EventsProcessed: discard.NewCounter(),
-		BlocksPruned:    discard.NewCounter(),
-	}
-
-	m.setStartingValues()
-	return m
+func NoopMetrics() *Metrics {
+	return newMetrics(
+		discard.NewGauge(),
+		discard.NewGauge(),
+		discard.NewCounter(),
+		discard.NewCounter(),
+	)
 }
