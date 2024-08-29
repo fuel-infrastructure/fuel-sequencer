@@ -273,19 +273,19 @@ run-sidecar:
 	@echo "Waiting for Sequencer gRPC $(SEQUENCER_GRPC_URL) to be accessible..."
 	@sleep 3  # buffer for Sequencer gRPC server to start properly
 	@fuelsequencerd start-sidecar \
-		--host "$(SIDECAR_HOST)" \
-		--port "$(SIDECAR_PORT)" \
-		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
-		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
-		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
-		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
-		--eth_ws_url "$(ETH_WS_URL)" \
-		--eth_rpc_url "$(ETH_RPC_URL)" \
-		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
-		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
-		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
-		--development "$(DEVELOPMENT)" \
-		--prometheus_enabled "$(PROMETHEUS_ENABLED)"
+		--host="$(SIDECAR_HOST)" \
+		--port="$(SIDECAR_PORT)" \
+		--sequencer_grpc_url="$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file="$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_cert_file="$(SIDECAR_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_key_file="$(SIDECAR_PATH_TO_KEY_FILE)" \
+		--eth_ws_url="$(ETH_WS_URL)" \
+		--eth_rpc_url="$(ETH_RPC_URL)" \
+		--eth_contract_address="$(ETH_CONTRACT_ADDRESS)" \
+		--eth_max_block_range="$(ETH_MAX_BLOCK_RANGE)" \
+		--eth_min_logs_query_interval="$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--development="$(DEVELOPMENT)" \
+		--prometheus_enabled="$(PROMETHEUS_ENABLED)"
 
 init:
 	ignite chain init --skip-proto --build.tags ledger
