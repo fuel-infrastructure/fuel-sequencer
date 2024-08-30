@@ -45,6 +45,7 @@ import (
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
+	grpcencoding "google.golang.org/grpc/encoding"
 )
 
 const (
@@ -61,6 +62,7 @@ var (
 	encodingConfig testutil.TestEncodingConfig
 	cdc            codec.Codec
 	TestCdc        codec.Codec // an exported alias of cdc
+	TestGrpcCdc    grpcencoding.Codec
 
 	addressCdc     address.Codec
 	TestAddressCdc address.Codec // an exported alias of cdc
@@ -103,6 +105,7 @@ func init() {
 
 	cdc = encodingConfig.Codec
 	TestCdc = cdc
+	TestGrpcCdc = cdc.(codec.GRPCCodecProvider).GRPCCodec()
 
 	addressCdc = appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix))
 	TestAddressCdc = addressCdc
