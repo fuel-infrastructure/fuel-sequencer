@@ -6,6 +6,7 @@ import (
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
@@ -241,7 +242,7 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
 	)
 
-	totalSize := len(txRawBytes) + eventsSize
+	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize
 
 	numEvents, err := tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize))
 	require.NoError(t, err)
@@ -254,15 +255,15 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 
 func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
-	msgIndexSize := testtypes.TestMsgIndex.MsgIndex
-	msgIndexRawBytes, err := msgIndexSize.RawTxBytes()
+	msgIndex := testtypes.TestMsgIndex.MsgIndex
+	msgIndexRawBytes, err := msgIndex.RawTxBytes()
 	require.NoError(t, err)
 
 	events := testtypes.TestMsgIndex.Events
 	eventTxs := testtypes.MustGetEventTxsFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
 	eventsSize := testtypes.MustGetSizeFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
 
-	txAndEventsSize := len(msgIndexRawBytes) + eventsSize
+	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize
 
 	testCases := []struct {
 		name           string
@@ -290,11 +291,10 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 			expNumOfEvents: len(testtypes.TestMsgIndex.Events) - 1,
 		},
 		{
-			name:           "size smaller than MsgIndex size errors",
-			eventTx:        &testtypes.TestMsgIndex,
-			maxBytes:       uint64(len(msgIndexRawBytes)) - 1,
-			expNumOfEvents: len(testtypes.TestMsgIndex.Events) - 1,
-			expErrMsg:      "could not fit MsgIndex",
+			name:      "size smaller than MsgIndex size errors",
+			eventTx:   &testtypes.TestMsgIndex,
+			maxBytes:  uint64(utils.TxSize(msgIndexRawBytes)) - 1,
+			expErrMsg: "could not fit MsgIndex",
 		},
 	}
 
