@@ -28,7 +28,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 
 		// Deposit!
 		sendAmount := big.NewInt(200)
-		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration)
 
 		// Match the expected balance for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
@@ -94,7 +94,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		// Deposit and Delegate!
 		sendAmount := big.NewInt(200)
 		validatorAddress := common.HexToAddress(validatorAddressHex)
-		_ = s.DepositTokenToSequencerFromMigration(sendAmount, validatorAddress)
+		_ = s.DepositTokenToSequencerFromMigration(sendAmount, validatorAddress, testsuite.VestingDuration)
 
 		// Match the expected delegation for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
@@ -142,7 +142,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 
 		// Deposit!
 		sendAmount := big.NewInt(200)
-		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly vested tokens.
@@ -208,7 +208,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 
 		// Deposit!
 		sendAmount := big.NewInt(200)
-		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly vested tokens.
