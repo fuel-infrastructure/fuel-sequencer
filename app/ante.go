@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 )
@@ -136,7 +137,7 @@ func (d SequencerNativeTxsDecorator) AnteHandle(
 		return next(ctx, tx, simulate)
 	}
 
-	txSize := uint64(len(ctx.TxBytes()))
+	txSize := utils.TxSize(ctx.TxBytes())
 	params := d.sequencingKeeper.GetParams(ctx)
 	if txSize > params.SequencerTxMaxBytes {
 		return ctx, fmt.Errorf("transaction is too large; %d > %d", txSize, params.SequencerTxMaxBytes)
