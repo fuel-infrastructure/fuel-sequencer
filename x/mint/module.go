@@ -29,6 +29,7 @@ type AppModule struct {
 
 // NewAppModule creates a new AppModule object. If the InflationCalculationFn
 // argument is nil, then the SDK's default inflation function will be used.
+// In our case, we ignore InflationCalculationFn in the BeginBlocker anyway.
 func NewAppModule(
 	cdc codec.Codec,
 	keeper mintkeeper.Keeper,

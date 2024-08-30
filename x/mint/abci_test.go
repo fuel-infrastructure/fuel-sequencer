@@ -20,11 +20,11 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	minter.Inflation = inflation
 	s.Require().NoError(s.App.MintKeeper.Minter.Set(s.Ctx(), minter))
 
-	// Simplify mint module params so that we have a constant 10% inflation.
+	// Simplify mint module params so that inflation is set to zero upon the first call to the custom mint BeginBlocker.
 	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
 	s.Require().NoError(err)
-	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.0")        // determines inflation
-	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.0")        // determines inflation
+	mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr("0.0")        // sets inflation to 0
+	mintParams.InflationMax = sdkmath.LegacyMustNewDecFromStr("0.0")        // sets inflation to 0
 	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0") // this is not used
 	s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
 
@@ -200,8 +200,8 @@ func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMint
 	// Simplify mint module params so that we have a constant 10% inflation.
 	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
 	s.Require().NoError(err)
-	mintParams.InflationMin = minter.Inflation                              // determines inflation
-	mintParams.InflationMax = minter.Inflation                              // determines inflation
+	mintParams.InflationMin = minter.Inflation                              // sets inflation to minter.Inflation
+	mintParams.InflationMax = minter.Inflation                              // sets inflation to minter.Inflation
 	mintParams.InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.0") // this is not used
 	s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
 
