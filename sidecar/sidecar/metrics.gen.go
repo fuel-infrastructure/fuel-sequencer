@@ -37,6 +37,8 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Subsystem: MetricsSubsystem,
 			Name:      "header_delay_seconds",
 			Help:      "Delays in receiving Ethereum headers.",
+
+			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
 		startTime: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: namespace,

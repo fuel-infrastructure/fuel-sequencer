@@ -19,6 +19,8 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Subsystem: MetricsSubsystem,
 			Name:      "logs_query_delay_seconds",
 			Help:      "How long it takes to receive queried Ethereum logs.",
+
+			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
 		LogsQueryErrorCount: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,

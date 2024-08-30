@@ -23,7 +23,7 @@ type Metrics struct {
 	// The most recent Ethereum header that the Sidecar detected.
 	LastHeaderSeen metrics.Gauge
 	// Delays in receiving Ethereum headers.
-	HeaderDelaySeconds metrics.Histogram
+	HeaderDelaySeconds metrics.Histogram `metrics_buckettype:"exprange" metrics_bucketsizes:"0.5, 30, 8"`
 	// The time that the Sidecar started as a Unix timestamp in seconds.
 	startTime metrics.Gauge
 }

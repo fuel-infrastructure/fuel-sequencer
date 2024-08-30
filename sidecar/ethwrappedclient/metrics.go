@@ -16,7 +16,7 @@ const (
 // Metrics contains metrics exposed by this package.
 type Metrics struct {
 	// How long it takes to receive queried Ethereum logs.
-	LogsQueryDelaySeconds metrics.Histogram
+	LogsQueryDelaySeconds metrics.Histogram `metrics_buckettype:"exprange" metrics_bucketsizes:"0.5, 30, 8"`
 	// How many errors were observed when querying Ethereum logs.
 	LogsQueryErrorCount metrics.Counter
 }

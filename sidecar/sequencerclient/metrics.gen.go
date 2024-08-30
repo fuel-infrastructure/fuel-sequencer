@@ -19,6 +19,8 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 			Subsystem: MetricsSubsystem,
 			Name:      "lebsquery_delay_seconds",
 			Help:      "How long it takes to receive queries LastEthereumBlockSynced.",
+
+			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
 		}, labels).With(labelsAndValues...),
 		LEBSQueryErrorCount: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,
