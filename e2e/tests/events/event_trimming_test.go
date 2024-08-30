@@ -28,7 +28,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		}
 		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
 		s.Require().NoError(err)
-		typicalMsgIndexSize := len(typicalMsgIndexBz)
+		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
@@ -50,7 +50,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().NoError(err)
 		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
 		s.Require().NoError(err)
-		authorizeEventMsgSize := len(authorizeEventMsgBz)
+		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
 
@@ -116,7 +116,7 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		}
 		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
 		s.Require().NoError(err)
-		typicalMsgIndexSize := len(typicalMsgIndexBz)
+		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
@@ -138,7 +138,7 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		s.Require().NoError(err)
 		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
 		s.Require().NoError(err)
-		authorizeEventMsgSize := len(authorizeEventMsgBz)
+		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
 

@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -36,7 +37,7 @@ func TestProtoSerialization_MsgSend(t *testing.T) {
 		anyMsgSend,
 	}
 	data, _ := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: messages})
-	fmt.Printf("Transaction size (bytes): %d\n", len(data))
+	fmt.Printf("Transaction size (bytes): %d\n", utils.TxSize(data))
 
 	// Convert the serialized bytes to a hex string
 	hexData := fmt.Sprintf("0x%s", hex.EncodeToString(data))
@@ -98,7 +99,7 @@ func TestProtoSerialization_VarietyOfMessages(t *testing.T) {
 		anyMsgSend,
 	}
 	data, _ := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: messages})
-	fmt.Printf("Transaction size (bytes): %d\n", len(data))
+	fmt.Printf("Transaction size (bytes): %d\n", utils.TxSize(data))
 
 	// Convert the serialized bytes to a hex string
 	hexData := fmt.Sprintf("0x%s", hex.EncodeToString(data))
@@ -153,7 +154,7 @@ func TestDecodeTx_Base64(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("SIZE: %d\n", len(dataBz))
+	fmt.Printf("SIZE: %d\n", utils.TxSize(dataBz))
 
 	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
 	if err != nil {
@@ -172,7 +173,7 @@ func TestDecodeTx_Hex(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("SIZE: %d\n", len(dataBz))
+	fmt.Printf("SIZE: %d\n", utils.TxSize(dataBz))
 
 	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
 	if err != nil {
