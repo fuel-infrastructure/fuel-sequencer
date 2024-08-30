@@ -17,7 +17,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 		LEBSQueryDelaySeconds: prometheus.NewHistogramFrom(stdprometheus.HistogramOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
-			Name:      "lebsquery_delay_seconds",
+			Name:      "lebs_query_delay_seconds",
 			Help:      "How long it takes to receive queries LastEthereumBlockSynced.",
 
 			Buckets: stdprometheus.ExponentialBucketsRange(0.5, 30, 8),
@@ -25,7 +25,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 		LEBSQueryErrorCount: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
-			Name:      "lebsquery_error_count",
+			Name:      "lebs_query_error_count",
 			Help:      "How many errors were observed when querying the LastEthereumBlockSynced.",
 		}, labels).With(labelsAndValues...),
 	}
