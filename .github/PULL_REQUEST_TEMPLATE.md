@@ -28,6 +28,10 @@ Queries:
 
 - [ ] Added new queries to `handlers_test.go`
 
+Metrics:
+
+- [ ] `make metrics` if you updated `metrics.go` files
+
 Testing and docs:
 
 - [ ] `make proto-routine` for formatting and APIs.
