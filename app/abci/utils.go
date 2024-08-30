@@ -12,6 +12,7 @@ import (
 // baseapp.defaultTxSelector, with the only difference being the size calculation for transactions. We opted for this
 // approach instead of waiting for the patch in the v0.50.0 Cosmos SDK series, as the Cosmos SDK team indicated that the
 // change would only be included in a major release.
+// Ref: https://github.com/cosmos/cosmos-sdk/pull/18551
 type fuelSequencerTxSelector struct {
 	totalTxBytes uint64
 	totalTxGas   uint64

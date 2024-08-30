@@ -4,6 +4,7 @@ import cmttypes "github.com/cometbft/cometbft/types"
 
 // TxSize returns the total amount of bytes that a transaction occupies. We are using cmttypes.ComputeProtoSizeForTxs
 // as opposed to len(txBz) to accurately measure the size of the transaction when serialized by CometBFT.
+// Ref: https://github.com/cosmos/cosmos-sdk/pull/18551
 func TxSize(txBz []byte) uint64 {
 	return uint64(cmttypes.ComputeProtoSizeForTxs([]cmttypes.Tx{txBz}))
 }
