@@ -46,6 +46,12 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 	// Since we have no bonded ratio, and we want the inflation rate to be fixed, we can skip this calculation.
 	//
 	//minter.Inflation = ic(ctx, minter, params, bondedRatio)
+	//
+	// However, we want inflation to be configurable via the InflationMin and InflationMax params. To remove any doubts
+	// as to which inflation value will be picked, we require that the InflationMin and InflationMax are equal.
+	if params.InflationMin.Equal(params.InflationMax) {
+		minter.Inflation = params.InflationMin
+	}
 
 	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalSupply)
 	if err = k.Minter.Set(ctx, minter); err != nil {
