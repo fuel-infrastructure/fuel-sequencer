@@ -82,7 +82,7 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
-func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (n int, err error) {
+func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (int, error) {
 
 	msgIndexRawTxBytes, err := m.RawTxBytes()
 	if err != nil {
@@ -90,16 +90,17 @@ func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64
 	}
 
 	// If the MsgIndex on its own cannot fit into the block, this is a major issue.
-	if uint64(len(msgIndexRawTxBytes)) > maxBytes {
+	msgIndexTxSize := utils.TxSize(msgIndexRawTxBytes)
+	if msgIndexTxSize > maxBytes {
 		return 0, fmt.Errorf(
-			"could not fit MsgIndex of size %d in max bytes allocated for events %d",
-			len(msgIndexRawTxBytes), maxBytes)
+			"could not fit MsgIndex of size %d in max bytes allocated for events %d", msgIndexTxSize, maxBytes,
+		)
 	}
 
-	n += len(msgIndexRawTxBytes)
+	n := msgIndexTxSize
 	for i, eventTx := range eventTxs {
-		toAdd := len(eventTx)
-		if uint64(n+toAdd) > maxBytes {
+		toAdd := utils.TxSize(eventTx)
+		if n+toAdd > maxBytes {
 			return i, nil
 		}
 		n += toAdd
@@ -134,6 +135,8 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 
 	}
 
+	// Note: There is no need to use utils.TxSize to calculate the size of MsgIndex because we are only checking the
+	// size of the message and not how big the transaction containing the message would be.
 	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[numEventsToTrim:]
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
@@ -150,7 +153,9 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 //
 // An important check that it does is to ensure that if there are events, these cannot all be trimmed, otherwise the
 // blockchain might get stuck injecting empty MsgIndex forever. At least one event must be kept if there are events.
-func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64) (newEventTxs [][]byte, trimmed uint64, err error) {
+func (m *MsgIndex) KeepEventsFromHead(
+	eventTxs [][]byte, numEventsToKeep uint64,
+) (newEventTxs [][]byte, trimmed uint64, err error) {
 
 	if m.NumInjectedEventTxs == numEventsToKeep {
 
@@ -172,6 +177,8 @@ func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64)
 
 	}
 
+	// Note: There is no need to use utils.TxSize to calculate the size of MsgIndex because we are only checking the
+	// size of the message and not how big the transaction containing the message would be.
 	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[:numEventsToKeep]
 	trimmed = m.NumInjectedEventTxs - numEventsToKeep

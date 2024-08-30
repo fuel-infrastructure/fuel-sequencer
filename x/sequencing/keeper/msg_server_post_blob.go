@@ -19,6 +19,8 @@ func (k msgServer) PostBlob(
 	maxBlobSizeBytes := k.GetParams(ctx).MaxBlobSizeBytes
 
 	// Verify that the data satisfies a maximum transaction size (using MaxBlobSizeBytes)
+	// Note: Here we are not using utils.TxSize since the data being posted from the rollups is not necessarily protobuf
+	// encoded transactions.
 	msgLength := uint64(len(msg.Data))
 	if msgLength > maxBlobSizeBytes {
 		return nil, types.ErrDataTooBig.Wrapf(

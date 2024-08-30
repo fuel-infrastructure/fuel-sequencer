@@ -73,7 +73,6 @@ func NewFuelSequencerProposalHandler(
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
-		// TODO: Continue from here. We should migrate all txs size calculation in all files to use our utils.go
 		proposerConsAddress := sdk.ConsAddress(req.ProposerAddress)
 		ctx.Logger().Info("preparing proposal", "proposer", proposerConsAddress, "num_txs", len(req.Txs))
 
@@ -94,7 +93,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			}
 
 			// Calculate size of supply delta message
-			supplyDeltaBytesSize = int64(len(supplyDeltaBytes))
+			supplyDeltaBytesSize = int64(utils.TxSize(supplyDeltaBytes))
 
 			// Ensure that supply delta fits in the block on its own
 			if supplyDeltaBytesSize > req.MaxTxBytes {
@@ -148,7 +147,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// not deducted the size of MsgIndex because we will check whether it fits the allocated block space when
 		// calling msgIndex.NumberOfEventsWithMaxBytes. We should never be in a position where there isn't enough block
 		// space for MsgIndex as it is relatively small.
-		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
+		sequencerTxsSize := utils.TxsSize(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
 		// Reserve a percentage of the available block space for Sequencer-native transactions. We are sure that this
@@ -210,9 +209,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
 
-		// Use the DefaultProposalHandler which, since we're using a NoOp mempool, will select the txs requested from
-		// CometBFT which by default should be in FIFO order. It still ensures the txs returned respect req.MaxTxBytes
-		// and blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
+		// Use the DefaultProposalHandler. Since we're using a NoOp mempool, it will select the transactions requested
+		// by CometBFT which by default should be in FIFO order. The handler ensures that the selected transactions
+		// comply with the `req.MaxTxBytes` and `blockParams.MaxGas` limits. Among these transactions are several
+		// injected transactions that will consume zero gas.
 		resp, err := h.defaultProposalHandler.PrepareProposalHandler()(ctx, req)
 		if err != nil {
 			req.Txs = [][]byte{}
@@ -439,9 +439,8 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 }
 
 // checkMinimumNumTxs ensures that we've collected the minimum number of expected transactions, i.e. MsgIndex, the event
-// transactions, and the MsgSupplyDelta if we're at the MsgSupplyDelta height, and returns an error otherwise
+// transactions, and the MsgSupplyDelta if we're at the MsgSupplyDelta height. It returns an error if the check fails.
 func checkMinimumNumTxs(numTxs uint64, msgIndex *bridgetypes.MsgIndex, injectMsgSupplyDelta bool) error {
-
 	minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
 	if injectMsgSupplyDelta {
 		minimumExpectedTxs += 1
