@@ -65,13 +65,14 @@ func PackMintMigratedToken(address common.Address, amount *big.Int) []byte {
 	return PackMintERC20Token(MigratedTokenContractABI, address, amount)
 }
 
-func PackMigrate(amount *big.Int, validator common.Address) []byte {
+func PackMigrate(amount *big.Int, validator common.Address, vestingPeriod *big.Int) []byte {
 	return packCall(
 		TokenMigratorContractABI,
 		MigrateFunctionName,
 		[]interface{}{
 			amount,
 			validator,
+			vestingPeriod,
 		},
 	)
 }
