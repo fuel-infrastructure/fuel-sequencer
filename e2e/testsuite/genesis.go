@@ -145,11 +145,12 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
 	s.Require().NoError(err)
 
-	// set short voting period to allow gov proposals in tests
+	// set short voting periods to allow gov proposals in tests
 	var govGenState govtypesv1.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
 	votingPeriod := governanceVotingPeriod
 	govGenState.Params.VotingPeriod = &votingPeriod
+	govGenState.Params.ExpeditedVotingPeriod = &votingPeriod
 	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
 	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
 	bz, err := cdc.MarshalJSON(&govGenState)
