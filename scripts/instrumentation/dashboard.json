@@ -177,6 +177,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "fieldMinMax": true,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -249,6 +250,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "fieldMinMax": true,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -320,6 +322,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "fieldMinMax": true,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
