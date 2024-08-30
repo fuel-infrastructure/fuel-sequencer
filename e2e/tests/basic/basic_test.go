@@ -210,6 +210,9 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		}
 		s.ExecuteExpeditedGovProposal(msg)
 
+		// Wait for 1 block to pass for the BeginBlocker to run
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
 		// Check that the inflation rate was updated to the new inflation rate
 		inflationRate = s.QueryMintInflation(s.Ctx())
 		s.Require().True(inflationRate.Equal(newInflationRate))
