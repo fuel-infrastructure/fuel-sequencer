@@ -189,7 +189,7 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 			Validator: consensusParams.Validator,
 			Abci:      consensusParams.Abci,
 		}
-		proposalId := s.SubmitGovProposal(&msgUpdateParams, false)
+		proposalId := s.SubmitGovProposal(&msgUpdateParams)
 
 		// Make sure that the voting period started
 		s.PollForProposalStatus(s.Ctx(), 10, proposalId, govtypesv1.ProposalStatus_PROPOSAL_STATUS_VOTING_PERIOD)
