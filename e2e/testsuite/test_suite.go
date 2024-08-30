@@ -99,10 +99,10 @@ var (
 	}
 
 	// Inflation params
-	Inflation           = sdkmath.LegacyMustNewDecFromStr("0.10")
+	Inflation           = sdkmath.LegacyMustNewDecFromStr("0.10") // this is overridden if InflationMin == InflationMax
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13") // this is not actually used by the custom mint module
-	InflationMax        = sdkmath.LegacyMustNewDecFromStr("0.2")  // this is not actually used by the custom mint module
-	InflationMin        = sdkmath.LegacyMustNewDecFromStr("0.07") // this is not actually used by the custom mint module
+	InflationMax        = sdkmath.LegacyMustNewDecFromStr("0.2")  // sets the inflation rate if equal to InflationMin
+	InflationMin        = sdkmath.LegacyMustNewDecFromStr("0.07") // sets the inflation rate if equal to InflationMax
 	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
 	BlocksPerYear       = uint64(6311520)
 

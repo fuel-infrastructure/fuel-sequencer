@@ -8,6 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"go.uber.org/zap"
@@ -186,5 +187,31 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		resp, err := s.SubmitMsgsWithGas(1, msg)
 		s.Require().NoError(err)
 		s.Require().Contains(resp.RawLog, "out of gas")
+	})
+
+	s.Run("Ensure that we can run an expedited proposal to change the inflation rate", func() {
+
+		params := s.QueryMintParams(s.Ctx())
+		inflationRate := s.QueryMintInflation(s.Ctx())
+		newInflationRate := sdkmath.LegacyMustNewDecFromStr("0.5")
+
+		// InflationMin and InflationMax are currently unequal
+		s.Require().False(params.InflationMin.Equal(params.InflationMax))
+
+		// Inflation and the new inflation rates are also unequal
+		s.Require().False(inflationRate.Equal(newInflationRate))
+
+		// Propose a new inflation rate via an expedited proposal
+		params.InflationMin = newInflationRate
+		params.InflationMax = newInflationRate
+		msg := &minttypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *params,
+		}
+		s.ExecuteExpeditedGovProposal(msg)
+
+		// Check that the inflation rate was updated to the new inflation rate
+		inflationRate = s.QueryMintInflation(s.Ctx())
+		s.Require().True(inflationRate.Equal(newInflationRate))
 	})
 }
