@@ -30,7 +30,7 @@ type EventStore struct {
 	// maxQueryRange is the maximum number of Ethereum blocks per query.
 	maxQueryRange *big.Int
 
-	// metrics is the set of all Prometheus metrics exposed by Sidecar.
+	// metrics is the set of all Prometheus metrics exposed by EventStore.
 	metrics *Metrics
 }
 
