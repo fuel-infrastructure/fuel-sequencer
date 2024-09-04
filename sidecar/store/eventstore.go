@@ -51,6 +51,9 @@ func NewEventStore(startQueryBlock, endQueryBlock, maxQueryRange *big.Int, metri
 }
 
 // AddEvents adds a map of events to the store.
+//
+// NOTE: this function needs to be performed atomically to ensure consistency in the store's state. It makes use of the
+// mutex lock for this purpose. Calling other store functions that also lock will cause a deadlock!
 func (store *EventStore) AddEvents(eventsMap map[uint64][]sidecartypes.Event) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
@@ -163,6 +166,9 @@ func (store *EventStore) GetMaxQueryRange() *big.Int {
 // CalibrateBlocksAndPruneLogs prunes state based on the last block synced by the Sequencer, so that we avoid storing
 // logs unnecessarily. If pruning takes place, startQueryBlock is updated to reflect the first (i.e. oldest) block we
 // have in state. Additionally, if the Sequencer is ahead, fast-forward the lastSyncedBlock to match the Sequencer.
+//
+// NOTE: this function needs to be performed atomically to ensure consistency in the store's state. It makes use of the
+// mutex lock for this purpose. Calling other store functions that also lock will cause a deadlock!
 func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
