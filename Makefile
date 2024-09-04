@@ -405,7 +405,7 @@ build-docker-image:
 	@echo "✅ Finished building Docker image!"
 
 DATA_FOLDER="/data/fuelsequencer"
-COMMAND?=""
+COMMAND?="node_and_sidecar"
 run-docker-container: check-docker-image-exists
 	@echo "🤖 Running Docker container..."
 	@docker run -d \
