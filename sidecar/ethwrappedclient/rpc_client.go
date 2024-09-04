@@ -136,6 +136,12 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 		if err != nil {
 			return nil, nil, fmt.Errorf("logs processing failed: %s", err.Error())
 		}
+
+		ec.logger.Info("processed logs from range",
+			zap.String("from_block", fromBlock.String()),
+			zap.String("to_block", toBlock.String()),
+			zap.Int("num_events", len(logs)),
+		)
 	} else {
 		for i := fromBlock.Uint64(); i <= toBlock.Uint64(); i++ {
 
@@ -162,16 +168,13 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 
 			// Create testNoOfMsgSends MsgSend of 1utest token
 			// TODO: Add for loop which creates a bunch of authorized msg sends
+
+			ec.logger.Info("generated events to block",
+				zap.Uint64("block", i),
+				zap.Int("num_events", len(eventsMap[i])),
+			)
 		}
 	}
-
-	// Regardless of whether logs were found, update the last queried block to the current block number, since we have
-	// now queried up to this block.
-	ec.logger.Info("processed logs from range",
-		zap.String("from_block", fromBlock.String()),
-		zap.String("to_block", toBlock.String()),
-		// zap.Int("num_events", len(logs)),
-	)
 
 	// Return the fetched events and the block that we fetched up to.
 	return eventsMap, toBlock, nil
