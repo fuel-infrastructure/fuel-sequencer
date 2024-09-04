@@ -404,14 +404,24 @@ build-docker-image:
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished building Docker image!"
 
-DATA_FOLDER="/data/fuelsequencer"
-COMMAND?="node_and_sidecar"
 run-docker-container: check-docker-image-exists
+	@if [ -z "$(ETH_RPC_URL)" ]; then \
+		echo "ETH_RPC_URL is not set"; \
+		exit 1; \
+	fi
+	@if [ -z "$(ETH_WS_URL)" ]; then \
+		echo "ETH_WS_URL is not set"; \
+		exit 1; \
+	fi
+	@$(eval DATA_FOLDER ?= "/data/fuelsequencer")
+	@$(eval COMMAND ?= "node_and_sidecar")
 	@echo "🤖 Running Docker container..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
-    		-p 26656:26656 -p 26657:26657 -p 1317:1317 \
+    		-p 26656:26656 -p 26657:26657 -p 1317:1317 -p 8080:8080 -p 8081:8081 \
+    		-e "ETH_RPC_URL=$(ETH_RPC_URL)" \
+    		-e "ETH_WS_URL=$(ETH_WS_URL)" \
     		${DOCKER_IMAGE_NAME}:latest \
     		${COMMAND}
 
