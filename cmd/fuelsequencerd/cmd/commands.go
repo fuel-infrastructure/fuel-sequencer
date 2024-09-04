@@ -215,6 +215,11 @@ func startSidecarServerCmd() *cobra.Command {
 		"the last ethereum block to sync - incorrect use can cause the validator to propose empty blocks, leading to "+
 			"slashing!",
 	)
+	cmd.Flags().Int64Var(
+		&ethCfg.testNoOfMsgSends, FlagTestNoOfMsgSends, 0,
+		"the number of msg sends with amount 1 to be generated on the sidecar. Note: A deposit of <testNoOfMsgSends> "+
+			"will also be generated to fund the sender.",
+	)
 
 	// Sequencer
 	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
@@ -375,7 +380,7 @@ func startSidecar(
 	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
-		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval,
+		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethCfg.testNoOfMsgSends,
 	)
 
 	// Create the store

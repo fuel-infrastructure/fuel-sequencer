@@ -25,6 +25,10 @@ const (
 	FlagSidecarGrpcUrl              = "sidecar_grpc_url"
 	FlagQueryTimeout                = "query_timeout"
 	FlagSidecarClientPathToCertFile = "sidecar_path_to_cert_file"
+
+	// Testing flags - Flags in this category should never be merged into main
+
+	FlagTestNoOfMsgSends = "test_no_of_msg_sends"
 )
 
 type sidecarConfig struct {
@@ -48,6 +52,7 @@ type ethereumConfig struct {
 	minLogsQueryInterval time.Duration
 	unsafeStartBlock     int64
 	unsafeEndBlock       int64
+	testNoOfMsgSends     int64 // This value should only be used for testing purposes and never be merged into main
 }
 
 // AppOptionsMap is a stub implementing AppOptions which can get data from a map.

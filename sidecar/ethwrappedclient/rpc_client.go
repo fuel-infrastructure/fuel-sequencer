@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -30,6 +31,9 @@ type EthRpcClient struct {
 
 	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.
 	logsQueryLimiter *rate.Limiter
+
+	// testNoOfMsgSends is a test value to control the amount of events generated on the sidecar for load testing
+	testNoOfMsgSends int64
 }
 
 // NewEthRpcClient creates a new EthRpcClient instance.
@@ -39,6 +43,7 @@ func NewEthRpcClient(
 	contractAddress common.Address,
 	contractAbi abi.ABI,
 	minLogsQueryInterval time.Duration,
+	testNoOfMsgSends int64,
 ) *EthRpcClient {
 	return &EthRpcClient{
 		EthWrappedClient: &EthWrappedClient{
@@ -48,6 +53,7 @@ func NewEthRpcClient(
 		contractAddress:  contractAddress,
 		contractABI:      contractAbi,
 		logsQueryLimiter: rate.NewLimiter(rate.Every(minLogsQueryInterval), 1), // max 1 request per interval
+		testNoOfMsgSends: testNoOfMsgSends,
 	}
 }
 
@@ -116,16 +122,47 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 		toBlock = maxToBlock
 	}
 
-	// Filter the logs from the next query block to the to block (note: this is rate-limited under the hood).
-	logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
-	if err != nil {
-		return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())
-	}
+	// Load test the sidecar and sequencer if testNoOfMsgSends is not 0
+	eventsMap := make(map[uint64][]sidecartypes.Event)
+	if ec.testNoOfMsgSends == 0 {
+		// Filter the logs from the next query block to the to block (note: this is rate-limited under the hood).
+		logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
+		if err != nil {
+			return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())
+		}
 
-	// Process the logs if any are found.
-	eventsMap, err := ec.processLogs(logs, fromBlock)
-	if err != nil {
-		return nil, nil, fmt.Errorf("logs processing failed: %s", err.Error())
+		// Process the logs if any are found.
+		eventsMap, err = ec.processLogs(logs, fromBlock)
+		if err != nil {
+			return nil, nil, fmt.Errorf("logs processing failed: %s", err.Error())
+		}
+	} else {
+		for i := fromBlock.Uint64(); i <= toBlock.Uint64(); i++ {
+
+			// Add deposit event to fund the sender
+			depositEvent := sidecartypes.DepositEvent{
+				// Sequencer: spoil bulb globe demise post sock pull win grape current angle lonely key need eager pact finger apart matrix apart gentle strategy zebra vital
+				Depositor: "0x3790fec0e306eabe809f871ab64e63acf1d9f490",
+				Recipient: "0x3790fec0e306eabe809f871ab64e63acf1d9f490",
+				Amount:    strconv.FormatInt(ec.testNoOfMsgSends, 10),
+				Lockup:    "0",
+			}
+			data, err := depositEvent.Marshal()
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to generate deposit event: %s", err.Error())
+			}
+
+			eventsMap[i] = []sidecartypes.Event{
+				{
+					EventType:       sidecartypes.DepositEventName,
+					ContractAddress: ec.contractAddress.Hex(),
+					Data:            data,
+				},
+			}
+
+			// Create testNoOfMsgSends MsgSend of 1utest token
+			// TODO: Add for loop which creates a bunch of authorized msg sends
+		}
 	}
 
 	// Regardless of whether logs were found, update the last queried block to the current block number, since we have
@@ -133,7 +170,7 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 	ec.logger.Info("processed logs from range",
 		zap.String("from_block", fromBlock.String()),
 		zap.String("to_block", toBlock.String()),
-		zap.Int("num_events", len(logs)),
+		// zap.Int("num_events", len(logs)),
 	)
 
 	// Return the fetched events and the block that we fetched up to.
