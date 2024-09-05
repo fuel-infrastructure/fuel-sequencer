@@ -113,10 +113,7 @@ func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string, sequence uin
 // RawTxBytesWithMaxBytes makes use of RawTxBytes with an additional size verification. This function will error if the
 // bytes returned from RawTxBytes exceed the specified max bytes.
 func (m *Event) RawTxBytesWithMaxBytes(
-	cdc codec.BinaryCodec,
-	authority string,
-	maxBytes uint64,
-	sequence uint64,
+	cdc codec.BinaryCodec, authority string, maxBytes uint64, sequence uint64,
 ) ([]byte, error) {
 
 	bz, err := m.RawTxBytes(cdc, authority, sequence)
