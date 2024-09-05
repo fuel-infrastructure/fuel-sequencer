@@ -184,7 +184,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to trim event txs from tail: %w", err)
 		}
 		if trimmed > 0 {
-			ctx.Logger().Debug(fmt.Sprintf(
+			ctx.Logger().Info(fmt.Sprintf(
 				"Skipped %d/%d of remaining events from block %d because only %d could fit in max bytes %d",
 				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
