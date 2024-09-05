@@ -107,7 +107,9 @@ func TestMsgIndex_ValidateBeforeProcessing(t *testing.T) {
 
 func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T) {
 
+	// A typical MsgIndex sequence is always 1 or greater
 	msgIndexSequence := uint64(1)
+
 	tx := testtypes.TestMsgIndex
 	txRawBytes, err := tx.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
@@ -132,7 +134,9 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 
 func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
+	// A typical MsgIndex sequence is always 1 or greater
 	msgIndexSequence := uint64(1)
+
 	msgIndex := testtypes.TestMsgIndex.MsgIndex
 	msgIndexRawBytes, err := msgIndex.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
