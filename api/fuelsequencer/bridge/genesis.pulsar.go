@@ -857,8 +857,9 @@ type GenesisState struct {
 	// block at which consensus was reach by the validators to sync
 	// up with an Ethereum block.
 	LastEthBlockUpdateTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=last_eth_block_update_time,json=lastEthBlockUpdateTime,proto3" json:"last_eth_block_update_time,omitempty"`
-	// last_consensus_txs_sequence is the last nonce used in injected txs.
+	// last_consensus_txs_sequence is the last sequence used in consensus txs.
 	// In other words, the next nonce to be used is this value +1.
+	// It is unique for each consensus tx, ensuring a unique tx hash.
 	LastConsensusTxsSequence uint64 `protobuf:"varint,7,opt,name=last_consensus_txs_sequence,json=lastConsensusTxsSequence,proto3" json:"last_consensus_txs_sequence,omitempty"`
 }
 
