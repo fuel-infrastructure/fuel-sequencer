@@ -21,11 +21,12 @@ func TestMsgSupplyDelta_FromSdkTx(t *testing.T) {
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1)),
 	}
 
-	testMsgSupplyDeltaTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSupplyDelta}, 0)
-	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend}, 0)
-	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSupplyDelta, testMsgSend}, 0)
-	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgSupplyDelta}, 0)
-	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil, 0)
+	sequence := uint64(1) // arbitrary
+	testMsgSupplyDeltaTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSupplyDelta}, sequence)
+	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend}, sequence)
+	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSupplyDelta, testMsgSend}, sequence)
+	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgSupplyDelta}, sequence)
+	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil, sequence)
 
 	testCases := []struct {
 		name              string
