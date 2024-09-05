@@ -641,7 +641,7 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgIndexTx(
 
 	if !bytes.Equal(injectedMsgIndexTx, generatedMsgIndexTx) {
 		return fmt.Errorf(
-			"generated MsgIndex tx does not match the one from the block proposal (injected: %X) (generated: %X)",
+			"generated MsgIndex tx differs from that of the block proposal (injected: %X) (generated: %X)",
 			injectedMsgIndexTx, generatedMsgIndexTx,
 		)
 	}
@@ -682,37 +682,14 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 	}
 	injectedMsgSupplyDeltaTx := txs[msgSupplyDeltaIndex]
 
-	// Try to decode transaction at the MsgSupplyDelta index into sdk.Tx.
-	tx, err := h.txVerifier.TxDecode(injectedMsgSupplyDeltaTx)
-	if err != nil {
-		return fmt.Errorf("failed to decode transaction at index %d into sdk.Tx: %w", msgSupplyDeltaIndex, err)
-	}
-
-	var msgSupplyDelta bridgetypes.MsgSupplyDelta
-	err = msgSupplyDelta.FromSdkTx(tx)
-	if err != nil {
-		return fmt.Errorf("failed to parse MsgSupplyDelta at index %d with error: %w", msgSupplyDeltaIndex, err)
-	}
-
-	// Confirm that MsgSupplyDelta passes all verification checks and error if not
-	if msgSupplyDelta.Authority != h.bridgeKeeper.GetAuthority() {
-		return fmt.Errorf(
-			"incorrect Authority set in MsgSupplyDelta; expected %s got %s",
-			h.bridgeKeeper.GetAuthority(),
-			msgSupplyDelta.Authority,
-		)
-	}
-
-	// Error if injected MsgSupplyDelta tx does not match the one generated during verification.
-	// We do this by comparing the injected and generated MsgSupplyDelta transactions byte-wise.
 	generatedMsgSupplyDeltaTx, err := h.generateMsgSupplyDeltaTx(expectedSequence)
 	if err != nil {
-		return fmt.Errorf("failed to generate msg supply delta tx: %w", err)
+		return fmt.Errorf("failed to generate MsgSupplyDelta tx: %w", err)
 	}
+
 	if !bytes.Equal(injectedMsgSupplyDeltaTx, generatedMsgSupplyDeltaTx) {
 		return fmt.Errorf(
-			"generated MsgSupplyDelta tx does not match the one from the block proposal "+
-				"(injected MsgSupplyDelta: %X) (generated MsgSupplyDelta: %X)",
+			"generated MsgSupplyDelta tx differs from that of the block proposal (injected: %X) (generated: %X)",
 			injectedMsgSupplyDeltaTx, generatedMsgSupplyDeltaTx,
 		)
 	}

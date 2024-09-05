@@ -10,8 +10,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -1364,7 +1362,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+			expErrMsg: "generated MsgIndex tx differs from that of the block proposal " +
 				"(injected: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310021801200112060A0218011200) " +
 				"(generated: 0A610A5F0A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123A0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B331002200112060A0218011200)",
 		},
@@ -1384,7 +1382,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+			expErrMsg: "generated MsgIndex tx differs from that of the block proposal " +
 				"(injected: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572317738726B326D6B3834777974707878376C6436336B6171706B686D6433396D3035786C67743410031801200112060A0218011200) " +
 				"(generated: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801200112060A0218011200)",
 		},
@@ -1404,7 +1402,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+			expErrMsg: "generated MsgIndex tx differs from that of the block proposal " +
 				"(injected: 0A610A5F0A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123A0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B331003200112060A0218011200) " +
 				"(generated: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801200112060A0218011200)",
 		},
@@ -1424,7 +1422,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+			expErrMsg: "generated MsgIndex tx differs from that of the block proposal " +
 				"(injected: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801206412060A0218011200) " +
 				"(generated: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801200112060A0218011200)",
 		},
@@ -1482,11 +1480,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: fmt.Errorf(
-				"failed to parse MsgSupplyDelta at index 4 with error: expected msg type URL %s, got %s",
-				sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{}),
-				sdk.MsgTypeURL(&banktypes.MsgSend{}),
-			).Error(),
+			expErrMsg: "generated MsgSupplyDelta tx differs from that of the block proposal " +
+				"(injected: 0A390A340A1C2F636F736D6F732E62616E6B2E763162657461312E4D736753656E6412140A09746573742D66726F6D1207746573742D746F12013212070A00120310E8071A00) " +
+				"(generated: 0A630A610A272F6675656C73657175656E6365722E6272696467652E76312E4D7367537570706C7944656C746112360A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3312060A0218021200)",
 		},
 		{
 			name:                        "returns error if Ethereum event index offset larger than events list",
