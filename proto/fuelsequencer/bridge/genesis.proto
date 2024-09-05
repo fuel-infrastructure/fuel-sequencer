@@ -46,7 +46,7 @@ message GenesisState {
   google.protobuf.Timestamp last_eth_block_update_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
-  // last_injected_txs_sequence is the last nonce used in injected txs.
+  // last_consensus_txs_sequence is the last nonce used in injected txs.
   // In other words, the next nonce to be used is this value +1.
-  uint64 last_injected_txs_sequence = 7;
+  uint64 last_consensus_txs_sequence = 7;
 }

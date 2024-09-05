@@ -25,7 +25,7 @@ func DefaultGenesis() *GenesisState {
 		LastEthereumBlockSynced:  0,
 		EthereumEventIndexOffset: 0,
 		LastEthBlockUpdateTime:   time.Time{},
-		LastInjectedTxsSequence:  0,
+		LastConsensusTxsSequence: 0,
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
@@ -55,7 +55,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := ValidateLastInjectedTxsSequence(gs.LastInjectedTxsSequence); err != nil {
+	if err := ValidateLastConsensusTxsSequence(gs.LastConsensusTxsSequence); err != nil {
 		return err
 	}
 
@@ -107,8 +107,8 @@ func ValidateLastEthBlockUpdateTime(i interface{}) error {
 	return nil
 }
 
-// ValidateLastInjectedTxsSequence validates that the last injected txs sequence is uint64.
-func ValidateLastInjectedTxsSequence(i interface{}) error {
+// ValidateLastConsensusTxsSequence validates that the last injected txs sequence is uint64.
+func ValidateLastConsensusTxsSequence(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

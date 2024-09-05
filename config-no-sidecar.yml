@@ -114,7 +114,7 @@ genesis:
         vesting_start_time: "2024-01-01T00:00:00.000000000Z"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"
-      last_injected_txs_sequence: 0
+      last_consensus_txs_sequence: 0
     sequencing:
       params:
         max_blob_size_bytes: 1000

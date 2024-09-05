@@ -84,8 +84,8 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 	}
 
 	// Increment the sequence by the number of injected event transactions, plus MsgSupplyDelta, plus MsgIndex
-	lastSequence := k.MustGetLastInjectedTxsSequence(ctx)
-	k.SetLastInjectedTxsSequence(ctx, lastSequence+msg.NumInjectedEventTxs+supplyDeltaCount+1)
+	lastSequence := k.MustGetLastConsensusTxsSequence(ctx)
+	k.SetLastConsensusTxsSequence(ctx, lastSequence+msg.NumInjectedEventTxs+supplyDeltaCount+1)
 
 	return &types.MsgIndexResponse{}, nil
 }

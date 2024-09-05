@@ -41,6 +41,43 @@ paths:
                       format: byte
       tags:
         - Fuel Sequencer Queries
+  /fuelsequencer/bridge/v1/last_consensus_txs_sequence:
+    get:
+      summary: Queries the LastConsensusTxsSequence.
+      operationId: LastConsensusTxsSequence
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              sequence:
+                type: string
+                format: uint64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Fuel Sequencer Queries
   /fuelsequencer/bridge/v1/last_eth_block_update_time:
     get:
       summary: Queries the LastEthBlockUpdateTime.
@@ -127,43 +164,6 @@ paths:
             properties:
               nonce:
                 type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Fuel Sequencer Queries
-  /fuelsequencer/bridge/v1/last_injected_txs_sequence:
-    get:
-      summary: Queries the LastInjectedTxsSequence.
-      operationId: LastInjectedTxsSequence
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              sequence:
-                type: string
-                format: uint64
         default:
           description: An unexpected error response.
           schema:
@@ -30459,6 +30459,12 @@ definitions:
       offset:
         type: string
         format: uint64
+  fuelsequencer.bridge.v1.QueryGetLastConsensusTxsSequenceResponse:
+    type: object
+    properties:
+      sequence:
+        type: string
+        format: uint64
   fuelsequencer.bridge.v1.QueryGetLastEthBlockUpdateTimeResponse:
     type: object
     properties:
@@ -30476,12 +30482,6 @@ definitions:
     properties:
       nonce:
         type: string
-  fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse:
-    type: object
-    properties:
-      sequence:
-        type: string
-        format: uint64
   fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
     type: object
     properties:

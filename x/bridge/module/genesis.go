@@ -33,7 +33,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetLastEthBlockUpdateTime(ctx, genState.LastEthBlockUpdateTime)
 	}
 
-	k.SetLastInjectedTxsSequence(ctx, genState.LastInjectedTxsSequence)
+	k.SetLastConsensusTxsSequence(ctx, genState.LastConsensusTxsSequence)
 
 	// this line is used by starport scaffolding # genesis/module/init
 }
@@ -68,9 +68,9 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.LastEthBlockUpdateTime = lastEthBlockUpdateTime
 	}
 
-	lastInjectedTxsSequence, found := k.GetLastInjectedTxsSequence(ctx)
+	lastConsensusTxsSequence, found := k.GetLastConsensusTxsSequence(ctx)
 	if found {
-		genesis.LastInjectedTxsSequence = lastInjectedTxsSequence
+		genesis.LastConsensusTxsSequence = lastConsensusTxsSequence
 	}
 
 	// this line is used by starport scaffolding # genesis/module/export

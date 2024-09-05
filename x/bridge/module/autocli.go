@@ -49,9 +49,9 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "show LastEthBlockUpdateTime",
 				},
 				{
-					RpcMethod: "LastInjectedTxsSequence",
-					Use:       "last-injected-txs-sequence",
-					Short:     "show LastInjectedTxsSequence",
+					RpcMethod: "LastConsensusTxsSequence",
+					Use:       "last-consensus-txs-sequence",
+					Short:     "show LastConsensusTxsSequence",
 				},
 				// this line is used by ignite scaffolding # autocli/query
 			},

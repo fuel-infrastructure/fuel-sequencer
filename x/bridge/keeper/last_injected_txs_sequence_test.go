@@ -9,12 +9,12 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 )
 
-func TestGetLastInjectedTxsSequence(t *testing.T) {
+func TestGetLastConsensusTxsSequence(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := uint64(10)
 
-	keeper.SetLastInjectedTxsSequence(ctx, value)
-	rst, found := keeper.GetLastInjectedTxsSequence(ctx)
+	keeper.SetLastConsensusTxsSequence(ctx, value)
+	rst, found := keeper.GetLastConsensusTxsSequence(ctx)
 	require.True(t, found)
 	require.Equal(t,
 		nullify.Fill(&value),
@@ -22,12 +22,12 @@ func TestGetLastInjectedTxsSequence(t *testing.T) {
 	)
 }
 
-func TestRemoveLastInjectedTxsSequence(t *testing.T) {
+func TestRemoveLastConsensusTxsSequence(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := uint64(10)
 
-	keeper.SetLastInjectedTxsSequence(ctx, value)
-	keeper.RemoveLastInjectedTxsSequence(ctx)
-	_, found := keeper.GetLastInjectedTxsSequence(ctx)
+	keeper.SetLastConsensusTxsSequence(ctx, value)
+	keeper.RemoveLastConsensusTxsSequence(ctx)
+	_, found := keeper.GetLastConsensusTxsSequence(ctx)
 	require.False(t, found)
 }

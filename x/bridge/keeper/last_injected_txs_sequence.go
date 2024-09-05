@@ -9,18 +9,18 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// SetLastInjectedTxsSequence sets lastInjectedTxsSequence in the store
-func (k Keeper) SetLastInjectedTxsSequence(ctx context.Context, lastInjectedTxsSequence uint64) {
+// SetLastConsensusTxsSequence sets lastConsensusTxsSequence in the store
+func (k Keeper) SetLastConsensusTxsSequence(ctx context.Context, lastConsensusTxsSequence uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.LastInjectedTxsSequenceKey)
-	b := sdk.Uint64ToBigEndian(lastInjectedTxsSequence)
+	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
+	b := sdk.Uint64ToBigEndian(lastConsensusTxsSequence)
 	store.Set([]byte{0}, b)
 }
 
-// GetLastInjectedTxsSequence returns lastInjectedTxsSequence
-func (k Keeper) GetLastInjectedTxsSequence(ctx context.Context) (val uint64, found bool) {
+// GetLastConsensusTxsSequence returns lastConsensusTxsSequence
+func (k Keeper) GetLastConsensusTxsSequence(ctx context.Context) (val uint64, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.LastInjectedTxsSequenceKey)
+	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
 
 	b := store.Get([]byte{0})
 	if b == nil {
@@ -30,32 +30,32 @@ func (k Keeper) GetLastInjectedTxsSequence(ctx context.Context) (val uint64, fou
 	return sdk.BigEndianToUint64(b), true
 }
 
-// MustGetLastInjectedTxsSequence returns lastInjectedTxsSequence and panics if it doesn't find it
-func (k Keeper) MustGetLastInjectedTxsSequence(ctx context.Context) uint64 {
-	val, found := k.GetLastInjectedTxsSequence(ctx)
+// MustGetLastConsensusTxsSequence returns lastConsensusTxsSequence and panics if it doesn't find it
+func (k Keeper) MustGetLastConsensusTxsSequence(ctx context.Context) uint64 {
+	val, found := k.GetLastConsensusTxsSequence(ctx)
 	if !found {
-		panic("expected to find LastInjectedTxsSequence")
+		panic("expected to find LastConsensusTxsSequence")
 	}
 	return val
 }
 
-// MustGetNextInjectedTxsSequence increments LastInjectedTxsSequence by one and returns the result.
-// It panics if LastInjectedTxsSequence is not found
-func (k Keeper) MustGetNextInjectedTxsSequence(ctx context.Context) uint64 {
-	val, found := k.GetLastInjectedTxsSequence(ctx)
+// MustGetNextConsensusTxsSequence increments LastConsensusTxsSequence by one and returns the result.
+// It panics if LastConsensusTxsSequence is not found
+func (k Keeper) MustGetNextConsensusTxsSequence(ctx context.Context) uint64 {
+	val, found := k.GetLastConsensusTxsSequence(ctx)
 	if !found {
-		panic("expected to find LastInjectedTxsSequence")
+		panic("expected to find LastConsensusTxsSequence")
 	}
 
 	newVal := val + 1
-	k.SetLastInjectedTxsSequence(ctx, newVal)
+	k.SetLastConsensusTxsSequence(ctx, newVal)
 
 	return newVal
 }
 
-// RemoveLastInjectedTxsSequence removes lastInjectedTxsSequence from the store
-func (k Keeper) RemoveLastInjectedTxsSequence(ctx context.Context) {
+// RemoveLastConsensusTxsSequence removes lastConsensusTxsSequence from the store
+func (k Keeper) RemoveLastConsensusTxsSequence(ctx context.Context) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.LastInjectedTxsSequenceKey)
+	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
 	store.Delete([]byte{0})
 }

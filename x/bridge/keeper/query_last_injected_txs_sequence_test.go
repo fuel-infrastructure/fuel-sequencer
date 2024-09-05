@@ -12,21 +12,21 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestQueryLastInjectedTxsSequence(t *testing.T) {
+func TestQueryLastConsensusTxsSequence(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := uint64(10)
 
-	keeper.SetLastInjectedTxsSequence(ctx, value)
+	keeper.SetLastConsensusTxsSequence(ctx, value)
 	tests := []struct {
 		desc     string
-		request  *types.QueryGetLastInjectedTxsSequenceRequest
-		response *types.QueryGetLastInjectedTxsSequenceResponse
+		request  *types.QueryGetLastConsensusTxsSequenceRequest
+		response *types.QueryGetLastConsensusTxsSequenceResponse
 		err      error
 	}{
 		{
 			desc:     "ValidRequest",
-			request:  &types.QueryGetLastInjectedTxsSequenceRequest{},
-			response: &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: value},
+			request:  &types.QueryGetLastConsensusTxsSequenceRequest{},
+			response: &types.QueryGetLastConsensusTxsSequenceResponse{Sequence: value},
 		},
 		{
 			desc: "InvalidRequest",
@@ -35,7 +35,7 @@ func TestQueryLastInjectedTxsSequence(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.LastInjectedTxsSequence(ctx, tc.request)
+			response, err := keeper.LastConsensusTxsSequence(ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {

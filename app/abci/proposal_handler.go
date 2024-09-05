@@ -456,7 +456,7 @@ func (h *FuelSequencerProposalHandler) generateTxSequences(
 	ctx context.Context,
 	isMsgSupplyDeltaHeight bool,
 ) (indexSequence, supplyDeltaSequence, firstEventTxsSequence uint64) {
-	nextSequence := h.bridgeKeeper.MustGetNextInjectedTxsSequence(ctx)
+	nextSequence := h.bridgeKeeper.MustGetNextConsensusTxsSequence(ctx)
 	if isMsgSupplyDeltaHeight {
 		return nextSequence, nextSequence + 1, nextSequence + 2
 	} else {
