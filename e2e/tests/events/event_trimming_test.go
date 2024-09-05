@@ -26,7 +26,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
-		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(0)
 		s.Require().NoError(err)
 		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
@@ -48,7 +48,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
-		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
+		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, 0)
 		s.Require().NoError(err)
 		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
 
@@ -114,7 +114,7 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
-		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(0)
 		s.Require().NoError(err)
 		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
@@ -136,7 +136,7 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
-		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
+		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, 0)
 		s.Require().NoError(err)
 		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
 

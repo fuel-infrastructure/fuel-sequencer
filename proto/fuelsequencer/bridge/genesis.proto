@@ -45,4 +45,13 @@ message GenesisState {
   // up with an Ethereum block.
   google.protobuf.Timestamp last_eth_block_update_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // last_injected_txs_nonce is the last nonce used in injected txs.
+  // In other words, the next nonce to be used is this value +1.
+  bytes last_injected_txs_nonce = 7 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }

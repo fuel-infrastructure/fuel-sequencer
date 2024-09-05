@@ -100,21 +100,26 @@ func (m *Event) Messages(cdc codec.BinaryCodec, authority string) ([]*codectypes
 }
 
 // RawTxBytes converts the event to a valid tx that can be injected into a block and produces a tx result.
-func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string) ([]byte, error) {
+func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string, sequence uint64) ([]byte, error) {
 
 	messages, err := m.Messages(cdc, authority)
 	if err != nil {
 		return nil, err
 	}
 
-	return utils.ValidRawTxBytesFromAnyMsgs(messages)
+	return utils.ValidRawTxBytesFromAnyMsgs(messages, sequence)
 }
 
 // RawTxBytesWithMaxBytes makes use of RawTxBytes with an additional size verification. This function will error if the
 // bytes returned from RawTxBytes exceed the specified max bytes.
-func (m *Event) RawTxBytesWithMaxBytes(cdc codec.BinaryCodec, authority string, maxBytes uint64) ([]byte, error) {
+func (m *Event) RawTxBytesWithMaxBytes(
+	cdc codec.BinaryCodec,
+	authority string,
+	maxBytes uint64,
+	sequence uint64,
+) ([]byte, error) {
 
-	bz, err := m.RawTxBytes(cdc, authority)
+	bz, err := m.RawTxBytes(cdc, authority, sequence)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +136,7 @@ func (m *Event) RawTxBytesWithMaxBytes(cdc codec.BinaryCodec, authority string, 
 // bytes exceed the specified maxBytes or if an Authorize event has more messages than the specified
 // maxAuthorizeMessages
 func (m *Event) RawTxBytesWithLimitChecks(
-	cdc codec.BinaryCodec, authority string, maxBytes, maxAuthorizeMessages uint64,
+	cdc codec.BinaryCodec, authority string, maxBytes, maxAuthorizeMessages, sequence uint64,
 ) ([]byte, error) {
 
 	if m.EventType == AuthorizeEventName {
@@ -147,5 +152,5 @@ func (m *Event) RawTxBytesWithLimitChecks(
 		}
 	}
 
-	return m.RawTxBytesWithMaxBytes(cdc, authority, maxBytes)
+	return m.RawTxBytesWithMaxBytes(cdc, authority, maxBytes, sequence)
 }

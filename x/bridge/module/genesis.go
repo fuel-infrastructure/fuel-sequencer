@@ -27,6 +27,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetLastEthereumNonce(ctx, genState.LastEthereumNonce)
 	k.SetLastEthereumBlockSynced(ctx, genState.LastEthereumBlockSynced)
 	k.SetEthereumEventIndexOffset(ctx, genState.EthereumEventIndexOffset)
+	k.SetLastInjectedTxsNonce(ctx, genState.LastInjectedTxsNonce)
 
 	// Only set the LastEthBlockUpdateTime if it is not a zero value, otherwise, we would construct a time in the future
 	if !genState.LastEthBlockUpdateTime.IsZero() {
@@ -61,10 +62,14 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.EthereumEventIndexOffset = ethereumEventIndexOffset
 	}
 
-	// Get all lastEthBlockUpdateTime
 	lastEthBlockUpdateTime, found := k.GetLastEthBlockUpdateTime(ctx)
 	if found {
 		genesis.LastEthBlockUpdateTime = lastEthBlockUpdateTime
+	}
+
+	lastInjectedTxsNonce, found := k.GetLastInjectedTxsNonce(ctx)
+	if found {
+		genesis.LastInjectedTxsNonce = lastInjectedTxsNonce
 	}
 
 	// this line is used by starport scaffolding # genesis/module/export

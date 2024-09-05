@@ -84,7 +84,7 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
 func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (int, error) {
 
-	msgIndexRawTxBytes, err := m.RawTxBytes()
+	msgIndexRawTxBytes, err := m.RawTxBytes(0) // dummy sequence used here
 	if err != nil {
 		return 0, err
 	}
@@ -194,14 +194,14 @@ func (m *MsgIndex) KeepEventsFromHead(
 }
 
 // RawTxBytes converts the message to a valid tx that can be injected into a block and produces a tx result.
-func (m *MsgIndex) RawTxBytes() ([]byte, error) {
+func (m *MsgIndex) RawTxBytes(sequence uint64) ([]byte, error) {
 
 	msgIndexAny, err := codectypes.NewAnyWithValue(m)
 	if err != nil {
 		return nil, err
 	}
 
-	msgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny})
+	msgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, sequence)
 	if err != nil {
 		return nil, err
 	}
@@ -238,19 +238,19 @@ func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 	return nil
 }
 
-// FromRawTxBytes extracts MsgIndex from raw transaction bytes.
-func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) error {
+// FromRawTxBytes extracts MsgIndex from raw transaction bytes and also returns the decoded transaction.
+func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) (tx sdk.Tx, err error) {
 
 	if m == nil {
-		return fmt.Errorf("expected non-nil MsgIndex receiver")
+		return nil, fmt.Errorf("expected non-nil MsgIndex receiver")
 	}
 
-	tx, err := decoder(bz)
+	tx, err = decoder(bz)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return m.FromSdkTx(tx)
+	return tx, m.FromSdkTx(tx)
 }
 
 // IsFullEthereumSyncing returns true if an Ethereum block was fully consumed by the Sequencer.

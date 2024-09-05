@@ -151,6 +151,42 @@ paths:
                       format: byte
       tags:
         - Fuel Sequencer Queries
+  /fuelsequencer/bridge/v1/last_injected_txs_nonce:
+    get:
+      summary: Queries the LastInjectedTxsNonce.
+      operationId: LastInjectedTxsNonce
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nonce:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Fuel Sequencer Queries
   /fuelsequencer/bridge/v1/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -30435,6 +30471,11 @@ definitions:
         type: string
         format: uint64
   fuelsequencer.bridge.v1.QueryGetLastEthereumNonceResponse:
+    type: object
+    properties:
+      nonce:
+        type: string
+  fuelsequencer.bridge.v1.QueryGetLastInjectedTxsNonceResponse:
     type: object
     properties:
       nonce:

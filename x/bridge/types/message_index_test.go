@@ -116,10 +116,10 @@ func TestMsgIndex_Equal(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			eventTxs1 := testtypes.MustGetEventTxsFromEvents(
-				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx1.Events,
+				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx1.Events, 0,
 			)
 			eventTxs2 := testtypes.MustGetEventTxsFromEvents(
-				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx2.Events,
+				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx2.Events, 0,
 			)
 
 			err := tc.eventTx1.MsgIndex.Equal(tc.eventTx2.MsgIndex, eventTxs1, eventTxs2)
@@ -232,11 +232,11 @@ func TestMsgIndex_ValidateBeforeProcessing(t *testing.T) {
 func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T) {
 
 	tx := testtypes.TestMsgIndex
-	txRawBytes, err := tx.RawTxBytes()
+	txRawBytes, err := tx.RawTxBytes(0)
 	require.NoError(t, err)
 
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, 0,
 	)
 	eventsSize := testtypes.MustGetSizeFromEvents(
 		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
@@ -256,11 +256,11 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 	msgIndex := testtypes.TestMsgIndex.MsgIndex
-	msgIndexRawBytes, err := msgIndex.RawTxBytes()
+	msgIndexRawBytes, err := msgIndex.RawTxBytes(0)
 	require.NoError(t, err)
 
 	events := testtypes.TestMsgIndex.Events
-	eventTxs := testtypes.MustGetEventTxsFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
+	eventTxs := testtypes.MustGetEventTxsFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events, 0)
 	eventsSize := testtypes.MustGetSizeFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
 
 	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize
@@ -315,7 +315,7 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, 0,
 	)
 
 	testCases := []struct {
@@ -406,7 +406,7 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 
 	eventTxs := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, 0,
 	)
 
 	testCases := []struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -82,6 +83,11 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 			return nil, err
 		}
 	}
+
+	// Increment the nonce by the number of injected event transactions, plus MsgIndex, plus MsgSupplyDelta
+	lastNonce := k.MustGetLastInjectedTxsNonce(ctx)
+	usedNonces := math.NewIntFromUint64(msg.NumInjectedEventTxs + 1 + supplyDeltaCount)
+	k.SetLastInjectedTxsNonce(ctx, lastNonce.Add(usedNonces))
 
 	return &types.MsgIndexResponse{}, nil
 }

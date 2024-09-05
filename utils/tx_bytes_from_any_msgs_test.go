@@ -71,7 +71,7 @@ func TestValidRawTxBytesFromAnyMsgs(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			bz, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys)
+			bz, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys, 0)
 			if tc.expErrMsgAtFunctionCall != "" {
 				require.ErrorContains(t, err, tc.expErrMsgAtFunctionCall)
 				return

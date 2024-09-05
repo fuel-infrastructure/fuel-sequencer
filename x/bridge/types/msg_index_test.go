@@ -21,11 +21,11 @@ func TestMsgIndex_FromSdkTx(t *testing.T) {
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1)),
 	}
 
-	testMsgIndexTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex})
-	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend})
-	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex, testMsgSend})
-	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgIndex})
-	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil)
+	testMsgIndexTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex}, 0)
+	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend}, 0)
+	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex, testMsgSend}, 0)
+	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgIndex}, 0)
+	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil, 0)
 
 	testCases := []struct {
 		name        string

@@ -42,11 +42,11 @@ func MustGetDepositMsgFromDepositEvent(
 
 // MustGetEventTxsFromEvents gets raw tx bytes from all the passed events, and panics otherwise.
 func MustGetEventTxsFromEvents(
-	cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event,
+	cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event, sequence uint64,
 ) (allRawTxBytes [][]byte) {
 
 	for _, event := range events {
-		rawTxBytes, err := event.RawTxBytes(cdc, authority)
+		rawTxBytes, err := event.RawTxBytes(cdc, authority, sequence)
 		if err != nil {
 			panic(err)
 		}
@@ -58,5 +58,5 @@ func MustGetEventTxsFromEvents(
 
 // MustGetSizeFromEvents gets the size of the raw tx bytes from all the passed events, and panics otherwise.
 func MustGetSizeFromEvents(cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event) int {
-	return int(utils.TxsSize(MustGetEventTxsFromEvents(cdc, authority, events)))
+	return int(utils.TxsSize(MustGetEventTxsFromEvents(cdc, authority, events, 0))) // dummy sequence used here
 }

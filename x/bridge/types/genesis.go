@@ -25,6 +25,7 @@ func DefaultGenesis() *GenesisState {
 		LastEthereumBlockSynced:  0,
 		EthereumEventIndexOffset: 0,
 		LastEthBlockUpdateTime:   time.Time{},
+		LastInjectedTxsNonce:     math.ZeroInt(),
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }
@@ -51,6 +52,10 @@ func (gs GenesisState) Validate() error {
 	}
 
 	if err := ValidateLastEthBlockUpdateTime(gs.LastEthBlockUpdateTime); err != nil {
+		return err
+	}
+
+	if err := ValidateLastInjectedTxsNonce(gs.LastInjectedTxsNonce); err != nil {
 		return err
 	}
 
@@ -97,6 +102,20 @@ func ValidateLastEthBlockUpdateTime(i interface{}) error {
 	_, ok := i.(time.Time)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
+// ValidateLastInjectedTxsNonce validates that the last injected txs nonce is non-negative.
+// The expected nonce should be 0 since a (+1) is always added to the nonce before it is used.
+func ValidateLastInjectedTxsNonce(i interface{}) error {
+	v, ok := i.(math.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNegative() {
+		return fmt.Errorf("expected LastInjectedTxsNonce >= 0, received %s", v.String())
 	}
 
 	return nil
