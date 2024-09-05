@@ -100,6 +100,7 @@ func (m *Event) Messages(cdc codec.BinaryCodec, authority string) ([]*codectypes
 }
 
 // RawTxBytes converts the event to a valid tx that can be injected into a block and produces a tx result.
+// The sequence, presumed to be unique, ensures that the generated tx is unique and thus has a unique tx hash.
 func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string, sequence uint64) ([]byte, error) {
 
 	messages, err := m.Messages(cdc, authority)
