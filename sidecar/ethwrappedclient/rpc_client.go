@@ -2,6 +2,7 @@ package ethwrappedclient
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -147,7 +148,8 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 
 			// Add deposit event to fund the sender
 			depositEvent := sidecartypes.DepositEvent{
-				// Sequencer: spoil bulb globe demise post sock pull win grape current angle lonely key need eager pact finger apart matrix apart gentle strategy zebra vital
+				// Sequencer: spoil bulb globe demise post sock pull win grape current angle lonely key need eager pact
+				// finger apart matrix apart gentle strategy zebra vital
 				Depositor: "0x3790fec0e306eabe809f871ab64e63acf1d9f490",
 				Recipient: "0x3790fec0e306eabe809f871ab64e63acf1d9f490",
 				Amount:    strconv.FormatInt(ec.testNoOfMsgSends, 10),
@@ -166,8 +168,42 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 				},
 			}
 
-			// Create testNoOfMsgSends MsgSend of 1utest token
-			// TODO: Add for loop which creates a bunch of authorized msg sends
+			// Create testNoOfMsgSends of authorized MsgSends of 1utest tokens
+			for j := int64(0); j < ec.testNoOfMsgSends; j++ {
+
+				// Properly encode the event data
+				eventDataStr := "0a84010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412640a2a307833373" +
+					"930666563306533303665616265383039663837316162363465363361636631643966343930122a3078363132373534" +
+					"303464633435316330336637343763333666346165343639373861343734656362651a0a0a057574657374120131"
+				eventData, err := hex.DecodeString(eventDataStr)
+				if err != nil {
+					return nil, nil, fmt.Errorf("failed to generate authorize event: %s", err.Error())
+				}
+
+				// Create authorize event with MsgSend
+				authorizeEvent := sidecartypes.AuthorizeEvent{
+					// Sequencer: spoil bulb globe demise post sock pull win grape current angle lonely key need eager
+					// pact finger apart matrix apart gentle strategy zebra vital
+					Sender: "0x3790fec0e306eabe809f871ab64e63acf1d9f490",
+
+					// protobuf encoded MsgSend of 1utest from Sender to
+					// fuelsequencer1vyn4gpxug5wq8a68cdh54erf0zj8fm97djf43u
+					// Sequencer: ask glide camp reveal best treat execute term win laptop laundry same place dance
+					// skull regret crash boss arrange purity obey happy job kiwi
+					Data: eventData,
+				}
+				data, err := authorizeEvent.Marshal()
+				if err != nil {
+					return nil, nil, fmt.Errorf("failed to generate authorize event: %s", err.Error())
+				}
+
+				// Append event to list
+				eventsMap[i] = append(eventsMap[i], sidecartypes.Event{
+					EventType:       sidecartypes.AuthorizeEventName,
+					ContractAddress: ec.contractAddress.Hex(),
+					Data:            data,
+				})
+			}
 
 			ec.logger.Info("generated events to block",
 				zap.Uint64("block", i),
