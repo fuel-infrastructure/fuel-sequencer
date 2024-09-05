@@ -32,7 +32,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
-	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx(2) // MsgSupplyDelta gets the sequence MsgIndex (1) plus 1
+	msgIndexSequence := uint64(1)
+	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx(msgIndexSequence + 1)
 
 	totalTxsBytesWithEventsAndSupplyDelta := utils.TxsSize(
 		append(
@@ -948,7 +949,8 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
-	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx(2) // MsgSupplyDelta gets the sequence MsgIndex (1) plus 1
+	msgIndexSequence := uint64(1)
+	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx(msgIndexSequence + 1)
 
 	validTxsWithEvents := append(
 		encodedMsgIndexWithEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
