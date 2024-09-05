@@ -123,7 +123,7 @@ make run-docker-container \
   COMMAND="fuelsequencerd start"
 ```
 
-> Note that the Ethereum node URLs need to be set explicitly since it does not make sense to default to `localhost` in the scope of a Docker container. If your Ethereum node is running on `localhost` you will need to specify your host's IP as the Ethereum address. If that does not work, you might need to reconfigure your host firewall to allow Docker to connect 8545.
+> Note that the Ethereum node URLs need to be set explicitly since it does not make sense to default to `localhost` in the scope of a Docker container. If your Ethereum node is running on `localhost` you will need to specify your host's IP as the Ethereum address. If that does not work, you might need to reconfigure your host firewall to allow Docker to connect on 8545.
 
 The command above will do the following:
 
