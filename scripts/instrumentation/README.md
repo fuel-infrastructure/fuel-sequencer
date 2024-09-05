@@ -25,9 +25,10 @@ If you want to whitelist Docker containers in UFW (Uncomplicated Firewall) on Li
 
 ## First time running
 
-- Run the Sidecar at http://localhost:8080 (or reconfigure `prometheus.yml` accordingly).
+- Run the Sidecar with Prometheus enabled at http://localhost:8081 (or reconfigure `prometheus.yml` accordingly).
 - `docker-compose up -d`.
-- Go to http://localhost:3000 and login with username `admin` and password `admin`.
+- Go to http://localhost:9000/targets (Prometheus) and ensure that the Sidecar metrics are being successfully scraped.
+- Go to http://localhost:3000 (Grafana) and login with username `admin` and password `admin`.
 - Go to http://localhost:3000/connections/datasources/new and add a Prometheus data source with URL http://prometheus:9090 and scrape interval set to **1s**, for finer grain data.
 - Go to http://localhost:3000/dashboard/new and import the `dashboard.json` file included here.
 
