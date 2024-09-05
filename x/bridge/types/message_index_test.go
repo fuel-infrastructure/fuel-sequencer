@@ -14,6 +14,8 @@ import (
 func TestMsgIndex_Equal(t *testing.T) {
 	var nilMsgIndex *types.MsgIndex = nil
 
+	firstEventTxsSequence := uint64(1)
+
 	testCases := []struct {
 		name          string
 		eventTx1      *testtypes.TestMsgIndexWithEvents
@@ -116,10 +118,10 @@ func TestMsgIndex_Equal(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			eventTxs1 := testtypes.MustGetEventTxsFromEvents(
-				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx1.Events, 0,
+				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx1.Events, firstEventTxsSequence,
 			)
 			eventTxs2 := testtypes.MustGetEventTxsFromEvents(
-				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx2.Events, 0,
+				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx2.Events, firstEventTxsSequence,
 			)
 
 			err := tc.eventTx1.MsgIndex.Equal(tc.eventTx2.MsgIndex, eventTxs1, eventTxs2)
@@ -231,37 +233,43 @@ func TestMsgIndex_ValidateBeforeProcessing(t *testing.T) {
 
 func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T) {
 
+	msgIndexSequence := uint64(1)
 	tx := testtypes.TestMsgIndex
-	txRawBytes, err := tx.RawTxBytes(0)
+	txRawBytes, err := tx.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
 
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, 0,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 	eventsSize := testtypes.MustGetSizeFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 
 	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize
 
-	numEvents, err := tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize))
+	numEvents, err := tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, numEvents) // just enough bytes
 
-	numEvents, err = tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1))
+	numEvents, err = tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, numEvents) // just under enough
 }
 
 func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
+	msgIndexSequence := uint64(1)
 	msgIndex := testtypes.TestMsgIndex.MsgIndex
-	msgIndexRawBytes, err := msgIndex.RawTxBytes(0)
+	msgIndexRawBytes, err := msgIndex.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
 
 	events := testtypes.TestMsgIndex.Events
-	eventTxs := testtypes.MustGetEventTxsFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events, 0)
-	eventsSize := testtypes.MustGetSizeFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
+	eventTxs := testtypes.MustGetEventTxsFromEvents(
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
+	)
+	eventsSize := testtypes.MustGetSizeFromEvents(
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
+	)
 
 	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize
 
@@ -300,7 +308,7 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			numOfEvents, err := tc.eventTx.NumberOfEventsWithMaxBytes(eventTxs, tc.maxBytes)
+			numOfEvents, err := tc.eventTx.NumberOfEventsWithMaxBytes(eventTxs, tc.maxBytes, msgIndexSequence)
 
 			if tc.expErrMsg != "" {
 				require.ErrorContains(t, err, tc.expErrMsg)
@@ -314,8 +322,9 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 
+	firstEventTxsSequence := uint64(1)
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, 0,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, firstEventTxsSequence,
 	)
 
 	testCases := []struct {

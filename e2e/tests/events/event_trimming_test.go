@@ -26,7 +26,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
-		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(0)
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(1)
 		s.Require().NoError(err)
 		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
@@ -114,7 +114,7 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
-		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(0)
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(1)
 		s.Require().NoError(err)
 		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 

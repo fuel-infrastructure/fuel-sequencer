@@ -77,7 +77,7 @@ func (s *AppTestSuite) CreateEncodedDummyTxs(amount uint64, gasLimit uint64) [][
 }
 
 // EncodeMsgSupplyDeltaTx is a helper that encodes a sdk.Tx containing MsgSupplyDelta to bytes
-func (s *AppTestSuite) EncodeMsgSupplyDeltaTx() []byte {
+func (s *AppTestSuite) EncodeMsgSupplyDeltaTx(sequence uint64) []byte {
 
 	// Construct Any from message.
 	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(&bridgetypes.MsgSupplyDelta{
@@ -97,6 +97,9 @@ func (s *AppTestSuite) EncodeMsgSupplyDeltaTx() []byte {
 
 	// Construct Auth Info with Fee to avoid nil pointer panics.
 	authInfoBz, err := proto.Marshal(&txtypes.AuthInfo{
+		SignerInfos: []*txtypes.SignerInfo{
+			{Sequence: sequence},
+		},
 		Fee: &txtypes.Fee{
 			GasLimit: 0,
 		},
@@ -118,20 +121,42 @@ func (s *AppTestSuite) EncodeMsgSupplyDeltaTx() []byte {
 	return txRawBz
 }
 
-// EncodeMsgIndexWithEvents is a helper to encode MsgIndex to bytes
-func (s *AppTestSuite) EncodeMsgIndexWithEvents(tx *types.TestMsgIndexWithEvents) (txs [][]byte) {
-	msgIndexBz, err := tx.MsgIndex.RawTxBytes(0)
+// GetMsgIndexWithEventsEncoder wraps EncodeMsgIndexWithEvents to allow postponing the encoding until we know whether
+// it's a MsgSupplyDelta height.
+func (s *AppTestSuite) GetMsgIndexWithEventsEncoder(tx *types.TestMsgIndexWithEvents) (
+	encoder func(isMsgSupplyDeltaHeight bool) (txs [][]byte),
+) {
+	return func(isMsgSupplyDeltaHeight bool) (txs [][]byte) {
+		return s.EncodeMsgIndexWithEvents(tx, isMsgSupplyDeltaHeight)
+	}
+}
+
+// EncodeMsgIndexWithEvents is a helper to encode MsgIndex and a set of events to transaction bytes. Each tx is assigned
+// a unique sequence starting from 1 and if it's a MsgSupplyDelta height then the event txs sequence is offset by 1.
+func (s *AppTestSuite) EncodeMsgIndexWithEvents(
+	tx *types.TestMsgIndexWithEvents,
+	isSupplyDeltaHeight bool,
+) (txs [][]byte) {
+	sequence := uint64(1)
+
+	msgIndexBz, err := tx.MsgIndex.RawTxBytes(sequence)
 	if err != nil {
 		panic(err)
 	}
 	txs = append(txs, msgIndexBz)
+	sequence += 1 // sequence consumed by MsgIndex transaction
+
+	if isSupplyDeltaHeight {
+		sequence += 1 // sequence consumed by MsgSupplyDelta transaction
+	}
 
 	for _, event := range tx.Events {
-		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority(), 0)
+		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority(), sequence)
 		if err != nil {
 			panic(fmt.Sprintf("could not get raw tx bytes from event: %s", event.String()))
 		}
 		txs = append(txs, eventTx)
+		sequence += 1
 	}
 
 	return

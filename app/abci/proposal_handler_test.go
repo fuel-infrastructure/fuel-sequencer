@@ -27,18 +27,18 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	totalTxsGas := int64(3000)
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
-	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
-	encodedMsgIndexWithFourEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithFourEvents)
-	encodedMsgIndexPartialBlock := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexPartial)
-	encodedMsgIndexPartialBlockWith3Events := s.EncodeMsgIndexWithEvents(testtypes.TestMsgIndexPartial2)
-	encodedMsgIndexWithoutEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithoutEvents)
-	encodedMsgIndexSidecarErr := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexSidecarErr)
+	encodedMsgIndexWithEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndex)
+	encodedMsgIndexWithFourEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithFourEvents)
+	encodedMsgIndexPartialBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexPartial)
+	encodedMsgIndexPartialBlockWith3Events := s.GetMsgIndexWithEventsEncoder(testtypes.TestMsgIndexPartial2)
+	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
-	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
+	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx(2) // MsgSupplyDelta gets the sequence MsgIndex (1) plus 1
 
 	totalTxsBytesWithEventsAndSupplyDelta := utils.TxsSize(
 		append(
-			encodedMsgIndexWithEvents,
+			encodedMsgIndexWithEvents(true),
 			msgSupplyDeltaTx,
 			encodedDummyTxs[0],
 			encodedDummyTxs[1],
@@ -47,13 +47,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	)
 	totalTxsBytesWithFourEventsAndSupplyDeltaOnly := utils.TxsSize(
 		append(
-			encodedMsgIndexWithFourEvents,
+			encodedMsgIndexWithFourEvents(true),
 			msgSupplyDeltaTx,
 		),
 	)
 	totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs := utils.TxsSize(
 		append(
-			encodedMsgIndexWithEvents,
+			encodedMsgIndexWithEvents(true),
 			msgSupplyDeltaTx,
 			encodedDummyTxs[0],
 			encodedDummyTxs[1],
@@ -103,7 +103,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithEvents,
+					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
@@ -130,7 +130,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+				Txs: append(
+					encodedMsgIndexWithEvents(false),
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
 			},
 		},
 		{
@@ -153,7 +158,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithoutEvents,
+					encodedMsgIndexWithoutEvents(false),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
@@ -180,7 +185,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexSidecarErr,
+					encodedMsgIndexSidecarErr(false),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
@@ -199,7 +204,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				// since the generated MsgIndex will have NewEthereumBlock set to true at first until the proposer
 				// updates it. When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume
 				// anything.
-				MaxTxBytes: int64(utils.TxsSize(encodedMsgIndexPartialBlock)) + 2,
+				MaxTxBytes: int64(utils.TxsSize(encodedMsgIndexPartialBlock(false))) + 2,
 
 				Txs:    encodedDummyTxs,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
@@ -215,7 +220,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
 
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: encodedMsgIndexPartialBlock, // partial MsgIndex tx
+				Txs: encodedMsgIndexPartialBlock(false), // partial MsgIndex tx
 			},
 		},
 		{
@@ -357,7 +362,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to EXACTLY the size of MsgSupplyDelta transaction plus MsgIndex
-				MaxTxBytes: int64(utils.TxsSize(append(encodedMsgIndexWithEvents, msgSupplyDeltaTx))),
+				MaxTxBytes: int64(utils.TxsSize(append(encodedMsgIndexWithEvents(true), msgSupplyDeltaTx))),
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
@@ -371,7 +376,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
 
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx),
+				Txs: append(encodedMsgIndexWithEvents(true), msgSupplyDeltaTx),
 			},
 		},
 		{
@@ -397,7 +402,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
 
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
+				Txs: append(
+					encodedMsgIndexWithEvents(true),
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+				),
 			},
 		},
 		{
@@ -419,7 +429,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1]),
+				Txs: append(
+					encodedMsgIndexWithEvents(true),
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+				),
 			},
 		},
 		{
@@ -483,7 +498,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+				Txs: append(
+					encodedMsgIndexWithoutEvents(false),
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
 			},
 		},
 		{
@@ -525,7 +545,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+				Txs: append(
+					encodedMsgIndexWithoutEvents(false),
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
 			},
 		},
 		{
@@ -547,7 +572,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			maxAuthorizeMessages:         0, // Only empty Authorize txs are allowed
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2]),
+				Txs: append(
+					encodedMsgIndexWithoutEvents(false),
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
 			},
 		},
 		{
@@ -583,7 +613,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			)),
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithEvents,
+					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
@@ -636,7 +666,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexPartialBlockWith3Events,
+					encodedMsgIndexPartialBlockWith3Events(true),
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
@@ -680,7 +710,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithEvents,
+					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
@@ -733,7 +763,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithFourEvents,
+					encodedMsgIndexWithFourEvents(true),
 					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 				),
@@ -813,7 +843,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			}
 			s.Require().NoError(err)
 
-			s.Require().Equal(tc.expRes, res)
+			s.Require().Equal(tc.expRes, res, fmt.Sprintf("{%X}\n!=\n{%X}", tc.expRes, res))
 		})
 	}
 }
@@ -910,39 +940,40 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
 
-	encodedMsgIndexWithEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndex)
-	encodedMsgIndexWithDifferentEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithDifferentEvents)
-	encodedMsgIndexPartialBlock := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexPartial)
-	encodedMsgIndexWithEventsReduced := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexReduced)
-	encodedMsgIndexWithoutEvents := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexWithoutEvents)
-	encodedMsgIndexSidecarErr := s.EncodeMsgIndexWithEvents(&testtypes.TestMsgIndexSidecarErr)
+	encodedMsgIndexWithEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndex)
+	encodedMsgIndexWithDifferentEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithDifferentEvents)
+	encodedMsgIndexPartialBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexPartial)
+	encodedMsgIndexWithEventsReduced := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexReduced)
+	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
-	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
+	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx(2) // MsgSupplyDelta gets the sequence MsgIndex (1) plus 1
 
 	validTxsWithEvents := append(
-		encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithEventsWithMissingSupplyDelta := append(
-		encodedMsgIndexWithEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEvents(true), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		// Note: tx sequences will still be set as if MsgSupplyDelta was there.
 	)
 	validTxsWithDifferentEvents := append(
-		encodedMsgIndexWithDifferentEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithDifferentEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsPartialBlock := encodedMsgIndexPartialBlock
 	validTxsWithEventsReduced := append(
-		encodedMsgIndexWithEventsReduced, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEventsReduced(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithEventsAndSupplyDelta := append(
-		encodedMsgIndexWithEvents, msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithEvents(true), msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithoutEvents := append(
-		encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithoutEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsSidecarErr := append(
-		encodedMsgIndexSidecarErr, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexSidecarErr(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithLargeAuthorizeSkipped := append(
-		encodedMsgIndexWithoutEvents, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		encodedMsgIndexWithoutEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 
 	four := uint64(4)
@@ -1012,7 +1043,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error:    nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsPartialBlock,
+				Txs:    validTxsPartialBlock(false),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,

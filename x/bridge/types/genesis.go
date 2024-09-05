@@ -107,15 +107,11 @@ func ValidateLastEthBlockUpdateTime(i interface{}) error {
 	return nil
 }
 
-// ValidateLastInjectedTxsSequence validates that the last injected txs sequence is non-negative.
-// The expected sequence should be 0 since a (+1) is always added to the sequence before it is used.
+// ValidateLastInjectedTxsSequence validates that the last injected txs sequence is uint64.
 func ValidateLastInjectedTxsSequence(i interface{}) error {
-	v, ok := i.(math.Int)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v.IsNegative() {
-		return fmt.Errorf("expected LastInjectedTxsSequence >= 0, received %s", v.String())
 	}
 
 	return nil
