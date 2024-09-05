@@ -110,8 +110,8 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 	// A typical MsgIndex sequence is always 1 or greater
 	msgIndexSequence := uint64(1)
 
-	tx := testtypes.TestMsgIndex
-	txRawBytes, err := tx.RawTxBytes(msgIndexSequence)
+	msgIndexTx := testtypes.TestMsgIndex
+	txRawBytes, err := msgIndexTx.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
 
 	events := testtypes.MustGetEventTxsFromEvents(
@@ -123,11 +123,11 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 
 	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize
 
-	numEvents, err := tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize), msgIndexSequence)
+	numEvents, err := msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, numEvents) // just enough bytes
 
-	numEvents, err = tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1), msgIndexSequence)
+	numEvents, err = msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, numEvents) // just under enough
 }
