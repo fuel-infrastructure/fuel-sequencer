@@ -406,8 +406,8 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			err = tc.expEventTx.Equal(&tc.eventTx, tc.expEvents, trimmedEvents)
-			require.NoError(t, err)
+			require.Equal(t, tc.expEventTx, tc.eventTx)
+			require.True(t, utils.IsEqualBytesSlices(tc.expEvents, trimmedEvents))
 		})
 	}
 }
@@ -507,8 +507,8 @@ func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 			lenAfter := len(trimmedEvents)
 			require.EqualValues(t, tc.expTrimmed, lenBefore-lenAfter)
 
-			err = tc.expEventTx.Equal(&tc.eventTx, tc.expEvents, trimmedEvents)
-			require.NoError(t, err)
+			require.Equal(t, tc.expEventTx, tc.eventTx)
+			require.True(t, utils.IsEqualBytesSlices(tc.expEvents, trimmedEvents))
 		})
 	}
 }

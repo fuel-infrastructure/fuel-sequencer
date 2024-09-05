@@ -944,6 +944,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	encodedMsgIndexWithDifferentEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithDifferentEvents)
 	encodedMsgIndexPartialBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexPartial)
 	encodedMsgIndexWithEventsReduced := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexReduced)
+	encodedMsgIndexWithIncorrectAuthority := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexIncorrectAuthority)
+	encodedMsgIndexWithNoNewEthBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithNoNewEthBlock)
+	encodedMsgIndexWithDiffBlockNumber := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithDiffBlockNumber)
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
@@ -959,9 +962,18 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	validTxsWithDifferentEvents := append(
 		encodedMsgIndexWithDifferentEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
-	validTxsPartialBlock := encodedMsgIndexPartialBlock
+	validTxsPartialBlock := encodedMsgIndexPartialBlock(false)
 	validTxsWithEventsReduced := append(
 		encodedMsgIndexWithEventsReduced(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+	)
+	validTxsWithIncorrectAuthority := append(
+		encodedMsgIndexWithIncorrectAuthority(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+	)
+	validTxsWithNoNewEthBlock := append(
+		encodedMsgIndexWithNoNewEthBlock(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+	)
+	validTxsWithDiffBlockNumber := append(
+		encodedMsgIndexWithDiffBlockNumber(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
 	validTxsWithEventsAndSupplyDelta := append(
 		encodedMsgIndexWithEvents(true), msgSupplyDeltaTx, encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
@@ -1043,7 +1055,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Error:    nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsPartialBlock(false),
+				Txs:    validTxsPartialBlock,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1277,10 +1289,8 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: `generated injected txs do not match the ones from the block proposal ` +
-				`(injected MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:3 new_ethereum_block:true block_number:1 ) ` +
-				`(generated MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:3 new_ethereum_block:true block_number:1 ): ` +
-				`event transactions are not equal`,
+			expErrMsg: "generated event txs do not match the ones from the block proposal " +
+				"(num_injected: 3) (num_generated: 3)",
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
@@ -1340,8 +1350,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expErrMsg:                    "insufficient no of events, expected at least 3 got 2",
 		},
 		{
-			name: "returns error if generated MsgIndex not equal to block proposer's " +
-				"(validators got more events than the proposer)",
+			name:                      "errors if generated MsgIndex not equal to proposer's (num event txs mismatch)",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -1356,10 +1365,69 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: `generated injected txs do not match the ones from the block proposal ` +
-				`(injected MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:2 new_ethereum_block:true block_number:1 ) ` +
-				`(generated MsgIndex: authority:"fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3" num_injected_event_txs:2 block_number:1 ): ` +
-				`new Ethereum block (true) != (false)`,
+			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+				"(injected: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310021801200112060A0218011200) " +
+				"(generated: 0A610A5F0A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123A0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B331002200112060A0218011200)",
+		},
+		{
+			name:                      "errors if generated MsgIndex not equal to proposer's (authority mismatch)",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsWithIncorrectAuthority,
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+				"(injected: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572317738726B326D6B3834777974707878376C6436336B6171706B686D6433396D3035786C67743410031801200112060A0218011200) " +
+				"(generated: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801200112060A0218011200)",
+		},
+		{
+			name:                      "errors if generated MsgIndex not equal to proposer's (new eth block mismatch)",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsWithNoNewEthBlock,
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+				"(injected: 0A610A5F0A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123A0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B331003200112060A0218011200) " +
+				"(generated: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801200112060A0218011200)",
+		},
+		{
+			name:                      "errors if generated MsgIndex not equal to proposer's (block number mismatch)",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestProcessProposal: &abcitypes.RequestProcessProposal{
+				Txs:    validTxsWithDiffBlockNumber,
+				Height: 1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+			expErrMsg: "generated MsgIndex tx does not match the one from the block proposal " +
+				"(injected: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801206412060A0218011200) " +
+				"(generated: 0A630A610A212F6675656C73657175656E6365722E6272696467652E76312E4D7367496E646578123C0A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3310031801200112060A0218011200)",
 		},
 		{
 			name:                      "returns error if block exceeds MaxBlockGas",

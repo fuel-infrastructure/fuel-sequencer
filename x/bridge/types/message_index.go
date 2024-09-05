@@ -26,29 +26,6 @@ func (*MsgIndex) ValidateBasic() error {
 	return nil
 }
 
-// Equal compares two MsgIndex structs and two sets of event transactions for equality
-func (m *MsgIndex) Equal(e *MsgIndex, eventTxs1 [][]byte, eventTxs2 [][]byte) error {
-	// If both structs are nil then they are equal
-	if m == nil && e == nil {
-		return nil
-	}
-
-	if m == nil || e == nil {
-		return fmt.Errorf("nil (%t) != (%t)", m == nil, e == nil)
-	} else if m.Authority != e.Authority {
-		return fmt.Errorf("authority (%s) != (%s)", m.Authority, e.Authority)
-	} else if m.NumInjectedEventTxs != e.NumInjectedEventTxs {
-		return fmt.Errorf("number of injected event txs (%d) != (%d)", m.NumInjectedEventTxs, e.NumInjectedEventTxs)
-	} else if m.NewEthereumBlock != e.NewEthereumBlock {
-		return fmt.Errorf("new Ethereum block (%t) != (%t)", m.NewEthereumBlock, e.NewEthereumBlock)
-	} else if m.BlockNumber != e.BlockNumber {
-		return fmt.Errorf("block number (%d) != (%d)", m.BlockNumber, e.BlockNumber)
-	} else if !utils.IsEqualBytesSlices(eventTxs1, eventTxs2) {
-		return fmt.Errorf("event transactions are not equal")
-	}
-	return nil
-}
-
 // ValidateBeforeProcessing performs some state-based checks on MsgIndex before it is officially processed.
 func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset uint64) error {
 

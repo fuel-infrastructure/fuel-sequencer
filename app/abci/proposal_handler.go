@@ -408,17 +408,20 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Check that MsgIndex was injected correctly
-		err = h.verifyInjectedMsgIndexTx(
-			req.Txs[0], indexSequence, &injectedMsgIndex, msgIndex, injectedEventTxs, eventTxs,
-		)
+		err = h.verifyInjectedMsgIndexTx(req.Txs[0], indexSequence, msgIndex)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to verify injected MsgIndexTx: %w", err,
 			)
 		}
 
-		// Probably the msg verification will be extra if we do byte-wise comparison.
-		// TODO: E2E test - tx hash of MsgSupplyDelta tx should be unique
+		// Check that event transactions were injected correctly
+		err = h.verifyInjectedEventTxs(injectedEventTxs, eventTxs)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to verify injected MsgIndexTx: %w", err,
+			)
+		}
 
 		// Check that MsgSupplyDelta was injected correctly if expected
 		if expectMsgSupplyDelta {
@@ -628,37 +631,32 @@ func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx(sequence uint64)
 func (h *FuelSequencerProposalHandler) verifyInjectedMsgIndexTx(
 	injectedMsgIndexTx []byte,
 	expectedSequence uint64,
-	injectedMsgIndex *bridgetypes.MsgIndex,
 	generatedMsgIndex *bridgetypes.MsgIndex,
-	injectedEventTxs [][]byte,
-	generatedEventTxs [][]byte,
 ) error {
 
-	// Error if injected MsgIndex does not match the one generated during verification.
-	// Comparing the injected and generated MsgIndex in depth gives us more meaningful errors.
-	err := injectedMsgIndex.Equal(generatedMsgIndex, injectedEventTxs, generatedEventTxs)
-	if err != nil {
-		return fmt.Errorf(
-			"generated injected txs do not match the ones from the block proposal "+
-				"(injected MsgIndex: %s) (generated MsgIndex: %s): %w",
-			injectedMsgIndex.String(), generatedMsgIndex.String(), err,
-		)
-	}
-
-	// Error if injected MsgIndex tx does not match the one generated during verification.
-	// We do this by comparing the injected and generated MsgIndex transactions byte-wise.
 	generatedMsgIndexTx, err := generatedMsgIndex.RawTxBytes(expectedSequence)
 	if err != nil {
 		return fmt.Errorf("failed to encode MsgIndex: %w", err)
 	}
+
 	if !bytes.Equal(injectedMsgIndexTx, generatedMsgIndexTx) {
 		return fmt.Errorf(
-			"generated MsgIndex tx does not match the one from the block proposal "+
-				"(injected MsgIndex: %X) (generated MsgIndex: %X)",
+			"generated MsgIndex tx does not match the one from the block proposal (injected: %X) (generated: %X)",
 			injectedMsgIndexTx, generatedMsgIndexTx,
 		)
 	}
+	return nil
+}
 
+// verifyInjectedEventTxs is used by ProcessProposal to check whether the event transactions were injected properly.
+// The length of the event transactions is included in the error since it might be useful to have during debugging.
+func (h *FuelSequencerProposalHandler) verifyInjectedEventTxs(injected, generated [][]byte) error {
+	if !utils.IsEqualBytesSlices(injected, generated) {
+		return fmt.Errorf(
+			"generated event txs do not match the ones from the block proposal (num_injected: %d) (num_generated: %d)",
+			len(injected), len(generated),
+		)
+	}
 	return nil
 }
 
