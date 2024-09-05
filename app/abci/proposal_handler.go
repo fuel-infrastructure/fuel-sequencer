@@ -649,12 +649,19 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgIndexTx(
 }
 
 // verifyInjectedEventTxs is used by ProcessProposal to check whether the event transactions were injected properly.
-// The length of the event transactions is included in the error since it might be useful to have during debugging.
+// Additional details about the event transactions is included in the error since this might be useful during debugging.
 func (h *FuelSequencerProposalHandler) verifyInjectedEventTxs(injected, generated [][]byte) error {
+
+	if len(injected) != len(generated) {
+		return fmt.Errorf(
+			"generated event txs do not match those from the proposal (num_injected: %d) (num_generated: %d)",
+			len(injected), len(generated),
+		)
+	}
 	if !utils.IsEqualBytesSlices(injected, generated) {
 		return fmt.Errorf(
-			"generated event txs do not match the ones from the block proposal (num_injected: %d) (num_generated: %d)",
-			len(injected), len(generated),
+			"generated event txs do not match those from the proposal (size(injected): %d) (size(generated): %d)",
+			utils.TxsSize(injected), utils.TxsSize(generated),
 		)
 	}
 	return nil
