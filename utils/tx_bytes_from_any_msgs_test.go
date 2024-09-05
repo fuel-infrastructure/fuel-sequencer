@@ -14,7 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidRawTxBytesFromAnyMsgs(t *testing.T) {
+func TestValidRawTxBytesFromAnyMsgs_CorrectEncoding(t *testing.T) {
+
+	sequence := uint64(1) // arbitrary
 
 	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(testutiltypes.TestMsgSupplyDelta)
 	require.NoError(t, err)
@@ -71,7 +73,7 @@ func TestValidRawTxBytesFromAnyMsgs(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			bz, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys, 0)
+			bz, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys, sequence)
 			if tc.expErrMsgAtFunctionCall != "" {
 				require.ErrorContains(t, err, tc.expErrMsgAtFunctionCall)
 				return
@@ -100,6 +102,64 @@ func TestValidRawTxBytesFromAnyMsgs(t *testing.T) {
 				require.NoError(t, err)
 				require.EqualValues(t, tc.msgAnys[i], msgAny)
 			}
+		})
+	}
+}
+
+func TestValidRawTxBytesFromAnyMsgs_UniquenessOfSequence(t *testing.T) {
+
+	sequence := uint64(1) // arbitrary
+
+	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(testutiltypes.TestMsgSupplyDelta)
+	require.NoError(t, err)
+
+	msgIndexAny, err := codectypes.NewAnyWithValue(testutiltypes.TestMsgIndex.MsgIndex)
+	require.NoError(t, err)
+
+	msgDepositFromEthereumAny, err := codectypes.NewAnyWithValue(testutiltypes.TestMsgDepositFromEthereum)
+	require.NoError(t, err)
+
+	msgSendAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{
+		FromAddress: testutiltypes.TestFrom1,
+		ToAddress:   testutiltypes.TestTo1,
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1)),
+	})
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name    string
+		msgAnys []*codectypes.Any
+	}{
+		{
+			name:    "MsgSupplyDelta can be used",
+			msgAnys: []*codectypes.Any{msgSupplyDeltaAny},
+		},
+		{
+			name:    "MsgIndex can be used",
+			msgAnys: []*codectypes.Any{msgIndexAny},
+		},
+		{
+			name:    "MsgDepositFromEthereum can be used",
+			msgAnys: []*codectypes.Any{msgDepositFromEthereumAny},
+		},
+		{
+			name:    "MsgSend can be used",
+			msgAnys: []*codectypes.Any{msgSendAny},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			bz, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys, sequence)
+			require.NoError(t, err)
+			bzDiffSequence1, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys, sequence+1)
+			require.NoError(t, err)
+			bzDiffSequence2, err := utils.ValidRawTxBytesFromAnyMsgs(tc.msgAnys, sequence-1)
+			require.NoError(t, err)
+
+			require.NotEqual(t, bz, bzDiffSequence1)
+			require.NotEqual(t, bz, bzDiffSequence2)
 		})
 	}
 }
