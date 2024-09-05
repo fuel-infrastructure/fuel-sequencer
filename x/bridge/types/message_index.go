@@ -59,6 +59,7 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
+// The sequence ensures that size calculations are consistent with that of the final MsgIndex transaction in the block.
 func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes, sequence uint64) (int, error) {
 
 	msgIndexRawTxBytes, err := m.RawTxBytes(sequence)
@@ -171,6 +172,7 @@ func (m *MsgIndex) KeepEventsFromHead(
 }
 
 // RawTxBytes converts the message to a valid tx that can be injected into a block and produces a tx result.
+// The sequence, presumed to be unique, ensures that the generated tx is unique and thus has a unique tx hash.
 func (m *MsgIndex) RawTxBytes(sequence uint64) ([]byte, error) {
 
 	msgIndexAny, err := codectypes.NewAnyWithValue(m)
