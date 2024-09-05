@@ -4,10 +4,13 @@ package ethwrappedclient
 
 import (
 	"github.com/go-kit/kit/metrics/discard"
-	prometheus "github.com/go-kit/kit/metrics/prometheus"
+	"github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
+// PrometheusMetrics returns the set of metrics exposed by this subsystem. Each metric is registered in the global
+// Prometheus metrics registry, i.e. the metrics shows up on the metrics page, if the NewXFrom constructor is used.
+// Ref: https://pkg.go.dev/github.com/go-kit/kit/metrics/prometheus
 func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 	labels := []string{}
 	for i := 0; i < len(labelsAndValues); i += 2 {
