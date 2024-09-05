@@ -118,4 +118,4 @@ message QueryGetLastEthBlockUpdateTimeResponse {
 
 message QueryGetLastInjectedTxsSequenceRequest {}
 
-message QueryGetLastInjectedTxsSequenceResponse { string sequence = 1; }
+message QueryGetLastInjectedTxsSequenceResponse { uint64 sequence = 1; }

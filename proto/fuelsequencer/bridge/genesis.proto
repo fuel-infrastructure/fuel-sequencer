@@ -48,10 +48,5 @@ message GenesisState {
 
   // last_injected_txs_sequence is the last nonce used in injected txs.
   // In other words, the next nonce to be used is this value +1.
-  bytes last_injected_txs_sequence = 7 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false,
-    (amino.dont_omitempty) = true
-  ];
+  uint64 last_injected_txs_sequence = 7;
 }

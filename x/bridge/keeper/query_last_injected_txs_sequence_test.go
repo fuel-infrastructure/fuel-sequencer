@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,7 +14,7 @@ import (
 
 func TestQueryLastInjectedTxsSequence(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
-	value := math.NewInt(10)
+	value := uint64(10)
 
 	keeper.SetLastInjectedTxsSequence(ctx, value)
 	tests := []struct {
@@ -27,7 +26,7 @@ func TestQueryLastInjectedTxsSequence(t *testing.T) {
 		{
 			desc:     "ValidRequest",
 			request:  &types.QueryGetLastInjectedTxsSequenceRequest{},
-			response: &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: value.String()},
+			response: &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: value},
 		},
 		{
 			desc: "InvalidRequest",

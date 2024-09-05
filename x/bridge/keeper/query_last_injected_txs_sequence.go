@@ -20,5 +20,5 @@ func (k Keeper) LastInjectedTxsSequence(goCtx context.Context, req *types.QueryG
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: val.String()}, nil
+	return &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: val}, nil
 }

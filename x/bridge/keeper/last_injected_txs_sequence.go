@@ -3,26 +3,22 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// SetLastInjectedTxsSequence set lastInjectedTxsSequence in the store
-func (k Keeper) SetLastInjectedTxsSequence(ctx context.Context, lastInjectedTxsSequence math.Int) {
+// SetLastInjectedTxsSequence sets lastInjectedTxsSequence in the store
+func (k Keeper) SetLastInjectedTxsSequence(ctx context.Context, lastInjectedTxsSequence uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastInjectedTxsSequenceKey)
-
-	b, err := lastInjectedTxsSequence.Marshal()
-	if err != nil {
-		panic(err)
-	}
+	b := sdk.Uint64ToBigEndian(lastInjectedTxsSequence)
 	store.Set([]byte{0}, b)
 }
 
 // GetLastInjectedTxsSequence returns lastInjectedTxsSequence
-func (k Keeper) GetLastInjectedTxsSequence(ctx context.Context) (val math.Int, found bool) {
+func (k Keeper) GetLastInjectedTxsSequence(ctx context.Context) (val uint64, found bool) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastInjectedTxsSequenceKey)
 
@@ -31,15 +27,11 @@ func (k Keeper) GetLastInjectedTxsSequence(ctx context.Context) (val math.Int, f
 		return val, false
 	}
 
-	err := val.Unmarshal(b)
-	if err != nil {
-		panic(err)
-	}
-	return val, true
+	return sdk.BigEndianToUint64(b), true
 }
 
 // MustGetLastInjectedTxsSequence returns lastInjectedTxsSequence and panics if it doesn't find it
-func (k Keeper) MustGetLastInjectedTxsSequence(ctx context.Context) math.Int {
+func (k Keeper) MustGetLastInjectedTxsSequence(ctx context.Context) uint64 {
 	val, found := k.GetLastInjectedTxsSequence(ctx)
 	if !found {
 		panic("expected to find LastInjectedTxsSequence")
@@ -49,13 +41,13 @@ func (k Keeper) MustGetLastInjectedTxsSequence(ctx context.Context) math.Int {
 
 // MustGetNextInjectedTxsSequence increments LastInjectedTxsSequence by one and returns the result.
 // It panics if LastInjectedTxsSequence is not found
-func (k Keeper) MustGetNextInjectedTxsSequence(ctx context.Context) math.Int {
+func (k Keeper) MustGetNextInjectedTxsSequence(ctx context.Context) uint64 {
 	val, found := k.GetLastInjectedTxsSequence(ctx)
 	if !found {
 		panic("expected to find LastInjectedTxsSequence")
 	}
 
-	newVal := val.AddRaw(1)
+	newVal := val + 1
 	k.SetLastInjectedTxsSequence(ctx, newVal)
 
 	return newVal

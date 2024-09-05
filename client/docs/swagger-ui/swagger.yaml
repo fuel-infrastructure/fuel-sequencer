@@ -163,6 +163,7 @@ paths:
             properties:
               sequence:
                 type: string
+                format: uint64
         default:
           description: An unexpected error response.
           schema:
@@ -30480,6 +30481,7 @@ definitions:
     properties:
       sequence:
         type: string
+        format: uint64
   fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
     type: object
     properties:

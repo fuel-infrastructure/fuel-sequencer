@@ -5960,8 +5960,8 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Interface() pro
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Sequence != "" {
-		value := protoreflect.ValueOfString(x.Sequence)
+	if x.Sequence != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Sequence)
 		if !f(fd_QueryGetLastInjectedTxsSequenceResponse_sequence, value) {
 			return
 		}
@@ -5982,7 +5982,7 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Range(f func(pr
 func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse.sequence":
-		return x.Sequence != ""
+		return x.Sequence != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse"))
@@ -6000,7 +6000,7 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Has(fd protoref
 func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse.sequence":
-		x.Sequence = ""
+		x.Sequence = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse"))
@@ -6019,7 +6019,7 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Get(descriptor 
 	switch descriptor.FullName() {
 	case "fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse.sequence":
 		value := x.Sequence
-		return protoreflect.ValueOfString(value)
+		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse"))
@@ -6041,7 +6041,7 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Get(descriptor 
 func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse.sequence":
-		x.Sequence = value.Interface().(string)
+		x.Sequence = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse"))
@@ -6078,7 +6078,7 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) Mutable(fd prot
 func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse.sequence":
-		return protoreflect.ValueOfString("")
+		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse"))
@@ -6148,9 +6148,8 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) ProtoMethods() 
 		var n int
 		var l int
 		_ = l
-		l = len(x.Sequence)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
+		if x.Sequence != 0 {
+			n += 1 + runtime.Sov(uint64(x.Sequence))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -6181,12 +6180,10 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) ProtoMethods() 
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Sequence) > 0 {
-			i -= len(x.Sequence)
-			copy(dAtA[i:], x.Sequence)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Sequence)))
+		if x.Sequence != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Sequence))
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x8
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -6238,10 +6235,10 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) ProtoMethods() 
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 2 {
+				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
 				}
-				var stringLen uint64
+				x.Sequence = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -6251,24 +6248,11 @@ func (x *fastReflection_QueryGetLastInjectedTxsSequenceResponse) ProtoMethods() 
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					x.Sequence |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Sequence = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -6787,7 +6771,7 @@ type QueryGetLastInjectedTxsSequenceResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Sequence string `protobuf:"bytes,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Sequence uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (x *QueryGetLastInjectedTxsSequenceResponse) Reset() {
@@ -6810,11 +6794,11 @@ func (*QueryGetLastInjectedTxsSequenceResponse) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_v1_query_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *QueryGetLastInjectedTxsSequenceResponse) GetSequence() string {
+func (x *QueryGetLastInjectedTxsSequenceResponse) GetSequence() uint64 {
 	if x != nil {
 		return x.Sequence
 	}
-	return ""
+	return 0
 }
 
 var File_fuelsequencer_bridge_v1_query_proto protoreflect.FileDescriptor
@@ -6907,7 +6891,7 @@ var file_fuelsequencer_bridge_v1_query_proto_rawDesc = []byte{
 	0x73, 0x74, 0x22, 0x45, 0x0a, 0x27, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x4c, 0x61,
 	0x73, 0x74, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65, 0x64, 0x54, 0x78, 0x73, 0x53, 0x65, 0x71,
 	0x75, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a,
-	0x08, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52,
 	0x08, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x32, 0x9f, 0x0d, 0x0a, 0x05, 0x51, 0x75,
 	0x65, 0x72, 0x79, 0x12, 0x8c, 0x01, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x2b,
 	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,

@@ -79,10 +79,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		// Get the next injected transactions sequence and allocate the first sequence to the MsgIndex transaction.
+		// Get the next injected txs sequence and immediately allocate the first sequence to the MsgIndex transaction.
 		// The sequences for injected transactions will start from the sequence right that of the MsgIndex transaction.
-		nextSequence := h.bridgeKeeper.MustGetNextInjectedTxsSequence(ctx)
-		msgIndexTxSequence := nextSequence.Uint64()
+		msgIndexTxSequence := h.bridgeKeeper.MustGetNextInjectedTxsSequence(ctx)
 		injectedTxSequence := msgIndexTxSequence + 1
 
 		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
@@ -274,10 +273,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 
-		// Get the next injected transactions sequence and allocate the first sequence to the MsgIndex transaction.
+		// Get the next injected txs sequence and immediately allocate the first sequence to the MsgIndex transaction.
 		// The sequences for injected transactions will start from the sequence right that of the MsgIndex transaction.
-		nextSequence := h.bridgeKeeper.MustGetNextInjectedTxsSequence(ctx)
-		msgIndexTxSequence := nextSequence.Uint64() // TODO: use for verification
+		msgIndexTxSequence := h.bridgeKeeper.MustGetNextInjectedTxsSequence(ctx) // TODO: use for verification
 		injectedTxSequence := msgIndexTxSequence + 1
 
 		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
