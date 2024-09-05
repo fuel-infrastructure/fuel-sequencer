@@ -1,4 +1,4 @@
-package sidecar
+package service
 
 import (
 	"context"
@@ -37,7 +37,7 @@ type SidecarServer struct { //nolint
 	types.UnimplementedSidecarServer
 
 	// expected implementation of the sidecar
-	s sidecar.SidecarService
+	s sidecar.SidecarI
 
 	// underlying grpc-server -- serves all grpc requests
 	grpcSrv *grpc.Server
@@ -53,14 +53,18 @@ type SidecarServer struct { //nolint
 
 	// shutdownCh to process any shutdown signals
 	shutdownCh chan struct{}
+
+	// metrics is the set of all Prometheus metrics exposed by SidecarServer.
+	metrics *Metrics
 }
 
 // NewSidecarServer returns a new instance of the SidecarServer, given an implementation of the Sidecar interface.
-func NewSidecarServer(s sidecar.SidecarService, logger *zap.Logger) *SidecarServer {
+func NewSidecarServer(s sidecar.SidecarI, logger *zap.Logger, metrics *Metrics) *SidecarServer {
 	ss := &SidecarServer{
 		s:          s,
 		logger:     logger,
 		shutdownCh: make(chan struct{}),
+		metrics:    metrics,
 	}
 
 	return ss
@@ -215,6 +219,7 @@ func (ss *SidecarServer) GetBlockEvents(
 		blockchainEvents, err := ss.s.QueryBlockEvents(blockNumber)
 		if err != nil {
 			ss.logger.Warn("error processing events query", zap.Error(err))
+			defer ss.metrics.BlockEventsRequestsTotal.With("success", "false").Add(1)
 			resCh <- &queryBlockEventsResponseWithError{Response: nil, Err: err}
 			return
 		}
@@ -228,6 +233,7 @@ func (ss *SidecarServer) GetBlockEvents(
 			})
 		}
 
+		defer ss.metrics.BlockEventsRequestsTotal.With("success", "true").Add(1)
 		resCh <- &queryBlockEventsResponseWithError{Response: &types.QueryBlockEventsResponse{Events: events}, Err: nil}
 	}()
 

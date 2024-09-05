@@ -35,6 +35,8 @@ validators:
 - name: alice
   bonded: 100000000utest
   config:
+    instrumentation:
+      prometheus: true
     consensus:
       # How long we wait for a proposal block before prevoting nil
       timeout_propose: "1s"
