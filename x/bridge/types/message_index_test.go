@@ -288,8 +288,9 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 
 func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 
+	eventTxsSequence := uint64(1) // arbitrary
 	eventTxs := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, 0,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, eventTxsSequence,
 	)
 
 	testCases := []struct {
