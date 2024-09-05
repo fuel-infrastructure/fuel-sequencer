@@ -98,8 +98,8 @@ func (s *Sidecar) Start(ctx context.Context) error {
 }
 
 // getMaxSyncableBlock gets the last Ethereum height that the Sidecar can sync up to. In normal operation, this will be
-// at most 10 blocks ahead of the last Ethereum block synced by the Sequencer. However, if an end query block is
-// available it will be used.
+// at most MaxSyncAhead blocks ahead of the last Ethereum block synced by the Sequencer. However, if an end query block
+// is available it will be used.
 func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (maxSyncableBlock *big.Int, err error) {
 
 	// Get the height of the last finalized block.
