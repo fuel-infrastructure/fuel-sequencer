@@ -4,6 +4,7 @@ import (
 	"math"
 	"testing"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -130,6 +131,30 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 	numEvents, err = msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, numEvents) // just under enough
+}
+
+func TestMsgIndex_RawTxBytes(t *testing.T) {
+
+	// A typical MsgIndex sequence is always 1 or greater
+	msgIndexSequence := uint64(1)
+
+	msgIndex := testtypes.TestMsgIndex.MsgIndex
+	msgIndexAny, err := codectypes.NewAnyWithValue(msgIndex)
+	require.NoError(t, err)
+
+	expectMsgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, msgIndexSequence)
+	require.NoError(t, err)
+	notExpectMsgIndexBz1, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, msgIndexSequence+1)
+	require.NoError(t, err)
+	notExpectMsgIndexBz2, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, msgIndexSequence-1)
+	require.NoError(t, err)
+	actualMsgIndexRawBytes, err := msgIndex.RawTxBytes(msgIndexSequence)
+	require.NoError(t, err)
+
+	// The main point here is to ensure that the sequence is actually adhered to
+	require.Equal(t, expectMsgIndexBz, actualMsgIndexRawBytes)
+	require.NotEqual(t, notExpectMsgIndexBz1, actualMsgIndexRawBytes)
+	require.NotEqual(t, notExpectMsgIndexBz2, actualMsgIndexRawBytes)
 }
 
 func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
