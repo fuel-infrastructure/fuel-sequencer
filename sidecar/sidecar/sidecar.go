@@ -14,10 +14,15 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"go.uber.org/zap"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
+
+// MaxSyncAhead is the number of Ethereum blocks that the sidecar syncs ahead of the Sequencer. This is used to reduce
+// memory constraints if the Sequencer is not caught up to Ethereum yet.
+const MaxSyncAhead = 10
 
 // Sidecar represents the sidecar service.
 type Sidecar struct {
@@ -93,9 +98,9 @@ func (s *Sidecar) Start(ctx context.Context) error {
 }
 
 // getMaxSyncableBlock gets the last Ethereum height that the Sidecar can sync up to. In normal operation, this will be
-// the height of the last finalized Ethereum block. However, if an end query block is available, the end query block
-// will override the finalized Ethereum block.
-func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
+// at most 10 blocks ahead of the last Ethereum block synced by the Sequencer. However, if an end query block is
+// available it will be used.
+func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (maxSyncableBlock *big.Int, err error) {
 
 	// Get the height of the last finalized block.
 	finalizedEthHeight, err := s.ethRpcClient.FinalizedBlockNumber(ctx)
@@ -104,19 +109,35 @@ func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
 		return nil, err
 	}
 
-	// If the end query block exists and is less than the finalized Ethereum height, use it instead.
+	// Get LastEthereumBlockSynced from the Sequencer
+	lastEthBlockSynced, err := s.sequencerClient.FetchLastEthereumBlockSynced(ctx)
+	if err != nil {
+		s.logger.Error("could not get the last synced Ethereum height from the Sequencer node", zap.Error(err))
+		return nil, err
+	}
+
+	// Sync up to at most MaxSyncAhead blocks ahead of the Sequencer.
+	syncAhead := new(big.Int).Add(lastEthBlockSynced, big.NewInt(MaxSyncAhead))
+	maxSyncableBlock = utils.MinBigInt(finalizedEthHeight, syncAhead)
+
+	// If the end query block exists and is less than the already determined max syncable block, use it instead.
 	endQueryBlock := s.eventStore.GetEndQueryBlock()
-	if endQueryBlock != nil && endQueryBlock.Cmp(finalizedEthHeight) < 0 {
+	if endQueryBlock != nil && endQueryBlock.Cmp(maxSyncableBlock) < 0 {
 		s.logger.Warn(
-			"using end query block instead of finalized Ethereum height",
+			"using end query block instead of finalized Ethereum height or sync ahead upperbound",
 			zap.Uint64("finalized_eth_height", finalizedEthHeight.Uint64()),
+			zap.Uint64("sync_ahead", syncAhead.Uint64()),
 			zap.Uint64("end_query_block", endQueryBlock.Uint64()),
 		)
+
+		s.metrics.SetMaxSyncableBlock(endQueryBlock)
+
 		return endQueryBlock, nil
 	}
 
-	s.metrics.SetMaxSyncableBlock(finalizedEthHeight)
-	return finalizedEthHeight, nil
+	s.metrics.SetMaxSyncableBlock(maxSyncableBlock)
+
+	return maxSyncableBlock, nil
 }
 
 // startFetchingLogs fetches logs from Ethereum and processes them, with a catch-up process to sync historical logs.
@@ -245,7 +266,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 				return fmt.Errorf("received new header but sidecar is stopped"), false // no retry
 			}
 
-			// Get the max syncable block (considers finalized Ethereum height and the end query block)
+			// Get the max syncable block
 			maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
 			if err != nil {
 				return err, true
