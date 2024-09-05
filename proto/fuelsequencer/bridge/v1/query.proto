@@ -65,11 +65,11 @@ service Query {
         "/fuelsequencer/bridge/v1/last_eth_block_update_time";
   }
 
-  // Queries the LastInjectedTxsNonce.
-  rpc LastInjectedTxsNonce(QueryGetLastInjectedTxsNonceRequest)
-      returns (QueryGetLastInjectedTxsNonceResponse) {
+  // Queries the LastInjectedTxsSequence.
+  rpc LastInjectedTxsSequence(QueryGetLastInjectedTxsSequenceRequest)
+      returns (QueryGetLastInjectedTxsSequenceResponse) {
     option (google.api.http).get =
-        "/fuelsequencer/bridge/v1/last_injected_txs_nonce";
+        "/fuelsequencer/bridge/v1/last_injected_txs_sequence";
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -116,6 +116,6 @@ message QueryGetLastEthBlockUpdateTimeResponse {
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
 
-message QueryGetLastInjectedTxsNonceRequest {}
+message QueryGetLastInjectedTxsSequenceRequest {}
 
-message QueryGetLastInjectedTxsNonceResponse { string nonce = 1; }
+message QueryGetLastInjectedTxsSequenceResponse { string sequence = 1; }

@@ -84,7 +84,8 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
 func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (int, error) {
 
-	msgIndexRawTxBytes, err := m.RawTxBytes(0) // dummy sequence used here
+	dummySequence := uint64(0) // a dummy sequence can be used here since we just care about the size.
+	msgIndexRawTxBytes, err := m.RawTxBytes(dummySequence)
 	if err != nil {
 		return 0, err
 	}
@@ -238,19 +239,19 @@ func (m *MsgIndex) FromSdkTx(tx sdk.Tx) error {
 	return nil
 }
 
-// FromRawTxBytes extracts MsgIndex from raw transaction bytes and also returns the decoded transaction.
-func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) (tx sdk.Tx, err error) {
+// FromRawTxBytes extracts MsgIndex from raw transaction bytes.
+func (m *MsgIndex) FromRawTxBytes(bz []byte, decoder sdk.TxDecoder) error {
 
 	if m == nil {
-		return nil, fmt.Errorf("expected non-nil MsgIndex receiver")
+		return fmt.Errorf("expected non-nil MsgIndex receiver")
 	}
 
-	tx, err = decoder(bz)
+	tx, err := decoder(bz)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return tx, m.FromSdkTx(tx)
+	return m.FromSdkTx(tx)
 }
 
 // IsFullEthereumSyncing returns true if an Ethereum block was fully consumed by the Sequencer.

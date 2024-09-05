@@ -9,16 +9,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) LastInjectedTxsNonce(goCtx context.Context, req *types.QueryGetLastInjectedTxsNonceRequest) (*types.QueryGetLastInjectedTxsNonceResponse, error) {
+func (k Keeper) LastInjectedTxsSequence(goCtx context.Context, req *types.QueryGetLastInjectedTxsSequenceRequest) (*types.QueryGetLastInjectedTxsSequenceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	val, found := k.GetLastInjectedTxsNonce(ctx)
+	val, found := k.GetLastInjectedTxsSequence(ctx)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetLastInjectedTxsNonceResponse{Nonce: val.String()}, nil
+	return &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: val.String()}, nil
 }

@@ -18,6 +18,7 @@ const (
 // it will contribute to the block's last results hash and thus be provable on Ethereum via Bridge Commitments.
 //
 // The transaction's gas limit is set to zero with the assumption that an infinite gas meter will be used.
+// TODO: document the sequence
 func ValidRawTxBytesFromAnyMsgs(msgs []*codectypes.Any, sequence uint64) ([]byte, error) {
 
 	// Construct Tx Body with the message.

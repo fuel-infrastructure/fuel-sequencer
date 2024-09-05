@@ -58,5 +58,6 @@ func MustGetEventTxsFromEvents(
 
 // MustGetSizeFromEvents gets the size of the raw tx bytes from all the passed events, and panics otherwise.
 func MustGetSizeFromEvents(cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event) int {
-	return int(utils.TxsSize(MustGetEventTxsFromEvents(cdc, authority, events, 0))) // dummy sequence used here
+	dummySequence := uint64(0) // a dummy sequence can be used here since we just care about the size.
+	return int(utils.TxsSize(MustGetEventTxsFromEvents(cdc, authority, events, dummySequence)))
 }

@@ -13,21 +13,21 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func TestQueryLastInjectedTxsNonce(t *testing.T) {
+func TestQueryLastInjectedTxsSequence(t *testing.T) {
 	keeper, ctx := keepertest.BridgeKeeper(t)
 	value := math.NewInt(10)
 
-	keeper.SetLastInjectedTxsNonce(ctx, value)
+	keeper.SetLastInjectedTxsSequence(ctx, value)
 	tests := []struct {
 		desc     string
-		request  *types.QueryGetLastInjectedTxsNonceRequest
-		response *types.QueryGetLastInjectedTxsNonceResponse
+		request  *types.QueryGetLastInjectedTxsSequenceRequest
+		response *types.QueryGetLastInjectedTxsSequenceResponse
 		err      error
 	}{
 		{
 			desc:     "ValidRequest",
-			request:  &types.QueryGetLastInjectedTxsNonceRequest{},
-			response: &types.QueryGetLastInjectedTxsNonceResponse{Nonce: value.String()},
+			request:  &types.QueryGetLastInjectedTxsSequenceRequest{},
+			response: &types.QueryGetLastInjectedTxsSequenceResponse{Sequence: value.String()},
 		},
 		{
 			desc: "InvalidRequest",
@@ -36,7 +36,7 @@ func TestQueryLastInjectedTxsNonce(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.LastInjectedTxsNonce(ctx, tc.request)
+			response, err := keeper.LastInjectedTxsSequence(ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {

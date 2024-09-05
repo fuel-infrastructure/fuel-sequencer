@@ -151,17 +151,17 @@ paths:
                       format: byte
       tags:
         - Fuel Sequencer Queries
-  /fuelsequencer/bridge/v1/last_injected_txs_nonce:
+  /fuelsequencer/bridge/v1/last_injected_txs_sequence:
     get:
-      summary: Queries the LastInjectedTxsNonce.
-      operationId: LastInjectedTxsNonce
+      summary: Queries the LastInjectedTxsSequence.
+      operationId: LastInjectedTxsSequence
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              nonce:
+              sequence:
                 type: string
         default:
           description: An unexpected error response.
@@ -30475,10 +30475,10 @@ definitions:
     properties:
       nonce:
         type: string
-  fuelsequencer.bridge.v1.QueryGetLastInjectedTxsNonceResponse:
+  fuelsequencer.bridge.v1.QueryGetLastInjectedTxsSequenceResponse:
     type: object
     properties:
-      nonce:
+      sequence:
         type: string
   fuelsequencer.bridge.v1.QueryGetSupplyDeltaInfoResponse:
     type: object

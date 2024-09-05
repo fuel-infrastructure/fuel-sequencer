@@ -84,10 +84,10 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 		}
 	}
 
-	// Increment the nonce by the number of injected event transactions, plus MsgIndex, plus MsgSupplyDelta
-	lastNonce := k.MustGetLastInjectedTxsNonce(ctx)
-	usedNonces := math.NewIntFromUint64(msg.NumInjectedEventTxs + 1 + supplyDeltaCount)
-	k.SetLastInjectedTxsNonce(ctx, lastNonce.Add(usedNonces))
+	// Increment the sequence by the number of injected event transactions, plus MsgIndex, plus MsgSupplyDelta
+	lastSequence := k.MustGetLastInjectedTxsSequence(ctx)
+	usedSequences := math.NewIntFromUint64(msg.NumInjectedEventTxs + 1 + supplyDeltaCount)
+	k.SetLastInjectedTxsSequence(ctx, lastSequence.Add(usedSequences))
 
 	return &types.MsgIndexResponse{}, nil
 }

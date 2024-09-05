@@ -26,7 +26,7 @@ const (
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress"
 	Query_LastEthBlockUpdateTime_FullMethodName              = "/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime"
-	Query_LastInjectedTxsNonce_FullMethodName                = "/fuelsequencer.bridge.v1.Query/LastInjectedTxsNonce"
+	Query_LastInjectedTxsSequence_FullMethodName             = "/fuelsequencer.bridge.v1.Query/LastInjectedTxsSequence"
 )
 
 // QueryClient is the client API for Query service.
@@ -47,8 +47,8 @@ type QueryClient interface {
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error)
-	// Queries the LastInjectedTxsNonce.
-	LastInjectedTxsNonce(ctx context.Context, in *QueryGetLastInjectedTxsNonceRequest, opts ...grpc.CallOption) (*QueryGetLastInjectedTxsNonceResponse, error)
+	// Queries the LastInjectedTxsSequence.
+	LastInjectedTxsSequence(ctx context.Context, in *QueryGetLastInjectedTxsSequenceRequest, opts ...grpc.CallOption) (*QueryGetLastInjectedTxsSequenceResponse, error)
 }
 
 type queryClient struct {
@@ -122,9 +122,9 @@ func (c *queryClient) LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLa
 	return out, nil
 }
 
-func (c *queryClient) LastInjectedTxsNonce(ctx context.Context, in *QueryGetLastInjectedTxsNonceRequest, opts ...grpc.CallOption) (*QueryGetLastInjectedTxsNonceResponse, error) {
-	out := new(QueryGetLastInjectedTxsNonceResponse)
-	err := c.cc.Invoke(ctx, Query_LastInjectedTxsNonce_FullMethodName, in, out, opts...)
+func (c *queryClient) LastInjectedTxsSequence(ctx context.Context, in *QueryGetLastInjectedTxsSequenceRequest, opts ...grpc.CallOption) (*QueryGetLastInjectedTxsSequenceResponse, error) {
+	out := new(QueryGetLastInjectedTxsSequenceResponse)
+	err := c.cc.Invoke(ctx, Query_LastInjectedTxsSequence_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +149,8 @@ type QueryServer interface {
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error)
-	// Queries the LastInjectedTxsNonce.
-	LastInjectedTxsNonce(context.Context, *QueryGetLastInjectedTxsNonceRequest) (*QueryGetLastInjectedTxsNonceResponse, error)
+	// Queries the LastInjectedTxsSequence.
+	LastInjectedTxsSequence(context.Context, *QueryGetLastInjectedTxsSequenceRequest) (*QueryGetLastInjectedTxsSequenceResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -179,8 +179,8 @@ func (UnimplementedQueryServer) SequencerAddressFromEthereumAddress(context.Cont
 func (UnimplementedQueryServer) LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthBlockUpdateTime not implemented")
 }
-func (UnimplementedQueryServer) LastInjectedTxsNonce(context.Context, *QueryGetLastInjectedTxsNonceRequest) (*QueryGetLastInjectedTxsNonceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LastInjectedTxsNonce not implemented")
+func (UnimplementedQueryServer) LastInjectedTxsSequence(context.Context, *QueryGetLastInjectedTxsSequenceRequest) (*QueryGetLastInjectedTxsSequenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastInjectedTxsSequence not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -321,20 +321,20 @@ func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_LastInjectedTxsNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetLastInjectedTxsNonceRequest)
+func _Query_LastInjectedTxsSequence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLastInjectedTxsSequenceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).LastInjectedTxsNonce(ctx, in)
+		return srv.(QueryServer).LastInjectedTxsSequence(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Query_LastInjectedTxsNonce_FullMethodName,
+		FullMethod: Query_LastInjectedTxsSequence_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).LastInjectedTxsNonce(ctx, req.(*QueryGetLastInjectedTxsNonceRequest))
+		return srv.(QueryServer).LastInjectedTxsSequence(ctx, req.(*QueryGetLastInjectedTxsSequenceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -375,8 +375,8 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Query_LastEthBlockUpdateTime_Handler,
 		},
 		{
-			MethodName: "LastInjectedTxsNonce",
-			Handler:    _Query_LastInjectedTxsNonce_Handler,
+			MethodName: "LastInjectedTxsSequence",
+			Handler:    _Query_LastInjectedTxsSequence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
