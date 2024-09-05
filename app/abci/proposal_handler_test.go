@@ -1289,8 +1289,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-			expErrMsg: "generated event txs do not match the ones from the block proposal " +
-				"(num_injected: 3) (num_generated: 3)",
+			expErrMsg:                    "generated event txs do not match those from the proposal",
 		},
 		{
 			name: "returns error if generated MsgIndex not equal to block proposer's " +
