@@ -59,9 +59,9 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
-func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes, indexSequence uint64) (int, error) {
+func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes, sequence uint64) (int, error) {
 
-	msgIndexRawTxBytes, err := m.RawTxBytes(indexSequence)
+	msgIndexRawTxBytes, err := m.RawTxBytes(sequence)
 	if err != nil {
 		return 0, err
 	}
