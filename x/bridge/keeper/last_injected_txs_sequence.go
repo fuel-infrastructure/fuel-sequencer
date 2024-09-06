@@ -42,14 +42,8 @@ func (k Keeper) MustGetLastConsensusTxsSequence(ctx context.Context) uint64 {
 // MustGetNextConsensusTxsSequence increments LastConsensusTxsSequence by one and returns the result.
 // It panics if LastConsensusTxsSequence is not found
 func (k Keeper) MustGetNextConsensusTxsSequence(ctx context.Context) uint64 {
-	val, found := k.GetLastConsensusTxsSequence(ctx)
-	if !found {
-		panic("expected to find LastConsensusTxsSequence")
-	}
-
-	newVal := val + 1
+	newVal := k.MustGetLastConsensusTxsSequence(ctx) + 1
 	k.SetLastConsensusTxsSequence(ctx, newVal)
-
 	return newVal
 }
 
