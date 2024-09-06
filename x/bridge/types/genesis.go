@@ -107,7 +107,7 @@ func ValidateLastEthBlockUpdateTime(i interface{}) error {
 	return nil
 }
 
-// ValidateLastConsensusTxsSequence validates that the last injected txs sequence is uint64.
+// ValidateLastConsensusTxsSequence validates that the last consensus txs sequence is uint64.
 func ValidateLastConsensusTxsSequence(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
