@@ -419,7 +419,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		err = h.verifyInjectedEventTxs(injectedEventTxs, eventTxs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to verify injected MsgIndexTx: %w", err,
+				"failed to verify injected event txs: %w", err,
 			)
 		}
 
