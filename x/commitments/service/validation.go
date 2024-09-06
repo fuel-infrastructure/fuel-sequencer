@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )
 
 const (
@@ -15,15 +15,11 @@ const (
 	BridgeCommitmentBlocksLimit = 4096
 )
 
-var (
-	ErrZeroStart = errors.New("the first block is 0")
-)
-
 // validateBridgeCommitmentRange runs basic checks on the range of heights
 // that will be used to generate bridge commitments from successive blocks.
 func validateBridgeCommitmentRange(ctx context.Context, clientCtx client.Context, start, end uint64) error {
 	if start == 0 {
-		return ErrZeroStart
+		return types.ErrZeroStart
 	}
 	if start > end {
 		return fmt.Errorf("last block is smaller than first block")
