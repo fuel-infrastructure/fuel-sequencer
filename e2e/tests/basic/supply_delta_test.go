@@ -3,6 +3,8 @@ package basic_test
 import (
 	"time"
 
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	"github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -23,17 +25,27 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 		typicalMsgSupplyDelta := bridgetypes.MsgSupplyDelta{Authority: s.GetGovernanceAddress()}
 		msgSupplyDeltaTypeUrl := sdk.MsgTypeURL(&bridgetypes.MsgSupplyDelta{})
 
-		// Ensure that MsgSupplyDelta injected, and only at the right heights
+		// To ensure that all MsgSupplyDelta transaction hashes are unique.
+		uniqueHashes := make(map[string]bool)
+
+		// Ensure that MsgSupplyDelta injected, and only at the right heights.
 		for block := int64(1); block < searchTillBlock; block++ {
 			expectMsgSupplyDelta := block%supplyDeltaPeriod == 0
 
 			// Search for message showing successful injection
-			msg, msgFound := s.SearchForMsgInBlock(s.Ctx(), msgSupplyDeltaTypeUrl, block)
+			msg, txBz, msgFound := s.SearchForMsgInBlock(s.Ctx(), msgSupplyDeltaTypeUrl, block)
 			s.Require().Equal(expectMsgSupplyDelta, msgFound)
 			if expectMsgSupplyDelta {
 				msgSupplyDelta, ok := msg.(*bridgetypes.MsgSupplyDelta)
 				s.Require().True(ok)
 				s.Require().EqualValues(typicalMsgSupplyDelta, *msgSupplyDelta)
+
+				// Track hashes to ensure that all of them are unique.
+				txHash := cmtbytes.HexBytes(types.Tx(txBz).Hash()).String()
+				if _, alreadySeen := uniqueHashes[txHash]; alreadySeen {
+					s.Require().False(alreadySeen)
+				}
+				uniqueHashes[txHash] = true
 			}
 
 			// Search for event showing successful execution

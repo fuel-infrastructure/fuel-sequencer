@@ -33,6 +33,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetLastEthBlockUpdateTime(ctx, genState.LastEthBlockUpdateTime)
 	}
 
+	k.SetLastConsensusTxsSequence(ctx, genState.LastConsensusTxsSequence)
+
 	// this line is used by starport scaffolding # genesis/module/init
 }
 
@@ -61,10 +63,14 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.EthereumEventIndexOffset = ethereumEventIndexOffset
 	}
 
-	// Get all lastEthBlockUpdateTime
 	lastEthBlockUpdateTime, found := k.GetLastEthBlockUpdateTime(ctx)
 	if found {
 		genesis.LastEthBlockUpdateTime = lastEthBlockUpdateTime
+	}
+
+	lastConsensusTxsSequence, found := k.GetLastConsensusTxsSequence(ctx)
+	if found {
+		genesis.LastConsensusTxsSequence = lastConsensusTxsSequence
 	}
 
 	// this line is used by starport scaffolding # genesis/module/export

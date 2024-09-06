@@ -21,11 +21,12 @@ func TestMsgIndex_FromSdkTx(t *testing.T) {
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1)),
 	}
 
-	testMsgIndexTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex})
-	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend})
-	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex, testMsgSend})
-	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgIndex})
-	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil)
+	sequence := uint64(1) // arbitrary
+	testMsgIndexTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex}, sequence)
+	testMsgSendTx := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend}, sequence)
+	testMixedTx1 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgIndex, testMsgSend}, sequence)
+	testMixedTx2 := testutiltypes.MustGetTxFromMsgs([]proto.Message{testMsgSend, testMsgIndex}, sequence)
+	testEmptyTx := testutiltypes.MustGetTxFromMsgs(nil, sequence)
 
 	testCases := []struct {
 		name        string

@@ -49,6 +49,7 @@ func TestValidateGenesisState(t *testing.T) {
 				LastEthereumBlockSynced:  1,
 				EthereumEventIndexOffset: 2,
 				LastEthBlockUpdateTime:   time.Now(),
+				LastConsensusTxsSequence: 5,
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -66,6 +67,7 @@ func TestValidateGenesisState(t *testing.T) {
 				LastEthereumBlockSynced:  1,
 				EthereumEventIndexOffset: 2,
 				LastEthBlockUpdateTime:   time.Now(),
+				LastConsensusTxsSequence: 5,
 			},
 			valid: false,
 		},
@@ -82,6 +84,7 @@ func TestValidateGenesisState(t *testing.T) {
 				LastEthereumBlockSynced:  1,
 				EthereumEventIndexOffset: 2,
 				LastEthBlockUpdateTime:   time.Now(),
+				LastConsensusTxsSequence: 5,
 			},
 			valid: false,
 		},

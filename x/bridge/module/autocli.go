@@ -19,17 +19,17 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				},
 				{
 					RpcMethod: "SupplyDeltaInfo",
-					Use:       "show-supply-delta-info",
+					Use:       "supply-delta-info",
 					Short:     "show supply-delta-info",
 				},
 				{
 					RpcMethod: "LastEthereumNonce",
-					Use:       "show-last-ethereum-nonce",
+					Use:       "last-ethereum-nonce",
 					Short:     "show LastEthereumNonce",
 				},
 				{
 					RpcMethod: "LastEthereumBlockSynced",
-					Use:       "show-last-ethereum-block-synced",
+					Use:       "last-ethereum-block-synced",
 					Short:     "show LastEthereumBlockSynced",
 				},
 				{
@@ -40,13 +40,18 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				},
 				{
 					RpcMethod: "EthereumEventIndexOffset",
-					Use:       "show-ethereum-event-index-offset",
-					Short:     "show ethereum-event-index-offset",
+					Use:       "ethereum-event-index-offset",
+					Short:     "show EthereumEventIndexOffset",
 				},
 				{
 					RpcMethod: "LastEthBlockUpdateTime",
-					Use:       "show-last-eth-block-update-time",
-					Short:     "show last-eth-block-update-time",
+					Use:       "last-eth-block-update-time",
+					Short:     "show LastEthBlockUpdateTime",
+				},
+				{
+					RpcMethod: "LastConsensusTxsSequence",
+					Use:       "last-consensus-txs-sequence",
+					Short:     "show LastConsensusTxsSequence",
 				},
 				// this line is used by ignite scaffolding # autocli/query
 			},

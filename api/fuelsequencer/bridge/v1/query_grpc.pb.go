@@ -26,6 +26,7 @@ const (
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress"
 	Query_LastEthBlockUpdateTime_FullMethodName              = "/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime"
+	Query_LastConsensusTxsSequence_FullMethodName            = "/fuelsequencer.bridge.v1.Query/LastConsensusTxsSequence"
 )
 
 // QueryClient is the client API for Query service.
@@ -46,6 +47,8 @@ type QueryClient interface {
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error)
+	// Queries the LastConsensusTxsSequence.
+	LastConsensusTxsSequence(ctx context.Context, in *QueryGetLastConsensusTxsSequenceRequest, opts ...grpc.CallOption) (*QueryGetLastConsensusTxsSequenceResponse, error)
 }
 
 type queryClient struct {
@@ -119,6 +122,15 @@ func (c *queryClient) LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLa
 	return out, nil
 }
 
+func (c *queryClient) LastConsensusTxsSequence(ctx context.Context, in *QueryGetLastConsensusTxsSequenceRequest, opts ...grpc.CallOption) (*QueryGetLastConsensusTxsSequenceResponse, error) {
+	out := new(QueryGetLastConsensusTxsSequenceResponse)
+	err := c.cc.Invoke(ctx, Query_LastConsensusTxsSequence_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -137,6 +149,8 @@ type QueryServer interface {
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error)
+	// Queries the LastConsensusTxsSequence.
+	LastConsensusTxsSequence(context.Context, *QueryGetLastConsensusTxsSequenceRequest) (*QueryGetLastConsensusTxsSequenceResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -164,6 +178,9 @@ func (UnimplementedQueryServer) SequencerAddressFromEthereumAddress(context.Cont
 }
 func (UnimplementedQueryServer) LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthBlockUpdateTime not implemented")
+}
+func (UnimplementedQueryServer) LastConsensusTxsSequence(context.Context, *QueryGetLastConsensusTxsSequenceRequest) (*QueryGetLastConsensusTxsSequenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastConsensusTxsSequence not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -304,6 +321,24 @@ func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_LastConsensusTxsSequence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLastConsensusTxsSequenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LastConsensusTxsSequence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_LastConsensusTxsSequence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LastConsensusTxsSequence(ctx, req.(*QueryGetLastConsensusTxsSequenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -338,6 +373,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LastEthBlockUpdateTime",
 			Handler:    _Query_LastEthBlockUpdateTime_Handler,
+		},
+		{
+			MethodName: "LastConsensusTxsSequence",
+			Handler:    _Query_LastConsensusTxsSequence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
