@@ -47,7 +47,7 @@ message GenesisState {
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // last_consensus_txs_sequence is the last sequence used in consensus txs.
-  // In other words, the next nonce to be used is this value +1.
+  // In other words, the next sequence to be used is this value +1.
   // It is unique for each consensus tx, ensuring a unique tx hash.
   uint64 last_consensus_txs_sequence = 7;
 }

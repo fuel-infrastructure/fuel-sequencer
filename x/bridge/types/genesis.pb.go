@@ -52,7 +52,7 @@ type GenesisState struct {
 	// up with an Ethereum block.
 	LastEthBlockUpdateTime time.Time `protobuf:"bytes,6,opt,name=last_eth_block_update_time,json=lastEthBlockUpdateTime,proto3,stdtime" json:"last_eth_block_update_time"`
 	// last_consensus_txs_sequence is the last sequence used in consensus txs.
-	// In other words, the next nonce to be used is this value +1.
+	// In other words, the next sequence to be used is this value +1.
 	// It is unique for each consensus tx, ensuring a unique tx hash.
 	LastConsensusTxsSequence uint64 `protobuf:"varint,7,opt,name=last_consensus_txs_sequence,json=lastConsensusTxsSequence,proto3" json:"last_consensus_txs_sequence,omitempty"`
 }
