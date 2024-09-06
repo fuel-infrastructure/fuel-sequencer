@@ -7,10 +7,10 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
-var _ SidecarService = (*Sidecar)(nil)
+var _ SidecarI = (*Sidecar)(nil)
 
-// SidecarService defines the expected interface for the sidecar.
-type SidecarService interface {
+// SidecarI defines the expected interface for the sidecar.
+type SidecarI interface {
 	// Start begins the process of querying and storing events from the Ethereum blockchain.
 	Start(ctx context.Context) error
 

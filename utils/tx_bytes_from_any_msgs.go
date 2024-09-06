@@ -18,7 +18,9 @@ const (
 // it will contribute to the block's last results hash and thus be provable on Ethereum via Bridge Commitments.
 //
 // The transaction's gas limit is set to zero with the assumption that an infinite gas meter will be used.
-func ValidRawTxBytesFromAnyMsgs(msgs []*codectypes.Any) ([]byte, error) {
+//
+// A sequence, presumed to be unique, is also specified to ensure that the generated transaction has a unique tx hash.
+func ValidRawTxBytesFromAnyMsgs(msgs []*codectypes.Any, sequence uint64) ([]byte, error) {
 
 	// Construct Tx Body with the message.
 	txBodyBz, err := proto.Marshal(&txtypes.TxBody{
@@ -30,6 +32,9 @@ func ValidRawTxBytesFromAnyMsgs(msgs []*codectypes.Any) ([]byte, error) {
 
 	// Construct Auth Info with Fee to avoid nil pointer panics.
 	authInfoBz, err := proto.Marshal(&txtypes.AuthInfo{
+		SignerInfos: []*txtypes.SignerInfo{
+			{Sequence: sequence},
+		},
 		Fee: &txtypes.Fee{
 			GasLimit: InjectedTxGasLimit,
 		},

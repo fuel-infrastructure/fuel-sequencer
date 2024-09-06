@@ -28,6 +28,10 @@ Queries:
 
 - [ ] Added new queries to `handlers_test.go`
 
+Metrics:
+
+- [ ] `make metrics` if you updated `metrics.go` files
+
 Testing and docs:
 
 - [ ] `make proto-routine` for formatting and APIs.
@@ -47,7 +51,7 @@ Testing and docs:
       - `bash scripts/call_contract.sh`
       - Wait for the Sequencer to sync the Ethereum blocks containing the contract calls:
         ```
-        fuelsequencerd q bridge show-last-ethereum-block-synced
+        fuelsequencerd q bridge last-ethereum-block-synced
         ```
       - Sanity checks:
         ```

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +39,7 @@ func (k msgServer) supplyDelta(ctx sdk.Context) (*types.MsgSupplyDeltaResponse, 
 	}
 
 	// Increment LastEthereumNonce and get the result so that it is added to MsgSupplyDeltaResponse.
-	nonce := k.MustGetNextEthereumNonce(ctx)
+	nonce := k.MustGetNextEthereumNonceAndIncrement(ctx)
 
 	// Get the supply delta to be reported from state
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)

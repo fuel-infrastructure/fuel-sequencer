@@ -29,23 +29,31 @@ type EventStore struct {
 
 	// maxQueryRange is the maximum number of Ethereum blocks per query.
 	maxQueryRange *big.Int
+
+	// metrics is the set of all Prometheus metrics exposed by EventStore.
+	metrics *Metrics
 }
 
 // NewEventStore creates a new EventStore instance.
-func NewEventStore(startQueryBlock, endQueryBlock, maxQueryRange *big.Int) *EventStore {
-	return &EventStore{
-		blocksMap:       make(map[uint64]*sidecartypes.EthereumBlock),
-		startQueryBlock: startQueryBlock,
-		endQueryBlock:   endQueryBlock,
-		// The last synced block is the one right before the one we're starting at.
-		// The next query block will then evaluate to the last synced block + 1.
-		lastSyncedBlock:  new(big.Int).Sub(startQueryBlock, big.NewInt(1)),
+func NewEventStore(startQueryBlock, endQueryBlock, maxQueryRange *big.Int, metrics *Metrics) *EventStore {
+	store := &EventStore{
+		blocksMap:        make(map[uint64]*sidecartypes.EthereumBlock),
+		endQueryBlock:    endQueryBlock,
 		maxQueryRange:    maxQueryRange,
 		blockPruneBuffer: 10,
+		metrics:          metrics,
 	}
+	// The last synced block is the one right before the one we're starting at.
+	// The next query block will then evaluate to the last synced block + 1.
+	store.unsafeSetStartQueryBlock(startQueryBlock)
+	store.unsafeSetLastSyncedBlock(new(big.Int).Sub(startQueryBlock, big.NewInt(1)))
+	return store
 }
 
 // AddEvents adds a map of events to the store.
+//
+// NOTE: this function needs to be performed atomically to ensure consistency in the store's state. It makes use of the
+// mutex lock for this purpose. Calling other store functions that also lock will cause a deadlock!
 func (store *EventStore) AddEvents(eventsMap map[uint64][]sidecartypes.Event) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
@@ -62,6 +70,7 @@ func (store *EventStore) AddEvents(eventsMap map[uint64][]sidecartypes.Event) {
 				Events:      events,
 			}
 		}
+		store.metrics.EventsProcessed.Add(float64(len(events)))
 	}
 }
 
@@ -80,6 +89,12 @@ func (store *EventStore) GetStoredEvents(blockNumber *big.Int) ([]sidecartypes.E
 	copy(events, block.Events)
 
 	return events, true
+}
+
+// unsafeSetStartQueryBlock sets the value of startQueryBlock without locking.
+func (store *EventStore) unsafeSetStartQueryBlock(blockNumber *big.Int) {
+	store.startQueryBlock = new(big.Int).Set(blockNumber)
+	store.metrics.SetStartQueryBlock(blockNumber)
 }
 
 // GetStartQueryBlock returns the startQueryBlock safely.
@@ -110,7 +125,13 @@ func (store *EventStore) GetEndQueryBlock() *big.Int {
 func (store *EventStore) SetLastSyncedBlock(blockNumber *big.Int) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
+	store.unsafeSetLastSyncedBlock(blockNumber)
+}
+
+// unsafeSetLastSyncedBlock sets the value of lastSyncedBlock without locking.
+func (store *EventStore) unsafeSetLastSyncedBlock(blockNumber *big.Int) {
 	store.lastSyncedBlock = new(big.Int).Set(blockNumber)
+	store.metrics.SetLastSyncedBlock(blockNumber)
 }
 
 // GetLastSyncedBlock returns the lastSyncedBlock safely.
@@ -145,6 +166,9 @@ func (store *EventStore) GetMaxQueryRange() *big.Int {
 // CalibrateBlocksAndPruneLogs prunes state based on the last block synced by the Sequencer, so that we avoid storing
 // logs unnecessarily. If pruning takes place, startQueryBlock is updated to reflect the first (i.e. oldest) block we
 // have in state. Additionally, if the Sequencer is ahead, fast-forward the lastSyncedBlock to match the Sequencer.
+//
+// NOTE: this function needs to be performed atomically to ensure consistency in the store's state. It makes use of the
+// mutex lock for this purpose. Calling other store functions that also lock will cause a deadlock!
 func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyncedBlock *big.Int) {
 	store.mu.Lock()
 	defer store.mu.Unlock()
@@ -157,7 +181,7 @@ func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyn
 	// If the Sequencer is ahead, fast-forward the last synced block to that of the Sequencer.
 	// Example: if last synced of the Sequencer is 100, last synced of the Sidecar will become 100.
 	if lastSyncedBlock.Cmp(store.lastSyncedBlock) > 0 {
-		store.lastSyncedBlock = lastSyncedBlock
+		store.unsafeSetLastSyncedBlock(lastSyncedBlock)
 	}
 
 	// If we're storing blocks that the Sequencer does not need, update the start query block
@@ -183,7 +207,8 @@ func (store *EventStore) CalibrateBlocksAndPruneLogs(logger *zap.Logger, lastSyn
 				delete(store.blocksMap, i)
 			}
 
-			store.startQueryBlock = new(big.Int).SetUint64(pruneUntil + 1)
+			store.unsafeSetStartQueryBlock(new(big.Int).SetUint64(pruneUntil + 1))
+			store.metrics.BlocksPruned.Add(float64(1 + pruneUntil - pruneFrom))
 		}
 	}
 }

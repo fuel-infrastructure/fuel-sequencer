@@ -8,7 +8,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
-func MustGetTxFromMsgs(msgs []proto.Message) sdk.Tx {
+func MustGetTxFromMsgs(msgs []proto.Message, sequence uint64) sdk.Tx {
 
 	var msgAnys []*codectypes.Any
 	for _, msg := range msgs {
@@ -19,7 +19,7 @@ func MustGetTxFromMsgs(msgs []proto.Message) sdk.Tx {
 		msgAnys = append(msgAnys, msgAny)
 	}
 
-	bz, err := utils.ValidRawTxBytesFromAnyMsgs(msgAnys)
+	bz, err := utils.ValidRawTxBytesFromAnyMsgs(msgAnys, sequence)
 	if err != nil {
 		panic(err)
 	}

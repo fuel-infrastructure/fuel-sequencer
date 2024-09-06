@@ -26,29 +26,6 @@ func (*MsgIndex) ValidateBasic() error {
 	return nil
 }
 
-// Equal compares two MsgIndex structs and two sets of event transactions for equality
-func (m *MsgIndex) Equal(e *MsgIndex, eventTxs1 [][]byte, eventTxs2 [][]byte) error {
-	// If both structs are nil then they are equal
-	if m == nil && e == nil {
-		return nil
-	}
-
-	if m == nil || e == nil {
-		return fmt.Errorf("nil (%t) != (%t)", m == nil, e == nil)
-	} else if m.Authority != e.Authority {
-		return fmt.Errorf("authority (%s) != (%s)", m.Authority, e.Authority)
-	} else if m.NumInjectedEventTxs != e.NumInjectedEventTxs {
-		return fmt.Errorf("number of injected event txs (%d) != (%d)", m.NumInjectedEventTxs, e.NumInjectedEventTxs)
-	} else if m.NewEthereumBlock != e.NewEthereumBlock {
-		return fmt.Errorf("new Ethereum block (%t) != (%t)", m.NewEthereumBlock, e.NewEthereumBlock)
-	} else if m.BlockNumber != e.BlockNumber {
-		return fmt.Errorf("block number (%d) != (%d)", m.BlockNumber, e.BlockNumber)
-	} else if !utils.IsEqualBytesSlices(eventTxs1, eventTxs2) {
-		return fmt.Errorf("event transactions are not equal")
-	}
-	return nil
-}
-
 // ValidateBeforeProcessing performs some state-based checks on MsgIndex before it is officially processed.
 func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset uint64) error {
 
@@ -82,9 +59,10 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
-func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (int, error) {
+// The sequence ensures that size calculations are consistent with that of the final MsgIndex transaction in the block.
+func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes, sequence uint64) (int, error) {
 
-	msgIndexRawTxBytes, err := m.RawTxBytes()
+	msgIndexRawTxBytes, err := m.RawTxBytes(sequence)
 	if err != nil {
 		return 0, err
 	}
@@ -194,14 +172,15 @@ func (m *MsgIndex) KeepEventsFromHead(
 }
 
 // RawTxBytes converts the message to a valid tx that can be injected into a block and produces a tx result.
-func (m *MsgIndex) RawTxBytes() ([]byte, error) {
+// The sequence, presumed to be unique, ensures that the generated tx is unique and thus has a unique tx hash.
+func (m *MsgIndex) RawTxBytes(sequence uint64) ([]byte, error) {
 
 	msgIndexAny, err := codectypes.NewAnyWithValue(m)
 	if err != nil {
 		return nil, err
 	}
 
-	msgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny})
+	msgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, sequence)
 	if err != nil {
 		return nil, err
 	}

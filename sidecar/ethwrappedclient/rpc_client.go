@@ -45,11 +45,13 @@ func NewEthRpcClient(
 	contractAbi abi.ABI,
 	minLogsQueryInterval time.Duration,
 	testNoOfMsgSends int64,
+	metrics *Metrics,
 ) *EthRpcClient {
 	return &EthRpcClient{
 		EthWrappedClient: &EthWrappedClient{
 			logger:    logger,
 			ethClient: ethClient,
+			metrics:   metrics,
 		},
 		contractAddress:  contractAddress,
 		contractABI:      contractAbi,
@@ -104,6 +106,10 @@ func (ec *EthRpcClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.
 		Addresses: []common.Address{ec.contractAddress},
 	}
 
+	// Calculate the response time (note: defer has to use a function here to also defer the calculation of time.Now())
+	queriedAt := time.Now()
+	defer func() { ec.metrics.ObserveLogsQueryDelay(queriedAt, time.Now()) }()
+
 	return ec.ethClient.FilterLogs(ctx, query)
 }
 
@@ -126,9 +132,10 @@ func (ec *EthRpcClient) FetchAndProcessLogs(
 	// Load test the sidecar and sequencer if testNoOfMsgSends is not 0
 	eventsMap := make(map[uint64][]sidecartypes.Event)
 	if ec.testNoOfMsgSends == 0 {
-		// Filter the logs from the next query block to the to block (note: this is rate-limited under the hood).
+		// Query the logs from the block range (note: this is rate-limited under the hood).
 		logs, err := ec.FilterLogs(ctx, fromBlock, toBlock)
 		if err != nil {
+			ec.metrics.LogsQueryErrorCount.Add(1)
 			return nil, nil, fmt.Errorf("logs query failed: %s", err.Error())
 		}
 
@@ -243,14 +250,16 @@ func (ec *EthRpcClient) processLogs(
 		}
 
 		if err := utils.ValidateIsLogSequential(vLog, &lastBlockNumber, &lastTxIndex, &lastLogIndex); err != nil {
-			ec.logger.Error("failed sequential validation", zap.Error(err))
-			return nil, err
+			errMsg := "failed sequential validation"
+			ec.logger.Error(errMsg, zap.Error(err))
+			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
 		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI)
 		if err != nil {
-			ec.logger.Error("error processing log", zap.Error(err))
-			return nil, fmt.Errorf("error processing log %s", err)
+			errMsg := "error processing log"
+			ec.logger.Error(errMsg, zap.Error(err))
+			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
 		// If the event is nil it means we've processed an unrecognized event, and we can skip it.

@@ -258,6 +258,7 @@ run-sidecar:
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
 	@$(eval DEVELOPMENT ?= "true")
 	@$(eval TEST_NO_OF_MSG_SENDS ?= "1000")
+	@$(eval PROMETHEUS_ENABLED ?= "true")
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
 	@while ! curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' --max-time 1 $(ETH_RPC_URL) | grep -q "result"; do \
 	    sleep 1; \
@@ -273,19 +274,20 @@ run-sidecar:
 	@echo "Waiting for Sequencer gRPC $(SEQUENCER_GRPC_URL) to be accessible..."
 	@sleep 3  # buffer for Sequencer gRPC server to start properly
 	@fuelsequencerd start-sidecar \
-		--host "$(SIDECAR_HOST)" \
-		--port "$(SIDECAR_PORT)" \
-		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
-		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
-		--sidecar_path_to_cert_file "$(SIDECAR_PATH_TO_CERT_FILE)" \
-		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
-		--eth_ws_url "$(ETH_WS_URL)" \
-		--eth_rpc_url "$(ETH_RPC_URL)" \
-		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
-		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
-		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
-		--development "$(DEVELOPMENT)" \
-		--test_no_of_msg_sends "$(TEST_NO_OF_MSG_SENDS)"
+		--host="$(SIDECAR_HOST)" \
+		--port="$(SIDECAR_PORT)" \
+		--sequencer_grpc_url="$(SEQUENCER_GRPC_URL)" \
+		--sequencer_path_to_cert_file="$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_cert_file="$(SIDECAR_PATH_TO_CERT_FILE)" \
+		--sidecar_path_to_key_file="$(SIDECAR_PATH_TO_KEY_FILE)" \
+		--eth_ws_url="$(ETH_WS_URL)" \
+		--eth_rpc_url="$(ETH_RPC_URL)" \
+		--eth_contract_address="$(ETH_CONTRACT_ADDRESS)" \
+		--eth_max_block_range="$(ETH_MAX_BLOCK_RANGE)" \
+		--eth_min_logs_query_interval="$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--development="$(DEVELOPMENT)" \
+		--test_no_of_msg_sends="$(TEST_NO_OF_MSG_SENDS)" \
+		--prometheus_enabled="$(PROMETHEUS_ENABLED)"
 
 init:
 	ignite chain init --skip-proto --build.tags ledger
@@ -372,6 +374,15 @@ $(MOCKS_DIR):
 	mkdir -p $(MOCKS_DIR)
 
 ###############################################################################
+###                                 Metrics                                 ###
+###############################################################################
+
+#? metrics: Generate metrics
+metrics:
+	go generate -run="scripts/metricsgen" ./...
+.PHONY: metrics
+
+###############################################################################
 ###                                Docker                                   ###
 ###############################################################################
 
@@ -395,14 +406,24 @@ build-docker-image:
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished building Docker image!"
 
-DATA_FOLDER="/data/fuelsequencer"
-COMMAND?=""
 run-docker-container: check-docker-image-exists
+	@if [ -z "$(ETH_RPC_URL)" ]; then \
+		echo "ETH_RPC_URL is not set"; \
+		exit 1; \
+	fi
+	@if [ -z "$(ETH_WS_URL)" ]; then \
+		echo "ETH_WS_URL is not set"; \
+		exit 1; \
+	fi
+	@$(eval DATA_FOLDER ?= "/data/fuelsequencer")
+	@$(eval COMMAND ?= "node_and_sidecar")
 	@echo "🤖 Running Docker container..."
 	@docker run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
-    		-p 26656:26656 -p 26657:26657 -p 1317:1317 \
+    		-p 26656:26656 -p 26657:26657 -p 1317:1317 -p 8080:8080 -p 8081:8081 \
+    		-e "ETH_RPC_URL=$(ETH_RPC_URL)" \
+    		-e "ETH_WS_URL=$(ETH_WS_URL)" \
     		${DOCKER_IMAGE_NAME}:latest \
     		${COMMAND}
 

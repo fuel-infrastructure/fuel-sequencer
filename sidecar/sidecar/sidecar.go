@@ -35,6 +35,9 @@ type Sidecar struct {
 	// eventStore stores all the necessary information needed to run the sidecar.
 	eventStore *store.EventStore
 
+	// metrics is the set of all Prometheus metrics exposed by Sidecar.
+	metrics *Metrics
+
 	// stopped indicates if the main process of the sidecar has been stopped or not. By default, this is false.
 	stopped atomic.Bool
 
@@ -50,6 +53,7 @@ func NewSidecar(
 	ethWsClient *ethwrappedclient.EthWsClient,
 	sequencerClient *sequencerclient.SequencerClient,
 	eventStore *store.EventStore,
+	metrics *Metrics,
 ) *Sidecar {
 	return &Sidecar{
 		logger:          logger,
@@ -57,6 +61,7 @@ func NewSidecar(
 		ethWsClient:     ethWsClient,
 		sequencerClient: sequencerClient,
 		eventStore:      eventStore,
+		metrics:         metrics,
 	}
 }
 
@@ -70,16 +75,18 @@ func (s *Sidecar) Start(ctx context.Context) error {
 	// Note: if a non-websocket URL is provided, this check will fail as well.
 	sub, err := s.ethWsClient.SubscribeNewHead(context.Background(), make(chan *ethereumtypes.Header))
 	if err != nil {
-		s.logger.Error("failed initial Ethereum subscription check", zap.Error(err))
-		return err
+		errMsg := "failed initial Ethereum subscription check"
+		s.logger.Error(errMsg, zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 	sub.Unsubscribe()
 
 	// Initial check to verify Ethereum RPC client connectivity and querying.
 	_, err = s.ethRpcClient.BlockNumber(context.Background())
 	if err != nil {
-		s.logger.Error("failed initial Ethereum RPC call check", zap.Error(err))
-		return err
+		errMsg := "failed initial Ethereum RPC call check"
+		s.logger.Error(errMsg, zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	return s.startFetchingLogs(ctx)
@@ -108,6 +115,7 @@ func (s *Sidecar) getMaxSyncableBlock(ctx context.Context) (*big.Int, error) {
 		return endQueryBlock, nil
 	}
 
+	s.metrics.SetMaxSyncableBlock(finalizedEthHeight)
 	return finalizedEthHeight, nil
 }
 
@@ -185,6 +193,8 @@ func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.
 			zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
 		)
 
+		s.metrics.CatchingUp.Set(1)
+		defer s.metrics.CatchingUp.Set(0)
 		return s.fetchAndStoreLogsUptoBlock(ctx, maxSyncableBlock)
 	} else {
 		s.logger.Debug("already in sync with ethereum",
@@ -206,6 +216,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 	s.logger.Info("subscribing to new ethereum block headers",
 		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
 	)
+	s.metrics.CatchingUp.Set(0) // not catching up
 
 	// Subscribe to new Ethereum block headers.
 	ch := make(chan *ethereumtypes.Header)
@@ -226,6 +237,8 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			sub.Unsubscribe()
 			return err, true // retry
 		case header := <-ch:
+			s.metrics.ObserveHeaderDelay(time.Unix(int64(header.Time), 0), time.Now())
+			s.metrics.SetLastHeaderSeen(header.Number)
 
 			// If the sidecar has been stopped, exit.
 			if s.IsStopped() {
@@ -287,7 +300,7 @@ func (s *Sidecar) fetchAndStoreLogsUptoBlock(ctx context.Context, toBlock *big.I
 			ctx, s.eventStore.GetNextQueryBlock(), toBlock, s.eventStore.GetMaxQueryRange(),
 		)
 		if err != nil {
-			s.logger.Error("error fetching logs", zap.Error(err))
+			s.logger.Error("fetch and process logs failed", zap.Error(err))
 			return err
 		}
 

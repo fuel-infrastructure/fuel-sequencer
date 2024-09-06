@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 // that will be used to generate bridge commitments from successive blocks.
 func validateBridgeCommitmentRange(ctx context.Context, clientCtx client.Context, start, end uint64) error {
 	if start == 0 {
-		return fmt.Errorf("the first block is 0")
+		return types.ErrZeroStart
 	}
 	if start > end {
 		return fmt.Errorf("last block is smaller than first block")

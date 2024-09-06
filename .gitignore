@@ -31,3 +31,6 @@ release/
 # Build directories
 build/
 tmp-swagger-gen/
+
+# Grafana data
+grafana/

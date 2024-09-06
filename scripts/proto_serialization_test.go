@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -155,6 +156,7 @@ func TestDecodeTx_Base64(t *testing.T) {
 		panic(err)
 	}
 	fmt.Printf("SIZE: %d\n", utils.TxSize(dataBz))
+	fmt.Printf("HASH: %X\n", types.Tx(dataBz).Hash())
 
 	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
 	if err != nil {
@@ -174,6 +176,7 @@ func TestDecodeTx_Hex(t *testing.T) {
 		panic(err)
 	}
 	fmt.Printf("SIZE: %d\n", utils.TxSize(dataBz))
+	fmt.Printf("HASH: %X\n", types.Tx(dataBz).Hash())
 
 	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
 	if err != nil {

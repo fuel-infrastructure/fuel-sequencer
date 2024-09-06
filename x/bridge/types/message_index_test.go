@@ -4,135 +4,12 @@ import (
 	"math"
 	"testing"
 
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
-
-func TestMsgIndex_Equal(t *testing.T) {
-	var nilMsgIndex *types.MsgIndex = nil
-
-	testCases := []struct {
-		name          string
-		eventTx1      *testtypes.TestMsgIndexWithEvents
-		eventTx2      *testtypes.TestMsgIndexWithEvents
-		expectedEqual bool
-		expErrMsg     string
-	}{
-		{
-			name: "Equal MsgIndex - both nil",
-			eventTx1: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: nilMsgIndex,
-				Events:   nil,
-			},
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: nilMsgIndex,
-				Events:   nil,
-			},
-		},
-		{
-			name:     "Equal MsgIndex - not nil",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: &types.MsgIndex{
-					Authority:           testtypes.TestGovernanceAddress,
-					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock:    true,
-					BlockNumber:         1,
-				},
-				Events: testtypes.TestEvents,
-			},
-		},
-		{
-			name:     "Unequal MsgIndex - one is nil the other is not",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: nilMsgIndex,
-				Events:   nil,
-			},
-			expErrMsg: "nil (false) != (true)",
-		},
-		{
-			name:     "Unequal MsgIndex - number of injected event txs is different",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: &types.MsgIndex{
-					Authority:           testtypes.TestGovernanceAddress,
-					NumInjectedEventTxs: 2,
-					NewEthereumBlock:    true,
-					BlockNumber:         1,
-				},
-				Events: []*sidecartypes.Event{testtypes.TestEvent1, testtypes.TestEvent2},
-			},
-			expErrMsg: "number of injected event txs (3) != (2)",
-		},
-		{
-			name:     "Unequal MsgIndex - NewEthereumBlock is different",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: &types.MsgIndex{
-					Authority:           testtypes.TestGovernanceAddress,
-					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock:    false,
-					BlockNumber:         1,
-				},
-				Events: testtypes.TestEvents,
-			},
-			expErrMsg: "new Ethereum block (true) != (false)",
-		},
-		{
-			name:     "Unequal MsgIndex - BlockNumber is different",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: &types.MsgIndex{
-					Authority:           testtypes.TestGovernanceAddress,
-					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock:    true,
-					BlockNumber:         0,
-				},
-				Events: testtypes.TestEvents,
-			},
-			expErrMsg: "block number (1) != (0)",
-		},
-		{
-			name:     "Unequal MsgIndex - Authority is different",
-			eventTx1: &testtypes.TestMsgIndex,
-			eventTx2: &testtypes.TestMsgIndexWithEvents{
-				MsgIndex: &types.MsgIndex{
-					Authority:           "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
-					NumInjectedEventTxs: uint64(len(testtypes.TestEvents)),
-					NewEthereumBlock:    true,
-					BlockNumber:         1,
-				},
-				Events: testtypes.TestEvents,
-			},
-			expErrMsg: "authority (fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3) != (fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4)",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-
-			eventTxs1 := testtypes.MustGetEventTxsFromEvents(
-				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx1.Events,
-			)
-			eventTxs2 := testtypes.MustGetEventTxsFromEvents(
-				testtypes.TestCdc, testtypes.TestGovernanceAddress, tc.eventTx2.Events,
-			)
-
-			err := tc.eventTx1.MsgIndex.Equal(tc.eventTx2.MsgIndex, eventTxs1, eventTxs2)
-
-			if len(tc.expErrMsg) > 0 {
-				require.Error(t, err)
-				require.ErrorContains(t, err, tc.expErrMsg)
-				return
-			}
-			require.NoError(t, err)
-		})
-	}
-}
 
 func TestMsgIndex_ValidateBeforeProcessing(t *testing.T) {
 
@@ -231,37 +108,71 @@ func TestMsgIndex_ValidateBeforeProcessing(t *testing.T) {
 
 func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T) {
 
-	tx := testtypes.TestMsgIndex
-	txRawBytes, err := tx.RawTxBytes()
+	// A typical MsgIndex sequence is always 1 or greater
+	msgIndexSequence := uint64(1)
+
+	msgIndexTx := testtypes.TestMsgIndex
+	txRawBytes, err := msgIndexTx.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
 
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 	eventsSize := testtypes.MustGetSizeFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 
 	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize
 
-	numEvents, err := tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize))
+	numEvents, err := msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, numEvents) // just enough bytes
 
-	numEvents, err = tx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1))
+	numEvents, err = msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, numEvents) // just under enough
 }
 
-func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
+func TestMsgIndex_RawTxBytes(t *testing.T) {
+
+	// A typical MsgIndex sequence is always 1 or greater
+	msgIndexSequence := uint64(1)
 
 	msgIndex := testtypes.TestMsgIndex.MsgIndex
-	msgIndexRawBytes, err := msgIndex.RawTxBytes()
+	msgIndexAny, err := codectypes.NewAnyWithValue(msgIndex)
+	require.NoError(t, err)
+
+	expectMsgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, msgIndexSequence)
+	require.NoError(t, err)
+	notExpectMsgIndexBz1, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, msgIndexSequence+1)
+	require.NoError(t, err)
+	notExpectMsgIndexBz2, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, msgIndexSequence-1)
+	require.NoError(t, err)
+	actualMsgIndexRawBytes, err := msgIndex.RawTxBytes(msgIndexSequence)
+	require.NoError(t, err)
+
+	// The main point here is to ensure that the sequence is actually adhered to
+	require.Equal(t, expectMsgIndexBz, actualMsgIndexRawBytes)
+	require.NotEqual(t, notExpectMsgIndexBz1, actualMsgIndexRawBytes)
+	require.NotEqual(t, notExpectMsgIndexBz2, actualMsgIndexRawBytes)
+}
+
+func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
+
+	// A typical MsgIndex sequence is always 1 or greater
+	msgIndexSequence := uint64(1)
+
+	msgIndex := testtypes.TestMsgIndex.MsgIndex
+	msgIndexRawBytes, err := msgIndex.RawTxBytes(msgIndexSequence)
 	require.NoError(t, err)
 
 	events := testtypes.TestMsgIndex.Events
-	eventTxs := testtypes.MustGetEventTxsFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
-	eventsSize := testtypes.MustGetSizeFromEvents(testtypes.TestCdc, testtypes.TestGovernanceAddress, events)
+	eventTxs := testtypes.MustGetEventTxsFromEvents(
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
+	)
+	eventsSize := testtypes.MustGetSizeFromEvents(
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
+	)
 
 	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize
 
@@ -300,7 +211,7 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			numOfEvents, err := tc.eventTx.NumberOfEventsWithMaxBytes(eventTxs, tc.maxBytes)
+			numOfEvents, err := tc.eventTx.NumberOfEventsWithMaxBytes(eventTxs, tc.maxBytes, msgIndexSequence)
 
 			if tc.expErrMsg != "" {
 				require.ErrorContains(t, err, tc.expErrMsg)
@@ -314,8 +225,9 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 
+	firstEventTxsSequence := uint64(1)
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, firstEventTxsSequence,
 	)
 
 	testCases := []struct {
@@ -397,16 +309,17 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			err = tc.expEventTx.Equal(&tc.eventTx, tc.expEvents, trimmedEvents)
-			require.NoError(t, err)
+			require.Equal(t, tc.expEventTx, tc.eventTx)
+			require.True(t, utils.IsEqualBytesSlices(tc.expEvents, trimmedEvents))
 		})
 	}
 }
 
 func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 
+	eventTxsSequence := uint64(1) // arbitrary
 	eventTxs := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, eventTxsSequence,
 	)
 
 	testCases := []struct {
@@ -498,8 +411,8 @@ func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 			lenAfter := len(trimmedEvents)
 			require.EqualValues(t, tc.expTrimmed, lenBefore-lenAfter)
 
-			err = tc.expEventTx.Equal(&tc.eventTx, tc.expEvents, trimmedEvents)
-			require.NoError(t, err)
+			require.Equal(t, tc.expEventTx, tc.eventTx)
+			require.True(t, utils.IsEqualBytesSlices(tc.expEvents, trimmedEvents))
 		})
 	}
 }

@@ -310,6 +310,36 @@ var (
 		Events: TestEventsReduced,
 	}
 
+	TestMsgIndexIncorrectAuthority = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestSeqAddr1Str, // not the governance address
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithNoNewEthBlock = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    false, // no new block
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithDiffBlockNumber = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         100, // not 1
+		},
+		Events: TestEvents,
+	}
+
 	TestMsgIndexPartial = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,
