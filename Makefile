@@ -241,8 +241,6 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 
 run-sequencer: proto-go-gen serve
 
-run-sequencer-no-sidecar: proto-go-gen serve-no-sidecar
-
 run-sidecar:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
 	@$(eval SIDECAR_PORT ?= "8080")
@@ -295,9 +293,6 @@ serve:
 
 serve-force-reset:
 	ignite chain serve -v --force-reset --skip-proto --build.tags ledger
-
-serve-no-sidecar:
-	ignite chain serve -v --reset-once --skip-proto --build.tags ledger --config config-no-sidecar.yml
 
 keys:
 	@echo "🤖 Generating keys..."
