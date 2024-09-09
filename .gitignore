@@ -32,5 +32,8 @@ release/
 build/
 tmp-swagger-gen/
 
+# Grafana data
+grafana/
+
 e2e/tests/full/fixtures/ethereum
 e2e/tests/full/fixtures/sequencer

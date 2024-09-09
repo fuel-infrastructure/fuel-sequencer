@@ -50,12 +50,7 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				// 210000000000 Initial balance per Validator
 				// 3 Validators
 				// Total Supply = 630000000000
-				//
-				// Bonded ratio        = (unused)
-				// InflationRateChange = (unused)
-				// InflationMin        = (unused)
-				// GoalBonded          = (unused)
-				// BlocksPerYear       = 6311520
+				// BlocksPerYear = 6311520
 				//
 				// Inflation = 0.10
 				//

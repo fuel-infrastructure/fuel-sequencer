@@ -17,19 +17,10 @@ import (
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/golang/mock/gomock"
 )
-
-func calculateTotalTxBytes(txs [][]byte) uint64 {
-	var totalTxBytes uint64
-
-	for _, txBz := range txs {
-		totalTxBytes += uint64(len(txBz))
-	}
-
-	return totalTxBytes
-}
 
 func (s *AppTestSuite) TestPrepareProposalHandler() {
 	// Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
@@ -45,7 +36,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 
 	msgSupplyDeltaTx := s.EncodeMsgSupplyDeltaTx()
 
-	totalTxsBytesWithEventsAndSupplyDelta := calculateTotalTxBytes(
+	totalTxsBytesWithEventsAndSupplyDelta := utils.TxsSize(
 		append(
 			encodedMsgIndexWithEvents,
 			msgSupplyDeltaTx,
@@ -54,13 +45,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			encodedDummyTxs[2],
 		),
 	)
-	totalTxsBytesWithFourEventsAndSupplyDeltaOnly := calculateTotalTxBytes(
+	totalTxsBytesWithFourEventsAndSupplyDeltaOnly := utils.TxsSize(
 		append(
 			encodedMsgIndexWithFourEvents,
 			msgSupplyDeltaTx,
 		),
 	)
-	totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs := calculateTotalTxBytes(
+	totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs := utils.TxsSize(
 		append(
 			encodedMsgIndexWithEvents,
 			msgSupplyDeltaTx,
@@ -208,7 +199,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				// since the generated MsgIndex will have NewEthereumBlock set to true at first until the proposer
 				// updates it. When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume
 				// anything.
-				MaxTxBytes: int64(calculateTotalTxBytes(encodedMsgIndexPartialBlock)) + 2,
+				MaxTxBytes: int64(utils.TxsSize(encodedMsgIndexPartialBlock)) + 2,
 
 				Txs:    encodedDummyTxs,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
@@ -344,7 +335,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to the size of MsgSupplyDeltaTx so that MsgIndex does not fit
-				MaxTxBytes: int64(calculateTotalTxBytes([][]byte{msgSupplyDeltaTx})),
+				MaxTxBytes: int64(utils.TxSize(msgSupplyDeltaTx)),
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
@@ -366,7 +357,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to EXACTLY the size of MsgSupplyDelta transaction plus MsgIndex
-				MaxTxBytes: int64(calculateTotalTxBytes(append(encodedMsgIndexWithEvents, msgSupplyDeltaTx))),
+				MaxTxBytes: int64(utils.TxsSize(append(encodedMsgIndexWithEvents, msgSupplyDeltaTx))),
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
@@ -579,7 +570,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 
 			// Calculate the percentage of block space that dummy txs will take to compute the correct limit.
 			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
-				strconv.FormatUint(calculateTotalTxBytes(
+				strconv.FormatUint(utils.TxsSize(
 					append(
 						[][]byte{},
 						encodedDummyTxs[0],
@@ -631,7 +622,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			// Calculate the percentage of block space that dummy txs and supply delta will take to compute the correct
 			// limit.
 			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
-				strconv.FormatUint(calculateTotalTxBytes(
+				strconv.FormatUint(utils.TxsSize(
 					append(
 						[][]byte{},
 						encodedDummyTxs[0],
@@ -675,7 +666,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			// Allocation is set such that we can fit 2 dummy txs and supply delta. This showcases that the third dummy
 			// transaction is still included in the block.
 			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
-				strconv.FormatUint(calculateTotalTxBytes(
+				strconv.FormatUint(utils.TxsSize(
 					append(
 						[][]byte{},
 						msgSupplyDeltaTx,
@@ -725,7 +716,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			// Allocation is set such that we can fit 5 dummy txs and supply delta. This is done to demonstrate the
 			// dynamically adjusting block space in favor of event transactions when there is enough space.
 			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
-				strconv.FormatUint(calculateTotalTxBytes(
+				strconv.FormatUint(utils.TxsSize(
 					append(
 						[][]byte{},
 						msgSupplyDeltaTx,

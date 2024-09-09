@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
@@ -69,8 +70,11 @@ func (s *E2ETestSuite) DepositAndDelegateTokenToSequencer(
 
 // DepositTokenToSequencerFromMigrationNoDelegation calls DepositTokenToSequencerFromMigration with a null Ethereum
 // address as the validator to delegate to, meaning that there will be no delegation.
-func (s *E2ETestSuite) DepositTokenToSequencerFromMigrationNoDelegation(amount *big.Int) *ethereumtypes.Receipt {
-	return s.DepositTokenToSequencerFromMigration(amount, common.HexToAddress(keeper.NullEthereumAddress))
+func (s *E2ETestSuite) DepositTokenToSequencerFromMigrationNoDelegation(
+	amount *big.Int, vestingPeriod time.Duration,
+) *ethereumtypes.Receipt {
+	validator := common.HexToAddress(keeper.NullEthereumAddress)
+	return s.DepositTokenToSequencerFromMigration(amount, validator, vestingPeriod)
 }
 
 // DepositTokenToSequencerFromMigration generates a deposit to an account owned by the sender by migrating V1 tokens to
@@ -78,7 +82,7 @@ func (s *E2ETestSuite) DepositTokenToSequencerFromMigrationNoDelegation(amount *
 //
 // Note: by default the sender is s.EthKeys[0]
 func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(
-	amount *big.Int, validator common.Address,
+	amount *big.Int, validator common.Address, vestingPeriod time.Duration,
 ) *ethereumtypes.Receipt {
 
 	// ...approve V1 tokens for use by token migrator.
@@ -92,7 +96,7 @@ func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(
 	s.Require().NoError(err)
 
 	// ...migrate V1 tokens to V2 tokens.
-	depositData := PackMigrate(amount, validator)
+	depositData := PackMigrate(amount, validator, new(big.Int).SetInt64(int64(vestingPeriod.Seconds())))
 	receipt, err := s.SendEthTransactionToTokenMigratorContract(depositData)
 	s.Require().NoError(err)
 

@@ -111,9 +111,19 @@ make build-docker-image
 The first time you run the docker container you should run it using:
 
 ```bash
-make run-docker-container                                 # with Sidecar
-make run-docker-container COMMAND="fuelsequencerd start"  # without Sidecar
+# with Sidecar
+make run-docker-container \
+  ETH_RPC_URL="http://example:8545" \
+  ETH_WS_URL="ws://example:8545"
+
+# without Sidecar
+make run-docker-container \
+  ETH_RPC_URL="http://example:8545" \
+  ETH_WS_URL="ws://example:8545" \
+  COMMAND="fuelsequencerd start"
 ```
+
+> Note that the Ethereum node URLs need to be set explicitly since it does not make sense to default to `localhost` in the scope of a Docker container. If your Ethereum node is running on `localhost` you will need to specify your host's IP as the Ethereum address. If that does not work, you might need to reconfigure your host firewall to allow Docker to connect on 8545.
 
 The command above will do the following:
 
@@ -121,12 +131,15 @@ The command above will do the following:
 2. Map the chain data located at `./data/fuelsequencer` by default using docker volumes.
 3. Give a name to the container.
 4. Expose the necessary ports.
-5. Start the container. 
+5. Start the container.
 
 If you want to pass an alternative data folder you should run the make command as follows:
 
 ```bash
-make run-docker-container DATA_FOLDER="/path/to/folder/with/config/data/and/keyring-test"
+make run-docker-container \
+  ETH_RPC_URL="http://example:8545" \
+  ETH_WS_URL="ws://example:8545" \
+  DATA_FOLDER="/path/to/folder/with/config/data/and/keyring-test"
 ```
 
 After creating and running the docker container for the first time, you should manage the container as follows:
