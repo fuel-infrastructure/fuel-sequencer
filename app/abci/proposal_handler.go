@@ -3,6 +3,7 @@ package abci
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
@@ -139,12 +140,14 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex and event txs: %w", err)
 		}
+		ctx.Logger().Info("generated index at PrepareProposal", "msg_index", msgIndex.String())
 
 		// Trim events from head to skip the events that were already processed.
 		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
 		}
+		ctx.Logger().Info("index after TrimEventsFromHead at PrepareProposal", "msg_index", msgIndex.String())
 
 		// Calculate the block space that should be reserved for event transactions.
 
@@ -194,6 +197,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, maxNumberOfEvents, maxBytesForEvents,
 			))
 		}
+		ctx.Logger().Info("index after KeepEventsFromHead at PrepareProposal", "msg_index", msgIndex.String())
 
 		// Sanity check: number of event txs is equal to NumInjectedEventTxs
 		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
@@ -232,7 +236,11 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, err
 		}
 
-		ctx.Logger().Debug("prepared proposal", "txs", len(selectedTxs))
+		ctx.Logger().Info("prepared proposal",
+			"num_txs", len(selectedTxs),
+			"msg_index", msgIndex.String(),
+			"msg_index_bz", hex.EncodeToString(msgIndexBz),
+		)
 
 		return &abci.ResponsePrepareProposal{Txs: selectedTxs}, nil
 	}
@@ -268,6 +276,10 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				"block proposal doesn't have any transactions: first tx expected to be MsgIndex",
 			)
 		}
+
+		ctx.Logger().Info("processing proposal",
+			"num_txs", len(req.Txs), "msg_index_bz", hex.EncodeToString(req.Txs[0]), "req.time", req.Time,
+		)
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
 		expectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
@@ -356,6 +368,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 					"failed to generate MsgIndex and event txs: %w", err,
 				)
 			}
+			ctx.Logger().Info("generated index at ProcessProposal", "msg_index", msgIndex.String())
 		}
 
 		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
@@ -372,6 +385,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				"failed to trim event txs from head: %w", err,
 			)
 		}
+		ctx.Logger().Info("index after TrimEventsFromHead at ProcessProposal", "msg_index", msgIndex.String())
 
 		// Trim events from tail to fit the block size allocated for events. Unlike the PrepareProposal step, here we do
 		// not have access to the max block size, so instead we assume that the proposer proposed an optimised block.
@@ -389,6 +403,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				trimmed, originalNumberOfEvents, msgIndex.BlockNumber, injectedMsgIndex.NumInjectedEventTxs,
 			))
 		}
+		ctx.Logger().Info("index after KeepEventsFromHead at ProcessProposal", "msg_index", msgIndex.String())
 
 		// Sanity check: number of event txs is equal to NumInjectedEventTxs
 		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
