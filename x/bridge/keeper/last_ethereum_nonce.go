@@ -6,11 +6,13 @@ import (
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // SetLastEthereumNonce set lastEthereumNonce in the store
 func (k Keeper) SetLastEthereumNonce(ctx context.Context, lastEthereumNonce math.Int) {
+	defer metrics.SetLastEthereumNonce(ctx, lastEthereumNonce)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumNonceKey)
 
