@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/abci/metrics"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
@@ -263,13 +262,6 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
-
-		// Assume that proposal will be rejected
-		proposalAccepted := false
-		defer func() {
-			metrics.ProcessProposalResponse(proposalAccepted)
-		}()
-
 		// Expect that there is at least one transaction (MsgIndex must be there)
 		if len(req.Txs) == 0 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
@@ -455,7 +447,6 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		ctx.Logger().Debug("processed proposal", "height", req.Height, "num_txs", len(req.Txs))
 
-		proposalAccepted = true
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 }
@@ -608,7 +599,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			eventTxs = append(eventTxs, eventTx)
 			eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
 		} else {
-			metrics.SkipUnauthorizedEvent()
 			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
 		}
 	}

@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -63,8 +62,6 @@ func (k msgServer) WithdrawToEthereum(
 	if err != nil {
 		return nil, err
 	}
-
-	defer metrics.ObserveWithdrawal()
 
 	// Addresses are lowercase for simpler parsing on Ethereum.
 	return &types.MsgWithdrawToEthereumResponse{
