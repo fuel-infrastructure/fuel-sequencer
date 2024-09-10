@@ -67,6 +67,9 @@ validators:
       path_to_cert_file: ""
     commitments:
       api-enabled: true
+    telemetry:
+      enabled: true
+      prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:
