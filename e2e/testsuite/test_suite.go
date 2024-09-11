@@ -47,10 +47,6 @@ const (
 	supplyDeltaPeriod      = uint64(10)       // default - can be overridden
 	governanceVotingPeriod = time.Second * 20 // default - can be overridden
 
-	// Balance and staked amount per validator
-	initBalance = 210000000000 // per validator
-	initStaked  = 100000000000 // per validator
-
 	// FuelSequencer validator configs
 	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
 	fuelSequencerBinary               = "fuelsequencerd"
@@ -84,8 +80,8 @@ const (
 
 var (
 	// Balance and staked amount per validator
-	InitBalanceCoin = sdk.NewInt64Coin(BridgeDenom, initBalance)
-	InitStakedCoin  = sdk.NewInt64Coin(BridgeDenom, initStaked)
+	InitBalanceCoin = sdk.NewInt64Coin(BridgeDenom, 210000000000)
+	InitStakedCoin  = sdk.NewInt64Coin(BridgeDenom, 100000000000)
 
 	// MNEMONICS dictates how many Sequencer nodes will be created by specifying their mnemonic.
 	// The first mnemonic is reused for the Ethereum validator mnemonic.
@@ -97,6 +93,12 @@ var (
 		// Bob
 		"gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage",
 	}
+
+	// Slashing params - 50% of every 10-block window has to be signed.
+	// Otherwise, the validator not signing will get slashed by 50%.
+	SignedBlocksWindow    = int64(10)
+	MinSignedPerWindow    = sdkmath.LegacyMustNewDecFromStr("0.5")
+	SlashFractionDowntime = sdkmath.LegacyMustNewDecFromStr("0.5")
 
 	// Inflation params
 	Inflation           = sdkmath.LegacyMustNewDecFromStr("0.10") // this is overridden if InflationMin == InflationMax
@@ -454,6 +456,14 @@ func (s *E2ETestSuite) setContractAddresses() {
 	s.T().Logf("%s :: TokenMigrator contract", TokenMigratorContractAddressStr)
 	s.T().Logf("%s :: Token contract", TokenContractAddressStr)
 	s.T().Logf("%s :: Faucet contract", FaucetContractAddressStr)
+}
+
+func (s *E2ETestSuite) PauseSequencer(i int) {
+	s.Require().NoError(s.dockerPool.Client.PauseContainer(s.valResources[i].Container.ID))
+}
+
+func (s *E2ETestSuite) UnpauseSequencer(i int) {
+	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.valResources[i].Container.ID))
 }
 
 func (s *E2ETestSuite) PauseEthereum() {
