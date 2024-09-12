@@ -230,7 +230,7 @@ func startSidecarServerCmd() *cobra.Command {
 
 	// Prometheus
 	cmd.Flags().BoolVar(
-		&prmCfg.Enabled, FlagPrometheusEnabled, false, "enables serving of prometheus metrics under /metrics",
+		&prmCfg.Enabled, FlagPrometheusEnabled, false, "enables serving of prometheus metrics at the listen address",
 	)
 	cmd.Flags().StringVar(
 		&prmCfg.ListenAddress, FlagPrometheusListenAddress, ":8081", "address to listen for prometheus collectors",
