@@ -7,22 +7,27 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
+func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
+	return s.submitGovProposal(msg, false)
+}
+
+func (s *E2ETestSuite) SubmitExpeditedGovProposal(msg sdk.Msg) uint64 {
+	return s.submitGovProposal(msg, true)
+}
+
 // SubmitGovProposal submits a governance proposal using the provided message. It also returns the proposal's ID.
 //
 // Inspired from https://github.com/cosmos/ibc-go/blob/3a04e955f24332da39a86d3968fba7b47710b9e8
-func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
-	sender, err := sdk.AccAddressFromBech32(ADDRESSES[0])
-	s.Require().NoError(err)
-
+func (s *E2ETestSuite) submitGovProposal(msg sdk.Msg, expedited bool) uint64 {
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		msgs,
 		sdk.NewCoins(sdk.NewCoin(BridgeDenom, govtypesv1.DefaultMinDepositTokens)),
-		sender.String(),
+		s.SeqKeys[0].AddressSeq,
 		"",
 		"title",
 		"summary",
-		false,
+		expedited,
 	)
 	s.Require().NoError(err)
 
@@ -42,13 +47,21 @@ func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {
 	return proposalId
 }
 
-// ExecuteGovProposal submits a governance proposal using the provided message and uses
+func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
+	s.executeGovProposal(msg, false)
+}
+
+func (s *E2ETestSuite) ExecuteExpeditedGovProposal(msg sdk.Msg) {
+	s.executeGovProposal(msg, true)
+}
+
+// executeGovProposal submits a governance proposal using the provided message and uses
 // all validators to vote yes on the proposal. It ensures the proposal successfully passes.
 //
 // Inspired from https://github.com/cosmos/ibc-go/blob/3a04e955f24332da39a86d3968fba7b47710b9e8
-func (s *E2ETestSuite) ExecuteGovProposal(msg sdk.Msg) {
+func (s *E2ETestSuite) executeGovProposal(msg sdk.Msg, expedited bool) {
 	// Submit proposal and get its ID
-	proposalId := s.SubmitGovProposal(msg)
+	proposalId := s.submitGovProposal(msg, expedited)
 
 	// Vote yes from all validators
 	for _, val := range s.Chain.validators {

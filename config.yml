@@ -35,6 +35,8 @@ validators:
 - name: alice
   bonded: 100000000utest
   config:
+    instrumentation:
+      prometheus: true
     consensus:
       # How long we wait for a proposal block before prevoting nil
       timeout_propose: "1s"
@@ -68,6 +70,8 @@ validators:
       address: localhost:8080
       timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
       path_to_cert_file: ""
+    commitments:
+      api-enabled: true
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:
@@ -90,8 +94,8 @@ genesis:
       minter:
         inflation: "0.06"
       params:
-        inflation_max: "0.06"         # unused
-        inflation_min: "0.06"         # unused
+        inflation_max: "0.06"
+        inflation_min: "0.06"
         inflation_rate_change: "0.0"  # unused
         mint_denom: "utest"
     staking:
@@ -101,7 +105,7 @@ genesis:
       params:
         bridge_denom: "utest"
         bridge_denom_total_supply: "10000000000"  # 10 bil
-        ethereum_proxy_contract_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"  # just an example
+        ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
         authorize_messages_allowed:
           - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
           - "/cosmos.bank.v1beta1.MsgSend"
@@ -115,6 +119,7 @@ genesis:
         vesting_start_time: "2024-01-01T00:00:00.000000000Z"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"
+      last_consensus_txs_sequence: 0
     sequencing:
       params:
         max_blob_size_bytes: 1000

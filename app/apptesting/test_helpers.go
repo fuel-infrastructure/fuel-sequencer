@@ -36,7 +36,6 @@ var (
 func init() {
 	fuelsequencerapp.InitSDKConfig()
 	fuelsequencerapp.InitCometBFTConfig()
-	fuelsequencerapp.InitAppConfig()
 
 	// This is set to prevent the usage of cached addresses with a cosmos prefix for testing purposes
 	sdk.SetAddrCacheEnabled(false)

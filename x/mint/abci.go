@@ -14,13 +14,7 @@ import (
 // BeginBlocker was copied from https://github.com/cosmos/cosmos-sdk/blob/v0.50.6/x/mint/abci.go.
 // It is almost identical to the original, but uses BridgeDenomTotalSupply from the bridge module
 // instead of getting the StakingTokenSupply from the Staking module.
-// tokens being minted by
-func BeginBlocker(
-	ctx context.Context,
-	k mintkeeper.Keeper,
-	bk types.BridgeKeeper,
-	ic minttypes.InflationCalculationFn,
-) error {
+func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeeper) error {
 	defer telemetry.ModuleMeasureSince(minttypes.ModuleName, telemetry.Now(), telemetry.MetricKeyBeginBlocker)
 
 	// fetch stored minter & params
@@ -52,6 +46,12 @@ func BeginBlocker(
 	// Since we have no bonded ratio, and we want the inflation rate to be fixed, we can skip this calculation.
 	//
 	//minter.Inflation = ic(ctx, minter, params, bondedRatio)
+	//
+	// However, we want inflation to be configurable via the InflationMin and InflationMax params. To remove any doubts
+	// as to which inflation value will be picked, we require that the InflationMin and InflationMax are equal.
+	if params.InflationMin.Equal(params.InflationMax) {
+		minter.Inflation = params.InflationMin
+	}
 
 	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalSupply)
 	if err = k.Minter.Set(ctx, minter); err != nil {

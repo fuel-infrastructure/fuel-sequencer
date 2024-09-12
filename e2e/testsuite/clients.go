@@ -51,10 +51,16 @@ type GRPCClients struct {
 func (s *E2ETestSuite) initGRPCClients() {
 	addr := s.Chain.validators[0].hostGRPCPort
 
+	// Due to an issue with math.LegacyDec deserialization, we have to override the gRPC codec.
+	// Ref 1: https://github.com/cosmos/cosmos-sdk/issues/18430
+	// Ref 2: https://github.com/cosmos/cosmos-sdk/pull/20912
+	overrideCodec := grpc.WithDefaultCallOptions(grpc.ForceCodec(TestGrpcCdc))
+
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		overrideCodec,
 	)
 	s.Require().NoError(err)
 	s.T().Cleanup(func() {
@@ -98,6 +104,8 @@ func (s *E2ETestSuite) initRPCClient() {
 		panic(err)
 	}
 
+	s.Require().NoError(rpcClient.Start())
+
 	s.Chain.rpcClient = rpcClient
 }
 
@@ -108,7 +116,7 @@ func (s *E2ETestSuite) getRPCClient() *rpchttp.HTTP {
 // initEthereumRPCClient establishes an RPC client to the Ethereum node.
 func (s *E2ETestSuite) initEthereumRPCClient() {
 
-	url := fmt.Sprintf("http://%s", s.ethResource.GetHostPort("8545/tcp"))
+	url := fmt.Sprintf("http://%s", s.ethNodeResource.GetHostPort("8545/tcp"))
 	ethClient, err := ethclient.Dial(url)
 	s.Require().NoError(err)
 

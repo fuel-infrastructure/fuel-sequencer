@@ -26,29 +26,6 @@ func (*MsgIndex) ValidateBasic() error {
 	return nil
 }
 
-// Equal compares two MsgIndex structs and two sets of event transactions for equality
-func (m *MsgIndex) Equal(e *MsgIndex, eventTxs1 [][]byte, eventTxs2 [][]byte) error {
-	// If both structs are nil then they are equal
-	if m == nil && e == nil {
-		return nil
-	}
-
-	if m == nil || e == nil {
-		return fmt.Errorf("nil (%t) != (%t)", m == nil, e == nil)
-	} else if m.Authority != e.Authority {
-		return fmt.Errorf("authority (%s) != (%s)", m.Authority, e.Authority)
-	} else if m.NumInjectedEventTxs != e.NumInjectedEventTxs {
-		return fmt.Errorf("number of injected event txs (%d) != (%d)", m.NumInjectedEventTxs, e.NumInjectedEventTxs)
-	} else if m.NewEthereumBlock != e.NewEthereumBlock {
-		return fmt.Errorf("new Ethereum block (%t) != (%t)", m.NewEthereumBlock, e.NewEthereumBlock)
-	} else if m.BlockNumber != e.BlockNumber {
-		return fmt.Errorf("block number (%d) != (%d)", m.BlockNumber, e.BlockNumber)
-	} else if !utils.IsEqualBytesSlices(eventTxs1, eventTxs2) {
-		return fmt.Errorf("event transactions are not equal")
-	}
-	return nil
-}
-
 // ValidateBeforeProcessing performs some state-based checks on MsgIndex before it is officially processed.
 func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset uint64) error {
 
@@ -82,24 +59,26 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
-func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes uint64) (n int, err error) {
+// The sequence ensures that size calculations are consistent with that of the final MsgIndex transaction in the block.
+func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes, sequence uint64) (int, error) {
 
-	msgIndexRawTxBytes, err := m.RawTxBytes()
+	msgIndexRawTxBytes, err := m.RawTxBytes(sequence)
 	if err != nil {
 		return 0, err
 	}
 
 	// If the MsgIndex on its own cannot fit into the block, this is a major issue.
-	if uint64(len(msgIndexRawTxBytes)) > maxBytes {
+	msgIndexTxSize := utils.TxSize(msgIndexRawTxBytes)
+	if msgIndexTxSize > maxBytes {
 		return 0, fmt.Errorf(
-			"could not fit MsgIndex of size %d in max bytes allocated for events %d",
-			len(msgIndexRawTxBytes), maxBytes)
+			"could not fit MsgIndex of size %d in max bytes allocated for events %d", msgIndexTxSize, maxBytes,
+		)
 	}
 
-	n += len(msgIndexRawTxBytes)
+	n := msgIndexTxSize
 	for i, eventTx := range eventTxs {
-		toAdd := len(eventTx)
-		if uint64(n+toAdd) > maxBytes {
+		toAdd := utils.TxSize(eventTx)
+		if n+toAdd > maxBytes {
 			return i, nil
 		}
 		n += toAdd
@@ -134,6 +113,8 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 
 	}
 
+	// Note: There is no need to use utils.TxSize to calculate the size of MsgIndex because we are only checking the
+	// size of the message and not how big the transaction containing the message would be.
 	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[numEventsToTrim:]
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
@@ -150,7 +131,9 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 //
 // An important check that it does is to ensure that if there are events, these cannot all be trimmed, otherwise the
 // blockchain might get stuck injecting empty MsgIndex forever. At least one event must be kept if there are events.
-func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64) (newEventTxs [][]byte, trimmed uint64, err error) {
+func (m *MsgIndex) KeepEventsFromHead(
+	eventTxs [][]byte, numEventsToKeep uint64,
+) (newEventTxs [][]byte, trimmed uint64, err error) {
 
 	if m.NumInjectedEventTxs == numEventsToKeep {
 
@@ -172,6 +155,8 @@ func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64)
 
 	}
 
+	// Note: There is no need to use utils.TxSize to calculate the size of MsgIndex because we are only checking the
+	// size of the message and not how big the transaction containing the message would be.
 	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[:numEventsToKeep]
 	trimmed = m.NumInjectedEventTxs - numEventsToKeep
@@ -187,14 +172,15 @@ func (m *MsgIndex) KeepEventsFromHead(eventTxs [][]byte, numEventsToKeep uint64)
 }
 
 // RawTxBytes converts the message to a valid tx that can be injected into a block and produces a tx result.
-func (m *MsgIndex) RawTxBytes() ([]byte, error) {
+// The sequence, presumed to be unique, ensures that the generated tx is unique and thus has a unique tx hash.
+func (m *MsgIndex) RawTxBytes(sequence uint64) ([]byte, error) {
 
 	msgIndexAny, err := codectypes.NewAnyWithValue(m)
 	if err != nil {
 		return nil, err
 	}
 
-	msgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny})
+	msgIndexBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgIndexAny}, sequence)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +243,7 @@ func (m *MsgIndex) IsPartialEthereumSyncing() bool {
 	return !m.NewEthereumBlock && m.NumInjectedEventTxs > 0
 }
 
-// NoEthereumSyncing returns true if there are no new Ethereum blocks to consume.
+// NoEthereumSyncing returns true if there are no new or partial Ethereum blocks to consume.
 func (m *MsgIndex) NoEthereumSyncing() bool {
 	return !m.IsFullEthereumSyncing() && !m.IsPartialEthereumSyncing()
 }

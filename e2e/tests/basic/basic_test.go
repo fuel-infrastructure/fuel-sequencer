@@ -1,16 +1,17 @@
 package basic_test
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"go.uber.org/zap"
 )
 
 func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
@@ -21,7 +22,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().True(params.DefaultSendEnabled)
 
 		// Try getting address balances (GRPC).
-		balance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
+		balance, err := s.QueryAllBalances(s.Ctx(), s.SeqKeys[0].AddressSeq, nil)
 		s.Require().NoError(err)
 		expected := testsuite.InitBalanceCoin.Sub(testsuite.InitStakedCoin)
 		s.Require().True(expected.Amount.Equal(balance.Balances.AmountOf(testsuite.BridgeDenom)))
@@ -37,8 +38,8 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().Equal(sequencerHeight, uint64(block.Header.Height))
 
 		// Try transferring tokens (RPC).
-		from := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[0])
-		to := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[1])
+		from := s.SeqKeys[0].Address
+		to := s.SeqKeys[1].Address
 		amount := sdk.NewCoins(sdk.NewInt64Coin(testsuite.BridgeDenom, 100))
 		msg := banktypes.NewMsgSend(from, to, amount)
 		res, err := s.SubmitMsgs(msg)
@@ -51,7 +52,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Ensure balance was reduced (GRPC)
 		// Note: a fee was also charged.
-		updatedBalance, err := s.QueryAllBalances(s.Ctx(), testsuite.ADDRESSES[0], nil)
+		updatedBalance, err := s.QueryAllBalances(s.Ctx(), s.SeqKeys[0].AddressSeq, nil)
 		s.Require().NoError(err)
 		s.Require().True(updatedBalance.Balances.IsAllLT(balance.Balances))
 	})
@@ -77,23 +78,21 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().Greater(ethHeight, uint64(1))
 
 		// Try generating some events via a transaction (RPC) - via deposit.
-		toAddress := testsuite.ETH_ADDRESSES[1]
-		amount1 := big.NewInt(200)
-		amount2 := big.NewInt(300)
-		depositData := testsuite.PackDeposit(amount1, common.HexToAddress(toAddress), amount2)
-		depositTxReceipt, err := s.SendEthTransactionToMockEthereumContract(depositData)
-		s.Require().NoError(err)
+		depositAmount := big.NewInt(200)
+		depositTxReceipt := s.DepositTokenToSequencer(depositAmount)
 
 		// Generate a MsgSend
 		sendAmount, ok := sdkmath.NewIntFromString("10")
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+		from := s.EthKeys[0].AddressHex
+		to := s.EthKeys[1].AddressHex
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		authorizeTxReceipt, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
+		authorizeTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events
@@ -104,18 +103,15 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().Len(depositEvents, 1)
 		s.Require().Equal(sidecartypes.DepositEventName, depositEvents[0].EventType)
 
-		publicKey := s.GetEthPublicKey()
-		fromAddress := crypto.PubkeyToAddress(*publicKey).String()
-
 		// Check deposit event data is as expected
 		var depositEventData sidecartypes.DepositEvent
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
-			Depositor: fromAddress,
-			Recipient: toAddress,
-			Amount:    amount1.String(),
-			Lockup:    amount2.String(),
+			Depositor: s.EthKeys[0].AddressHex,
+			Recipient: s.EthKeys[0].AddressHex, // sender == recipient unless otherwise specified
+			Amount:    depositAmount.String(),
+			Lockup:    "0", // the deposit initiated from Ethereum has no lockup
 		}))
 
 		// Ensure authorize event is at the expected height.
@@ -131,7 +127,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
 		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
-			Sender: fromAddress,
+			Sender: s.EthKeys[0].AddressHex,
 			Data:   msgSendBz,
 		}))
 	})
@@ -150,13 +146,40 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.Require().Greater(lastEthereumBlockSynced, lastEthereumBlockSyncedOld)
 	})
 
+	s.Run("Ensure we can subscribe to fully synced Ethereum blocks", func() {
+
+		// Get last Ethereum block synced
+		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
+		lookOutFor := lastEthereumBlockSynced + 5
+
+		// Subscribe for 5 Ethereum blocks from now
+		blockNumberKey := "fuelsequencer.bridge.EventEthereumBlockSynced.block_number"
+		fullSyncKey := "fuelsequencer.bridge.EventEthereumBlockSynced.full_sync"
+		query := fmt.Sprintf(`%s='"%d"' AND %s='true'`, blockNumberKey, lookOutFor, fullSyncKey)
+		s.Logger().Info("subscribing to new Ethereum block", zap.String("query", query))
+		sub, err := s.Chain.SubscribeToSequencer(s.Ctx(), query)
+		s.Require().NoError(err)
+
+		// Check that we eventually detect the event
+		s.Require().Eventually(func() bool {
+			select {
+			case res := <-sub:
+				s.Require().Equal([]string{fmt.Sprintf(`"%d"`, lookOutFor)}, res.Events[blockNumberKey])
+				s.Require().Equal([]string{"true"}, res.Events[fullSyncKey])
+				return true // found
+			default:
+				return false // not found yet
+			}
+		}, time.Minute/2, time.Second)
+	})
+
 	s.Run("Ensure user transactions are still subject to a finite gas meter", func() {
 
 		// Here we want to confirm that even though we're setting an infinite gas meter for MsgIndex, which is the first
 		// transaction in all blocks, the gas meter gets reset for any new transaction.
 
-		from := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[0])
-		to := sdk.MustAccAddressFromBech32(testsuite.ADDRESSES[1])
+		from := s.SeqKeys[0].Address
+		to := s.SeqKeys[1].Address
 		amount := sdk.NewCoins(sdk.NewInt64Coin(testsuite.BridgeDenom, 100))
 		msg := banktypes.NewMsgSend(from, to, amount)
 
@@ -164,5 +187,34 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		resp, err := s.SubmitMsgsWithGas(1, msg)
 		s.Require().NoError(err)
 		s.Require().Contains(resp.RawLog, "out of gas")
+	})
+
+	s.Run("Ensure that we can run an expedited proposal to change the inflation rate", func() {
+
+		params := s.QueryMintParams(s.Ctx())
+		inflationRate := s.QueryMintInflation(s.Ctx())
+		newInflationRate := sdkmath.LegacyMustNewDecFromStr("0.5")
+
+		// InflationMin and InflationMax are currently unequal
+		s.Require().False(params.InflationMin.Equal(params.InflationMax))
+
+		// Inflation and the new inflation rates are also unequal
+		s.Require().False(inflationRate.Equal(newInflationRate))
+
+		// Propose a new inflation rate via an expedited proposal
+		params.InflationMin = newInflationRate
+		params.InflationMax = newInflationRate
+		msg := &minttypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *params,
+		}
+		s.ExecuteExpeditedGovProposal(msg)
+
+		// Wait for 1 block to pass for the BeginBlocker to run
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
+		// Check that the inflation rate was updated to the new inflation rate
+		inflationRate = s.QueryMintInflation(s.Ctx())
+		s.Require().True(inflationRate.Equal(newInflationRate))
 	})
 }

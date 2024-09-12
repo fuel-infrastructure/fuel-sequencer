@@ -116,7 +116,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := app.InitAppConfig()
+			customAppTemplate, customAppConfig := app.DefaultCustomAppConfig()
 			customCMTConfig := app.InitCometBFTConfig()
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)

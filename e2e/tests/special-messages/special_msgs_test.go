@@ -27,7 +27,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           testsuite.ADDRESSES[0],
+			Authority:           s.SeqKeys[0].AddressSeq,
 			NumInjectedEventTxs: 0,
 			NewEthereumBlock:    false,
 			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
@@ -36,15 +36,15 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 
 		msgBz := s.GenerateMsgBz(msgIndex)
 		authorizeData := testsuite.PackAuthorize(msgBz)
-		resp, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
+		resp, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// ------------ MsgDepositFromEthereum
 
 		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: testsuite.ADDRESSES[0],
-			Depositor: testsuite.ADDRESSES[0],
-			Recipient: testsuite.ADDRESSES[1],
+			Authority: s.SeqKeys[0].AddressSeq,
+			Depositor: s.SeqKeys[0].AddressSeq,
+			Recipient: s.SeqKeys[1].AddressSeq,
 			Amount:    "1000",
 			Lockup:    "0",
 		}
@@ -52,19 +52,19 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 
 		msgBz = s.GenerateMsgBz(msgDepositFromEthereum)
 		authorizeData = testsuite.PackAuthorize(msgBz)
-		resp, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
+		resp, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// ------------ MsgSupplyDelta
 
 		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: testsuite.ADDRESSES[0],
+			Authority: s.SeqKeys[0].AddressSeq,
 		}
 		s.Require().NoError(msgSupplyDelta.ValidateBasic())
 
 		msgBz = s.GenerateMsgBz(msgSupplyDelta)
 		authorizeData = testsuite.PackAuthorize(msgBz)
-		resp, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
+		resp, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// ------------ Check results...
@@ -108,7 +108,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgIndex
 
 		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           testsuite.ADDRESSES[0],
+			Authority:           s.SeqKeys[0].AddressSeq,
 			NumInjectedEventTxs: 0,
 			NewEthereumBlock:    false,
 			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
@@ -120,9 +120,9 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgDepositFromEthereum
 
 		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: testsuite.ADDRESSES[0],
-			Depositor: testsuite.ADDRESSES[0],
-			Recipient: testsuite.ADDRESSES[1],
+			Authority: s.SeqKeys[0].AddressSeq,
+			Depositor: s.SeqKeys[0].AddressSeq,
+			Recipient: s.SeqKeys[1].AddressSeq,
 			Amount:    "1000",
 			Lockup:    "0",
 		}
@@ -133,7 +133,7 @@ func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
 		// ------------ MsgSupplyDelta
 
 		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: testsuite.ADDRESSES[0],
+			Authority: s.SeqKeys[0].AddressSeq,
 		}
 		resp, err = s.SubmitMsgs(msgSupplyDelta)
 		s.Require().NoError(err)

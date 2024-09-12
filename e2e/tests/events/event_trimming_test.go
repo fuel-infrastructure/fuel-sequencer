@@ -1,8 +1,10 @@
 package events_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
 	cmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
@@ -10,13 +12,15 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"time"
 )
 
 // TestEventTrimming sets a reduced max bytes for blocks to showcase event trimming.
 func (s *EventsTestSuite) TestEventTrimming() {
 
 	s.Run("Run with reduced max bytes to showcase event trimming", func() {
+
+		// All transactions will have a non-zero sequence
+		nonZeroSequence := uint64(1)
 
 		// Calculate size of transaction resulting from MsgIndex.
 		typicalMsgIndex := &bridgetypes.MsgIndex{
@@ -25,9 +29,9 @@ func (s *EventsTestSuite) TestEventTrimming() {
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
-		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(nonZeroSequence)
 		s.Require().NoError(err)
-		typicalMsgIndexSize := len(typicalMsgIndexBz)
+		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
@@ -36,18 +40,20 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+		from := s.EthKeys[0].AddressHex
+		to := s.EthKeys[1].AddressHex
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: testsuite.ETH_ADDRESSES[0],
+			Sender: from,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
-		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
+		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, nonZeroSequence)
 		s.Require().NoError(err)
-		authorizeEventMsgSize := len(authorizeEventMsgBz)
+		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
 
@@ -83,8 +89,8 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackAuthorizeMulti([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
-		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
+		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// 1st event of 4 processed
@@ -104,6 +110,9 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 
 		// -------- Setup
 
+		// All transactions will have a non-zero sequence
+		nonZeroSequence := uint64(1)
+
 		// Calculate size of transaction resulting from MsgIndex.
 		typicalMsgIndex := &bridgetypes.MsgIndex{
 			Authority:           s.GetGovernanceAddress(),
@@ -111,9 +120,9 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
-		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes()
+		typicalMsgIndexBz, err := typicalMsgIndex.RawTxBytes(nonZeroSequence)
 		s.Require().NoError(err)
-		typicalMsgIndexSize := len(typicalMsgIndexBz)
+		typicalMsgIndexSize := utils.TxSize(typicalMsgIndexBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
@@ -122,18 +131,20 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
 		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(testsuite.ETH_ADDRESSES[0], testsuite.ETH_ADDRESSES[1], sendCoins)
+		from := s.EthKeys[0].AddressHex
+		to := s.EthKeys[1].AddressHex
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: testsuite.ETH_ADDRESSES[0],
+			Sender: from,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
-		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg)
+		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, nonZeroSequence)
 		s.Require().NoError(err)
-		authorizeEventMsgSize := len(authorizeEventMsgBz)
+		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
 
@@ -169,8 +180,8 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackAuthorizeMulti([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
-		_, err = s.SendEthTransactionToMockEthereumContract(authorizeData)
+		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// -------- Delay sync up

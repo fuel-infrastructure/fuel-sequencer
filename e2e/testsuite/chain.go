@@ -7,15 +7,18 @@ import (
 	"os"
 	"time"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/x/evidence"
 	"cosmossdk.io/x/upgrade"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmrand "github.com/cometbft/cometbft/libs/rand"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -36,10 +39,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
+	grpcencoding "google.golang.org/grpc/encoding"
 )
 
 const (
@@ -56,6 +62,10 @@ var (
 	encodingConfig testutil.TestEncodingConfig
 	cdc            codec.Codec
 	TestCdc        codec.Codec // an exported alias of cdc
+	TestGrpcCdc    grpcencoding.Codec
+
+	addressCdc     address.Codec
+	TestAddressCdc address.Codec // an exported alias of cdc
 )
 
 func init() {
@@ -95,6 +105,10 @@ func init() {
 
 	cdc = encodingConfig.Codec
 	TestCdc = cdc
+	TestGrpcCdc = cdc.(codec.GRPCCodecProvider).GRPCCodec()
+
+	addressCdc = appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix))
+	TestAddressCdc = addressCdc
 }
 
 type chain struct {
@@ -268,6 +282,14 @@ func (c *chain) sendMsgs(
 	}
 
 	return &res, nil
+}
+
+func (c *chain) SubscribeToSequencer(ctx context.Context, query string) (<-chan coretypes.ResultEvent, error) {
+	res, err := c.rpcClient.Subscribe(ctx, "", query)
+	if err != nil {
+		return nil, fmt.Errorf("rpc client status: %w", err)
+	}
+	return res, nil
 }
 
 func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {

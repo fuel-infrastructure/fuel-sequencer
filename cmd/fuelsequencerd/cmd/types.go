@@ -11,14 +11,19 @@ const (
 	FlagSidecarPathToKeyFile         = "sidecar_path_to_key_file"
 	FlagSidecarPathToCertFile        = "sidecar_path_to_cert_file"
 	FlagEthereumWebSocketUrl         = "eth_ws_url"
+	FlagEthereumRpcUrl               = "eth_rpc_url"
 	FlagEthereumContractAddr         = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
 	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
-	FlagSequencerRpcUrl              = "sequencer_rpc_url"
 	FlagSequencerPathToCertFile      = "sequencer_path_to_cert_file"
+	FlagPrometheusEnabled            = "prometheus_enabled"
+	FlagPrometheusListenAddress      = "prometheus_listen_address"
+	FlagPrometheusMaxOpenConnections = "prometheus_max_open_connections"
+	FlagPrometheusReadHeaderTimeout  = "prometheus_read_header_timeout"
+	FlagPrometheusNamespace          = "prometheus_namespace"
 
 	// Sidecar client flags
 
@@ -37,12 +42,12 @@ type sidecarConfig struct {
 
 type sequencerConfig struct {
 	grpcUrl        string
-	rpcUrl         string
 	pathToCertFile string
 }
 
 type ethereumConfig struct {
 	webSocketUrl         string
+	rpcUrl               string
 	contractAddrHex      string
 	maxBlockRange        int64
 	minLogsQueryInterval time.Duration

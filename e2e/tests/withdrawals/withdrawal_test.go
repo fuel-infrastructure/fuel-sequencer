@@ -1,24 +1,36 @@
 package withdrawals_test
 
 import (
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromSequencer() {
+	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
+
+		// Deposit
+		amount := big.NewInt(200)
+		_ = s.DepositTokenToSequencer(amount)
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
+		s.PollForBalance(s.Ctx(), 10, s.EthKeys[0].AddressSeq, amountCoin)
+	})
+
 	s.Run("Submit a withdrawal on the Sequencer and make sure it can be actioned on Ethereum", func() {
 
 		// --------------------------------------- User withdraws on the Sequencer
 
-		aliceWallet := testsuite.ADDRESSES[0]
+		aliceWallet := s.SeqKeys[0].AddressSeq
 
 		withdrawMsg := bridgemoduletypes.NewMsgWithdrawToEthereum(
 			aliceWallet,
@@ -39,10 +51,10 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		endBlock := uint64(lastResultsHashHeight + 1)
 		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
 		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
-		receipt, err := s.SendEthTransactionToMockEthereumContract(data)
+		receipt, err := s.SendEthTransactionToFuelStreamXContractAsGuardian(data)
 		s.Require().NoError(err)
 
-		// The two events are: HeadUpdate, DataCommitmentStored
+		// The two events are: HeadUpdate, BridgeCommitmentStored
 		s.Require().Len(receipt.Logs, 2)
 
 		// Extract log 1's topics and data
@@ -53,10 +65,10 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.MockSequencerProxyContractABI))
+		fuelStreamxABI, err := abi.JSON(strings.NewReader(testsuite.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
-		// Check DataCommitmentStored event
+		// Check BridgeCommitmentStored event
 
 		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, endBlock)
 
@@ -65,13 +77,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		actualTargetBlock, err := strconv.ParseUint(eventTopic2[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
 
-		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
+		s.Require().Equal(testsuite.BridgeCommitmentStoredEventHash, eventTopic0)
 		s.Require().EqualValues(startBlock, actualStartBlock)
 		s.Require().EqualValues(endBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
-		var event testsuite.DataCommitmentStoredEvent
-		err = fuelstreamxABI.UnpackIntoInterface(&event, testsuite.DataCommitmentStoredEventName, eventData)
+		var event testsuite.BridgeCommitmentStoredEvent
+		err = fuelStreamxABI.UnpackIntoInterface(&event, testsuite.BridgeCommitmentStoredEventName, eventData)
 		s.Require().NoError(err)
 
 		expectedProofNonce := 1
@@ -91,22 +103,33 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		data = testsuite.PackProcessSequencerWithdrawalMessage(
 			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
 		)
-		_, err = s.SendEthTransactionToMockEthereumContract(data)
+		_, err = s.SendEthTransactionToFuelStreamXContractAsUser(data)
 		s.Require().NoError(err)
 	})
 }
 
 func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
+	s.Run("Submit a deposit to the Sequencer so that the Ethereum contract escrows the tokens", func() {
+
+		// Deposit
+		amount := big.NewInt(200)
+		_ = s.DepositTokenToSequencer(amount)
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(amount))
+		s.PollForBalance(s.Ctx(), 10, s.EthKeys[0].AddressSeq, amountCoin)
+	})
+
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
 
-		withdrawerAddress := testsuite.ETH_ADDRESSES[0]
+		withdrawerAddress := s.EthKeys[0].AddressHex
 		withdrawCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 100)
 
 		// --------------------------------------- Fund Ethereum owned account that will withdraw
 
 		msgSend := &banktypes.MsgSend{
-			FromAddress: testsuite.ADDRESSES[0],
-			ToAddress:   testsuite.ETH_ADDRESSES[0],
+			FromAddress: s.SeqKeys[0].AddressSeq,
+			ToAddress:   withdrawerAddress,
 			Amount:      sdk.NewCoins(withdrawCoin),
 		}
 		res, err := s.SubmitMsgs(msgSend)
@@ -123,7 +146,7 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 			withdrawerAddress, withdrawerAddress, withdrawCoin,
 		)
 		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		txReceipt, err := s.SendEthTransactionToMockEthereumContract(authorizeData)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
 
 		// The LastResultsHash is generated at the block right after the withdrawal
@@ -156,10 +179,10 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		endBlock := uint64(lastResultsHashHeight + 1)
 		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
 		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
-		receipt, err := s.SendEthTransactionToMockEthereumContract(data)
+		receipt, err := s.SendEthTransactionToFuelStreamXContractAsGuardian(data)
 		s.Require().NoError(err)
 
-		// The two events are: HeadUpdate, DataCommitmentStored
+		// The two events are: HeadUpdate, BridgeCommitmentStored
 		s.Require().Len(receipt.Logs, 2)
 
 		// Extract log 1's topics and data
@@ -170,10 +193,10 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		eventTopic3 := receipt.Logs[1].Topics[3].Hex()
 		eventData := receipt.Logs[1].Data
 
-		fuelstreamxABI, err := abi.JSON(strings.NewReader(sidecartypes.MockSequencerProxyContractABI))
+		fuelStreamxABI, err := abi.JSON(strings.NewReader(testsuite.FuelStreamXContractABI))
 		s.Require().NoError(err)
 
-		// Check DataCommitmentStored event
+		// Check BridgeCommitmentStored event
 
 		expectedBridgeCommitment := s.QueryBridgeCommitment(s.Ctx(), startBlock, endBlock)
 
@@ -182,13 +205,13 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		actualTargetBlock, err := strconv.ParseUint(eventTopic2[2:], 16, 64) // hex to uint64
 		s.Require().NoError(err)
 
-		s.Require().Equal(testsuite.DataCommitmentStoredEventHash, eventTopic0)
+		s.Require().Equal(testsuite.BridgeCommitmentStoredEventHash, eventTopic0)
 		s.Require().EqualValues(startBlock, actualStartBlock)
 		s.Require().EqualValues(endBlock, actualTargetBlock)
 		s.Require().Equal(expectedBridgeCommitment.String(), strings.ToUpper(eventTopic3[2:]))
 
-		var event testsuite.DataCommitmentStoredEvent
-		err = fuelstreamxABI.UnpackIntoInterface(&event, testsuite.DataCommitmentStoredEventName, eventData)
+		var event testsuite.BridgeCommitmentStoredEvent
+		err = fuelStreamxABI.UnpackIntoInterface(&event, testsuite.BridgeCommitmentStoredEventName, eventData)
 		s.Require().NoError(err)
 
 		expectedProofNonce := 1
@@ -208,7 +231,24 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		data = testsuite.PackProcessSequencerWithdrawalMessage(
 			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
 		)
-		_, err = s.SendEthTransactionToMockEthereumContract(data)
+		_, err = s.SendEthTransactionToFuelStreamXContractAsUser(data)
 		s.Require().NoError(err)
+
+		// --------------------------------------- Check that we cannot use e.g. MsgIndexResponse as a withdrawal
+
+		// Get BridgeCommitment inclusion proof
+		// - The 'last result hash' incorporating the index message result is at h+1.
+		// - The index message is assumed to be the first transaction in the block.
+		txIndex = int64(0) // first tx
+		bcLeaf, bcLeafProof, txResultMarshalled, txResultProof = s.GetDataForBridgeCommitmentInclusionProof(
+			s.Ctx(), lastResultsHashHeight, txIndex, startBlock, endBlock,
+		)
+
+		// Submit transaction to Ethereum to process the index and expect an error.
+		data = testsuite.PackProcessSequencerWithdrawalMessage(
+			event.ProofNonce, bcLeaf, bcLeafProof, txResultMarshalled, txResultProof,
+		)
+		_, err = s.SendEthTransactionToFuelStreamXContractAsUser(data)
+		s.Require().Error(err)
 	})
 }

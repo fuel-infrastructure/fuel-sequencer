@@ -31,6 +31,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/instrumentation/prometheus"
+	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -40,9 +42,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	cometutils "github.com/fuel-infrastructure/fuel-sequencer/sidecar/cometutils"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
-	scethclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
+	scethwrappedclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
@@ -84,6 +85,7 @@ func addStartFlags(startCmd *cobra.Command) {
 	// Crisis module is not wired, therefore, no related flags need to be added
 	//crisis.AddModuleInitFlags(startCmd)
 	sidecarconfig.AddStartCmdFlags(startCmd)
+	commitmentsconfig.AddStartCmdFlags(startCmd)
 }
 
 // genesisCommand builds genesis-related `fuelsequencerd genesis` command. Users may provide application specific commands as a parameter
@@ -151,12 +153,13 @@ func startSidecarServerCmd() *cobra.Command {
 	scrCfg := sidecarConfig{}
 	seqCfg := sequencerConfig{}
 	ethCfg := ethereumConfig{}
+	prmCfg := prometheus.Config{}
 
 	cmd := &cobra.Command{
 		Use:   "start-sidecar",
 		Short: "Starts the Sidecar service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return startSidecar(scrCfg, seqCfg, ethCfg)
+			return startSidecar(scrCfg, seqCfg, ethCfg, prmCfg)
 		},
 	}
 
@@ -180,22 +183,66 @@ func startSidecarServerCmd() *cobra.Command {
 	)
 
 	// Ethereum
-	cmd.Flags().StringVar(&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8545", "the ethereum node WebSocket endpoint")
-	cmd.Flags().StringVar(&ethCfg.contractAddrHex, FlagEthereumContractAddr, "", "address in hex format of the contract to monitor for logs")
-	cmd.Flags().Int64Var(&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of ethereum blocks queried at one go")
-	cmd.Flags().DurationVar(&ethCfg.minLogsQueryInterval, FlagEthereumMinLogsQueryInterval, time.Second*5, "minimum wait between successive queries for logs")
-	cmd.Flags().Int64Var(&ethCfg.unsafeStartBlock, FlagEthereumUnsafeStartBlock, 0, "the ethereum block to start querying from")
-	cmd.Flags().Int64Var(&ethCfg.unsafeEndBlock, FlagEthereumUnsafeEndBlock, 0, "the last ethereum block to sync - incorrect use can cause the validator to propose empty blocks, leading to slashing!")
+	cmd.Flags().StringVar(
+		&ethCfg.webSocketUrl, FlagEthereumWebSocketUrl, "ws://127.0.0.1:8546", "the ethereum node WebSocket endpoint",
+	)
+	cmd.Flags().StringVar(
+		&ethCfg.rpcUrl, FlagEthereumRpcUrl, "http://127.0.0.1:8545", "the ethereum node RPC endpoint",
+	)
+	cmd.Flags().StringVar(
+		&ethCfg.contractAddrHex,
+		FlagEthereumContractAddr,
+		"",
+		"address in hex format of the contract to monitor for logs",
+	)
+	cmd.Flags().Int64Var(
+		&ethCfg.maxBlockRange, FlagEthereumMaxBlockRange, 100, "max number of ethereum blocks queried at one go",
+	)
+	cmd.Flags().DurationVar(
+		&ethCfg.minLogsQueryInterval,
+		FlagEthereumMinLogsQueryInterval,
+		time.Second*5,
+		"minimum wait between successive queries for logs",
+	)
+	cmd.Flags().Int64Var(
+		&ethCfg.unsafeStartBlock,
+		FlagEthereumUnsafeStartBlock,
+		0,
+		"the ethereum block to start querying from",
+	)
+	cmd.Flags().Int64Var(
+		&ethCfg.unsafeEndBlock,
+		FlagEthereumUnsafeEndBlock,
+		0,
+		"the last ethereum block to sync - incorrect use can cause the validator to propose empty blocks, leading to "+
+			"slashing!",
+	)
 
 	// Sequencer
 	cmd.Flags().StringVar(&seqCfg.grpcUrl, FlagSequencerGrpcUrl, "127.0.0.1:9090", "the sequencer's gRPC endpoint")
-	cmd.Flags().StringVar(&seqCfg.rpcUrl, FlagSequencerRpcUrl, "http://127.0.0.1:26657", "the sequencer's CometBFT RPC endpoint")
 	cmd.Flags().StringVar(
 		&seqCfg.pathToCertFile,
 		FlagSequencerPathToCertFile,
 		"",
 		"path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
 			"if the Sequencer infrastructure was set up using TLS.",
+	)
+
+	// Prometheus
+	cmd.Flags().BoolVar(
+		&prmCfg.Enabled, FlagPrometheusEnabled, false, "enables serving of prometheus metrics under /metrics",
+	)
+	cmd.Flags().StringVar(
+		&prmCfg.ListenAddress, FlagPrometheusListenAddress, ":8081", "address to listen for prometheus collectors",
+	)
+	cmd.Flags().IntVar(
+		&prmCfg.MaxOpenConnections, FlagPrometheusMaxOpenConnections, 3, "max number of simultaneous connections",
+	)
+	cmd.Flags().DurationVar(
+		&prmCfg.ReadHeaderTimeout, FlagPrometheusReadHeaderTimeout, time.Second*10, "amount of time allowed to read request headers",
+	)
+	cmd.Flags().StringVar(
+		&prmCfg.Namespace, FlagPrometheusNamespace, "sidecar", "instrumentation namespace",
 	)
 
 	return cmd
@@ -205,6 +252,7 @@ func startSidecar(
 	scrCfg sidecarConfig,
 	seqCfg sequencerConfig,
 	ethCfg ethereumConfig,
+	prmCfg prometheus.Config,
 ) error {
 	sigs := make(chan os.Signal, 1)
 
@@ -239,7 +287,7 @@ func startSidecar(
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethCfg.maxBlockRange)
 	}
 
-	// Check if the unsafe start block is provided and use it instead of querying the genesis.
+	// Check if the unsafe start block is provided and use it.
 	startBlock := big.NewInt(0)
 	if ethCfg.unsafeStartBlock > 0 {
 		startBlock = big.NewInt(ethCfg.unsafeStartBlock)
@@ -261,6 +309,26 @@ func startSidecar(
 		endBlock = nil
 	}
 
+	// Set up prometheus metrics
+	var scMetrics *sidecar.Metrics
+	var storeMetrics *scstore.Metrics
+	var ethclientMetrics *scethwrappedclient.Metrics
+	var seqclientMetrics *scsequencerclient.Metrics
+	var scserverMetrics *sidecarserver.Metrics
+	if prmCfg.Enabled {
+		scMetrics = sidecar.PrometheusMetrics(prmCfg.Namespace)
+		storeMetrics = scstore.PrometheusMetrics(prmCfg.Namespace)
+		ethclientMetrics = scethwrappedclient.PrometheusMetrics(prmCfg.Namespace)
+		seqclientMetrics = scsequencerclient.PrometheusMetrics(prmCfg.Namespace)
+		scserverMetrics = sidecarserver.PrometheusMetrics(prmCfg.Namespace)
+	} else {
+		scMetrics = sidecar.NoopMetrics()
+		storeMetrics = scstore.NoopMetrics()
+		ethclientMetrics = scethwrappedclient.NoopMetrics()
+		seqclientMetrics = scsequencerclient.NoopMetrics()
+		scserverMetrics = sidecarserver.NoopMetrics()
+	}
+
 	// Create a connection to the Cosmos gRPC server.
 	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
 
@@ -275,37 +343,18 @@ func startSidecar(
 		}
 	}
 
+	//nolint:staticcheck
 	grpcConn, err := grpc.Dial(seqCfg.grpcUrl, grpc.WithTransportCredentials(seqConnCreds))
 	if err != nil {
 		return err
 	}
 
 	// Create the sequencer client
-	scSequencerClient := scsequencerclient.NewClient(grpcConn)
+	scSequencerClient := scsequencerclient.NewClient(grpcConn, seqclientMetrics)
 
 	// If the unsafe start block is not set then we attempt to query the
-	// last Ethereum block synced from the genesis file and the Sequencer.
+	// last Ethereum block synced from the Sequencer.
 	if ethCfg.unsafeStartBlock == 0 {
-
-		// Only try quering the genesis file if the sequencer RPC URL was specified.
-		if seqCfg.rpcUrl != "" {
-			lastEthereumBlockSynced, err := cometutils.QuerySequencerGenesisForLastEthereumBlockSynced(
-				ctx, seqCfg.rpcUrl,
-			)
-			if err != nil {
-				logger.Error(
-					"failed to read the response body of the genesis file",
-					zap.String("rpc_url", seqCfg.rpcUrl),
-					zap.Error(err),
-				)
-			} else {
-				startBlock = big.NewInt(int64(lastEthereumBlockSynced + 1))
-				logger.Info(
-					"ethereum start block set to LastEthereumBlockSynced+1 from Sequencer genesis",
-					zap.String("start_block", startBlock.String()),
-				)
-			}
-		}
 
 		// Try querying the last Ethereum block synced from the Sequencer.
 		lastEthereumBlockSynced, err := scSequencerClient.FetchLastEthereumBlockSynced(ctx)
@@ -333,42 +382,54 @@ func startSidecar(
 		}
 	}
 
-	// If the startBlock is 0, we've failed to set it through the various attempts (unsafe flag / genesis / node).
+	// If the startBlock is 0, we've failed to set it through the various attempts (unsafe flag / node).
 	if startBlock.Cmp(big.NewInt(0)) == 0 {
-		panic(fmt.Sprintf(
-			"did not find a start block; ensure Sequencer is available at grpc=%s, rpc=%s",
-			seqCfg.grpcUrl, seqCfg.rpcUrl,
-		))
+		return fmt.Errorf(
+			"did not find a start block, but maybe Sequencer hasn't started; ensure Sequencer is available at %s",
+			seqCfg.grpcUrl,
+		)
 	}
 
 	logger.Info("dialling Ethereum node", zap.String("ws_url", ethCfg.webSocketUrl))
-	ethClient, err := ethclient.Dial(ethCfg.webSocketUrl)
+	ethWsClient, err := ethclient.Dial(ethCfg.webSocketUrl)
+	if err != nil {
+		return err
+	}
+
+	logger.Info("dialling Ethereum node", zap.String("rpc_url", ethCfg.rpcUrl))
+	ethRpcClient, err := ethclient.Dial(ethCfg.rpcUrl)
 	if err != nil {
 		return err
 	}
 
 	// Contract ABI
 	var contractAbi abi.ABI
-	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.MockSequencerProxyContractABI))
+	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.SequencerProxyContractABI))
 	if err != nil {
 		return err
 	}
 
-	// Create the sidecar ethereum client
+	// Create the sidecar's ethereum WS client
+	scEthWsClient := scethwrappedclient.NewEthWsClient(logger, ethWsClient, ethclientMetrics)
+
+	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
-	scEthClient := scethclient.NewClient(logger, ethClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval)
+	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
+		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethclientMetrics,
+	)
 
 	// Create the store
-	eventStore := scstore.NewEventStore(startBlock, endBlock, big.NewInt(ethCfg.maxBlockRange))
+	eventStore := scstore.NewEventStore(startBlock, endBlock, big.NewInt(ethCfg.maxBlockRange), storeMetrics)
 
 	sideCar := sidecar.NewSidecar(
 		logger,
-		scEthClient,
+		scEthRpcClient,
+		scEthWsClient,
 		scSequencerClient,
 		eventStore,
-		scrCfg.development,
+		scMetrics,
 	)
-	srv := sidecarserver.NewSidecarServer(sideCar, logger)
+	srv := sidecarserver.NewSidecarServer(sideCar, logger, scserverMetrics)
 
 	go func() {
 		<-sigs
@@ -376,12 +437,23 @@ func startSidecar(
 		cancel()
 	}()
 
+	// Start prometheus server in the background
+	if prmCfg.Enabled {
+		prometheusSrv := prometheus.NewMetricsServer(logger, prmCfg)
+		prometheusSrv.Start()
+		defer prometheusSrv.Stop()
+	}
+
 	if err := srv.InitializeServer(scrCfg.host, scrCfg.port, scrCfg.pathToCertFile, scrCfg.pathToKeyFile); err != nil {
+		errMsg := "failed to initialize the server"
 		logger.Error("failed to initialize the server", zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	if err := srv.StartServer(ctx); err != nil {
-		logger.Error("stopping server", zap.Error(err))
+		errMsg := "unexpected server error"
+		logger.Error(errMsg, zap.Error(err))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	return nil
@@ -445,6 +517,7 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	//nolint:staticcheck
 	conn, err := grpc.Dial(sidecarGrpcUrl, grpc.WithTransportCredentials(sidecarConnCreds))
 	if err != nil {
 		return fmt.Errorf("failed to connect to Sidecar service: %v", err)

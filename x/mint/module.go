@@ -23,36 +23,32 @@ type AppModule struct {
 
 	// The below fields are not exported by mint.AppModule, but they are needed to call the BeginBlocker in BeginBlock,
 	// so we have copies of them here that we can set in NewAppModule for usage in BeginBlock.
-	keeper              mintkeeper.Keeper
-	bridgeKeeper        types.BridgeKeeper
-	inflationCalculator minttypes.InflationCalculationFn
+	keeper       mintkeeper.Keeper
+	bridgeKeeper types.BridgeKeeper
 }
 
 // NewAppModule creates a new AppModule object. If the InflationCalculationFn
 // argument is nil, then the SDK's default inflation function will be used.
+// In our case, we ignore InflationCalculationFn in the BeginBlocker anyway.
 func NewAppModule(
 	cdc codec.Codec,
 	keeper mintkeeper.Keeper,
 	ak minttypes.AccountKeeper,
 	bk types.BridgeKeeper,
-	ic minttypes.InflationCalculationFn,
 	ss exported.Subspace,
 ) AppModule {
-	if ic == nil {
-		ic = minttypes.DefaultInflationCalculationFn
-	}
 
+	ic := minttypes.InflationCalculationFn(nil)
 	return AppModule{
-		AppModule:           mint.NewAppModule(cdc, keeper, ak, ic, ss),
-		keeper:              keeper,
-		bridgeKeeper:        bk,
-		inflationCalculator: ic,
+		AppModule:    mint.NewAppModule(cdc, keeper, ak, ic, ss),
+		keeper:       keeper,
+		bridgeKeeper: bk,
 	}
 }
 
 // BeginBlock overrides the BeginBlock of the mint module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
-	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper, am.inflationCalculator)
+	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper)
 }
 
 //
@@ -70,11 +66,10 @@ func init() {
 type ModuleInputs struct {
 	depinject.In
 
-	ModuleKey              depinject.OwnModuleKey
-	Config                 *modulev1.Module
-	StoreService           store.KVStoreService
-	Cdc                    codec.Codec
-	InflationCalculationFn minttypes.InflationCalculationFn `optional:"true"`
+	ModuleKey    depinject.OwnModuleKey
+	Config       *modulev1.Module
+	StoreService store.KVStoreService
+	Cdc          codec.Codec
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace exported.Subspace `optional:"true"`
@@ -88,16 +83,15 @@ type ModuleInputs struct {
 // ProvideModule calls the original mint module ProvideModule but then overrides the AppModule with the custom one.
 func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
 	out := mint.ProvideModule(mint.ModuleInputs{
-		In:                     in.In,
-		ModuleKey:              in.ModuleKey,
-		Config:                 in.Config,
-		StoreService:           in.StoreService,
-		Cdc:                    in.Cdc,
-		InflationCalculationFn: in.InflationCalculationFn,
-		LegacySubspace:         in.LegacySubspace,
-		AccountKeeper:          in.AccountKeeper,
-		BankKeeper:             in.BankKeeper,
-		StakingKeeper:          in.StakingKeeper,
+		In:             in.In,
+		ModuleKey:      in.ModuleKey,
+		Config:         in.Config,
+		StoreService:   in.StoreService,
+		Cdc:            in.Cdc,
+		LegacySubspace: in.LegacySubspace,
+		AccountKeeper:  in.AccountKeeper,
+		BankKeeper:     in.BankKeeper,
+		StakingKeeper:  in.StakingKeeper,
 	})
 
 	// override mint module's AppModule with custom one
@@ -106,7 +100,6 @@ func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
 		out.MintKeeper,
 		in.AccountKeeper,
 		in.BridgeKeeper,
-		in.InflationCalculationFn,
 		in.LegacySubspace,
 	)
 

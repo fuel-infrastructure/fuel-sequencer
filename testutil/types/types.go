@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -41,25 +42,22 @@ func MustGetDepositMsgFromDepositEvent(
 
 // MustGetEventTxsFromEvents gets raw tx bytes from all the passed events, and panics otherwise.
 func MustGetEventTxsFromEvents(
-	cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event,
+	cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event, eventTxsSequence uint64,
 ) (allRawTxBytes [][]byte) {
 
 	for _, event := range events {
-		rawTxBytes, err := event.RawTxBytes(cdc, authority)
+		rawTxBytes, err := event.RawTxBytes(cdc, authority, eventTxsSequence)
 		if err != nil {
 			panic(err)
 		}
 
 		allRawTxBytes = append(allRawTxBytes, rawTxBytes)
+		eventTxsSequence += 1
 	}
 	return
 }
 
 // MustGetSizeFromEvents gets the size of the raw tx bytes from all the passed events, and panics otherwise.
-func MustGetSizeFromEvents(cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event) (size int) {
-
-	for _, event := range MustGetEventTxsFromEvents(cdc, authority, events) {
-		size += len(event)
-	}
-	return
+func MustGetSizeFromEvents(cdc codec.BinaryCodec, authority string, events []*sidecartypes.Event, sequence uint64) int {
+	return int(utils.TxsSize(MustGetEventTxsFromEvents(cdc, authority, events, sequence)))
 }

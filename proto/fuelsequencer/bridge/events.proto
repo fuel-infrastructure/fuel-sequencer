@@ -65,3 +65,11 @@ message EventDepositEventFailed {
   // event_details is the marshalled event that failed to be processed.
   bytes event_details = 1;
 }
+
+message EventEthereumBlockSynced {
+  // block_number is the Ethereum block that was synced partially or fully.
+  uint64 block_number = 1;
+
+  // full_sync is true if the Ethereum block has been fully synced.
+  bool full_sync = 2;
+}

@@ -64,6 +64,13 @@ service Query {
     option (google.api.http).get =
         "/fuelsequencer/bridge/v1/last_eth_block_update_time";
   }
+
+  // Queries the LastConsensusTxsSequence.
+  rpc LastConsensusTxsSequence(QueryGetLastConsensusTxsSequenceRequest)
+      returns (QueryGetLastConsensusTxsSequenceResponse) {
+    option (google.api.http).get =
+        "/fuelsequencer/bridge/v1/last_consensus_txs_sequence";
+  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
@@ -108,3 +115,7 @@ message QueryGetLastEthBlockUpdateTimeResponse {
   google.protobuf.Timestamp last_eth_block_update_time = 1
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
+
+message QueryGetLastConsensusTxsSequenceRequest {}
+
+message QueryGetLastConsensusTxsSequenceResponse { uint64 sequence = 1; }

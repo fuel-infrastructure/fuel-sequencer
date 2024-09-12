@@ -28,35 +28,43 @@ func packCall(abiString, method string, args []interface{}) []byte {
 	return abiEncodedCall
 }
 
-// GetEthPrivateKeyHex is expected to return 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-// unless the mnemonic has been changed.
-func (s *E2ETestSuite) GetEthPrivateKeyHex() string {
-	return s.Chain.validators[0].ethereumKey.privateKey
+func (s *E2ETestSuite) SendEthTransactionToTokenContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, TokenContractAddress, data)
 }
 
-func (s *E2ETestSuite) GetEthPrivateKey() *ecdsa.PrivateKey {
-	privateKey, err := crypto.HexToECDSA(s.GetEthPrivateKeyHex()[2:])
-	s.Require().NoError(err)
-
-	return privateKey
+func (s *E2ETestSuite) SendEthTransactionToSequencerInterfaceContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, SequencerInterfaceContractAddress, data)
 }
 
-func (s *E2ETestSuite) GetEthPublicKey() *ecdsa.PublicKey {
-	publicKey := s.GetEthPrivateKey().Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	s.Require().True(ok, "error casting public key to ECDSA")
-
-	return publicKeyECDSA
+// SendEthTransactionToFuelStreamXContractAsUser sends a transaction to FuelStreamX as the anvil-generated key at index
+// 1, which does not have elevated privileges. The use of index 1 further distinguishes this function from:
+// - SendEthTransactionToFuelStreamXContractAsDeployer which uses the anvil-generated key at index 0 (== s.EthKeys[0]).
+// - SendEthTransactionToFuelStreamXContractAsGuardian which uses the anvil-generated key at index 19.
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContractAsUser(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthUser.PrivateKey, FuelStreamXContractAddress, data)
 }
 
-func (s *E2ETestSuite) SendEthTransactionToMockEthereumContract(data []byte) (*ethereumtypes.Receipt, error) {
-	return s.SendEthTransaction(common.HexToAddress(MOCK_ETHEREUM_CONTRACT), data)
+// SendEthTransactionToFuelStreamXContractAsDeployer sends a transaction to FuelStreamX as the contract deployer.
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContractAsDeployer(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthDeployer.PrivateKey, FuelStreamXContractAddress, data)
 }
 
-func (s *E2ETestSuite) SendEthTransaction(toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
+// SendEthTransactionToFuelStreamXContractAsGuardian sends a transaction to FuelStreamX as the contract guardian.
+func (s *E2ETestSuite) SendEthTransactionToFuelStreamXContractAsGuardian(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthGuardian.PrivateKey, FuelStreamXContractAddress, data)
+}
 
-	privateKey := s.GetEthPrivateKey()
-	publicKey := s.GetEthPublicKey()
+func (s *E2ETestSuite) SendEthTransactionToMigratedTokenContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, MigratedTokenContractAddress, data)
+}
+
+func (s *E2ETestSuite) SendEthTransactionToTokenMigratorContract(data []byte) (*ethereumtypes.Receipt, error) {
+	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, TokenMigratorContractAddress, data)
+}
+
+func (s *E2ETestSuite) SendEthTransactionFrom(privateKey *ecdsa.PrivateKey, toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
+
+	publicKey := privateKey.Public().(*ecdsa.PublicKey)
 
 	fromAddress := crypto.PubkeyToAddress(*publicKey)
 	nonce, err := s.Chain.ethClient.PendingNonceAt(context.Background(), fromAddress)

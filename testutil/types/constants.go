@@ -23,7 +23,7 @@ var (
 	TestToken                        = "token"
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod            = uint64(100)
-	TestEthereumProxyContractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+	TestEthereumProxyContractAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
 	TestInjectedEventTxMaxBytes      = uint64(20_000_000)
 	TestMaxAuthorizeMessages         = uint64(10)
 	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
@@ -308,6 +308,36 @@ var (
 			BlockNumber:         1,
 		},
 		Events: TestEventsReduced,
+	}
+
+	TestMsgIndexIncorrectAuthority = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestSeqAddr1Str, // not the governance address
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithNoNewEthBlock = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    false, // no new block
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithDiffBlockNumber = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         100, // not 1
+		},
+		Events: TestEvents,
 	}
 
 	TestMsgIndexPartial = TestMsgIndexWithEvents{

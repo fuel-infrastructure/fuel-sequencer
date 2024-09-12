@@ -17,26 +17,18 @@ Dependencies:
     - https://go.dev/doc/install
     - Preferred version: `1.21`
 
-To run the FuelSequencer with enabled Sidecar and an Ethereum node:
+To run the Sequencer, Sidecar, and an Ethereum node:
 
 ```bash
-make build-eth-docker-image                          # terminal 1
-make install run-eth-docker-container run-sequencer  # terminal 1
-make run-sidecar                                     # terminal 2
-make clean                                           # once you're done
-```
-
-To run the FuelSequencer on its own, you can run a version with disabled Sidecar:
-
-```bash
-make run-sequencer-no-sidecar
-make clean # once you're done
+make install run-eth-e2e-containers run-sequencer  # terminal 1
+make run-sidecar                                   # terminal 2
+make clean                                         # once you're done
 ```
 
 To run just the Sidecar and an Ethereum node:
 
 ```bash
-make install run-eth-docker-container run-sidecar
+make install run-eth-e2e-containers run-sidecar
 make clean # once you're done
 ```
 
@@ -112,9 +104,19 @@ make build-docker-image
 The first time you run the docker container you should run it using:
 
 ```bash
-make run-docker-container                                 # with Sidecar
-make run-docker-container COMMAND="fuelsequencerd start"  # without Sidecar
+# with Sidecar
+make run-docker-container \
+  ETH_RPC_URL="http://example:8545" \
+  ETH_WS_URL="ws://example:8545"
+
+# without Sidecar
+make run-docker-container \
+  ETH_RPC_URL="http://example:8545" \
+  ETH_WS_URL="ws://example:8545" \
+  COMMAND="fuelsequencerd start"
 ```
+
+> Note that the Ethereum node URLs need to be set explicitly since it does not make sense to default to `localhost` in the scope of a Docker container. If your Ethereum node is running on `localhost` you will need to specify your host's IP as the Ethereum address. If that does not work, you might need to reconfigure your host firewall to allow Docker to connect on 8545.
 
 The command above will do the following:
 
@@ -122,12 +124,15 @@ The command above will do the following:
 2. Map the chain data located at `./data/fuelsequencer` by default using docker volumes.
 3. Give a name to the container.
 4. Expose the necessary ports.
-5. Start the container. 
+5. Start the container.
 
 If you want to pass an alternative data folder you should run the make command as follows:
 
 ```bash
-make run-docker-container DATA_FOLDER="/path/to/folder/with/config/data/and/keyring-test"
+make run-docker-container \
+  ETH_RPC_URL="http://example:8545" \
+  ETH_WS_URL="ws://example:8545" \
+  DATA_FOLDER="/path/to/folder/with/config/data/and/keyring-test"
 ```
 
 After creating and running the docker container for the first time, you should manage the container as follows:
@@ -183,7 +188,11 @@ make test-unit
 
 ### E2E tests
 
-You will need a Sequencer image, Ethereum image, and the FuelStreamX images:
+You will need a Sequencer image and Ethereum deployment image:
+
+> Ensure e2e/fuel-rollup/.npmrc file is set up before running this! \
+> It should contain `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. \
+> `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
 
 ```bash
 make build-all-docker-images

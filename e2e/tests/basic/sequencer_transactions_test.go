@@ -29,8 +29,8 @@ func (s *BasicTestSuite) TestSequencerTransactions_NativeTxGetsRejectedIfTooLarg
 
 		// Generate a MsgSend natively on the Sequencer
 		msgSend := &banktypes.MsgSend{
-			FromAddress: testsuite.ADDRESSES[0],
-			ToAddress:   testsuite.ADDRESSES[1],
+			FromAddress: s.SeqKeys[0].AddressSeq,
+			ToAddress:   s.SeqKeys[1].AddressSeq,
 			Amount:      sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(10))),
 		}
 		resp, err := s.SubmitMsgs(msgSend)

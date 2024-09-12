@@ -32,6 +32,9 @@ release/
 build/
 tmp-swagger-gen/
 
+# Grafana data
+grafana/
+
 # Manual E2E
 temp-proposal.json
 temp-msg.json

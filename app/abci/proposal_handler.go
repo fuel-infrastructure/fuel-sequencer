@@ -1,11 +1,12 @@
 package abci
 
 import (
+	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -20,8 +21,7 @@ import (
 )
 
 type FuelSequencerProposalHandler struct {
-	cdc                    codec.Codec // codec
-	logger                 log.Logger
+	cdc                    codec.Codec                     // codec
 	valStore               baseapp.ValidatorStore          // to get the current validators' pubkeys
 	txVerifier             baseapp.ProposalTxVerifier      // a utility for transaction verification
 	sidecar                sidecarclient.AppSidecarClient  // a client to query the Sidecar service
@@ -32,21 +32,24 @@ type FuelSequencerProposalHandler struct {
 // NewFuelSequencerProposalHandler defines a custom FuelSequencer proposal handler object
 func NewFuelSequencerProposalHandler(
 	cdc codec.Codec,
-	logger log.Logger,
 	valStore baseapp.ValidatorStore,
 	txVerifier baseapp.ProposalTxVerifier,
 	sidecar sidecarclient.AppSidecarClient,
 	bridgeKeeper bridgekeeper.Keeper,
 ) *FuelSequencerProposalHandler {
-	return &FuelSequencerProposalHandler{
+	proposalHandler := &FuelSequencerProposalHandler{
 		cdc:                    cdc,
-		logger:                 logger,
 		valStore:               valStore,
 		txVerifier:             txVerifier,
 		sidecar:                sidecar,
 		bridgeKeeper:           bridgeKeeper,
 		defaultProposalHandler: baseapp.NewDefaultProposalHandler(nil, txVerifier),
 	}
+
+	// Set TxSelector to our custom fuelSequencerTxSelector
+	proposalHandler.defaultProposalHandler.SetTxSelector(NewFuelSequencerTxSelector())
+
+	return proposalHandler
 }
 
 // PrepareProposalHandler defines the logic that is executed by the block proposer when they are crafting a new block.
@@ -76,6 +79,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		ctx.Logger().Info("preparing proposal", "proposer", proposerConsAddress, "num_txs", len(req.Txs))
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		injectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
+
+		// Get the transaction sequences for MsgIndex, MsgSupplyDelta, and the first sequence for event transactions.
+		indexSequence, supplyDeltaSequence, firstEventTxsSequence := h.generateTxSequences(ctx, injectMsgSupplyDelta)
 
 		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
 		if err != nil {
@@ -83,16 +90,15 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Inject MsgSupplyDeltaTx if expected at current height
-		injectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
 		supplyDeltaBytesSize := int64(0)
 		if injectMsgSupplyDelta {
-			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx()
+			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx(supplyDeltaSequence)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate msg supply delta tx: %w", err)
 			}
 
 			// Calculate size of supply delta message
-			supplyDeltaBytesSize = int64(len(supplyDeltaBytes))
+			supplyDeltaBytesSize = int64(utils.TxSize(supplyDeltaBytes))
 
 			// Ensure that supply delta fits in the block on its own
 			if supplyDeltaBytesSize > req.MaxTxBytes {
@@ -128,7 +134,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
+			ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses, firstEventTxsSequence,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate MsgIndex and event txs: %w", err)
@@ -146,7 +152,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// not deducted the size of MsgIndex because we will check whether it fits the allocated block space when
 		// calling msgIndex.NumberOfEventsWithMaxBytes. We should never be in a position where there isn't enough block
 		// space for MsgIndex as it is relatively small.
-		sequencerTxsSize := utils.NumberOfBytes(req.Txs) - uint64(supplyDeltaBytesSize)
+		sequencerTxsSize := utils.TxsSize(req.Txs) - uint64(supplyDeltaBytesSize)
 		maxBlockSpace := uint64(req.MaxTxBytes) - uint64(supplyDeltaBytesSize)
 
 		// Reserve a percentage of the available block space for Sequencer-native transactions. We are sure that this
@@ -173,7 +179,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Trim events from tail to fit the block space allocated for events.
 		// NOTE: The TxSelector will be able to fit in more Sequencer-native transactions at the end if there is more
 		// space in the block after adjusting the number of event transactions.
-		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents)
+		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents, indexSequence)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
 		}
@@ -202,15 +208,16 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Anything that comes before this point will cause ProcessProposal to error where a MsgIndex tx is expected.
 
 		// Inject MsgIndex and Ethereum event transactions as the first txs in the block.
-		msgIndexBz, err := msgIndex.RawTxBytes()
+		msgIndexBz, err := msgIndex.RawTxBytes(indexSequence)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode MsgIndex: %w", err)
 		}
 		req.Txs = append(append([][]byte{msgIndexBz}, eventTxs...), req.Txs...)
 
-		// Use the DefaultProposalHandler which, since we're using a NoOp mempool, will select the txs requested from
-		// CometBFT which by default should be in FIFO order. It still ensures the txs returned respect req.MaxTxBytes
-		// and blockParams.MaxGas. Amongst these transactions are a number of injected txs which will consume zero gas.
+		// Use the DefaultProposalHandler. Since we're using a NoOp mempool, it will select the transactions requested
+		// by CometBFT which by default should be in FIFO order. The handler ensures that the selected transactions
+		// comply with the `req.MaxTxBytes` and `blockParams.MaxGas` limits. Among these transactions are several
+		// injected transactions that will consume zero gas.
 		resp, err := h.defaultProposalHandler.PrepareProposalHandler()(ctx, req)
 		if err != nil {
 			req.Txs = [][]byte{}
@@ -225,7 +232,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, err
 		}
 
-		h.logger.Debug("prepared proposal", "txs", len(selectedTxs))
+		ctx.Logger().Debug("prepared proposal", "txs", len(selectedTxs))
 
 		return &abci.ResponsePrepareProposal{Txs: selectedTxs}, nil
 	}
@@ -263,6 +270,10 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		expectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
+
+		// Get the transaction sequences for MsgIndex, MsgSupplyDelta, and the first sequence for event transactions.
+		indexSequence, supplyDeltaSequence, firstEventTxsSequence := h.generateTxSequences(ctx, expectMsgSupplyDelta)
 
 		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
 		if err != nil {
@@ -280,13 +291,32 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Reject the block if it doesn't indicate a sync-up with Ethereum and if we haven't synced up with Ethereum
-		// for a while.
-		if injectedMsgIndex.NoEthereumSyncing() {
-			// No Ethereum syncing, therefore, we only accept this block if MaxEthBlockUpdateDelay is not exceeded
-			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
-			ethSyncDelayExceeded := found && req.Time.After(lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay))
+		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
+		if !found {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+				"could not get last Ethereum block synced from state",
+			)
+		}
+		ethBlockToQuery := lastEthereumBlockSynced + 1
 
+		// If the proposer fails to synchronize with the Ethereum height LastEthereumBlockSynced + 1, assume their
+		// sidecar is out of sync and requires more time to catch up. Therefore, a block proposal is only considered
+		// valid if it accurately reflects the absence of event transactions. This is permissible only until
+		// MaxEthBlockUpdateDelay is exceeded. Beyond this point, verifiers will expect synchronization with Ethereum.
+		//
+		// This approach prevents a scenario where consensus among validators cannot be achieved. Some validators may be
+		// stuck on a block proposal showing no Ethereum synchronization, while others, whose sidecars indicate they
+		// have synchronized with Ethereum, would not agree with that proposal.
+		// REF: https://github.com/cometbft/cometbft/blob/8cd4a692d0fbd70f183e28f4507641c799a8f14f/consensus/state.go#L1347-L1352
+		var msgIndex *bridgetypes.MsgIndex
+		var eventTxs [][]byte
+		if injectedMsgIndex.NoEthereumSyncing() {
+
+			// Reject block if MaxEthBlockUpdateDelay is exceeded
+			lastEthBlockUpdateTime, found := h.bridgeKeeper.GetLastEthBlockUpdateTime(ctx)
+			ethSyncDelayExceeded := found && req.Time.After(
+				lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay),
+			)
 			if ethSyncDelayExceeded {
 				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 					"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
@@ -295,38 +325,43 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 					bridgeParams.MaxEthBlockUpdateDelay.String(),
 				)
 			}
+
+			// Otherwise, generate a MsgIndexTx that indicates no Ethereum syncing
+			msgIndex = &bridgetypes.MsgIndex{
+				Authority:           h.bridgeKeeper.GetAuthority(),
+				NumInjectedEventTxs: 0,
+				NewEthereumBlock:    false,
+				BlockNumber:         ethBlockToQuery,
+			}
+			eventTxs = [][]byte{} // No event transactions expected
+
+			ctx.Logger().Info("proposer did not sync with Ethereum; skipping query to sidecar", "height", req.Height)
+		} else {
+
+			// Query the events of the next Ethereum block.
+			response, sidecarErr := h.sidecar.GetBlockEvents(
+				ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
+			)
+			if sidecarErr != nil {
+				ctx.Logger().Warn("observed sidecar error at ProcessProposal", "err", sidecarErr)
+				// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
+			}
+
+			// Generate the MsgIndex and event transactions based on the queried events of LastEthereumBlockSynced + 1
+			msgIndex, eventTxs, err = h.generateMsgIndexAndEventTxs(
+				ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses, firstEventTxsSequence,
+			)
+			if err != nil {
+				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+					"failed to generate MsgIndex and event txs: %w", err,
+				)
+			}
 		}
 
-		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
-		if !found {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
-				"could not get last Ethereum block synced from state",
-			)
-		}
 		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
 		if !found {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
 				"could not get Ethereum event index offset from state",
-			)
-		}
-
-		// Query the events of the next Ethereum block.
-		ethBlockToQuery := lastEthereumBlockSynced + 1
-		response, sidecarErr := h.sidecar.GetBlockEvents(
-			ctx, &sidecartypes.QueryBlockEventsRequest{BlockNumber: strconv.FormatUint(ethBlockToQuery, 10)},
-		)
-		if sidecarErr != nil {
-			ctx.Logger().Warn("observed sidecar error at ProcessProposal", "err", sidecarErr)
-			// This error is also passed to generateMsgIndexAndEventTxs to perform dedicated error handling.
-		}
-
-		// Generate the MsgIndex that should be included at index 0 in the block proposal
-		msgIndex, eventTxs, err := h.generateMsgIndexAndEventTxs(
-			response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses,
-		)
-		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"failed to generate MsgIndex and event txs: %w", err,
 			)
 		}
 
@@ -372,21 +407,25 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			)
 		}
 
-		// Reject block if injected MsgIndex does not match the one generated by the validator verifying the block
-		// proposal
-		err = injectedMsgIndex.Equal(msgIndex, injectedEventTxs, eventTxs)
+		// Check that MsgIndex was injected correctly
+		err = h.verifyInjectedMsgIndexTx(req.Txs[0], indexSequence, msgIndex)
 		if err != nil {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"generated injected txs do not match the ones from the block proposal "+
-					"(injected MsgIndex: %s) (generated MsgIndex: %s): %w",
-				injectedMsgIndex.String(), msgIndex.String(), err,
+				"failed to verify injected MsgIndexTx: %w", err,
+			)
+		}
+
+		// Check that event transactions were injected correctly
+		err = h.verifyInjectedEventTxs(injectedEventTxs, eventTxs)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"failed to verify injected event txs: %w", err,
 			)
 		}
 
 		// Check that MsgSupplyDelta was injected correctly if expected
-		expectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
 		if expectMsgSupplyDelta {
-			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedEventTxs)
+			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedEventTxs, supplyDeltaSequence)
 			if err != nil {
 				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 					"failed to verify injected MsgSupplyDeltaTx: %w", err,
@@ -406,16 +445,31 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
-		h.logger.Debug("processing proposal", "height", req.Height, "num_txs", len(req.Txs))
+		ctx.Logger().Debug("processed proposal", "height", req.Height, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 }
 
-// checkMinimumNumTxs ensures that we've collected the minimum number of expected transactions, i.e. MsgIndex, the event
-// transactions, and the MsgSupplyDelta if we're at the MsgSupplyDelta height, and returns an error otherwise
-func checkMinimumNumTxs(numTxs uint64, msgIndex *bridgetypes.MsgIndex, injectMsgSupplyDelta bool) error {
+// generateTxSequences returns the transaction sequences that should be used throughout the ProposalHandler:
+// - MsgIndex sequence: the next injected txs sequence.
+// - MsgSupplyDelta sequence: MsgIndex sequence + 1, if applicable.
+// - The sequence for the first event tx is the next available sequence.
+func (h *FuelSequencerProposalHandler) generateTxSequences(
+	ctx context.Context,
+	isMsgSupplyDeltaHeight bool,
+) (indexSequence, supplyDeltaSequence, firstEventTxsSequence uint64) {
+	nextSequence := h.bridgeKeeper.MustGetNextConsensusTxsSequence(ctx)
+	if isMsgSupplyDeltaHeight {
+		return nextSequence, nextSequence + 1, nextSequence + 2
+	} else {
+		return nextSequence, 0, nextSequence + 1
+	}
+}
 
+// checkMinimumNumTxs ensures that we've collected the minimum number of expected transactions, i.e. MsgIndex, the event
+// transactions, and the MsgSupplyDelta if we're at the MsgSupplyDelta height. It returns an error if the check fails.
+func checkMinimumNumTxs(numTxs uint64, msgIndex *bridgetypes.MsgIndex, injectMsgSupplyDelta bool) error {
 	minimumExpectedTxs := 1 + msgIndex.NumInjectedEventTxs
 	if injectMsgSupplyDelta {
 		minimumExpectedTxs += 1
@@ -477,11 +531,13 @@ func (h *FuelSequencerProposalHandler) getNewEthereumBlock(sidecarErr error) boo
 // generateMsgIndexAndEventTxs generates MsgIndex and transactions from events based on the response of the sidecar.
 // It errors upon invalid events from the sidecar. Returned errors have the capability of halting block production.
 func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
+	ctx sdk.Context,
 	sidecarResponse *sidecartypes.QueryBlockEventsResponse,
 	blockNumber uint64,
 	sidecarErr error,
 	params *bridgetypes.Params,
 	blockedBech32Addresses map[string]bool,
+	eventTxsSequence uint64,
 ) (msgIndex *bridgetypes.MsgIndex, eventTxs [][]byte, err error) {
 
 	// Set events to nil by default to avoid a null pointer dereference if the Sidecar errors.
@@ -505,13 +561,17 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		}
 
 		eventTx, err := event.RawTxBytesWithLimitChecks(
-			h.cdc, h.bridgeKeeper.GetAuthority(), params.InjectedEventTxMaxBytes, params.MaxAuthorizeMessages,
+			h.cdc,
+			h.bridgeKeeper.GetAuthority(),
+			params.InjectedEventTxMaxBytes,
+			params.MaxAuthorizeMessages,
+			eventTxsSequence,
 		)
 		if err != nil {
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				h.logger.Warn(fmt.Sprintf(
+				ctx.Logger().Warn(fmt.Sprintf(
 					"skipping event; failed to encode event as raw tx bytes with err: %s; event: %s",
 					err.Error(),
 					event,
@@ -537,8 +597,9 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 		if authenticated {
 			eventTxs = append(eventTxs, eventTx)
+			eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
 		} else {
-			h.logger.Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
 		}
 	}
 
@@ -553,7 +614,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	return
 }
 
-func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx() ([]byte, error) {
+func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx(sequence uint64) ([]byte, error) {
 
 	// Construct Any from message.
 	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(&bridgetypes.MsgSupplyDelta{
@@ -563,11 +624,53 @@ func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx() ([]byte, error
 		return nil, err
 	}
 
-	return utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSupplyDeltaAny})
+	return utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSupplyDeltaAny}, sequence)
+}
+
+// verifyInjectedMsgIndexTx is used by ProcessProposal to check whether MsgIndexTx was injected properly.
+func (h *FuelSequencerProposalHandler) verifyInjectedMsgIndexTx(
+	injectedMsgIndexTx []byte,
+	expectedSequence uint64,
+	generatedMsgIndex *bridgetypes.MsgIndex,
+) error {
+
+	generatedMsgIndexTx, err := generatedMsgIndex.RawTxBytes(expectedSequence)
+	if err != nil {
+		return fmt.Errorf("failed to encode MsgIndex: %w", err)
+	}
+
+	if !bytes.Equal(injectedMsgIndexTx, generatedMsgIndexTx) {
+		return fmt.Errorf(
+			"generated MsgIndex tx differs from that of the block proposal (injected: %X) (generated: %X)",
+			injectedMsgIndexTx, generatedMsgIndexTx,
+		)
+	}
+	return nil
+}
+
+// verifyInjectedEventTxs is used by ProcessProposal to check whether the event transactions were injected properly.
+// Additional details about the event transactions is included in the error since this might be useful during debugging.
+func (h *FuelSequencerProposalHandler) verifyInjectedEventTxs(injected, generated [][]byte) error {
+
+	if len(injected) != len(generated) {
+		return fmt.Errorf(
+			"generated event txs do not match those from the proposal (num_injected: %d) (num_generated: %d)",
+			len(injected), len(generated),
+		)
+	}
+	if !utils.IsEqualBytesSlices(injected, generated) {
+		return fmt.Errorf(
+			"generated event txs do not match those from the proposal (size(injected): %d) (size(generated): %d)",
+			utils.TxsSize(injected), utils.TxsSize(generated),
+		)
+	}
+	return nil
 }
 
 // verifyInjectedMsgSupplyDeltaTx is used by ProcessProposal to check whether MsgSupplyDeltaTx was injected properly
-func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(txs [][]byte, numInjectedTxs uint64) error {
+func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
+	txs [][]byte, numInjectedTxs, expectedSequence uint64,
+) error {
 
 	// We expect the MsgSupplyDeltaTx to be at the index right after MsgIndex and any injected events.
 	// If no events were injected, the index will be 1, i.e. right after the MsgIndex.
@@ -577,25 +680,17 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(txs [][]by
 	if uint64(len(txs)) < 1+msgSupplyDeltaIndex {
 		return fmt.Errorf("expected at least %d transactions in block proposal", 1+msgSupplyDeltaIndex)
 	}
+	injectedMsgSupplyDeltaTx := txs[msgSupplyDeltaIndex]
 
-	// Try to decode transaction at the MsgSupplyDelta index into sdk.Tx.
-	tx, err := h.txVerifier.TxDecode(txs[msgSupplyDeltaIndex])
+	generatedMsgSupplyDeltaTx, err := h.generateMsgSupplyDeltaTx(expectedSequence)
 	if err != nil {
-		return fmt.Errorf("failed to decode transaction at index %d into sdk.Tx: %w", msgSupplyDeltaIndex, err)
+		return fmt.Errorf("failed to generate MsgSupplyDelta tx: %w", err)
 	}
 
-	var msgSupplyDelta bridgetypes.MsgSupplyDelta
-	err = msgSupplyDelta.FromSdkTx(tx)
-	if err != nil {
-		return fmt.Errorf("failed to parse MsgSupplyDelta at index %d with error: %w", msgSupplyDeltaIndex, err)
-	}
-
-	// Confirm that MsgSupplyDelta passes all verification checks and error if not
-	if msgSupplyDelta.Authority != h.bridgeKeeper.GetAuthority() {
+	if !bytes.Equal(injectedMsgSupplyDeltaTx, generatedMsgSupplyDeltaTx) {
 		return fmt.Errorf(
-			"incorrect Authority set in MsgSupplyDelta; expected %s got %s",
-			h.bridgeKeeper.GetAuthority(),
-			msgSupplyDelta.Authority,
+			"generated MsgSupplyDelta tx differs from that of the block proposal (injected: %X) (generated: %X)",
+			injectedMsgSupplyDeltaTx, generatedMsgSupplyDeltaTx,
 		)
 	}
 

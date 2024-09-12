@@ -71,6 +71,11 @@ func NewClient(
 		return nil, fmt.Errorf("logger cannot be nil")
 	}
 
+	// If the sidecar was enabled, the server address cannot be empty
+	if address == "" {
+		return nil, fmt.Errorf("sidecar address cannot be empty")
+	}
+
 	// Prepending a "//" allows addresses without a scheme.
 	if _, err := url.Parse("//" + address); err != nil {
 		return nil, fmt.Errorf("invalid Sidecar address: %w", err)
@@ -118,6 +123,8 @@ func (c *GRPCClient) Start(ctx context.Context) error {
 	)
 	go func() {
 		defer close(done)
+
+		//nolint:staticcheck
 		conn, err = grpc.DialContext(ctx, c.addr, opts...)
 	}()
 
