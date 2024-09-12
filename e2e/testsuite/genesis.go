@@ -171,8 +171,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// TODO: genesis supply will be incorrect if we add more accounts
 	var bankGenState banktypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := int64(len(s.Chain.validators) * initBalance)
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
+	genesisSupply := InitBalanceCoin.Amount.MulRaw(int64(len(s.Chain.validators)))
+	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, genesisSupply))
 	bz, err = cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz

@@ -164,7 +164,7 @@ func TestDecodeTx_Base64(t *testing.T) {
 	}
 
 	for i, msg := range tx.GetMsgs() {
-		fmt.Printf("MSG %d: %s\n", i, msg)
+		fmt.Printf("MSG %d (%s): %s\n", i, sdk.MsgTypeURL(msg), msg)
 	}
 }
 
@@ -184,6 +184,6 @@ func TestDecodeTx_Hex(t *testing.T) {
 	}
 
 	for i, msg := range tx.GetMsgs() {
-		fmt.Printf("MSG %d: %s\n", i, msg)
+		fmt.Printf("MSG %d (%s): %s\n", i, sdk.MsgTypeURL(msg), msg)
 	}
 }

@@ -104,11 +104,19 @@ func (s *E2ETestSuite) SearchForEventInBlockResults(
 	blockResults, err := s.GetBlockResultsByHeight(ctx, block)
 	s.Require().NoError(err)
 
+	// Search tx results
 	for _, txResult := range blockResults.TxsResults {
 		for _, event := range txResult.Events {
 			if event.Type == eventType {
 				return &event, true
 			}
+		}
+	}
+
+	// Search finalize block events
+	for _, event := range blockResults.FinalizeBlockEvents {
+		if event.Type == eventType {
+			return &event, true
 		}
 	}
 	return nil, false
