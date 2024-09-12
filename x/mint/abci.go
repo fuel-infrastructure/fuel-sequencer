@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )
 
@@ -73,9 +74,11 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 		return err
 	}
 
-	if mintedCoin.Amount.IsInt64() {
-		defer telemetry.ModuleSetGauge(minttypes.ModuleName, float32(mintedCoin.Amount.Int64()), "minted_tokens")
-	}
+	utils.SafeSetMetric(ctx, func(ctx sdk.Context) {
+		if mintedCoin.Amount.IsInt64() {
+			defer telemetry.ModuleSetGauge(minttypes.ModuleName, float32(mintedCoin.Amount.Int64()), "minted_tokens")
+		}
+	})
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(
