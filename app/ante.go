@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -98,6 +99,7 @@ func (d InjectedTxsDecorator) AnteHandle(
 	//
 	// We're done from the AnteHandler and can keep the infinite gas meter for the respective message handler.
 	if index.NumInjectedTxsAnte < index.NumInjectedTxsTotal {
+		metrics.ObserveInjectedTransaction(ctx, tx)
 
 		// The AnteHandler has seen an injected transaction.
 		index.NumInjectedTxsAnte += 1
