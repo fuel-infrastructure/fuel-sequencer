@@ -115,7 +115,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		s.PollForDelegationBalance(s.Ctx(), 10, s.SeqKeys[0].AddressSeq, s.SeqKeys[0].ValAddressSeq, halfStake)
 		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*5))
 
-		// Pause
+		// Pause validator
 		from, err := s.GetFuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 		s.PauseSequencer(0)
@@ -124,7 +124,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		// Note: we cannot wait for blocks because validator 0 is down.
 		s.Sleep(time.Second * 15)
 
-		// Unpause
+		// Unpause validator
 		s.UnpauseSequencer(0)
 		s.Sleep(time.Second * 5)
 		until, err := s.GetFuelSequencerHeight(s.Ctx())
@@ -151,8 +151,10 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		// Get the supply delta event where the slash was reported
 		var supplyDeltaHeight int
 		if foundAt%supplyDeltaPeriod == 0 {
+			// Supply delta report is exactly at the slash event's height.
 			supplyDeltaHeight = int(foundAt)
 		} else {
+			// Next supply delta report is some blocks in the future.
 			supplyDeltaHeight = int(foundAt + supplyDeltaPeriod - (foundAt % supplyDeltaPeriod))
 		}
 		s.Require().NoError(s.WaitUntilSequencerBlock(s.Ctx(), supplyDeltaHeight, time.Minute))
