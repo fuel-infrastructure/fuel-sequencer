@@ -2,9 +2,23 @@ package utils
 
 import (
 	"context"
+	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+var (
+	KeysSequencer   = []string{"sequencer"}
+	KeysAnteHandler = append(KeysSequencer, "ante", "handler")
+	KeysBeginBlock  = append(KeysSequencer, "begin", "block")
+	KeysEndBlock    = append(KeysSequencer, "end", "block")
+	KeysTxMsg       = append(KeysSequencer, "tx", "msg")
+	KeysStore       = append(KeysSequencer, "store")
+
+	// Coin amounts are divided by this value to get the decimal representation
+	scale = new(big.Float).SetFloat64(1e18)
 )
 
 // safeSetMetric helps us use the telemetry package in a safer and more effective way by protecting against panics and
@@ -24,4 +38,10 @@ func safeSetMetric(goCtx context.Context, setMetric func(ctx sdk.Context)) {
 
 func SafeSetMetric(goCtx context.Context, setMetric func(ctx sdk.Context)) {
 	go safeSetMetric(goCtx, setMetric)
+}
+
+func ScaleCoinAmount(amount sdkmath.Int) float32 {
+	amountFloat := new(big.Float).SetInt(amount.BigInt())
+	amountScaled, _ := new(big.Float).Quo(amountFloat, scale).Float32()
+	return amountScaled
 }
