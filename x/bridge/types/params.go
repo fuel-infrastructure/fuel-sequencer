@@ -22,6 +22,7 @@ var (
 		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
 		"/cosmos.staking.v1beta1.MsgUndelegate",
 		"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+		"/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
 		"/cosmos.gov.v1.MsgVote",
 	}
 
