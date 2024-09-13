@@ -134,9 +134,9 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		lessRewards := s.QueryDelegationRewards(s.Ctx(), delegatorAddress, validator2Address)
 		s.Require().True(lessRewards.AmountOf(testsuite.BridgeDenom).LT(rewards.AmountOf(testsuite.BridgeDenom)))
 
-		// ----------------------------------- Test MsgWithdrawDelegatorReward
+		// ----------------------------------- Test MsgSetWithdrawAddress
 
-		// Generate Authorize event wrapping a MsgWithdrawDelegatorReward.
+		// Generate Authorize event wrapping a MsgSetWithdrawAddress.
 		msgSetWithdrawAddressBz := s.E2ETestSuite.GenerateMsgSetWithdrawAddressBz(
 			delegatorAddress, withdrawAddress,
 		)
