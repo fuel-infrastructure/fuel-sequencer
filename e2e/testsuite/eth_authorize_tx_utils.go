@@ -79,6 +79,15 @@ func (s *E2ETestSuite) GenerateMsgWithdrawDelegatorRewardBz(delegatorAddress, va
 	)
 }
 
+func (s *E2ETestSuite) GenerateMsgSetWithdrawAddressBz(delegatorAddress, withdrawAddress string) []byte {
+	return s.GenerateMsgBz(
+		&distributiontypes.MsgSetWithdrawAddress{
+			DelegatorAddress: delegatorAddress,
+			WithdrawAddress:  withdrawAddress,
+		},
+	)
+}
+
 func (s *E2ETestSuite) GenerateMsgUndelegateBz(delegatorAddress, validatorAddress string, amount sdk.Coin) []byte {
 	return s.GenerateMsgBz(
 		&stakingtypes.MsgUndelegate{
