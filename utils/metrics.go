@@ -25,9 +25,7 @@ var (
 // checking that we only set metrics at the Finalize mode, to reflect actual changes to state, as much as possible.
 func safeSetMetric(goCtx context.Context, setMetric func(ctx sdk.Context)) {
 	defer func() {
-		if r := recover(); r != nil {
-			// Recover from panics
-		}
+		_ = recover() // recover from panics without running any other logic
 	}()
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if !telemetry.IsTelemetryEnabled() || ctx.ExecMode() != sdk.ExecModeFinalize {
