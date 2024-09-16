@@ -6,11 +6,13 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // SetLastConsensusTxsSequence sets lastConsensusTxsSequence in the store
 func (k Keeper) SetLastConsensusTxsSequence(ctx context.Context, lastConsensusTxsSequence uint64) {
+	defer metrics.SetLastConsensusTxsSequence(ctx, lastConsensusTxsSequence)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
 	b := sdk.Uint64ToBigEndian(lastConsensusTxsSequence)

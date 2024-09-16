@@ -498,13 +498,17 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 		// expose the first validator for debugging and communication
 		if val.index == 0 {
 			runOpts.PortBindings = map[docker.Port][]docker.PortBinding{
-				"1317/tcp":  {{HostIP: "", HostPort: "1317"}},
-				"9090/tcp":  {{HostIP: "", HostPort: "9090"}},
-				"26656/tcp": {{HostIP: "", HostPort: "26656"}},
-				"26657/tcp": {{HostIP: "", HostPort: "26657"}},
-				"8080/tcp":  {{HostIP: "", HostPort: "8080"}},
+				"1317/tcp":  {{HostIP: "", HostPort: "1317"}},  // Sequencer REST
+				"9090/tcp":  {{HostIP: "", HostPort: "9090"}},  // Sequencer gRPC
+				"26656/tcp": {{HostIP: "", HostPort: "26656"}}, // Sequencer P2P
+				"26657/tcp": {{HostIP: "", HostPort: "26657"}}, // Sequencer RPC
+				"26660/tcp": {{HostIP: "", HostPort: "26660"}}, // Sequencer Prometheus
+				"8080/tcp":  {{HostIP: "", HostPort: "8080"}},  // Sidecar gRPC
+				"8081/tcp":  {{HostIP: "", HostPort: "8081"}},  // Sidecar Prometheus
 			}
-			runOpts.ExposedPorts = []string{"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp", "8080/tcp"}
+			runOpts.ExposedPorts = []string{
+				"1317/tcp", "9090/tcp", "26656/tcp", "26657/tcp", "26660/tcp", "8080/tcp", "8081/tcp",
+			}
 		}
 
 		resource, err := s.dockerPool.RunWithOptions(runOpts, noRestart)
