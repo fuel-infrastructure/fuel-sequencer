@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-metrics"
 )
 
-func ObserveInjectedTransaction(goCtx context.Context, tx sdk.Tx) {
+func ObserveInjectedTransactionAtAnteHandler(goCtx context.Context, tx sdk.Tx) {
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
 		for _, msg := range tx.GetMsgs() {
 			telemetry.IncrCounterWithLabels(

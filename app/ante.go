@@ -99,7 +99,7 @@ func (d InjectedTxsDecorator) AnteHandle(
 	//
 	// We're done from the AnteHandler and can keep the infinite gas meter for the respective message handler.
 	if index.NumInjectedTxsAnte < index.NumInjectedTxsTotal {
-		metrics.ObserveInjectedTransaction(ctx, tx)
+		metrics.ObserveInjectedTransactionAtAnteHandler(ctx, tx)
 
 		// The AnteHandler has seen an injected transaction.
 		index.NumInjectedTxsAnte += 1
