@@ -39,7 +39,7 @@ SEQ_RESTS = {
 }
 
 SEQ_CHAINS = {
-    Networks.DEVNET: "seq-devnet-4",
+    Networks.DEVNET: "seq-devnet-5",
     Networks.SANDBOX: "seq-sandbox-1",
     Networks.LOCAL: "fuelsequencer-1",
 }
