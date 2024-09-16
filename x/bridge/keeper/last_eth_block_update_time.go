@@ -7,13 +7,11 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // SetLastEthBlockUpdateTime sets lastEthBlockUpdateTime in the store
 func (k Keeper) SetLastEthBlockUpdateTime(ctx context.Context, lastEthBlockUpdateTime time.Time) {
-	defer metrics.SetLastEthBlockUpdate(ctx, lastEthBlockUpdateTime)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthBlockUpdateTimeKey)
 	b := sdk.Uint64ToBigEndian(uint64(lastEthBlockUpdateTime.UnixNano()))

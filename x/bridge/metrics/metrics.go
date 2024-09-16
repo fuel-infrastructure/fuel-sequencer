@@ -51,13 +51,16 @@ func SetLastConsensusTxsSequence(goCtx context.Context, sequence uint64) {
 	})
 }
 
-func SetLastEthBlockUpdate(goCtx context.Context, lastUpdate time.Time) {
+func SetTimeSinceLastEthBlockUpdate(goCtx context.Context, lastUpdate time.Time) {
+	// Note: if we used lastUpdate.Unix(), this would be too large to fit into float32
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		telemetry.SetGauge(float32(lastUpdate.Unix()), append(utils.KeysStore, "last", "eth", "block", "update")...)
+		timeSince := ctx.BlockTime().Sub(lastUpdate).Seconds()
+		telemetry.SetGauge(float32(timeSince), append(utils.KeysStore, "time", "since", "last", "eth", "update")...)
 	})
 }
 
 func SetLastEthereumNonce(goCtx context.Context, nonce sdkmath.Int) {
+	// Note: the practice of checking IsInt64 was inherited from Cosmos SDK practices
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
 		if nonce.IsInt64() {
 			telemetry.SetGauge(float32(nonce.Int64()), append(utils.KeysStore, "last", "ethereum", "nonce")...)
