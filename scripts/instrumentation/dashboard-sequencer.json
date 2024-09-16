@@ -88,7 +88,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 3,
         "x": 0,
         "y": 0
@@ -128,79 +128,6 @@
       ],
       "title": "Height",
       "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "fieldMinMax": true,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 4,
-        "x": 3,
-        "y": 0
-      },
-      "id": 21,
-      "options": {
-        "displayMode": "gradient",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "11.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "exemplar": false,
-          "expr": "cometbft_consensus_round_duration_seconds_bucket",
-          "format": "heatmap",
-          "fullMetaSearch": false,
-          "includeNullMetadata": true,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A",
-          "useBackend": false
-        }
-      ],
-      "title": "Consensus Round Duration",
-      "type": "bargauge"
     },
     {
       "datasource": {
@@ -274,9 +201,9 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 5,
-        "x": 7,
+        "h": 7,
+        "w": 4,
+        "x": 3,
         "y": 0
       },
       "id": 13,
@@ -306,7 +233,7 @@
           "hide": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Num Injected Txs",
+          "legendFormat": "Num Injected",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -323,7 +250,7 @@
           "hide": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Consensus Txs Sequence",
+          "legendFormat": "Consensus Sequence",
           "range": true,
           "refId": "B",
           "useBackend": false
@@ -394,9 +321,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 4,
-        "x": 12,
+        "x": 7,
         "y": 0
       },
       "id": 16,
@@ -491,9 +418,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 7,
         "w": 3,
-        "x": 16,
+        "x": 11,
         "y": 0
       },
       "id": 15,
@@ -519,14 +446,32 @@
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "sequencer_tx_msg_deposit_from_ethereum",
+          "expr": "sequencer_tx_msg_deposit_from_ethereum{to_user=\"true\"}",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Num Deposits",
+          "legendFormat": "Num Deposits to User",
           "range": true,
           "refId": "A",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": false,
+          "expr": "sequencer_tx_msg_deposit_from_ethereum{to_user!=\"true\"}",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "Num Deposits to Governance",
+          "range": true,
+          "refId": "B",
           "useBackend": false
         }
       ],
@@ -591,10 +536,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 7,
         "w": 3,
-        "x": 16,
-        "y": 4
+        "x": 14,
+        "y": 0
       },
       "id": 9,
       "options": {
@@ -645,6 +590,79 @@
           },
           "fieldMinMax": true,
           "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 17,
+        "y": 0
+      },
+      "id": 21,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": false,
+          "expr": "cometbft_consensus_round_duration_seconds_bucket",
+          "format": "heatmap",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "Consensus Round Duration",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "fieldMinMax": true,
+          "mappings": [],
           "noValue": "0",
           "thresholds": {
             "mode": "absolute",
@@ -663,7 +681,7 @@
         "h": 8,
         "w": 3,
         "x": 0,
-        "y": 8
+        "y": 7
       },
       "id": 11,
       "options": {
@@ -783,9 +801,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 5,
+        "w": 4,
         "x": 3,
-        "y": 8
+        "y": 7
       },
       "id": 17,
       "options": {
@@ -915,8 +933,8 @@
       "gridPos": {
         "h": 8,
         "w": 4,
-        "x": 8,
-        "y": 8
+        "x": 7,
+        "y": 7
       },
       "id": 18,
       "options": {
@@ -1033,8 +1051,8 @@
       "gridPos": {
         "h": 8,
         "w": 4,
-        "x": 12,
-        "y": 8
+        "x": 11,
+        "y": 7
       },
       "id": 19,
       "options": {
@@ -1092,10 +1110,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 3,
-        "x": 16,
-        "y": 8
+        "x": 15,
+        "y": 7
       },
       "id": 14,
       "options": {
@@ -1184,10 +1202,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 3,
-        "x": 16,
-        "y": 12
+        "x": 18,
+        "y": 7
       },
       "id": 3,
       "options": {
@@ -1252,13 +1270,14 @@
       "type": "bargauge"
     }
   ],
+  "refresh": "",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
