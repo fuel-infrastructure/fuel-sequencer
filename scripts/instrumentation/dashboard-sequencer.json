@@ -1025,7 +1025,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": []
       },
@@ -1056,27 +1057,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sequencer_store_last_eth_block_update",
+          "expr": "sequencer_store_time_since_last_eth_update",
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "Delay",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "time()",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Updates from Ethereum",
+      "title": "Time Since Last Eth Update",
       "type": "timeseries"
     },
     {
@@ -1264,7 +1252,6 @@
       "type": "bargauge"
     }
   ],
-  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
@@ -1278,6 +1265,6 @@
   "timezone": "browser",
   "title": "Sequencer",
   "uid": "edwalm41nsnb4g",
-  "version": 5,
+  "version": 1,
   "weekStart": ""
 }
