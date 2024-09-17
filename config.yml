@@ -72,6 +72,9 @@ validators:
       path_to_cert_file: ""
     commitments:
       api-enabled: true
+    telemetry:
+      enabled: true
+      prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:
@@ -104,7 +107,7 @@ genesis:
     bridge:
       params:
         bridge_denom: "utest"
-        bridge_denom_total_supply: "10000000000"  # 10 bil
+        bridge_denom_total_supply: "10000000000000000000000000000"  # 10 bil
         ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
         authorize_messages_allowed:
           - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
@@ -113,6 +116,7 @@ genesis:
           - "/cosmos.staking.v1beta1.MsgBeginRedelegate"
           - "/cosmos.staking.v1beta1.MsgUndelegate"
           - "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+          - "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress"
           - "/cosmos.gov.v1.MsgVote"
         supply_delta_period: 100
         injected_event_tx_max_bytes: 20000000

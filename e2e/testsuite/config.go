@@ -29,6 +29,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
+		valConfig.Instrumentation.Prometheus = true
 
 		// speed up blocks
 		valConfig.Consensus.TimeoutCommit = 1 * time.Second
@@ -61,6 +62,8 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		appConfig.Pruning = "nothing"
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
 		appConfig.CommitmentsConfig.ApiEnabled = true
+		appConfig.Telemetry.Enabled = true
+		appConfig.Telemetry.PrometheusRetentionTime = 60 // 1 minute
 
 		srvconfig.SetConfigTemplate(customAppTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)

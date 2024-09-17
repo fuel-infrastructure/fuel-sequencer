@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -87,5 +88,8 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 	lastSequence := k.MustGetLastConsensusTxsSequence(ctx)
 	k.SetLastConsensusTxsSequence(ctx, lastSequence+msg.NumInjectedEventTxs+supplyDeltaCount+1)
 
+	if lastUpdate, found := k.GetLastEthBlockUpdateTime(ctx); found {
+		defer metrics.SetTimeSinceLastEthBlockUpdate(ctx, lastUpdate)
+	}
 	return &types.MsgIndexResponse{}, nil
 }

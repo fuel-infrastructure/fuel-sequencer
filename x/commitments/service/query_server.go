@@ -8,6 +8,7 @@ import (
 	cmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )
 
@@ -31,6 +32,8 @@ func NewQueryServer(
 func (q queryServer) BridgeCommitment(
 	ctx context.Context, req *types.QueryBridgeCommitmentRequest,
 ) (*types.QueryBridgeCommitmentResponse, error) {
+	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment")
+
 	err := validateBridgeCommitmentRange(ctx, q.clientCtx, req.Start, req.End)
 	if err != nil {
 		return nil, err
@@ -61,6 +64,8 @@ func (q queryServer) BridgeCommitment(
 func (q queryServer) BridgeCommitmentInclusionProof(
 	ctx context.Context, req *types.QueryBridgeCommitmentInclusionProofRequest,
 ) (*types.QueryBridgeCommitmentInclusionProofResponse, error) {
+	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment", "inclusion", "proof")
+
 	err := validateBridgeCommitmentInclusionProofRequest(ctx, q.clientCtx, uint64(req.Height), req.Start, req.End)
 	if err != nil {
 		return nil, err
