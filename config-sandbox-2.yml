@@ -43,6 +43,8 @@ validators:
       mempool:
         max_tx_bytes: "10485760" # 10MiB
         max_txs_bytes: "20971520" # 20MiB
+      instrumentation:
+        prometheus: true
       consensus:
         timeout_propose: "3s"
         timeout_propose_delta: "500ms"
@@ -70,6 +72,8 @@ validators:
       mempool:
         max_tx_bytes: "10485760" # 10MiB
         max_txs_bytes: "20971520" # 20MiB
+      instrumentation:
+        prometheus: true
       consensus:
         timeout_propose: "3s"
         timeout_propose_delta: "500ms"
