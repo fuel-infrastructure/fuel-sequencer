@@ -29,7 +29,7 @@ def pretty(in_json: str):
 
 
 SEQ_node = "tcp://80.64.208.225:26657"
-SEQ_chain = "seq-sandbox-1"
+SEQ_chain = "seq-sandbox-2"
 SEQ_bin = "fuelsequencerd"
 
 ETH_rpc = "https://ethereum-sepolia-rpc.publicnode.com"
