@@ -229,6 +229,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 
 	genDoc.AppState = bz
+	genDoc.Consensus.Params.Block.MaxBytes = 22020096
+	genDoc.Consensus.Params.Block.MaxGas = 300000000
 
 	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
 	s.Require().NoError(err)
