@@ -21,14 +21,14 @@ func TestNullAddressIsAsExpected(t *testing.T) {
 	require.Equal(t, keeper.NullEthereumAddress, "0x0000000000000000000000000000000000000000")
 }
 
-func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumAddress() {
+func (s *KeeperTestSuite) TestGenerateSequencerAddressFromEthereumAddress() {
 	accAddress, err := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testutiltypes.TestEthAddr1Str)
 	s.Require().NoError(err)
 
 	s.Require().Equal(testutiltypes.TestSeqAddr1Str, accAddress.String())
 }
 
-func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
+func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 
 	// The first account number depends on the number of module accounts created.
 	firstAccNumber := uint64(len(s.App.AccountKeeper.GetModulePermissions()))
@@ -42,6 +42,7 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 	// Helper durations.
 	years1 := time.Hour * 24 * 365
 	years2 := years1 * 2
+	years3 := years1 * 3
 	years100 := years1 * 100
 
 	// Helper times.
@@ -489,6 +490,52 @@ func (s *KeeperTestSuite) TestGetSequencerAccountFromEthereumAddress() {
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/bank/types/vesting.go#L11-L12
 			// The definition of SpendableCoins: "total balance minus locked coins"
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/x/bank/types/vesting.go#L14-L16
+		},
+		{
+			// blockTime:              t0 + 3 years
+			// vestingStartTime:       t0
+			// actualVestingStartTime: t0 + 1 year
+			// actualVestingEndTime:   t0 + 2 years
+			//
+			// Block time is after the vesting end time, meaning all the tokens should be available.
+			name: "deposit with vesting completed builds on existing EthOwnedContinuousVestingAccount => " +
+				"updated OriginalVesting and retained vesting values => EthOwnedContinuousVestingAccount",
+			precreateAccount: types.NewEthOwnedContinuousVestingAccount(
+				&vestingtypes.ContinuousVestingAccount{
+					StartTime: t0Plus1Year.Unix(), // this should be untouched
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:      seqAddr1BaseAcc,
+						OriginalVesting:  token100,
+						DelegatedFree:    token50,             // this should be untouched
+						DelegatedVesting: token50,             // this should be untouched
+						EndTime:          t0Plus2Years.Unix(), // 1 year lock + 1 year vesting
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			blockTime:        t0Plus1Year.Add(years3), // vesting complete
+			vestingStartTime: t0,
+			fundAccount:      token200, // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: years100, // NB: this gets ignored if account is EthOwnedContinuousVestingAccount
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+				&vestingtypes.ContinuousVestingAccount{
+					StartTime: t0Plus1Year.Unix(), // this was untouched
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:      seqAddr1BaseAcc,
+						OriginalVesting:  token200,            // of which all are vested (unlocked)
+						DelegatedFree:    token50,             // this was untouched
+						DelegatedVesting: token50,             // this was untouched
+						EndTime:          t0Plus2Years.Unix(), // 1 year lock + 1 year vesting
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			expectSpendableCoins: token200, // equal to the total amount that the account was funded
+			// Note: Vesting is now 0, and DelegatedVesting is not considered if all tokens have vested.
 		},
 	}
 
