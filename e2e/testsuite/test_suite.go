@@ -36,6 +36,8 @@ func init() {
 }
 
 const (
+	ethBlockTimeSeconds = 3
+
 	BridgeDenom            = "utest"
 	BridgeDenomTotalSupply = 10_000_000_000
 
@@ -55,7 +57,7 @@ const (
 	fuelSequencerDockerImageRepo      = "fuel-infrastructure/fuel-sequencer"
 	fuelSequencerDockerImageTag       = "latest"
 	ethereumNodeDockerImageRepo       = "ghcr.io/foundry-rs/foundry"
-	ethereumNodeDockerImageTag        = "nightly"
+	ethereumNodeDockerImageTag        = "nightly-4351742481c98adaa9ca3e8642e619aa986b3cee"
 	ethereumDeploymentDockerImageRepo = "fuel-rollup/ethereum-deployment"
 	ethereumDeploymentDockerImageTag  = "latest"
 
@@ -341,7 +343,8 @@ func (s *E2ETestSuite) runEthereumNodeContainer() {
 			"--mnemonic", MNEMONICS[0],
 			"--accounts", "20",
 			"--slots-in-an-epoch", "1",
-			// Note: do not set --block-time since this is overridden by the deployment container's hardhat scripts.
+			"--block-time", fmt.Sprintf("%d", ethBlockTimeSeconds),
+			"--mixed-mining",
 		},
 	}
 
