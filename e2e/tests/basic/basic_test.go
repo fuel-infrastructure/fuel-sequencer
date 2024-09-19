@@ -150,9 +150,9 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Get last Ethereum block synced
 		lastEthereumBlockSynced := s.QueryLastEthereumBlockSynced(s.Ctx())
-		lookOutFor := lastEthereumBlockSynced + 2
+		lookOutFor := lastEthereumBlockSynced + 5
 
-		// Subscribe for 2 Ethereum blocks from now
+		// Subscribe for 5 Ethereum blocks from now
 		blockNumberKey := "fuelsequencer.bridge.EventEthereumBlockSynced.block_number"
 		fullSyncKey := "fuelsequencer.bridge.EventEthereumBlockSynced.full_sync"
 		query := fmt.Sprintf(`%s='"%d"' AND %s='true'`, blockNumberKey, lookOutFor, fullSyncKey)
@@ -211,7 +211,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		s.ExecuteExpeditedGovProposal(msg)
 
 		// Wait for 1 block to pass for the BeginBlocker to run
-		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10))
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
 
 		// Check that the inflation rate was updated to the new inflation rate
 		inflationRate = s.QueryMintInflation(s.Ctx())

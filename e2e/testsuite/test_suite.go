@@ -36,7 +36,7 @@ func init() {
 }
 
 const (
-	ethBlockTimeSeconds = 12
+	ethBlockTimeSeconds = 3
 
 	BridgeDenom            = "utest"
 	BridgeDenomTotalSupply = 10_000_000_000
