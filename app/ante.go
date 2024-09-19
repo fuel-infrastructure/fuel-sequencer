@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
@@ -80,9 +81,14 @@ func (d InjectedTxsDecorator) AnteHandle(
 		return next(ctx, tx, simulate)
 	}
 
-	// Set an infinite gas meter from now since we might be processing an injected transaction.
+	// Set an infinite gas meter and block gas meter from now since we might be processing an injected transaction.
+	// Infinite gas meters still count gas consumption, so the block's gas limit could still get exceeded by injected
+	// transactions if we did not also set an infinite block gas meter.
 	cachedGasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	cachedBlockGasMeter := ctx.BlockGasMeter()
+	ctx = ctx.
+		WithGasMeter(storetypes.NewInfiniteGasMeter()).
+		WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// If the index does not exist, then this must be the first transaction that will set the index.
 	// We're done from the AnteHandler and can keep the infinite gas meter for the message handler.
@@ -98,6 +104,7 @@ func (d InjectedTxsDecorator) AnteHandle(
 	//
 	// We're done from the AnteHandler and can keep the infinite gas meter for the respective message handler.
 	if index.NumInjectedTxsAnte < index.NumInjectedTxsTotal {
+		metrics.ObserveInjectedTransactionAtAnteHandler(ctx, tx)
 
 		// The AnteHandler has seen an injected transaction.
 		index.NumInjectedTxsAnte += 1
@@ -106,8 +113,10 @@ func (d InjectedTxsDecorator) AnteHandle(
 		return ctx, nil
 	}
 
-	// Revert the gas meter because if we reach this stage, the tx is not an injected one.
-	ctx = ctx.WithGasMeter(cachedGasMeter)
+	// Revert the gas meters because if we reach this stage, the tx is not an injected one.
+	ctx = ctx.
+		WithGasMeter(cachedGasMeter).
+		WithBlockGasMeter(cachedBlockGasMeter)
 
 	return next(ctx, tx, simulate)
 }

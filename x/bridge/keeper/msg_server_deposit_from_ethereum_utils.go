@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -30,6 +31,11 @@ func (k Keeper) processDepositEvent(
 	}
 	tokenToMint := sdk.NewCoin(params.BridgeDenom, amount)
 	tokensToMint := sdk.NewCoins(tokenToMint)
+
+	depositedToUser := false
+	defer func() {
+		metrics.ObserveDeposit(ctx, depositedToUser)
+	}()
 
 	// Check that the Lockup can be converted from a string to sdk.Int
 	eventLockup, success := sdkmath.NewIntFromString(depositEvent.Lockup)
@@ -89,9 +95,8 @@ func (k Keeper) processDepositEvent(
 			return
 		}
 	} else {
-
-		// If Recipient is an Ethereum address map it to a Sequencer address, otherwise, generate the sdk.AccAddress from the
-		// Bech32 string
+		// If Recipient is an Ethereum address, map it to a Sequencer address.
+		// Otherwise, generate the sdk.AccAddress from the Bech32 string.
 		if common.IsHexAddress(depositEvent.Recipient) {
 			sequencerAddr, err = k.GenerateSequencerAddressFromEthereumAddress(depositEvent.Recipient)
 		} else {
@@ -124,6 +129,7 @@ func (k Keeper) processDepositEvent(
 			panic(fmt.Sprintf("failed to transfer bridge tokens to gov module account err: %s", err.Error()))
 		}
 	}
+	depositedToUser = true
 
 	// Apply negative offset to supply delta offset
 	supplyDeltaInfo.Offset = supplyDeltaInfo.Offset.Sub(amount)
