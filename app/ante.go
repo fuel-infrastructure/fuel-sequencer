@@ -81,9 +81,14 @@ func (d InjectedTxsDecorator) AnteHandle(
 		return next(ctx, tx, simulate)
 	}
 
-	// Set an infinite gas meter from now since we might be processing an injected transaction.
+	// Set an infinite gas meter and block gas meter from now since we might be processing an injected transaction.
+	// Infinite gas meters still count gas consumption, so the block's gas limit could still get exceeded by injected
+	// transactions if we did not also set an infinite block gas meter.
 	cachedGasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	cachedBlockGasMeter := ctx.BlockGasMeter()
+	ctx = ctx.
+		WithGasMeter(storetypes.NewInfiniteGasMeter()).
+		WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// If the index does not exist, then this must be the first transaction that will set the index.
 	// We're done from the AnteHandler and can keep the infinite gas meter for the message handler.
@@ -108,8 +113,10 @@ func (d InjectedTxsDecorator) AnteHandle(
 		return ctx, nil
 	}
 
-	// Revert the gas meter because if we reach this stage, the tx is not an injected one.
-	ctx = ctx.WithGasMeter(cachedGasMeter)
+	// Revert the gas meters because if we reach this stage, the tx is not an injected one.
+	ctx = ctx.
+		WithGasMeter(cachedGasMeter).
+		WithBlockGasMeter(cachedBlockGasMeter)
 
 	return next(ctx, tx, simulate)
 }
