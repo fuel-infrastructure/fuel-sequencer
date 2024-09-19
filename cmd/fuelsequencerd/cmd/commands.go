@@ -241,6 +241,9 @@ func startSidecarServerCmd() *cobra.Command {
 	cmd.Flags().DurationVar(
 		&prmCfg.ReadHeaderTimeout, FlagPrometheusReadHeaderTimeout, time.Second*10, "amount of time allowed to read request headers",
 	)
+	cmd.Flags().DurationVar(
+		&prmCfg.WriteTimeout, FlagPrometheusWriteTimeout, time.Second*10, "maximum duration before timing out writes of the response",
+	)
 	cmd.Flags().StringVar(
 		&prmCfg.Namespace, FlagPrometheusNamespace, "sidecar", "instrumentation namespace",
 	)
