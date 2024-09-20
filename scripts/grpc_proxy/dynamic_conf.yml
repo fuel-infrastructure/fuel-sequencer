@@ -1,0 +1,11 @@
+http:
+  routers:
+    routerToSequencer:
+      service: sequencer
+      rule: "Host(`grpc.seq.example.com`)"
+
+  services:
+    sequencer:
+      loadBalancer:
+        servers:
+          - url: h2c://sequencer:9090

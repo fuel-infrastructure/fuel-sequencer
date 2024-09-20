@@ -1,0 +1,30 @@
+services:
+
+  reverse-proxy:
+    image: traefik:v3.1 # The official v3 Traefik docker image
+    command:
+      - --api.insecure=true
+      - --providers.docker=true # Listen to Docker
+      - --entryPoints.web.address=:80 # Web UI
+      - --providers.file.directory=./ # Dynamic config file
+      - --log.level=DEBUG  # Logging level
+    ports:
+      - "80:80" # The HTTP port
+      - "8080:8080" # The Web UI (enabled by --api.insecure=true)
+    volumes:
+      - "./dynamic_conf.yml:/dynamic_conf.yml:ro" # Volume for dynamic config file
+      - "/var/run/docker.sock:/var/run/docker.sock" # So that Traefik can listen to Docker events
+
+  sequencer:
+    image: fuel-infrastructure/fuel-sequencer:latest
+    volumes:
+      - ../../data/fuelsequencer:/home/fuelsequencer/.fuelsequencer
+    ports:
+      - "26657:26657"
+      - "1317:1317"
+      - "9090:9090"
+    labels:
+      - "traefik.http.services.sequencer.loadbalancer.server.port=9090"
+      - "traefik.http.services.sequencer.loadbalancer.server.scheme=h2c"
+    command:
+      - "node_and_sidecar"
