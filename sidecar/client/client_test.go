@@ -12,6 +12,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil/servers"
 	apptesttypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/connectivity"
 )
@@ -199,7 +200,12 @@ func TestStartAndStop(t *testing.T) {
 			pathToKeyFile:  "../testutil/certificates/server-key.pem",
 		},
 		{
-			name: "Start establishes connection and stop closes it (without TLS)",
+			name:           "Start establishes connection and stop closes it (without TLS - explicit)",
+			pathToCertFile: credentials.UseInsecure,
+			pathToKeyFile:  credentials.UseInsecure,
+		},
+		{
+			name: "Start establishes connection and stop closes it (without TLS - blank)",
 		},
 	}
 
@@ -280,7 +286,13 @@ func TestGetBlockEvents(t *testing.T) {
 			startClient:    true,
 		},
 		{
-			name:        "Returns block events if query successful (without TLS)",
+			name:           "Returns block events if query successful (without TLS - explicit)",
+			pathToCertFile: credentials.UseInsecure,
+			pathToKeyFile:  credentials.UseInsecure,
+			startClient:    true,
+		},
+		{
+			name:        "Returns block events if query successful (without TLS - blank)",
 			startClient: true,
 		},
 		{
@@ -291,7 +303,14 @@ func TestGetBlockEvents(t *testing.T) {
 			expErrMsg:      "sidecar client not started",
 		},
 		{
-			name:        "errors if client not started (without TLS)",
+			name:           "errors if client not started (without TLS - explicit)",
+			pathToCertFile: credentials.UseInsecure,
+			pathToKeyFile:  credentials.UseInsecure,
+			startClient:    false,
+			expErrMsg:      "sidecar client not started",
+		},
+		{
+			name:        "errors if client not started (without TLS - blank)",
 			startClient: false,
 			expErrMsg:   "sidecar client not started",
 		},
