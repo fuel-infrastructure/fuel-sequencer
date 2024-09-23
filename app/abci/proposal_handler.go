@@ -90,7 +90,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		}
 
 		// Inject MsgSupplyDeltaTx if expected at current height
-		supplyDeltaBytesSize := int64(0)
+		supplyDeltaBytesSize := uint64(0)
 		if injectMsgSupplyDelta {
 			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx(supplyDeltaSequence)
 			if err != nil {
@@ -98,10 +98,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			}
 
 			// Calculate size of supply delta message
-			supplyDeltaBytesSize = int64(utils.TxSize(supplyDeltaBytes))
+			supplyDeltaBytesSize = utils.TxSize(supplyDeltaBytes)
 
 			// Ensure that supply delta fits in the block on its own
-			if supplyDeltaBytesSize > req.MaxTxBytes {
+			if supplyDeltaBytesSize > uint64(req.MaxTxBytes) {
 				return nil, fmt.Errorf(
 					"could not fit MsgSupplyDelta of size %d in block's max bytes %d",
 					supplyDeltaBytesSize, req.MaxTxBytes,
