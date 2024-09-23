@@ -26,14 +26,14 @@ func isDefaultTLS(flag string) bool {
 // If the path satisfies isInsecure then insecure credentials are used instead.
 func NewClientTransportCredentialsFromCertFile(
 	pathToFile string,
-) (creds credentials.TransportCredentials, tlsEnabled bool, err error) {
+) (creds credentials.TransportCredentials, err error) {
 	if isInsecure(pathToFile) {
-		return insecure.NewCredentials(), false, nil
+		return insecure.NewCredentials(), nil
 	} else if isDefaultTLS(UseInsecure) {
-		return credentials.NewTLS(nil), true, nil
+		return credentials.NewTLS(nil), nil
 	} else {
 		creds, err = credentials.NewClientTLSFromFile(pathToFile, "")
-		return creds, true, err
+		return creds, err
 	}
 }
 

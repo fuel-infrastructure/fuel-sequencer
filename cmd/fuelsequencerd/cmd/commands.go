@@ -334,7 +334,7 @@ func startSidecar(
 	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
 
 	// Set up a secure connection if configured by the operator
-	seqConnCreds, _, err := credentials.NewClientTransportCredentialsFromCertFile(seqCfg.pathToCertFile)
+	seqConnCreds, err := credentials.NewClientTransportCredentialsFromCertFile(seqCfg.pathToCertFile)
 	if err != nil {
 		panic(fmt.Errorf("failed to get Sequencer infrastructure TLS credentials; error: %w", err))
 	}
@@ -506,7 +506,7 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	}
 
 	// Set up a secure connection with the sidecar if configured by the operator
-	sidecarConnCreds, _, err := credentials.NewClientTransportCredentialsFromCertFile(pathToCertFile)
+	sidecarConnCreds, err := credentials.NewClientTransportCredentialsFromCertFile(pathToCertFile)
 	if err != nil {
 		return fmt.Errorf("failed to get sidecar server TLS credentials; error: %w", err)
 	}

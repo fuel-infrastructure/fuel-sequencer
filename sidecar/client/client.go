@@ -100,7 +100,7 @@ func (c *GRPCClient) Start(ctx context.Context) error {
 	c.logger.Info("starting GRPC Sidecar client", "sidecar server address", c.addr)
 
 	// Set up a secure connection with the sidecar server if configured by the operator
-	sidecarConnCreds, _, err := credentials.NewClientTransportCredentialsFromCertFile(c.pathToCertFile)
+	sidecarConnCreds, err := credentials.NewClientTransportCredentialsFromCertFile(c.pathToCertFile)
 	if err != nil {
 		return fmt.Errorf("failed to get sidecar server TLS credentials; error: %w", err)
 	}
