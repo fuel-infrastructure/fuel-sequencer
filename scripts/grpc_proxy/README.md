@@ -5,16 +5,17 @@
 - Add `127.0.0.1 grpc.seq.example.com` as a new line in `/etc/hosts/`.
 - Run `make init` from the project directory to initialise the Sequencer `data/` folder.
 - Run `docker-compose up -d` from the gRPC proxy directory to run the proxy.
+  - This requires that you have ports 81 and 8081 available. If not, adjust from `docker-compose.yml`.
 - Run any of these example commands to interact with the Sequencer directly:
   - `grpcurl -plaintext localhost:9090 list`
   - `grpcurl -plaintext localhost:9090 describe fuelsequencer.bridge.v1.Query`
   - `grpcurl -plaintext localhost:9090 fuelsequencer.bridge.v1.Query.Params`
 - Run any of these example commands to interact with the Sequencer through the proxy:
-  - `grpcurl -plaintext grpc.seq.example.com:80 list`
-  - `grpcurl -plaintext grpc.seq.example.com:80 describe fuelsequencer.bridge.v1.Query`
-  - `grpcurl -plaintext grpc.seq.example.com:80 fuelsequencer.bridge.v1.Query.Params`
+  - `grpcurl -plaintext grpc.seq.example.com:81 list`
+  - `grpcurl -plaintext grpc.seq.example.com:81 describe fuelsequencer.bridge.v1.Query`
+  - `grpcurl -plaintext grpc.seq.example.com:81 fuelsequencer.bridge.v1.Query.Params`
 
-If requests through the proxy are not allowed, you might want to check the proxy's logs `docker logs -f grpc_proxy-reverse-proxy-1` for any errors and ensure that your IP is covered by the IP whitelist in the `dynamic_conf.yml` file. The Traefik UI should also be available at http://localhost:8080.
+If requests through the proxy are not allowed, you might want to check the proxy's logs `docker logs -f grpc_proxy-reverse-proxy-1` for any errors and ensure that your IP is covered by the IP whitelist in the `dynamic_conf.yml` file. The Traefik UI should also be available at http://localhost:8081.
 
 ## Production Use
 

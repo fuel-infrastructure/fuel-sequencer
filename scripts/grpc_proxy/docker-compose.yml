@@ -9,8 +9,8 @@ services:
       - --providers.file.directory=./ # Dynamic config file
       - --log.level=DEBUG  # Logging level
     ports:
-      - "80:80" # The HTTP port
-      - "8080:8080" # The Web UI (enabled by --api.insecure=true)
+      - "81:80" # The HTTP port
+      - "8081:8080" # The Web UI (enabled by --api.insecure=true)
     volumes:
       - "./dynamic_conf.yml:/dynamic_conf.yml:ro" # Volume for dynamic config file
       - "/var/run/docker.sock:/var/run/docker.sock" # So that Traefik can listen to Docker events
