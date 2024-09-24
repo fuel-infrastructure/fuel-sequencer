@@ -1,0 +1,23 @@
+http:
+  routers:
+    routerToSequencer:
+      service: sequencer
+      rule: "Host(`grpc.seq.example.com`)"
+      middlewares:
+        - ipWhitelist  # Apply the IP whitelist middleware
+
+  services:
+    sequencer:
+      loadBalancer:
+        servers:
+          - url: h2c://sequencer:9090
+
+  middlewares:
+    ipWhitelist:
+      IPAllowList:
+        sourceRange:
+          # We add all common private IP ranges for testing purposes
+          - "10.0.0.0/8"     # Covers 10.0.0.0 to 10.255.255.255
+          - "172.16.0.0/12"  # Covers 172.16.0.0 to 172.31.255.255
+          - "192.168.0.0/16" # Covers 192.168.0.0 to 192.168.255.255
+          # (Optional) Add more allowed IP ranges

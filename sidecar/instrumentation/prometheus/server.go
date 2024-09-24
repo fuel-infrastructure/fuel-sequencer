@@ -33,6 +33,7 @@ func (s *MetricsServer) Start() {
 			),
 		),
 		ReadHeaderTimeout: s.cfg.ReadHeaderTimeout,
+		WriteTimeout:      s.cfg.WriteTimeout,
 	}
 
 	s.log.Info("starting metrics server", zap.String("address", s.cfg.ListenAddress))

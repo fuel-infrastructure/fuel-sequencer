@@ -15,6 +15,9 @@ type Config struct {
 	// ReadHeaderTimeout is the amount of time allowed to read request headers
 	ReadHeaderTimeout time.Duration
 
+	// WriteTimeout is the maximum duration before timing out writes of the response
+	WriteTimeout time.Duration
+
 	// Namespace is the instrumentation namespace.
 	Namespace string
 }

@@ -83,6 +83,11 @@ func (ec *EthRpcClient) FinalizedBlockNumber(ctx context.Context) (*big.Int, err
 // FilterLogs wraps and rate-limits the FilterLogs call to the Ethereum client.
 func (ec *EthRpcClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.Int) ([]ethereumtypes.Log, error) {
 
+	// Sanity check: fromBlock <= toBlock
+	if fromBlock.Cmp(toBlock) > 0 {
+		return nil, fmt.Errorf("cannot get logs with fromBlock (%d) > toBlock (%d)", fromBlock.Int64(), toBlock.Int64())
+	}
+
 	// Wait for the rate limiter to let us through.
 	if !ec.logsQueryLimiter.Allow() {
 		maxWaitSeconds := 1 / float64(ec.logsQueryLimiter.Limit())
