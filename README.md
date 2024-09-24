@@ -15,7 +15,7 @@ Dependencies:
     - Preferred version: `0.14.0`
 - go
     - https://go.dev/doc/install
-    - Preferred version: `1.21`
+    - Preferred version: `1.22`
 
 To run the Sequencer, Sidecar, and an Ethereum node:
 
