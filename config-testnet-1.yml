@@ -71,7 +71,7 @@ genesis:
       params:
         bond_denom: "test"  # for testnet purposes
         unbonding_time: "86400s"  # for testnet purposes
-        max_validators: "100"
+        max_validators: "12"
         min_commission_rate: "0.050000000000000000"
   consensus:
     params:
