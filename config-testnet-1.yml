@@ -25,7 +25,7 @@ genesis:
         bridge_denom_total_supply: "10000000000000000000000000000"
         ethereum_proxy_contract_address: "TODO"  # https://sepolia.etherscan.io/address/TODO
         supply_delta_period: "14400"
-        vesting_start_time: "2023-09-26T10:00:00Z"
+        vesting_start_time: "2023-09-28T10:00:00Z"
         max_eth_block_update_delay: "14400s"
         injected_event_tx_max_bytes: "1900000"
         max_authorize_messages: "5"
