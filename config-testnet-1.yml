@@ -10,51 +10,51 @@ accounts:
   - name: SimplyStaking
     address: fuelsequencer1cv0rl38sckgwyrkdd5vanyzf6v8clf808ttyf4
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: ChorusOne
     address: fuelsequencer1262eh7nej33nq82f5jts6xjhy446m37qqrugzu
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: Polkachu
     address: fuelsequencer1jt9w26mpxxjsk63mvd4m2ynj0af09csl53y0fn
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: Cryptocrews
     address: fuelsequencer1ud725sp9jcfdmekx0qwn6lz4ce6axu4k83y70w
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: Chainlayer
     address: fuelsequencer1ksq9d6j5jaxluv0sekjwkar0c0s0tjaa42rwk3
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: StakeCapital
     address: fuelsequencer13rswp0mdcadp5e59usjvk2mnyp5zvt5whtfy0q
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: ParcerosNacion
     address: fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: BlockPi
     address: fuelsequencer1003vxp7zwrqmwmya7a93904h4qsucxskzxg8fv
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: Encode
     address: fuelsequencer1jkvjs8aynx3vlrws60a0nem85s9sfj7rd8m2v9
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: InformalSystems
     address: fuelsequencer1zh0pq03a6twv00reqqchgef5gpk4pysej4cxr0
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: A41
     address: fuelsequencer1kfysecrlc6sa9lu6d8vv6728f4v7sy65gy6rmv
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
   - name: Kitsugi
     address: fuelsequencer1uqxpjkg6yh83w37h8hz8h8hkhce6nqgh5xcjew
     coins:
-      - 2000000000000000000utest
+      - 2000000000000000000test
 validators:
   - name: alice
     bonded: 1000000test
