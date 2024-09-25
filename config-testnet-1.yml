@@ -6,7 +6,7 @@ accounts:
   - name: alice
     mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
     coins:
-      - 9999999976000000000000000000test
+      - 76000000000000000000test
   - name: SimplyStaking
     address: fuelsequencer1cv0rl38sckgwyrkdd5vanyzf6v8clf808ttyf4
     coins:
