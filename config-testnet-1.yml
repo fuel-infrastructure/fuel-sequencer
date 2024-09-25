@@ -87,7 +87,7 @@ genesis:
           - amount: "2500000000000000000000"
             denom: "test"  # for testnet purposes
         max_deposit_period: "604800s"
-        voting_period: "10800s"  # 3 hours for testnet purposes
+        voting_period: "172800s"  # 7 days
         quorum: "0.400000000000000000"
         min_initial_deposit_ratio: "0.100000000000000000"
         expedited_min_deposit:
@@ -95,7 +95,7 @@ genesis:
             denom: "test"  # for testnet purposes
         proposal_cancel_ratio: "0.000000000000000000"
         proposal_cancel_dest: "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3"  # gov
-        expedited_voting_period: "3600s"
+        expedited_voting_period: "86400s"  # 1 day
         burn_vote_veto: false
     mint:
       params:
