@@ -188,7 +188,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
 	bridgeGenState.Params.VestingStartTime = vestingStartingTime
-	bridgeGenState.Params.BridgeDenomTotalSupply = math.NewInt(BridgeDenomTotalSupply)
+	bridgeGenState.Params.BridgeDenomTotalSupply = BridgeDenomTotalSupply
 	bridgeGenState.LastEthereumBlockSynced = ethBlockNumber
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)

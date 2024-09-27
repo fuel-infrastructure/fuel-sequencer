@@ -68,25 +68,37 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				supplyDeltaAttribute := event.Attributes[1]
 				s.Require().EqualValues("supply_delta", supplyDeltaAttribute.Key)
 				supplyDeltaString := supplyDeltaAttribute.Value[1 : len(supplyDeltaAttribute.Value)-1]
-				// 210000000000 Initial balance per Validator
+
+				// 21e27 Initial balance per Validator
 				// 3 Validators
-				// Total Supply = 630000000000
+				// Total Supply = 63e27
 				// BlocksPerYear = 6311520
 				//
 				// Inflation = 0.10
 				//
-				// Tokens minted per block = (10000000000 / 6311520) * 0.10 where 10000000000 is the BridgeDenomTotalSupply
-				//                         = 158.4404390701
-				//                         = 158
+				// Tokens minted per block = (1e27 / 6311520) * 0.10 where 1e27 is the BridgeDenomTotalSupply
+				//                         = 158440439070144751185.134484244682738865
+				//                         = 158440439070144751185
 				//
-				// First report will include total supply = 630000000000 + (158 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 630000001580
-				// Second report on will not include it   = (158 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 1580
+				// First report will include total supply = 63e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 63000001584404390701447511850
+				// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 1584404390701447511850
+				supply := testsuite.BridgeDenomTotalSupply
+				blocksPerYear := sdkmath.NewInt(6311520)
+				inflation := sdkmath.LegacyMustNewDecFromStr("0.1")
+				expectMintPerBlock := sdkmath.LegacyNewDecFromInt(supply).QuoInt(blocksPerYear).Mul(inflation)
+				expectMintPerSupplyDeltaPeriod := expectMintPerBlock.MulInt64(10)
+
 				if expectedNonce == 1 {
-					s.Require().EqualValues("630000001580", supplyDeltaString)
+					expectInitialSupply := sdkmath.LegacyMustNewDecFromStr("63000000000000000000000000000")
+					expectMint := expectMintPerSupplyDeltaPeriod.Add(expectInitialSupply)
+					s.Require().EqualValues(expectMint.String(), supplyDeltaString)
+					s.Require().EqualValues(expectMint.String(), "63000001584404390701447511850")
 				} else {
-					s.Require().EqualValues("1580", supplyDeltaString)
+					expectMint := expectMintPerSupplyDeltaPeriod
+					s.Require().EqualValues(expectMint.String(), supplyDeltaString)
+					s.Require().EqualValues(expectMint.String(), "1584404390701447511850")
 				}
 				expectedNonce += 1
 			}
@@ -164,31 +176,38 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		supplyDeltaAmount, ok := sdkmath.NewIntFromString(supplyDelta[1 : len(supplyDelta)-1])
 		s.Require().True(ok)
 
-		// 210000000000 Initial balance per Validator
+		// 21e27 Initial balance per Validator
 		// 3 Validators
-		// Total Supply = 630000000000
+		// Total Supply = 63e27
 		// BlocksPerYear = 6311520
 		//
 		// Inflation = 0.10
 		//
-		// Tokens minted per block = (10000000000 / 6311520) * 0.10 where 10000000000 is the BridgeDenomTotalSupply
-		//                         = 158.4404390701
-		//                         = 158
+		// Tokens minted per block = (1e27 / 6311520) * 0.10 where 1e27 is the BridgeDenomTotalSupply
+		//                         = 158440439070144751185.134484244682738865
+		//                         = 158440439070144751185
 		//
-		// First report will include total supply = 630000000000 + (158 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 630000001580
-		// Second report on will not include it   = (158 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 1580
+		// First report will include total supply = 63e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 63000001584404390701447511850
+		// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 1584404390701447511850
 		//
 		// From these reports we subtract the slash amount to get the expected supply delta amount.
+		supply := testsuite.BridgeDenomTotalSupply
+		blocksPerYear := sdkmath.NewInt(6311520)
+		inflation := sdkmath.LegacyMustNewDecFromStr("0.1")
+		expectMintPerBlock := sdkmath.LegacyNewDecFromInt(supply).QuoInt(blocksPerYear).Mul(inflation)
+		expectMintPerSupplyDeltaPeriod := expectMintPerBlock.MulInt64(10)
+
 		if supplyDeltaHeight == int(supplyDeltaPeriod) {
-			expectedMint := sdkmath.NewIntFromUint64(630000001580)
-			expectedSupplyDelta := expectedMint.Sub(slashAmount)
-			s.Require().EqualValues(expectedSupplyDelta.Int64(), supplyDeltaAmount.Int64()) // first report
+			expectInitialSupply := sdkmath.LegacyMustNewDecFromStr("63000000000000000000000000000")
+			expectReport := expectMintPerSupplyDeltaPeriod.Add(expectInitialSupply)
+			expectedSupplyDelta := expectReport.Sub(sdkmath.LegacyNewDecFromInt(slashAmount))
+			s.Require().EqualValues(expectedSupplyDelta, supplyDeltaAmount.Int64()) // first report
 		} else {
-			expectedMint := sdkmath.NewIntFromUint64(1580)
-			expectedSupplyDelta := expectedMint.Sub(slashAmount)
-			s.Require().EqualValues(expectedSupplyDelta.Int64(), supplyDeltaAmount.Int64()) // second report+
+			expectMint := expectMintPerSupplyDeltaPeriod
+			expectedSupplyDelta := expectMint.Sub(sdkmath.LegacyNewDecFromInt(slashAmount))
+			s.Require().EqualValues(expectedSupplyDelta, supplyDeltaAmount.Int64()) // second report+
 		}
 	})
 }

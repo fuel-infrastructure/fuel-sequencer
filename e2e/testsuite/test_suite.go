@@ -38,8 +38,7 @@ func init() {
 const (
 	ethBlockTimeSeconds = 3
 
-	BridgeDenom            = "utest"
-	BridgeDenomTotalSupply = 10_000_000_000
+	BridgeDenom = "utest"
 
 	// Gas configs
 	minGasPrices = "0.01"
@@ -81,11 +80,13 @@ const (
 )
 
 var (
+	BridgeDenomTotalSupply, var1Valid = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil x 1e18
+
 	// Balance and staked amount per validator
-	initBalance, _  = sdkmath.NewIntFromString("21000000000000000000000000000") // 21 bil
-	initStaked, _   = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil
-	InitBalanceCoin = sdk.NewCoin(BridgeDenom, initBalance)
-	InitStakedCoin  = sdk.NewCoin(BridgeDenom, initStaked)
+	initBalance, var2Valid = sdkmath.NewIntFromString("21000000000000000000000000000") // 21 bil
+	initStaked, var3Valid  = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil
+	InitBalanceCoin        = sdk.NewCoin(BridgeDenom, initBalance)
+	InitStakedCoin         = sdk.NewCoin(BridgeDenom, initStaked)
 
 	// MNEMONICS dictates how many Sequencer nodes will be created by specifying their mnemonic.
 	// The first mnemonic is reused for the Ethereum validator mnemonic.
@@ -193,6 +194,11 @@ func (s *E2ETestSuite) SetupTest() {
 	}
 
 	s.T().Log("setting up E2E test...")
+
+	// Check vars were set without issues
+	s.Require().True(var1Valid)
+	s.Require().True(var2Valid)
+	s.Require().True(var3Valid)
 
 	s.log = zaptest.NewLogger(s.T(), LogLevel)
 
