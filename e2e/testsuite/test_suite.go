@@ -82,8 +82,10 @@ const (
 
 var (
 	// Balance and staked amount per validator
-	InitBalanceCoin = sdk.NewInt64Coin(BridgeDenom, 210000000000)
-	InitStakedCoin  = sdk.NewInt64Coin(BridgeDenom, 100000000000)
+	initBalance, _  = sdkmath.NewIntFromString("21000000000000000000000000000") // 21 bil
+	initStaked, _   = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil
+	InitBalanceCoin = sdk.NewCoin(BridgeDenom, initBalance)
+	InitStakedCoin  = sdk.NewCoin(BridgeDenom, initStaked)
 
 	// MNEMONICS dictates how many Sequencer nodes will be created by specifying their mnemonic.
 	// The first mnemonic is reused for the Ethereum validator mnemonic.
