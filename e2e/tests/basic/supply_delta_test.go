@@ -9,6 +9,7 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -85,20 +86,22 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
 				//                                        = 1584404390701447511850
 				supply := testsuite.BridgeDenomTotalSupply
-				blocksPerYear := sdkmath.NewInt(6311520)
-				inflation := sdkmath.LegacyMustNewDecFromStr("0.1")
-				expectMintPerBlock := sdkmath.LegacyNewDecFromInt(supply).QuoInt(blocksPerYear).Mul(inflation)
-				expectMintPerSupplyDeltaPeriod := expectMintPerBlock.MulInt64(10)
+				params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
+				minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
+				minter.AnnualProvisions = minter.NextAnnualProvisions(params, supply)
+				blockProvision := minter.BlockProvision(params).Amount
+				supplyDeltaPeriodProvision := blockProvision.MulRaw(10)
 
 				if expectedNonce == 1 {
-					expectInitialSupply := sdkmath.LegacyMustNewDecFromStr("63000000000000000000000000000")
-					expectMint := expectMintPerSupplyDeltaPeriod.Add(expectInitialSupply)
-					s.Require().EqualValues(expectMint.String(), supplyDeltaString)
-					s.Require().EqualValues(expectMint.String(), "63000001584404390701447511850")
+					expectInitialSupply, ok := sdkmath.NewIntFromString("63000000000000000000000000000")
+					s.Require().True(ok)
+					expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply)
+					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
+					s.Require().EqualValues(expectReport.String(), "63000001584404390701447511850")
 				} else {
-					expectMint := expectMintPerSupplyDeltaPeriod
-					s.Require().EqualValues(expectMint.String(), supplyDeltaString)
-					s.Require().EqualValues(expectMint.String(), "1584404390701447511850")
+					expectReport := supplyDeltaPeriodProvision
+					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
+					s.Require().EqualValues(expectReport.String(), "1584404390701447511850")
 				}
 				expectedNonce += 1
 			}
@@ -193,21 +196,25 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		//                                        = 1584404390701447511850
 		//
 		// From these reports we subtract the slash amount to get the expected supply delta amount.
+		// - Report 1: 63000001584404390701447511850 - 2.5e27 = 60500001584404390805667577642
+		// - Report 2+: 1584404390701447511850 - 2.5e27 = -2499998415595609194332422358
 		supply := testsuite.BridgeDenomTotalSupply
-		blocksPerYear := sdkmath.NewInt(6311520)
-		inflation := sdkmath.LegacyMustNewDecFromStr("0.1")
-		expectMintPerBlock := sdkmath.LegacyNewDecFromInt(supply).QuoInt(blocksPerYear).Mul(inflation)
-		expectMintPerSupplyDeltaPeriod := expectMintPerBlock.MulInt64(10)
+		params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
+		minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
+		minter.AnnualProvisions = minter.NextAnnualProvisions(params, supply)
+		blockProvision := minter.BlockProvision(params).Amount
+		supplyDeltaPeriodProvision := blockProvision.MulRaw(10)
 
 		if supplyDeltaHeight == int(supplyDeltaPeriod) {
-			expectInitialSupply := sdkmath.LegacyMustNewDecFromStr("63000000000000000000000000000")
-			expectReport := expectMintPerSupplyDeltaPeriod.Add(expectInitialSupply)
-			expectedSupplyDelta := expectReport.Sub(sdkmath.LegacyNewDecFromInt(slashAmount))
-			s.Require().EqualValues(expectedSupplyDelta, supplyDeltaAmount.Int64()) // first report
+			expectInitialSupply, ok := sdkmath.NewIntFromString("63000000000000000000000000000")
+			s.Require().True(ok)
+			expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply).Sub(slashAmount)
+			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
+			s.Require().EqualValues(expectReport.String(), "60500001584404390805667577642")
 		} else {
-			expectMint := expectMintPerSupplyDeltaPeriod
-			expectedSupplyDelta := expectMint.Sub(sdkmath.LegacyNewDecFromInt(slashAmount))
-			s.Require().EqualValues(expectedSupplyDelta, supplyDeltaAmount.Int64()) // second report+
+			expectReport := supplyDeltaPeriodProvision.Sub(slashAmount)
+			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
+			s.Require().EqualValues(expectReport.String(), "-2499998415595609194332422358")
 		}
 	})
 }
