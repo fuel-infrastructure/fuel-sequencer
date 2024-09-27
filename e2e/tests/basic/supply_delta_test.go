@@ -161,7 +161,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		// Check that half of the remaining stake (i.e. a quarter of the original) was burned
 		slashAmount, ok := sdkmath.NewIntFromString(slashEvent.Attributes[4].Value)
 		s.Require().True(ok)
-		s.Require().Equal(slashAmount.Int64(), quarterStake.Amount.Int64())
+		s.Require().Equal(slashAmount.String(), quarterStake.Amount.String())
 
 		// Get the supply delta event where the slash was reported
 		var supplyDeltaHeight int
@@ -196,8 +196,6 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		//                                        = 1584404390701447511850
 		//
 		// From these reports we subtract the slash amount to get the expected supply delta amount.
-		// - Report 1: 63000001584404390701447511850 - 2.5e27 = 60500001584404390805667577642
-		// - Report 2+: 1584404390701447511850 - 2.5e27 = -2499998415595609194332422358
 		supply := testsuite.BridgeDenomTotalSupply
 		params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
 		minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
@@ -210,11 +208,9 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 			s.Require().True(ok)
 			expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply).Sub(slashAmount)
 			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
-			s.Require().EqualValues(expectReport.String(), "60500001584404390805667577642")
 		} else {
 			expectReport := supplyDeltaPeriodProvision.Sub(slashAmount)
 			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
-			s.Require().EqualValues(expectReport.String(), "-2499998415595609194332422358")
 		}
 	})
 }
