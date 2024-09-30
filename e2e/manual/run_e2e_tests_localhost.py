@@ -11,6 +11,8 @@ from proposals_gov.set_bridge_module_params import \
     get_update_bridge_module_params_proposal
 from proposals_gov.set_consensus_module_params import \
     get_update_consensus_module_params_proposal
+from proposals_gov.set_mint_params import \
+    get_update_mint_module_params_proposal
 from proposals_gov.set_sequencing_module_params import \
     get_update_sequencing_module_params_proposal
 from proposals_gov.set_voting_period_low import \
@@ -165,6 +167,30 @@ SEQ.submit_gov_proposal(get_update_consensus_module_params_proposal(
     evidence_max_age_duration=evidence_max_age_duration,
     evidence_max_bytes=evidence_max_bytes,
     validator_pub_key_types=validator_pub_key_types,
+))
+
+# Query current mint parameters
+pretty(SEQ.query_module_params("mint"))
+# Set mint parameters on Sequencer
+deposit = "2500000000000000000000test"
+mint_denom = "test"
+inflation_rate_change = "0.000000000000000000"
+inflation_max = "0.070000000000000000"
+inflation_min = "0.070000000000000000"
+goal_bonded = "0.670000000000000000"
+blocks_per_year = "5259600"
+expedited = True
+SEQ.submit_gov_proposal(get_update_mint_module_params_proposal(
+    proposal_title="Enable inflation (7%)",
+    proposal_summary="Inflation will be enabled by adjusting the min/max params, which must be equal in order for the custom mint module to effectively set the inflation rate.",
+    deposit=deposit,
+    mint_denom=mint_denom,
+    inflation_rate_change=inflation_rate_change,
+    inflation_max=inflation_max,
+    inflation_min=inflation_min,
+    goal_bonded=goal_bonded,
+    blocks_per_year=blocks_per_year,
+    expedited=expedited,
 ))
 
 # Perform a deposit on Ethereum without vesting
