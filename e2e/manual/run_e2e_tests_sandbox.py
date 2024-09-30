@@ -63,7 +63,7 @@ SEQ = FuelSequencerChain(
     chain_id=SEQ_chain,
     key_name=key_name_alice,
     voting_period=60,
-    fee_token="utest",
+    fee_token="test",
     gov_voters=["alice"],
 )
 
@@ -102,8 +102,8 @@ SEQ.voting_period = 10
 # Query current bridge parameters
 pretty(SEQ.query_module_params("bridge"))
 # Set bridge parameters on Sequencer
-deposit = "2500000000000000000000utest"
-bridge_denom = "utest"
+deposit = "2500000000000000000000test"
+bridge_denom = "test"
 bridge_denom_total_supply = "10000000000000000000000000000"
 ethereum_proxy_contract_address = ETH_sequencer_proxy_contract_address
 authorize_messages_allowed = [
@@ -140,7 +140,7 @@ SEQ.submit_gov_proposal(get_update_bridge_module_params_proposal(
 # Query current sequencing parameters
 pretty(SEQ.query_module_params("sequencing"))
 # Set sequencing parameters on Sequencer
-deposit = "2500000000000000000000utest"
+deposit = "2500000000000000000000test"
 max_blob_size_bytes = "1048576"
 sequencer_tx_max_bytes = "1572864"
 SEQ.submit_gov_proposal(get_update_sequencing_module_params_proposal(
@@ -152,7 +152,7 @@ SEQ.submit_gov_proposal(get_update_sequencing_module_params_proposal(
 # Query current consensus parameters
 pretty(SEQ.query_module_params("consensus"))
 # Set consensus parameters on Sequencer
-deposit = "2500000000000000000000utest"
+deposit = "2500000000000000000000test"
 block_max_bytes = "2000000"
 block_max_gas = "100000000"
 evidence_max_age_num_blocks = "100000"
@@ -209,7 +209,7 @@ ETH.authorize_transfer(recipient, amount)
 # pretty(SEQ.query_account(to))  # check current account on the sequencer side
 # ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
 
-# Perform an authorize on Ethereum. This is a MsgSend of 10 utest:
+# Perform an authorize on Ethereum. This is a MsgSend of 10 test:
 # TODO: we need to update these to match the non-mock contracts
 # From: fuelsequencer19dxwsyl3aq2qqnrmsp4uxx60upjscmag23yxly
 # To fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m.
@@ -255,7 +255,7 @@ SEQ.query_grants_by_grantee(grantee)
 
 # Community pool spend
 recipient = SEQ.address_alice
-amounts = [{"amount": "1", "denom": "utest"}]
+amounts = [{"amount": "1", "denom": "test"}]
 SEQ.submit_gov_proposal(
     get_community_pool_spend_proposal(recipient, amounts))
 SEQ.query_balance_by_address(recipient)
@@ -271,16 +271,16 @@ SEQ.submit_gov_proposal(get_software_upgrade_proposal(
 # Generate large voting power changes
 SEQ.delegate(
     "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
-    "10000000utest",
+    "10000000test",
 )
 # Wait for a while before submitting the next...
 SEQ.redelegate(
     "fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca",
     "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f",
-    "10000000utest",
+    "10000000test",
 )
 # Wait for a while before submitting the next...
 SEQ.unbond(
     "fuelsequencervaloper1ddjv8z30raavjc8ku6n6mqlm9rjhezs27h8g6f",
-    "10000000utest",
+    "10000000test",
 )
