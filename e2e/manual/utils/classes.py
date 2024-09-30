@@ -770,3 +770,14 @@ class EthereumChain(Web3):
 
         signed_txn = self._sign_tx(txn)
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+    # noinspection PyTypeChecker
+    def authorize_transfer(self, recipient: str, amount: int):
+        txn = self._sequencer_interface_contract().functions.transfer(
+            recipient, amount,
+        ).build_transaction({
+            'nonce': self.eth.get_transaction_count(self.acc_address),
+        })
+
+        signed_txn = self._sign_tx(txn)
+        return self.eth.send_raw_transaction(signed_txn.rawTransaction)

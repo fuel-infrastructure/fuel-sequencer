@@ -199,6 +199,11 @@ to = ETH_acc_address
 ETH.mint(to, 100)
 ETH.transfer_and_call(10)
 
+# Perform a transfer via an authorize
+recipient="0x62d221dB49aEF5632f59B900B2cA90e52ECC0A80"
+amount=5000000000000000000000
+ETH.authorize_transfer(recipient, amount)
+
 # Perform a deposit on Ethereum with vesting duration
 # TODO: we need to update this to match the non-mock contracts
 # to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)
