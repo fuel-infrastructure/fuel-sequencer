@@ -56,6 +56,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/power_reduction"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -333,6 +334,11 @@ func NewFuelSequencerApp(
 			app.Logger().Info("started Sidecar client", "sidecar server address", sidecarCfg.Address)
 		}()
 	}
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		power_reduction.UpgradeName,
+		power_reduction.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(

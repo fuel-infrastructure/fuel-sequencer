@@ -52,7 +52,7 @@ const (
 	fuelSequencerValidatorDefaultHome = "/home/fuelsequencer/.fuelsequencer"
 	fuelSequencerBinary               = "fuelsequencerd"
 
-	// Docker configs
+	// Docker configs. These should not be used directly. Instead, use the exported variables which can be overridden.
 	fuelSequencerDockerImageRepo      = "fuel-infrastructure/fuel-sequencer"
 	fuelSequencerDockerImageTag       = "latest"
 	ethereumNodeDockerImageRepo       = "ghcr.io/foundry-rs/foundry"
@@ -84,7 +84,7 @@ var (
 
 	// Balance and staked amount per validator
 	initBalance, var2Valid = sdkmath.NewIntFromString("21000000000000000000000000000") // 21 bil
-	initStaked, var3Valid  = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil
+	initStaked, var3Valid  = sdkmath.NewIntFromString("1000000000000000000")           // 10 bil
 	InitBalanceCoin        = sdk.NewCoin(BridgeDenom, initBalance)
 	InitStakedCoin         = sdk.NewCoin(BridgeDenom, initStaked)
 
@@ -170,6 +170,14 @@ type E2ETestSuite struct {
 	// applied, SetupTest needs to be overridden so that genesisOverrides can be changed before invoking SetupTest.
 	GenesisOverrides *ModifyGenesisFunc
 
+	// Docker images, which can be overridden
+	FuelSequencerDockerImageRepo      string
+	FuelSequencerDockerImageTag       string
+	EthereumNodeDockerImageRepo       string
+	EthereumNodeDockerImageTag        string
+	EthereumDeploymentDockerImageRepo string
+	EthereumDeploymentDockerImageTag  string
+
 	// SeqKeys are the FuelSequencer wallets derived from the above MNEMONICS, with hex versions of the addresses.
 	// This is filled-in later on in SetupTest, once the address codec has been initialised.
 	SeqKeys []*SequencerKey
@@ -186,6 +194,17 @@ type E2ETestSuite struct {
 
 	// EthUser is the Ethereum key derived from UserPrivateKey.
 	EthUser *EthereumKey
+}
+
+func (s *E2ETestSuite) SetupSuite() {
+
+	// Set Docker images, which can be overridden
+	s.FuelSequencerDockerImageRepo = fuelSequencerDockerImageRepo
+	s.FuelSequencerDockerImageTag = fuelSequencerDockerImageTag
+	s.EthereumNodeDockerImageRepo = ethereumNodeDockerImageRepo
+	s.EthereumNodeDockerImageTag = ethereumNodeDockerImageTag
+	s.EthereumDeploymentDockerImageRepo = ethereumDeploymentDockerImageRepo
+	s.EthereumDeploymentDockerImageTag = ethereumDeploymentDockerImageTag
 }
 
 func (s *E2ETestSuite) SetupTest() {
@@ -247,7 +266,7 @@ func (s *E2ETestSuite) SetupTest() {
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
-	s.runFuelSequencerValidators()
+	s.RunFuelSequencerValidators()
 	s.initGRPCClients()
 	s.initRPCClient()
 	s.initSidecarClient()
@@ -338,8 +357,8 @@ func (s *E2ETestSuite) runEthereumNodeContainer() {
 	var err error
 	runOpts := dockertest.RunOptions{
 		Name:       "ethereum-node",
-		Repository: ethereumNodeDockerImageRepo,
-		Tag:        ethereumNodeDockerImageTag,
+		Repository: s.EthereumNodeDockerImageRepo,
+		Tag:        s.EthereumNodeDockerImageTag,
 		NetworkID:  s.dockerNetwork.Network.ID,
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"8545/tcp": {{HostIP: "", HostPort: "8545"}},
@@ -401,8 +420,8 @@ func (s *E2ETestSuite) runEthereumDeploymentContainer() {
 	var err error
 	runOpts := dockertest.RunOptions{
 		Name:       "ethereum-deployment",
-		Repository: ethereumDeploymentDockerImageRepo,
-		Tag:        ethereumDeploymentDockerImageTag,
+		Repository: s.EthereumDeploymentDockerImageRepo,
+		Tag:        s.EthereumDeploymentDockerImageTag,
 		NetworkID:  s.dockerNetwork.Network.ID,
 		Env: []string{
 			"RPC_URL=http://ethereum-node:8545",
@@ -477,6 +496,40 @@ func (s *E2ETestSuite) UnpauseSequencer(i int) {
 	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.valResources[i].Container.ID))
 }
 
+func (s *E2ETestSuite) StopSequencer(i int) {
+	timeout := uint(30) // seconds
+	s.Require().NoError(s.dockerPool.Client.StopContainer(s.valResources[i].Container.ID, timeout))
+}
+
+func (s *E2ETestSuite) RemoveSequencer(i int) {
+	opts := docker.RemoveContainerOptions{ID: s.valResources[i].Container.ID, Force: true}
+	s.Require().NoError(s.dockerPool.Client.RemoveContainer(opts))
+}
+
+func (s *E2ETestSuite) PauseAllSequencerNodes() {
+	for i, _ := range s.valResources {
+		s.PauseSequencer(i)
+	}
+}
+
+func (s *E2ETestSuite) UnpauseAllSequencerNodes() {
+	for i, _ := range s.valResources {
+		s.UnpauseSequencer(i)
+	}
+}
+
+func (s *E2ETestSuite) StopAllSequencerNodes() {
+	for i, _ := range s.valResources {
+		s.StopSequencer(i)
+	}
+}
+
+func (s *E2ETestSuite) RemoveAllSequencerNodes() {
+	for i, _ := range s.valResources {
+		s.RemoveSequencer(i)
+	}
+}
+
 func (s *E2ETestSuite) PauseEthereum() {
 	s.Require().NoError(s.dockerPool.Client.PauseContainer(s.ethNodeResource.Container.ID))
 }
@@ -485,7 +538,7 @@ func (s *E2ETestSuite) UnpauseEthereum() {
 	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.ethNodeResource.Container.ID))
 }
 
-func (s *E2ETestSuite) runFuelSequencerValidators() {
+func (s *E2ETestSuite) RunFuelSequencerValidators() {
 	s.T().Log("starting validator containers...")
 
 	// Get user from OS to ensure permissions match up when the container writes files.
@@ -497,8 +550,8 @@ func (s *E2ETestSuite) runFuelSequencerValidators() {
 		runOpts := &dockertest.RunOptions{
 			Name:       val.instanceName(),
 			NetworkID:  s.dockerNetwork.Network.ID,
-			Repository: fuelSequencerDockerImageRepo,
-			Tag:        fuelSequencerDockerImageTag,
+			Repository: s.FuelSequencerDockerImageRepo,
+			Tag:        s.FuelSequencerDockerImageTag,
 			Mounts: []string{
 				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
 			},
