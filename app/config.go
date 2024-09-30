@@ -91,6 +91,7 @@ address = "{{ .SidecarConfig.Address }}"
 timeout = "{{ .SidecarConfig.Timeout }}"
 # This defines the path to the certificate file for secure communication with the sidecar server.
 # Should only be modified if the sidecar is to be configured with TLS.
+# It can also be set to 'use_default_tls' for TLS with default credentials.
 path_to_cert_file = "{{ .SidecarConfig.PathToCertFile }}"
 
 [commitments]
