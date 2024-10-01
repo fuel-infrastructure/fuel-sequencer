@@ -70,9 +70,9 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				s.Require().EqualValues("supply_delta", supplyDeltaAttribute.Key)
 				supplyDeltaString := supplyDeltaAttribute.Value[1 : len(supplyDeltaAttribute.Value)-1]
 
-				// 21e27 Initial balance per Validator
+				// 10e27 Initial balance per Validator
 				// 3 Validators
-				// Total Supply = 63e27
+				// Total Supply = 30e27
 				// BlocksPerYear = 6311520
 				//
 				// Inflation = 0.10
@@ -81,8 +81,8 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				//                         = 158440439070144751185.134484244682738865
 				//                         = 158440439070144751185
 				//
-				// First report will include total supply = 63e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 63000001584404390701447511850
+				// First report will include total supply = 30e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 30000001584404390701447511850
 				// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
 				//                                        = 1584404390701447511850
 				supply := testsuite.BridgeDenomTotalSupply
@@ -93,11 +93,11 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				supplyDeltaPeriodProvision := blockProvision.MulRaw(10)
 
 				if expectedNonce == 1 {
-					expectInitialSupply, ok := sdkmath.NewIntFromString("63000000000000000000000000000")
+					expectInitialSupply, ok := sdkmath.NewIntFromString("30000000000000000000000000000")
 					s.Require().True(ok)
 					expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply)
 					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
-					s.Require().EqualValues(expectReport.String(), "63000001584404390701447511850")
+					s.Require().EqualValues(expectReport.String(), "30000001584404390701447511850")
 				} else {
 					expectReport := supplyDeltaPeriodProvision
 					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
@@ -179,9 +179,9 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		supplyDeltaAmount, ok := sdkmath.NewIntFromString(supplyDelta[1 : len(supplyDelta)-1])
 		s.Require().True(ok)
 
-		// 21e27 Initial balance per Validator
+		// 10e27 Initial balance per Validator
 		// 3 Validators
-		// Total Supply = 63e27
+		// Total Supply = 30e27
 		// BlocksPerYear = 6311520
 		//
 		// Inflation = 0.10
@@ -190,8 +190,8 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		//                         = 158440439070144751185.134484244682738865
 		//                         = 158440439070144751185
 		//
-		// First report will include total supply = 63e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 63000001584404390701447511850
+		// First report will include total supply = 30e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 30000001584404390701447511850
 		// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
 		//                                        = 1584404390701447511850
 		//
@@ -204,7 +204,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		supplyDeltaPeriodProvision := blockProvision.MulRaw(10)
 
 		if supplyDeltaHeight == int(supplyDeltaPeriod) {
-			expectInitialSupply, ok := sdkmath.NewIntFromString("63000000000000000000000000000")
+			expectInitialSupply, ok := sdkmath.NewIntFromString("30000000000000000000000000000")
 			s.Require().True(ok)
 			expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply).Sub(slashAmount)
 			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
