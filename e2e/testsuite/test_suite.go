@@ -84,9 +84,11 @@ var (
 
 	// Balance and staked amount per validator
 	initBalance, var2Valid = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil x 1e18
-	initStaked, var3Valid  = sdkmath.NewIntFromString("1000000000000000000")           // 1e18
+	initStaked, var3Valid  = sdkmath.NewIntFromString("2000000000000000000")           // 2e18
 	InitBalanceCoin        = sdk.NewCoin(BridgeDenom, initBalance)
 	InitStakedCoin         = sdk.NewCoin(BridgeDenom, initStaked)
+	// NOTE: we need initStaked to be at least 2x PowerReduction so that if we undelegate half of it, like we do in some
+	// of our tests, the validator will still have enough stake to be in the validator set.
 
 	// MNEMONICS dictates how many Sequencer nodes will be created by specifying their mnemonic.
 	// The first mnemonic is reused for the Ethereum validator mnemonic.

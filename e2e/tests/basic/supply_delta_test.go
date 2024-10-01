@@ -141,7 +141,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 
 		// Unpause validator
 		s.UnpauseSequencer(0)
-		s.Sleep(time.Second * 5)
+		s.Sleep(time.Second * 5) // give some time for the validator to sync up
 		until, err := s.GetFuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 
