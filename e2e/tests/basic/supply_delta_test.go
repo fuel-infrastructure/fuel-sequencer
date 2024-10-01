@@ -9,6 +9,7 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -68,25 +69,39 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				supplyDeltaAttribute := event.Attributes[1]
 				s.Require().EqualValues("supply_delta", supplyDeltaAttribute.Key)
 				supplyDeltaString := supplyDeltaAttribute.Value[1 : len(supplyDeltaAttribute.Value)-1]
-				// 210000000000 Initial balance per Validator
+
+				// 20e27 Initial balance per Validator
 				// 3 Validators
-				// Total Supply = 630000000000
+				// Total Supply = 60e27
 				// BlocksPerYear = 6311520
 				//
 				// Inflation = 0.10
 				//
-				// Tokens minted per block = (10000000000 / 6311520) * 0.10 where 10000000000 is the BridgeDenomTotalSupply
-				//                         = 158.4404390701
-				//                         = 158
+				// Tokens minted per block = (1e27 / 6311520) * 0.10 where 1e27 is the BridgeDenomTotalSupply
+				//                         = 158440439070144751185.134484244682738865
+				//                         = 158440439070144751185
 				//
-				// First report will include total supply = 630000000000 + (158 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 630000001580
-				// Second report on will not include it   = (158 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 1580
+				// First report will include total supply = 60e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 60000001584404390701447511850
+				// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 1584404390701447511850
+				supply := testsuite.BridgeDenomTotalSupply
+				params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
+				minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
+				minter.AnnualProvisions = minter.NextAnnualProvisions(params, supply)
+				blockProvision := minter.BlockProvision(params).Amount
+				supplyDeltaPeriodProvision := blockProvision.MulRaw(10)
+
 				if expectedNonce == 1 {
-					s.Require().EqualValues("630000001580", supplyDeltaString)
+					expectInitialSupply, ok := sdkmath.NewIntFromString("60000000000000000000000000000")
+					s.Require().True(ok)
+					expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply)
+					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
+					s.Require().EqualValues(expectReport.String(), "60000001584404390701447511850")
 				} else {
-					s.Require().EqualValues("1580", supplyDeltaString)
+					expectReport := supplyDeltaPeriodProvision
+					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
+					s.Require().EqualValues(expectReport.String(), "1584404390701447511850")
 				}
 				expectedNonce += 1
 			}
@@ -126,7 +141,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 
 		// Unpause validator
 		s.UnpauseSequencer(0)
-		s.Sleep(time.Second * 5)
+		s.Sleep(time.Second * 5) // give some time for the validator to sync up
 		until, err := s.GetFuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 
@@ -146,7 +161,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		// Check that half of the remaining stake (i.e. a quarter of the original) was burned
 		slashAmount, ok := sdkmath.NewIntFromString(slashEvent.Attributes[4].Value)
 		s.Require().True(ok)
-		s.Require().Equal(slashAmount.Int64(), quarterStake.Amount.Int64())
+		s.Require().Equal(slashAmount.String(), quarterStake.Amount.String())
 
 		// Get the supply delta event where the slash was reported
 		var supplyDeltaHeight int
@@ -164,31 +179,38 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		supplyDeltaAmount, ok := sdkmath.NewIntFromString(supplyDelta[1 : len(supplyDelta)-1])
 		s.Require().True(ok)
 
-		// 210000000000 Initial balance per Validator
+		// 20e27 Initial balance per Validator
 		// 3 Validators
-		// Total Supply = 630000000000
+		// Total Supply = 60e27
 		// BlocksPerYear = 6311520
 		//
 		// Inflation = 0.10
 		//
-		// Tokens minted per block = (10000000000 / 6311520) * 0.10 where 10000000000 is the BridgeDenomTotalSupply
-		//                         = 158.4404390701
-		//                         = 158
+		// Tokens minted per block = (1e27 / 6311520) * 0.10 where 1e27 is the BridgeDenomTotalSupply
+		//                         = 158440439070144751185.134484244682738865
+		//                         = 158440439070144751185
 		//
-		// First report will include total supply = 630000000000 + (158 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 630000001580
-		// Second report on will not include it   = (158 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 1580
+		// First report will include total supply = 60e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 60000001584404390701447511850
+		// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 1584404390701447511850
 		//
 		// From these reports we subtract the slash amount to get the expected supply delta amount.
+		supply := testsuite.BridgeDenomTotalSupply
+		params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
+		minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
+		minter.AnnualProvisions = minter.NextAnnualProvisions(params, supply)
+		blockProvision := minter.BlockProvision(params).Amount
+		supplyDeltaPeriodProvision := blockProvision.MulRaw(10)
+
 		if supplyDeltaHeight == int(supplyDeltaPeriod) {
-			expectedMint := sdkmath.NewIntFromUint64(630000001580)
-			expectedSupplyDelta := expectedMint.Sub(slashAmount)
-			s.Require().EqualValues(expectedSupplyDelta.Int64(), supplyDeltaAmount.Int64()) // first report
+			expectInitialSupply, ok := sdkmath.NewIntFromString("60000000000000000000000000000")
+			s.Require().True(ok)
+			expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply).Sub(slashAmount)
+			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
 		} else {
-			expectedMint := sdkmath.NewIntFromUint64(1580)
-			expectedSupplyDelta := expectedMint.Sub(slashAmount)
-			s.Require().EqualValues(expectedSupplyDelta.Int64(), supplyDeltaAmount.Int64()) // second report+
+			expectReport := supplyDeltaPeriodProvision.Sub(slashAmount)
+			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
 		}
 	})
 }
