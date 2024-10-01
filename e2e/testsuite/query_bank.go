@@ -61,7 +61,7 @@ func (s *E2ETestSuite) PollForBalance(
 			return nil, err
 		}
 		if !bal.Balance.Equal(balance) {
-			return nil, fmt.Errorf("balance (%s) does not match expected: (%d)", bal, balance.Amount.Int64())
+			return nil, fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balance.Amount.String())
 		}
 		return nil, nil
 	}

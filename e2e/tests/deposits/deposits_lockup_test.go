@@ -128,7 +128,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		from := sdk.MustAccAddressFromBech32(validatorAddress)
 		to := sdk.MustAccAddressFromBech32(ownedReceiverAddressSeq)
 		initAmount := big.NewInt(100)
-		initBalanceCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, initAmount.Int64())
+		initBalanceCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(initAmount))
 		initBalance := sdk.NewCoins(initBalanceCoin)
 		msg := banktypes.NewMsgSend(from, to, initBalance)
 		res, err := s.SubmitMsgs(msg)
@@ -185,7 +185,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 		from := sdk.MustAccAddressFromBech32(validatorAddress)
 		to := sdk.MustAccAddressFromBech32(ownedReceiverAddressSeq)
 		initVestingAmount := big.NewInt(100)
-		initVestingAmountCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, initVestingAmount.Int64())
+		initVestingAmountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(initVestingAmount))
 		initVestingAmountCoins := sdk.NewCoins(initVestingAmountCoin)
 		bridgeParams := s.QueryBridgeParams(s.Ctx())
 		initVestingDuration := time.Second * time.Duration(94608000) // 3 years vesting
