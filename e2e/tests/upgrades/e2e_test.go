@@ -77,8 +77,8 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 
 		// Write new genesis file from state export
 		genesis := s.ExportSequencerState()
-		s.SequencerUnsafeResetAll()
-		s.SequencerWriteGenesisFile([]byte(genesis))
+		s.UnsafeResetSequencerState()
+		s.WriteSequencerGenesisFile([]byte(genesis))
 
 		// Resume Ethereum since we're about to resume the Sequencer
 		s.UnpauseEthereum()

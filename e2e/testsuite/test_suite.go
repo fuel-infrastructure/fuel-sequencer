@@ -554,7 +554,7 @@ func (s *E2ETestSuite) ExportSequencerState() string {
 	return genesis
 }
 
-func (s *E2ETestSuite) SequencerUnsafeResetAll() {
+func (s *E2ETestSuite) UnsafeResetSequencerState() {
 	s.runSequencerValidatorsWithOverrides([]string{"fuelsequencerd", "comet", "unsafe-reset-all"}, nil, false)
 	s.RemoveAllSequencerNodes()
 }
