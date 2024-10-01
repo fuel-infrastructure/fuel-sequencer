@@ -76,7 +76,7 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		s.RemoveAllSequencerNodes()
 
 		// Write new genesis file from state export
-		genesis := s.SequencerExportState()
+		genesis := s.ExportSequencerState()
 		s.SequencerUnsafeResetAll()
 		s.SequencerWriteGenesisFile([]byte(genesis))
 
@@ -86,7 +86,7 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		// Upgrade version on all nodes and start them back up.
 		s.Logger().Info("Starting nodes back up...")
 		s.FuelSequencerDockerImageTag = toImageVersion
-		s.SequencerRunValidators()
+		s.RunSequencerValidators()
 
 		err = s.WaitForSequencerBlocks(s.Ctx(), int(blocksAfterUpgrade), time.Second*20)
 		s.Require().NoError(err, "chain did not produce blocks after upgrade")

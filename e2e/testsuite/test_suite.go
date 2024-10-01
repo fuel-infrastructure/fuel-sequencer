@@ -266,7 +266,7 @@ func (s *E2ETestSuite) SetupTest() {
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
-	s.SequencerRunValidators()
+	s.RunSequencerValidators()
 	s.initGRPCClients()
 	s.initRPCClient()
 	s.initSidecarClient()
@@ -538,12 +538,12 @@ func (s *E2ETestSuite) UnpauseEthereum() {
 	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.ethNodeResource.Container.ID))
 }
 
-func (s *E2ETestSuite) SequencerRunValidators() {
-	s.sequencerRunValidatorsWithOverrides(nil, nil, true)
+func (s *E2ETestSuite) RunSequencerValidators() {
+	s.runSequencerValidatorsWithOverrides(nil, nil, true)
 }
 
-func (s *E2ETestSuite) SequencerExportState() string {
-	s.sequencerRunValidatorsWithOverrides([]string{"fuelsequencerd", "export"}, nil, false)
+func (s *E2ETestSuite) ExportSequencerState() string {
+	s.runSequencerValidatorsWithOverrides([]string{"fuelsequencerd", "export"}, nil, false)
 
 	matches := s.FindSequencerLogs(regexp.MustCompile("{.*"))
 	s.Require().Len(matches, 1)
@@ -555,11 +555,11 @@ func (s *E2ETestSuite) SequencerExportState() string {
 }
 
 func (s *E2ETestSuite) SequencerUnsafeResetAll() {
-	s.sequencerRunValidatorsWithOverrides([]string{"fuelsequencerd", "comet", "unsafe-reset-all"}, nil, false)
+	s.runSequencerValidatorsWithOverrides([]string{"fuelsequencerd", "comet", "unsafe-reset-all"}, nil, false)
 	s.RemoveAllSequencerNodes()
 }
 
-func (s *E2ETestSuite) sequencerRunValidatorsWithOverrides(
+func (s *E2ETestSuite) runSequencerValidatorsWithOverrides(
 	entrypoint []string,
 	cmd []string,
 	waitForChainToStart bool, // if this is false, the assumption is that we should wait for the container to stop
