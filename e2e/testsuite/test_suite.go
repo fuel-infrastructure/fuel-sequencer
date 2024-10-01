@@ -618,6 +618,7 @@ func (s *E2ETestSuite) runSequencerValidatorsWithOverrides(
 		s.T().Logf("started validator container: %s", resource.Container.ID)
 	}
 	if !waitForChainToStart {
+		// Assume that since we're not waiting for the chain to start, we should wait for the container to stop.
 		for _, resource := range s.valResources {
 			s.T().Logf("waiting for validator container to stop: %s", resource.Container.ID)
 			waitContext, cancel := context.WithTimeout(context.Background(), time.Minute)
