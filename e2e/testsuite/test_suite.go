@@ -266,7 +266,7 @@ func (s *E2ETestSuite) SetupTest() {
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
-	s.RunFuelSequencerValidators()
+	s.SequencerRunValidators()
 	s.initGRPCClients()
 	s.initRPCClient()
 	s.initSidecarClient()
@@ -497,7 +497,7 @@ func (s *E2ETestSuite) UnpauseSequencer(i int) {
 }
 
 func (s *E2ETestSuite) StopSequencer(i int) {
-	timeout := uint(30) // seconds
+	timeout := uint(1) // seconds before killing the container instead of stopping it gracefully
 	s.Require().NoError(s.dockerPool.Client.StopContainer(s.valResources[i].Container.ID, timeout))
 }
 
@@ -538,7 +538,32 @@ func (s *E2ETestSuite) UnpauseEthereum() {
 	s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.ethNodeResource.Container.ID))
 }
 
-func (s *E2ETestSuite) RunFuelSequencerValidators() {
+func (s *E2ETestSuite) SequencerRunValidators() {
+	s.sequencerRunValidatorsWithOverrides(nil, nil, true)
+}
+
+func (s *E2ETestSuite) SequencerExportState() string {
+	s.sequencerRunValidatorsWithOverrides([]string{"fuelsequencerd", "export"}, nil, false)
+
+	matches := s.FindSequencerLogs(regexp.MustCompile("{.*"))
+	s.Require().Len(matches, 1)
+	genesis := matches[0]
+
+	s.RemoveAllSequencerNodes()
+
+	return genesis
+}
+
+func (s *E2ETestSuite) SequencerUnsafeResetAll() {
+	s.sequencerRunValidatorsWithOverrides([]string{"fuelsequencerd", "comet", "unsafe-reset-all"}, nil, false)
+	s.RemoveAllSequencerNodes()
+}
+
+func (s *E2ETestSuite) sequencerRunValidatorsWithOverrides(
+	entrypoint []string,
+	cmd []string,
+	waitForChainToStart bool, // if this is false, the assumption is that we should wait for the container to stop
+) {
 	s.T().Log("starting validator containers...")
 
 	// Get user from OS to ensure permissions match up when the container writes files.
@@ -555,7 +580,9 @@ func (s *E2ETestSuite) RunFuelSequencerValidators() {
 			Mounts: []string{
 				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
 			},
-			User: fmt.Sprintf("%s:%s", user.Uid, user.Gid),
+			User:       fmt.Sprintf("%s:%s", user.Uid, user.Gid),
+			Entrypoint: entrypoint,
+			Cmd:        cmd,
 			// Assumption: image entrypoint is a script that runs a node and a sidecar.
 		}
 
@@ -589,6 +616,16 @@ func (s *E2ETestSuite) RunFuelSequencerValidators() {
 
 		s.valResources[i] = resource
 		s.T().Logf("started validator container: %s", resource.Container.ID)
+	}
+	if !waitForChainToStart {
+		for _, resource := range s.valResources {
+			s.T().Logf("waiting for validator container to stop: %s", resource.Container.ID)
+			waitContext, cancel := context.WithTimeout(context.Background(), time.Minute)
+			defer cancel()
+			_, err = s.dockerPool.Client.WaitContainerWithContext(resource.Container.ID, waitContext)
+			s.Require().NoError(err)
+		}
+		return
 	}
 
 	rpcClient, err := rpchttp.New("tcp://localhost:26657", "/websocket")

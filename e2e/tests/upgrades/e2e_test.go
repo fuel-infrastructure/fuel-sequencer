@@ -63,6 +63,9 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		err = s.WaitUntilSequencerBlock(s.Ctx(), int(haltHeight-1), time.Second*20)
 		s.Require().NoError(err)
 
+		// Hold Ethereum so the Sequencer doesn't get too out-of-sync
+		s.PauseEthereum()
+
 		// Ensure the nodes have reached the halt height
 		time.Sleep(time.Second * 5)
 
@@ -72,10 +75,18 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		s.Logger().Info("Removing all sequencer nodes...")
 		s.RemoveAllSequencerNodes()
 
+		// Write new genesis file from state export
+		genesis := s.SequencerExportState()
+		s.SequencerUnsafeResetAll()
+		s.SequencerWriteGenesisFile([]byte(genesis))
+
+		// Resume Ethereum since we're about to resume the Sequencer
+		s.UnpauseEthereum()
+
 		// Upgrade version on all nodes and start them back up.
 		s.Logger().Info("Starting nodes back up...")
 		s.FuelSequencerDockerImageTag = toImageVersion
-		s.RunFuelSequencerValidators()
+		s.SequencerRunValidators()
 
 		err = s.WaitForSequencerBlocks(s.Ctx(), int(blocksAfterUpgrade), time.Second*20)
 		s.Require().NoError(err, "chain did not produce blocks after upgrade")

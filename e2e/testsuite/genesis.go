@@ -236,7 +236,11 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 
 	// write the updated genesis file to each validator
+	s.SequencerWriteGenesisFile(bz)
+}
+
+func (s *E2ETestSuite) SequencerWriteGenesisFile(genDocBz []byte) {
 	for _, val := range s.Chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
+		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), genDocBz))
 	}
 }
