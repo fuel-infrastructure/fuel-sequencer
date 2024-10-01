@@ -3,73 +3,73 @@ build:
   binary: "fuelsequencerd"
   main: ./cmd/fuelsequencerd
 accounts:
-- name: alice
-  coins:
-  - 200000000utest
-  mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
-  # fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm
-- name: bob
-  coins:
-  - 100000000utest
-  mnemonic: gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage
-  # fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m
-- name: carol
-  coins:
-  - 1000000000000000utest
-  mnemonic: bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve
-  # fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g
-- name: dexter
-  coins:
-    - 1000000000000000utest
-  mnemonic: bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing
-  # fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu
-- name: eve
-  coins:
-    - 200000000utest
-  address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
-  # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
+  - name: alice
+    coins:
+      - 20000000000000000000000000000utest # 20bil x 1e18
+    mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
+    # fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm
+  - name: bob
+    coins:
+      - 10000000000000000000000000000utest # 10bil x 1e18
+    mnemonic: gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage
+    # fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m
+  - name: carol
+    coins:
+      - 10000000000000000000000000000utest # 10bil x 1e18
+    mnemonic: bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve
+    # fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g
+  - name: dexter
+    coins:
+      - 10000000000000000000000000000utest # 10bil x 1e18
+    mnemonic: bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing
+    # fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu
+  - name: eve
+    coins:
+      - 10000000000000000000000000000utest # 10bil x 1e18
+    address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
+    # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
 client:
   openapi:
     path: docs/static/openapi.yml
 validators:
-- name: alice
-  bonded: 100000000utest
-  config:
-    instrumentation:
-      prometheus: true
-    consensus:
-      # How long we wait for a proposal block before prevoting nil
-      timeout_propose: "1s"
-      # How much timeout_propose increases with each round
-      timeout_propose_delta: "500ms"
-      # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
-      timeout_prevote: "1s"
-      # How much the timeout_prevote increases with each round
-      timeout_prevote_delta: "500ms"
-      # How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
-      timeout_precommit: "1s"
-      # How much the timeout_precommit increases with each round
-      timeout_precommit_delta: "500ms"
-      # How long we wait after committing a block, before starting on the new
-      # height (this gives us a chance to receive some more precommits, even
-      # though we already have +2/3).
-      timeout_commit: "1s"
-  home: ./data/fuelsequencer
-  app:
-    api:
-      swagger: true
-    grpc:
-      address: 0.0.0.0:9090
-    sidecar:
-      enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
-      address: localhost:8080
-      timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
-      path_to_cert_file: ""
-    commitments:
-      api-enabled: true
-    telemetry:
-      enabled: true
-      prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
+  - name: alice
+    bonded: 10000000000000000000000000000utest # 10bil x 1e18
+    config:
+      instrumentation:
+        prometheus: true
+      consensus:
+        # How long we wait for a proposal block before prevoting nil
+        timeout_propose: "1s"
+        # How much timeout_propose increases with each round
+        timeout_propose_delta: "500ms"
+        # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
+        timeout_prevote: "1s"
+        # How much the timeout_prevote increases with each round
+        timeout_prevote_delta: "500ms"
+        # How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
+        timeout_precommit: "1s"
+        # How much the timeout_precommit increases with each round
+        timeout_precommit_delta: "500ms"
+        # How long we wait after committing a block, before starting on the new
+        # height (this gives us a chance to receive some more precommits, even
+        # though we already have +2/3).
+        timeout_commit: "1s"
+    home: ./data/fuelsequencer
+    app:
+      api:
+        swagger: true
+      grpc:
+        address: 0.0.0.0:9090
+      sidecar:
+        enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
+        address: localhost:8080
+        timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
+        path_to_cert_file: "use_insecure"
+      commitments:
+        api-enabled: true
+      telemetry:
+        enabled: true
+        prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
 genesis:
   chain_id: "fuelsequencer-1"
   consensus:

@@ -11,6 +11,7 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	_ "cosmossdk.io/x/evidence" // import for side-effects
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -55,6 +56,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/power_reduction"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -127,6 +129,12 @@ func init() {
 	}
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+
+	// DefaultPowerReduction is the amount of staking tokens required for 1 unit of consensus-engine power.
+	// We change this to 1e18 to match the number of decimal places used in the bridged token denomination.
+	// There are plans to change this to an on-chain param: https://github.com/cosmos/cosmos-sdk/issues/8365
+	// Note: This should be revised if the number of decimals for the bridged token changes.
+	sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000000000000)
 }
 
 // getGovProposalHandlers return the chain proposal handlers.
@@ -327,6 +335,11 @@ func NewFuelSequencerApp(
 			app.Logger().Info("started Sidecar client", "sidecar server address", sidecarCfg.Address)
 		}()
 	}
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		power_reduction.UpgradeName,
+		power_reduction.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(
