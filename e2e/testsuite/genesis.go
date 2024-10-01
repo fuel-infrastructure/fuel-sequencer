@@ -188,7 +188,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
 	bridgeGenState.Params.VestingStartTime = vestingStartingTime
-	bridgeGenState.Params.BridgeDenomTotalSupply = math.NewInt(BridgeDenomTotalSupply)
+	bridgeGenState.Params.BridgeDenomTotalSupply = BridgeDenomTotalSupply
 	bridgeGenState.LastEthereumBlockSynced = ethBlockNumber
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
@@ -236,7 +236,11 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 
 	// write the updated genesis file to each validator
+	s.WriteSequencerGenesisFile(bz)
+}
+
+func (s *E2ETestSuite) WriteSequencerGenesisFile(genDocBz []byte) {
 	for _, val := range s.Chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
+		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), genDocBz))
 	}
 }
