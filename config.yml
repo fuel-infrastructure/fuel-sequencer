@@ -25,7 +25,7 @@ accounts:
     # fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu
   - name: eve
     coins:
-      - 10000000000000000000000000000utest
+      - 10000000000000000000000000000utest # 10bil x 1e18
     address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
     # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
 client:
