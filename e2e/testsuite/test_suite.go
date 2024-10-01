@@ -83,8 +83,8 @@ var (
 	BridgeDenomTotalSupply, var1Valid = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil x 1e18
 
 	// Balance and staked amount per validator
-	initBalance, var2Valid = sdkmath.NewIntFromString("21000000000000000000000000000") // 21 bil
-	initStaked, var3Valid  = sdkmath.NewIntFromString("1000000000000000000")           // Exactly 1e18
+	initBalance, var2Valid = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil x 1e18
+	initStaked, var3Valid  = sdkmath.NewIntFromString("1000000000000000000")           // 1e18
 	InitBalanceCoin        = sdk.NewCoin(BridgeDenom, initBalance)
 	InitStakedCoin         = sdk.NewCoin(BridgeDenom, initStaked)
 
