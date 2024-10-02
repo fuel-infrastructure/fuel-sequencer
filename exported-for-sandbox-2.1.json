@@ -1,0 +1,736 @@
+{
+  "app_name": "fuelsequencerd",
+  "app_version": "seq-sandbox-2",
+  "genesis_time": "2024-09-17T00:00:00Z",
+  "chain_id": "seq-sandbox-2",
+  "initial_height": 228301,
+  "app_hash": null,
+  "app_state": {
+    "auth": {
+      "params": {
+        "max_memo_characters": "256",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000"
+      },
+      "accounts": [
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer1zlefkpe3g0vvm9a4h0jf9000lmqutlh9v8x7se",
+            "pub_key": null,
+            "account_number": "10",
+            "sequence": "0"
+          },
+          "name": "bridge",
+          "permissions": [
+            "burner",
+            "minter"
+          ]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu",
+          "pub_key": null,
+          "account_number": "3",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3ztnxe4",
+            "pub_key": null,
+            "account_number": "6",
+            "sequence": "0"
+          },
+          "name": "bonded_tokens_pool",
+          "permissions": [
+            "burner",
+            "staking"
+          ]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer1tygms3xhhs3yv487phx3dw4a95jn7t7lkt0h0p",
+            "pub_key": null,
+            "account_number": "7",
+            "sequence": "0"
+          },
+          "name": "not_bonded_tokens_pool",
+          "permissions": [
+            "burner",
+            "staking"
+          ]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+          "pub_key": {
+            "@type": "/cosmos.crypto.secp256k1.PubKey",
+            "key": "A61DFgG1sqk7iJgmHQYUe5+LnoQZ0GOSi04lhAua/nsk"
+          },
+          "account_number": "0",
+          "sequence": "5"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3",
+            "pub_key": null,
+            "account_number": "8",
+            "sequence": "0"
+          },
+          "name": "gov",
+          "permissions": [
+            "burner",
+            "minter"
+          ]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8s074fa",
+            "pub_key": null,
+            "account_number": "5",
+            "sequence": "0"
+          },
+          "name": "distribution",
+          "permissions": []
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g",
+          "pub_key": {
+            "@type": "/cosmos.crypto.secp256k1.PubKey",
+            "key": "Axel18p8iZO+U5JnQsBWgIOZgBo3fe1s5G1szJt+thv1"
+          },
+          "account_number": "2",
+          "sequence": "2"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
+          "pub_key": {
+            "@type": "/cosmos.crypto.secp256k1.PubKey",
+            "key": "Ay7GFoEIw6IjL8bRGgH7Kv9snRF5HoNybESnzwzmJ5t/"
+          },
+          "account_number": "1",
+          "sequence": "1"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer1m3h30wlvsf8llruxtpukdvsy0km2kum8lpa38z",
+            "pub_key": null,
+            "account_number": "9",
+            "sequence": "0"
+          },
+          "name": "mint",
+          "permissions": [
+            "minter"
+          ]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "fuelsequencer17xpfvakm2amg962yls6f84z3kell8c5l8feftl",
+            "pub_key": null,
+            "account_number": "4",
+            "sequence": "0"
+          },
+          "name": "fee_collector",
+          "permissions": []
+        }
+      ]
+    },
+    "authz": {
+      "authorization": []
+    },
+    "bank": {
+      "params": {
+        "send_enabled": [],
+        "default_send_enabled": true
+      },
+      "balances": [
+        {
+          "address": "fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "1000000000000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fuelsequencer1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3ztnxe4",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "150000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "1899999999999996998566"
+            }
+          ]
+        },
+        {
+          "address": "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "2500000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fuelsequencer1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8s074fa",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "26043805612594113620753431"
+            }
+          ]
+        },
+        {
+          "address": "fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "999997499999999999999987903"
+            }
+          ]
+        },
+        {
+          "address": "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
+          "coins": [
+            {
+              "denom": "test",
+              "amount": "50000000000000000000"
+            }
+          ]
+        }
+      ],
+      "supply": [
+        {
+          "denom": "test",
+          "amount": "2026045905612594113617739900"
+        }
+      ],
+      "denom_metadata": [],
+      "send_enabled": []
+    },
+    "bridge": {
+      "params": {
+        "bridge_denom": "test",
+        "bridge_denom_total_supply": "10000000000000000000000000000",
+        "ethereum_proxy_contract_address": "0x810A00299489bf543c6820c4d947F19fC31b5f22",
+        "authorize_messages_allowed": [
+          "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum",
+          "/cosmos.bank.v1beta1.MsgSend",
+          "/cosmos.staking.v1beta1.MsgDelegate",
+          "/cosmos.staking.v1beta1.MsgBeginRedelegate",
+          "/cosmos.staking.v1beta1.MsgUndelegate",
+          "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+          "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
+          "/cosmos.gov.v1.MsgVote"
+        ],
+        "supply_delta_period": "14400",
+        "vesting_start_time": "2023-09-19T00:00:00Z",
+        "additional_blocked_addresses": [],
+        "max_eth_block_update_delay": "14400s",
+        "injected_event_tx_max_bytes": "1900000",
+        "sequencer_txs_allocation": "0.300000000000000000",
+        "max_authorize_messages": "5"
+      },
+      "supply_delta_info": {
+        "last_supply": "2024642757084188911701248000",
+        "offset": "0",
+        "to_report": "0"
+      },
+      "last_ethereum_nonce": "18",
+      "last_ethereum_block_synced": "6794614",
+      "ethereum_event_index_offset": "0",
+      "last_eth_block_update_time": "2024-10-01T14:34:07.751723484Z",
+      "last_consensus_txs_sequence": "228315"
+    },
+    "distribution": {
+      "params": {
+        "community_tax": "0.000000000000000000",
+        "base_proposer_reward": "0.000000000000000000",
+        "bonus_proposer_reward": "0.000000000000000000",
+        "withdraw_addr_enabled": true
+      },
+      "fee_pool": {
+        "community_pool": [
+          {
+            "denom": "test",
+            "amount": "26043805.612594113620753431"
+          }
+        ]
+      },
+      "delegator_withdraw_infos": [],
+      "previous_proposer": "fuelsequencervalcons1a58nkrxs40a7ah5e9w7g6zvy6quapf9yhv277f",
+      "outstanding_rewards": [
+        {
+          "validator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "outstanding_rewards": [
+            {
+              "denom": "test",
+              "amount": "17362537075062742396473083.591603924252831046"
+            }
+          ]
+        },
+        {
+          "validator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "outstanding_rewards": [
+            {
+              "denom": "test",
+              "amount": "8681268537531371198236541.795801962126415523"
+            }
+          ]
+        }
+      ],
+      "validator_accumulated_commissions": [
+        {
+          "validator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "accumulated": {
+            "commission": [
+              {
+                "denom": "test",
+                "amount": "1736253707506274239647308.359160392425328764"
+              }
+            ]
+          }
+        },
+        {
+          "validator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "accumulated": {
+            "commission": [
+              {
+                "denom": "test",
+                "amount": "868126853753137119823654.179580196212664382"
+              }
+            ]
+          }
+        }
+      ],
+      "validator_historical_rewards": [
+        {
+          "validator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "period": "1",
+          "rewards": {
+            "cumulative_reward_ratio": [],
+            "reference_count": 2
+          }
+        },
+        {
+          "validator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "period": "1",
+          "rewards": {
+            "cumulative_reward_ratio": [],
+            "reference_count": 2
+          }
+        }
+      ],
+      "validator_current_rewards": [
+        {
+          "validator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "rewards": {
+            "rewards": [
+              {
+                "denom": "test",
+                "amount": "15626283367556468156825775.232443531827502282"
+              }
+            ],
+            "period": "2"
+          }
+        },
+        {
+          "validator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "rewards": {
+            "rewards": [
+              {
+                "denom": "test",
+                "amount": "7813141683778234078412887.616221765913751141"
+              }
+            ],
+            "period": "2"
+          }
+        }
+      ],
+      "delegator_starting_infos": [
+        {
+          "delegator_address": "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+          "validator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "starting_info": {
+            "previous_period": "1",
+            "stake": "100000000000000000000.000000000000000000",
+            "height": "0"
+          }
+        },
+        {
+          "delegator_address": "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
+          "validator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "starting_info": {
+            "previous_period": "1",
+            "stake": "50000000000000000000.000000000000000000",
+            "height": "0"
+          }
+        }
+      ],
+      "validator_slash_events": []
+    },
+    "evidence": {
+      "evidence": []
+    },
+    "genutil": {
+      "gen_txs": []
+    },
+    "gov": {
+      "starting_proposal_id": "3",
+      "deposits": [
+        {
+          "proposal_id": "1",
+          "depositor": "fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g",
+          "amount": [
+            {
+              "denom": "test",
+              "amount": "2500000000000000000000"
+            }
+          ]
+        }
+      ],
+      "votes": [],
+      "proposals": [
+        {
+          "id": "1",
+          "messages": [
+            {
+              "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+              "authority": "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3",
+              "plan": {
+                "name": "increase-power-reduction",
+                "time": "0001-01-01T00:00:00Z",
+                "height": "228300",
+                "info": "\u003cn/a\u003e",
+                "upgraded_client_state": null
+              }
+            }
+          ],
+          "status": "PROPOSAL_STATUS_DEPOSIT_PERIOD",
+          "final_tally_result": {
+            "yes_count": "0",
+            "abstain_count": "0",
+            "no_count": "0",
+            "no_with_veto_count": "0"
+          },
+          "submit_time": "2024-10-01T14:32:10.517359807Z",
+          "deposit_end_time": "2024-10-08T14:32:10.517359807Z",
+          "total_deposit": [
+            {
+              "denom": "test",
+              "amount": "2500000000000000000000"
+            }
+          ],
+          "voting_start_time": null,
+          "voting_end_time": null,
+          "metadata": "",
+          "title": "Upgrade to seq-testnet-1.3 (increase-power-reduction)",
+          "summary": "This is a proposal to upgrade the network to seq-testnet-1.3 at block 100000",
+          "proposer": "fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g",
+          "expedited": true,
+          "failed_reason": ""
+        },
+        {
+          "id": "2",
+          "messages": [
+            {
+              "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+              "authority": "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3",
+              "plan": {
+                "name": "increase-power-reduction",
+                "time": "0001-01-01T00:00:00Z",
+                "height": "228300",
+                "info": "\u003cn/a\u003e",
+                "upgraded_client_state": null
+              }
+            }
+          ],
+          "status": "PROPOSAL_STATUS_PASSED",
+          "final_tally_result": {
+            "yes_count": "100000000000000000000",
+            "abstain_count": "0",
+            "no_count": "0",
+            "no_with_veto_count": "0"
+          },
+          "submit_time": "2024-10-01T14:32:47.729536557Z",
+          "deposit_end_time": "2024-10-08T14:32:47.729536557Z",
+          "total_deposit": [
+            {
+              "denom": "test",
+              "amount": "10000000000000000000000"
+            }
+          ],
+          "voting_start_time": "2024-10-01T14:32:47.729536557Z",
+          "voting_end_time": "2024-10-01T14:33:17.729536557Z",
+          "metadata": "",
+          "title": "Upgrade to seq-testnet-1.3 (increase-power-reduction)",
+          "summary": "This is a proposal to upgrade the network to seq-testnet-1.3 at block 100000",
+          "proposer": "fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g",
+          "expedited": true,
+          "failed_reason": ""
+        }
+      ],
+      "deposit_params": null,
+      "voting_params": null,
+      "tally_params": null,
+      "params": {
+        "min_deposit": [
+          {
+            "denom": "test",
+            "amount": "2500000000000000000000"
+          }
+        ],
+        "max_deposit_period": "604800s",
+        "voting_period": "60s",
+        "quorum": "0.400000000000000000",
+        "threshold": "0.500000000000000000",
+        "veto_threshold": "0.334000000000000000",
+        "min_initial_deposit_ratio": "0.100000000000000000",
+        "proposal_cancel_ratio": "0.000000000000000000",
+        "proposal_cancel_dest": "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3",
+        "expedited_voting_period": "30s",
+        "expedited_threshold": "0.667000000000000000",
+        "expedited_min_deposit": [
+          {
+            "denom": "test",
+            "amount": "10000000000000000000000"
+          }
+        ],
+        "burn_vote_quorum": false,
+        "burn_proposal_deposit_prevote": false,
+        "burn_vote_veto": false,
+        "min_deposit_ratio": "0.010000000000000000"
+      },
+      "constitution": ""
+    },
+    "mint": {
+      "minter": {
+        "inflation": "0.060000000000000000",
+        "annual_provisions": "600000000000000000000000000.000000000000000000"
+      },
+      "params": {
+        "mint_denom": "test",
+        "inflation_rate_change": "0.000000000000000000",
+        "inflation_max": "0.060000000000000000",
+        "inflation_min": "0.060000000000000000",
+        "goal_bonded": "0.670000000000000000",
+        "blocks_per_year": "5259600"
+      }
+    },
+    "sequencing": {
+      "params": {
+        "max_blob_size_bytes": "1048576",
+        "sequencer_tx_max_bytes": "1572864"
+      },
+      "topicList": []
+    },
+    "slashing": {
+      "params": {
+        "signed_blocks_window": "10000",
+        "min_signed_per_window": "0.050000000000000000",
+        "downtime_jail_duration": "600s",
+        "slash_fraction_double_sign": "0.050000000000000000",
+        "slash_fraction_downtime": "0.000100000000000000"
+      },
+      "signing_infos": [
+        {
+          "address": "fuelsequencervalcons1pfjfwfeln2lxq7ghkgurc56uz0qj60h7tws8xr",
+          "validator_signing_info": {
+            "address": "fuelsequencervalcons1pfjfwfeln2lxq7ghkgurc56uz0qj60h7tws8xr",
+            "start_height": "0",
+            "index_offset": "228299",
+            "jailed_until": "1970-01-01T00:00:00Z",
+            "tombstoned": false,
+            "missed_blocks_counter": "0"
+          }
+        },
+        {
+          "address": "fuelsequencervalcons1a58nkrxs40a7ah5e9w7g6zvy6quapf9yhv277f",
+          "validator_signing_info": {
+            "address": "fuelsequencervalcons1a58nkrxs40a7ah5e9w7g6zvy6quapf9yhv277f",
+            "start_height": "0",
+            "index_offset": "228299",
+            "jailed_until": "1970-01-01T00:00:00Z",
+            "tombstoned": false,
+            "missed_blocks_counter": "0"
+          }
+        }
+      ],
+      "missed_blocks": [
+        {
+          "address": "fuelsequencervalcons1pfjfwfeln2lxq7ghkgurc56uz0qj60h7tws8xr",
+          "missed_blocks": []
+        },
+        {
+          "address": "fuelsequencervalcons1a58nkrxs40a7ah5e9w7g6zvy6quapf9yhv277f",
+          "missed_blocks": []
+        }
+      ]
+    },
+    "staking": {
+      "params": {
+        "unbonding_time": "86400s",
+        "max_validators": 100,
+        "max_entries": 7,
+        "historical_entries": 10000,
+        "bond_denom": "test",
+        "min_commission_rate": "0.050000000000000000"
+      },
+      "last_total_power": "150000000000000",
+      "last_validator_powers": [
+        {
+          "address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "power": "100000000000000"
+        },
+        {
+          "address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "power": "50000000000000"
+        }
+      ],
+      "validators": [
+        {
+          "operator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "W3MpelhkWHPx1Ji7POEt6XAed0pmUdkBgK1gxYba9Qc="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "100000000000000000000",
+          "delegator_shares": "100000000000000000000.000000000000000000",
+          "description": {
+            "moniker": "mynode",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2024-09-17T00:00:00Z"
+          },
+          "min_self_delegation": "1",
+          "unbonding_on_hold_ref_count": "0",
+          "unbonding_ids": []
+        },
+        {
+          "operator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "k81OztE8wU1oiTY/c5hXOCbI7ee3sOttuxRpD/aUvK4="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "50000000000000000000",
+          "delegator_shares": "50000000000000000000.000000000000000000",
+          "description": {
+            "moniker": "mynode",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2024-09-17T00:00:00Z"
+          },
+          "min_self_delegation": "1",
+          "unbonding_on_hold_ref_count": "0",
+          "unbonding_ids": []
+        }
+      ],
+      "delegations": [
+        {
+          "delegator_address": "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
+          "validator_address": "fuelsequencervaloper1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5qn0wwpn",
+          "shares": "100000000000000000000.000000000000000000"
+        },
+        {
+          "delegator_address": "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
+          "validator_address": "fuelsequencervaloper163rsv65t4893t2rz5rmda9sly7lgdlq2s2kqtn",
+          "shares": "50000000000000000000.000000000000000000"
+        }
+      ],
+      "unbonding_delegations": [],
+      "redelegations": [],
+      "exported": true
+    },
+    "upgrade": {},
+    "vesting": {}
+  },
+  "consensus": {
+    "validators": [
+      {
+        "address": "ED0F3B0CD0ABFBEEDE992BBC8D0984D039D0A4A4",
+        "pub_key": {
+          "type": "tendermint/PubKeyEd25519",
+          "value": "W3MpelhkWHPx1Ji7POEt6XAed0pmUdkBgK1gxYba9Qc="
+        },
+        "power": "100000000000000",
+        "name": "mynode"
+      },
+      {
+        "address": "0A6497273F9ABE607917B2383C535C13C12D3EFE",
+        "pub_key": {
+          "type": "tendermint/PubKeyEd25519",
+          "value": "k81OztE8wU1oiTY/c5hXOCbI7ee3sOttuxRpD/aUvK4="
+        },
+        "power": "50000000000000",
+        "name": "mynode"
+      }
+    ],
+    "params": {
+      "block": {
+        "max_bytes": "2000000",
+        "max_gas": "100000000"
+      },
+      "evidence": {
+        "max_age_num_blocks": "100000",
+        "max_age_duration": "172800000000000",
+        "max_bytes": "1048576"
+      },
+      "validator": {
+        "pub_key_types": [
+          "ed25519"
+        ]
+      },
+      "version": {
+        "app": "0"
+      },
+      "abci": {
+        "vote_extensions_enable_height": "0"
+      }
+    }
+  }
+}
