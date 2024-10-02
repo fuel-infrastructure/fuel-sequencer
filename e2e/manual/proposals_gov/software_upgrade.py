@@ -5,9 +5,9 @@ def get_software_upgrade_proposal(
         name: str, height: int, info: str,
 ) -> Dict:
     return {
-        "title": "Upgrade to seq-testnet-1.3 (increase-power-reduction)",
-        "summary": "This is a proposal to upgrade the network to seq-testnet-1.3 at block 100000",
-        "deposit": "10000000000000000000000test",
+        "title": "Proposal title",
+        "summary": "Proposal summary",
+        "deposit": "10000000utest",
         "messages": [
             {
                 "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
@@ -18,6 +18,5 @@ def get_software_upgrade_proposal(
                     "info": info,
                 }
             }
-        ],
-        "expedited": True,
+        ]
     }
