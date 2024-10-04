@@ -1271,7 +1271,7 @@
       "type": "bargauge"
     }
   ],
-  "refresh": "",
+  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
@@ -1310,6 +1310,6 @@
   "timezone": "browser",
   "title": "Sequencer",
   "uid": "edwalm41nsnb4h",
-  "version": 7,
+  "version": 8,
   "weekStart": ""
 }
