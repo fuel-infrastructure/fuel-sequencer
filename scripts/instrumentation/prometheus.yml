@@ -4,7 +4,7 @@ global:
   evaluation_interval: 5s  # How often to evaluate rules
 
 scrape_configs:
-  - job_name: 'sequencer and sidecar'
+  - job_name: 'fuel sequencer and sidecar'
     scrape_interval: 1s  # Scrape interval for this job
     metrics_path: ''  # Path to the metrics endpoint (default is blank)
     static_configs:
