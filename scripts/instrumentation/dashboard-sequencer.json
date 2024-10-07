@@ -958,7 +958,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sequencer_store_ethereum_event_index_offset",
+          "expr": "sequencer_store_ethereum_event_index_offset{job=\"$job\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -974,7 +974,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sequencer_store_last_ethereum_nonce",
+          "expr": "sequencer_store_last_ethereum_nonce{job=\"$job\"}",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -1310,6 +1310,6 @@
   "timezone": "browser",
   "title": "Sequencer",
   "uid": "edwalm41nsnb4h",
-  "version": 8,
+  "version": 9,
   "weekStart": ""
 }
