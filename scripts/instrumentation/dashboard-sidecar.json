@@ -941,6 +941,21 @@
     "list": [
       {
         "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "(Prometheus CA)|(Prometheus Secondary MT)",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {},
         "datasource": {
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
@@ -958,7 +973,7 @@
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
-        "regex": "/.*fuel.*/",
+        "regex": "/((.*fuel.*validator.*)|(.*fuel.*node.*))/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -973,6 +988,6 @@
   "timezone": "browser",
   "title": "Sidecar",
   "uid": "edwalm41nsnb4i",
-  "version": 4,
+  "version": 9,
   "weekStart": ""
 }
