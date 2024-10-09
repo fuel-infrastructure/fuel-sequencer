@@ -11,7 +11,7 @@ from utils.classes import FuelSequencerChain
 from utils.constants import *
 from utils.networks import Networks, NetworkConfig
 
-NETWORK = Networks.DEVNET  # Change me to load test other networks!
+NETWORK = Networks.TESTNET  # Change me to load test other networks!
 CONFIG = NetworkConfig(NETWORK)
 
 # Load test configuration

@@ -40,7 +40,7 @@ fuelsequencerd tx bank send \
   --gas auto \
   --gas-adjustment 1.5 \
   --gas-prices 0.025utest \
-  --chain-id seq-devnet-5
+  --chain-id seq-testnet-1
 
 # MsgDelegate of 1 utest from 0x2B4ce813f1e814004c7B806bC31B4Fe0650C6FA8 to fuelsequencervaloper1cv0rl38sckgwyrkdd5vanyzf6v8clf809f74ca
 # Ethereum block 5987919

@@ -1,7 +1,7 @@
 # Manual E2E Testing Scripts
 
 - [E2E Test Scripts](#e2e-test-scripts)
-- [Devnet Load Test Scripts](#devnet-load-test-scripts)
+- [Load Test Scripts](#load-test-scripts)
 
 ## E2E Test Scripts
 
@@ -35,7 +35,7 @@ The manual E2E testing framework also comes with an event extractor which can be
 
 ## Load Test Scripts
 
-> These scripts can be used for Devnet, Sandbox, and Localhost networks but the configuration need to be adjusted from the scripts!
+> These scripts can be used for Testnet, Sandbox, and Localhost networks but the configuration need to be adjusted from the scripts!
 
 The recommended approach is to:
 

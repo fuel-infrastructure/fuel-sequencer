@@ -6,7 +6,7 @@ from dateutil import parser
 
 from utils.networks import NetworkConfig, Networks
 
-NETWORK = Networks.DEVNET  # Change me to load test other networks!
+NETWORK = Networks.TESTNET  # Change me to load test other networks!
 CONFIG = NetworkConfig(NETWORK)
 print(f"Running block reports on {NETWORK}")
 
