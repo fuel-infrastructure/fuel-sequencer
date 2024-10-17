@@ -10,6 +10,7 @@ from utils.constants import PROPOSAL_STATUS_MAP
 from utils.constants import events_filter, events_filter_by_prefix
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
+from web3.types import Wei
 
 
 class CosmosChain:
@@ -17,6 +18,7 @@ class CosmosChain:
             self,
             binary: str,
             node: str,
+            rest: str,
             chain_id: str,
             key_name: str,
             voting_period: int,
@@ -26,6 +28,7 @@ class CosmosChain:
         self.binary = binary
         self.node = node
         self.node_http = node.replace("tcp://", "http://")
+        self.rest_http = rest
         self.chain_id = chain_id
         self.key_name = key_name
         self.voting_period = voting_period
@@ -126,8 +129,11 @@ class CosmosChain:
             f"--node={self.node} "
             f"-o={self.output}")
 
-    def get_json(self, endpoint: str):
+    def get_rpc_json(self, endpoint: str):
         return requests.get(f"{self.node_http}{endpoint}").json()
+
+    def get_rest_json(self, endpoint: str):
+        return requests.get(f"{self.rest_http}{endpoint}").json()
 
     def add_key(self, key_name: str, mnemonic: str, with_delete=True) -> str:
         print(f"Adding key: {key_name}")
@@ -497,7 +503,7 @@ class CosmosChain:
         return new_events
 
     def query_last_block_height(self) -> int:
-        abci_info = self.get_json('/abci_info')
+        abci_info = self.get_rpc_json('/abci_info')
         return int(abci_info['result']['response']['last_block_height'])
 
     def query_block_events(self, height: int):
@@ -505,7 +511,7 @@ class CosmosChain:
             raise Exception("height must be > 0")
 
         while True:
-            output = self.get_json(f'/block_results?height={height}')
+            output = self.get_rpc_json(f'/block_results?height={height}')
             if 'error' in output and 'height' in output['error']['data']:
                 time.sleep(1)
             else:
@@ -624,13 +630,10 @@ class FuelSequencerChain(CosmosChain):
         return self.query(f"sequencing show-topic {topic_id}")
 
     def query_bridge_commitment(self, start: int, end: int):
-        output = self.get_json(
-            f'/bridge_commitment?start={start}&end={end}'
+        output = self.get_rest_json(
+            f'/fuelsequencer/commitments/v1/bridge_commitment?start={start}&end={end}'
         )
-        if 'error' in output:
-            return output['error']
-        else:
-            return output['result']['bridge_commitment']
+        return output['bridge_commitment'] if 'code' not in output else output['message']
 
     def query_bridge_commitment_inclusion_proof(
             self,
@@ -639,11 +642,11 @@ class FuelSequencerChain(CosmosChain):
             start: int,
             end: int
     ):
-        output = self.get_json(
-            '/bridge_commitment_inclusion_proof?'
+        output = self.get_rest_json(
+            '/fuelsequencer/commitments/v1/bridge_commitment_inclusion_proof?'
             f'height={height}&tx_index={tx_index}&start={start}&end={end}'
         )
-        return output['result'] if 'error' not in output else output['error']
+        return output if 'code' not in output else output['message']
 
     def withdraw(self, to: str, amount: str) -> str:
         return self.tx(f"bridge withdraw-to-ethereum {to} {amount}")
@@ -689,31 +692,46 @@ class EthereumChain(Web3):
     def __init__(
             self,
             httpProvider: HTTPProvider,
-            token_contract_address: str,
-            token_contract_abi: str,
+            v1_token_contract_address: str,
+            v1_token_contract_abi: str,
+            v2_token_contract_address: str,
+            v2_token_contract_abi: str,
             sequencer_interface_contract_address: str,
             sequencer_interface_contract_abi: str,
             sequencer_proxy_contract_address: str,
             sequencer_proxy_contract_abi: str,
+            fuelstreamx_contract_address: str,
+            fuelstreamx_contract_abi: str,
             acc_private_key: str,
             acc_address: str,
     ):
         super().__init__(httpProvider)
 
-        self.token_contract_address = token_contract_address
-        self.token_contract_abi = token_contract_abi
+        self.v1_token_contract_address = v1_token_contract_address
+        self.v1_token_contract_abi = v1_token_contract_abi
+        self.v2_token_contract_address = v2_token_contract_address
+        self.v2_token_contract_abi = v2_token_contract_abi
         self.sequencer_interface_contract_address = sequencer_interface_contract_address
         self.sequencer_interface_contract_abi = sequencer_interface_contract_abi
         self.sequencer_proxy_contract_address = sequencer_proxy_contract_address
         self.sequencer_proxy_contract_abi = sequencer_proxy_contract_abi
+        self.fuelstreamx_contract_address = fuelstreamx_contract_address
+        self.fuelstreamx_contract_abi = fuelstreamx_contract_abi
         self.acc_address = acc_address
         self.acc_private_key = acc_private_key
 
     # noinspection PyTypeChecker
-    def _token_contract(self) -> Union[Type[Contract], Contract]:
+    def _v1_token_contract(self) -> Union[Type[Contract], Contract]:
         return self.eth.contract(
-            address=self.token_contract_address,
-            abi=self.token_contract_abi,
+            address=self.v1_token_contract_address,
+            abi=self.v1_token_contract_abi,
+        )
+
+    # noinspection PyTypeChecker
+    def _v2_token_contract(self) -> Union[Type[Contract], Contract]:
+        return self.eth.contract(
+            address=self.v2_token_contract_address,
+            abi=self.v2_token_contract_abi,
         )
 
     # noinspection PyTypeChecker
@@ -728,6 +746,13 @@ class EthereumChain(Web3):
         return self.eth.contract(
             address=self.sequencer_proxy_contract_address,
             abi=self.sequencer_proxy_contract_abi,
+        )
+
+    # noinspection PyTypeChecker
+    def _fuelstreamx_contract(self) -> Union[Type[Contract], Contract]:
+        return self.eth.contract(
+            address=self.fuelstreamx_contract_address,
+            abi=self.fuelstreamx_contract_abi,
         )
 
     def _sign_tx(self, txn):
@@ -781,3 +806,17 @@ class EthereumChain(Web3):
 
         signed_txn = self._sign_tx(txn)
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+    # noinspection PyTypeChecker
+    def eth_balance(self) -> Wei:
+        return self.eth.get_balance(self.acc_address)
+
+    def token_v1_balance(self):
+        return self._v1_token_contract().functions.balanceOf(
+            self.acc_address
+        ).call()
+
+    def token_v2_balance(self):
+        return self._v2_token_contract().functions.balanceOf(
+            self.acc_address
+        ).call()
