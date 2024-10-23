@@ -761,9 +761,10 @@ class EthereumChain(Web3):
         )
 
     # noinspection PyTypeChecker
+    # TODO: this function is likely OUT OF ORDER
     def mint(self, address: str, amount: int):
         # NB: function name is case-sensitive.
-        txn = self._token_contract().functions.mint(
+        txn = self._v2_token_contract().functions.mint(
             address, amount,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
@@ -773,9 +774,10 @@ class EthereumChain(Web3):
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
 
     # noinspection PyTypeChecker
+    # TODO: this function is likely OUT OF ORDER
     def transfer_and_call(self, amount: int):
         # NB: function name is case-sensitive.
-        txn = self._token_contract().functions.transferAndCall(
+        txn = self._v2_token_contract().functions.transferAndCall(
             self.sequencer_interface_contract_address, amount,
         ).build_transaction({
             'nonce': self.eth.get_transaction_count(self.acc_address),
@@ -808,15 +810,11 @@ class EthereumChain(Web3):
         return self.eth.send_raw_transaction(signed_txn.rawTransaction)
 
     # noinspection PyTypeChecker
-    def eth_balance(self) -> Wei:
-        return self.eth.get_balance(self.acc_address)
+    def eth_balance(self, address) -> Wei:
+        return self.eth.get_balance(address)
 
-    def token_v1_balance(self):
-        return self._v1_token_contract().functions.balanceOf(
-            self.acc_address
-        ).call()
+    def token_v1_balance(self, address: str):
+        return self._v1_token_contract().functions.balanceOf(address).call()
 
-    def token_v2_balance(self):
-        return self._v2_token_contract().functions.balanceOf(
-            self.acc_address
-        ).call()
+    def token_v2_balance(self, address: str):
+        return self._v2_token_contract().functions.balanceOf(address).call()
