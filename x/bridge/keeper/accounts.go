@@ -55,8 +55,8 @@ func (k Keeper) GenerateSequencerAddressFromEthereumAddress(ethAddress string) (
 	return k.GetAddressCodec().StringToBytes(ethAddress)
 }
 
-// GenerateEthereumAddressFromSequencerAddress parses the Sequencer address into an AccAddress and wraps the bytes
-// with the HexBytes type to produce an Ethereum address.
+// GenerateEthereumAddressFromSequencerAddress tries to parse the specified address into a Sequencer AccAddress or
+// ValAddress and then parses the resultant bytes into an Ethereum address.
 func (k Keeper) GenerateEthereumAddressFromSequencerAddress(seqAddress string) (address common.Address, err error) {
 
 	// Try to parse as account address
