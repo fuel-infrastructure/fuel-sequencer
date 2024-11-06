@@ -44,7 +44,7 @@ type QueryClient interface {
 	EthereumEventIndexOffset(ctx context.Context, in *QueryGetEthereumEventIndexOffsetRequest, opts ...grpc.CallOption) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
-	// Maps the specified Ethereum address to an Sequencer Address.
+	// Maps the specified Ethereum address to a Sequencer Address.
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Maps the specified Sequencer address to an Ethereum Address.
 	EthereumAddressFromSequencerAddress(ctx context.Context, in *QueryEthereumAddressFromSequencerAddressRequest, opts ...grpc.CallOption) (*QueryEthereumAddressFromSequencerAddressResponse, error)
@@ -157,7 +157,7 @@ type QueryServer interface {
 	EthereumEventIndexOffset(context.Context, *QueryGetEthereumEventIndexOffsetRequest) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
-	// Maps the specified Ethereum address to an Sequencer Address.
+	// Maps the specified Ethereum address to a Sequencer Address.
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
 	// Maps the specified Sequencer address to an Ethereum Address.
 	EthereumAddressFromSequencerAddress(context.Context, *QueryEthereumAddressFromSequencerAddressRequest) (*QueryEthereumAddressFromSequencerAddressResponse, error)

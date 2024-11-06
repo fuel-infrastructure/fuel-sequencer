@@ -49,7 +49,7 @@ service Query {
     option (google.api.http).get = "/fuelsequencer/bridge/v1/supply_delta_info";
   }
 
-  // Maps the specified Ethereum address to an Sequencer Address.
+  // Maps the specified Ethereum address to a Sequencer Address.
   rpc SequencerAddressFromEthereumAddress(
       QuerySequencerAddressFromEthereumAddressRequest)
       returns (QuerySequencerAddressFromEthereumAddressResponse) {

@@ -415,7 +415,7 @@ paths:
         - Fuel Sequencer Queries
   /fuelsequencer/bridge/v1/sequencer_address_from_ethereum_address/{ethereum_address}:
     get:
-      summary: Maps the specified Ethereum address to an Sequencer Address.
+      summary: Maps the specified Ethereum address to a Sequencer Address.
       operationId: SequencerAddressFromEthereumAddress
       responses:
         '200':
