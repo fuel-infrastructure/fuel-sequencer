@@ -618,9 +618,9 @@ class FuelSequencerChain(CosmosChain):
     def query_ethereum_event_index_offset(self) -> str:
         return self.query("bridge show-ethereum-event-index-offset")
 
-    def query_seq_address_from_eth_address(self, seq_address: str) -> str:
+    def query_address_from_eth_address(self, eth_address: str) -> str:
         return json.loads(self.query(
-            f"bridge sequencer-address-from-ethereum-address {seq_address}"
+            f"bridge address-from-ethereum-address {eth_address}"
         ))['sequencer_address']
 
     def query_topics(self) -> str:

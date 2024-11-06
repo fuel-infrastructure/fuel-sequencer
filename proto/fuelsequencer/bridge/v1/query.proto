@@ -49,13 +49,22 @@ service Query {
     option (google.api.http).get = "/fuelsequencer/bridge/v1/supply_delta_info";
   }
 
-  // Queries a list of SequencerAddressFromEthereumAddress items.
+  // Maps the specified Ethereum address to an Sequencer Address.
   rpc SequencerAddressFromEthereumAddress(
       QuerySequencerAddressFromEthereumAddressRequest)
       returns (QuerySequencerAddressFromEthereumAddressResponse) {
     option (google.api.http).get =
         "/fuelsequencer/bridge/v1/sequencer_address_from_ethereum_address/"
         "{ethereum_address}";
+  }
+
+  // Maps the specified Sequencer address to an Ethereum Address.
+  rpc EthereumAddressFromSequencerAddress(
+      QueryEthereumAddressFromSequencerAddressRequest)
+      returns (QueryEthereumAddressFromSequencerAddressResponse) {
+    option (google.api.http).get =
+        "/fuelsequencer/bridge/v1/ethereum_address_from_sequencer_address/"
+        "{sequencer_address}";
   }
 
   // Queries the LastEthBlockUpdateTime.
@@ -107,6 +116,14 @@ message QuerySequencerAddressFromEthereumAddressRequest {
 
 message QuerySequencerAddressFromEthereumAddressResponse {
   string sequencer_address = 1;
+}
+
+message QueryEthereumAddressFromSequencerAddressRequest {
+  string sequencer_address = 1;
+}
+
+message QueryEthereumAddressFromSequencerAddressResponse {
+  string ethereum_address = 1;
 }
 
 message QueryGetLastEthBlockUpdateTimeRequest {}

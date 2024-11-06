@@ -39,6 +39,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "ethereum_address"}},
 				},
 				{
+					RpcMethod:      "EthereumAddressFromSequencerAddress",
+					Use:            "ethereum-address-from-sequencer-address [sequencer-address]",
+					Short:          "Query EthereumAddressFromSequencerAddress",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "sequencer_address"}},
+				},
+				{
 					RpcMethod: "EthereumEventIndexOffset",
 					Use:       "ethereum-event-index-offset",
 					Short:     "show EthereumEventIndexOffset",

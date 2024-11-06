@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -52,6 +53,25 @@ func (k Keeper) GenerateSequencerAddressFromEthereumAddress(ethAddress string) (
 	}
 
 	return k.GetAddressCodec().StringToBytes(ethAddress)
+}
+
+// GenerateEthereumAddressFromSequencerAddress parses the Sequencer address into an AccAddress and wraps the bytes
+// with the HexBytes type to produce an Ethereum address.
+func (k Keeper) GenerateEthereumAddressFromSequencerAddress(seqAddress string) (address common.Address, err error) {
+
+	// Try to parse as account address
+	accAddress, err1 := sdk.AccAddressFromBech32(seqAddress)
+	if err1 != nil {
+		// Try to parse as validator address
+		valAddress, err2 := sdk.ValAddressFromBech32(seqAddress)
+		if err2 != nil {
+			return common.Address{}, fmt.Errorf("could not parse address into a Sequencer address: %s", err1)
+		}
+		address = common.BytesToAddress(valAddress)
+	} else {
+		address = common.BytesToAddress(accAddress)
+	}
+	return address, nil
 }
 
 // generateSequencerAccountFromEthereumDeposit gets or creates a Sequencer account for the specified Ethereum address.

@@ -212,7 +212,7 @@ ETH.authorize_transfer(recipient, amount)
 
 # Perform a deposit on Ethereum with vesting duration
 # TODO: we need to update this to match the non-mock contracts
-# to = SEQ.query_seq_address_from_eth_address(ETH_acc_address)
+# to = SEQ.query_address_from_eth_address(ETH_acc_address)
 # pretty(SEQ.query_account(to))  # check current account on the sequencer side
 # ETH.deposit(100, to, 31536001)  # duration must be greater than start time delay
 
