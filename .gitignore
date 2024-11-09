@@ -32,6 +32,13 @@ release/
 build/
 tmp-swagger-gen/
 
+# Temporary files used in the rust build process
+rust_client/target/
+rust_client/protos/
+
+# Rust lockfile
+Cargo.lock
+
 # Grafana data
 grafana/
 

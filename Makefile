@@ -217,11 +217,11 @@ protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(pro
 cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
-proto-go-gen:
+proto-code-gen:
     # This runs ./scripts/protocgen-pulsar.sh as well, under the hood.
-	@echo "🤖 Generating Go code from protobuf..."
+	@echo "🤖 Generating Go and Rust code from protobuf..."
 	@$(protoImage) sh ./scripts/protocgen.sh;
-	@echo "✅ Finished Go code generation!"
+	@echo "✅ Finished code generation!"
 
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
@@ -233,7 +233,7 @@ proto-swagger-gen:
 	@echo "🤖 Generating API docs..."
 	@$(protoSwaggerImage) sh ./scripts/protoc-swagger-gen.sh
 
-proto-routine: proto-format proto-go-gen proto-swagger-gen
+proto-routine: proto-format proto-code-gen proto-swagger-gen
 
 ###############################################################################
 ###                                   Run                                   ###

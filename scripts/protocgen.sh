@@ -19,3 +19,4 @@ cp -r github.com/fuel-infrastructure/fuel-sequencer/* ./
 rm -rf github.com
 
 ./scripts/protocgen-pulsar.sh
+./scripts/protocgen-rust.sh

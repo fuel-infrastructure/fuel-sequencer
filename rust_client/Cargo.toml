@@ -1,0 +1,14 @@
+[package]
+name = "fuel-sequencer-proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "build.rs"
+
+[dependencies]
+prost = "0.12"
+prost-types = "0.12"
+tonic = "0.11"
+
+[build-dependencies]
+regex = "1.10"
