@@ -6,7 +6,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/staking/testutil"
 
 	"github.com/ethereum/go-ethereum/common"
 

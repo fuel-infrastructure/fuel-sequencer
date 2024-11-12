@@ -52,8 +52,6 @@ import (
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/slashing" // import for side-effects
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/power_reduction"
@@ -61,7 +59,9 @@ import (
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
-	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint"    // import for side-effects
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/staking" // import for side-effects
+	stakingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/staking/keeper"
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
