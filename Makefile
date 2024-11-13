@@ -327,7 +327,10 @@ gosec:
 
 lint:
 	@echo "🔎 Running linter..."
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m \
+		# These files are excluded from linting because they were forked from the Cosmos SDK
+		--skip-files "x/staking/migrations/v3/store.go" \
+		--skip-files "x/staking/simulation/operations_test.go"
 	@echo "✅ Finished running linter!"
 
 format:
