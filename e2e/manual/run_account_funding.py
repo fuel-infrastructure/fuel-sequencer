@@ -19,8 +19,8 @@ SEQ = FuelSequencerChain(
 )
 SEQ.gas_prices = CONFIG.seq_gas_price
 
-MIN_BALANCE = int(1 * 1e18)
-FUND_AMOUNT = int(1e6 * 1e18)
+MIN_BALANCE = int(1 * 1e9)
+FUND_AMOUNT = int(1e6 * 1e9)
 
 ADDRESSES = [
     "fuelsequencer1ptrdx8rzykw57suy540tlhfhxfclmykywhtycf",
