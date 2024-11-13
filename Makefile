@@ -325,10 +325,10 @@ ci: proto-routine lint test-unit gosec
 gosec:
 	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
 
+# Some files are excluded from linting because they were forked from the Cosmos SDK
 lint:
 	@echo "🔎 Running linter..."
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m \
-		# These files are excluded from linting because they were forked from the Cosmos SDK
 		--skip-files "x/staking/migrations/v3/store.go" \
 		--skip-files "x/staking/simulation/operations_test.go"
 	@echo "✅ Finished running linter!"
