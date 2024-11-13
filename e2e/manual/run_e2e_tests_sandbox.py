@@ -109,9 +109,9 @@ SEQ.voting_period = 10
 # Query current bridge parameters
 pretty(SEQ.query_module_params("bridge"))
 # Set bridge parameters on Sequencer
-deposit = "2500000000000000000000test"
+deposit = "2500000000000test"
 bridge_denom = "test"
-bridge_denom_total_supply = "10000000000000000000000000000"
+bridge_denom_total_supply = "10000000000000000000"
 ethereum_proxy_contract_address = ETH_sequencer_proxy_contract_address
 authorize_messages_allowed = [
     "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum",
@@ -147,7 +147,7 @@ SEQ.submit_gov_proposal(get_update_bridge_module_params_proposal(
 # Query current sequencing parameters
 pretty(SEQ.query_module_params("sequencing"))
 # Set sequencing parameters on Sequencer
-deposit = "2500000000000000000000test"
+deposit = "2500000000000test"
 max_blob_size_bytes = "1048576"
 sequencer_tx_max_bytes = "1572864"
 SEQ.submit_gov_proposal(get_update_sequencing_module_params_proposal(
@@ -159,7 +159,7 @@ SEQ.submit_gov_proposal(get_update_sequencing_module_params_proposal(
 # Query current consensus parameters
 pretty(SEQ.query_module_params("consensus"))
 # Set consensus parameters on Sequencer
-deposit = "2500000000000000000000test"
+deposit = "2500000000000test"
 block_max_bytes = "2000000"
 block_max_gas = "100000000"
 evidence_max_age_num_blocks = "100000"
@@ -179,7 +179,7 @@ SEQ.submit_gov_proposal(get_update_consensus_module_params_proposal(
 # Query current mint parameters
 pretty(SEQ.query_module_params("mint"))
 # Set mint parameters on Sequencer
-deposit = "2500000000000000000000test"
+deposit = "2500000000000test"
 mint_denom = "test"
 inflation_rate_change = "0.000000000000000000"
 inflation_max = "0.070000000000000000"
@@ -207,7 +207,7 @@ ETH.transfer_and_call(10)
 
 # Perform a transfer via an authorize
 recipient = "0x62d221dB49aEF5632f59B900B2cA90e52ECC0A80"
-amount = 5000000000000000000000
+amount = 5000000000000
 ETH.authorize_transfer(recipient, amount)
 
 # Perform a deposit on Ethereum with vesting duration
