@@ -135,7 +135,7 @@ func TestEncodeDepositEvent(t *testing.T) {
 	eventData := sidecartypes.DepositEvent{
 		Depositor: "0x006A1756ab571a9c961d296557bf60c50d48a500",
 		Recipient: "0x006A1756ab571a9c961d296557bf60c50d48a500",
-		Amount:    "5000000000000000000",
+		Amount:    "5000000000",
 		Lockup:    "300",
 	}
 
