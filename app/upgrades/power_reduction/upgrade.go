@@ -16,7 +16,7 @@ func CreateUpgradeHandler(
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 
 		// There is no need to apply this change here since it's already applied in the app.go init function.
-		//sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000000000000)
+		//sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000)
 
 		// returns a VersionMap with the updated module ConsensusVersions
 		return mm.RunMigrations(ctx, configurator, fromVM)

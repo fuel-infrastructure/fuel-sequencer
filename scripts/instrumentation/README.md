@@ -33,6 +33,7 @@ If you want to whitelist Docker containers in UFW (Uncomplicated Firewall) on Li
 - Go to http://localhost:3000 (Grafana) and login with username `admin` and password `admin`.
 - Go to http://localhost:3000/connections/datasources/new and add a Prometheus data source with URL http://prometheus:9090 and scrape interval set to **1s**, for finer grain data.
 - Go to http://localhost:3000/dashboard/new and import the relevant `dashboard.json` file included here.
+- The dashboards assume a job name satisfying the regex `.*fuel.*`. If this is not the case, change the job name from `prometheus.yml` or insert the job name manually in the job field.
 
 ## Updating dashboard.json
 
