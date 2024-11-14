@@ -131,10 +131,10 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 
 	// DefaultPowerReduction is the amount of staking tokens required for 1 unit of consensus-engine power.
-	// We change this to 1e18 to match the number of decimal places used in the bridged token denomination.
+	// We change this to 1e9 to match the number of decimal places used in the bridged token denomination.
 	// There are plans to change this to an on-chain param: https://github.com/cosmos/cosmos-sdk/issues/8365
 	// Note: This should be revised if the number of decimals for the bridged token changes.
-	sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000000000000)
+	sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000)
 }
 
 // getGovProposalHandlers return the chain proposal handlers.

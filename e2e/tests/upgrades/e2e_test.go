@@ -101,7 +101,7 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 
 		// --------------------------------------- Fund the delegator
 
-		amount, ok := sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil x 1e18
+		amount, ok := sdkmath.NewIntFromString("10000000000000000000") // 10 bil x 1e9
 		s.Require().True(ok)
 		delegation := sdk.NewCoin(e2etestsuite.BridgeDenom, amount)
 		msgSend := &banktypes.MsgSend{

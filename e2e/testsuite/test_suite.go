@@ -80,11 +80,11 @@ const (
 )
 
 var (
-	BridgeDenomTotalSupply, var1Valid = sdkmath.NewIntFromString("10000000000000000000000000000") // 10 bil x 1e18
+	BridgeDenomTotalSupply, var1Valid = sdkmath.NewIntFromString("10000000000000000000") // 10 bil x 1e9
 
 	// Balance and staked amount per validator
-	initBalance, var2Valid = sdkmath.NewIntFromString("20000000000000000000000000000") // 20 bil x 1e18
-	initStaked, var3Valid  = sdkmath.NewIntFromString("2000000000000000000")           // 2e18
+	initBalance, var2Valid = sdkmath.NewIntFromString("20000000000000000000") // 20 bil x 1e9
+	initStaked, var3Valid  = sdkmath.NewIntFromString("2000000000")           // 2e9
 	InitBalanceCoin        = sdk.NewCoin(BridgeDenom, initBalance)
 	InitStakedCoin         = sdk.NewCoin(BridgeDenom, initStaked)
 	// NOTE: we need initStaked to be at least 2x PowerReduction so that if we undelegate half of it, like we do in some
