@@ -15,7 +15,7 @@ func (k Keeper) ResetEthereumEventIndexOffset(ctx context.Context) {
 	k.SetEthereumEventIndexOffset(ctx, 0)
 }
 
-// SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store
+// SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store and metrics server
 func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset uint64) {
 	defer metrics.SetEthereumEventIndexOffset(ctx, ethereumEventIndexOffset)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
