@@ -4,6 +4,47 @@ info:
   description: A REST interface for state queries.
   version: 1.0.0
 paths:
+  /fuelsequencer/bridge/v1/ethereum_address_from_sequencer_address/{sequencer_address}:
+    get:
+      summary: Maps the specified Sequencer address to an Ethereum Address.
+      operationId: EthereumAddressFromSequencerAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              ethereum_address:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: sequencer_address
+          in: path
+          required: true
+          type: string
+      tags:
+        - Fuel Sequencer Queries
   /fuelsequencer/bridge/v1/ethereum_event_index_offset:
     get:
       summary: Queries the EthereumEventIndexOffset.
@@ -374,7 +415,7 @@ paths:
         - Fuel Sequencer Queries
   /fuelsequencer/bridge/v1/sequencer_address_from_ethereum_address/{ethereum_address}:
     get:
-      summary: Queries a list of SequencerAddressFromEthereumAddress items.
+      summary: Maps the specified Ethereum address to a Sequencer Address.
       operationId: SequencerAddressFromEthereumAddress
       responses:
         '200':
@@ -30453,6 +30494,11 @@ definitions:
 
           or burned (negative) on Ethereum. Reset after being relayed to
           Ethereum.
+  fuelsequencer.bridge.v1.QueryEthereumAddressFromSequencerAddressResponse:
+    type: object
+    properties:
+      ethereum_address:
+        type: string
   fuelsequencer.bridge.v1.QueryGetEthereumEventIndexOffsetResponse:
     type: object
     properties:
