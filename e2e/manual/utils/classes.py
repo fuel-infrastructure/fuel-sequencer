@@ -623,7 +623,7 @@ class FuelSequencerChain(CosmosChain):
             f"bridge sequencer-address-from-ethereum-address {eth_address}"
         ))['sequencer_address']
 
-    def query_seq_address_from_eth_address(self, seq_address: str) -> str:
+    def query_eth_address_from_seq_address(self, seq_address: str) -> str:
         return json.loads(self.query(
             f"bridge ethereum-address-from-sequencer-address {seq_address}"
         ))['ethereum_address']
