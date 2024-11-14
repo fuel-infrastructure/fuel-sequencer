@@ -239,7 +239,7 @@ proto-routine: proto-format proto-code-gen proto-swagger-gen
 ###                                   Run                                   ###
 ###############################################################################
 
-run-sequencer: proto-go-gen serve
+run-sequencer: proto-code-gen serve
 
 run-sidecar:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
