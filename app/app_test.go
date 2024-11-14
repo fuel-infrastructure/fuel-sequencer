@@ -23,8 +23,7 @@ func TestAppTestSuite(t *testing.T) {
 }
 
 func (s *AppTestSuite) TestPowerReductionIsAsExpected() {
-
-	expectPowerReduction, ok := sdkmath.NewIntFromString("1000000000000000000")
+	expectPowerReduction, ok := sdkmath.NewIntFromString("1000000000")
 	s.Require().True(ok)
 
 	s.Require().True(expectPowerReduction.Equal(s.App.StakingKeeper.PowerReduction(s.Ctx())))
