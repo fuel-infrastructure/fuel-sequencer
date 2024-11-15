@@ -25,6 +25,7 @@ const (
 	Query_EthereumEventIndexOffset_FullMethodName            = "/fuelsequencer.bridge.v1.Query/EthereumEventIndexOffset"
 	Query_SupplyDeltaInfo_FullMethodName                     = "/fuelsequencer.bridge.v1.Query/SupplyDeltaInfo"
 	Query_SequencerAddressFromEthereumAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress"
+	Query_EthereumAddressFromSequencerAddress_FullMethodName = "/fuelsequencer.bridge.v1.Query/EthereumAddressFromSequencerAddress"
 	Query_LastEthBlockUpdateTime_FullMethodName              = "/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime"
 	Query_LastConsensusTxsSequence_FullMethodName            = "/fuelsequencer.bridge.v1.Query/LastConsensusTxsSequence"
 )
@@ -43,8 +44,10 @@ type QueryClient interface {
 	EthereumEventIndexOffset(ctx context.Context, in *QueryGetEthereumEventIndexOffsetRequest, opts ...grpc.CallOption) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
-	// Queries a list of SequencerAddressFromEthereumAddress items.
+	// Maps the specified Ethereum address to a Sequencer Address.
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
+	// Maps the specified Sequencer address to an Ethereum Address.
+	EthereumAddressFromSequencerAddress(ctx context.Context, in *QueryEthereumAddressFromSequencerAddressRequest, opts ...grpc.CallOption) (*QueryEthereumAddressFromSequencerAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error)
 	// Queries the LastConsensusTxsSequence.
@@ -113,6 +116,15 @@ func (c *queryClient) SequencerAddressFromEthereumAddress(ctx context.Context, i
 	return out, nil
 }
 
+func (c *queryClient) EthereumAddressFromSequencerAddress(ctx context.Context, in *QueryEthereumAddressFromSequencerAddressRequest, opts ...grpc.CallOption) (*QueryEthereumAddressFromSequencerAddressResponse, error) {
+	out := new(QueryEthereumAddressFromSequencerAddressResponse)
+	err := c.cc.Invoke(ctx, Query_EthereumAddressFromSequencerAddress_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	out := new(QueryGetLastEthBlockUpdateTimeResponse)
 	err := c.cc.Invoke(ctx, Query_LastEthBlockUpdateTime_FullMethodName, in, out, opts...)
@@ -145,8 +157,10 @@ type QueryServer interface {
 	EthereumEventIndexOffset(context.Context, *QueryGetEthereumEventIndexOffsetRequest) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
-	// Queries a list of SequencerAddressFromEthereumAddress items.
+	// Maps the specified Ethereum address to a Sequencer Address.
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
+	// Maps the specified Sequencer address to an Ethereum Address.
+	EthereumAddressFromSequencerAddress(context.Context, *QueryEthereumAddressFromSequencerAddressRequest) (*QueryEthereumAddressFromSequencerAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error)
 	// Queries the LastConsensusTxsSequence.
@@ -175,6 +189,9 @@ func (UnimplementedQueryServer) SupplyDeltaInfo(context.Context, *QueryGetSupply
 }
 func (UnimplementedQueryServer) SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SequencerAddressFromEthereumAddress not implemented")
+}
+func (UnimplementedQueryServer) EthereumAddressFromSequencerAddress(context.Context, *QueryEthereumAddressFromSequencerAddressRequest) (*QueryEthereumAddressFromSequencerAddressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EthereumAddressFromSequencerAddress not implemented")
 }
 func (UnimplementedQueryServer) LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthBlockUpdateTime not implemented")
@@ -303,6 +320,24 @@ func _Query_SequencerAddressFromEthereumAddress_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_EthereumAddressFromSequencerAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryEthereumAddressFromSequencerAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).EthereumAddressFromSequencerAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_EthereumAddressFromSequencerAddress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).EthereumAddressFromSequencerAddress(ctx, req.(*QueryEthereumAddressFromSequencerAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryGetLastEthBlockUpdateTimeRequest)
 	if err := dec(in); err != nil {
@@ -369,6 +404,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SequencerAddressFromEthereumAddress",
 			Handler:    _Query_SequencerAddressFromEthereumAddress_Handler,
+		},
+		{
+			MethodName: "EthereumAddressFromSequencerAddress",
+			Handler:    _Query_EthereumAddressFromSequencerAddress_Handler,
 		},
 		{
 			MethodName: "LastEthBlockUpdateTime",

@@ -29,7 +29,7 @@ func NewClientTransportCredentialsFromCertFile(
 ) (creds credentials.TransportCredentials, err error) {
 	if isInsecure(pathToFile) {
 		return insecure.NewCredentials(), nil
-	} else if isDefaultTLS(UseInsecure) {
+	} else if isDefaultTLS(pathToFile) {
 		return credentials.NewTLS(nil), nil
 	} else {
 		creds, err = credentials.NewClientTLSFromFile(pathToFile, "")
