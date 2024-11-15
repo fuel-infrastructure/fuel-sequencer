@@ -103,6 +103,8 @@ genesis:
         expedited_voting_period: "86400s"  # 1 day
         burn_vote_veto: false
     mint:
+      minter:
+        inflation: "0.000000000000000000"
       params:
         mint_denom: "fuel"
         inflation_rate_change: "0.000000000000000000"
