@@ -1,133 +1,124 @@
 version: 1
 build:
-  binary: fuelsequencerd
+  binary: "fuelsequencerd"
   main: ./cmd/fuelsequencerd
 accounts:
-  - name: SimplyStaking
-    # TODO: replace mnemonic with address
+  - name: alice
+    coins:
+      - 20000000000000000000utest # 20bil x 1e9
     mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
+    # fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm
+  - name: bob
     coins:
-      - 2000000000fuel
-  - name: ChorusOne
-    address: fuelsequencer1262eh7nej33nq82f5jts6xjhy446m37qqrugzu # TODO: update
+      - 10000000000000000000utest # 10bil x 1e9
+    mnemonic: gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage
+    # fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m
+  - name: carol
     coins:
-      - 2000000000fuel
-  - name: Polkachu
-    address: fuelsequencer1jt9w26mpxxjsk63mvd4m2ynj0af09csl53y0fn # TODO: update
+      - 10000000000000000000utest # 10bil x 1e9
+    mnemonic: bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve
+    # fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g
+  - name: dexter
     coins:
-      - 2000000000fuel
-  - name: Cryptocrews
-    address: fuelsequencer1ud725sp9jcfdmekx0qwn6lz4ce6axu4k83y70w # TODO: update
+      - 10000000000000000000utest # 10bil x 1e9
+    mnemonic: bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing
+    # fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu
+  - name: eve
     coins:
-      - 2000000000fuel
-  - name: Chainlayer
-    address: fuelsequencer1ksq9d6j5jaxluv0sekjwkar0c0s0tjaa42rwk3 # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: StakeCapital
-    address: fuelsequencer13rswp0mdcadp5e59usjvk2mnyp5zvt5whtfy0q # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: ParcerosNacion
-    address: fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38 # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: BlockPi
-    address: fuelsequencer1003vxp7zwrqmwmya7a93904h4qsucxskzxg8fv # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: Encode
-    address: fuelsequencer1jkvjs8aynx3vlrws60a0nem85s9sfj7rd8m2v9 # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: InformalSystems
-    address: fuelsequencer1zh0pq03a6twv00reqqchgef5gpk4pysej4cxr0 # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: A41
-    address: fuelsequencer1kfysecrlc6sa9lu6d8vv6728f4v7sy65gy6rmv # TODO: update
-    coins:
-      - 2000000000fuel
-  - name: Kitsugi
-    address: fuelsequencer1uqxpjkg6yh83w37h8hz8h8hkhce6nqgh5xcjew # TODO: update
-    coins:
-      - 2000000000fuel
+      - 10000000000000000000utest # 10bil x 1e9
+    address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
+    # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
+client:
+  openapi:
+    path: docs/static/openapi.yml
 validators:
-  - name: SimplyStaking
-    bonded: 1000000fuel
+  - name: alice
+    bonded: 10000000000000000000utest # 10bil x 1e9
+    config:
+      instrumentation:
+        prometheus: true
+      consensus:
+        # How long we wait for a proposal block before prevoting nil
+        timeout_propose: "1s"
+        # How much timeout_propose increases with each round
+        timeout_propose_delta: "500ms"
+        # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
+        timeout_prevote: "1s"
+        # How much the timeout_prevote increases with each round
+        timeout_prevote_delta: "500ms"
+        # How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
+        timeout_precommit: "1s"
+        # How much the timeout_precommit increases with each round
+        timeout_precommit_delta: "500ms"
+        # How long we wait after committing a block, before starting on the new
+        # height (this gives us a chance to receive some more precommits, even
+        # though we already have +2/3).
+        timeout_commit: "1s"
     home: ./data/fuelsequencer
     app:
+      api:
+        swagger: true
+      grpc:
+        address: 0.0.0.0:9090
       sidecar:
-        enabled: false  # to be able to run this config file more easily
+        enabled: true  # set to false to run Sequencer on its own (ONLY FOR DEV ENVIRONMENT)
+        address: localhost:8080
+        timeout: 0.5s  # we shouldn't wait longer than the block time otherwise blocks timeout
+        path_to_cert_file: "use_insecure"
+      commitments:
+        api-enabled: true
+      telemetry:
+        enabled: true
+        prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
 genesis:
-  app_version: "seq-mainnet-1"  # manually overridden for a more meaningful app version
-  genesis_time: "2024-11-01T00:00:00Z"  # TODO
-  chain_id: "seq-mainnet-1"
-  app_state:
-    bridge:
-      params:
-        bridge_denom: "fuel"
-        bridge_denom_total_supply: "10000000000000000000"
-        ethereum_proxy_contract_address: "0x96De789353a25bA29e909Fb8eF1E84D7Ca104490"  # TODO: https://etherscan.io/address/TODO
-        authorize_messages_allowed:
-          - "/cosmos.bank.v1beta1.MsgSend"
-          - "/cosmos.staking.v1beta1.MsgDelegate"
-          - "/cosmos.staking.v1beta1.MsgBeginRedelegate"
-          - "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
-          - "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress"
-          - "/cosmos.gov.v1.MsgVote"
-        supply_delta_period: "14400"
-        vesting_start_time: "2024-11-01T00:00:00Z"  # TODO
-        max_eth_block_update_delay: "14400s"
-        injected_event_tx_max_bytes: "115343"
-        sequencer_txs_allocation: "0.500000000000000000"
-        max_authorize_messages: "5"
-      last_ethereum_block_synced: "1"  # TODO: 1 block before deployment of Sequencer Proxy Contract
-    distribution:
-      params:
-        community_tax: "0.000000000000000000"
-    gov:
-      params:
-        min_deposit:
-          - amount: "2400000000000"
-            denom: "fuel"
-        max_deposit_period: "604800s"  # 7 days
-        voting_period: "604800s"  # 7 days
-        quorum: "0.400000000000000000"
-        min_initial_deposit_ratio: "0.100000000000000000"
-        expedited_min_deposit:
-          - amount: "2500000000000"
-            denom: "fuel"
-        proposal_cancel_ratio: "0.000000000000000000"
-        proposal_cancel_dest: "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3"  # gov
-        expedited_voting_period: "86400s"  # 1 day
-        burn_vote_veto: false
-    mint:
-      params:
-        mint_denom: "fuel"
-        inflation_rate_change: "0.000000000000000000"
-        inflation_max: "0.000000000000000000"  # no inflation at genesis
-        inflation_min: "0.000000000000000000"  # no inflation at genesis
-        blocks_per_year: "5259600"  # assuming a block time of 6s
-    sequencing:
-      params:
-        max_blob_size_bytes: "1048576"  # 1MiB
-        sequencer_tx_max_bytes: "1153433"  # 1.1MiB
-    slashing:
-      params:
-        signed_blocks_window: "80000"
-        min_signed_per_window: "0.800000000000000000"
-        downtime_jail_duration: "60s"
-        slash_fraction_double_sign: "0.050000000000000000"
-        slash_fraction_downtime: "0.000100000000000000"
-    staking:
-      params:
-        bond_denom: "fuel"
-        unbonding_time: "1209600s"
-        max_validators: "12"
-        min_commission_rate: "0.050000000000000000"
+  chain_id: "fuelsequencer-1"
   consensus:
     params:
       block:
-        max_bytes: "2306867"  # 2.2MiB
-        max_gas: "100000000"
+        max_bytes: "22020096"
+        max_gas: "300000000"
+  app_state:
+    gov:
+      params:
+        voting_period: "10s"
+        expedited_voting_period: "1s"
+        min_deposit:
+          - amount: "10000000"
+            denom: "utest"
+        expedited_min_deposit:
+          - amount: "20000000"
+            denom: "utest"
+    mint:
+      minter:
+        inflation: "0.06"
+      params:
+        inflation_max: "0.06"
+        inflation_min: "0.06"
+        inflation_rate_change: "0.0"  # unused
+        mint_denom: "utest"
+    staking:
+      params:
+        bond_denom: "utest"
+    bridge:
+      params:
+        bridge_denom: "utest"
+        bridge_denom_total_supply: "10000000000000000000"  # 10 bil
+        ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
+        authorize_messages_allowed:
+          - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
+          - "/cosmos.bank.v1beta1.MsgSend"
+          - "/cosmos.staking.v1beta1.MsgDelegate"
+          - "/cosmos.staking.v1beta1.MsgBeginRedelegate"
+          - "/cosmos.staking.v1beta1.MsgUndelegate"
+          - "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+          - "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress"
+          - "/cosmos.gov.v1.MsgVote"
+        supply_delta_period: 100
+        injected_event_tx_max_bytes: 20000000
+        vesting_start_time: "2024-01-01T00:00:00.000000000Z"
+      last_ethereum_nonce: "0"
+      last_ethereum_block_synced: "0"
+      last_consensus_txs_sequence: 0
+    sequencing:
+      params:
+        max_blob_size_bytes: 1000

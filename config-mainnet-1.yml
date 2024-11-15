@@ -4,7 +4,8 @@ build:
   main: ./cmd/fuelsequencerd
 accounts:
   - name: SimplyStaking
-    address: fuelsequencer1cv0rl38sckgwyrkdd5vanyzf6v8clf808ttyf4 # TODO: update
+    # TODO: replace mnemonic with address
+    mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
     coins:
       - 2000000000fuel
   - name: ChorusOne
@@ -52,7 +53,7 @@ accounts:
     coins:
       - 2000000000fuel
 validators:
-  - name: alice
+  - name: SimplyStaking
     bonded: 1000000fuel
     home: ./data/fuelsequencer
     app:
@@ -88,7 +89,7 @@ genesis:
     gov:
       params:
         min_deposit:
-          - amount: "2500000000000"
+          - amount: "2400000000000"
             denom: "fuel"
         max_deposit_period: "604800s"  # 7 days
         voting_period: "604800s"  # 7 days
