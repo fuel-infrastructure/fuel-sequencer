@@ -10,7 +10,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	cosmossdkstakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/staking"
 )
 
@@ -76,7 +76,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
-	err := app.StakingKeeper.IterateValidators(ctx, func(_ int64, val cosmossdkstakingtypes.ValidatorI) (stop bool) {
+	err := app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 		if err != nil {
 			panic(err)
@@ -116,7 +116,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 	ctx = ctx.WithBlockHeight(0)
 
 	// reinitialize all validators
-	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val cosmossdkstakingtypes.ValidatorI) (stop bool) {
+	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 		if err != nil {
 			panic(err)
@@ -167,7 +167,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 
 	// iterate through redelegations, reset creation height
 	//nolint:errcheck
-	app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red cosmossdkstakingtypes.Redelegation) (stop bool) {
+	app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
 		for i := range red.Entries {
 			red.Entries[i].CreationHeight = 0
 		}
@@ -181,7 +181,7 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 	// iterate through unbonding delegations, reset creation height
 	//nolint:errcheck
 	app.StakingKeeper.IterateUnbondingDelegations(
-		ctx, func(_ int64, ubd cosmossdkstakingtypes.UnbondingDelegation,
+		ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation,
 		) (stop bool) {
 			for i := range ubd.Entries {
 				ubd.Entries[i].CreationHeight = 0
@@ -195,12 +195,12 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 
 	// Iterate through validators by power descending, reset bond heights, and
 	// update bond intra-tx counters.
-	store := ctx.KVStore(app.GetKey(cosmossdkstakingtypes.StoreKey))
-	iter := storetypes.KVStoreReversePrefixIterator(store, cosmossdkstakingtypes.ValidatorsKey)
+	store := ctx.KVStore(app.GetKey(stakingtypes.StoreKey))
+	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
 	counter := int16(0)
 
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(cosmossdkstakingtypes.AddressFromValidatorsKey(iter.Key()))
+		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
 		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
 		if err != nil {
 			panic("expected validator, not found")

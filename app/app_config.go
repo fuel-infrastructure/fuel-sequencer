@@ -39,7 +39,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	cosmossdkstakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -55,7 +55,7 @@ var (
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
-		cosmossdkstakingtypes.ModuleName,
+		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
@@ -82,7 +82,7 @@ var (
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
-		cosmossdkstakingtypes.ModuleName,
+		stakingtypes.ModuleName,
 		authz.ModuleName,
 		genutiltypes.ModuleName,
 		// chain modules
@@ -94,7 +94,7 @@ var (
 	endBlockers = []string{
 		// cosmos sdk modules
 		govtypes.ModuleName,
-		cosmossdkstakingtypes.ModuleName,
+		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		// chain modules
 		bridgemoduletypes.ModuleName,
@@ -113,12 +113,12 @@ var (
 		{Account: distrtypes.ModuleName},
 		{Account: minttypes.ModuleName, Permissions: []string{authtypes.Minter}},
 		{
-			Account:     cosmossdkstakingtypes.BondedPoolName,
-			Permissions: []string{authtypes.Burner, cosmossdkstakingtypes.ModuleName},
+			Account:     stakingtypes.BondedPoolName,
+			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
 		},
 		{
-			Account:     cosmossdkstakingtypes.NotBondedPoolName,
-			Permissions: []string{authtypes.Burner, cosmossdkstakingtypes.ModuleName},
+			Account:     stakingtypes.NotBondedPoolName,
+			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
 		},
 		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner, authtypes.Minter}},
 		{Account: bridgemoduletypes.ModuleName, Permissions: []string{authtypes.Burner, authtypes.Minter}},
@@ -130,8 +130,8 @@ var (
 		authtypes.FeeCollectorName,
 		distrtypes.ModuleName,
 		minttypes.ModuleName,
-		cosmossdkstakingtypes.BondedPoolName,
-		cosmossdkstakingtypes.NotBondedPoolName,
+		stakingtypes.BondedPoolName,
+		stakingtypes.NotBondedPoolName,
 		bridgemoduletypes.ModuleName,
 		// We allow the following module accounts to receive funds:
 		// govtypes.ModuleName
@@ -182,7 +182,7 @@ var (
 				}),
 			},
 			{
-				Name: cosmossdkstakingtypes.ModuleName,
+				Name: stakingtypes.ModuleName,
 				Config: appconfig.WrapAny(&stakingmodulev1.Module{
 					// NOTE: specifying a prefix is only necessary when using bech32 addresses
 					// If not specfied, the auth Bech32Prefix appended with "valoper" and "valcons" is used by default
