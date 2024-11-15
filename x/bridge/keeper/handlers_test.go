@@ -28,6 +28,8 @@ func (s *KeeperTestSuite) TestQueriesRegisteredWithCorrectPath() {
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/SequencerAddressFromEthereumAddress")
 	s.Require().NotNil(handler)
+	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/EthereumAddressFromSequencerAddress")
+	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime")
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.bridge.v1.Query/LastConsensusTxsSequence")

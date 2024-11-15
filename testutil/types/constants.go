@@ -17,6 +17,7 @@ var (
 	// TestEthAddr1Str maps to TestSeqAddr1Str deterministically
 	TestEthAddr1Str = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
+	TestValAddr1Str = "fuelsequencervaloper1w8rk2mk84wytpxx7ld63kaqpkhmd39m0ky2e6a"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
 	FirstAccountSequence             = uint64(0)
