@@ -71,6 +71,7 @@ validators:
       sidecar:
         enabled: false  # to be able to run this config file more easily
 genesis:
+  app_name: "fuelsequencerd"
   app_version: "seq-mainnet-1"  # manually overridden for a more meaningful app version
   genesis_time: "2024-11-21T14:00:00Z"
   chain_id: "seq-mainnet-1"
