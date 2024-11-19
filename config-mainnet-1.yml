@@ -1,55 +1,67 @@
+# Simply Staking    fuelsequencer1f5y0penevpk49m30enehtv5tpcqvc0xydm3t63
+# Chorus One        fuelsequencer16pj5gljqnqs0ajxakccfjhu05yczp9873zz60h
+# Polkachu          fuelsequencer1gkj6dc9sqprg95axa2zxjw93spmdgc4at25ce5
+# Cryptocrews       fuelsequencer1tqvdcnuflw7w59vppp0ya2ue75xcrq6xtx2eul
+# chainlayer        fuelsequencer1szfccdatrknthq7nfqxk9zxwe6du4gs2v5ypr4
+# Stake Capital     fuelsequencer134jhx72f812n7gvv6fhf7kre834a0njzgcnrdz
+# Parceros Nacion   fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38
+# BlockPi           fuelsequencer1ku6n9lm30ltg87y52azfvuynk27lwugzkcu59n
+# Encode            fuelsequencer1aexcj2c5kd3v0u0wvxsvuy72wnf6vnra7vmn3g
+# Informal Systems  fuelsequencer12sp2nuq99ag8y37kchyx27vmuycv9hz8rsgks5
+# A41               fuelsequencer1s64t23zs7j0kfxtwa4j3kz57fhc0mm794dute7
+# Kintsugi          fuelsequencer1uqxpjkg6yh83w37h8hz8h8hkhce6nqgh5xcjew
 version: 1
 build:
   binary: fuelsequencerd
   main: ./cmd/fuelsequencerd
 accounts:
   - name: SimplyStaking
-    # TODO: replace mnemonic with address
-    mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
+    address: fuelsequencer1f5y0penevpk49m30enehtv5tpcqvc0xydm3t63
     coins:
       - 2000000000fuel
   - name: ChorusOne
-    address: fuelsequencer1262eh7nej33nq82f5jts6xjhy446m37qqrugzu # TODO: update
+    address: fuelsequencer16pj5gljqnqs0ajxakccfjhu05yczp9873zz60h
     coins:
       - 2000000000fuel
   - name: Polkachu
-    address: fuelsequencer1jt9w26mpxxjsk63mvd4m2ynj0af09csl53y0fn # TODO: update
+    address: fuelsequencer1gkj6dc9sqprg95axa2zxjw93spmdgc4at25ce5
     coins:
       - 2000000000fuel
   - name: Cryptocrews
-    address: fuelsequencer1ud725sp9jcfdmekx0qwn6lz4ce6axu4k83y70w # TODO: update
+    address: fuelsequencer1tqvdcnuflw7w59vppp0ya2ue75xcrq6xtx2eul
     coins:
       - 2000000000fuel
   - name: Chainlayer
-    address: fuelsequencer1ksq9d6j5jaxluv0sekjwkar0c0s0tjaa42rwk3 # TODO: update
+    address: fuelsequencer1szfccdatrknthq7nfqxk9zxwe6du4gs2v5ypr4
     coins:
       - 2000000000fuel
-  - name: StakeCapital
-    address: fuelsequencer13rswp0mdcadp5e59usjvk2mnyp5zvt5whtfy0q # TODO: update
-    coins:
-      - 2000000000fuel
+# TODO: INVALID?
+#  - name: StakeCapital
+#    address: fuelsequencer134jhx72f812n7gvv6fhf7kre834a0njzgcnrdz
+#    coins:
+#      - 2000000000fuel
   - name: ParcerosNacion
-    address: fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38 # TODO: update
+    address: fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38
     coins:
       - 2000000000fuel
   - name: BlockPi
-    address: fuelsequencer1003vxp7zwrqmwmya7a93904h4qsucxskzxg8fv # TODO: update
+    address: fuelsequencer1ku6n9lm30ltg87y52azfvuynk27lwugzkcu59n
     coins:
       - 2000000000fuel
   - name: Encode
-    address: fuelsequencer1jkvjs8aynx3vlrws60a0nem85s9sfj7rd8m2v9 # TODO: update
+    address: fuelsequencer1aexcj2c5kd3v0u0wvxsvuy72wnf6vnra7vmn3g
     coins:
       - 2000000000fuel
   - name: InformalSystems
-    address: fuelsequencer1zh0pq03a6twv00reqqchgef5gpk4pysej4cxr0 # TODO: update
+    address: fuelsequencer12sp2nuq99ag8y37kchyx27vmuycv9hz8rsgks5
     coins:
       - 2000000000fuel
   - name: A41
-    address: fuelsequencer1kfysecrlc6sa9lu6d8vv6728f4v7sy65gy6rmv # TODO: update
+    address: fuelsequencer1s64t23zs7j0kfxtwa4j3kz57fhc0mm794dute7
     coins:
       - 2000000000fuel
   - name: Kitsugi
-    address: fuelsequencer1uqxpjkg6yh83w37h8hz8h8hkhce6nqgh5xcjew # TODO: update
+    address: fuelsequencer1uqxpjkg6yh83w37h8hz8h8hkhce6nqgh5xcjew
     coins:
       - 2000000000fuel
 validators:
