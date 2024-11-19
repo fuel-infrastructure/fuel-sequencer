@@ -88,7 +88,7 @@ genesis:
           - "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress"
           - "/cosmos.gov.v1.MsgVote"
         supply_delta_period: "14400"
-        vesting_start_time: "2024-11-21T14:00:00Z"  # TODO: double-confirm
+        vesting_start_time: "2024-11-30T08:00:00Z"
         max_eth_block_update_delay: "14400s"
         injected_event_tx_max_bytes: "115343"
         sequencer_txs_allocation: "0.500000000000000000"
