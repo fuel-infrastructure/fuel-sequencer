@@ -35,11 +35,10 @@ accounts:
     address: fuelsequencer1szfccdatrknthq7nfqxk9zxwe6du4gs2v5ypr4
     coins:
       - 2000000000fuel
-# TODO: INVALID?
-#  - name: StakeCapital
-#    address: fuelsequencer134jhx72f812n7gvv6fhf7kre834a0njzgcnrdz
-#    coins:
-#      - 2000000000fuel
+  - name: StakeCapital
+    address: fuelsequencer1n49g3vfl3hgck62cpl6y2ssmgjpmg5dhh3xx2k
+    coins:
+      - 2000000000fuel
   - name: ParcerosNacion
     address: fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38
     coins:
