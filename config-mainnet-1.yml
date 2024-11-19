@@ -94,7 +94,7 @@ genesis:
         injected_event_tx_max_bytes: "115343"
         sequencer_txs_allocation: "0.500000000000000000"
         max_authorize_messages: "5"
-      last_ethereum_block_synced: "1"  # TODO: 1 block before deployment of Sequencer Proxy Contract
+      last_ethereum_block_synced: "21220891" # REF: https://etherscan.io/tx/0x309312fa3f974600c866ed31179b088c30f30eb0d07eedea90c7c7c67604b6b8
     distribution:
       params:
         community_tax: "0.000000000000000000"
