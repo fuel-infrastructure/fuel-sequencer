@@ -80,7 +80,7 @@ genesis:
       params:
         bridge_denom: "fuel"
         bridge_denom_total_supply: "10000000000000000000"
-        ethereum_proxy_contract_address: "0x96De789353a25bA29e909Fb8eF1E84D7Ca104490"  # TODO: https://etherscan.io/address/TODO
+        ethereum_proxy_contract_address: "0xBa0e6bF94580D49B5Aaaa54279198D424B23eCC3"
         authorize_messages_allowed:
           - "/cosmos.bank.v1beta1.MsgSend"
           - "/cosmos.staking.v1beta1.MsgDelegate"
