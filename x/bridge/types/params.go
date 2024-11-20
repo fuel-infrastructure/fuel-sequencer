@@ -348,22 +348,33 @@ func ValidateSequencerTxsAllocation(i interface{}) error {
 }
 
 // VestingTimesFromVestingDuration returns the vesting start and end time based on the VestingStartTime parameter, the
-// vestingStartTimeDelay, and a specified vesting duration, which must be greater than vestingStartTimeDelay since the
-// vesting duration is included in the vestingStartTimeDelay.
+// vestingStartTimeDelay, and a specified vesting duration. If the specified vesting duration is greater than the
+// vestingStartTimeDelay, then the delay is applied as a delay in the start of vesting. Otherwise, the delay is not
+// applied, meaning that vesting will start from VestingStartTime.
 //
-// Example: for a VestingStartTime set to 2024 and a vesting duration of 2 years:
-// - Actual vesting start time: 2024 + vestingStartTimeDelay = 2025
-// - Actual vesting end time: 2024 + vesting duration = 2026
+// Example 1: for a VestingStartTime set to 2024-01 and a vesting duration of 2 years:
+// - Actual vesting start time: 2024-01 + vestingStartTimeDelay = 2025-01
+// - Actual vesting end time: 2024-01 + vesting duration = 2026-01
+//
+// Example 2: for a VestingStartTime set to 2024-01 and a vesting duration of 6 months:
+// - Actual vesting start time: 2024-01
+// - Actual vesting end time: 2024-01 + vesting duration = 2024-07
+//
+// Example 3: for a VestingStartTime set to 2024-01 and a vesting duration of 1 year:
+// - Actual vesting start time: 2024-01
+// - Actual vesting end time: 2024-01 + vesting duration = 2025-01
 func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Time, time.Time, error) {
 
-	if duration <= vestingStartTimeDelay {
-		return time.Time{}, time.Time{}, ErrInvalidVestingDuration.Wrapf(
-			"duration must be greater than vesting start time delay, got %s <= %s",
-			duration, vestingStartTimeDelay,
-		)
+	if duration <= 0 {
+		return time.Time{}, time.Time{}, ErrInvalidVestingDuration.Wrapf("expected duration to be greater than 0")
 	}
 
-	vestingStartTime := p.VestingStartTime.Add(vestingStartTimeDelay)
+	var vestingStartTime time.Time
+	if duration > vestingStartTimeDelay {
+		vestingStartTime = p.VestingStartTime.Add(vestingStartTimeDelay)
+	} else {
+		vestingStartTime = p.VestingStartTime
+	}
 	vestingEndTime := p.VestingStartTime.Add(duration)
 	return vestingStartTime, vestingEndTime, nil
 }
