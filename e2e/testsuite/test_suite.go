@@ -148,6 +148,11 @@ var (
 	VestingDuration2Years  = time.Hour * 24 * 365 * 2   // 2 years, to be used when migrating V1 tokens to V2
 	VestingDuration6Months = (time.Hour * 24 * 365) / 2 // 6 months, to be used when migrating V1 tokens to V2
 
+	// V1 to V2 migration
+
+	// MigrateAmountUpscalingFactor counteracts the DECIMALS_DOWNSCALING_FACTOR of 1e9 applied by the migrator contract.
+	MigrateAmountUpscalingFactor = big.NewInt(1000000000)
+
 	// Logging
 
 	LogLevel = zaptest.Level(zap.DebugLevel)

@@ -67,18 +67,21 @@ func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(
 	amount *big.Int, validator common.Address, vestingPeriod time.Duration,
 ) *ethereumtypes.Receipt {
 
+	// Amount needs to be upscaled by 1e9 to counteract the DECIMALS_DOWNSCALING_FACTOR of 1e9 applied by the migrator.
+	amountToMigrate := new(big.Int).Mul(amount, MigrateAmountUpscalingFactor)
+
 	// ...approve V1 tokens for use by token migrator.
-	approveData := PackApproveMigratedToken(TokenMigratorContractAddress, amount)
+	approveData := PackApproveMigratedToken(TokenMigratorContractAddress, amountToMigrate)
 	_, err := s.SendEthTransactionToMigratedTokenContract(approveData)
 	s.Require().NoError(err)
 
 	// ...mint V2 tokens to token migrator.
-	migratorMintData := PackMintToken(TokenMigratorContractAddress, amount)
+	migratorMintData := PackMintToken(TokenMigratorContractAddress, amountToMigrate)
 	_, err = s.SendEthTransactionToTokenContract(migratorMintData)
 	s.Require().NoError(err)
 
 	// ...migrate V1 tokens to V2 tokens.
-	depositData := PackMigrate(amount, validator, new(big.Int).SetInt64(int64(vestingPeriod.Seconds())))
+	depositData := PackMigrate(amountToMigrate, validator, new(big.Int).SetInt64(int64(vestingPeriod.Seconds())))
 	receipt, err := s.SendEthTransactionToTokenMigratorContract(depositData)
 	s.Require().NoError(err)
 
