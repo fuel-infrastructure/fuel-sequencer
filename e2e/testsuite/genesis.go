@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"cosmossdk.io/math"
 	cmjson "github.com/cometbft/cometbft/libs/json"
@@ -177,8 +176,10 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
-	vestingStartingTime, err := time.Parse(time.DateOnly, "2024-01-01")
-	s.Require().NoError(err)
+	// Set vesting start time to genesis time. This is done to avoid having vesting tests that only pass in certain
+	// points in time.
+	vestingStartingTime := genDoc.GenesisTime
+
 	ethBlockNumber, err := s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
 	s.Require().NoError(err)
 	s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
