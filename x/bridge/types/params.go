@@ -359,6 +359,10 @@ func ValidateSequencerTxsAllocation(i interface{}) error {
 // Example 2: for a VestingStartTime set to 2024-01 and a vesting duration of 6 months:
 // - Actual vesting start time: 2024-01
 // - Actual vesting end time: 2024-01 + vesting duration = 2024-07
+//
+// Example 3: for a VestingStartTime set to 2024-01 and a vesting duration of 1 year:
+// - Actual vesting start time: 2024-01
+// - Actual vesting end time: 2024-01 + vesting duration = 2025-01
 func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Time, time.Time, error) {
 
 	if duration == 0 {
