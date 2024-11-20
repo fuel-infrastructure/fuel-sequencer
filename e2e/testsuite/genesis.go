@@ -176,8 +176,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
-	// Set vesting start time to genesis time. This is done to avoid having vesting tests that only pass in certain
-	// points in time.
+	// Set the vesting start time to the genesis time to ensure that vesting tests are not dependent on specific times,
+	// making them consistently pass regardless of when they are executed.
 	vestingStartingTime := genDoc.GenesisTime
 
 	ethBlockNumber, err := s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
