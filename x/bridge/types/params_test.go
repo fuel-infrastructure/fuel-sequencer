@@ -44,6 +44,11 @@ func TestVestingTimesFromVestingDuration(t *testing.T) {
 			expErrMsg:       "expected duration to be greater than 0",
 		},
 		{
+			name:            "negative vesting duration is less than vestingStartTimeDelay => err",
+			vestingDuration: -1,
+			expErrMsg:       "expected duration to be greater than 0",
+		},
+		{
 			name:            "6 months vesting duration is less than vestingStartTimeDelay => 1 year lock not applied",
 			vestingDuration: months6,
 			expStartTime:    t0,

@@ -365,7 +365,7 @@ func ValidateSequencerTxsAllocation(i interface{}) error {
 // - Actual vesting end time: 2024-01 + vesting duration = 2025-01
 func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Time, time.Time, error) {
 
-	if duration == 0 {
+	if duration <= 0 {
 		return time.Time{}, time.Time{}, ErrInvalidVestingDuration.Wrapf("expected duration to be greater than 0")
 	}
 
