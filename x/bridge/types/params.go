@@ -64,8 +64,10 @@ const (
 	// delta info to Ethereum.
 	DefaultSupplyDeltaPeriod = uint64(10)
 
-	// vestingStartTimeDelay is a constant period of time during which tokens are completely locked.
-	vestingStartTimeDelay = time.Hour * 24 * 365
+	// vestingStartTimeDelay represents a fixed period during which tokens are fully locked. Due to new requirements,
+	// this value has been set to zero to eliminate lockup periods. The functionality has been retained for potential
+	// future use if lockup requirements are reintroduced.
+	vestingStartTimeDelay = 0
 
 	// DefaultInjectedEventTxMaxBytes is the default max size in bytes for an injected event tx in a block. This is set
 	// to 20000000 assuming a max block size of 22020096 bytes, index tx size 103 bytes and supply delta tx size of 105.
@@ -353,7 +355,7 @@ func ValidateSequencerTxsAllocation(i interface{}) error {
 // applied, meaning that vesting will start from VestingStartTime.
 //
 // Example 1: for a VestingStartTime set to 2024-01 and a vesting duration of 2 years:
-// - Actual vesting start time: 2024-01 + vestingStartTimeDelay = 2025-01
+// - Actual vesting start time: 2024-01 + vestingStartTimeDelay (0) = 2024-01
 // - Actual vesting end time: 2024-01 + vesting duration = 2026-01
 //
 // Example 2: for a VestingStartTime set to 2024-01 and a vesting duration of 6 months:
@@ -363,6 +365,9 @@ func ValidateSequencerTxsAllocation(i interface{}) error {
 // Example 3: for a VestingStartTime set to 2024-01 and a vesting duration of 1 year:
 // - Actual vesting start time: 2024-01
 // - Actual vesting end time: 2024-01 + vesting duration = 2025-01
+//
+// NOTE: Since VestingStartTimeDelay is set to zero, the vesting start time will always be the same as
+// p.vestingStartTime
 func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Time, time.Time, error) {
 
 	if duration <= 0 {
