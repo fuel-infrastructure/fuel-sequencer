@@ -39,49 +39,49 @@ func TestVestingTimesFromVestingDuration(t *testing.T) {
 		expErrMsg       string
 	}{
 		{
-			name:            "Zero vesting duration is less than vestingStartTimeDelay => err",
+			name:            "Zero vesting duration => err",
 			vestingDuration: 0,
 			expErrMsg:       "expected duration to be greater than 0",
 		},
 		{
-			name:            "negative vesting duration is less than vestingStartTimeDelay => err",
+			name:            "negative vesting duration => err",
 			vestingDuration: -1,
 			expErrMsg:       "expected duration to be greater than 0",
 		},
 		{
-			name:            "6 months vesting duration is less than vestingStartTimeDelay => 1 year lock not applied",
+			name:            "6 months vesting duration => no cliff + 6 months vesting duration",
 			vestingDuration: months6,
 			expStartTime:    t0,
 			expEndTime:      t0Plus6Months,
 		},
 		{
-			name:            "Almost 1 year vesting duration is less than vestingStartTimeDelay => 1 year lock not applied",
+			name:            "Almost 1 year vesting duration => no cliff + almost 1 year vesting duration",
 			vestingDuration: years1 - 1,
 			expStartTime:    t0,
 			expEndTime:      t0Plus1Year.Add(-1),
 		},
 		{
-			name:            "1 year vesting duration is equal to vestingStartTimeDelay => 1 year lock not applied",
+			name:            "1 year vesting duration => no cliff + 1 year vesting duration",
 			vestingDuration: years1,
 			expStartTime:    t0,
 			expEndTime:      t0Plus1Year,
 		},
 		{
-			name:            "Just over 1 year vesting duration => 1 year lock followed by 1ns of vesting",
+			name:            "Just over 1 year vesting duration => no cliff + just over 1 year of vesting duration",
 			vestingDuration: years1 + 1,
-			expStartTime:    t0Plus1Year,        // t0 + 1 year
+			expStartTime:    t0,
 			expEndTime:      t0Plus1Year.Add(1), // t0 + vestingDuration
 		},
 		{
-			name:            "2 years => 1 year lock followed by 1 year vesting",
+			name:            "2 years vesting duration => no cliff + 2 years vesting duration",
 			vestingDuration: years2,
-			expStartTime:    t0Plus1Year,  // t0 + 1 year
+			expStartTime:    t0,
 			expEndTime:      t0Plus2Years, // t0 + vestingDuration
 		},
 		{
-			name:            "4 years => 1 year lock followed by 3 year vesting",
+			name:            "4 years vesting duration => no cliff + 4 years vesting duration",
 			vestingDuration: years4,
-			expStartTime:    t0Plus1Year,  // t0 + 1 year
+			expStartTime:    t0,
 			expEndTime:      t0Plus4Years, // t0 + vestingDuration
 		},
 	}
