@@ -44,11 +44,13 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 	years2 := years1 * 2
 	years3 := years1 * 3
 	years100 := years1 * 100
+	months6 := (time.Hour * 24 * 365) / 2
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
-	t0Plus1Year := t0.Add(years1)  // accounts for vesting start time delay
-	t0Plus2Years := t0.Add(years2) // used for 2-year vesting duration
+	t0Plus1Year := t0.Add(years1)    // accounts for vesting start time delay
+	t0Plus2Years := t0.Add(years2)   // used for 2-year vesting duration
+	t0Plus6months := t0.Add(months6) // used for 6-month vesting duration
 	someTimeWaaaayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
 
 	// Helper token amounts.
@@ -83,28 +85,6 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			},
 			expectErrMsg: "invalid Ethereum address format (invalid_eth_address)",
 		},
-		{
-			name:             "vesting duration < vesting start time delay (1 year) => err",
-			blockTime:        t0,
-			vestingStartTime: t0,
-			args: fnArgs{
-				ethAddress:      testutiltypes.TestEthAddr1Str,
-				vestingDuration: years1 - 1,
-				totalCoins:      token100,
-			},
-			expectErrMsg: "must be greater than vesting start time delay, got 8759h59m59.999999999s <= 8760h0m0s",
-		},
-		{
-			name:             "vesting duration == vesting start time delay (1 year) => err",
-			blockTime:        t0,
-			vestingStartTime: t0,
-			args: fnArgs{
-				ethAddress:      testutiltypes.TestEthAddr1Str,
-				vestingDuration: years1,
-				totalCoins:      token100,
-			},
-			expectErrMsg: "must be greater than vesting start time delay, got 8760h0m0s <= 8760h0m0s",
-		},
 		//
 		// --------- Test cases with no precreated account
 		//
@@ -130,6 +110,52 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			},
 			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token100,
+		},
+		{
+			name:             "deposit with vesting < 1 year => EthOwnedContinuousVestingAccount",
+			blockTime:        t0,
+			vestingStartTime: t0,
+			fundAccount:      token100,
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: months6,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+				&vestingtypes.ContinuousVestingAccount{
+					StartTime: t0.Unix(),
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:     seqAddr1BaseAcc,
+						OriginalVesting: token100,
+						EndTime:         t0Plus6months.Unix(),
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			expectSpendableCoins: nil, // none of the vesting tokens are available
+		},
+		{
+			name:             "deposit with vesting == 1 year => EthOwnedContinuousVestingAccount",
+			blockTime:        t0,
+			vestingStartTime: t0,
+			fundAccount:      token100,
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: years1,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+				&vestingtypes.ContinuousVestingAccount{
+					StartTime: t0.Unix(),
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:     seqAddr1BaseAcc,
+						OriginalVesting: token100,
+						EndTime:         t0Plus1Year.Unix(),
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			expectSpendableCoins: nil, // none of the vesting tokens are available
 		},
 		{
 			// blockTime:              t0
