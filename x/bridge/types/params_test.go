@@ -14,10 +14,10 @@ import (
 func TestVestingTimesFromVestingDuration(t *testing.T) {
 
 	// Helper durations.
-	months6 := (time.Hour * 24 * 365) / 2
 	years1 := time.Hour * 24 * 365
 	years2 := years1 * 2
 	years4 := years1 * 4
+	months6 := years1 / 2
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
