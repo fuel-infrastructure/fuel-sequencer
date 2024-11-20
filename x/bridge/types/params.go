@@ -65,7 +65,7 @@ const (
 	DefaultSupplyDeltaPeriod = uint64(10)
 
 	// vestingStartTimeDelay is a constant period of time during which tokens are completely locked.
-	vestingStartTimeDelay = time.Hour * 24 * 365
+	vestingStartTimeDelay = 0 // no delay
 
 	// DefaultInjectedEventTxMaxBytes is the default max size in bytes for an injected event tx in a block. This is set
 	// to 20000000 assuming a max block size of 22020096 bytes, index tx size 103 bytes and supply delta tx size of 105.
