@@ -17,12 +17,14 @@ func TestVestingTimesFromVestingDuration(t *testing.T) {
 	years1 := time.Hour * 24 * 365
 	years2 := years1 * 2
 	years4 := years1 * 4
+	months6 := years1 / 2
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
-	t0Plus1Year := t0.Add(years1)  // accounts for vesting start time delay
-	t0Plus2Years := t0.Add(years2) // used for 2-year vesting duration
-	t0Plus4Years := t0.Add(years4) // used for 4-year vesting duration
+	t0Plus1Year := t0.Add(years1)    // accounts for vesting start time delay
+	t0Plus2Years := t0.Add(years2)   // used for 2-year vesting duration
+	t0Plus4Years := t0.Add(years4)   // used for 4-year vesting duration
+	t0Plus6Months := t0.Add(months6) // used for 6-month vesting duration
 
 	// Fixed params.
 	params := types.Params{
@@ -37,36 +39,49 @@ func TestVestingTimesFromVestingDuration(t *testing.T) {
 		expErrMsg       string
 	}{
 		{
-			name:            "Zero vesting duration is less than vestingStartTimeDelay => err",
+			name:            "Zero vesting duration => err",
 			vestingDuration: 0,
-			expErrMsg:       "must be greater than vesting start time delay, got 0s <= 8760h0m0s",
+			expErrMsg:       "expected duration to be greater than 0",
 		},
 		{
-			name:            "Almost 1 year vesting duration is less than vestingStartTimeDelay => err",
+			name:            "negative vesting duration => err",
+			vestingDuration: -1,
+			expErrMsg:       "expected duration to be greater than 0",
+		},
+		{
+			name:            "6 months vesting duration => no cliff + 6 months vesting duration",
+			vestingDuration: months6,
+			expStartTime:    t0,
+			expEndTime:      t0Plus6Months,
+		},
+		{
+			name:            "Almost 1 year vesting duration => no cliff + almost 1 year vesting duration",
 			vestingDuration: years1 - 1,
-			expErrMsg:       "must be greater than vesting start time delay, got 8759h59m59.999999999s <= 8760h0m0s",
+			expStartTime:    t0,
+			expEndTime:      t0Plus1Year.Add(-1),
 		},
 		{
-			name:            "1 year vesting duration is equal to vestingStartTimeDelay => err",
+			name:            "1 year vesting duration => no cliff + 1 year vesting duration",
 			vestingDuration: years1,
-			expErrMsg:       "must be greater than vesting start time delay, got 8760h0m0s <= 8760h0m0s",
+			expStartTime:    t0,
+			expEndTime:      t0Plus1Year,
 		},
 		{
-			name:            "Just over 1 year vesting duration is valid",
+			name:            "Just over 1 year vesting duration => no cliff + just over 1 year of vesting duration",
 			vestingDuration: years1 + 1,
-			expStartTime:    t0Plus1Year,        // t0 + 1 year
+			expStartTime:    t0,
 			expEndTime:      t0Plus1Year.Add(1), // t0 + vestingDuration
 		},
 		{
-			name:            "2 years => 1 year lock followed by 1 year vesting",
+			name:            "2 years vesting duration => no cliff + 2 years vesting duration",
 			vestingDuration: years2,
-			expStartTime:    t0Plus1Year,  // t0 + 1 year
+			expStartTime:    t0,
 			expEndTime:      t0Plus2Years, // t0 + vestingDuration
 		},
 		{
-			name:            "4 years => 1 year lock followed by 3 year vesting",
+			name:            "4 years vesting duration => no cliff + 4 years vesting duration",
 			vestingDuration: years4,
-			expStartTime:    t0Plus1Year,  // t0 + 1 year
+			expStartTime:    t0,
 			expEndTime:      t0Plus4Years, // t0 + vestingDuration
 		},
 	}
