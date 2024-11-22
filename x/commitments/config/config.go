@@ -7,9 +7,11 @@ import (
 )
 
 const (
-	FlagCommitmentsApiEnabled = "commitments.api-enabled"
+	FlagCommitmentsApiEnabled    = "commitments.api-enabled"
+	FlagCommitmentsMaxQueryRange = "commitments.max-query-range"
 
-	DefaultCommitmentsApiEnabled = false
+	DefaultCommitmentsApiEnabled    = false
+	DefaultCommitmentsMaxQueryRange = 4096
 )
 
 func AddStartCmdFlags(startCmd *cobra.Command) {
@@ -17,6 +19,11 @@ func AddStartCmdFlags(startCmd *cobra.Command) {
 		FlagCommitmentsApiEnabled,
 		DefaultCommitmentsApiEnabled,
 		"Commitments API enabled",
+	)
+	startCmd.Flags().Uint64(
+		FlagCommitmentsMaxQueryRange,
+		DefaultCommitmentsMaxQueryRange,
+		"Commitments API max query range",
 	)
 }
 
@@ -27,6 +34,11 @@ type Config struct {
 	// accidental exposure of Bridge Commitment queries, which could be exploited to perform a DoS attack if not
 	// properly secured.
 	ApiEnabled bool `mapstructure:"api-enabled"`
+
+	// MaxQueryRange determines the maximum difference between the start block and end block when querying for bridge
+	// commitments and bridge commitment inclusion proofs. It allows the node operator to limit the query size.
+	// Otherwise, the entire block range of the chain could be queried (i.e. from block 1 to the latest block).
+	MaxQueryRange uint64 `mapstructure:"max-query-range"`
 }
 
 func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg Config, err error) {
@@ -34,6 +46,13 @@ func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg Config, err error
 	// determine if the API is enabled
 	if v := opts.Get(FlagCommitmentsApiEnabled); v != nil {
 		if cfg.ApiEnabled, err = cast.ToBoolE(v); err != nil {
+			return
+		}
+	}
+
+	// determine the max query range
+	if v := opts.Get(FlagCommitmentsMaxQueryRange); v != nil {
+		if cfg.MaxQueryRange, err = cast.ToUint64E(v); err != nil {
 			return
 		}
 	}

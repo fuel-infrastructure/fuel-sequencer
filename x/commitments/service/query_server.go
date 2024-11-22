@@ -15,15 +15,18 @@ import (
 type queryServer struct {
 	clientCtx         client.Context
 	interfaceRegistry codectypes.InterfaceRegistry
+	maxQueryRange     uint64
 }
 
 func NewQueryServer(
 	clientCtx client.Context,
 	interfaceRegistry codectypes.InterfaceRegistry,
+	maxQueryRange uint64,
 ) types.QueryServer {
 	return queryServer{
 		clientCtx:         clientCtx,
 		interfaceRegistry: interfaceRegistry,
+		maxQueryRange:     maxQueryRange,
 	}
 }
 
@@ -34,7 +37,7 @@ func (q queryServer) BridgeCommitment(
 ) (*types.QueryBridgeCommitmentResponse, error) {
 	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment")
 
-	err := validateBridgeCommitmentRange(ctx, q.clientCtx, req.Start, req.End)
+	err := q.validateBridgeCommitmentRange(ctx, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +69,7 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 ) (*types.QueryBridgeCommitmentInclusionProofResponse, error) {
 	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment", "inclusion", "proof")
 
-	err := validateBridgeCommitmentInclusionProofRequest(ctx, q.clientCtx, uint64(req.Height), req.Start, req.End)
+	err := q.validateBridgeCommitmentInclusionProofRequest(ctx, uint64(req.Height), req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
