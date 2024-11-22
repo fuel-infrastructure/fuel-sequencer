@@ -40,7 +40,7 @@ SEQ_RESTS = {
 
 SEQ_CHAINS = {
     Networks.TESTNET: "seq-testnet-1",
-    Networks.SANDBOX: "seq-sandbox-2",
+    Networks.SANDBOX: "seq-sandbox-3",
     Networks.LOCAL: "fuelsequencer-1",
 }
 
