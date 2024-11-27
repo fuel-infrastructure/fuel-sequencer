@@ -50,6 +50,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		validator1Address := s.SeqKeys[0].ValAddressSeq
 		validator2Address := s.SeqKeys[1].ValAddressSeq
 		delegatorAddress := s.EthKeys[0].AddressHex
+		withdrawAddress := s.EthKeys[1].AddressHex    // alternate rewards withdrawal address (hex)
+		withdrawAddressSeq := s.EthKeys[1].AddressSeq // alternate rewards withdrawal address (bech32)
 
 		// Make sure that the delegator's balance is as expected.
 		expectedInitDelegatorBalance := testsuite.InitBalanceCoin
@@ -132,6 +134,22 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		// To make sure that the rewards withdrawal went through make sure that the rewards balance went down
 		lessRewards := s.QueryDelegationRewards(s.Ctx(), delegatorAddress, validator2Address)
 		s.Require().True(lessRewards.AmountOf(testsuite.BridgeDenom).LT(rewards.AmountOf(testsuite.BridgeDenom)))
+
+		// ----------------------------------- Test MsgSetWithdrawAddress
+
+		// Generate Authorize event wrapping a MsgSetWithdrawAddress.
+		msgSetWithdrawAddressBz := s.E2ETestSuite.GenerateMsgSetWithdrawAddressBz(
+			delegatorAddress, withdrawAddress,
+		)
+		authorizeData = testsuite.PackAuthorize(msgSetWithdrawAddressBz)
+		txReceipt, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Wait for the change to be processed.
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, txReceipt.BlockNumber.Uint64())
+
+		// Check that the withdrawals address was updated
+		s.Require().Equal(withdrawAddressSeq, s.QueryDelegatorWithdrawAddress(s.Ctx(), delegatorAddress))
 
 		// ----------------------------------- Test MsgUndelegate
 

@@ -6,11 +6,13 @@ import (
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // SetLastEthereumNonce set lastEthereumNonce in the store
 func (k Keeper) SetLastEthereumNonce(ctx context.Context, lastEthereumNonce math.Int) {
+	defer metrics.SetLastEthereumNonce(ctx, lastEthereumNonce)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumNonceKey)
 
@@ -47,17 +49,17 @@ func (k Keeper) MustGetLastEthereumNonce(ctx context.Context) math.Int {
 	return val
 }
 
-// MustGetNextEthereumNonce increments LastEthereumNonce by one and returns the result. It panics if LastEthereumNonce
-// is not found
+// MustGetNextEthereumNonce returns LastEthereumNonce + 1.
+// It panics if LastEthereumNonce is not found.
 func (k Keeper) MustGetNextEthereumNonce(ctx context.Context) math.Int {
-	val, found := k.GetLastEthereumNonce(ctx)
-	if !found {
-		panic("expected to find LastEthereumNonce")
-	}
+	return k.MustGetLastEthereumNonce(ctx).AddRaw(1)
+}
 
-	newVal := val.AddRaw(1)
+// MustGetNextEthereumNonceAndIncrement calculates LastEthereumNonce + 1, saves it, and returns the result.
+// It panics if LastEthereumNonce is not found.
+func (k Keeper) MustGetNextEthereumNonceAndIncrement(ctx context.Context) math.Int {
+	newVal := k.MustGetNextEthereumNonce(ctx)
 	k.SetLastEthereumNonce(ctx, newVal)
-
 	return newVal
 }
 

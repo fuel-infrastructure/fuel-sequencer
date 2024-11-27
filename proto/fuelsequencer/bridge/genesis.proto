@@ -45,4 +45,9 @@ message GenesisState {
   // up with an Ethereum block.
   google.protobuf.Timestamp last_eth_block_update_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // last_consensus_txs_sequence is the last sequence used in consensus txs.
+  // In other words, the next sequence to be used is this value +1.
+  // It is unique for each consensus tx, ensuring a unique tx hash.
+  uint64 last_consensus_txs_sequence = 7;
 }

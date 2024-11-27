@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -60,6 +61,7 @@ func (k Keeper) UpdateSupplyDeltaInfoWithNewDelta(ctx sdk.Context, bankKeeper ty
 	// Get latest recorded supply and actual supply.
 	supplyDeltaInfo := k.MustGetSupplyDeltaInfo(ctx)
 	currentSupply := bankKeeper.GetSupply(ctx, k.GetParams(ctx).BridgeDenom).Amount
+	defer metrics.ObserveSupplyDeltaForReport(ctx, supplyDeltaInfo, currentSupply)
 
 	// ToReport = (CurrentSupply - LastSupply) + offset
 	// This will report the supply change from the previous MsgSupplyDelta to Height - 1

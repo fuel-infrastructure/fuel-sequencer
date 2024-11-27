@@ -8,21 +8,25 @@ import (
 	cmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )
 
 type queryServer struct {
 	clientCtx         client.Context
 	interfaceRegistry codectypes.InterfaceRegistry
+	maxQueryRange     uint64
 }
 
 func NewQueryServer(
 	clientCtx client.Context,
 	interfaceRegistry codectypes.InterfaceRegistry,
+	maxQueryRange uint64,
 ) types.QueryServer {
 	return queryServer{
 		clientCtx:         clientCtx,
 		interfaceRegistry: interfaceRegistry,
+		maxQueryRange:     maxQueryRange,
 	}
 }
 
@@ -31,7 +35,9 @@ func NewQueryServer(
 func (q queryServer) BridgeCommitment(
 	ctx context.Context, req *types.QueryBridgeCommitmentRequest,
 ) (*types.QueryBridgeCommitmentResponse, error) {
-	err := validateBridgeCommitmentRange(ctx, q.clientCtx, req.Start, req.End)
+	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment")
+
+	err := q.validateBridgeCommitmentRange(ctx, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +67,9 @@ func (q queryServer) BridgeCommitment(
 func (q queryServer) BridgeCommitmentInclusionProof(
 	ctx context.Context, req *types.QueryBridgeCommitmentInclusionProofRequest,
 ) (*types.QueryBridgeCommitmentInclusionProofResponse, error) {
-	err := validateBridgeCommitmentInclusionProofRequest(ctx, q.clientCtx, uint64(req.Height), req.Start, req.End)
+	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment", "inclusion", "proof")
+
+	err := q.validateBridgeCommitmentInclusionProofRequest(ctx, uint64(req.Height), req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}

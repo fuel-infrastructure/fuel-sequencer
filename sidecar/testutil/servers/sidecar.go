@@ -2,12 +2,13 @@ package servers
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"cosmossdk.io/errors"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 // TestSidecarServer is a lightweight gRPC server used to simulate the Sidecar server. This approach is sometimes
@@ -26,22 +27,19 @@ func MustMakeTestSidecarServer(address string, pathToCertFile, pathToKeyFile str
 		panic(errors.Wrapf(err, "failed to listen on %s", address))
 	}
 
-	// Default to insecure credentials if either pathToKeyFIle or pathToCertFile are empty, otherwise, use TLS.
-	var s *grpc.Server
-	if pathToKeyFile == "" || pathToCertFile == "" {
-		s = grpc.NewServer()
-	} else {
-		creds, err := credentials.NewServerTLSFromFile(pathToCertFile, pathToKeyFile)
-		if err != nil {
-			panic(errors.Wrap(err, "failed to load TLS credentials"))
-		}
-
-		s = grpc.NewServer(grpc.Creds(creds))
+	// Make use of certificates if indicated by the operator
+	serverCredentials, _, _, err := credentials.NewServerTransportCredentialsFromCertFile(
+		pathToCertFile, pathToKeyFile,
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to get sidecar server TLS credentials; error: %w", err))
 	}
 
+	server := grpc.NewServer(grpc.Creds(serverCredentials))
+
 	// Register the TestSidecarServer as a SidecarServer in order to register all endpoints
-	testSidecarServer := &TestSidecarServer{server: s, lis: lis}
-	sidecartypes.RegisterSidecarServer(s, testSidecarServer)
+	testSidecarServer := &TestSidecarServer{server: server, lis: lis}
+	sidecartypes.RegisterSidecarServer(server, testSidecarServer)
 
 	return testSidecarServer
 }

@@ -15,21 +15,14 @@ Dependencies:
     - Preferred version: `0.14.0`
 - go
     - https://go.dev/doc/install
-    - Preferred version: `1.21`
+    - Preferred version: `1.22`
 
-To run the FuelSequencer with enabled Sidecar and an Ethereum node:
+To run the Sequencer, Sidecar, and an Ethereum node:
 
 ```bash
 make install run-eth-e2e-containers run-sequencer  # terminal 1
 make run-sidecar                                   # terminal 2
 make clean                                         # once you're done
-```
-
-To run the FuelSequencer on its own, you can run a version with disabled Sidecar:
-
-```bash
-make run-sequencer-no-sidecar
-make clean # once you're done
 ```
 
 To run just the Sidecar and an Ethereum node:

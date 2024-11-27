@@ -38,7 +38,7 @@ BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
 GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1-2)
-REQUIRE_GO_VERSION = 1.21
+REQUIRE_GO_VERSION = 1.22
 
 export GO111MODULE = on
 
@@ -225,8 +225,8 @@ proto-go-gen:
 
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
-		find ./proto -name "*.proto" -exec clang-format -i {} \; ; fi
+	@docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+		find ./proto -name "*.proto" -exec clang-format -i {} \;
 	@echo "✅ Finished formatting Protobuf files!"
 
 proto-swagger-gen:
@@ -240,8 +240,6 @@ proto-routine: proto-format proto-go-gen proto-swagger-gen
 ###############################################################################
 
 run-sequencer: proto-go-gen serve
-
-run-sequencer-no-sidecar: proto-go-gen serve-no-sidecar
 
 run-sidecar:
 	@$(eval SIDECAR_HOST ?= "0.0.0.0")
@@ -295,9 +293,6 @@ serve:
 
 serve-force-reset:
 	ignite chain serve -v --force-reset --skip-proto --build.tags ledger
-
-serve-no-sidecar:
-	ignite chain serve -v --reset-once --skip-proto --build.tags ledger --config config-no-sidecar.yml
 
 keys:
 	@echo "🤖 Generating keys..."

@@ -6,11 +6,13 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-// SetLastEthereumBlockSynced sets lastEthereumBlockSynced in the store
+// SetLastEthereumBlockSynced sets lastEthereumBlockSynced in the store and metrics server
 func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBlockSynced uint64) {
+	defer metrics.SetLastEthereumBlockSynced(ctx, lastEthereumBlockSynced)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
 	b := sdk.Uint64ToBigEndian(lastEthereumBlockSynced)

@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	TestAppGenesisAccountBalance = math.NewInt(100_000_000_000_000)
+	TestAppGenesisAccountBalance = math.NewInt(100_000)
 	TestAppGenesisStakedAmount   = sdk.DefaultPowerReduction // used by simtestutil.GenesisStateWithValSet
 	TestAppGenesisSupply         = TestAppGenesisAccountBalance.Add(TestAppGenesisStakedAmount)
 )

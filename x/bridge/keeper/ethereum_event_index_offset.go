@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -14,8 +15,9 @@ func (k Keeper) ResetEthereumEventIndexOffset(ctx context.Context) {
 	k.SetEthereumEventIndexOffset(ctx, 0)
 }
 
-// SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store
+// SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store and metrics server
 func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset uint64) {
+	defer metrics.SetEthereumEventIndexOffset(ctx, ethereumEventIndexOffset)
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
 	b := sdk.Uint64ToBigEndian(ethereumEventIndexOffset)

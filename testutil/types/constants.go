@@ -17,6 +17,7 @@ var (
 	// TestEthAddr1Str maps to TestSeqAddr1Str deterministically
 	TestEthAddr1Str = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
+	TestValAddr1Str = "fuelsequencervaloper1w8rk2mk84wytpxx7ld63kaqpkhmd39m0ky2e6a"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
 	FirstAccountSequence             = uint64(0)
@@ -308,6 +309,36 @@ var (
 			BlockNumber:         1,
 		},
 		Events: TestEventsReduced,
+	}
+
+	TestMsgIndexIncorrectAuthority = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestSeqAddr1Str, // not the governance address
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithNoNewEthBlock = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    false, // no new block
+			BlockNumber:         1,
+		},
+		Events: TestEvents,
+	}
+
+	TestMsgIndexWithDiffBlockNumber = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: uint64(len(TestEvents)),
+			NewEthereumBlock:    true,
+			BlockNumber:         100, // not 1
+		},
+		Events: TestEvents,
 	}
 
 	TestMsgIndexPartial = TestMsgIndexWithEvents{

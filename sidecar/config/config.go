@@ -6,6 +6,7 @@ import (
 	"time"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
@@ -29,8 +30,11 @@ func AddStartCmdFlags(startCmd *cobra.Command) {
 	startCmd.Flags().String(
 		FlagSidecarPathToCertFile,
 		DefaultSidecarPathToCertFile,
-		"Path to the certificate file of the sidecar server for secure communication. This needs to be specified if "+
-			"the sidecar server was configured with TLS",
+		fmt.Sprintf(
+			"Path to the sidecar server certificate for secure communication. "+
+				"Required if the server uses TLS. For default credentials, set to '%s'.",
+			credentials.UseDefaultTLS,
+		),
 	)
 }
 

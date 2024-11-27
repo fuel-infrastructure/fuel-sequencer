@@ -10,9 +10,8 @@ import (
 	"cosmossdk.io/log"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var _ AppSidecarClient = (*GRPCClient)(nil)
@@ -101,15 +100,9 @@ func (c *GRPCClient) Start(ctx context.Context) error {
 	c.logger.Info("starting GRPC Sidecar client", "sidecar server address", c.addr)
 
 	// Set up a secure connection with the sidecar server if configured by the operator
-	var sidecarConnCreds credentials.TransportCredentials
-	var err error
-	if c.pathToCertFile == "" {
-		sidecarConnCreds = insecure.NewCredentials()
-	} else {
-		sidecarConnCreds, err = credentials.NewClientTLSFromFile(c.pathToCertFile, "")
-		if err != nil {
-			return fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err)
-		}
+	sidecarConnCreds, err := credentials.NewClientTransportCredentialsFromCertFile(c.pathToCertFile)
+	if err != nil {
+		return fmt.Errorf("failed to get sidecar server TLS credentials; error: %w", err)
 	}
 
 	opts := []grpc.DialOption{

@@ -543,6 +543,102 @@ func (m *QuerySequencerAddressFromEthereumAddressResponse) GetSequencerAddress()
 	return ""
 }
 
+type QueryEthereumAddressFromSequencerAddressRequest struct {
+	SequencerAddress string `protobuf:"bytes,1,opt,name=sequencer_address,json=sequencerAddress,proto3" json:"sequencer_address,omitempty"`
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressRequest) Reset() {
+	*m = QueryEthereumAddressFromSequencerAddressRequest{}
+}
+func (m *QueryEthereumAddressFromSequencerAddressRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryEthereumAddressFromSequencerAddressRequest) ProtoMessage() {}
+func (*QueryEthereumAddressFromSequencerAddressRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_374d0ea27e584428, []int{12}
+}
+func (m *QueryEthereumAddressFromSequencerAddressRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryEthereumAddressFromSequencerAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryEthereumAddressFromSequencerAddressRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryEthereumAddressFromSequencerAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryEthereumAddressFromSequencerAddressRequest.Merge(m, src)
+}
+func (m *QueryEthereumAddressFromSequencerAddressRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryEthereumAddressFromSequencerAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryEthereumAddressFromSequencerAddressRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryEthereumAddressFromSequencerAddressRequest proto.InternalMessageInfo
+
+func (m *QueryEthereumAddressFromSequencerAddressRequest) GetSequencerAddress() string {
+	if m != nil {
+		return m.SequencerAddress
+	}
+	return ""
+}
+
+type QueryEthereumAddressFromSequencerAddressResponse struct {
+	EthereumAddress string `protobuf:"bytes,1,opt,name=ethereum_address,json=ethereumAddress,proto3" json:"ethereum_address,omitempty"`
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressResponse) Reset() {
+	*m = QueryEthereumAddressFromSequencerAddressResponse{}
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryEthereumAddressFromSequencerAddressResponse) ProtoMessage() {}
+func (*QueryEthereumAddressFromSequencerAddressResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_374d0ea27e584428, []int{13}
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryEthereumAddressFromSequencerAddressResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryEthereumAddressFromSequencerAddressResponse.Merge(m, src)
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryEthereumAddressFromSequencerAddressResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryEthereumAddressFromSequencerAddressResponse proto.InternalMessageInfo
+
+func (m *QueryEthereumAddressFromSequencerAddressResponse) GetEthereumAddress() string {
+	if m != nil {
+		return m.EthereumAddress
+	}
+	return ""
+}
+
 type QueryGetLastEthBlockUpdateTimeRequest struct {
 }
 
@@ -550,7 +646,7 @@ func (m *QueryGetLastEthBlockUpdateTimeRequest) Reset()         { *m = QueryGetL
 func (m *QueryGetLastEthBlockUpdateTimeRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetLastEthBlockUpdateTimeRequest) ProtoMessage()    {}
 func (*QueryGetLastEthBlockUpdateTimeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_374d0ea27e584428, []int{12}
+	return fileDescriptor_374d0ea27e584428, []int{14}
 }
 func (m *QueryGetLastEthBlockUpdateTimeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -589,7 +685,7 @@ func (m *QueryGetLastEthBlockUpdateTimeResponse) Reset() {
 func (m *QueryGetLastEthBlockUpdateTimeResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetLastEthBlockUpdateTimeResponse) ProtoMessage()    {}
 func (*QueryGetLastEthBlockUpdateTimeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_374d0ea27e584428, []int{13}
+	return fileDescriptor_374d0ea27e584428, []int{15}
 }
 func (m *QueryGetLastEthBlockUpdateTimeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -625,6 +721,90 @@ func (m *QueryGetLastEthBlockUpdateTimeResponse) GetLastEthBlockUpdateTime() tim
 	return time.Time{}
 }
 
+type QueryGetLastConsensusTxsSequenceRequest struct {
+}
+
+func (m *QueryGetLastConsensusTxsSequenceRequest) Reset() {
+	*m = QueryGetLastConsensusTxsSequenceRequest{}
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetLastConsensusTxsSequenceRequest) ProtoMessage()    {}
+func (*QueryGetLastConsensusTxsSequenceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_374d0ea27e584428, []int{16}
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetLastConsensusTxsSequenceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetLastConsensusTxsSequenceRequest.Merge(m, src)
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetLastConsensusTxsSequenceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetLastConsensusTxsSequenceRequest proto.InternalMessageInfo
+
+type QueryGetLastConsensusTxsSequenceResponse struct {
+	Sequence uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+}
+
+func (m *QueryGetLastConsensusTxsSequenceResponse) Reset() {
+	*m = QueryGetLastConsensusTxsSequenceResponse{}
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetLastConsensusTxsSequenceResponse) ProtoMessage()    {}
+func (*QueryGetLastConsensusTxsSequenceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_374d0ea27e584428, []int{17}
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetLastConsensusTxsSequenceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetLastConsensusTxsSequenceResponse.Merge(m, src)
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetLastConsensusTxsSequenceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetLastConsensusTxsSequenceResponse proto.InternalMessageInfo
+
+func (m *QueryGetLastConsensusTxsSequenceResponse) GetSequence() uint64 {
+	if m != nil {
+		return m.Sequence
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "fuelsequencer.bridge.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "fuelsequencer.bridge.v1.QueryParamsResponse")
@@ -638,8 +818,12 @@ func init() {
 	proto.RegisterType((*QueryGetEthereumEventIndexOffsetResponse)(nil), "fuelsequencer.bridge.v1.QueryGetEthereumEventIndexOffsetResponse")
 	proto.RegisterType((*QuerySequencerAddressFromEthereumAddressRequest)(nil), "fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressRequest")
 	proto.RegisterType((*QuerySequencerAddressFromEthereumAddressResponse)(nil), "fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressResponse")
+	proto.RegisterType((*QueryEthereumAddressFromSequencerAddressRequest)(nil), "fuelsequencer.bridge.v1.QueryEthereumAddressFromSequencerAddressRequest")
+	proto.RegisterType((*QueryEthereumAddressFromSequencerAddressResponse)(nil), "fuelsequencer.bridge.v1.QueryEthereumAddressFromSequencerAddressResponse")
 	proto.RegisterType((*QueryGetLastEthBlockUpdateTimeRequest)(nil), "fuelsequencer.bridge.v1.QueryGetLastEthBlockUpdateTimeRequest")
 	proto.RegisterType((*QueryGetLastEthBlockUpdateTimeResponse)(nil), "fuelsequencer.bridge.v1.QueryGetLastEthBlockUpdateTimeResponse")
+	proto.RegisterType((*QueryGetLastConsensusTxsSequenceRequest)(nil), "fuelsequencer.bridge.v1.QueryGetLastConsensusTxsSequenceRequest")
+	proto.RegisterType((*QueryGetLastConsensusTxsSequenceResponse)(nil), "fuelsequencer.bridge.v1.QueryGetLastConsensusTxsSequenceResponse")
 }
 
 func init() {
@@ -647,63 +831,71 @@ func init() {
 }
 
 var fileDescriptor_374d0ea27e584428 = []byte{
-	// 893 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcd, 0x4f, 0x3b, 0x45,
-	0x18, 0xee, 0xfe, 0x02, 0x8d, 0x0c, 0x07, 0x60, 0x24, 0x80, 0x1b, 0xd2, 0x96, 0x25, 0xc8, 0x57,
-	0xdd, 0xb5, 0x80, 0x1f, 0x28, 0xb1, 0xd2, 0x88, 0x4a, 0x62, 0xfc, 0x68, 0x81, 0x83, 0x9a, 0xac,
-	0xd3, 0x76, 0xb6, 0x6c, 0xec, 0xee, 0x2c, 0x3b, 0xb3, 0x0d, 0x8d, 0xf1, 0xe2, 0xd1, 0x78, 0x20,
-	0xf1, 0xe0, 0xbf, 0xe0, 0xd1, 0xa3, 0x47, 0x13, 0x2f, 0x1c, 0x49, 0x4c, 0x8c, 0x1e, 0xfc, 0x08,
-	0x98, 0xf8, 0x6f, 0x98, 0x9d, 0x99, 0x85, 0xb0, 0x1f, 0x6d, 0xc1, 0xdf, 0xa5, 0xe9, 0xbc, 0xf3,
-	0xbc, 0xcf, 0xfb, 0x3c, 0xb3, 0xf3, 0xbe, 0x03, 0x96, 0xad, 0x00, 0x77, 0x29, 0x3e, 0x0b, 0xb0,
-	0xdb, 0xc2, 0xbe, 0xd1, 0xf4, 0xed, 0x76, 0x07, 0x1b, 0xbd, 0x8a, 0x71, 0x16, 0x60, 0xbf, 0xaf,
-	0x7b, 0x3e, 0x61, 0x04, 0xce, 0xdf, 0x03, 0xe9, 0x02, 0xa4, 0xf7, 0x2a, 0xea, 0x0c, 0x72, 0x6c,
-	0x97, 0x18, 0xfc, 0x57, 0x60, 0xd5, 0xd9, 0x0e, 0xe9, 0x10, 0xfe, 0xd7, 0x08, 0xff, 0xc9, 0xe8,
-	0x62, 0x87, 0x90, 0x4e, 0x17, 0x1b, 0xc8, 0xb3, 0x0d, 0xe4, 0xba, 0x84, 0x21, 0x66, 0x13, 0x97,
-	0xca, 0xdd, 0xe7, 0x5a, 0x84, 0x3a, 0x84, 0x9a, 0x22, 0x4d, 0x2c, 0xe4, 0xd6, 0x86, 0x58, 0x19,
-	0x4d, 0x44, 0xb1, 0xd0, 0x64, 0xf4, 0x2a, 0x4d, 0xcc, 0x50, 0xc5, 0xf0, 0x50, 0xc7, 0x76, 0x39,
-	0x8f, 0xc4, 0x2e, 0xa5, 0x7a, 0xf1, 0x90, 0x8f, 0x9c, 0x88, 0xae, 0x9c, 0x0a, 0xa1, 0x81, 0xe7,
-	0x75, 0xfb, 0x66, 0x1b, 0x77, 0x19, 0x32, 0x6d, 0xd7, 0x8a, 0x54, 0x97, 0x52, 0xd1, 0xb6, 0xdb,
-	0xc6, 0xe7, 0x12, 0x51, 0x94, 0xbe, 0xf8, 0xaa, 0x19, 0x58, 0x06, 0xb3, 0x1d, 0x4c, 0x19, 0x72,
-	0x3c, 0x01, 0xd0, 0x66, 0x01, 0xfc, 0x28, 0x54, 0xfd, 0x21, 0x57, 0x51, 0x0f, 0xb9, 0x28, 0xd3,
-	0x4e, 0xc0, 0xb3, 0xf7, 0xa2, 0xd4, 0x23, 0x2e, 0xc5, 0xb0, 0x0a, 0xf2, 0x42, 0xed, 0x82, 0x52,
-	0x52, 0xd6, 0x26, 0xb7, 0x16, 0xf5, 0xd4, 0x83, 0x17, 0x59, 0xb5, 0x89, 0xcb, 0x3f, 0x8b, 0xb9,
-	0xef, 0xff, 0xfd, 0x61, 0x43, 0xa9, 0xcb, 0x34, 0xad, 0x04, 0x0a, 0x9c, 0xf7, 0x1d, 0xcc, 0x1a,
-	0xdc, 0xd3, 0x5b, 0xa1, 0xa5, 0x43, 0xd7, 0x22, 0x51, 0xe5, 0x73, 0x50, 0xcc, 0x44, 0x48, 0x15,
-	0xc7, 0x60, 0x2a, 0xb6, 0x25, 0xe5, 0xac, 0xa4, 0xcb, 0x89, 0x81, 0x6b, 0x63, 0xa1, 0xae, 0x7a,
-	0x9c, 0x43, 0xd3, 0x40, 0x29, 0xaa, 0xfc, 0x1e, 0xa2, 0xec, 0x80, 0x9d, 0x62, 0x1f, 0x07, 0xce,
-	0xfb, 0xc4, 0x6d, 0xe1, 0x48, 0xdd, 0x2e, 0x58, 0x1a, 0x80, 0x91, 0xfa, 0x66, 0xc1, 0xb8, 0x1b,
-	0x06, 0xb8, 0xaa, 0x89, 0xba, 0x58, 0x68, 0x6b, 0xe0, 0xf9, 0xb4, 0xd4, 0x5a, 0x97, 0xb4, 0x3e,
-	0x6f, 0xf4, 0xdd, 0x16, 0x6e, 0x47, 0x45, 0xaa, 0x60, 0x75, 0x28, 0xf2, 0xae, 0x54, 0x33, 0x0c,
-	0xf3, 0x52, 0x63, 0x75, 0xb1, 0xd0, 0xd6, 0xef, 0x08, 0xa2, 0xe4, 0x83, 0x1e, 0x76, 0xd9, 0x61,
-	0x78, 0x31, 0x3e, 0xb0, 0x2c, 0x8a, 0x59, 0x54, 0xab, 0x06, 0xd6, 0x86, 0x43, 0x65, 0xb1, 0x39,
-	0x90, 0x27, 0x3c, 0x22, 0xab, 0xc9, 0x95, 0xf6, 0x29, 0x30, 0x38, 0x47, 0x23, 0x3a, 0xf8, 0xfd,
-	0x76, 0xdb, 0xc7, 0x94, 0xbe, 0xed, 0x13, 0x27, 0x22, 0x95, 0x21, 0x59, 0x16, 0xae, 0x83, 0x69,
-	0x2c, 0x77, 0x4c, 0x24, 0xb6, 0xe4, 0x69, 0x4d, 0xe1, 0xfb, 0x19, 0x9a, 0x09, 0x5e, 0x1c, 0x9d,
-	0x5d, 0x2a, 0xdd, 0x04, 0x33, 0xb7, 0xb7, 0x20, 0xc6, 0x3f, 0x4d, 0x63, 0x3c, 0xda, 0x2a, 0x58,
-	0x89, 0x1d, 0x37, 0x3f, 0xe9, 0x63, 0xaf, 0x8d, 0x18, 0x3e, 0xb2, 0x9d, 0xdb, 0x8f, 0xff, 0xb5,
-	0x92, 0xf8, 0x84, 0x09, 0xa4, 0x14, 0xf0, 0x19, 0x50, 0xbb, 0x88, 0x32, 0x13, 0xb3, 0x53, 0x93,
-	0x7f, 0x13, 0x33, 0xe0, 0x20, 0x33, 0x6c, 0x3f, 0x79, 0x5b, 0x55, 0x5d, 0xf4, 0xa6, 0x1e, 0xf5,
-	0xa6, 0x7e, 0x14, 0xf5, 0x66, 0xed, 0x99, 0xf0, 0x8a, 0x5e, 0xfc, 0x55, 0x54, 0xea, 0x73, 0xdd,
-	0xd4, 0x4a, 0x5b, 0x3f, 0x4f, 0x82, 0x71, 0x2e, 0x06, 0x7e, 0xa3, 0x80, 0xbc, 0xe8, 0x38, 0xb8,
-	0xa9, 0x67, 0x0c, 0x42, 0x3d, 0xd9, 0xe3, 0x6a, 0x79, 0x34, 0xb0, 0x70, 0xa4, 0xad, 0x7e, 0xf5,
-	0xcb, 0x3f, 0xdf, 0x3e, 0x59, 0x82, 0x45, 0x23, 0x6b, 0x20, 0x8b, 0x16, 0x87, 0x3f, 0x29, 0x60,
-	0x26, 0xd1, 0x1b, 0x70, 0x77, 0x70, 0xb1, 0x01, 0x3d, 0xa7, 0xbe, 0xf6, 0x98, 0x54, 0xa9, 0x7a,
-	0x87, 0xab, 0xd6, 0x61, 0x39, 0x53, 0x75, 0xf4, 0x99, 0xc4, 0x5d, 0xe4, 0xad, 0x0a, 0x7f, 0x57,
-	0xc0, 0x7c, 0x46, 0xe7, 0xc1, 0xea, 0x83, 0xd4, 0x24, 0xbb, 0x5b, 0x7d, 0xf3, 0xf1, 0x04, 0xd2,
-	0xd4, 0xeb, 0xdc, 0xd4, 0x4b, 0x70, 0x7b, 0x44, 0x53, 0xe2, 0x02, 0x52, 0xa1, 0xff, 0x0f, 0x05,
-	0x2c, 0x64, 0x75, 0x3a, 0x1c, 0xae, 0x6d, 0xc8, 0x3c, 0x51, 0xf7, 0xff, 0x07, 0x83, 0xb4, 0xb7,
-	0xc7, 0xed, 0xbd, 0x0c, 0x77, 0x32, 0xed, 0xdd, 0x3a, 0xc3, 0x21, 0x87, 0xc9, 0xdf, 0x3b, 0x53,
-	0x0c, 0x23, 0xf8, 0xa3, 0x92, 0x78, 0x1d, 0xe0, 0x2b, 0x43, 0x45, 0xa5, 0x3f, 0x46, 0xea, 0xab,
-	0x0f, 0x4f, 0x94, 0x26, 0xb6, 0xb8, 0x89, 0x32, 0xdc, 0xc8, 0x34, 0x91, 0x78, 0xd3, 0xe1, 0x77,
-	0x4f, 0xc0, 0xf2, 0x08, 0x53, 0x0e, 0xbe, 0x3b, 0x58, 0xd5, 0xe8, 0x63, 0x58, 0x3d, 0x7c, 0x0a,
-	0x4c, 0xd2, 0xf0, 0x27, 0xdc, 0xf0, 0x31, 0x6c, 0x64, 0x1b, 0x8e, 0x4f, 0x64, 0xd3, 0xf2, 0x89,
-	0x63, 0xc6, 0xdf, 0x01, 0xe3, 0x8b, 0x78, 0xe4, 0x4b, 0xf8, 0xab, 0x02, 0xe6, 0xd2, 0x27, 0x2e,
-	0x7c, 0x63, 0xd4, 0x76, 0x4a, 0x1f, 0xea, 0x6a, 0xf5, 0xd1, 0xf9, 0x0f, 0xee, 0xc6, 0xe4, 0x4b,
-	0x50, 0x3b, 0xb9, 0xbc, 0x2e, 0x28, 0x57, 0xd7, 0x05, 0xe5, 0xef, 0xeb, 0x82, 0x72, 0x71, 0x53,
-	0xc8, 0x5d, 0xdd, 0x14, 0x72, 0xbf, 0xdd, 0x14, 0x72, 0x1f, 0xef, 0x75, 0x6c, 0x76, 0x1a, 0x34,
-	0xf5, 0x16, 0x71, 0x38, 0xf1, 0x0b, 0xb6, 0x6b, 0xf9, 0x88, 0x32, 0x3f, 0x68, 0xb1, 0xc0, 0xc7,
-	0x22, 0x76, 0x57, 0xed, 0x3c, 0xaa, 0xc7, 0xfa, 0x1e, 0xa6, 0xcd, 0x3c, 0x7f, 0x53, 0xb6, 0xff,
-	0x0b, 0x00, 0x00, 0xff, 0xff, 0x31, 0x53, 0x4a, 0xd6, 0x3e, 0x0b, 0x00, 0x00,
+	// 1021 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x49, 0x6f, 0x1c, 0x45,
+	0x14, 0x76, 0x5b, 0x89, 0x95, 0x14, 0x07, 0xc7, 0x85, 0xe5, 0x84, 0x56, 0x34, 0x63, 0xb7, 0x15,
+	0xec, 0x38, 0xa6, 0x1b, 0x3b, 0x61, 0x09, 0x44, 0x98, 0x0c, 0x24, 0x60, 0x09, 0xb1, 0x8c, 0x97,
+	0x03, 0x04, 0x9a, 0x9a, 0x9e, 0xea, 0x71, 0x8b, 0xe9, 0xaa, 0x4e, 0x57, 0xb5, 0x35, 0x56, 0x94,
+	0x0b, 0x47, 0xc4, 0x21, 0x12, 0x07, 0xf8, 0x09, 0x1c, 0x39, 0x72, 0x42, 0x1c, 0x73, 0x8c, 0x84,
+	0x84, 0xe0, 0xc0, 0x22, 0x1b, 0x89, 0xbf, 0x81, 0xba, 0x96, 0x31, 0xee, 0x65, 0xba, 0xc7, 0x70,
+	0xb1, 0xa6, 0xaa, 0xde, 0xfb, 0xde, 0xf7, 0x3d, 0xbf, 0xf9, 0xde, 0x80, 0x45, 0x3f, 0xc1, 0x7d,
+	0x86, 0xef, 0x27, 0x98, 0x78, 0x38, 0x76, 0x3a, 0x71, 0xd0, 0xed, 0x61, 0x67, 0x7f, 0xcd, 0xb9,
+	0x9f, 0xe0, 0xf8, 0xc0, 0x8e, 0x62, 0xca, 0x29, 0xbc, 0x78, 0x22, 0xc8, 0x96, 0x41, 0xf6, 0xfe,
+	0x9a, 0x39, 0x83, 0xc2, 0x80, 0x50, 0x47, 0xfc, 0x95, 0xb1, 0xe6, 0x6c, 0x8f, 0xf6, 0xa8, 0xf8,
+	0xe8, 0xa4, 0x9f, 0xd4, 0xed, 0xe5, 0x1e, 0xa5, 0xbd, 0x3e, 0x76, 0x50, 0x14, 0x38, 0x88, 0x10,
+	0xca, 0x11, 0x0f, 0x28, 0x61, 0xea, 0xf5, 0x19, 0x8f, 0xb2, 0x90, 0x32, 0x57, 0xa6, 0xc9, 0x83,
+	0x7a, 0x5a, 0x91, 0x27, 0xa7, 0x83, 0x18, 0x96, 0x9c, 0x9c, 0xfd, 0xb5, 0x0e, 0xe6, 0x68, 0xcd,
+	0x89, 0x50, 0x2f, 0x20, 0x02, 0x47, 0xc5, 0x2e, 0x14, 0x6a, 0x89, 0x50, 0x8c, 0x42, 0x0d, 0xb7,
+	0x5a, 0x18, 0xc2, 0x92, 0x28, 0xea, 0x1f, 0xb8, 0x5d, 0xdc, 0xe7, 0xc8, 0x0d, 0x88, 0xaf, 0x59,
+	0xcf, 0x17, 0x46, 0x07, 0xa4, 0x8b, 0x07, 0x2a, 0xa2, 0xa9, 0x74, 0x89, 0x53, 0x27, 0xf1, 0x1d,
+	0x1e, 0x84, 0x98, 0x71, 0x14, 0x46, 0x32, 0xc0, 0x9a, 0x05, 0xf0, 0x83, 0x94, 0xf5, 0xfb, 0x82,
+	0x45, 0x3b, 0xc5, 0x62, 0xdc, 0xda, 0x05, 0x4f, 0x9f, 0xb8, 0x65, 0x11, 0x25, 0x0c, 0xc3, 0x0d,
+	0x30, 0x25, 0xd9, 0x5e, 0x32, 0xe6, 0x8d, 0xe5, 0xa7, 0xd6, 0x2f, 0xdb, 0x85, 0x8d, 0x97, 0x59,
+	0xad, 0xf3, 0x8f, 0x7f, 0x6f, 0x4e, 0x7c, 0xfb, 0xf7, 0x77, 0x2b, 0x46, 0x5b, 0xa5, 0x59, 0xf3,
+	0xa0, 0x21, 0x70, 0xdf, 0xc2, 0x7c, 0x4b, 0x68, 0x7a, 0x33, 0x95, 0xb4, 0x49, 0x7c, 0xaa, 0x2b,
+	0x0f, 0x40, 0xb3, 0x34, 0x42, 0xb1, 0xd8, 0x01, 0xd3, 0x99, 0x27, 0x45, 0xe7, 0x4a, 0x31, 0x9d,
+	0x4c, 0x70, 0xeb, 0x4c, 0xca, 0xab, 0x9d, 0xc5, 0xb0, 0x2c, 0x30, 0xaf, 0x2b, 0xbf, 0x83, 0x18,
+	0xbf, 0xc3, 0xf7, 0x70, 0x8c, 0x93, 0xf0, 0x5d, 0x4a, 0x3c, 0xac, 0xd9, 0xdd, 0x04, 0x0b, 0x23,
+	0x62, 0x14, 0xbf, 0x59, 0x70, 0x96, 0xa4, 0x17, 0x82, 0xd5, 0xf9, 0xb6, 0x3c, 0x58, 0xcb, 0xe0,
+	0xd9, 0xa2, 0xd4, 0x56, 0x9f, 0x7a, 0x9f, 0x6d, 0x1d, 0x10, 0x0f, 0x77, 0x75, 0x91, 0x0d, 0xb0,
+	0x54, 0x19, 0x79, 0x5c, 0xaa, 0x93, 0x5e, 0x8b, 0x52, 0x67, 0xda, 0xf2, 0x60, 0x5d, 0x3d, 0x06,
+	0xd0, 0xc9, 0x77, 0xf6, 0x31, 0xe1, 0x9b, 0xe9, 0x60, 0xbc, 0xe7, 0xfb, 0x0c, 0x73, 0x5d, 0xab,
+	0x05, 0x96, 0xab, 0x43, 0x55, 0xb1, 0x39, 0x30, 0x45, 0xc5, 0x8d, 0xaa, 0xa6, 0x4e, 0xd6, 0x3d,
+	0xe0, 0x08, 0x8c, 0x2d, 0xdd, 0xf8, 0xdb, 0xdd, 0x6e, 0x8c, 0x19, 0xbb, 0x1b, 0xd3, 0x50, 0x83,
+	0xaa, 0x2b, 0x55, 0x16, 0x5e, 0x05, 0x17, 0xb0, 0x7a, 0x71, 0x91, 0x7c, 0x52, 0xdd, 0x9a, 0xc6,
+	0x27, 0x33, 0x2c, 0x17, 0x3c, 0x5f, 0x1f, 0x5d, 0x31, 0xbd, 0x06, 0x66, 0x86, 0x53, 0x90, 0xc1,
+	0xbf, 0xc0, 0x32, 0x38, 0xd6, 0x27, 0x8a, 0x7e, 0x06, 0x2c, 0xc5, 0xcf, 0xd6, 0xd4, 0xf4, 0xc7,
+	0xc2, 0xff, 0x58, 0x09, 0xa8, 0x85, 0xaf, 0x04, 0x8c, 0xd1, 0x9f, 0x25, 0x70, 0x25, 0x33, 0x2d,
+	0x62, 0x50, 0x76, 0xa2, 0x2e, 0xe2, 0x78, 0x3b, 0x08, 0x87, 0xb3, 0xfb, 0x85, 0x91, 0x9b, 0xc0,
+	0x5c, 0xa4, 0x2a, 0xff, 0x29, 0x30, 0xfb, 0x88, 0x71, 0x17, 0xf3, 0x3d, 0x57, 0x8c, 0x94, 0x9b,
+	0x88, 0x20, 0x37, 0x75, 0x0f, 0xf5, 0x65, 0x33, 0x6d, 0x69, 0x2d, 0xb6, 0xb6, 0x16, 0x7b, 0x5b,
+	0x5b, 0x4b, 0xeb, 0x5c, 0xfa, 0x0d, 0x7b, 0xf4, 0x47, 0xd3, 0x68, 0xcf, 0xf5, 0x0b, 0x2b, 0xfd,
+	0x7b, 0x44, 0x53, 0x2e, 0x6f, 0xa4, 0x65, 0x09, 0x4b, 0xd8, 0xf6, 0x80, 0xe9, 0xa6, 0x68, 0xde,
+	0x77, 0x8f, 0x47, 0xb4, 0x3c, 0x54, 0x11, 0x37, 0xc1, 0x39, 0xdd, 0x7f, 0x35, 0xa4, 0xc3, 0xf3,
+	0xfa, 0x0f, 0xd3, 0xe0, 0xac, 0x00, 0x82, 0x5f, 0x1a, 0x60, 0x4a, 0x7a, 0x14, 0xbc, 0x66, 0x97,
+	0xac, 0x0e, 0x3b, 0xef, 0x8a, 0xe6, 0x6a, 0xbd, 0x60, 0xc9, 0xc5, 0x5a, 0xfa, 0xfc, 0xa7, 0xbf,
+	0xbe, 0x9a, 0x5c, 0x80, 0x4d, 0xa7, 0x6c, 0x85, 0x49, 0x53, 0x84, 0x3f, 0x1a, 0x60, 0x26, 0xe7,
+	0x26, 0xf0, 0xe6, 0xe8, 0x62, 0x23, 0x5c, 0xca, 0x7c, 0xe5, 0x34, 0xa9, 0x8a, 0xf5, 0x0d, 0xc1,
+	0xda, 0x86, 0xab, 0xa5, 0xac, 0xf5, 0x64, 0xc8, 0xe9, 0x14, 0xe6, 0x06, 0x7f, 0x35, 0xc0, 0xc5,
+	0x12, 0xaf, 0x82, 0x1b, 0x63, 0xb1, 0xc9, 0xfb, 0xa1, 0xf9, 0xfa, 0xe9, 0x01, 0x94, 0xa8, 0x57,
+	0x85, 0xa8, 0x17, 0xe0, 0xf5, 0x9a, 0xa2, 0xe4, 0xcc, 0x33, 0xc9, 0xff, 0x37, 0x03, 0x5c, 0x2a,
+	0xf3, 0x46, 0x58, 0xcd, 0xad, 0xc2, 0x81, 0xcd, 0xdb, 0xff, 0x01, 0x41, 0xc9, 0xbb, 0x25, 0xe4,
+	0xbd, 0x08, 0x6f, 0x94, 0xca, 0x1b, 0x2a, 0xc3, 0x29, 0x86, 0x2b, 0x7e, 0x21, 0xb8, 0xd2, 0xbe,
+	0xe1, 0xf7, 0x46, 0x6e, 0x9f, 0xc2, 0x97, 0x2a, 0x49, 0x15, 0xaf, 0x6f, 0xf3, 0xe5, 0xf1, 0x13,
+	0x95, 0x88, 0x75, 0x21, 0x62, 0x15, 0xae, 0x94, 0x8a, 0xc8, 0xfd, 0x0a, 0x82, 0x5f, 0x4f, 0x82,
+	0xc5, 0x1a, 0x7b, 0x01, 0xbe, 0x3d, 0x9a, 0x55, 0xfd, 0xc5, 0x65, 0x6e, 0xfe, 0x0f, 0x48, 0x4a,
+	0xf0, 0x47, 0x42, 0xf0, 0x0e, 0xdc, 0x2a, 0x17, 0x9c, 0xdd, 0x31, 0xae, 0x1f, 0xd3, 0xd0, 0xcd,
+	0x6e, 0x06, 0xe7, 0x41, 0xf6, 0xe6, 0x21, 0xfc, 0x66, 0x12, 0x2c, 0xd6, 0x58, 0x38, 0x55, 0x9d,
+	0xa9, 0xbf, 0x13, 0xab, 0x3a, 0x33, 0xc6, 0xf6, 0xb3, 0xee, 0x89, 0xce, 0xec, 0xc2, 0xed, 0xea,
+	0x79, 0x3e, 0xd1, 0x98, 0x5c, 0xbf, 0x9c, 0x07, 0xb9, 0xab, 0x87, 0xf0, 0x67, 0x03, 0xcc, 0x15,
+	0xef, 0x3f, 0xf8, 0x5a, 0x5d, 0xa7, 0x29, 0x5e, 0xb1, 0xe6, 0xc6, 0xa9, 0xf3, 0xc7, 0x36, 0xaa,
+	0xfc, 0x5e, 0x16, 0x46, 0x55, 0xb6, 0x21, 0x61, 0x3d, 0x13, 0x1d, 0xb1, 0x87, 0x6b, 0x18, 0x55,
+	0xd5, 0x7a, 0xae, 0x61, 0x54, 0x42, 0x9e, 0xa7, 0x31, 0x5c, 0x3e, 0x60, 0xc3, 0xff, 0x6a, 0x6b,
+	0xf7, 0xf1, 0x61, 0xc3, 0x78, 0x72, 0xd8, 0x30, 0xfe, 0x3c, 0x6c, 0x18, 0x8f, 0x8e, 0x1a, 0x13,
+	0x4f, 0x8e, 0x1a, 0x13, 0xbf, 0x1c, 0x35, 0x26, 0x3e, 0xbc, 0xd5, 0x0b, 0xf8, 0x5e, 0xd2, 0xb1,
+	0x3d, 0x1a, 0x0a, 0xe4, 0xe7, 0x02, 0xe2, 0xc7, 0x88, 0xf1, 0x38, 0xf1, 0x78, 0x12, 0x63, 0x79,
+	0x77, 0x5c, 0x6e, 0xa0, 0x0b, 0xf2, 0x83, 0x08, 0xb3, 0xce, 0x94, 0xf8, 0x05, 0x73, 0xfd, 0x9f,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0x5a, 0xff, 0x09, 0x8c, 0x6b, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -728,10 +920,14 @@ type QueryClient interface {
 	EthereumEventIndexOffset(ctx context.Context, in *QueryGetEthereumEventIndexOffsetRequest, opts ...grpc.CallOption) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(ctx context.Context, in *QueryGetSupplyDeltaInfoRequest, opts ...grpc.CallOption) (*QueryGetSupplyDeltaInfoResponse, error)
-	// Queries a list of SequencerAddressFromEthereumAddress items.
+	// Maps the specified Ethereum address to a Sequencer Address.
 	SequencerAddressFromEthereumAddress(ctx context.Context, in *QuerySequencerAddressFromEthereumAddressRequest, opts ...grpc.CallOption) (*QuerySequencerAddressFromEthereumAddressResponse, error)
+	// Maps the specified Sequencer address to an Ethereum Address.
+	EthereumAddressFromSequencerAddress(ctx context.Context, in *QueryEthereumAddressFromSequencerAddressRequest, opts ...grpc.CallOption) (*QueryEthereumAddressFromSequencerAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error)
+	// Queries the LastConsensusTxsSequence.
+	LastConsensusTxsSequence(ctx context.Context, in *QueryGetLastConsensusTxsSequenceRequest, opts ...grpc.CallOption) (*QueryGetLastConsensusTxsSequenceResponse, error)
 }
 
 type queryClient struct {
@@ -796,9 +992,27 @@ func (c *queryClient) SequencerAddressFromEthereumAddress(ctx context.Context, i
 	return out, nil
 }
 
+func (c *queryClient) EthereumAddressFromSequencerAddress(ctx context.Context, in *QueryEthereumAddressFromSequencerAddressRequest, opts ...grpc.CallOption) (*QueryEthereumAddressFromSequencerAddressResponse, error) {
+	out := new(QueryEthereumAddressFromSequencerAddressResponse)
+	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.v1.Query/EthereumAddressFromSequencerAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) LastEthBlockUpdateTime(ctx context.Context, in *QueryGetLastEthBlockUpdateTimeRequest, opts ...grpc.CallOption) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	out := new(QueryGetLastEthBlockUpdateTimeResponse)
 	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.v1.Query/LastEthBlockUpdateTime", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) LastConsensusTxsSequence(ctx context.Context, in *QueryGetLastConsensusTxsSequenceRequest, opts ...grpc.CallOption) (*QueryGetLastConsensusTxsSequenceResponse, error) {
+	out := new(QueryGetLastConsensusTxsSequenceResponse)
+	err := c.cc.Invoke(ctx, "/fuelsequencer.bridge.v1.Query/LastConsensusTxsSequence", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -817,10 +1031,14 @@ type QueryServer interface {
 	EthereumEventIndexOffset(context.Context, *QueryGetEthereumEventIndexOffsetRequest) (*QueryGetEthereumEventIndexOffsetResponse, error)
 	// Queries the SupplyDeltaInfo.
 	SupplyDeltaInfo(context.Context, *QueryGetSupplyDeltaInfoRequest) (*QueryGetSupplyDeltaInfoResponse, error)
-	// Queries a list of SequencerAddressFromEthereumAddress items.
+	// Maps the specified Ethereum address to a Sequencer Address.
 	SequencerAddressFromEthereumAddress(context.Context, *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error)
+	// Maps the specified Sequencer address to an Ethereum Address.
+	EthereumAddressFromSequencerAddress(context.Context, *QueryEthereumAddressFromSequencerAddressRequest) (*QueryEthereumAddressFromSequencerAddressResponse, error)
 	// Queries the LastEthBlockUpdateTime.
 	LastEthBlockUpdateTime(context.Context, *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error)
+	// Queries the LastConsensusTxsSequence.
+	LastConsensusTxsSequence(context.Context, *QueryGetLastConsensusTxsSequenceRequest) (*QueryGetLastConsensusTxsSequenceResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -845,8 +1063,14 @@ func (*UnimplementedQueryServer) SupplyDeltaInfo(ctx context.Context, req *Query
 func (*UnimplementedQueryServer) SequencerAddressFromEthereumAddress(ctx context.Context, req *QuerySequencerAddressFromEthereumAddressRequest) (*QuerySequencerAddressFromEthereumAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SequencerAddressFromEthereumAddress not implemented")
 }
+func (*UnimplementedQueryServer) EthereumAddressFromSequencerAddress(ctx context.Context, req *QueryEthereumAddressFromSequencerAddressRequest) (*QueryEthereumAddressFromSequencerAddressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EthereumAddressFromSequencerAddress not implemented")
+}
 func (*UnimplementedQueryServer) LastEthBlockUpdateTime(ctx context.Context, req *QueryGetLastEthBlockUpdateTimeRequest) (*QueryGetLastEthBlockUpdateTimeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LastEthBlockUpdateTime not implemented")
+}
+func (*UnimplementedQueryServer) LastConsensusTxsSequence(ctx context.Context, req *QueryGetLastConsensusTxsSequenceRequest) (*QueryGetLastConsensusTxsSequenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastConsensusTxsSequence not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -961,6 +1185,24 @@ func _Query_SequencerAddressFromEthereumAddress_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_EthereumAddressFromSequencerAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryEthereumAddressFromSequencerAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).EthereumAddressFromSequencerAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fuelsequencer.bridge.v1.Query/EthereumAddressFromSequencerAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).EthereumAddressFromSequencerAddress(ctx, req.(*QueryEthereumAddressFromSequencerAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryGetLastEthBlockUpdateTimeRequest)
 	if err := dec(in); err != nil {
@@ -975,6 +1217,24 @@ func _Query_LastEthBlockUpdateTime_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).LastEthBlockUpdateTime(ctx, req.(*QueryGetLastEthBlockUpdateTimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_LastConsensusTxsSequence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLastConsensusTxsSequenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LastConsensusTxsSequence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fuelsequencer.bridge.v1.Query/LastConsensusTxsSequence",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LastConsensusTxsSequence(ctx, req.(*QueryGetLastConsensusTxsSequenceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1008,8 +1268,16 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_SequencerAddressFromEthereumAddress_Handler,
 		},
 		{
+			MethodName: "EthereumAddressFromSequencerAddress",
+			Handler:    _Query_EthereumAddressFromSequencerAddress_Handler,
+		},
+		{
 			MethodName: "LastEthBlockUpdateTime",
 			Handler:    _Query_LastEthBlockUpdateTime_Handler,
+		},
+		{
+			MethodName: "LastConsensusTxsSequence",
+			Handler:    _Query_LastConsensusTxsSequence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1343,6 +1611,66 @@ func (m *QuerySequencerAddressFromEthereumAddressResponse) MarshalToSizedBuffer(
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryEthereumAddressFromSequencerAddressRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.SequencerAddress) > 0 {
+		i -= len(m.SequencerAddress)
+		copy(dAtA[i:], m.SequencerAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.SequencerAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.EthereumAddress) > 0 {
+		i -= len(m.EthereumAddress)
+		copy(dAtA[i:], m.EthereumAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.EthereumAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryGetLastEthBlockUpdateTimeRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1394,6 +1722,57 @@ func (m *QueryGetLastEthBlockUpdateTimeResponse) MarshalToSizedBuffer(dAtA []byt
 	i = encodeVarintQuery(dAtA, i, uint64(n3))
 	i--
 	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetLastConsensusTxsSequenceRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetLastConsensusTxsSequenceRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetLastConsensusTxsSequenceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetLastConsensusTxsSequenceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetLastConsensusTxsSequenceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetLastConsensusTxsSequenceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Sequence != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Sequence))
+		i--
+		dAtA[i] = 0x8
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -1538,6 +1917,32 @@ func (m *QuerySequencerAddressFromEthereumAddressResponse) Size() (n int) {
 	return n
 }
 
+func (m *QueryEthereumAddressFromSequencerAddressRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.SequencerAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryEthereumAddressFromSequencerAddressResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.EthereumAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
 func (m *QueryGetLastEthBlockUpdateTimeRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1555,6 +1960,27 @@ func (m *QueryGetLastEthBlockUpdateTimeResponse) Size() (n int) {
 	_ = l
 	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.LastEthBlockUpdateTime)
 	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryGetLastConsensusTxsSequenceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryGetLastConsensusTxsSequenceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Sequence != 0 {
+		n += 1 + sovQuery(uint64(m.Sequence))
+	}
 	return n
 }
 
@@ -2364,6 +2790,170 @@ func (m *QuerySequencerAddressFromEthereumAddressResponse) Unmarshal(dAtA []byte
 	}
 	return nil
 }
+func (m *QueryEthereumAddressFromSequencerAddressRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryEthereumAddressFromSequencerAddressRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryEthereumAddressFromSequencerAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SequencerAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SequencerAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryEthereumAddressFromSequencerAddressResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryEthereumAddressFromSequencerAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryEthereumAddressFromSequencerAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EthereumAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EthereumAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *QueryGetLastEthBlockUpdateTimeRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2476,6 +3066,125 @@ func (m *QueryGetLastEthBlockUpdateTimeResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetLastConsensusTxsSequenceRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetLastConsensusTxsSequenceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetLastConsensusTxsSequenceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetLastConsensusTxsSequenceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetLastConsensusTxsSequenceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetLastConsensusTxsSequenceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
+			}
+			m.Sequence = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Sequence |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

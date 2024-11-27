@@ -19,6 +19,7 @@ var (
 	LastEthereumBlockSyncedKey  = []byte("LastEthereumBlockSynced")
 	EthereumEventIndexOffsetKey = []byte("EthereumEventIndexOffset")
 	LastEthBlockUpdateTimeKey   = []byte("LastEthBlockUpdateTime")
+	LastConsensusTxsSequenceKey = []byte("LastConsensusTxsSequence")
 )
 
 func KeyPrefix(p string) []byte {

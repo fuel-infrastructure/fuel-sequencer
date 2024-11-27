@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"cosmossdk.io/math"
 	cmjson "github.com/cometbft/cometbft/libs/json"
@@ -171,14 +170,16 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// TODO: genesis supply will be incorrect if we add more accounts
 	var bankGenState banktypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := int64(len(s.Chain.validators) * initBalance)
-	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, math.NewInt(genesisSupply)))
+	genesisSupply := InitBalanceCoin.Amount.MulRaw(int64(len(s.Chain.validators)))
+	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, genesisSupply))
 	bz, err = cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
-	vestingStartingTime, err := time.Parse(time.DateOnly, "2024-01-01")
-	s.Require().NoError(err)
+	// Set the vesting start time to the genesis time to ensure that vesting tests are not dependent on specific times,
+	// making them consistently pass regardless of when they are executed.
+	vestingStartingTime := genDoc.GenesisTime
+
 	ethBlockNumber, err := s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
 	s.Require().NoError(err)
 	s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
@@ -188,7 +189,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
 	bridgeGenState.Params.VestingStartTime = vestingStartingTime
-	bridgeGenState.Params.BridgeDenomTotalSupply = math.NewInt(BridgeDenomTotalSupply)
+	bridgeGenState.Params.BridgeDenomTotalSupply = BridgeDenomTotalSupply
 	bridgeGenState.LastEthereumBlockSynced = ethBlockNumber
 	bz, err = cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
@@ -229,12 +230,18 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.Require().NoError(err)
 
 	genDoc.AppState = bz
+	genDoc.Consensus.Params.Block.MaxBytes = 22020096
+	genDoc.Consensus.Params.Block.MaxGas = 300000000
 
 	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
 	s.Require().NoError(err)
 
 	// write the updated genesis file to each validator
+	s.WriteSequencerGenesisFile(bz)
+}
+
+func (s *E2ETestSuite) WriteSequencerGenesisFile(genDocBz []byte) {
 	for _, val := range s.Chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz))
+		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), genDocBz))
 	}
 }

@@ -31,22 +31,20 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	scethwrappedclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/instrumentation/prometheus"
+	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
+	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
+	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
-	scethwrappedclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
-	scsequencerclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
-	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
-	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
@@ -171,15 +169,15 @@ func startSidecarServerCmd() *cobra.Command {
 		&scrCfg.pathToKeyFile,
 		FlagSidecarPathToKeyFile,
 		"",
-		"path to the private key file of the sidecar server for secure communication. Specify this value if you want "+
-			"to setup a sidecar server with TLS.",
+		"path to the sidecar server private key for secure communication. "+
+			"Specify this value to setup a sidecar server with TLS.",
 	)
 	cmd.Flags().StringVar(
 		&scrCfg.pathToCertFile,
 		FlagSidecarPathToCertFile,
 		"",
-		"path to the certificate file of the sidecar server for secure communication. Specify this value if you want "+
-			"to setup a sidecar server with TLS.",
+		"path to the sidecar server certificate for secure communication. "+
+			"Specify this value to setup a sidecar server with TLS.",
 	)
 
 	// Ethereum
@@ -224,13 +222,16 @@ func startSidecarServerCmd() *cobra.Command {
 		&seqCfg.pathToCertFile,
 		FlagSequencerPathToCertFile,
 		"",
-		"path to the certificate file of the Sequencer infrastructure for secure communication. Specify this value "+
-			"if the Sequencer infrastructure was set up using TLS.",
+		fmt.Sprintf(
+			"path to the sequencer infra certificate for secure communication. "+
+				"Required if the Sequencer uses TLS. For default credentials, set to '%s'.",
+			credentials.UseDefaultTLS,
+		),
 	)
 
 	// Prometheus
 	cmd.Flags().BoolVar(
-		&prmCfg.Enabled, FlagPrometheusEnabled, false, "enables serving of prometheus metrics under /metrics",
+		&prmCfg.Enabled, FlagPrometheusEnabled, false, "enables serving of prometheus metrics at the listen address",
 	)
 	cmd.Flags().StringVar(
 		&prmCfg.ListenAddress, FlagPrometheusListenAddress, ":8081", "address to listen for prometheus collectors",
@@ -240,6 +241,9 @@ func startSidecarServerCmd() *cobra.Command {
 	)
 	cmd.Flags().DurationVar(
 		&prmCfg.ReadHeaderTimeout, FlagPrometheusReadHeaderTimeout, time.Second*10, "amount of time allowed to read request headers",
+	)
+	cmd.Flags().DurationVar(
+		&prmCfg.WriteTimeout, FlagPrometheusWriteTimeout, time.Second*10, "maximum duration before timing out writes of the response",
 	)
 	cmd.Flags().StringVar(
 		&prmCfg.Namespace, FlagPrometheusNamespace, "sidecar", "instrumentation namespace",
@@ -333,14 +337,9 @@ func startSidecar(
 	logger.Info("dialling Sequencer node", zap.String("grpc_url", seqCfg.grpcUrl))
 
 	// Set up a secure connection if configured by the operator
-	var seqConnCreds credentials.TransportCredentials
-	if seqCfg.pathToCertFile == "" {
-		seqConnCreds = insecure.NewCredentials()
-	} else {
-		seqConnCreds, err = credentials.NewClientTLSFromFile(seqCfg.pathToCertFile, "")
-		if err != nil {
-			panic(fmt.Errorf("failed to load Sequencer infrastructure TLS credentials; error: %w", err))
-		}
+	seqConnCreds, err := credentials.NewClientTransportCredentialsFromCertFile(seqCfg.pathToCertFile)
+	if err != nil {
+		panic(fmt.Errorf("failed to get Sequencer infrastructure TLS credentials; error: %w", err))
 	}
 
 	//nolint:staticcheck
@@ -474,8 +473,11 @@ func querySidecarServerCmd() *cobra.Command {
 		FlagSidecarClientPathToCertFile,
 		"c",
 		"",
-		"path to the certificate file of the sidecar server for secure communication. "+
-			"This needs to be specified if the sidecar server was configured with TLS",
+		fmt.Sprintf(
+			"path to the sidecar server certificate for secure communication. "+
+				"Required if the server uses TLS. For default credentials, set to '%s'.",
+			credentials.UseDefaultTLS,
+		),
 	)
 
 	return cmd
@@ -507,14 +509,9 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 	}
 
 	// Set up a secure connection with the sidecar if configured by the operator
-	var sidecarConnCreds credentials.TransportCredentials
-	if pathToCertFile == "" {
-		sidecarConnCreds = insecure.NewCredentials()
-	} else {
-		sidecarConnCreds, err = credentials.NewClientTLSFromFile(pathToCertFile, "")
-		if err != nil {
-			return fmt.Errorf("failed to load sidecar server TLS credentials; error: %w", err)
-		}
+	sidecarConnCreds, err := credentials.NewClientTransportCredentialsFromCertFile(pathToCertFile)
+	if err != nil {
+		return fmt.Errorf("failed to get sidecar server TLS credentials; error: %w", err)
 	}
 
 	//nolint:staticcheck
