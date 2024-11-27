@@ -315,7 +315,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 
 		// -------------------------------------- Deposit with lockup
 		sendAmount := big.NewInt(246)
-		receiptDepositWithLockup := s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount)
+		receiptDepositWithLockup := s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, 63072000*time.Second)
 
 		fixtureEthereumDepositWithLockupBlock = hexutil.EncodeUint64(receiptDepositWithLockup.BlockNumber.Uint64())
 		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit with lockup on block %s", fixtureEthereumDepositWithLockupBlock))
