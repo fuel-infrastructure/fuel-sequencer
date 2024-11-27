@@ -14,6 +14,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
@@ -107,7 +108,7 @@ func TestProtoSerialization_VarietyOfMessages(t *testing.T) {
 	fmt.Printf("Serialized Hex Data: %s\n", hexData)
 }
 
-func TestDecodeDepositEvent(t *testing.T) {
+func TestDecodeDepositEventFromSidecar(t *testing.T) {
 
 	dataBase64 := "CioweDAwNkExNzU2YWI1NzFhOWM5NjFkMjk2NTU3YmY2MGM1MGQ0OGE1MDASKjB4MDA2QTE3NTZhYjU3MWE5Yzk2MWQyOTY1NTdiZjYwYzUwZDQ4YTUwMBoTNTAwMDAwMDAwMDAwMDAwMDAwMCIDMzAw"
 	dataBz, err := base64.StdEncoding.DecodeString(dataBase64)
@@ -146,6 +147,53 @@ func TestEncodeDepositEvent(t *testing.T) {
 	dataBase64 := base64.StdEncoding.EncodeToString(dataBz)
 
 	fmt.Println(dataBase64)
+}
+
+func TestDecodeAuthorizeEventDataFromEthereum(t *testing.T) {
+
+	// Authorize event data (e.g. https://sepolia.etherscan.io/tx/0xcf8c887f060d6f6c9b5d80098bac6db2249749bcc25fd96c0e6133b9f84e03be#eventlog)
+	hexData := "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000970a94010a232f636f736d6f732e7374616b696e672e763162657461312e4d736744656c6567617465126d0a2a307837373935366536626338666536396132373162353263633435376162313139306465346133363062122a3078363264323231646234396165663536333266353962393030623263613930653532656363306138301a130a0474657374120b3130303030303030303030000000000000000000"
+	hexDataBz, err := hex.DecodeString(hexData)
+	if err != nil {
+		panic(err)
+	}
+
+	// Contract ABI
+	var contractAbi abi.ABI
+	err = contractAbi.UnmarshalJSON([]byte(sidecartypes.SequencerProxyContractABI))
+	if err != nil {
+		panic(err)
+	}
+
+	// Parse the event data according to the ABI
+	var ethEvent sidecartypes.EthAuthorizeEvent
+	err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.AuthorizeEventName, hexDataBz)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Transaction size (bytes): %d\n", utils.TxSize(ethEvent.Data))
+
+	var authorizeTx bridgetypes.AuthorizeTx
+	err = authorizeTx.Unmarshal(ethEvent.Data)
+	if err != nil {
+		panic(err)
+	}
+
+	// Encode as valid transaction
+	rawTxBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeTx.Messages, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	// Decode again to extract SDK messages
+	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(rawTxBz)
+	if err != nil {
+		panic(err)
+	}
+
+	for i, msg := range tx.GetMsgs() {
+		fmt.Printf("MSG %d (%s): %s\n", i, sdk.MsgTypeURL(msg), msg)
+	}
 }
 
 func TestDecodeTx_Base64(t *testing.T) {

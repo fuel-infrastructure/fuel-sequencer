@@ -62,6 +62,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		appConfig.Pruning = "nothing"
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
 		appConfig.CommitmentsConfig.ApiEnabled = true
+		appConfig.CommitmentsConfig.MaxQueryRange = 4096
 		appConfig.Telemetry.Enabled = true
 		appConfig.Telemetry.PrometheusRetentionTime = 60 // 1 minute
 

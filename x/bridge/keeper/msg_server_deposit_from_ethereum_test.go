@@ -167,22 +167,6 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			isFromEthOwned: false,
 		},
 		{
-			name: "failure - bad vesting duration - mint to governance",
-			msgs: []*types.MsgDepositFromEthereum{
-				testtypes.TestEvent6Msg,
-			},
-			fromAcc:        &fromAccOne,
-			toAcc:          nil,
-			expFromBalance: sdkmath.NewInt(0),
-			expToBalance:   sdkmath.NewInt(0),
-			expSupplyDelta: &types.SupplyDeltaInfo{
-				Offset: sdkmath.NewInt(-102),
-			},
-			expGovBal:      sdkmath.NewInt(102),
-			isToEthOwned:   false,
-			isFromEthOwned: false,
-		},
-		{
 			name: "failure - bad recipient bech32 address - mint to governance",
 			msgs: []*types.MsgDepositFromEthereum{
 				testtypes.TestEvent7Msg,

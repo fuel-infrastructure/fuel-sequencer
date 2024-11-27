@@ -479,7 +479,7 @@ func (app *FuelSequencerApp) RegisterTendermintService(clientCtx client.Context)
 	app.App.RegisterTendermintService(clientCtx)
 
 	if app.commitmentsConfig.ApiEnabled {
-		commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry)
+		commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry, app.commitmentsConfig.MaxQueryRange)
 	}
 }
 
