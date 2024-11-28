@@ -65,7 +65,7 @@ import (
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	reportsmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
-	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/
+	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
