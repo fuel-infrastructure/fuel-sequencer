@@ -120,10 +120,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().Zero(res.Code)
 
 		// Make sure that the balance of the receiver is as expected.
-		expectedInitBalance := sdk.NewInt64Coin(testsuite.BridgeDenom, 0)
 		balance, err := s.QueryAllBalances(s.Ctx(), ownedReceiverAddressSeq, nil)
 		s.Require().NoError(err)
-		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
+		s.Require().Equal(initBalance, balance.Balances)
 
 		// Deposit and Delegate!
 		//
