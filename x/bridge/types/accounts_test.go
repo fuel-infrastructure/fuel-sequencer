@@ -44,6 +44,86 @@ func TestEthOwnedContinuousVestingAccountSetPubkeyErrors(t *testing.T) {
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned continuous vesting account")
 }
 
+func TestTrackDelegation(t *testing.T) {
+
+	// Helper coins.
+	originalVesting := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
+	halfVesting := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+
+	// Helper times.
+	months6 := (time.Hour * 24 * 365) / 2
+	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
+	t1, _ := time.Parse(time.DateOnly, "2025-01-01")
+	t0Plus6Months := t0.Add(months6)
+
+	// Helper accounts and addresses.
+	owner := testutiltypes.TestSeqAddr1Str
+	baseAcc := &authtypes.BaseAccount{
+		Address:       owner,
+		AccountNumber: uint64(1),
+		Sequence:      uint64(2),
+	}
+
+	testCases := []struct {
+		name                  string
+		delegatedFreeBefore   sdk.Coins
+		blockTime             time.Time
+		balanceAtDelegation   sdk.Coins
+		delegationAmount      sdk.Coins
+		expLockedCoinsBefore  sdk.Coins
+		expDelegatedFreeAfter sdk.Coins
+		expPanic              bool
+	}{
+		{
+			name:                  "half way through vesting",
+			delegatedFreeBefore:   nil,             // no prior delegation
+			blockTime:             t0Plus6Months,   // half-way through vesting
+			balanceAtDelegation:   originalVesting, // full balance is vesting
+			delegationAmount:      halfVesting,     // delegate half of the vesting
+			expLockedCoinsBefore:  halfVesting,     // half are still vesting
+			expDelegatedFreeAfter: halfVesting,     // half get delegated successfully
+			expPanic:              false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			vestingAcc := types.NewEthOwnedContinuousVestingAccount(
+				&vestingtypes.ContinuousVestingAccount{
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:      baseAcc,
+						OriginalVesting:  originalVesting,
+						DelegatedFree:    tc.delegatedFreeBefore,
+						DelegatedVesting: nil, // we expect this to get set
+						EndTime:          t1.Unix(),
+					},
+					StartTime: t0.Unix(),
+				},
+				owner,
+			)
+
+			// Sanity check locked and vesting coins, which are always expected to be equal
+			require.True(t, vestingAcc.LockedCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
+			require.True(t, vestingAcc.GetVestingCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
+
+			if tc.expPanic {
+				require.Panics(t, func() {
+					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
+				})
+			} else {
+				require.NotPanics(t, func() {
+					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
+				})
+			}
+
+			// Check delegation fields after
+			require.True(t, vestingAcc.DelegatedFree.Equal(tc.expDelegatedFreeAfter))
+			require.True(t, vestingAcc.DelegatedVesting.IsZero()) // we expect this to get set
+		})
+	}
+}
+
 func TestAddVestingCoins(t *testing.T) {
 
 	// Helper coins.

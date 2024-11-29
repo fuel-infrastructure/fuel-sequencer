@@ -179,7 +179,17 @@ func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, 
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
 	}
 
-	a.ContinuousVestingAccount.TrackDelegation(blockTime, balance, amount)
+	for _, coin := range amount {
+		baseAmt := balance.AmountOf(coin.Denom)
+
+		// Panic if the delegation amount is zero or if the base coins does not
+		// exceed the desired delegation amount.
+		if coin.Amount.IsZero() || baseAmt.LT(coin.Amount) {
+			panic("delegation attempt with zero coins or insufficient funds")
+		}
+
+		a.DelegatedFree = a.DelegatedFree.Add(coin)
+	}
 }
 
 // AddVestingCoins ignores the specified vesting start and end times since these have already been set. The new coins
