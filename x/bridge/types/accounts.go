@@ -179,6 +179,8 @@ func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, 
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
 	}
 
+	// This logic retains the structure of the original ContinuousVestingAccount's TrackDelegation, but without the
+	// logic to delegate vesting coins.
 	for _, coin := range amount {
 		baseAmt := balance.AmountOf(coin.Denom)
 
