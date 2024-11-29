@@ -4,6 +4,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -162,6 +163,23 @@ func NewEthOwnedContinuousVestingAccount(
 		ContinuousVestingAccount: cva,
 		AccountOwner:             owner,
 	}
+}
+
+func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
+
+	// Calculate spendable coins
+	locked := a.ContinuousVestingAccount.LockedCoins(blockTime)
+	spendable, hasNeg := balance.SafeSub(locked...)
+	if hasNeg {
+		spendable = sdk.NewCoins()
+	}
+
+	// Delegation amount must be spendable
+	if !spendable.IsAllGTE(amount) {
+		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
+	}
+
+	a.ContinuousVestingAccount.TrackDelegation(blockTime, balance, amount)
 }
 
 // AddVestingCoins ignores the specified vesting start and end times since these have already been set. The new coins
