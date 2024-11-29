@@ -95,7 +95,7 @@ func TestTrackDelegation(t *testing.T) {
 						BaseAccount:      baseAcc,
 						OriginalVesting:  originalVesting,
 						DelegatedFree:    tc.delegatedFreeBefore,
-						DelegatedVesting: nil, // we expect this to get set
+						DelegatedVesting: nil, // we expect this to never get set
 						EndTime:          t1.Unix(),
 					},
 					StartTime: t0.Unix(),
@@ -119,7 +119,7 @@ func TestTrackDelegation(t *testing.T) {
 
 			// Check delegation fields after
 			require.True(t, vestingAcc.DelegatedFree.Equal(tc.expDelegatedFreeAfter))
-			require.True(t, vestingAcc.DelegatedVesting.IsZero()) // we expect this to get set
+			require.True(t, vestingAcc.DelegatedVesting.IsZero()) // we expect this to never get set
 		})
 	}
 }
