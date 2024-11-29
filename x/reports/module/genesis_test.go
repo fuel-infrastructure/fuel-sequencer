@@ -10,10 +10,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenesis(t *testing.T) {
+func TestGenesis_ValidState(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
+		SlashReportList: []types.SlashReport{
+			{
+				Height:  0,
+				Entries: []string{"entry1", "entry2"},
+			},
+			{
+				Height:  1,
+				Entries: []string{"entry2", "entry3"},
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -25,5 +35,13 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
+	require.ElementsMatch(t, genesisState.SlashReportList, got.SlashReportList)
 	// this line is used by starport scaffolding # genesis/test/assert
+
+	// Verify other genesis state elements as needed
+	require.Equal(t, genesisState.Params, got.Params)
+}
+
+func TestGenesis_InvalidSlashReport(t *testing.T) {
+	// TODO
 }

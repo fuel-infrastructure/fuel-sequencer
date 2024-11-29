@@ -1,0 +1,13 @@
+syntax = "proto3";
+package fuelsequencer.reports;
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types";
+
+message SlashReport {
+
+  // the height at which a slash report was generated
+  uint64 height = 1;
+
+  // entries is the list of slashed entries
+  repeated string entries = 2;
+}

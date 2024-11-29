@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -20,6 +22,17 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
+
+func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashReport {
+	slashReports := make([]types.SlashReport, n)
+	for i := range slashReports {
+		slashReports[i].Height = uint64(i)
+		slashReports[i].Entries = []string{strconv.Itoa(i), strconv.Itoa(i + 1), strconv.Itoa(i + 2)}
+		keeper.SetSlashReport(ctx, slashReports[i])
+	}
+
+	return slashReports
+}
 
 func ReportsKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)

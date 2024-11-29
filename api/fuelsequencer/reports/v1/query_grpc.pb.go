@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName = "/fuelsequencer.reports.v1.Query/Params"
+	Query_Params_FullMethodName         = "/fuelsequencer.reports.v1.Query/Params"
+	Query_SlashReport_FullMethodName    = "/fuelsequencer.reports.v1.Query/SlashReport"
+	Query_SlashReportAll_FullMethodName = "/fuelsequencer.reports.v1.Query/SlashReportAll"
 )
 
 // QueryClient is the client API for Query service.
@@ -28,6 +30,10 @@ const (
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// Queries a slashing report by height.
+	SlashReport(ctx context.Context, in *QueryGetSlashReportRequest, opts ...grpc.CallOption) (*QueryGetSlashReportResponse, error)
+	// Queries all slashing reports in state.
+	SlashReportAll(ctx context.Context, in *QueryAllSlashReportRequest, opts ...grpc.CallOption) (*QueryAllSlashReportResponse, error)
 }
 
 type queryClient struct {
@@ -47,12 +53,34 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) SlashReport(ctx context.Context, in *QueryGetSlashReportRequest, opts ...grpc.CallOption) (*QueryGetSlashReportResponse, error) {
+	out := new(QueryGetSlashReportResponse)
+	err := c.cc.Invoke(ctx, Query_SlashReport_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) SlashReportAll(ctx context.Context, in *QueryAllSlashReportRequest, opts ...grpc.CallOption) (*QueryAllSlashReportResponse, error) {
+	out := new(QueryAllSlashReportResponse)
+	err := c.cc.Invoke(ctx, Query_SlashReportAll_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// Queries a slashing report by height.
+	SlashReport(context.Context, *QueryGetSlashReportRequest) (*QueryGetSlashReportResponse, error)
+	// Queries all slashing reports in state.
+	SlashReportAll(context.Context, *QueryAllSlashReportRequest) (*QueryAllSlashReportResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -62,6 +90,12 @@ type UnimplementedQueryServer struct {
 
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) SlashReport(context.Context, *QueryGetSlashReportRequest) (*QueryGetSlashReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SlashReport not implemented")
+}
+func (UnimplementedQueryServer) SlashReportAll(context.Context, *QueryAllSlashReportRequest) (*QueryAllSlashReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SlashReportAll not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -94,6 +128,42 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_SlashReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetSlashReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).SlashReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_SlashReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).SlashReport(ctx, req.(*QueryGetSlashReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_SlashReportAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllSlashReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).SlashReportAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_SlashReportAll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).SlashReportAll(ctx, req.(*QueryAllSlashReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -104,6 +174,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "SlashReport",
+			Handler:    _Query_SlashReport_Handler,
+		},
+		{
+			MethodName: "SlashReportAll",
+			Handler:    _Query_SlashReportAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

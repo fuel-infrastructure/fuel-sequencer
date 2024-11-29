@@ -8,6 +8,6 @@ import (
 
 // Registered errors
 var (
-	ErrInvalidSigner = sdkerrors.Register(ModuleName, 1100, "invalid signer")
-	ErrSample        = sdkerrors.Register(ModuleName, 1101, "sample error")
+	ErrInvalidSigner        = sdkerrors.Register(ModuleName, 1100, "invalid signer")
+	ErrSlashReportNotUnique = sdkerrors.Register(ModuleName, 1101, "duplicate slash report found")
 )

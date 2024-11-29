@@ -17,6 +17,17 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Shows the parameters of the module",
 				},
+				{
+					RpcMethod: "SlashReportAll",
+					Use:       "list-slash-report",
+					Short:     "List all SlashReport",
+				},
+				{
+					RpcMethod:      "SlashReport",
+					Use:            "show-slash-report [height]",
+					Short:          "Shows a SlashReport",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "height"}},
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

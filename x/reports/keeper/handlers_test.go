@@ -10,4 +10,8 @@ func (s *KeeperTestSuite) TestMessagesRegisteredWithCorrectTypeUrl() {
 func (s *KeeperTestSuite) TestQueriesRegisteredWithCorrectPath() {
 	handler := s.App.GRPCQueryRouter().Route("/fuelsequencer.reports.v1.Query/Params")
 	s.Require().NotNil(handler)
+	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.reports.v1.Query/SlashReport")
+	s.Require().NotNil(handler)
+	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.reports.v1.Query/SlashReportAll")
+	s.Require().NotNil(handler)
 }
