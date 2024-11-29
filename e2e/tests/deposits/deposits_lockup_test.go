@@ -96,8 +96,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
-		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedVesting)) // delegation
+		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
 
@@ -147,8 +147,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedVesting)) // delegation
+		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
 
@@ -237,8 +237,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockupS
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
-		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedVesting)) // delegation
+		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
 
