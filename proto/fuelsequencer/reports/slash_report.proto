@@ -1,13 +1,47 @@
 syntax = "proto3";
 package fuelsequencer.reports;
 
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types";
+
+message SlashEntry {
+
+  // address of the validator that has been slashed.
+  string validator_address = 1
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // address of the delegator delegating to the slashed validator.
+  string delegator_address = 2
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // delegator_slash_amount represents the amount of tokens deducted from the
+  // delegator's stake in the slashed validator. The amount includes both bonded
+  // tokens and tokens that were still bonded at the time of the infraction but
+  // have since started unbonding.
+  cosmos.base.v1beta1.Coin delegator_slash_amount = 3
+      [ (gogoproto.nullable) = false ];
+
+  // delegator_bonded_balance represents the amount of tokens that remain
+  // delegated to the slashed validator after the slashing event has been
+  // processed.
+  cosmos.base.v1beta1.Coin delegator_bonded_balance = 4
+      [ (gogoproto.nullable) = false ];
+
+  // delegator_unbonding_balance represents the amount of tokens currently
+  // undergoing the unbonding process from the slashed validator after the
+  // slashing event has been processed.
+  cosmos.base.v1beta1.Coin delegator_unbonding_balance = 5
+      [ (gogoproto.nullable) = false ];
+}
 
 message SlashReport {
 
   // the height at which a slash report was generated
   uint64 height = 1;
 
-  // entries is the list of slashed entries
-  repeated string entries = 2;
+  // entries is the list of slashed entries at this height
+  repeated SlashEntry entries = 2;
 }

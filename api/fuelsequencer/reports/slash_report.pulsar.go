@@ -2,8 +2,11 @@
 package reports
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -12,10 +15,731 @@ import (
 	sync "sync"
 )
 
+var (
+	md_SlashEntry                             protoreflect.MessageDescriptor
+	fd_SlashEntry_validator_address           protoreflect.FieldDescriptor
+	fd_SlashEntry_delegator_address           protoreflect.FieldDescriptor
+	fd_SlashEntry_delegator_slash_amount      protoreflect.FieldDescriptor
+	fd_SlashEntry_delegator_bonded_balance    protoreflect.FieldDescriptor
+	fd_SlashEntry_delegator_unbonding_balance protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_fuelsequencer_reports_slash_report_proto_init()
+	md_SlashEntry = File_fuelsequencer_reports_slash_report_proto.Messages().ByName("SlashEntry")
+	fd_SlashEntry_validator_address = md_SlashEntry.Fields().ByName("validator_address")
+	fd_SlashEntry_delegator_address = md_SlashEntry.Fields().ByName("delegator_address")
+	fd_SlashEntry_delegator_slash_amount = md_SlashEntry.Fields().ByName("delegator_slash_amount")
+	fd_SlashEntry_delegator_bonded_balance = md_SlashEntry.Fields().ByName("delegator_bonded_balance")
+	fd_SlashEntry_delegator_unbonding_balance = md_SlashEntry.Fields().ByName("delegator_unbonding_balance")
+}
+
+var _ protoreflect.Message = (*fastReflection_SlashEntry)(nil)
+
+type fastReflection_SlashEntry SlashEntry
+
+func (x *SlashEntry) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_SlashEntry)(x)
+}
+
+func (x *SlashEntry) slowProtoReflect() protoreflect.Message {
+	mi := &file_fuelsequencer_reports_slash_report_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_SlashEntry_messageType fastReflection_SlashEntry_messageType
+var _ protoreflect.MessageType = fastReflection_SlashEntry_messageType{}
+
+type fastReflection_SlashEntry_messageType struct{}
+
+func (x fastReflection_SlashEntry_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_SlashEntry)(nil)
+}
+func (x fastReflection_SlashEntry_messageType) New() protoreflect.Message {
+	return new(fastReflection_SlashEntry)
+}
+func (x fastReflection_SlashEntry_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_SlashEntry
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_SlashEntry) Descriptor() protoreflect.MessageDescriptor {
+	return md_SlashEntry
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_SlashEntry) Type() protoreflect.MessageType {
+	return _fastReflection_SlashEntry_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_SlashEntry) New() protoreflect.Message {
+	return new(fastReflection_SlashEntry)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_SlashEntry) Interface() protoreflect.ProtoMessage {
+	return (*SlashEntry)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_SlashEntry) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.ValidatorAddress != "" {
+		value := protoreflect.ValueOfString(x.ValidatorAddress)
+		if !f(fd_SlashEntry_validator_address, value) {
+			return
+		}
+	}
+	if x.DelegatorAddress != "" {
+		value := protoreflect.ValueOfString(x.DelegatorAddress)
+		if !f(fd_SlashEntry_delegator_address, value) {
+			return
+		}
+	}
+	if x.DelegatorSlashAmount != nil {
+		value := protoreflect.ValueOfMessage(x.DelegatorSlashAmount.ProtoReflect())
+		if !f(fd_SlashEntry_delegator_slash_amount, value) {
+			return
+		}
+	}
+	if x.DelegatorBondedBalance != nil {
+		value := protoreflect.ValueOfMessage(x.DelegatorBondedBalance.ProtoReflect())
+		if !f(fd_SlashEntry_delegator_bonded_balance, value) {
+			return
+		}
+	}
+	if x.DelegatorUnbondingBalance != nil {
+		value := protoreflect.ValueOfMessage(x.DelegatorUnbondingBalance.ProtoReflect())
+		if !f(fd_SlashEntry_delegator_unbonding_balance, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_SlashEntry) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "fuelsequencer.reports.SlashEntry.validator_address":
+		return x.ValidatorAddress != ""
+	case "fuelsequencer.reports.SlashEntry.delegator_address":
+		return x.DelegatorAddress != ""
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		return x.DelegatorSlashAmount != nil
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		return x.DelegatorBondedBalance != nil
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		return x.DelegatorUnbondingBalance != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.reports.SlashEntry does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_SlashEntry) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "fuelsequencer.reports.SlashEntry.validator_address":
+		x.ValidatorAddress = ""
+	case "fuelsequencer.reports.SlashEntry.delegator_address":
+		x.DelegatorAddress = ""
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		x.DelegatorSlashAmount = nil
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		x.DelegatorBondedBalance = nil
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		x.DelegatorUnbondingBalance = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.reports.SlashEntry does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_SlashEntry) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "fuelsequencer.reports.SlashEntry.validator_address":
+		value := x.ValidatorAddress
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.reports.SlashEntry.delegator_address":
+		value := x.DelegatorAddress
+		return protoreflect.ValueOfString(value)
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		value := x.DelegatorSlashAmount
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		value := x.DelegatorBondedBalance
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		value := x.DelegatorUnbondingBalance
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.reports.SlashEntry does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_SlashEntry) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "fuelsequencer.reports.SlashEntry.validator_address":
+		x.ValidatorAddress = value.Interface().(string)
+	case "fuelsequencer.reports.SlashEntry.delegator_address":
+		x.DelegatorAddress = value.Interface().(string)
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		x.DelegatorSlashAmount = value.Message().Interface().(*v1beta1.Coin)
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		x.DelegatorBondedBalance = value.Message().Interface().(*v1beta1.Coin)
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		x.DelegatorUnbondingBalance = value.Message().Interface().(*v1beta1.Coin)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.reports.SlashEntry does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_SlashEntry) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		if x.DelegatorSlashAmount == nil {
+			x.DelegatorSlashAmount = new(v1beta1.Coin)
+		}
+		return protoreflect.ValueOfMessage(x.DelegatorSlashAmount.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		if x.DelegatorBondedBalance == nil {
+			x.DelegatorBondedBalance = new(v1beta1.Coin)
+		}
+		return protoreflect.ValueOfMessage(x.DelegatorBondedBalance.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		if x.DelegatorUnbondingBalance == nil {
+			x.DelegatorUnbondingBalance = new(v1beta1.Coin)
+		}
+		return protoreflect.ValueOfMessage(x.DelegatorUnbondingBalance.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.validator_address":
+		panic(fmt.Errorf("field validator_address of message fuelsequencer.reports.SlashEntry is not mutable"))
+	case "fuelsequencer.reports.SlashEntry.delegator_address":
+		panic(fmt.Errorf("field delegator_address of message fuelsequencer.reports.SlashEntry is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.reports.SlashEntry does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_SlashEntry) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "fuelsequencer.reports.SlashEntry.validator_address":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.reports.SlashEntry.delegator_address":
+		return protoreflect.ValueOfString("")
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		m := new(v1beta1.Coin)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		m := new(v1beta1.Coin)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		m := new(v1beta1.Coin)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
+		}
+		panic(fmt.Errorf("message fuelsequencer.reports.SlashEntry does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_SlashEntry) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.reports.SlashEntry", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_SlashEntry) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_SlashEntry) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_SlashEntry) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*SlashEntry)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.ValidatorAddress)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.DelegatorAddress)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.DelegatorSlashAmount != nil {
+			l = options.Size(x.DelegatorSlashAmount)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.DelegatorBondedBalance != nil {
+			l = options.Size(x.DelegatorBondedBalance)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.DelegatorUnbondingBalance != nil {
+			l = options.Size(x.DelegatorUnbondingBalance)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*SlashEntry)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.DelegatorUnbondingBalance != nil {
+			encoded, err := options.Marshal(x.DelegatorUnbondingBalance)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x2a
+		}
+		if x.DelegatorBondedBalance != nil {
+			encoded, err := options.Marshal(x.DelegatorBondedBalance)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if x.DelegatorSlashAmount != nil {
+			encoded, err := options.Marshal(x.DelegatorSlashAmount)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if len(x.DelegatorAddress) > 0 {
+			i -= len(x.DelegatorAddress)
+			copy(dAtA[i:], x.DelegatorAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DelegatorAddress)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.ValidatorAddress) > 0 {
+			i -= len(x.ValidatorAddress)
+			copy(dAtA[i:], x.ValidatorAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.ValidatorAddress)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*SlashEntry)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: SlashEntry: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: SlashEntry: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.DelegatorAddress = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorSlashAmount", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.DelegatorSlashAmount == nil {
+					x.DelegatorSlashAmount = &v1beta1.Coin{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatorSlashAmount); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorBondedBalance", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.DelegatorBondedBalance == nil {
+					x.DelegatorBondedBalance = &v1beta1.Coin{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatorBondedBalance); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorUnbondingBalance", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.DelegatorUnbondingBalance == nil {
+					x.DelegatorUnbondingBalance = &v1beta1.Coin{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatorUnbondingBalance); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 var _ protoreflect.List = (*_SlashReport_2_list)(nil)
 
 type _SlashReport_2_list struct {
-	list *[]string
+	list *[]*SlashEntry
 }
 
 func (x *_SlashReport_2_list) Len() int {
@@ -26,32 +750,37 @@ func (x *_SlashReport_2_list) Len() int {
 }
 
 func (x *_SlashReport_2_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfString((*x.list)[i])
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
 }
 
 func (x *_SlashReport_2_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*SlashEntry)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_SlashReport_2_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*SlashEntry)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_SlashReport_2_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message SlashReport at list field Entries as it is not of Message kind"))
+	v := new(SlashEntry)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
 func (x *_SlashReport_2_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
 	*x.list = (*x.list)[:n]
 }
 
 func (x *_SlashReport_2_list) NewElement() protoreflect.Value {
-	v := ""
-	return protoreflect.ValueOfString(v)
+	v := new(SlashEntry)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
 func (x *_SlashReport_2_list) IsValid() bool {
@@ -80,7 +809,7 @@ func (x *SlashReport) ProtoReflect() protoreflect.Message {
 }
 
 func (x *SlashReport) slowProtoReflect() protoreflect.Message {
-	mi := &file_fuelsequencer_reports_slash_report_proto_msgTypes[0]
+	mi := &file_fuelsequencer_reports_slash_report_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -260,7 +989,7 @@ func (x *fastReflection_SlashReport) Mutable(fd protoreflect.FieldDescriptor) pr
 	switch fd.FullName() {
 	case "fuelsequencer.reports.SlashReport.entries":
 		if x.Entries == nil {
-			x.Entries = []string{}
+			x.Entries = []*SlashEntry{}
 		}
 		value := &_SlashReport_2_list{list: &x.Entries}
 		return protoreflect.ValueOfList(value)
@@ -282,7 +1011,7 @@ func (x *fastReflection_SlashReport) NewField(fd protoreflect.FieldDescriptor) p
 	case "fuelsequencer.reports.SlashReport.height":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.reports.SlashReport.entries":
-		list := []string{}
+		list := []*SlashEntry{}
 		return protoreflect.ValueOfList(&_SlashReport_2_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -357,8 +1086,8 @@ func (x *fastReflection_SlashReport) ProtoMethods() *protoiface.Methods {
 			n += 1 + runtime.Sov(uint64(x.Height))
 		}
 		if len(x.Entries) > 0 {
-			for _, s := range x.Entries {
-				l = len(s)
+			for _, e := range x.Entries {
+				l = options.Size(e)
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
@@ -393,9 +1122,16 @@ func (x *fastReflection_SlashReport) ProtoMethods() *protoiface.Methods {
 		}
 		if len(x.Entries) > 0 {
 			for iNdEx := len(x.Entries) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.Entries[iNdEx])
-				copy(dAtA[i:], x.Entries[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Entries[iNdEx])))
+				encoded, err := options.Marshal(x.Entries[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
 				dAtA[i] = 0x12
 			}
@@ -477,7 +1213,7 @@ func (x *fastReflection_SlashReport) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Entries", wireType)
 				}
-				var stringLen uint64
+				var msglen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -487,23 +1223,25 @@ func (x *fastReflection_SlashReport) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					msglen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
+				if msglen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + intStringLen
+				postIndex := iNdEx + msglen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Entries = append(x.Entries, string(dAtA[iNdEx:postIndex]))
+				x.Entries = append(x.Entries, &SlashEntry{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Entries[len(x.Entries)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -553,6 +1291,85 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SlashEntry struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// address of the validator that has been slashed.
+	ValidatorAddress string `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	// address of the delegator delegating to the slashed validator.
+	DelegatorAddress string `protobuf:"bytes,2,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
+	// delegator_slash_amount represents the amount of tokens deducted from the
+	// delegator's stake in the slashed validator. The amount includes both bonded
+	// tokens and tokens that were still bonded at the time of the infraction but
+	// have since started unbonding.
+	DelegatorSlashAmount *v1beta1.Coin `protobuf:"bytes,3,opt,name=delegator_slash_amount,json=delegatorSlashAmount,proto3" json:"delegator_slash_amount,omitempty"`
+	// delegator_bonded_balance represents the amount of tokens that remain
+	// delegated to the slashed validator after the slashing event has been
+	// processed.
+	DelegatorBondedBalance *v1beta1.Coin `protobuf:"bytes,4,opt,name=delegator_bonded_balance,json=delegatorBondedBalance,proto3" json:"delegator_bonded_balance,omitempty"`
+	// delegator_unbonding_balance represents the amount of tokens currently
+	// undergoing the unbonding process from the slashed validator after the
+	// slashing event has been processed.
+	DelegatorUnbondingBalance *v1beta1.Coin `protobuf:"bytes,5,opt,name=delegator_unbonding_balance,json=delegatorUnbondingBalance,proto3" json:"delegator_unbonding_balance,omitempty"`
+}
+
+func (x *SlashEntry) Reset() {
+	*x = SlashEntry{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fuelsequencer_reports_slash_report_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SlashEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SlashEntry) ProtoMessage() {}
+
+// Deprecated: Use SlashEntry.ProtoReflect.Descriptor instead.
+func (*SlashEntry) Descriptor() ([]byte, []int) {
+	return file_fuelsequencer_reports_slash_report_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *SlashEntry) GetValidatorAddress() string {
+	if x != nil {
+		return x.ValidatorAddress
+	}
+	return ""
+}
+
+func (x *SlashEntry) GetDelegatorAddress() string {
+	if x != nil {
+		return x.DelegatorAddress
+	}
+	return ""
+}
+
+func (x *SlashEntry) GetDelegatorSlashAmount() *v1beta1.Coin {
+	if x != nil {
+		return x.DelegatorSlashAmount
+	}
+	return nil
+}
+
+func (x *SlashEntry) GetDelegatorBondedBalance() *v1beta1.Coin {
+	if x != nil {
+		return x.DelegatorBondedBalance
+	}
+	return nil
+}
+
+func (x *SlashEntry) GetDelegatorUnbondingBalance() *v1beta1.Coin {
+	if x != nil {
+		return x.DelegatorUnbondingBalance
+	}
+	return nil
+}
+
 type SlashReport struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -560,14 +1377,14 @@ type SlashReport struct {
 
 	// the height at which a slash report was generated
 	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
-	// entries is the list of slashed entries
-	Entries []string `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
+	// entries is the list of slashed entries at this height
+	Entries []*SlashEntry `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
 }
 
 func (x *SlashReport) Reset() {
 	*x = SlashReport{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fuelsequencer_reports_slash_report_proto_msgTypes[0]
+		mi := &file_fuelsequencer_reports_slash_report_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -581,7 +1398,7 @@ func (*SlashReport) ProtoMessage() {}
 
 // Deprecated: Use SlashReport.ProtoReflect.Descriptor instead.
 func (*SlashReport) Descriptor() ([]byte, []int) {
-	return file_fuelsequencer_reports_slash_report_proto_rawDescGZIP(), []int{0}
+	return file_fuelsequencer_reports_slash_report_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SlashReport) GetHeight() uint64 {
@@ -591,7 +1408,7 @@ func (x *SlashReport) GetHeight() uint64 {
 	return 0
 }
 
-func (x *SlashReport) GetEntries() []string {
+func (x *SlashReport) GetEntries() []*SlashEntry {
 	if x != nil {
 		return x.Entries
 	}
@@ -605,26 +1422,60 @@ var file_fuelsequencer_reports_slash_report_proto_rawDesc = []byte{
 	0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x2f, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x5f, 0x72, 0x65,
 	0x70, 0x6f, 0x72, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x15, 0x66, 0x75, 0x65, 0x6c,
 	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74,
-	0x73, 0x22, 0x3f, 0x0a, 0x0b, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
-	0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04,
-	0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x65, 0x6e, 0x74, 0x72,
-	0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69,
-	0x65, 0x73, 0x42, 0xeb, 0x01, 0x0a, 0x19, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73,
-	0x42, 0x10, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x50, 0x72, 0x6f,
-	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x47, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63,
-	0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xa2, 0x02, 0x03,
-	0x46, 0x52, 0x58, 0xaa, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xca, 0x02, 0x15, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x52, 0x65, 0x70, 0x6f,
-	0x72, 0x74, 0x73, 0xe2, 0x02, 0x21, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x5c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x5c, 0x47, 0x50, 0x42, 0x4d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x16, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x1a, 0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f,
+	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f,
+	0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x1a, 0x1e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x63, 0x6f, 0x69, 0x6e, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x22, 0xad, 0x03, 0x0a, 0x0a, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x12, 0x45, 0x0a, 0x11, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x61,
+	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4,
+	0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
+	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x10, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f,
+	0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x45, 0x0a, 0x11, 0x64, 0x65, 0x6c, 0x65,
+	0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
+	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x10, 0x64,
+	0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12,
+	0x55, 0x0a, 0x16, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x73, 0x6c, 0x61,
+	0x73, 0x68, 0x5f, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00,
+	0x52, 0x14, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x53, 0x6c, 0x61, 0x73, 0x68,
+	0x41, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x59, 0x0a, 0x18, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61,
+	0x74, 0x6f, 0x72, 0x5f, 0x62, 0x6f, 0x6e, 0x64, 0x65, 0x64, 0x5f, 0x62, 0x61, 0x6c, 0x61, 0x6e,
+	0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43,
+	0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x16, 0x64, 0x65, 0x6c, 0x65, 0x67,
+	0x61, 0x74, 0x6f, 0x72, 0x42, 0x6f, 0x6e, 0x64, 0x65, 0x64, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63,
+	0x65, 0x12, 0x5f, 0x0a, 0x1b, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x75,
+	0x6e, 0x62, 0x6f, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x5f, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
+	0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69,
+	0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x19, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74,
+	0x6f, 0x72, 0x55, 0x6e, 0x62, 0x6f, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x42, 0x61, 0x6c, 0x61, 0x6e,
+	0x63, 0x65, 0x22, 0x62, 0x0a, 0x0b, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72,
+	0x74, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x04, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x3b, 0x0a, 0x07, 0x65, 0x6e, 0x74,
+	0x72, 0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x66, 0x75, 0x65,
+	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70, 0x6f, 0x72,
+	0x74, 0x73, 0x2e, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x65,
+	0x6e, 0x74, 0x72, 0x69, 0x65, 0x73, 0x42, 0xeb, 0x01, 0x0a, 0x19, 0x63, 0x6f, 0x6d, 0x2e, 0x66,
+	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70,
+	0x6f, 0x72, 0x74, 0x73, 0x42, 0x10, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72,
+	0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x47, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73,
+	0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x73, 0xa2, 0x02, 0x03, 0x46, 0x52, 0x58, 0xaa, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xca,
+	0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c,
+	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xe2, 0x02, 0x21, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x5c,
+	0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x16, 0x46, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x52, 0x65, 0x70,
+	0x6f, 0x72, 0x74, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -639,16 +1490,22 @@ func file_fuelsequencer_reports_slash_report_proto_rawDescGZIP() []byte {
 	return file_fuelsequencer_reports_slash_report_proto_rawDescData
 }
 
-var file_fuelsequencer_reports_slash_report_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_fuelsequencer_reports_slash_report_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_fuelsequencer_reports_slash_report_proto_goTypes = []interface{}{
-	(*SlashReport)(nil), // 0: fuelsequencer.reports.SlashReport
+	(*SlashEntry)(nil),   // 0: fuelsequencer.reports.SlashEntry
+	(*SlashReport)(nil),  // 1: fuelsequencer.reports.SlashReport
+	(*v1beta1.Coin)(nil), // 2: cosmos.base.v1beta1.Coin
 }
 var file_fuelsequencer_reports_slash_report_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: fuelsequencer.reports.SlashEntry.delegator_slash_amount:type_name -> cosmos.base.v1beta1.Coin
+	2, // 1: fuelsequencer.reports.SlashEntry.delegator_bonded_balance:type_name -> cosmos.base.v1beta1.Coin
+	2, // 2: fuelsequencer.reports.SlashEntry.delegator_unbonding_balance:type_name -> cosmos.base.v1beta1.Coin
+	0, // 3: fuelsequencer.reports.SlashReport.entries:type_name -> fuelsequencer.reports.SlashEntry
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_reports_slash_report_proto_init() }
@@ -658,6 +1515,18 @@ func file_fuelsequencer_reports_slash_report_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_fuelsequencer_reports_slash_report_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SlashEntry); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fuelsequencer_reports_slash_report_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SlashReport); i {
 			case 0:
 				return &v.state
@@ -676,7 +1545,7 @@ func file_fuelsequencer_reports_slash_report_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_fuelsequencer_reports_slash_report_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
