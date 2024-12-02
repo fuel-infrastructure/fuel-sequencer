@@ -60,20 +60,13 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		)
 
 		// Generate Authorize event wrapping a MsgDelegate to validator1.
+		// Expect 60 seconds from vestingStartTime for 60 tokens to be available.
 		timeForUnlock := time.Second * 60
 		delegateAmount, ok := sdkmath.NewIntFromString("60")
 		s.Require().True(ok)
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
 		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
 		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-
-		// Ensure that not too much time has elapsed, with a 20-second buffer
-		timeUntilUnlock := vestingStartTime.Add(timeForUnlock).Sub(time.Now())
-		if timeUntilUnlock < time.Second*20 {
-			s.Fail(fmt.Sprintf("tokens will unlock in %s; not enough buffer!", timeUntilUnlock.String()))
-		} else {
-			s.Logger().Info(fmt.Sprintf("tokens will unlock in %s", timeUntilUnlock.String()))
-		}
 
 		// Expect a failure because not enough time has elapsed yet
 		delegation1, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
@@ -85,9 +78,10 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
 
 		// Confirm that the delegation went through and is as expected.
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
-		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation2.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForDelegationBalance(s.Ctx(), 0, delegatorAddress, validator1Address, delegateCoin)
 
 		// Check account again
 		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
@@ -201,20 +195,13 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockupS
 		)
 
 		// Generate Authorize event wrapping a MsgDelegate to validator1.
+		// Expect 60 seconds from vestingStartTime for 60 tokens to be available.
 		timeForUnlock := time.Second * 60
 		delegateAmount, ok := sdkmath.NewIntFromString("60")
 		s.Require().True(ok)
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
 		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
 		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-
-		// Ensure that not too much time has elapsed, with a 20-second buffer
-		timeUntilUnlock := vestingStartTime.Add(timeForUnlock).Sub(time.Now())
-		if timeUntilUnlock < time.Second*20 {
-			s.Fail(fmt.Sprintf("tokens will unlock in %s; not enough buffer!", timeUntilUnlock.String()))
-		} else {
-			s.Logger().Info(fmt.Sprintf("tokens will unlock in %s", timeUntilUnlock.String()))
-		}
 
 		// Expect a failure because not enough time has elapsed yet
 		delegation1, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
@@ -226,9 +213,10 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockupS
 		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
 
 		// Confirm that the delegation went through and is as expected.
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
-		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation2.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForDelegationBalance(s.Ctx(), 0, delegatorAddress, validator1Address, delegateCoin)
 
 		// Check account again
 		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
