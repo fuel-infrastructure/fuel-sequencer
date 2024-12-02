@@ -44,7 +44,7 @@ func TestEthOwnedContinuousVestingAccountSetPubkeyErrors(t *testing.T) {
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned continuous vesting account")
 }
 
-func TestTrackDelegation(t *testing.T) {
+func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 
 	// Helper coins.
 	oneToken := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1))
@@ -163,6 +163,7 @@ func TestTrackDelegation(t *testing.T) {
 			require.True(t, vestingAcc.LockedCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
 			require.True(t, vestingAcc.GetVestingCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
 
+			// Delegation
 			if tc.expPanic {
 				require.Panics(t, func() {
 					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
@@ -184,6 +185,40 @@ func TestTrackDelegation(t *testing.T) {
 			require.True(t, vestingAcc.DelegatedVesting.IsZero())                   // we expect this to never get set
 		})
 	}
+}
+
+func TestTrackDelegation_ZeroDelegationAmountCausesPanic(t *testing.T) {
+
+	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
+	zeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 0)}
+	tenTokens := sdk.Coins{sdk.NewInt64Coin("token1", 10)}
+	withZeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 10), sdk.NewInt64Coin("token2", 0)}
+
+	vAcc := types.EthOwnedContinuousVestingAccount{}
+	require.PanicsWithValue(t, "delegation attempt with zero amount in coins 0token1", func() {
+		vAcc.TrackDelegation(t0, tenTokens, zeroTokens)
+	})
+
+	vAcc = types.EthOwnedContinuousVestingAccount{}
+	require.PanicsWithValue(t, "delegation attempt with zero amount in coins 10token1,0token2", func() {
+		vAcc.TrackDelegation(t0, tenTokens, withZeroTokens)
+	})
+}
+
+func TestTrackUndelegation_ZeroUndelegationAmountCausesPanic(t *testing.T) {
+
+	zeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 0)}
+	withZeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 10), sdk.NewInt64Coin("token2", 0)}
+
+	vAcc := types.EthOwnedContinuousVestingAccount{}
+	require.PanicsWithValue(t, "undelegation attempt with zero amount in coins 0token1", func() {
+		vAcc.TrackUndelegation(zeroTokens)
+	})
+
+	vAcc = types.EthOwnedContinuousVestingAccount{}
+	require.PanicsWithValue(t, "undelegation attempt with zero amount in coins 10token1,0token2", func() {
+		vAcc.TrackUndelegation(withZeroTokens)
+	})
 }
 
 func TestAddVestingCoins(t *testing.T) {
