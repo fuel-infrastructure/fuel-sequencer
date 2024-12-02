@@ -47,8 +47,11 @@ func TestEthOwnedContinuousVestingAccountSetPubkeyErrors(t *testing.T) {
 func TestTrackDelegation(t *testing.T) {
 
 	// Helper coins.
+	oneToken := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1))
+	tenTokens := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 10))
 	originalVesting := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
 	halfVesting := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	moreThanHalfVesting := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 101))
 
 	// Helper times.
 	months6 := (time.Hour * 24 * 365) / 2
@@ -75,13 +78,66 @@ func TestTrackDelegation(t *testing.T) {
 		expPanic              bool
 	}{
 		{
-			name:                  "half way through vesting",
-			delegatedFreeBefore:   nil,             // no prior delegation
-			blockTime:             t0Plus6Months,   // half-way through vesting
-			balanceAtDelegation:   originalVesting, // full balance is vesting
+			name:                 "start of vesting; cannot even delegate 1 token; panic",
+			blockTime:            t0,              // at start of vesting
+			balanceAtDelegation:  originalVesting, // no balance apart from original vesting
+			delegationAmount:     oneToken,        // try to delegate just one token
+			expLockedCoinsBefore: originalVesting, // all are still vesting
+			expPanic:             true,
+		},
+		{
+			name:                  "half way through vesting; delegate half original vesting; successful",
+			blockTime:             t0Plus6Months,
+			balanceAtDelegation:   originalVesting, // no balance apart from original vesting
 			delegationAmount:      halfVesting,     // delegate half of the vesting
 			expLockedCoinsBefore:  halfVesting,     // half are still vesting
 			expDelegatedFreeAfter: halfVesting,     // half get delegated successfully
+			expPanic:              false,
+		},
+		{
+			name:                  "half way through vesting with extra tokens available; successful",
+			blockTime:             t0Plus6Months,
+			balanceAtDelegation:   originalVesting.Add(tenTokens...), // balance has 10 extra tokens
+			delegationAmount:      halfVesting.Add(tenTokens...),     // delegate half of the vesting plus 10
+			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
+			expDelegatedFreeAfter: halfVesting.Add(tenTokens...),     // half plus 10 get delegated successfully
+			expPanic:              false,
+		},
+		{
+			name:                 "half way through vesting; delegate more than half original vesting; panic",
+			blockTime:            t0Plus6Months,
+			balanceAtDelegation:  originalVesting,     // no balance apart from original vesting
+			delegationAmount:     moreThanHalfVesting, // delegate more than half of the vesting
+			expLockedCoinsBefore: halfVesting,         // half are still vesting
+			expPanic:             true,
+		},
+		{
+			name:                  "half way through vesting with some tokens already delegated; can delegate less than half; successful",
+			blockTime:             t0Plus6Months,
+			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
+			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
+			delegationAmount:      halfVesting.Sub(tenTokens...),     // delegate half of the vesting minus 10 tokens
+			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
+			expDelegatedFreeAfter: halfVesting,                       // (halfVesting - 10) + 10 = halfVesting
+			expPanic:              false,
+		},
+		{
+			name:                  "half way through vesting with some tokens already delegated; cannot delegate half original vesting; panic",
+			blockTime:             t0Plus6Months,
+			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
+			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
+			delegationAmount:      halfVesting,                       // delegate half of the vesting
+			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
+			expDelegatedFreeAfter: halfVesting.Add(tenTokens...),     // half get delegated successfully
+			expPanic:              true,
+		},
+		{
+			name:                  "vesting done; delegate full amount; successful",
+			blockTime:             t1,              // vesting done
+			balanceAtDelegation:   originalVesting, // no balance apart from original vesting
+			delegationAmount:      originalVesting, // delegate all the original vesting
+			expLockedCoinsBefore:  nil,             // all tokens vested
+			expDelegatedFreeAfter: originalVesting, // all tokens delegated successfully
 			expPanic:              false,
 		},
 	}
@@ -111,15 +167,21 @@ func TestTrackDelegation(t *testing.T) {
 				require.Panics(t, func() {
 					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 				})
+				return // test is over
 			} else {
-				require.NotPanics(t, func() {
-					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
-				})
+				vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 			}
 
-			// Check delegation fields after
+			// Check delegation fields after delegation
 			require.True(t, vestingAcc.DelegatedFree.Equal(tc.expDelegatedFreeAfter))
 			require.True(t, vestingAcc.DelegatedVesting.IsZero()) // we expect this to never get set
+
+			// Undelegate the delegated balance to get to the original values
+			vestingAcc.TrackUndelegation(tc.delegationAmount)
+
+			// Check delegation fields after undelegation
+			require.True(t, vestingAcc.DelegatedFree.Equal(tc.delegatedFreeBefore)) // back to original DelegatedFree
+			require.True(t, vestingAcc.DelegatedVesting.IsZero())                   // we expect this to never get set
 		})
 	}
 }
