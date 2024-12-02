@@ -46,6 +46,7 @@ func ValidateSlashReportEntries(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
+	// We cannot have a slash report with no entries as we would be wasting memory
 	if len(v) == 0 {
 		return fmt.Errorf("entries cannot be empty")
 	}
