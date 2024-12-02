@@ -80,8 +80,57 @@ var (
 		ValidatorAddress:          TestFrom3Val,
 		DelegatorAddress:          TestFrom3Seq,
 		DelegatorSlashAmount:      sdkmath.NewInt(3),
-		DelegatorBondedBalance:    sdkmath.NewInt(40),
-		DelegatorUnbondingBalance: sdkmath.NewInt(30),
+		DelegatorBondedBalance:    sdkmath.NewInt(0),
+		DelegatorUnbondingBalance: sdkmath.NewInt(0),
+	}
+	InvalidSlashEntryValidatorAddressNotValoper = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom2Seq,
+		DelegatorAddress:          TestFrom2Seq,
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
+	}
+	InvalidSlashEntryValidatorAddressNotAccAddress = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom2Val,
+		DelegatorAddress:          TestFrom2Val,
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
+	}
+	InvalidSlashEntryNegativeDelegatorSlashAmount = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom2Val,
+		DelegatorAddress:          TestFrom2Seq,
+		DelegatorSlashAmount:      sdkmath.NewInt(-1),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
+	}
+	InvalidSlashEntryZeroDelegatorSlashAmount = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom2Val,
+		DelegatorAddress:          TestFrom2Seq,
+		DelegatorSlashAmount:      sdkmath.ZeroInt(),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
+	}
+	InvalidSlashEntryNegativeDelegatorBondedBalance = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom2Val,
+		DelegatorAddress:          TestFrom2Seq,
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(-1),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
+	}
+	InvalidSlashEntryNegativeDelegatorUnbondingBalance = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom2Val,
+		DelegatorAddress:          TestFrom2Seq,
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(-1),
+	}
+	InvalidSlashEntryNonUnique = reportstypes.SlashEntry{
+		ValidatorAddress:          TestFrom1Val, // Equal to ValidSlashEntry1
+		DelegatorAddress:          TestFrom1Seq, // Equal to ValidSlashEntry1
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	ValidSlashReport1 = reportstypes.SlashReport{
 		Height:  1,
@@ -89,7 +138,51 @@ var (
 	}
 	ValidSlashReport2 = reportstypes.SlashReport{
 		Height:  2,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1},
+	}
+	ValidSlashReport3 = reportstypes.SlashReport{
+		Height:  3,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry3},
+	}
+	InvalidSlashReportHeightZero = reportstypes.SlashReport{
+		Height:  0,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, ValidSlashEntry2},
+	}
+	InvalidSlashReportEmptyEntries = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{},
+	}
+	InvalidSlashReportNilEntries = reportstypes.SlashReport{
+		Height:  1,
+		Entries: nil,
+	}
+	InvalidSlashReportValidatorAddressNotValoper = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotValoper},
+	}
+	InvalidSlashReportDelegatorAddressNotAccAddress = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotAccAddress},
+	}
+	InvalidSlashReportDelegatorSlashAmountNegative = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorSlashAmount},
+	}
+	InvalidSlashReportDelegatorSlashAmountZero = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryZeroDelegatorSlashAmount},
+	}
+	InvalidSlashReportDelegatorBondedBalanceNegative = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorBondedBalance},
+	}
+	InvalidSlashReportDelegatorUnbondingBalanceNegative = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorUnbondingBalance},
+	}
+	InvalidSlashReportNonUniqueSlashEntries = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNonUnique},
 	}
 
 	// TestData1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1. This was generated with the help of

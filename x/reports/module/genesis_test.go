@@ -34,5 +34,24 @@ func TestGenesis_ValidState(t *testing.T) {
 }
 
 func TestGenesis_InvalidSlashReport(t *testing.T) {
-	// TODO
+	genesisState := types.GenesisState{
+		Params: types.DefaultParams(),
+		SlashReportList: []types.SlashReport{
+			testtypes.ValidSlashReport1,
+			testtypes.InvalidSlashReportNonUniqueSlashEntries,
+		},
+		// this line is used by starport scaffolding # genesis/test/state
+	}
+
+	k, ctx := keepertest.ReportsKeeper(t)
+
+	require.Panics(t, func() {
+		defer func() {
+			if r := recover(); r != nil {
+				require.Contains(t, r.(string), "duplicate slash entry found")
+			}
+		}()
+
+		reports.InitGenesis(ctx, k, genesisState)
+	})
 }
