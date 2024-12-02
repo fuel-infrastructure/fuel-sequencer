@@ -165,10 +165,15 @@ func NewEthOwnedContinuousVestingAccount(
 	}
 }
 
+// TrackDelegation overrides the CointinuousVestingAccount TrackDelegation (which uses the BaseVestingAccount one) to
+// ensure that the amount being delegated is spendable. The delegated amount is added to the DelegatedFree entry.
+//
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L59
 func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
 
-	// Calculate spendable coins
-	locked := a.ContinuousVestingAccount.LockedCoins(blockTime)
+	// Calculate spendable coins, where balance will only ever be an amount in FUEL.
+	// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/bank/keeper/view.go#L212
+	locked := a.LockedCoins(blockTime)
 	spendable, hasNeg := balance.SafeSub(locked...)
 	if hasNeg {
 		spendable = sdk.NewCoins()
@@ -179,19 +184,12 @@ func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, 
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
 	}
 
-	// This logic retains the structure of the original ContinuousVestingAccount's TrackDelegation, but without the
-	// logic to delegate vesting coins.
-	for _, coin := range amount {
-		baseAmt := balance.AmountOf(coin.Denom)
-
-		// Panic if the delegation amount is zero or if the base coins does not
-		// exceed the desired delegation amount.
-		if coin.Amount.IsZero() || baseAmt.LT(coin.Amount) {
-			panic("delegation attempt with zero coins or insufficient funds")
-		}
-
-		a.DelegatedFree = a.DelegatedFree.Add(coin)
+	// Sanity check delegation amount - inspired by overridden TrackDelegation function
+	if !amount.IsAllPositive() {
+		panic(fmt.Sprintf("delegation attempt with zero amount; coins are %s", amount.String()))
 	}
+
+	a.DelegatedFree = a.DelegatedFree.Add(amount...)
 }
 
 // AddVestingCoins ignores the specified vesting start and end times since these have already been set. The new coins
