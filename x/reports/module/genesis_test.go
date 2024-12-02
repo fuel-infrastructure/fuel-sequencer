@@ -5,6 +5,7 @@ import (
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
+	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	reports "github.com/fuel-infrastructure/fuel-sequencer/x/reports/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	"github.com/stretchr/testify/require"
@@ -12,18 +13,8 @@ import (
 
 func TestGenesis_ValidState(t *testing.T) {
 	genesisState := types.GenesisState{
-		Params: types.DefaultParams(),
-
-		SlashReportList: []types.SlashReport{
-			{
-				Height:  0,
-				Entries: []string{"entry1", "entry2"},
-			},
-			{
-				Height:  1,
-				Entries: []string{"entry2", "entry3"},
-			},
-		},
+		Params:          types.DefaultParams(),
+		SlashReportList: []types.SlashReport{testtypes.ValidSlashReport1, testtypes.ValidSlashReport2},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 

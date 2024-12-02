@@ -2,7 +2,7 @@
 package reports
 
 import (
-	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
+	_ "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
@@ -111,20 +111,20 @@ func (x *fastReflection_SlashEntry) Range(f func(protoreflect.FieldDescriptor, p
 			return
 		}
 	}
-	if x.DelegatorSlashAmount != nil {
-		value := protoreflect.ValueOfMessage(x.DelegatorSlashAmount.ProtoReflect())
+	if x.DelegatorSlashAmount != "" {
+		value := protoreflect.ValueOfString(x.DelegatorSlashAmount)
 		if !f(fd_SlashEntry_delegator_slash_amount, value) {
 			return
 		}
 	}
-	if x.DelegatorBondedBalance != nil {
-		value := protoreflect.ValueOfMessage(x.DelegatorBondedBalance.ProtoReflect())
+	if x.DelegatorBondedBalance != "" {
+		value := protoreflect.ValueOfString(x.DelegatorBondedBalance)
 		if !f(fd_SlashEntry_delegator_bonded_balance, value) {
 			return
 		}
 	}
-	if x.DelegatorUnbondingBalance != nil {
-		value := protoreflect.ValueOfMessage(x.DelegatorUnbondingBalance.ProtoReflect())
+	if x.DelegatorUnbondingBalance != "" {
+		value := protoreflect.ValueOfString(x.DelegatorUnbondingBalance)
 		if !f(fd_SlashEntry_delegator_unbonding_balance, value) {
 			return
 		}
@@ -149,11 +149,11 @@ func (x *fastReflection_SlashEntry) Has(fd protoreflect.FieldDescriptor) bool {
 	case "fuelsequencer.reports.SlashEntry.delegator_address":
 		return x.DelegatorAddress != ""
 	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
-		return x.DelegatorSlashAmount != nil
+		return x.DelegatorSlashAmount != ""
 	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
-		return x.DelegatorBondedBalance != nil
+		return x.DelegatorBondedBalance != ""
 	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
-		return x.DelegatorUnbondingBalance != nil
+		return x.DelegatorUnbondingBalance != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
@@ -175,11 +175,11 @@ func (x *fastReflection_SlashEntry) Clear(fd protoreflect.FieldDescriptor) {
 	case "fuelsequencer.reports.SlashEntry.delegator_address":
 		x.DelegatorAddress = ""
 	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
-		x.DelegatorSlashAmount = nil
+		x.DelegatorSlashAmount = ""
 	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
-		x.DelegatorBondedBalance = nil
+		x.DelegatorBondedBalance = ""
 	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
-		x.DelegatorUnbondingBalance = nil
+		x.DelegatorUnbondingBalance = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
@@ -204,13 +204,13 @@ func (x *fastReflection_SlashEntry) Get(descriptor protoreflect.FieldDescriptor)
 		return protoreflect.ValueOfString(value)
 	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
 		value := x.DelegatorSlashAmount
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
+		return protoreflect.ValueOfString(value)
 	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
 		value := x.DelegatorBondedBalance
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
+		return protoreflect.ValueOfString(value)
 	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
 		value := x.DelegatorUnbondingBalance
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
+		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
@@ -236,11 +236,11 @@ func (x *fastReflection_SlashEntry) Set(fd protoreflect.FieldDescriptor, value p
 	case "fuelsequencer.reports.SlashEntry.delegator_address":
 		x.DelegatorAddress = value.Interface().(string)
 	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
-		x.DelegatorSlashAmount = value.Message().Interface().(*v1beta1.Coin)
+		x.DelegatorSlashAmount = value.Interface().(string)
 	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
-		x.DelegatorBondedBalance = value.Message().Interface().(*v1beta1.Coin)
+		x.DelegatorBondedBalance = value.Interface().(string)
 	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
-		x.DelegatorUnbondingBalance = value.Message().Interface().(*v1beta1.Coin)
+		x.DelegatorUnbondingBalance = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
@@ -261,25 +261,16 @@ func (x *fastReflection_SlashEntry) Set(fd protoreflect.FieldDescriptor, value p
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_SlashEntry) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
-		if x.DelegatorSlashAmount == nil {
-			x.DelegatorSlashAmount = new(v1beta1.Coin)
-		}
-		return protoreflect.ValueOfMessage(x.DelegatorSlashAmount.ProtoReflect())
-	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
-		if x.DelegatorBondedBalance == nil {
-			x.DelegatorBondedBalance = new(v1beta1.Coin)
-		}
-		return protoreflect.ValueOfMessage(x.DelegatorBondedBalance.ProtoReflect())
-	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
-		if x.DelegatorUnbondingBalance == nil {
-			x.DelegatorUnbondingBalance = new(v1beta1.Coin)
-		}
-		return protoreflect.ValueOfMessage(x.DelegatorUnbondingBalance.ProtoReflect())
 	case "fuelsequencer.reports.SlashEntry.validator_address":
 		panic(fmt.Errorf("field validator_address of message fuelsequencer.reports.SlashEntry is not mutable"))
 	case "fuelsequencer.reports.SlashEntry.delegator_address":
 		panic(fmt.Errorf("field delegator_address of message fuelsequencer.reports.SlashEntry is not mutable"))
+	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
+		panic(fmt.Errorf("field delegator_slash_amount of message fuelsequencer.reports.SlashEntry is not mutable"))
+	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
+		panic(fmt.Errorf("field delegator_bonded_balance of message fuelsequencer.reports.SlashEntry is not mutable"))
+	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
+		panic(fmt.Errorf("field delegator_unbonding_balance of message fuelsequencer.reports.SlashEntry is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
@@ -298,14 +289,11 @@ func (x *fastReflection_SlashEntry) NewField(fd protoreflect.FieldDescriptor) pr
 	case "fuelsequencer.reports.SlashEntry.delegator_address":
 		return protoreflect.ValueOfString("")
 	case "fuelsequencer.reports.SlashEntry.delegator_slash_amount":
-		m := new(v1beta1.Coin)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
+		return protoreflect.ValueOfString("")
 	case "fuelsequencer.reports.SlashEntry.delegator_bonded_balance":
-		m := new(v1beta1.Coin)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
+		return protoreflect.ValueOfString("")
 	case "fuelsequencer.reports.SlashEntry.delegator_unbonding_balance":
-		m := new(v1beta1.Coin)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
+		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.reports.SlashEntry"))
@@ -383,16 +371,16 @@ func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.DelegatorSlashAmount != nil {
-			l = options.Size(x.DelegatorSlashAmount)
+		l = len(x.DelegatorSlashAmount)
+		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.DelegatorBondedBalance != nil {
-			l = options.Size(x.DelegatorBondedBalance)
+		l = len(x.DelegatorBondedBalance)
+		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.DelegatorUnbondingBalance != nil {
-			l = options.Size(x.DelegatorUnbondingBalance)
+		l = len(x.DelegatorUnbondingBalance)
+		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
@@ -424,45 +412,24 @@ func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if x.DelegatorUnbondingBalance != nil {
-			encoded, err := options.Marshal(x.DelegatorUnbondingBalance)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+		if len(x.DelegatorUnbondingBalance) > 0 {
+			i -= len(x.DelegatorUnbondingBalance)
+			copy(dAtA[i:], x.DelegatorUnbondingBalance)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DelegatorUnbondingBalance)))
 			i--
 			dAtA[i] = 0x2a
 		}
-		if x.DelegatorBondedBalance != nil {
-			encoded, err := options.Marshal(x.DelegatorBondedBalance)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+		if len(x.DelegatorBondedBalance) > 0 {
+			i -= len(x.DelegatorBondedBalance)
+			copy(dAtA[i:], x.DelegatorBondedBalance)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DelegatorBondedBalance)))
 			i--
 			dAtA[i] = 0x22
 		}
-		if x.DelegatorSlashAmount != nil {
-			encoded, err := options.Marshal(x.DelegatorSlashAmount)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+		if len(x.DelegatorSlashAmount) > 0 {
+			i -= len(x.DelegatorSlashAmount)
+			copy(dAtA[i:], x.DelegatorSlashAmount)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DelegatorSlashAmount)))
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -597,7 +564,7 @@ func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorSlashAmount", wireType)
 				}
-				var msglen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -607,33 +574,29 @@ func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					msglen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if msglen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + msglen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				if x.DelegatorSlashAmount == nil {
-					x.DelegatorSlashAmount = &v1beta1.Coin{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatorSlashAmount); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
+				x.DelegatorSlashAmount = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			case 4:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorBondedBalance", wireType)
 				}
-				var msglen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -643,33 +606,29 @@ func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					msglen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if msglen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + msglen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				if x.DelegatorBondedBalance == nil {
-					x.DelegatorBondedBalance = &v1beta1.Coin{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatorBondedBalance); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
+				x.DelegatorBondedBalance = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			case 5:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatorUnbondingBalance", wireType)
 				}
-				var msglen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -679,27 +638,23 @@ func (x *fastReflection_SlashEntry) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					msglen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if msglen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + msglen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				if x.DelegatorUnbondingBalance == nil {
-					x.DelegatorUnbondingBalance = &v1beta1.Coin{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatorUnbondingBalance); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
+				x.DelegatorUnbondingBalance = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -1304,15 +1259,15 @@ type SlashEntry struct {
 	// delegator's stake in the slashed validator. The amount includes both bonded
 	// tokens and tokens that were still bonded at the time of the infraction but
 	// have since started unbonding.
-	DelegatorSlashAmount *v1beta1.Coin `protobuf:"bytes,3,opt,name=delegator_slash_amount,json=delegatorSlashAmount,proto3" json:"delegator_slash_amount,omitempty"`
-	// delegator_bonded_balance represents the amount of tokens that remain
-	// delegated to the slashed validator after the slashing event has been
+	DelegatorSlashAmount string `protobuf:"bytes,3,opt,name=delegator_slash_amount,json=delegatorSlashAmount,proto3" json:"delegator_slash_amount,omitempty"`
+	// delegator_bonded_balance represents the amount of delegator tokens that
+	// remain delegated to the slashed validator after the slashing event has been
 	// processed.
-	DelegatorBondedBalance *v1beta1.Coin `protobuf:"bytes,4,opt,name=delegator_bonded_balance,json=delegatorBondedBalance,proto3" json:"delegator_bonded_balance,omitempty"`
-	// delegator_unbonding_balance represents the amount of tokens currently
-	// undergoing the unbonding process from the slashed validator after the
-	// slashing event has been processed.
-	DelegatorUnbondingBalance *v1beta1.Coin `protobuf:"bytes,5,opt,name=delegator_unbonding_balance,json=delegatorUnbondingBalance,proto3" json:"delegator_unbonding_balance,omitempty"`
+	DelegatorBondedBalance string `protobuf:"bytes,4,opt,name=delegator_bonded_balance,json=delegatorBondedBalance,proto3" json:"delegator_bonded_balance,omitempty"`
+	// delegator_unbonding_balance represents the amount of delegator tokens
+	// currently undergoing the unbonding process from the slashed validator after
+	// the slashing event has been processed.
+	DelegatorUnbondingBalance string `protobuf:"bytes,5,opt,name=delegator_unbonding_balance,json=delegatorUnbondingBalance,proto3" json:"delegator_unbonding_balance,omitempty"`
 }
 
 func (x *SlashEntry) Reset() {
@@ -1349,25 +1304,25 @@ func (x *SlashEntry) GetDelegatorAddress() string {
 	return ""
 }
 
-func (x *SlashEntry) GetDelegatorSlashAmount() *v1beta1.Coin {
+func (x *SlashEntry) GetDelegatorSlashAmount() string {
 	if x != nil {
 		return x.DelegatorSlashAmount
 	}
-	return nil
+	return ""
 }
 
-func (x *SlashEntry) GetDelegatorBondedBalance() *v1beta1.Coin {
+func (x *SlashEntry) GetDelegatorBondedBalance() string {
 	if x != nil {
 		return x.DelegatorBondedBalance
 	}
-	return nil
+	return ""
 }
 
-func (x *SlashEntry) GetDelegatorUnbondingBalance() *v1beta1.Coin {
+func (x *SlashEntry) GetDelegatorUnbondingBalance() string {
 	if x != nil {
 		return x.DelegatorUnbondingBalance
 	}
-	return nil
+	return ""
 }
 
 type SlashReport struct {
@@ -1427,7 +1382,7 @@ var file_fuelsequencer_reports_slash_report_proto_rawDesc = []byte{
 	0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x1a, 0x1e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f,
 	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x63, 0x6f, 0x69, 0x6e, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0xad, 0x03, 0x0a, 0x0a, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x45, 0x6e, 0x74, 0x72,
+	0x74, 0x6f, 0x22, 0xd1, 0x03, 0x0a, 0x0a, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x45, 0x6e, 0x74, 0x72,
 	0x79, 0x12, 0x45, 0x0a, 0x11, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x61,
 	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4,
 	0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
@@ -1437,45 +1392,48 @@ var file_fuelsequencer_reports_slash_report_proto_rawDesc = []byte{
 	0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
 	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x10, 0x64,
 	0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12,
-	0x55, 0x0a, 0x16, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x73, 0x6c, 0x61,
-	0x73, 0x68, 0x5f, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00,
-	0x52, 0x14, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x53, 0x6c, 0x61, 0x73, 0x68,
-	0x41, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x59, 0x0a, 0x18, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61,
-	0x74, 0x6f, 0x72, 0x5f, 0x62, 0x6f, 0x6e, 0x64, 0x65, 0x64, 0x5f, 0x62, 0x61, 0x6c, 0x61, 0x6e,
-	0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
-	0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43,
-	0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x16, 0x64, 0x65, 0x6c, 0x65, 0x67,
-	0x61, 0x74, 0x6f, 0x72, 0x42, 0x6f, 0x6e, 0x64, 0x65, 0x64, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63,
-	0x65, 0x12, 0x5f, 0x0a, 0x1b, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x75,
-	0x6e, 0x62, 0x6f, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x5f, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65,
-	0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
-	0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69,
-	0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x19, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74,
-	0x6f, 0x72, 0x55, 0x6e, 0x62, 0x6f, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x42, 0x61, 0x6c, 0x61, 0x6e,
-	0x63, 0x65, 0x22, 0x62, 0x0a, 0x0b, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72,
-	0x74, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x04, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x3b, 0x0a, 0x07, 0x65, 0x6e, 0x74,
-	0x72, 0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x66, 0x75, 0x65,
-	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70, 0x6f, 0x72,
-	0x74, 0x73, 0x2e, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x65,
-	0x6e, 0x74, 0x72, 0x69, 0x65, 0x73, 0x42, 0xeb, 0x01, 0x0a, 0x19, 0x63, 0x6f, 0x6d, 0x2e, 0x66,
-	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70,
-	0x6f, 0x72, 0x74, 0x73, 0x42, 0x10, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72,
-	0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x47, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73,
-	0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74,
-	0x73, 0xa2, 0x02, 0x03, 0x46, 0x52, 0x58, 0xaa, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xca,
-	0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c,
-	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xe2, 0x02, 0x21, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x5c,
-	0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x16, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x52, 0x65, 0x70,
-	0x6f, 0x72, 0x74, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x0a, 0x16, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x73, 0x6c, 0x61,
+	0x73, 0x68, 0x5f, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42,
+	0x2b, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73,
+	0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74, 0xd2, 0xb4,
+	0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0x52, 0x14, 0x64, 0x65,
+	0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x41, 0x6d, 0x6f, 0x75,
+	0x6e, 0x74, 0x12, 0x65, 0x0a, 0x18, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f,
+	0x62, 0x6f, 0x6e, 0x64, 0x65, 0x64, 0x5f, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x09, 0x42, 0x2b, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x15, 0x63, 0x6f,
+	0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e,
+	0x49, 0x6e, 0x74, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e,
+	0x74, 0x52, 0x16, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x42, 0x6f, 0x6e, 0x64,
+	0x65, 0x64, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x12, 0x6b, 0x0a, 0x1b, 0x64, 0x65, 0x6c,
+	0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x75, 0x6e, 0x62, 0x6f, 0x6e, 0x64, 0x69, 0x6e, 0x67,
+	0x5f, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x42, 0x2b,
+	0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64,
+	0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74, 0xd2, 0xb4, 0x2d,
+	0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0x52, 0x19, 0x64, 0x65, 0x6c,
+	0x65, 0x67, 0x61, 0x74, 0x6f, 0x72, 0x55, 0x6e, 0x62, 0x6f, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x42,
+	0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x22, 0x68, 0x0a, 0x0b, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x52,
+	0x65, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x41, 0x0a,
+	0x07, 0x65, 0x6e, 0x74, 0x72, 0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21,
+	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72,
+	0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x2e, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69, 0x65, 0x73,
+	0x42, 0xeb, 0x01, 0x0a, 0x19, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
+	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x42, 0x10,
+	0x53, 0x6c, 0x61, 0x73, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f,
+	0x50, 0x01, 0x5a, 0x47, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66,
+	0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75,
+	0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x2f, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xa2, 0x02, 0x03, 0x46, 0x52,
+	0x58, 0xaa, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0xca, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x73, 0xe2, 0x02, 0x21, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
+	0x72, 0x5c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
+	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x16, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1492,20 +1450,16 @@ func file_fuelsequencer_reports_slash_report_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_reports_slash_report_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_fuelsequencer_reports_slash_report_proto_goTypes = []interface{}{
-	(*SlashEntry)(nil),   // 0: fuelsequencer.reports.SlashEntry
-	(*SlashReport)(nil),  // 1: fuelsequencer.reports.SlashReport
-	(*v1beta1.Coin)(nil), // 2: cosmos.base.v1beta1.Coin
+	(*SlashEntry)(nil),  // 0: fuelsequencer.reports.SlashEntry
+	(*SlashReport)(nil), // 1: fuelsequencer.reports.SlashReport
 }
 var file_fuelsequencer_reports_slash_report_proto_depIdxs = []int32{
-	2, // 0: fuelsequencer.reports.SlashEntry.delegator_slash_amount:type_name -> cosmos.base.v1beta1.Coin
-	2, // 1: fuelsequencer.reports.SlashEntry.delegator_bonded_balance:type_name -> cosmos.base.v1beta1.Coin
-	2, // 2: fuelsequencer.reports.SlashEntry.delegator_unbonding_balance:type_name -> cosmos.base.v1beta1.Coin
-	0, // 3: fuelsequencer.reports.SlashReport.entries:type_name -> fuelsequencer.reports.SlashEntry
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0, // 0: fuelsequencer.reports.SlashReport.entries:type_name -> fuelsequencer.reports.SlashEntry
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_reports_slash_report_proto_init() }

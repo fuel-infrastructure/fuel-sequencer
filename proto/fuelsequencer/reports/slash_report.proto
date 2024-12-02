@@ -21,20 +21,29 @@ message SlashEntry {
   // delegator's stake in the slashed validator. The amount includes both bonded
   // tokens and tokens that were still bonded at the time of the infraction but
   // have since started unbonding.
-  cosmos.base.v1beta1.Coin delegator_slash_amount = 3
-      [ (gogoproto.nullable) = false ];
+  string delegator_slash_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 
-  // delegator_bonded_balance represents the amount of tokens that remain
-  // delegated to the slashed validator after the slashing event has been
+  // delegator_bonded_balance represents the amount of delegator tokens that
+  // remain delegated to the slashed validator after the slashing event has been
   // processed.
-  cosmos.base.v1beta1.Coin delegator_bonded_balance = 4
-      [ (gogoproto.nullable) = false ];
+  string delegator_bonded_balance = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 
-  // delegator_unbonding_balance represents the amount of tokens currently
-  // undergoing the unbonding process from the slashed validator after the
-  // slashing event has been processed.
-  cosmos.base.v1beta1.Coin delegator_unbonding_balance = 5
-      [ (gogoproto.nullable) = false ];
+  // delegator_unbonding_balance represents the amount of delegator tokens
+  // currently undergoing the unbonding process from the slashed validator after
+  // the slashing event has been processed.
+  string delegator_unbonding_balance = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message SlashReport {
@@ -43,5 +52,5 @@ message SlashReport {
   uint64 height = 1;
 
   // entries is the list of slashed entries at this height
-  repeated SlashEntry entries = 2;
+  repeated SlashEntry entries = 2 [ (gogoproto.nullable) = false ];
 }

@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"context"
-	"strconv"
 	"testing"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
@@ -17,17 +17,31 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
+func CreateNSlashEntry(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashEntry {
+	slashEntries := make([]types.SlashEntry, n)
+	for i := range slashEntries {
+		slashEntries[i].ValidatorAddress = sample.AccAddress()
+		slashEntries[i].DelegatorAddress = sample.AccAddress()
+		slashEntries[i].DelegatorSlashAmount = math.OneInt().Add(math.NewInt(int64(i)))
+		slashEntries[i].DelegatorUnbondingBalance = math.NewInt(10).Add(math.NewInt(int64(i)))
+		slashEntries[i].DelegatorBondedBalance = math.NewInt(20).Add(math.NewInt(int64(i)))
+	}
+
+	return slashEntries
+}
+
 func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashReport {
 	slashReports := make([]types.SlashReport, n)
 	for i := range slashReports {
 		slashReports[i].Height = uint64(i)
-		slashReports[i].Entries = []string{strconv.Itoa(i), strconv.Itoa(i + 1), strconv.Itoa(i + 2)}
+		slashReports[i].Entries = CreateNSlashEntry(keeper, ctx, i)
 		keeper.SetSlashReport(ctx, slashReports[i])
 	}
 
