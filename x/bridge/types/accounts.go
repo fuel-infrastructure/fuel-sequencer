@@ -181,6 +181,11 @@ func NewEthOwnedContinuousVestingAccount(
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L45
 func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
 
+	// Sanity check delegation amount - inspired by overridden TrackDelegation function
+	if !amount.IsAllPositive() {
+		panic(fmt.Sprintf("delegation attempt with zero amount in coins %s", amount.String()))
+	}
+
 	// Calculate spendable coins, where balance will only ever be an amount in FUEL.
 	// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/bank/keeper/view.go#L212
 	locked := a.LockedCoins(blockTime)
@@ -192,11 +197,6 @@ func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, 
 	// Delegation amount must be spendable
 	if !spendable.IsAllGTE(amount) {
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
-	}
-
-	// Sanity check delegation amount - inspired by overridden TrackDelegation function
-	if !amount.IsAllPositive() {
-		panic(fmt.Sprintf("delegation attempt with zero amount; coins are %s", amount.String()))
 	}
 
 	a.DelegatedFree = a.DelegatedFree.Add(amount...)
