@@ -169,6 +169,16 @@ func NewEthOwnedContinuousVestingAccount(
 // ensure that the amount being delegated is spendable. The delegated amount is added to the DelegatedFree entry.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L59
+//
+// A note about the use of DelegatedVesting in LockedCoinsFromVesting: this function is calculating how many of the
+// tokens from the address balance are locked. DelegatedVesting tokens are not in the balance, but vestingCoins are.
+// If the address has (i) 100 tokens in the balance, (ii) 200 tokens vesting, and (iii) 150 tokens DelegatedVesting,
+// then only 50 (200-150) of the vesting tokens are considered "locked", from the 100 tokens that are in the balance.
+//
+// Due to our implementation below, we expect that all the vesting tokens will be considered "locked". If we dry-run
+// LockedCoinsFromVesting, we will find that the result will always be equal to vestingCoins for DelegatedVesting = 0.
+//
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L45
 func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
 
 	// Calculate spendable coins, where balance will only ever be an amount in FUEL.
