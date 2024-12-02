@@ -13,7 +13,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_AndAuthorizeDelegate() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_AndAuthorizeDelegateAndUndelegate() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
 		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
 		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
@@ -91,6 +91,29 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
 		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
+
+		// --------------------------------------- Undelegate
+
+		// Generate Authorize event wrapping a MsgUndelegate to validator1 with the amount previously delegated.
+		undelegateCoin := delegateCoin
+		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBz(delegatorAddress, validator1Address, undelegateCoin)
+		authorizeData = testsuite.PackAuthorize(msgUndelegateBz)
+
+		// Confirm that the undelegation went through by checking for no delegation
+		undelegation, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, undelegation.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
+
+		// Check account again
+		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, ethOwnedVestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
+		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
+		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // back to nil
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
