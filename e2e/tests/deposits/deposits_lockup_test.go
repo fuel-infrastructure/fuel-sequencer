@@ -106,6 +106,9 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, undelegation.BlockNumber.Uint64()) // wait until tx processed
 		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
 
+		// Wait for undelegation to go through (Note: unbonding time is very small)
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
 		// Check account again
 		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
@@ -113,7 +116,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // undelegation not tracked yet
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // back to zero
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
