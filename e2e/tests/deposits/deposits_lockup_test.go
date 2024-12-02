@@ -113,7 +113,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // back to nil
+		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // undelegation not tracked yet
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
