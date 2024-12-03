@@ -27,6 +27,7 @@ func (s *BasicTestSuite) SetupTest() {
 			// ----- Set a short signed blocks window so that we can trigger downtime slashing
 
 			var slashingGenState slashingtypes.GenesisState
+			s.Require().NoError(cdc.UnmarshalJSON(genesisState[slashingtypes.ModuleName], &slashingGenState))
 
 			slashingGenState.Params.MinSignedPerWindow = e2etestsuite.MinSignedPerWindow
 			slashingGenState.Params.SlashFractionDowntime = e2etestsuite.SlashFractionDowntime
