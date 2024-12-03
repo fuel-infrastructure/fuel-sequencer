@@ -5,27 +5,27 @@ build:
 accounts:
   - name: alice
     coins:
-      - 20000000000000000000000000000utest # 20bil x 1e18
+      - 20000000000000000000utest # 20bil x 1e9
     mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
     # fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm
   - name: bob
     coins:
-      - 10000000000000000000000000000utest # 10bil x 1e18
+      - 10000000000000000000utest # 10bil x 1e9
     mnemonic: gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage
     # fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m
   - name: carol
     coins:
-      - 10000000000000000000000000000utest # 10bil x 1e18
+      - 10000000000000000000utest # 10bil x 1e9
     mnemonic: bar describe panda mosquito quiz room daring round nurse disagree swallow frown hat repeat recall flight skin sketch volume dutch range grunt assist nerve
     # fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g
   - name: dexter
     coins:
-      - 10000000000000000000000000000utest # 10bil x 1e18
+      - 10000000000000000000utest # 10bil x 1e9
     mnemonic: bonus clinic owner choose grief soda ride divorce album oval tone mixed mechanic coin defense wonder tumble vault sorry great hover neither security amazing
     # fuelsequencer1r8aaf8fjcft7h7tupnafyv0kzk0342gnjls2pu
   - name: eve
     coins:
-      - 10000000000000000000000000000utest # 10bil x 1e18
+      - 10000000000000000000utest # 10bil x 1e9
     address: fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz
     # this is a mapped Sequencer address from Ethereum that should map to the mocked AuthorizeEvent.From
 client:
@@ -33,7 +33,7 @@ client:
     path: docs/static/openapi.yml
 validators:
   - name: alice
-    bonded: 10000000000000000000000000000utest # 10bil x 1e18
+    bonded: 10000000000000000000utest # 10bil x 1e9
     config:
       instrumentation:
         prometheus: true
@@ -67,6 +67,7 @@ validators:
         path_to_cert_file: "use_insecure"
       commitments:
         api-enabled: true
+        max-query-range: "4096"
       telemetry:
         enabled: true
         prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
@@ -102,7 +103,7 @@ genesis:
     bridge:
       params:
         bridge_denom: "utest"
-        bridge_denom_total_supply: "10000000000000000000000000000"  # 10 bil
+        bridge_denom_total_supply: "10000000000000000000"  # 10 bil
         ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
         authorize_messages_allowed:
           - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
