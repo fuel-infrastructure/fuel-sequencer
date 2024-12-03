@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -95,6 +96,17 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 
 		// --------------------------------------- Undelegate
+
+		// Override unbonding time so that undelegation goes through immediately
+		stakingParams := s.QueryStakingParams(s.Ctx())
+		stakingParams.UnbondingTime = time.Second
+		s.ExecuteGovProposal(&stakingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *stakingParams,
+		})
+
+		// Ensure value updated
+		s.Require().Equal(time.Second, s.QueryStakingParams(s.Ctx()).UnbondingTime)
 
 		// Generate Authorize event wrapping a MsgUndelegate to validator1 with the amount previously delegated.
 		undelegateCoin := delegateCoin
