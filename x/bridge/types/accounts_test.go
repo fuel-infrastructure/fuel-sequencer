@@ -77,6 +77,7 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 		expLockedCoinsBefore  sdk.Coins
 		expDelegatedFreeAfter sdk.Coins
 		expPanic              bool
+		expPanicSpendable     sdk.Coins // spendable value that shows up in the panic message
 	}{
 		{
 			name:                 "start of vesting; cannot even delegate 1 token; panic",
@@ -85,6 +86,7 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 			delegationAmount:     oneToken,        // try to delegate just one token
 			expLockedCoinsBefore: originalVesting, // all are still vesting
 			expPanic:             true,
+			expPanicSpendable:    nil, // all are still vesting
 		},
 		{
 			name:                  "half way through vesting; delegate half original vesting; successful",
@@ -111,6 +113,7 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 			delegationAmount:     moreThanHalfVesting, // delegate more than half of the vesting
 			expLockedCoinsBefore: halfVesting,         // half are still vesting
 			expPanic:             true,
+			expPanicSpendable:    halfVesting, // half are vested
 		},
 		{
 			name:                  "half way through vesting with some tokens already delegated; can delegate less than half; successful",
@@ -131,6 +134,7 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
 			expDelegatedFreeAfter: halfVesting.Add(tenTokens...),     // half get delegated successfully
 			expPanic:              true,
+			expPanicSpendable:     halfVesting.Sub(tenTokens...), // half are vested, minus 10 missing tokens
 		},
 		{
 			name:                  "vesting done; delegate full amount; successful",
@@ -166,8 +170,7 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 
 			// Delegation
 			if tc.expPanic {
-				spendable := tc.balanceAtDelegation.Sub(tc.expLockedCoinsBefore...)
-				panicValue := fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable)
+				panicValue := fmt.Sprintf("cannot delegate locked coins; max spendable is %s", tc.expPanicSpendable)
 				require.PanicsWithValue(t, panicValue, func() {
 					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 				})
