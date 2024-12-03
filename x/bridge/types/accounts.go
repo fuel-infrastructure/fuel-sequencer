@@ -165,7 +165,7 @@ func NewEthOwnedContinuousVestingAccount(
 	}
 }
 
-// TrackDelegation overrides the CointinuousVestingAccount TrackDelegation (which uses the BaseVestingAccount one) to
+// TrackDelegation overrides the ContinuousVestingAccount TrackDelegation (which uses the BaseVestingAccount one) to
 // ensure that the amount being delegated is spendable. The delegated amount is added to the DelegatedFree entry.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L59
