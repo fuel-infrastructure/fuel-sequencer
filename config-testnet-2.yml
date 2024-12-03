@@ -6,92 +6,93 @@ accounts:
   - name: alice
     mnemonic: dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence
     coins:
-      - 76000000000000000000test
+      - 76000000000test
   - name: SimplyStaking
     address: fuelsequencer1cv0rl38sckgwyrkdd5vanyzf6v8clf808ttyf4
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: ChorusOne
     address: fuelsequencer1262eh7nej33nq82f5jts6xjhy446m37qqrugzu
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: Polkachu
     address: fuelsequencer1jt9w26mpxxjsk63mvd4m2ynj0af09csl53y0fn
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: Cryptocrews
     address: fuelsequencer1ud725sp9jcfdmekx0qwn6lz4ce6axu4k83y70w
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: Chainlayer
     address: fuelsequencer1ksq9d6j5jaxluv0sekjwkar0c0s0tjaa42rwk3
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: StakeCapital
     address: fuelsequencer13rswp0mdcadp5e59usjvk2mnyp5zvt5whtfy0q
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: ParcerosNacion
     address: fuelsequencer1a6lqvgwrzjc7ggkqtsjep7r9x75vtmgq2qmu38
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: BlockPi
     address: fuelsequencer1003vxp7zwrqmwmya7a93904h4qsucxskzxg8fv
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: Encode
     address: fuelsequencer1jkvjs8aynx3vlrws60a0nem85s9sfj7rd8m2v9
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: InformalSystems
     address: fuelsequencer1zh0pq03a6twv00reqqchgef5gpk4pysej4cxr0
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: A41
     address: fuelsequencer1kfysecrlc6sa9lu6d8vv6728f4v7sy65gy6rmv
     coins:
-      - 2000000000000000000test
+      - 2000000000test
   - name: Kitsugi
     address: fuelsequencer1uqxpjkg6yh83w37h8hz8h8hkhce6nqgh5xcjew
     coins:
-      - 2000000000000000000test
+      - 2000000000test
 validators:
   - name: alice
-    bonded: 1000000test
+    bonded: 1000000000test
     home: ./data/fuelsequencer
     app:
       sidecar:
         enabled: false  # to be able to run this config file more easily
 genesis:
-  app_version: "seq-testnet-1"  # manually overridden for a more meaningful app version
-  genesis_time: "2024-09-26T10:00:00Z"
-  chain_id: "seq-testnet-1"
+  app_version: "seq-testnet-2"  # manually overridden for a more meaningful app version
+  genesis_time: "2024-12-05T14:00:00Z"
+  chain_id: "seq-testnet-2"
   app_state:
     bridge:
       params:
         bridge_denom: "test"  # for testnet purposes
-        bridge_denom_total_supply: "10000000000000000000000000000"
-        ethereum_proxy_contract_address: "0x96De789353a25bA29e909Fb8eF1E84D7Ca104490"  # https://sepolia.etherscan.io/address/0x96De789353a25bA29e909Fb8eF1E84D7Ca104490
+        bridge_denom_total_supply: "10000000000000000000"
+        ethereum_proxy_contract_address: "TODO"  # https://sepolia.etherscan.io/address/TODO
         supply_delta_period: "14400"
-        vesting_start_time: "2023-09-29T10:00:00Z"
+        vesting_start_time: "2024-12-05T14:00:00Z"
         max_eth_block_update_delay: "14400s"
-        injected_event_tx_max_bytes: "1900000"
+        injected_event_tx_max_bytes: "115343"  # 0.11 MiB
         max_authorize_messages: "5"
-      last_ethereum_block_synced: "6752027"  # 1 block before deployment of Sequencer Proxy Contract (https://sepolia.etherscan.io/address/0x96De789353a25bA29e909Fb8eF1E84D7Ca104490)
+        sequencer_txs_allocation: "0.500000000000000000",
+      last_ethereum_block_synced: "1"  # TODO: 1 block before deployment of Sequencer Proxy Contract (https://sepolia.etherscan.io/address/TODO)
     distribution:
       params:
         community_tax: "0.000000000000000000"
     gov:
       params:
         min_deposit:
-          - amount: "2500000000000000000000"
+          - amount: "2500000000000"
             denom: "test"  # for testnet purposes
         max_deposit_period: "604800s"
         voting_period: "604800s"  # 7 days
         quorum: "0.400000000000000000"
         min_initial_deposit_ratio: "0.100000000000000000"
         expedited_min_deposit:
-          - amount: "10000000000000000000000"
+          - amount: "10000000000000"
             denom: "test"  # for testnet purposes
         proposal_cancel_ratio: "0.000000000000000000"
         proposal_cancel_dest: "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3"  # gov
@@ -106,8 +107,8 @@ genesis:
         blocks_per_year: "5259600"  # assuming a block time of 6s
     sequencing:
       params:
-        max_blob_size_bytes: "2097152"  # 2MiB
-        sequencer_tx_max_bytes: "2097152"  # 2MiB
+        max_blob_size_bytes: "1024"  # 1024 bytes
+        sequencer_tx_max_bytes: "1153433"  # 1.1 MiB
     slashing:
       params:
         signed_blocks_window: "10000"  # for testnet purposes
@@ -124,5 +125,5 @@ genesis:
   consensus:
     params:
       block:
-        max_bytes: "3145728"  # 3MiB
+        max_bytes: "2306867"  # 2.2MiB
         max_gas: "100000000"
