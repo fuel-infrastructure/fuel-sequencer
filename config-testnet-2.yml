@@ -63,6 +63,7 @@ validators:
       sidecar:
         enabled: false  # to be able to run this config file more easily
 genesis:
+  app_name: "fuelsequencerd"
   app_version: "seq-testnet-2"  # manually overridden for a more meaningful app version
   genesis_time: "2024-12-05T14:00:00Z"
   chain_id: "seq-testnet-2"
@@ -76,8 +77,8 @@ genesis:
         vesting_start_time: "2024-12-05T14:00:00Z"
         max_eth_block_update_delay: "14400s"
         injected_event_tx_max_bytes: "115343"  # 0.11 MiB
+        sequencer_txs_allocation: "0.500000000000000000"
         max_authorize_messages: "5"
-        sequencer_txs_allocation: "0.500000000000000000",
       last_ethereum_block_synced: "1"  # TODO: 1 block before deployment of Sequencer Proxy Contract (https://sepolia.etherscan.io/address/TODO)
     distribution:
       params:
@@ -87,7 +88,7 @@ genesis:
         min_deposit:
           - amount: "2500000000000"
             denom: "test"  # for testnet purposes
-        max_deposit_period: "604800s"
+        max_deposit_period: "604800s"  # 7 days
         voting_period: "604800s"  # 7 days
         quorum: "0.400000000000000000"
         min_initial_deposit_ratio: "0.100000000000000000"
@@ -99,11 +100,13 @@ genesis:
         expedited_voting_period: "86400s"  # 1 day
         burn_vote_veto: false
     mint:
+      minter:
+        inflation: "0.000000000000000000"
       params:
         mint_denom: "test"  # for testnet purposes
         inflation_rate_change: "0.000000000000000000"
-        inflation_max: "0.000000000000000000"
-        inflation_min: "0.000000000000000000"
+        inflation_max: "0.000000000000000000"  # no inflation at genesis
+        inflation_min: "0.000000000000000000"  # no inflation at genesis
         blocks_per_year: "5259600"  # assuming a block time of 6s
     sequencing:
       params:
@@ -111,11 +114,11 @@ genesis:
         sequencer_tx_max_bytes: "1153433"  # 1.1 MiB
     slashing:
       params:
-        signed_blocks_window: "10000"  # for testnet purposes
-        min_signed_per_window: "0.050000000000000000"  # for testnet purposes
-        downtime_jail_duration: "600s"  # for testnet purposes
-        slash_fraction_double_sign: "0.050000000000000000"  # for testnet purposes
-        slash_fraction_downtime: "0.000100000000000000"  # for testnet purposes
+        signed_blocks_window: "80000"
+        min_signed_per_window: "0.800000000000000000"
+        downtime_jail_duration: "60s"
+        slash_fraction_double_sign: "0.050000000000000000"
+        slash_fraction_downtime: "0.000100000000000000"
     staking:
       params:
         bond_denom: "test"  # for testnet purposes
