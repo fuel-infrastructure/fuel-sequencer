@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -165,7 +166,9 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 
 			// Delegation
 			if tc.expPanic {
-				require.Panics(t, func() {
+				spendable := tc.balanceAtDelegation.Sub(tc.expLockedCoinsBefore...)
+				panicValue := fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable)
+				require.PanicsWithValue(t, panicValue, func() {
 					vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 				})
 				return // test is over
