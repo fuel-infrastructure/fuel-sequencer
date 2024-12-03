@@ -5,6 +5,8 @@ go 1.22
 toolchain go1.22.7
 
 replace (
+	// point to Fuel's Cosmos SDK fork
+	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.11-0.20241203163117-7037319fe1bb
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
