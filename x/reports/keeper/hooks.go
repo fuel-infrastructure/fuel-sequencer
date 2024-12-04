@@ -70,9 +70,8 @@ func (h Hooks) AfterUnbondingDelegationSlashed(
 ) error {
 	// TODO: Impl
 	// TODO: PANIC if error occurs
-	// TODO: Don't forget to call validateBasic
+	// TODO: Don't forget to call validateBasic of slash entry
 	// TODO: Height is ctx.blockHeight
-	// TODO: First see if a slash report entry exists for height, and also check if SlashEntry exists in list. (We will
-	// be storing by slash entry)
+	// TODO: First see if a slash entry exists for height
 	return nil
 }
