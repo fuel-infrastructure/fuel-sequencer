@@ -24,7 +24,9 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
-func CreateNSlashEntry(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashEntry {
+// createNSlashEntryWithoutStoring creates N slash entries without setting them in state. This is primarily used for
+// constructing a slash report.
+func createNSlashEntryWithoutStoring(n int) []types.SlashEntry {
 	slashEntries := make([]types.SlashEntry, n)
 	for i := range slashEntries {
 		slashEntries[i].ValidatorAddress = sample.AccAddress()
@@ -37,11 +39,28 @@ func CreateNSlashEntry(keeper keeper.Keeper, ctx context.Context, n int) []types
 	return slashEntries
 }
 
+// CreateNSlashEntry creates N slash entries and stores them in state
+func CreateNSlashEntry(keeper keeper.Keeper, ctx context.Context, height uint64, n int) []types.SlashEntry {
+	slashEntries := createNSlashEntryWithoutStoring(n)
+	for _, slashEntry := range slashEntries {
+		keeper.SetSlashEntry(ctx, height, slashEntry)
+	}
+
+	return slashEntries
+}
+
+// CreateNSlashReport creates N slash reports and stores them in state
 func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashReport {
 	slashReports := make([]types.SlashReport, n)
 	for i := range slashReports {
-		slashReports[i].Height = uint64(i)
-		slashReports[i].Entries = CreateNSlashEntry(keeper, ctx, i)
+
+		// Slash reports cannot be generated at height 0, therefore, we should increment by 1 to keep it realistic.
+		slashReports[i].Height = uint64(i + 1)
+
+		// We cannot have a list of empty SlashEntries since the SlashEntry key is composed of delegator and validator
+		// addresses. Therefore, we need to increment by 1 to avoid having createNSlashEntry(0)
+		slashReports[i].Entries = createNSlashEntryWithoutStoring(i + 1)
+
 		keeper.SetSlashReport(ctx, slashReports[i])
 	}
 

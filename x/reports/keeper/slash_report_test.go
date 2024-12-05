@@ -18,12 +18,36 @@ func TestGetSlashReport(t *testing.T) {
 	}
 }
 
+func TestGetSlashEntry(t *testing.T) {
+	testKeeper, ctx := keepertest.ReportsKeeper(t)
+	height := uint64(100)
+	slashEntries := keepertest.CreateNSlashEntry(testKeeper, ctx, height, 10)
+	for _, expectedSlashEntry := range slashEntries {
+		actualSlashEntry, found := testKeeper.GetSlashEntry(
+			ctx, height, expectedSlashEntry.DelegatorAddress, expectedSlashEntry.ValidatorAddress,
+		)
+		require.True(t, found)
+		require.Equal(t, nullify.Fill(&expectedSlashEntry), nullify.Fill(&actualSlashEntry))
+	}
+}
+
 func TestRemoveSlashReport(t *testing.T) {
 	testKeeper, ctx := keepertest.ReportsKeeper(t)
 	slashReports := keepertest.CreateNSlashReport(testKeeper, ctx, 10)
 	for _, slashReport := range slashReports {
 		testKeeper.RemoveSlashReport(ctx, slashReport.Height)
 		_, found := testKeeper.GetSlashReport(ctx, slashReport.Height)
+		require.False(t, found)
+	}
+}
+
+func TestRemoveSlashEntry(t *testing.T) {
+	testKeeper, ctx := keepertest.ReportsKeeper(t)
+	height := uint64(100)
+	slashEntries := keepertest.CreateNSlashEntry(testKeeper, ctx, height, 10)
+	for _, slashEntry := range slashEntries {
+		testKeeper.RemoveSlashEntry(ctx, height, slashEntry.DelegatorAddress, slashEntry.ValidatorAddress)
+		_, found := testKeeper.GetSlashEntry(ctx, height, slashEntry.DelegatorAddress, slashEntry.ValidatorAddress)
 		require.False(t, found)
 	}
 }
@@ -45,5 +69,32 @@ func TestHasSlashReport(t *testing.T) {
 	require.True(t, has)
 
 	has = testKeeper.HasSlashReport(ctx, 2) // SlashReport in state has height 1
+	require.False(t, has)
+}
+
+func TestHasSlashEntry(t *testing.T) {
+	testKeeper, ctx := keepertest.ReportsKeeper(t)
+	height := uint64(100)
+	slashEntry := keepertest.CreateNSlashEntry(testKeeper, ctx, height, 1)[0]
+
+	has := testKeeper.HasSlashEntry(ctx, height, slashEntry.DelegatorAddress, slashEntry.ValidatorAddress)
+	require.True(t, has)
+
+	// SlashEntry in state has a different height
+	has = testKeeper.HasSlashEntry(
+		ctx, height+1, slashEntry.DelegatorAddress, slashEntry.ValidatorAddress,
+	)
+	require.False(t, has)
+
+	// SlashEntry in state has a different delegator address
+	has = testKeeper.HasSlashEntry(
+		ctx, height, "bad_delegator_address", slashEntry.ValidatorAddress,
+	)
+	require.False(t, has)
+
+	// SlashEntry in state has a different validator address
+	has = testKeeper.HasSlashEntry(
+		ctx, height, slashEntry.DelegatorAddress, "bad_validator_address",
+	)
 	require.False(t, has)
 }

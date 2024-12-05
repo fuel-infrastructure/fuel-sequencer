@@ -2,14 +2,124 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
-	"cosmossdk.io/store/prefix"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
+	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+// initPageRequestDefaults is a copy of the SDK's unexported initPageRequestDefaults function from the pagination
+// package.
+func initPageRequestDefaults(pageRequest *query.PageRequest) *query.PageRequest {
+	// if the PageRequest is nil, use default PageRequest
+	if pageRequest == nil {
+		pageRequest = &query.PageRequest{}
+	}
+
+	pageRequestCopy := *pageRequest
+	if len(pageRequestCopy.Key) == 0 {
+		pageRequestCopy.Key = nil
+	}
+
+	if pageRequestCopy.Limit == 0 {
+		pageRequestCopy.Limit = query.DefaultLimit
+
+		// count total results when the limit is zero/not supplied
+		pageRequestCopy.CountTotal = true
+	}
+
+	return &pageRequestCopy
+}
+
+// paginateSlashReports does pagination on all SlashReports in state. We cannot use the SDK's Paginate implementation
+// because we store slash entries. Using the SDK's paginate implementation may cause partial slash report data to be
+// retrieved from state.
+func paginateSlashReports(
+	allSlashReports []types.SlashReport,
+	pageRequest *query.PageRequest,
+	onResult func(report types.SlashReport) error,
+) (*query.PageResponse, error) {
+	pageRequest = initPageRequestDefaults(pageRequest)
+
+	if pageRequest.Offset > 0 && pageRequest.Key != nil {
+		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
+	}
+
+	var count uint64
+	var nextKey []byte
+
+	// Handle reverse if requested
+	if pageRequest.Reverse {
+		slices.Reverse(allSlashReports)
+	}
+
+	if len(pageRequest.Key) != 0 {
+
+		// Find starting position when key is provided
+		startHeight := types.ExtractHeightFromSlashEntryKey(pageRequest.Key)
+		var startIndex int
+		var found bool
+		for i, slashReport := range allSlashReports {
+			if slashReport.Height == startHeight {
+				startIndex = i
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("invalid pagination key: no slash report found for height %d", startHeight)
+		}
+
+		for _, slashReport := range allSlashReports[startIndex:] {
+			if count == pageRequest.Limit {
+				nextKey = types.SlashReportKeyPrefix(slashReport.Height)
+				break
+			}
+			err := onResult(slashReport)
+			if err != nil {
+				return nil, err
+			}
+
+			count++
+		}
+
+		return &query.PageResponse{
+			NextKey: nextKey,
+		}, nil
+	}
+
+	end := pageRequest.Offset + pageRequest.Limit
+
+	for _, slashReport := range allSlashReports {
+		count++
+
+		if count <= pageRequest.Offset {
+			continue
+		}
+		if count <= end {
+			err := onResult(slashReport)
+			if err != nil {
+				return nil, err
+			}
+		} else if count == end+1 {
+			nextKey = types.SlashReportKeyPrefix(slashReport.Height)
+
+			if !pageRequest.CountTotal {
+				break
+			}
+		}
+	}
+
+	res := &query.PageResponse{NextKey: nextKey}
+	if pageRequest.CountTotal {
+		res.Total = count
+	}
+
+	return res, nil
+}
 
 func (k Keeper) SlashReportAll(
 	ctx context.Context,
@@ -19,18 +129,12 @@ func (k Keeper) SlashReportAll(
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
 
+	// Get all reports first
+	allSlashReports := k.GetAllSlashReport(ctx)
+
 	var slashReports []types.SlashReport
-
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	slashReportStore := prefix.NewStore(store, types.KeyPrefix(types.SlashReportKey))
-
-	pageRes, err := query.Paginate(slashReportStore, req.Pagination, func(key []byte, value []byte) error {
-		var slashReport types.SlashReport
-		if err := k.cdc.Unmarshal(value, &slashReport); err != nil {
-			return err
-		}
-
-		slashReports = append(slashReports, slashReport)
+	pageRes, err := paginateSlashReports(allSlashReports, req.Pagination, func(report types.SlashReport) error {
+		slashReports = append(slashReports, report)
 		return nil
 	})
 
