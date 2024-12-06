@@ -37,6 +37,6 @@ func TestGenesis(t *testing.T) {
 	require.NotNil(t, got)
 
 	require.Equal(t, genesisState.Params, got.Params)
-	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
+	require.Equal(t, genesisState.TopicList, got.TopicList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
