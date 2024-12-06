@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	reports "github.com/fuel-infrastructure/fuel-sequencer/x/reports/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
@@ -23,10 +22,10 @@ func TestGenesis_ValidState(t *testing.T) {
 	got := reports.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
-	require.ElementsMatch(t, genesisState.SlashReportList, got.SlashReportList)
+	// slash reports need to be ordered lexicographically to reflect how data is stored
+	require.Equal(
+		t, keepertest.OrderSlashReportsLexicographically(genesisState.SlashReportList), got.SlashReportList,
+	)
 	// this line is used by starport scaffolding # genesis/test/assert
 
 	// Verify other genesis state elements as needed

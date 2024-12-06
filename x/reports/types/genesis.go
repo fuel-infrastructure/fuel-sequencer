@@ -20,7 +20,6 @@ func (gs GenesisState) Validate() error {
 
 	// Check for duplicated heights in SlashReportList
 	uniqueSlashReports := make(map[uint64]bool)
-
 	for _, sr := range gs.SlashReportList {
 
 		// verify slash report is unique

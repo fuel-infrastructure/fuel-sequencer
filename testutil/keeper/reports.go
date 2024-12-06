@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -23,6 +24,45 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
+
+// OrderSlashEntriesLexicographically orders slash entries in a lexicographical way so that tests can compare
+// the test data with what is actually stored in state.
+func OrderSlashEntriesLexicographically(entries []types.SlashEntry) []types.SlashEntry {
+	sort.Slice(entries, func(m, n int) bool {
+		// First compare delegator addresses
+		if entries[m].DelegatorAddress != entries[n].DelegatorAddress {
+			return entries[m].DelegatorAddress < entries[n].DelegatorAddress
+		}
+		// If delegator addresses are equal, compare validator addresses
+		return entries[m].ValidatorAddress < entries[n].ValidatorAddress
+	})
+
+	return entries
+}
+
+// OrderSlashReportLexicographically orders the slashing report in a lexicographical way so that tests can compare
+// the test data with what is actually stored in state.
+func OrderSlashReportLexicographically(report types.SlashReport) types.SlashReport {
+	// A single slash report only needs its entries lexicographically ordered
+	report.Entries = OrderSlashEntriesLexicographically(report.Entries)
+	return report
+}
+
+// OrderSlashReportsLexicographically orders the slashing reports in a lexicographical way so that tests can compare
+// the test data with what is actually stored in state.
+func OrderSlashReportsLexicographically(reports []types.SlashReport) []types.SlashReport {
+	// First sort by height
+	sort.Slice(reports, func(i, j int) bool {
+		return reports[i].Height < reports[j].Height
+	})
+
+	// Then sort each individual report
+	for i, report := range reports {
+		reports[i] = OrderSlashReportLexicographically(report)
+	}
+
+	return reports
+}
 
 // createNSlashEntryWithoutStoring creates N slash entries without setting them in state. This is primarily used for
 // constructing a slash report.

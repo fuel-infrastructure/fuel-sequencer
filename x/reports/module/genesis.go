@@ -12,7 +12,8 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 
-	// Set all the slash reports
+	// Set all the slash reports.
+	// We're assuming that the slash report heights are unique because they are validated in GenesisState.Validate()
 	for _, slashReport := range genState.SlashReportList {
 
 		// Panic if slash report fails validation

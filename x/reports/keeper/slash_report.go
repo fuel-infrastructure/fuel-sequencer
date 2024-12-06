@@ -108,20 +108,41 @@ func (k Keeper) GetAllSlashReport(ctx context.Context) (list []types.SlashReport
 
 	defer iterator.Close()
 
-	// map slash entries by height
-	reportMap := make(map[uint64][]types.SlashEntry)
+	// Iterate over entries in state and map them into individual slash reports by height. We have to be careful as to
+	// not use maps, as this will make the ordering of the returned slash reports non-deterministic.
+	var currentHeight uint64
+	var currentEntries []types.SlashEntry
 	for ; iterator.Valid(); iterator.Next() {
 		var slashEntry types.SlashEntry
 		k.cdc.MustUnmarshal(iterator.Value(), &slashEntry)
 		height := types.ExtractHeightFromSlashEntryKey(iterator.Key())
-		reportMap[height] = append(reportMap[height], slashEntry)
+
+		if currentEntries == nil {
+
+			// First entry, we have to define both currentHeight and currentEntries
+			currentHeight = height
+			currentEntries = []types.SlashEntry{slashEntry}
+		} else if height == currentHeight {
+
+			// Same height as current, add to current entries
+			currentEntries = append(currentEntries, slashEntry)
+		} else {
+
+			// New height, finalize current report and start new one
+			list = append(list, types.SlashReport{
+				Height:  currentHeight,
+				Entries: currentEntries,
+			})
+			currentHeight = height
+			currentEntries = []types.SlashEntry{slashEntry}
+		}
 	}
 
-	// Convert map to slice of SlashReports
-	for height, slashEntries := range reportMap {
+	// Add final report if we have entries
+	if currentEntries != nil {
 		list = append(list, types.SlashReport{
-			Height:  height,
-			Entries: slashEntries,
+			Height:  currentHeight,
+			Entries: currentEntries,
 		})
 	}
 

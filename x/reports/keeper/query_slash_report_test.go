@@ -10,13 +10,13 @@ import (
 	"google.golang.org/grpc/status"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
 func TestQuerySlashReport(t *testing.T) {
 	keeper, ctx := keepertest.ReportsKeeper(t)
 	slashReports := keepertest.CreateNSlashReport(keeper, ctx, 2)
+	orderedSlashReports := keepertest.OrderSlashReportsLexicographically(slashReports)
 	tests := []struct {
 		desc     string
 		request  *types.QueryGetSlashReportRequest
@@ -26,16 +26,16 @@ func TestQuerySlashReport(t *testing.T) {
 		{
 			desc: "Get first SlashReport from state",
 			request: &types.QueryGetSlashReportRequest{
-				Height: slashReports[0].Height,
+				Height: orderedSlashReports[0].Height,
 			},
-			response: &types.QueryGetSlashReportResponse{SlashReport: slashReports[0]},
+			response: &types.QueryGetSlashReportResponse{SlashReport: orderedSlashReports[0]},
 		},
 		{
 			desc: "Get second SlashReport from state",
 			request: &types.QueryGetSlashReportRequest{
-				Height: slashReports[1].Height,
+				Height: orderedSlashReports[1].Height,
 			},
-			response: &types.QueryGetSlashReportResponse{SlashReport: slashReports[1]},
+			response: &types.QueryGetSlashReportResponse{SlashReport: orderedSlashReports[1]},
 		},
 		{
 			desc: "KeyNotFound",
@@ -57,8 +57,8 @@ func TestQuerySlashReport(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
+					tc.response,
+					response,
 				)
 			}
 		})
@@ -88,8 +88,8 @@ func TestQuerySlashReportAll(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.SlashReport), step)
 			require.Subset(t,
-				nullify.Fill(slashReports),
-				nullify.Fill(resp.SlashReport),
+				keepertest.OrderSlashReportsLexicographically(slashReports),
+				resp.SlashReport,
 			)
 		}
 	})
@@ -102,8 +102,8 @@ func TestQuerySlashReportAll(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.SlashReport), step)
 			require.Subset(t,
-				nullify.Fill(slashReports),
-				nullify.Fill(resp.SlashReport),
+				keepertest.OrderSlashReportsLexicographically(slashReports),
+				resp.SlashReport,
 			)
 			next = resp.Pagination.NextKey
 		}
@@ -113,7 +113,7 @@ func TestQuerySlashReportAll(t *testing.T) {
 		step := 2
 		var next []byte
 		reversed := make([]types.SlashReport, len(slashReports))
-		copy(reversed, slashReports)
+		copy(reversed, keepertest.OrderSlashReportsLexicographically(slashReports))
 		slices.Reverse(reversed)
 
 		for i := 0; i < len(slashReports); i += step {
@@ -121,8 +121,8 @@ func TestQuerySlashReportAll(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.SlashReport), step)
 			require.Subset(t,
-				nullify.Fill(reversed),
-				nullify.Fill(resp.SlashReport),
+				reversed,
+				resp.SlashReport,
 			)
 			next = resp.Pagination.NextKey
 		}
@@ -140,9 +140,9 @@ func TestQuerySlashReportAll(t *testing.T) {
 		resp, err := keeper.SlashReportAll(ctx, request(nil, 0, 0, true, false))
 		require.NoError(t, err)
 		require.Equal(t, len(slashReports), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			nullify.Fill(slashReports),
-			nullify.Fill(resp.SlashReport),
+		require.Equal(t,
+			keepertest.OrderSlashReportsLexicographically(slashReports),
+			resp.SlashReport,
 		)
 	})
 

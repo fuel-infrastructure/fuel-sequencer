@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +13,7 @@ func TestGetSlashReport(t *testing.T) {
 	for _, expectedSlashReport := range slashReports {
 		actualSlashReport, found := testKeeper.GetSlashReport(ctx, expectedSlashReport.Height)
 		require.True(t, found)
-		require.Equal(t, nullify.Fill(&expectedSlashReport), nullify.Fill(&actualSlashReport))
+		require.Equal(t, keepertest.OrderSlashReportLexicographically(expectedSlashReport), actualSlashReport)
 	}
 }
 
@@ -27,7 +26,7 @@ func TestGetSlashEntry(t *testing.T) {
 			ctx, height, expectedSlashEntry.DelegatorAddress, expectedSlashEntry.ValidatorAddress,
 		)
 		require.True(t, found)
-		require.Equal(t, nullify.Fill(&expectedSlashEntry), nullify.Fill(&actualSlashEntry))
+		require.Equal(t, expectedSlashEntry, actualSlashEntry)
 	}
 }
 
@@ -55,9 +54,9 @@ func TestRemoveSlashEntry(t *testing.T) {
 func TestGetAllSlashReport(t *testing.T) {
 	testKeeper, ctx := keepertest.ReportsKeeper(t)
 	slashReports := keepertest.CreateNSlashReport(testKeeper, ctx, 10)
-	require.ElementsMatch(t,
-		nullify.Fill(slashReports),
-		nullify.Fill(testKeeper.GetAllSlashReport(ctx)),
+	require.Equal(t,
+		keepertest.OrderSlashReportsLexicographically(slashReports),
+		testKeeper.GetAllSlashReport(ctx),
 	)
 }
 
