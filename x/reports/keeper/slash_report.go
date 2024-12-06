@@ -24,17 +24,6 @@ func (k Keeper) SetSlashReport(ctx context.Context, slashReport types.SlashRepor
 	}
 }
 
-// SetSlashEntry sets a SlashEntry in the store by its height, delegator address and validator address.
-func (k Keeper) SetSlashEntry(ctx context.Context, slashEntryHeight uint64, slashEntry types.SlashEntry) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
-	b := k.cdc.MustMarshal(&slashEntry)
-	slashEntryKeyPrefix := types.SlashEntryKeyPrefix(
-		slashEntryHeight, slashEntry.DelegatorAddress, slashEntry.ValidatorAddress,
-	)
-	store.Set(slashEntryKeyPrefix, b)
-}
-
 // GetSlashReport returns a SlashReport by its height. The SlashReport needs to be reconstructed from the individual
 // SlashEntries
 func (k Keeper) GetSlashReport(ctx context.Context, height uint64) (val types.SlashReport, found bool) {
@@ -62,22 +51,6 @@ func (k Keeper) GetSlashReport(ctx context.Context, height uint64) (val types.Sl
 	return val, true
 }
 
-// GetSlashEntry returns a SlashEntry by its height, delegator address and validator address
-func (k Keeper) GetSlashEntry(
-	ctx context.Context, height uint64, delegatorAddress, validatorAddress string,
-) (val types.SlashEntry, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
-
-	b := store.Get(types.SlashEntryKeyPrefix(height, delegatorAddress, validatorAddress))
-	if b == nil {
-		return val, false
-	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
-}
-
 // RemoveSlashReport removes a SlashReport from the store. It iterates through the individual slash entries for a
 // particular height and deletes them one by one.
 func (k Keeper) RemoveSlashReport(ctx context.Context, height uint64) {
@@ -91,13 +64,6 @@ func (k Keeper) RemoveSlashReport(ctx context.Context, height uint64) {
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
 	}
-}
-
-// RemoveSlashEntry removes a SlashEntry from the store
-func (k Keeper) RemoveSlashEntry(ctx context.Context, height uint64, delegatorAddress, validatorAddress string) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
-	store.Delete(types.SlashEntryKeyPrefix(height, delegatorAddress, validatorAddress))
 }
 
 // GetAllSlashReport returns all SlashReport
@@ -157,12 +123,4 @@ func (k Keeper) HasSlashReport(ctx context.Context, height uint64) bool {
 	iterator := storetypes.KVStorePrefixIterator(store, iteratorPrefix)
 	defer iterator.Close()
 	return iterator.Valid()
-}
-
-// HasSlashEntry checks if a HasSlashEntry exists in the store.
-func (k Keeper) HasSlashEntry(ctx context.Context, height uint64, delegatorAddress, validatorAddress string) bool {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
-	slashEntryKey := types.SlashEntryKeyPrefix(height, delegatorAddress, validatorAddress)
-	return store.Has(slashEntryKey)
 }

@@ -22,7 +22,6 @@ func TestGenesis_ValidState(t *testing.T) {
 	got := reports.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 
-	// slash reports need to be ordered lexicographically to reflect how data is stored
 	require.Equal(
 		t, keepertest.OrderSlashReportsLexicographically(genesisState.SlashReportList), got.SlashReportList,
 	)
