@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/math"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
@@ -37,11 +36,7 @@ func TestGenesis(t *testing.T) {
 	got := sequencing.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
-	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
-
-	// Verify other genesis state elements as needed
 	require.Equal(t, genesisState.Params, got.Params)
+	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
+	// this line is used by starport scaffolding # genesis/test/assert
 }
