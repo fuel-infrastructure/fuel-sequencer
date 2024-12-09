@@ -152,7 +152,7 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed() {
 			} else {
 
 				// If no panic is expected, run the hook without wrapping a deferred function and check for errors or
-				// the execution results, as required by the test case/
+				// the execution results, as required by the test case.
 				err := s.App.ReportsKeeper.Hooks().AfterUnbondingDelegationSlashed(
 					ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
 				)
