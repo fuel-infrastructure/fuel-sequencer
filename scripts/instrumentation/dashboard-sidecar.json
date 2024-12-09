@@ -21,7 +21,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "11.3.0+security-01"
+      "version": "11.3.1"
     },
     {
       "type": "datasource",
@@ -111,7 +111,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -222,7 +222,7 @@
         "sizing": "auto",
         "valueMode": "color"
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -301,7 +301,7 @@
         "sizing": "auto",
         "valueMode": "color"
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -379,7 +379,7 @@
         "sizing": "auto",
         "valueMode": "color"
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -451,7 +451,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -522,7 +522,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -624,7 +624,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -710,7 +710,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -812,7 +812,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -914,7 +914,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.3.0+security-01",
+      "pluginVersion": "11.3.1",
       "targets": [
         {
           "datasource": {
@@ -967,7 +967,7 @@
         "options": [],
         "query": "prometheus",
         "refresh": 1,
-        "regex": "(Prometheus CA)|(Prometheus Secondary MT)",
+        "regex": ".*Prometheus.*",
         "type": "datasource"
       },
       {
@@ -987,7 +987,7 @@
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
-        "regex": "/((.*fuel.*validator.*)|(.*fuel.*node.*))/",
+        "regex": "/((.*fuel.*validator.*)|(.*fuel.*node.*)|(.*fuel.*archive.*)|(.*fuel.*sentry.*))/",
         "type": "query"
       }
     ]
@@ -1000,6 +1000,6 @@
   "timezone": "browser",
   "title": "Sidecar",
   "uid": "edwalm41nsnb4i",
-  "version": 9,
+  "version": 13,
   "weekStart": ""
 }
