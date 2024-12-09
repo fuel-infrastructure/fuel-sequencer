@@ -67,6 +67,7 @@ validators:
         path_to_cert_file: "use_insecure"
       commitments:
         api-enabled: true
+        max-query-range: "4096"
       telemetry:
         enabled: true
         prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)
