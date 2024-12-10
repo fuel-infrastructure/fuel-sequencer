@@ -43,4 +43,7 @@ type StakingHooks interface {
 	AfterUnbondingDelegationSlashed(
 		ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashedAmount math.Int,
 	) error
+	AfterRedelegationSlashed(
+		ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashedAmount math.Int,
+	) error
 }

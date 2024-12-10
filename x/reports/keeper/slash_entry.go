@@ -2,9 +2,13 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
@@ -48,4 +52,58 @@ func (k Keeper) HasSlashEntry(ctx context.Context, height uint64, delegatorAddre
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	slashEntryKey := types.SlashEntryKeyPrefix(height, delegatorAddress, validatorAddress)
 	return store.Has(slashEntryKey)
+}
+
+// InsertSlashEntry is a helper function that adds slash entries with pre-checks. For instance, it ensures that an
+// existing slash entry's slashed amount is not overwritten, but incremented.
+func (k Keeper) InsertSlashEntry(
+	ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashAmount sdkmath.Int,
+) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// Make sure that the height is positive, as slashing is not expected at heights less or equal to zero.
+	if sdkCtx.BlockHeight() <= 0 {
+		return fmt.Errorf("slashing height must be positive, received: %v", sdkCtx.BlockHeight())
+	}
+
+	// Compute height, validator address and delegator address.
+	// Note: uint64 is bigger than int64, therefore, the height can be converted safely to uint64.
+	height := uint64(sdkCtx.BlockHeight())
+	validatorAddress := valAddr.String()
+	delegatorAddress := delAddr.String()
+
+	// Make sure that slashed amount is positive. We do not want to store any entries in state if they were not slashed.
+	if !slashAmount.IsPositive() {
+		return fmt.Errorf("slash amount must be positive, received %s", slashAmount.String())
+	}
+
+	// Check if a slash entry already exists in state for the current height.
+	slashEntry, found := k.GetSlashEntry(ctx, height, delegatorAddress, validatorAddress)
+	if found {
+		// If a slash entry already exists, increment the slashed amount as it must be that the delegator has already
+		// been slashed at this height. Set the unbonding and bonded balances to zero as that should be computed by
+		// other functionality that is called from the reports module's BeginBlocker.
+		slashEntry.DelegatorSlashAmount = slashEntry.DelegatorSlashAmount.Add(slashAmount)
+		slashEntry.DelegatorBondedBalance = sdkmath.ZeroInt()
+		slashEntry.DelegatorUnbondingBalance = sdkmath.ZeroInt()
+	} else {
+		// Otherwise create a new slash entry. For the same reason as the found=true case, delegator bonded and
+		// unbonding balances should be set to zero.
+		slashEntry = types.SlashEntry{
+			ValidatorAddress:          validatorAddress,
+			DelegatorAddress:          delegatorAddress,
+			DelegatorSlashAmount:      slashAmount,
+			DelegatorBondedBalance:    sdkmath.ZeroInt(),
+			DelegatorUnbondingBalance: sdkmath.ZeroInt(),
+		}
+	}
+
+	// Make sure that the slash entry satisfies the basic validation checks.
+	if err := slashEntry.ValidateBasic(); err != nil {
+		return errors.Wrap(err, "constructed invalid slash entry")
+	}
+
+	k.SetSlashEntry(ctx, height, slashEntry)
+
+	return nil
 }
