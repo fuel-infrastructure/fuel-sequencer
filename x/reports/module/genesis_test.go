@@ -43,13 +43,16 @@ func TestGenesis_InvalidSlashReport(t *testing.T) {
 
 	k, ctx := keepertest.ReportsKeeper(t)
 
-	require.Panics(t, func() {
+	var panicMsg string
+	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				require.Contains(t, r.(string), "duplicate slash entry found")
+				panicMsg = r.(error).Error()
 			}
 		}()
 
 		reports.InitGenesis(ctx, k, genesisState)
-	})
+		require.Fail(t, "Expected panic")
+	}()
+	require.Contains(t, panicMsg, "duplicate slash entry found")
 }
