@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // AccountKeeper defines the expected interface for the Account module.
@@ -46,4 +47,15 @@ type StakingHooks interface {
 	AfterRedelegationSlashed(
 		ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashedAmount math.Int,
 	) error
+	AfterValidatorSlashed(
+		ctx context.Context, valAddr sdk.ValAddress, fraction math.LegacyDec, valSlashedAmt math.Int,
+	) error
+}
+
+// StakingKeeper defines the expected interface for the Staking module.
+type StakingKeeper interface {
+	IterateValidatorDelegations(
+		ctx context.Context, valAddr sdk.ValAddress, cb func(delegation stakingtypes.Delegation) (stop bool),
+	) error
+	// Methods imported from staking should be defined here
 }

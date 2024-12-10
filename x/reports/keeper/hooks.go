@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
@@ -92,6 +94,49 @@ func (h Hooks) AfterRedelegationSlashed(
 		// Note: The staking module does not panic when calling AfterRedelegationSlashed. Therefore, we must panic here
 		// to ensure the chain is halted.
 		panic(errors.Wrap(err, "AfterRedelegationSlashed: could not insert slash entry"))
+	}
+
+	return nil
+}
+
+func (h Hooks) AfterValidatorSlashed(
+	ctx context.Context, valAddr sdk.ValAddress, fraction sdkmath.LegacyDec, valSlashedAmt sdkmath.Int,
+) error {
+
+	// If the validator slash amount is not positive, there is likely an issue with the staking module's Slash function,
+	// as this hook should only be called when valSlashedAmt is positive. We opt for a panic, prioritizing safety over
+	// liveness.
+	if !valSlashedAmt.IsPositive() {
+		panic(fmt.Errorf(
+			"AfterValidatorSlashed: validator slashed amount must be positive, received: %s", valSlashedAmt.String(),
+		))
+	}
+
+	// If the fraction is less than or equal to 0, or greater than 1, there is likely an issue with the staking module's
+	// Slash function. In this case, we must panic because tokens have been burned, but we are unable to compute the
+	// portion that was slashed for the delegators.
+	if !fraction.IsPositive() || fraction.GT(sdkmath.LegacyOneDec()) {
+		panic(fmt.Errorf("AfterValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", fraction))
+	}
+
+	// At this stage, we are certain that redelegations and unbonding delegations that were active at the time of the
+	// infraction have already been slashed. Therefore, we can iterate over active delegations and calculate the slashed
+	// amount.
+	// Note: This is possible because the fraction represents the percentage of tokens slashed, excluding redelegations
+	// and unbonding delegations.
+	err := h.k.stakingKeeper.IterateValidatorDelegations(
+		ctx, valAddr, func(delegation stakingtypes.Delegation) (stop bool) {
+			// TODO: Calculate slashed amount by getting tokens from shares. Need to GetValidator from staking keeper
+			// TODO: Make sure slash amount is not zero, skip if it is
+			// TODO: Insert slash entry
+			return false
+		},
+	)
+	if err != nil {
+
+		// If we error when iterating over delegations there is something wrong in the store. Therefore, panic since we
+		// could not store the slash entries.
+		panic(errors.Wrapf(err, "AfterValidatorSlashed: could not iterate validator %s delegations", valAddr.String()))
 	}
 
 	return nil

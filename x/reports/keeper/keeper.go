@@ -17,6 +17,9 @@ type (
 		storeService store.KVStoreService
 		logger       log.Logger
 
+		// Keepers
+		stakingKeeper types.StakingKeeper
+
 		// the address capable of executing a MsgUpdateParams message. Typically, this
 		// should be the x/gov module account.
 		authority string
@@ -27,6 +30,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService store.KVStoreService,
 	logger log.Logger,
+	stakingKeeper types.StakingKeeper,
 	authority string,
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
@@ -34,10 +38,11 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:          cdc,
-		storeService: storeService,
-		authority:    authority,
-		logger:       logger,
+		cdc:           cdc,
+		storeService:  storeService,
+		authority:     authority,
+		logger:        logger,
+		stakingKeeper: stakingKeeper,
 	}
 }
 
