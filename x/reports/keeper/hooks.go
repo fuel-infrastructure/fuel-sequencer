@@ -100,16 +100,14 @@ func (h Hooks) AfterRedelegationSlashed(
 }
 
 func (h Hooks) AfterValidatorSlashed(
-	ctx context.Context, valAddr sdk.ValAddress, fraction sdkmath.LegacyDec, valSlashedAmt sdkmath.Int,
+	ctx context.Context, valAddr sdk.ValAddress, fraction sdkmath.LegacyDec, totalSlashedAmt sdkmath.Int,
 ) error {
 
-	// If the validator slash amount is not positive, there is likely an issue with the staking module's Slash function,
-	// as this hook should only be called when valSlashedAmt is positive. We opt for a panic, prioritizing safety over
+	// If the total slash amount is not positive, there is likely an issue with the staking module's Slash function,
+	// as this hook should only be called when totalSlashedAmt is positive. We opt for a panic, prioritizing safety over
 	// liveness.
-	if !valSlashedAmt.IsPositive() {
-		panic(fmt.Errorf(
-			"AfterValidatorSlashed: validator slashed amount must be positive, received: %s", valSlashedAmt.String(),
-		))
+	if !totalSlashedAmt.IsPositive() {
+		panic(fmt.Errorf("AfterValidatorSlashed: total slashed amount must be positive, received: %v", totalSlashedAmt))
 	}
 
 	// If the fraction is less than or equal to 0, or greater than 1, there is likely an issue with the staking module's
@@ -129,7 +127,7 @@ func (h Hooks) AfterValidatorSlashed(
 			delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 
 			// For every delegation, get the validator object from state. There must be something really wrong if the
-			// validator object could not be obtained, therefore, in that case panic.
+			// validator object could not be obtained at this stage, therefore, in that case panic.
 			validator, err := h.k.stakingKeeper.GetValidator(ctx, valAddr)
 			if err != nil {
 				panic(errors.Wrap(err, "AfterValidatorSlashed: could not get validator"))
@@ -154,6 +152,11 @@ func (h Hooks) AfterValidatorSlashed(
 			// calculation. For this case we are relying on the fact that InsertSlashEntry errors if the slash amount is
 			// not positive.
 			if delSlashAmt.IsZero() {
+				h.k.Logger().Warn(
+					"AfterValidatorSlashed: skipping delegator because slashed amount is effectively zero",
+					"delegator", delAddr.String(),
+					"validator", valAddr.String(),
+				)
 				return false
 			}
 
