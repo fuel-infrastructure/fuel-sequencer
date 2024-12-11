@@ -57,5 +57,6 @@ type StakingKeeper interface {
 	IterateValidatorDelegations(
 		ctx context.Context, valAddr sdk.ValAddress, cb func(delegation stakingtypes.Delegation) (stop bool),
 	) error
+	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
 	// Methods imported from staking should be defined here
 }
