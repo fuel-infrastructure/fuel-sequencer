@@ -135,6 +135,7 @@ func (h Hooks) AfterValidatorSlashed(
 
 			// tokensBeforeSlash = (currentTokens) / (1-effectiveFraction)
 			// We perform the calculations on Dec to be as precise as possible when reversing the slash.
+			// TODO: Possible edge case if effectiveFraction is 1. We might need to use BeforeValidatorSlashed
 			delegatorCurrentTokensDec := validator.TokensFromShares(delegation.GetShares())
 			divisor := sdkmath.LegacyOneDec().Sub(fraction)
 			delegatorTokensBeforeDec := delegatorCurrentTokensDec.Quo(divisor)

@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
@@ -52,6 +53,29 @@ func (k Keeper) HasSlashEntry(ctx context.Context, height uint64, delegatorAddre
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	slashEntryKey := types.SlashEntryKeyPrefix(height, delegatorAddress, validatorAddress)
 	return store.Has(slashEntryKey)
+}
+
+// IterateSlashEntries iterates through all slash entries for a particular height and calls a callback on every slash
+// entry.
+// TODO: Unit tests.
+func (k Keeper) IterateSlashEntries(
+	ctx context.Context, height uint64, cb func(slashEntry types.SlashEntry) (stop bool),
+) {
+	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
+	iteratorPrefix := types.SlashReportKeyPrefix(height)
+	iterator := storetypes.KVStorePrefixIterator(store, iteratorPrefix)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var slashEntry types.SlashEntry
+		k.cdc.MustUnmarshal(iterator.Value(), &slashEntry)
+
+		if cb(slashEntry) {
+			break
+		}
+	}
 }
 
 // InsertSlashEntry is a helper function that adds slash entries with pre-checks. For instance, it ensures that an
