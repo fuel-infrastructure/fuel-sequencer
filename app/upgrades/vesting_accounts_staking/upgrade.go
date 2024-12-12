@@ -1,4 +1,4 @@
-package power_reduction
+package vesting_accounts_staking
 
 import (
 	"context"
@@ -7,17 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "increase-power-reduction"
+const UpgradeName = "vesting-accounts-staking"
 
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
-		// There is no need to apply this change here since it's already applied in the app.go init function.
-		//sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000)
-
 		// returns a VersionMap with the updated module ConsensusVersions
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}

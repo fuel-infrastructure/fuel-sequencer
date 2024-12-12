@@ -2,14 +2,15 @@ package upgrades_test
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/power_reduction"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vesting_accounts_staking"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -18,9 +19,9 @@ import (
 const (
 	haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
-	upgradeName        = power_reduction.UpgradeName
-	fromImageVersion   = "b651895"                               // this image needs to exist for this test to run
-	toImageVersion     = "hotfix_adjust-default-power-reduction" // this image needs to exist for this test to run
+	upgradeName        = vesting_accounts_staking.UpgradeName
+	fromImageVersion   = "2e65f66" // this image needs to exist for this test to run
+	toImageVersion     = "0bee742" // this image needs to exist for this test to run
 )
 
 type UpgradesTestSuite struct {
@@ -75,11 +76,6 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		s.Logger().Info("Removing all sequencer nodes...")
 		s.RemoveAllSequencerNodes()
 
-		// Write new genesis file from state export
-		genesis := s.ExportSequencerState()
-		s.UnsafeResetSequencerState()
-		s.WriteSequencerGenesisFile([]byte(genesis))
-
 		// Resume Ethereum since we're about to resume the Sequencer
 		s.UnpauseEthereum()
 
@@ -92,27 +88,42 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		s.Require().NoError(err, "chain did not produce blocks after upgrade")
 	})
 
-	s.Run("Ensure we can perform a large delegation", func() {
+	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
+		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
+		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
 
-		senderAddress := s.SeqKeys[0].AddressSeq
-		delegatorKey := s.EthUser.PrivateKey
-		delegatorAddress := s.EthUser.AddressHex
-		validator1Address := s.SeqKeys[0].ValAddressSeq
-
-		// --------------------------------------- Fund the delegator
-
-		amount, ok := sdkmath.NewIntFromString("10000000000000000000") // 10 bil x 1e9
-		s.Require().True(ok)
-		delegation := sdk.NewCoin(e2etestsuite.BridgeDenom, amount)
-		msgSend := &banktypes.MsgSend{
-			FromAddress: senderAddress,
-			ToAddress:   delegatorAddress,
-			Amount:      sdk.NewCoins(delegation),
-		}
-		_, err := s.SubmitMsgs(msgSend)
+		// Make sure that the balance of the receiver is as expected.
+		expectedInitBalance := sdk.NewInt64Coin(e2etestsuite.BridgeDenom, 0)
+		balance, err := s.QueryAllBalances(s.Ctx(), ownedReceiverAddressSeq, nil)
 		s.Require().NoError(err)
+		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(e2etestsuite.BridgeDenom))
+
+		// Deposit, using the vesting seconds as the amount, so that 1 token becomes spendable per second
+		sendAmount := big.NewInt(int64(e2etestsuite.VestingDuration2Years.Seconds()))
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, e2etestsuite.VestingDuration2Years)
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin := sdk.NewCoin(e2etestsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
+
+		// Calculate expected values
+		bridgeParams := s.QueryBridgeParams(s.Ctx())
+		vestingStartTime := bridgeParams.VestingStartTime.Add(e2etestsuite.VestingStartTimeDelay)
+		vestingEndTime := bridgeParams.VestingStartTime.Add(e2etestsuite.VestingDuration2Years)
+
+		ethOwnedVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, ethOwnedVestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
+		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
+		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 
 		// --------------------------------------- Delegate
+
+		validator1Address := s.SeqKeys[0].ValAddressSeq
+		delegatorAddress := s.EthKeys[0].AddressHex
 
 		// Make sure that there is no pre-existing delegation between the delegator and validator1.
 		delegationRaw, err := s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validator1Address)
@@ -123,12 +134,73 @@ func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
 		)
 
 		// Generate Authorize event wrapping a MsgDelegate to validator1.
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegation)
+		// Deposit "(now+20s)-vestingStartTime" worth of tokens, such that we expect these to be stakeable in 20s.
+		timeForUnlock := time.Now().Add(time.Second * 20).Sub(vestingStartTime)
+		delegateAmount := sdkmath.NewInt(int64(timeForUnlock.Seconds()))
+		delegateCoin := sdk.NewCoin(e2etestsuite.BridgeDenom, delegateAmount)
+		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
 		authorizeData := e2etestsuite.PackAuthorize(msgDelegateBz)
-		_, err = s.SendEthTransactionFrom(delegatorKey, e2etestsuite.SequencerInterfaceContractAddress, authorizeData)
+
+		// Expect a failure because not enough time has elapsed yet
+		delegation1, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
 		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation1.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
+
+		// Sleep the remaining time so that enough tokens will be spendable
+		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
 
 		// Confirm that the delegation went through and is as expected.
-		s.PollForDelegationBalance(s.Ctx(), 30, delegatorAddress, validator1Address, delegation)
+		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation2.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForDelegationBalance(s.Ctx(), 0, delegatorAddress, validator1Address, delegateCoin)
+
+		// Check account again
+		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, ethOwnedVestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
+		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
+		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
+		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
+
+		// --------------------------------------- Undelegate
+
+		// Override unbonding time so that undelegation goes through immediately
+		stakingParams := s.QueryStakingParams(s.Ctx())
+		stakingParams.UnbondingTime = time.Second
+		s.ExecuteGovProposal(&stakingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *stakingParams,
+		})
+
+		// Ensure value updated
+		s.Require().Equal(time.Second, s.QueryStakingParams(s.Ctx()).UnbondingTime)
+
+		// Generate Authorize event wrapping a MsgUndelegate to validator1 with the amount previously delegated.
+		undelegateCoin := delegateCoin
+		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBz(delegatorAddress, validator1Address, undelegateCoin)
+		authorizeData = e2etestsuite.PackAuthorize(msgUndelegateBz)
+
+		// Confirm that the undelegation went through by checking for no delegation
+		undelegation, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, undelegation.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
+
+		// Wait for undelegation to go through (Note: unbonding time is very small)
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
+		// Check account again
+		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, ethOwnedVestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
+		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
+		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // back to zero
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
