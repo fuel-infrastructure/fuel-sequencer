@@ -15,8 +15,9 @@ func RegisterCommitmentsService(
 	clientCtx client.Context,
 	server gogogrpc.Server,
 	iRegistry codectypes.InterfaceRegistry,
+	maxQueryRange uint64,
 ) {
-	types.RegisterQueryServer(server, NewQueryServer(clientCtx, iRegistry))
+	types.RegisterQueryServer(server, NewQueryServer(clientCtx, iRegistry, maxQueryRange))
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for bridge commitments.

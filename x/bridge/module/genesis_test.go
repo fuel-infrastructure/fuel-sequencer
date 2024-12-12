@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/math"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
@@ -35,13 +34,12 @@ func TestGenesis(t *testing.T) {
 	got := bridge.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
+	require.Equal(t, genesisState.Params, got.Params)
 	require.Equal(t, genesisState.SupplyDeltaInfo, got.SupplyDeltaInfo)
 	require.Equal(t, genesisState.LastEthereumNonce, got.LastEthereumNonce)
 	require.Equal(t, genesisState.LastEthereumBlockSynced, got.LastEthereumBlockSynced)
 	require.Equal(t, genesisState.EthereumEventIndexOffset, got.EthereumEventIndexOffset)
 	require.Equal(t, genesisState.LastEthBlockUpdateTime, got.LastEthBlockUpdateTime)
+	require.Equal(t, genesisState.LastConsensusTxsSequence, got.LastConsensusTxsSequence)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
