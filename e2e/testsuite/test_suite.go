@@ -381,6 +381,7 @@ func (s *E2ETestSuite) runEthereumNodeContainer() {
 			"--block-time", fmt.Sprintf("%d", ethBlockTimeSeconds),
 			"--mixed-mining",
 		},
+		Platform: "linux/amd64",
 	}
 
 	s.ethNodeResource, err = s.dockerPool.RunWithOptions(
