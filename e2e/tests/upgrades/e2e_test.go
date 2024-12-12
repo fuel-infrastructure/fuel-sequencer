@@ -21,7 +21,7 @@ const (
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
 	upgradeName        = vesting_accounts_staking.UpgradeName
 	fromImageVersion   = "2e65f66" // this image needs to exist for this test to run
-	toImageVersion     = "2019e20" // this image needs to exist for this test to run
+	toImageVersion     = "0bee742" // this image needs to exist for this test to run
 )
 
 type UpgradesTestSuite struct {
