@@ -75,7 +75,8 @@ func DefaultCustomAppConfig() (string, interface{}) {
 			PathToCertFile: sidecarconfig.DefaultSidecarPathToCertFile,
 		},
 		CommitmentsConfig: commitmentsconfig.Config{
-			ApiEnabled: commitmentsconfig.DefaultCommitmentsApiEnabled,
+			ApiEnabled:    commitmentsconfig.DefaultCommitmentsApiEnabled,
+			MaxQueryRange: commitmentsconfig.DefaultCommitmentsMaxQueryRange,
 		},
 	}
 
@@ -98,7 +99,11 @@ path_to_cert_file = "{{ .SidecarConfig.PathToCertFile }}"
 # This dictates whether the commitments API (with bridge commitment queries) is enabled.
 # Warning: The queries in this API are resource intensive and could be used to commit DOS.
 #          If enabled, the queries should only be exposed to trusted clients.
-api-enabled = {{ .CommitmentsConfig.ApiEnabled }}`
+api-enabled = {{ .CommitmentsConfig.ApiEnabled }}
+# This determines the maximum difference between the start block and end block when querying for bridge
+# commitments and bridge commitment inclusion proofs. It allows the node operator to limit the query size.
+# Otherwise, the entire block range of the chain could be queried (i.e. from block 1 to the latest block).
+max-query-range = {{ .CommitmentsConfig.MaxQueryRange }}`
 
 	return customAppTemplate, customAppConfig
 }

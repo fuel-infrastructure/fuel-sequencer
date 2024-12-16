@@ -39,3 +39,5 @@ If you want to whitelist Docker containers in UFW (Uncomplicated Firewall) on Li
 
 - Click **Share** from the dashboard, then **Export**, making sure to tick **Export for sharing externally**.
 - Click **View JSON** and copy-paste the result into `dashboard.json`.
+- If `__inputs.name` was modified, replace all instances `__inputs.name` throughout the file with `DS_PROMETHEUS`. Example: if this is now `DS_PROMETHEUS_SOMETHING`, find and replace this with `DS_PROMETHEUS` in the entire the file.
+- Clear `__inputs` entirely by setting `"__inputs": []`, assuming it contains just the `DS_PROMETHEUS` entry. This is because we want the data source to be templated (i.e. drop-down), not a hard-coded input.

@@ -56,7 +56,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/power_reduction"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vesting_accounts_staking"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -337,8 +337,8 @@ func NewFuelSequencerApp(
 	}
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		power_reduction.UpgradeName,
-		power_reduction.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		vesting_accounts_staking.UpgradeName,
+		vesting_accounts_staking.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
@@ -479,7 +479,7 @@ func (app *FuelSequencerApp) RegisterTendermintService(clientCtx client.Context)
 	app.App.RegisterTendermintService(clientCtx)
 
 	if app.commitmentsConfig.ApiEnabled {
-		commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry)
+		commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry, app.commitmentsConfig.MaxQueryRange)
 	}
 }
 

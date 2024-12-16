@@ -9,6 +9,14 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
+func (s *E2ETestSuite) QueryStakingParams(ctx context.Context) *stakingtypes.Params {
+	queryClient := s.getGRPCClients().StakingQueryClient
+	res, err := queryClient.Params(ctx, &stakingtypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+
+	return &res.Params
+}
+
 func (s *E2ETestSuite) QueryDelegationRaw(
 	ctx context.Context, delegatorAddr, validatorAddr string,
 ) (*stakingtypes.QueryDelegationResponse, error) {
