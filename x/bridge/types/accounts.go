@@ -213,7 +213,13 @@ func (a *EthOwnedContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 		panic(fmt.Sprintf("undelegation attempt with zero amount in coins %s", amount.String()))
 	}
 
-	a.DelegatedFree = a.DelegatedFree.Sub(amount...)
+	if remaining, hasNeg := a.DelegatedFree.SafeSub(amount...); hasNeg {
+		// PATCH: if account did not have enough DelegatedFree, assume this is an old account with DelegatedVesting.
+		fmt.Println(fmt.Sprintf("REVERTING TO BASE TRACKUNDELEGATION FOR %s", a.AccountOwner))
+		a.TrackUndelegation(amount)
+	} else {
+		a.DelegatedFree = remaining
+	}
 }
 
 // AddVestingCoins ignores the specified vesting start and end times since these have already been set. The new coins
