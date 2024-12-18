@@ -99,7 +99,7 @@ func (h Hooks) AfterRedelegationSlashed(
 	return nil
 }
 
-func (h Hooks) AfterValidatorSlashed(
+func (h Hooks) CustomBeforeValidatorSlashed(
 	ctx context.Context, valAddr sdk.ValAddress, fraction sdkmath.LegacyDec, totalSlashedAmt sdkmath.Int,
 ) error {
 
@@ -107,14 +107,16 @@ func (h Hooks) AfterValidatorSlashed(
 	// as this hook should only be called when totalSlashedAmt is positive. We opt for a panic, prioritizing safety over
 	// liveness.
 	if !totalSlashedAmt.IsPositive() {
-		panic(fmt.Errorf("AfterValidatorSlashed: total slashed amount must be positive, received: %v", totalSlashedAmt))
+		panic(fmt.Errorf(
+			"CustomBeforeValidatorSlashed: total slashed amount must be positive, received: %v", totalSlashedAmt,
+		))
 	}
 
-	// If the fraction is less than or equal to 0, or greater than 1, there is likely an issue with the staking module's
-	// Slash function. In this case, we must panic because tokens have been burned, but we are unable to compute the
-	// portion that was slashed for the delegators.
+	// If the fraction is less than or equal to 0, or greater than 1, it indicates a potential issue with the staking
+	// module's Slash function. In such cases, a panic is triggered because it implies an inability to accurately
+	// calculate the portion to be slashed for delegators, even though the validator will still be slashed.
 	if !fraction.IsPositive() || fraction.GT(sdkmath.LegacyOneDec()) {
-		panic(fmt.Errorf("AfterValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", fraction))
+		panic(fmt.Errorf("CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", fraction))
 	}
 
 	// At this stage, we are certain that redelegations and unbonding delegations that were active at the time of the
