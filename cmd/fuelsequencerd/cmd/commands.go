@@ -287,14 +287,15 @@ func startSidecar(
 		return fmt.Errorf("failed to create logger: %s", err)
 	}
 
-	if ethCfg.unsafeStartBlock < 0 {
-		return fmt.Errorf("ethereum unsafe start block must be >= 0, got: %d", ethCfg.unsafeStartBlock)
+	// Config validation
+	if err := scrCfg.Validate(); err != nil {
+		return fmt.Errorf("invalid sidecar config: %s", err)
 	}
-	if ethCfg.unsafeEndBlock < 0 {
-		return fmt.Errorf("ethereum unsafe end block must be >= 0, got: %d", ethCfg.unsafeEndBlock)
+	if err := seqCfg.Validate(); err != nil {
+		return fmt.Errorf("invalid sequencer config: %s", err)
 	}
-	if ethCfg.maxBlockRange < 1 {
-		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethCfg.maxBlockRange)
+	if err := ethCfg.Validate(); err != nil {
+		return fmt.Errorf("invalid ethereum config: %s", err)
 	}
 
 	// Check if the unsafe start block is provided and use it.
