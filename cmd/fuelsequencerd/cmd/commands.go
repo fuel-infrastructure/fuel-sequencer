@@ -202,6 +202,12 @@ func startSidecarServerCmd() *cobra.Command {
 		time.Second*5,
 		"minimum wait between successive queries for logs",
 	)
+	cmd.Flags().DurationVar(
+		&ethCfg.queryTimeout,
+		FlagEthereumQueryTimeout,
+		time.Second*20,
+		"maximum wait for an individual query to return a value",
+	)
 	cmd.Flags().Int64Var(
 		&ethCfg.unsafeStartBlock,
 		FlagEthereumUnsafeStartBlock,
@@ -414,7 +420,7 @@ func startSidecar(
 	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
-		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethclientMetrics,
+		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethCfg.queryTimeout, ethclientMetrics,
 	)
 
 	// Create the store

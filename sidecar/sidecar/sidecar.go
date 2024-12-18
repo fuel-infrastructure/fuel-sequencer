@@ -175,6 +175,10 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 
 // catchUpWithEthereumLogs syncs logs from the last synced block up to the last finalized Ethereum block.
 func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.ExponentialBackOff) error {
+	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
+	s.logger.Debug("checking ethereum sync status",
+		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
+	)
 
 	// Get the max syncable block (considers finalized Ethereum height and the end query block)
 	maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
@@ -185,7 +189,6 @@ func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.
 	// If we're behind, fetch the logs up till the max syncable block.
 	// Note: in the meantime more Ethereum blocks might be finalized, but, these can be detected and fetched in the
 	// main data fetching loop.
-	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
 	if maxSyncableBlock.Cmp(lastSyncedBlock) > 0 {
 		s.logger.Info("catching up with ethereum",
 			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
