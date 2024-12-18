@@ -55,9 +55,7 @@ func (k Keeper) HasSlashEntry(ctx context.Context, height uint64, delegatorAddre
 	return store.Has(slashEntryKey)
 }
 
-// IterateSlashEntries iterates through all slash entries for a particular height and calls a callback on every slash
-// entry.
-// TODO: Unit tests.
+// IterateSlashEntries iterates through all slash entries for a particular height and calls a callback on every entry.
 func (k Keeper) IterateSlashEntries(
 	ctx context.Context, height uint64, cb func(slashEntry types.SlashEntry) (stop bool),
 ) {

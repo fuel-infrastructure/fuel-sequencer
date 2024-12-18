@@ -201,3 +201,66 @@ func (s *KeeperTestSuite) TestInsertSlashEntry() {
 		})
 	}
 }
+
+func TestIterateSlashEntries(t *testing.T) {
+
+	testCases := []struct {
+		name            string
+		numSlashReports int
+	}{
+		{
+			name:            "No slash reports",
+			numSlashReports: 0,
+		},
+		{
+			name:            "One slash report",
+			numSlashReports: 1,
+		},
+		{
+			name:            "Many slash reports",
+			numSlashReports: 10,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			testKeeper, ctx := keepertest.ReportsKeeper(t)
+			slashReports := keepertest.CreateNSlashReport(testKeeper, ctx, tc.numSlashReports)
+
+			// Set slash entry if required by test
+			for _, sr := range slashReports {
+				for _, se := range sr.Entries {
+					testKeeper.SetSlashEntry(ctx, sr.Height, se)
+				}
+			}
+
+			// Fetch slash reports by iterating over slash entries
+			var fetchedSlashReports []types.SlashReport
+			for _, sr := range slashReports {
+
+				// New slash report
+				fetchedSlashReport := types.SlashReport{
+					Height:  sr.Height,
+					Entries: nil,
+				}
+
+				testKeeper.IterateSlashEntries(ctx, sr.Height, func(slashEntry types.SlashEntry) (stop bool) {
+					fetchedSlashReport.Entries = append(fetchedSlashReport.Entries, slashEntry)
+					return false
+				})
+
+				fetchedSlashReports = append(fetchedSlashReports, fetchedSlashReport)
+			}
+
+			// Sort entries in original slash reports, since the store will return sorted entries
+			sortedReports := keepertest.OrderSlashReportsLexicographically(slashReports)
+
+			// Sorted slash reports must match fetched slash reports
+			require.EqualValues(t, sortedReports, fetchedSlashReports)
+
+			// Double check that we fetched all slash reports
+			require.Equal(t, testKeeper.GetAllSlashReport(ctx), fetchedSlashReports)
+		})
+	}
+}

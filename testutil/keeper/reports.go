@@ -67,6 +67,10 @@ func OrderSlashReportsLexicographically(reports []types.SlashReport) []types.Sla
 // createNSlashEntryWithoutStoring creates N slash entries without setting them in state. This is primarily used for
 // constructing a slash report.
 func createNSlashEntryWithoutStoring(n int) []types.SlashEntry {
+	if n == 0 {
+		return nil
+	}
+
 	slashEntries := make([]types.SlashEntry, n)
 	for i := range slashEntries {
 		slashEntries[i].ValidatorAddress = sample.AccAddress()
@@ -89,8 +93,12 @@ func CreateNSlashEntry(keeper keeper.Keeper, ctx context.Context, height uint64,
 	return slashEntries
 }
 
-// CreateNSlashReport creates N slash reports and stores them in state
-func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashReport {
+// CreateNSlashReportWithoutStoring creates N slash reports, where each report has i+1 entries
+func CreateNSlashReportWithoutStoring(n int) []types.SlashReport {
+	if n == 0 {
+		return nil
+	}
+
 	slashReports := make([]types.SlashReport, n)
 	for i := range slashReports {
 
@@ -100,10 +108,17 @@ func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []type
 		// We cannot have a list of empty SlashEntries since the SlashEntry key is composed of delegator and validator
 		// addresses. Therefore, we need to increment by 1 to avoid having createNSlashEntry(0)
 		slashReports[i].Entries = createNSlashEntryWithoutStoring(i + 1)
-
-		keeper.SetSlashReport(ctx, slashReports[i])
 	}
 
+	return slashReports
+}
+
+// CreateNSlashReport creates N slash reports, where each report has i+1 entries, and stores them in state
+func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []types.SlashReport {
+	slashReports := CreateNSlashReportWithoutStoring(n)
+	for i := range slashReports {
+		keeper.SetSlashReport(ctx, slashReports[i])
+	}
 	return slashReports
 }
 
