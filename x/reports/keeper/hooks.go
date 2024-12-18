@@ -132,31 +132,26 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 			// validator object could not be obtained at this stage, therefore, in that case panic.
 			validator, err := h.k.stakingKeeper.GetValidator(ctx, valAddr)
 			if err != nil {
-				panic(errors.Wrap(err, "AfterValidatorSlashed: could not get validator"))
+				panic(errors.Wrap(err, "CustomBeforeValidatorSlashed: could not get validator"))
 			}
 
-			// tokensBeforeSlash = (currentTokens) / (1-effectiveFraction)
-			// We perform the calculations on Dec to be as precise as possible when reversing the slash.
-			// TODO: Possible edge case if effectiveFraction is 1. We might need to use BeforeValidatorSlashed
-			delegatorCurrentTokensDec := validator.TokensFromShares(delegation.GetShares())
-			divisor := sdkmath.LegacyOneDec().Sub(fraction)
-			delegatorTokensBeforeDec := delegatorCurrentTokensDec.Quo(divisor)
+			// delegator slashed amount = current delegated tokens * effective slash fraction
+			// We perform the calculations on LegacyDec to use the same approach as the staking module and to be as
+			// precise as possible
+			delCurrentTokensDec := validator.TokensFromShares(delegation.GetShares())
+			delSlashAmtDec := delCurrentTokensDec.Mul(fraction)
+			delSlashAmt := delSlashAmtDec.TruncateInt()
 
-			// We truncate the decimals to mirror the staking module.
-			delegatorCurrentTokens := delegatorCurrentTokensDec.TruncateInt()
-			delegatorTokensBefore := delegatorTokensBeforeDec.TruncateInt()
-			delSlashAmt := delegatorTokensBefore.Sub(delegatorCurrentTokens)
-
-			// Skip if slashed amount is zero as this means that the effective fraction is so low that the slash is
-			// negligible. In other words this means that the delegator was not slashed.
+			// Skip if slashed amount is zero as this means that the effective fraction is so low that the slash for
+			// the delegator is negligible. In other words this means that the delegator was not slashed.
 			// Notes:
-			// 1. This was done for the sake of completion and is unexpected in 99.99% of the cases.
+			// 1. This was done for the sake of completion as it is highly unexpected.
 			// 2. If slashed amount is negative we want to panic as this means that something went wrong in the
 			// calculation. For this case we are relying on the fact that InsertSlashEntry errors if the slash amount is
 			// not positive.
 			if delSlashAmt.IsZero() {
 				h.k.Logger().Warn(
-					"AfterValidatorSlashed: skipping delegator because slashed amount is effectively zero",
+					"CustomBeforeValidatorSlashed: skipping delegator because slashed amount is effectively zero",
 					"delegator", delAddr.String(),
 					"validator", valAddr.String(),
 				)
@@ -168,9 +163,9 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 
 				// The function will panic if an error is returned, as any error from InsertSlashEntry is highly
 				// unlikely and would indicate a logical error in the code.
-				// Note: The staking module does not panic when calling AfterValidatorSlashed. Therefore, we must panic
-				// here to ensure the chain is halted.
-				panic(errors.Wrap(err, "AfterValidatorSlashed: could not insert slash entry"))
+				// Note: The staking module does not panic when calling CustomBeforeValidatorSlashed. Therefore, we must
+				// panic here to ensure that the chain is halted.
+				panic(errors.Wrap(err, "CustomBeforeValidatorSlashed: could not insert slash entry"))
 			}
 
 			return false
@@ -180,7 +175,9 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 
 		// If we error while iterating over delegations there is something wrong in the store. Therefore, panic since we
 		// could not store the slash entries.
-		panic(errors.Wrapf(err, "AfterValidatorSlashed: could not iterate validator %s delegations", valAddr.String()))
+		panic(errors.Wrapf(
+			err, "CustomBeforeValidatorSlashed: could not iterate validator %s delegations", valAddr.String(),
+		))
 	}
 
 	return nil

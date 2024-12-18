@@ -201,7 +201,7 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed() {
 	}
 }
 
-func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
+func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 	height := int64(10)
 
 	validatorAddress, err := sdk.ValAddressFromBech32(testtypes.TestValAddr1Str)
@@ -228,13 +228,13 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			name:   "slash entries set correctly if everything valid - shares equal to number of tokens",
 			height: height,
 
-			// This is the validator object after slash
+			// This is the validator object before slash
 			setValidator: &stakingtypes.Validator{
 				OperatorAddress:         validatorAddress.String(),
 				ConsensusPubkey:         nil,
 				Jailed:                  false,
 				Status:                  0,
-				Tokens:                  sdkmath.NewInt(30),                    // 10 tokens per validator
+				Tokens:                  sdkmath.NewInt(30),                    // 10 tokens per delegator
 				DelegatorShares:         sdkmath.LegacyMustNewDecFromStr("30"), // 1 token per share
 				Description:             stakingtypes.Description{},
 				UnbondingHeight:         0,
@@ -245,7 +245,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 				UnbondingIds:            nil,
 			},
 
-			// These are the delegations after slash
+			// These are the delegations before slash
 			setDelegations: &[]stakingtypes.Delegation{
 				{
 					DelegatorAddress: testDelegators[0].String(),
@@ -271,8 +271,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 					ValidatorAddress: validatorAddress.String(),
 					DelegatorAddress: testDelegators[0].String(),
 
-					// tokensBeforeSlash = 10 / (1 - 0.1) = 11.11111
-					// Therefore slashAmount = 1 token
+					// slashAmount = 10 * 0.1 = 1 token
 					DelegatorSlashAmount:      sdkmath.OneInt(),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
@@ -281,8 +280,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 					ValidatorAddress: validatorAddress.String(),
 					DelegatorAddress: testDelegators[1].String(),
 
-					// tokensBeforeSlash = 10 / (1 - 0.1) = 11.11111
-					// Therefore slashAmount = 1 token
+					// slashAmount = 10 * 0.1 = 1 token
 					DelegatorSlashAmount:      sdkmath.OneInt(),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
@@ -291,8 +289,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 					ValidatorAddress: validatorAddress.String(),
 					DelegatorAddress: testDelegators[2].String(),
 
-					// tokensBeforeSlash = 10 / (1 - 0.1) = 11.11111
-					// Therefore slashAmount = 1 token
+					// slashAmount = 10 * 0.1 = 1 token
 					DelegatorSlashAmount:      sdkmath.OneInt(),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
@@ -303,14 +300,14 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			name:   "slash entries set correctly if everything valid - shares not equal to number of tokens",
 			height: height,
 
-			// This is the validator object after slash
+			// This is the validator object before slash
 			setValidator: &stakingtypes.Validator{
 				OperatorAddress:         validatorAddress.String(),
 				ConsensusPubkey:         nil,
 				Jailed:                  false,
 				Status:                  0,
 				Tokens:                  sdkmath.NewInt(1000),                  // shares not 1:1 with number of tokens
-				DelegatorShares:         sdkmath.LegacyMustNewDecFromStr("33"), // total shares across 3 validators
+				DelegatorShares:         sdkmath.LegacyMustNewDecFromStr("33"), // total shares across 3 delegators
 				Description:             stakingtypes.Description{},
 				UnbondingHeight:         0,
 				UnbondingTime:           time.Time{},
@@ -320,7 +317,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 				UnbondingIds:            nil,
 			},
 
-			// These are the delegations after slash
+			// These are the delegations before slash
 			setDelegations: &[]stakingtypes.Delegation{
 				{
 					DelegatorAddress: testDelegators[0].String(),
@@ -346,10 +343,9 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 					ValidatorAddress: validatorAddress.String(),
 					DelegatorAddress: testDelegators[0].String(),
 
-					// currentTokens = (5 * 1000) / 33 = 151.515151515151515151 = 151
-					// tokensBeforeSlash = 151.515151515151515151 / (1 - 0.15) = 178.253119429590017824 = 178
-					// slashAmount = 178 - 151 = 27 tokens
-					DelegatorSlashAmount:      sdkmath.NewInt(27),
+					// currentTokens = (5 * 1000) / 33 = 151.515151515151515151
+					// slashAmount = 151.515151515151515151 * 0.15 = 22.727272727272727272 = 22 tokens
+					DelegatorSlashAmount:      sdkmath.NewInt(22),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
 				},
@@ -357,10 +353,9 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 					ValidatorAddress: validatorAddress.String(),
 					DelegatorAddress: testDelegators[1].String(),
 
-					// currentTokens = (20 * 1000) / 33 = 606.060606060606060606 = 606
-					// tokensBeforeSlash = 606.060606060606060606 / (1 - 0.15) = 713.012477718360071301 = 713
-					// slashAmount = 713 - 606 = 107 tokens
-					DelegatorSlashAmount:      sdkmath.NewInt(107),
+					// currentTokens = (20 * 1000) / 33 = 606.060606060606060606
+					// slashAmount = 606.060606060606060606 * 0.15 = 90.909090909090909090 = 90 tokens
+					DelegatorSlashAmount:      sdkmath.NewInt(90),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
 				},
@@ -368,10 +363,9 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 					ValidatorAddress: validatorAddress.String(),
 					DelegatorAddress: testDelegators[2].String(),
 
-					// currentTokens = (8 * 1000) / 33 = 242.424242424242424242 = 242
-					// tokensBeforeSlash = 242.424242424242424242 / (1 - 0.15) = 285.204991087344028520 = 285
-					// slashAmount = 285 - 242 = 43 tokens
-					DelegatorSlashAmount:      sdkmath.NewInt(43),
+					// currentTokens = (8 * 1000) / 33 = 242.424242424242424242
+					// slashAmount = 242.424242424242424242 * 0.15 = 36.363636363636363636 = 36 tokens
+					DelegatorSlashAmount:      sdkmath.NewInt(36),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
 				},
@@ -384,7 +378,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			fraction:        sdkmath.LegacyMustNewDecFromStr("0.1"),
 			totalSlashedAmt: sdkmath.ZeroInt(),
 			expErrMsg: fmt.Sprintf(
-				"AfterValidatorSlashed: total slashed amount must be positive, received: %v",
+				"CustomBeforeValidatorSlashed: total slashed amount must be positive, received: %v",
 				sdkmath.ZeroInt(),
 			),
 			expPanic: true,
@@ -396,7 +390,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			fraction:        sdkmath.LegacyMustNewDecFromStr("0.1"),
 			totalSlashedAmt: sdkmath.NewInt(-1),
 			expErrMsg: fmt.Sprintf(
-				"AfterValidatorSlashed: total slashed amount must be positive, received: %v",
+				"CustomBeforeValidatorSlashed: total slashed amount must be positive, received: %v",
 				sdkmath.NewInt(-1),
 			),
 			expPanic: true,
@@ -408,7 +402,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			fraction:        sdkmath.LegacyMustNewDecFromStr("2"),
 			totalSlashedAmt: sdkmath.OneInt(),
 			expErrMsg: fmt.Sprintf(
-				"AfterValidatorSlashed: fraction must be >0 and <=1, current fraction: %v",
+				"CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v",
 				sdkmath.LegacyMustNewDecFromStr("2"),
 			),
 			expPanic: true,
@@ -420,7 +414,8 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			fraction:        sdkmath.LegacyZeroDec(),
 			totalSlashedAmt: sdkmath.OneInt(),
 			expErrMsg: fmt.Sprintf(
-				"AfterValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", sdkmath.LegacyZeroDec(),
+				"CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v",
+				sdkmath.LegacyZeroDec(),
 			),
 			expPanic: true,
 		},
@@ -431,7 +426,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			fraction:        sdkmath.LegacyMustNewDecFromStr("-1"),
 			totalSlashedAmt: sdkmath.OneInt(),
 			expErrMsg: fmt.Sprintf(
-				"AfterValidatorSlashed: fraction must be >0 and <=1, current fraction: %v",
+				"CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v",
 				sdkmath.LegacyMustNewDecFromStr("-1"),
 			),
 			expPanic: true,
@@ -449,7 +444,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyMustNewDecFromStr("0.1"),
 			totalSlashedAmt: sdkmath.OneInt(),
-			expErrMsg:       "AfterValidatorSlashed: could not get validator",
+			expErrMsg:       "CustomBeforeValidatorSlashed: could not get validator",
 			expPanic:        true,
 		},
 		{
@@ -460,8 +455,8 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 				ConsensusPubkey:         nil,
 				Jailed:                  false,
 				Status:                  0,
-				Tokens:                  sdkmath.NewInt(30),                    // 10 tokens per validator
-				DelegatorShares:         sdkmath.LegacyMustNewDecFromStr("30"), // 1 token per share
+				Tokens:                  sdkmath.NewInt(30),
+				DelegatorShares:         sdkmath.LegacyMustNewDecFromStr("30"),
 				Description:             stakingtypes.Description{},
 				UnbondingHeight:         0,
 				UnbondingTime:           time.Time{},
@@ -471,6 +466,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 				UnbondingIds:            nil,
 			},
 			setDelegations: &[]stakingtypes.Delegation{
+				// One delegator is enough to trigger the error
 				{
 					DelegatorAddress: testDelegators[1].String(),
 					ValidatorAddress: validatorAddress.String(),
@@ -480,8 +476,8 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyMustNewDecFromStr("0.1"),
 			totalSlashedAmt: sdkmath.OneInt(),
-			expErrMsg: "AfterValidatorSlashed: could not insert slash entry: slashing height must be positive, " +
-				"received: 0",
+			expErrMsg: "CustomBeforeValidatorSlashed: could not insert slash entry: slashing height must be " +
+				"positive, received: 0",
 			expPanic: true,
 		},
 	}
@@ -519,7 +515,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 						}
 					}()
 
-					err := s.App.ReportsKeeper.Hooks().AfterValidatorSlashed(
+					err := s.App.ReportsKeeper.Hooks().CustomBeforeValidatorSlashed(
 						ctxWithHeight, tc.valAddr, tc.fraction, tc.totalSlashedAmt,
 					)
 					s.Require().Fail(fmt.Sprintf("Expected panic but got error: %v", err))
@@ -530,7 +526,7 @@ func (s *KeeperTestSuite) TestAfterValidatorSlashed() {
 
 				// If no panic is expected, run the hook without wrapping a deferred function and check for errors or
 				// the execution results, as required by the test case.
-				err := s.App.ReportsKeeper.Hooks().AfterValidatorSlashed(
+				err := s.App.ReportsKeeper.Hooks().CustomBeforeValidatorSlashed(
 					ctxWithHeight, tc.valAddr, tc.fraction, tc.totalSlashedAmt,
 				)
 				if len(tc.expErrMsg) > 0 {
