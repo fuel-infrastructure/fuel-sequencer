@@ -80,7 +80,7 @@ func (cfg *ethereumConfig) Validate() error {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", cfg.maxBlockRange)
 	}
 	if cfg.rpcQueryTimeout == 0 {
-		return fmt.Errorf("ethereum query timeout must be > 0, got: %s", cfg.rpcQueryTimeout.String())
+		return fmt.Errorf("ethereum rpc query timeout must be > 0, got: %s", cfg.rpcQueryTimeout.String())
 	}
 	return nil
 }
