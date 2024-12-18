@@ -225,18 +225,25 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 		s.logger.Error("error when subscribing to logs", zap.Error(err))
 		return err, true // retry
 	}
+	defer sub.Unsubscribe()
+
+	// Timeout for when we're not receiving new headers
+	headerTimeoutTimer := time.NewTimer(ethwrappedclient.HeaderSyncTimeout)
 
 	for {
 		select {
 		case <-ctx.Done():
 			s.logger.Warn("sidecar stopped via context", zap.Error(ctx.Err()))
-			sub.Unsubscribe()
 			return ctx.Err(), false // no retry
+		case <-headerTimeoutTimer.C:
+			s.logger.Error("header timeout exceeded", zap.Duration("timeout", ethwrappedclient.HeaderSyncTimeout))
+			return fmt.Errorf("header timeout exceeded"), true // retry
 		case err := <-sub.Err():
 			s.logger.Error("error from logs subscription", zap.Error(err))
-			sub.Unsubscribe()
 			return err, true // retry
 		case header := <-ch:
+			headerTimeoutTimer.Reset(ethwrappedclient.HeaderSyncTimeout) // header successfully detected
+
 			s.metrics.ObserveHeaderDelay(time.Unix(int64(header.Time), 0), time.Now())
 			s.metrics.SetLastHeaderSeen(header.Number)
 
@@ -248,7 +255,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			// Get the max syncable block (considers finalized Ethereum height and the end query block)
 			maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
 			if err != nil {
-				return err, true
+				return err, true // retry
 			}
 
 			// Get the last Ethereum block synced by the Sidecar
