@@ -18,7 +18,7 @@ const (
 	FlagEthereumContractAddr         = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
 	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
-	FlagEthereumQueryTimeout         = "eth_query_timeout"
+	FlagEthereumRpcQueryTimeout      = "eth_rpc_query_timeout"
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
@@ -64,7 +64,7 @@ type ethereumConfig struct {
 	contractAddrHex      string
 	maxBlockRange        int64
 	minLogsQueryInterval time.Duration
-	queryTimeout         time.Duration
+	rpcQueryTimeout      time.Duration
 	unsafeStartBlock     int64
 	unsafeEndBlock       int64
 }
@@ -79,8 +79,8 @@ func (cfg *ethereumConfig) Validate() error {
 	if cfg.maxBlockRange < 1 {
 		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", cfg.maxBlockRange)
 	}
-	if cfg.queryTimeout == 0 {
-		return fmt.Errorf("ethereum query timeout must be > 0, got: %s", cfg.queryTimeout.String())
+	if cfg.rpcQueryTimeout == 0 {
+		return fmt.Errorf("ethereum query timeout must be > 0, got: %s", cfg.rpcQueryTimeout.String())
 	}
 	return nil
 }

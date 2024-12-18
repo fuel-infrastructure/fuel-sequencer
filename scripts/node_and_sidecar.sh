@@ -9,7 +9,7 @@
 : "${ETH_CONTRACT_ADDRESS:="0x0165878A594ca255338adfa4d48449f69242Eb8F"}"
 : "${ETH_MAX_BLOCK_RANGE:="100"}"
 : "${ETH_MIN_LOGS_QUERY_INTERVAL:="1s"}" # this is low because this script is used for E2E purposes where the block time is 1s
-: "${ETH_QUERY_TIMEOUT:="20s"}"
+: "${ETH_RPC_QUERY_TIMEOUT:="20s"}"
 : "${ETH_UNSAFE_START_BLOCK:="1"}"
 : "${DEVELOPMENT:="true"}"
 : "${PROMETHEUS_ENABLED:="true"}"
@@ -31,7 +31,7 @@ fuelsequencerd start-sidecar \
   --eth_contract_address="$ETH_CONTRACT_ADDRESS" \
   --eth_max_block_range="$ETH_MAX_BLOCK_RANGE" \
   --eth_min_logs_query_interval="$ETH_MIN_LOGS_QUERY_INTERVAL" \
-  --eth_query_timeout="$ETH_QUERY_TIMEOUT" \
+  --eth_rpc_query_timeout="$ETH_RPC_QUERY_TIMEOUT" \
   --unsafe_eth_start_block="$ETH_UNSAFE_START_BLOCK" \
   --development="$DEVELOPMENT" \
   --prometheus_enabled="$PROMETHEUS_ENABLED" \
