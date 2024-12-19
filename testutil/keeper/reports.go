@@ -73,7 +73,7 @@ func createNSlashEntryWithoutStoring(n int) []types.SlashEntry {
 
 	slashEntries := make([]types.SlashEntry, n)
 	for i := range slashEntries {
-		slashEntries[i].ValidatorAddress = sample.AccAddress()
+		slashEntries[i].ValidatorAddress = sample.ValAddress()
 		slashEntries[i].DelegatorAddress = sample.AccAddress()
 		slashEntries[i].DelegatorSlashAmount = math.OneInt().Add(math.NewInt(int64(i)))
 		slashEntries[i].DelegatorUnbondingBalance = math.NewInt(10).Add(math.NewInt(int64(i)))
@@ -123,6 +123,10 @@ func CreateNSlashReport(keeper keeper.Keeper, ctx context.Context, n int) []type
 }
 
 func ReportsKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
+	return ReportsKeeperWithKeepers(t, nil)
+}
+
+func ReportsKeeperWithKeepers(t testing.TB, sk types.StakingKeeper) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -138,7 +142,7 @@ func ReportsKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		cdc,
 		runtime.NewKVStoreService(storeKey),
 		log.NewNopLogger(),
-		nil,
+		sk,
 		authority.String(),
 	)
 
