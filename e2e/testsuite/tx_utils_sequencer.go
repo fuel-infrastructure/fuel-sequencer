@@ -67,6 +67,10 @@ func (s *E2ETestSuite) SubmitMsgsFrom(val *validator, msgs ...sdk.Msg) (*sdk.TxR
 	return s.SubmitMsgsWithGasFrom(val, defaultTxGas, msgs...)
 }
 
+func (s *E2ETestSuite) SubmitMsgsFromValidatorN(i int, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
+	return s.SubmitMsgsWithGasFrom(s.Chain.validators[i], defaultTxGas, msgs...)
+}
+
 func (s *E2ETestSuite) SubmitMsgsWithGasFrom(val *validator, gas uint64, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
 
 	kr, err := val.keyring()
