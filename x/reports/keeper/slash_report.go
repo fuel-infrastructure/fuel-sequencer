@@ -168,7 +168,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if err != nil {
 				return err
 			}
-			report.Entries[i].DelegatorBondedBalance = validator.TokensFromSharesTruncated(del.Shares).TruncateInt()
+			report.Entries[i].DelegatorBondedBalance = validator.TokensFromShares(del.Shares).TruncateInt()
 		}
 
 		// Calculate delegator unbonding balance
