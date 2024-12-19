@@ -56,12 +56,15 @@ type StakingHooks interface {
 type StakingKeeper interface {
 	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
 
-	GetDelegatorBonded(ctx context.Context, delegator sdk.AccAddress) (math.Int, error)
-	GetDelegatorUnbonding(ctx context.Context, delegator sdk.AccAddress) (math.Int, error)
-
 	IterateValidatorDelegations(
 		ctx context.Context, valAddr sdk.ValAddress, cb func(delegation stakingtypes.Delegation) (stop bool),
 	) error
+
+	GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, error)
+
+	GetUnbondingDelegation(
+		ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress,
+	) (ubd stakingtypes.UnbondingDelegation, err error)
 
 	// Methods imported from x/staking should be defined here
 }

@@ -2,11 +2,15 @@ package keeper
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
@@ -135,14 +139,56 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 		return nil // no report
 	}
 
-	var err error
 	for _, entry := range report.Entries {
+
+		// We can assume addresses are bech32 encoded since the reports are not populated from hex addresses.
+
 		delAddr := sdk.MustAccAddressFromBech32(entry.DelegatorAddress)
-		if entry.DelegatorBondedBalance, err = k.stakingKeeper.GetDelegatorBonded(ctx, delAddr); err != nil {
-			return err
+		valAddr, err := sdk.ValAddressFromBech32(entry.ValidatorAddress)
+		if err != nil {
+			panic(fmt.Sprintf("unexpected invalid validator address in slash report: %s", entry.ValidatorAddress))
 		}
-		if entry.DelegatorUnbondingBalance, err = k.stakingKeeper.GetDelegatorUnbonding(ctx, delAddr); err != nil {
-			return err
+
+		// Calculate delegator bonded balance
+
+		del, err := k.stakingKeeper.GetDelegation(ctx, delAddr, valAddr)
+		if err != nil {
+			if !errors.Is(err, stakingtypes.ErrNoDelegation) {
+				return err
+			}
+			// else, no delegation
+		} else {
+			// Replicate logic from GetDelegatorBonded but just for one validator.
+			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L303
+
+			bonded := sdkmath.LegacyZeroDec()
+			validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+			if err == nil {
+				shares := del.Shares
+				tokens := validator.TokensFromSharesTruncated(shares)
+				bonded = bonded.Add(tokens)
+			}
+
+			entry.DelegatorBondedBalance = bonded.RoundInt()
+		}
+
+		// Calculate delegator unbonding balance
+
+		ubd, err := k.stakingKeeper.GetUnbondingDelegation(ctx, delAddr, valAddr)
+		if err != nil {
+			if !errors.Is(err, stakingtypes.ErrNoUnbondingDelegation) {
+				return err
+			}
+			// else, no unbonding delegation
+		} else {
+			// Replicate logic from GetDelegatorUnbonding but just for one validator.
+			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L268
+
+			unbonding := sdkmath.ZeroInt()
+			for _, entry := range ubd.Entries {
+				unbonding = unbonding.Add(entry.Balance)
+			}
+			entry.DelegatorUnbondingBalance = unbonding
 		}
 	}
 
