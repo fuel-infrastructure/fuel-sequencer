@@ -31,6 +31,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/crypto v0.26.0
 	google.golang.org/grpc v1.64.1
 )
 
