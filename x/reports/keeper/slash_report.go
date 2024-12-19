@@ -156,7 +156,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if !errors.Is(err, stakingtypes.ErrNoDelegation) {
 				return err
 			}
-			// else, no delegation
+			entry.DelegatorBondedBalance = sdkmath.ZeroInt()
 		} else {
 			// Replicate logic from GetDelegatorBonded but just for one validator.
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L303
@@ -179,7 +179,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if !errors.Is(err, stakingtypes.ErrNoUnbondingDelegation) {
 				return err
 			}
-			// else, no unbonding delegation
+			entry.DelegatorUnbondingBalance = sdkmath.ZeroInt()
 		} else {
 			// Replicate logic from GetDelegatorUnbonding but just for one validator.
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L268
