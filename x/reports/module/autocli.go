@@ -19,12 +19,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				},
 				{
 					RpcMethod: "SlashReportAll",
-					Use:       "list-slash-report",
-					Short:     "List all SlashReport",
+					Use:       "slash-reports",
+					Short:     "Lists all SlashReports",
 				},
 				{
 					RpcMethod:      "SlashReport",
-					Use:            "show-slash-report [height]",
+					Use:            "slash-report [height]",
 					Short:          "Shows a SlashReport",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "height"}},
 				},
