@@ -70,6 +70,9 @@ func (h Hooks) AfterUnbondingInitiated(_ context.Context, _ uint64) error {
 func (h Hooks) AfterUnbondingDelegationSlashed(
 	ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashAmount sdkmath.Int,
 ) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.Logger().Warn("AfterUnbondingDelegationSlashed :: INSERTING SLASH ENTRY", "del", delAddr.String(), "amt", slashAmount.String())
+
 	// Create slash entry for the unbonding delegation
 	if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, slashAmount); err != nil {
 
@@ -86,6 +89,9 @@ func (h Hooks) AfterUnbondingDelegationSlashed(
 func (h Hooks) AfterRedelegationSlashed(
 	ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashAmount sdkmath.Int,
 ) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.Logger().Warn("AfterRedelegationSlashed :: INSERTING SLASH ENTRY", "del", delAddr.String(), "amt", slashAmount.String())
+
 	// Create slash entry for the redelegation
 	if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, slashAmount); err != nil {
 
@@ -157,6 +163,12 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 				)
 				return false
 			}
+
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
+			sdkCtx.Logger().Warn(
+				"CustomBeforeValidatorSlashed :: INSERTING SLASH ENTRY",
+				"del", delAddr.String(), "amt", delSlashAmt.String(),
+				"tokens_from_shares", delCurrentTokensDec.String(), "fraction", fraction.String())
 
 			// Create slash entry for the delegator
 			if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, delSlashAmt); err != nil {
