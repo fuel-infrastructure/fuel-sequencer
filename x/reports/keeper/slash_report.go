@@ -139,7 +139,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 		return nil // no report
 	}
 
-	for _, entry := range report.Entries {
+	for i, entry := range report.Entries {
 
 		// We can assume addresses are bech32 encoded since the reports are not populated from hex addresses.
 
@@ -156,20 +156,19 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if !errors.Is(err, stakingtypes.ErrNoDelegation) {
 				return err
 			}
-			entry.DelegatorBondedBalance = sdkmath.ZeroInt()
+			report.Entries[i].DelegatorBondedBalance = sdkmath.ZeroInt()
 		} else {
-			// Replicate logic from GetDelegatorBonded but just for one validator.
-			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L303
 
-			bonded := sdkmath.LegacyZeroDec()
+			// When calculating tokens from shares we always want to truncate, to not report tokens that the delegator
+			// does not actually have. An example of this reasoning in practice is RemoveDelShares, which calculates
+			// the tokens returned from removing a number of shared from a validator.
+			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/types/validator.go#L414
+
 			validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
-			if err == nil {
-				shares := del.Shares
-				tokens := validator.TokensFromSharesTruncated(shares)
-				bonded = bonded.Add(tokens)
+			if err != nil {
+				return err
 			}
-
-			entry.DelegatorBondedBalance = bonded.RoundInt()
+			report.Entries[i].DelegatorBondedBalance = validator.TokensFromSharesTruncated(del.Shares).TruncateInt()
 		}
 
 		// Calculate delegator unbonding balance
@@ -179,16 +178,17 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if !errors.Is(err, stakingtypes.ErrNoUnbondingDelegation) {
 				return err
 			}
-			entry.DelegatorUnbondingBalance = sdkmath.ZeroInt()
+			report.Entries[i].DelegatorUnbondingBalance = sdkmath.ZeroInt()
 		} else {
-			// Replicate logic from GetDelegatorUnbonding but just for one validator.
+
+			// Replicate logic from GetDelegatorUnbonding but for just one validator.
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L268
 
 			unbonding := sdkmath.ZeroInt()
 			for _, entry := range ubd.Entries {
 				unbonding = unbonding.Add(entry.Balance)
 			}
-			entry.DelegatorUnbondingBalance = unbonding
+			report.Entries[i].DelegatorUnbondingBalance = unbonding
 		}
 	}
 
