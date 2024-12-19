@@ -54,9 +54,14 @@ type StakingHooks interface {
 
 // StakingKeeper defines the expected interface for the Staking module.
 type StakingKeeper interface {
+	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
+
+	GetDelegatorBonded(ctx context.Context, delegator sdk.AccAddress) (math.Int, error)
+	GetDelegatorUnbonding(ctx context.Context, delegator sdk.AccAddress) (math.Int, error)
+
 	IterateValidatorDelegations(
 		ctx context.Context, valAddr sdk.ValAddress, cb func(delegation stakingtypes.Delegation) (stop bool),
 	) error
-	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
-	// Methods imported from staking should be defined here
+
+	// Methods imported from x/staking should be defined here
 }

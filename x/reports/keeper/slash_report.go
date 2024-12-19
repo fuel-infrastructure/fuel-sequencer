@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
@@ -123,4 +124,28 @@ func (k Keeper) HasSlashReport(ctx context.Context, height uint64) bool {
 	iterator := storetypes.KVStorePrefixIterator(store, iteratorPrefix)
 	defer iterator.Close()
 	return iterator.Valid()
+}
+
+// UpdateSlashReportBalancesAtCurrentHeight calculates the bonded and unbonding balances for delegators mentioned in the
+// slash report generated at this same height.
+func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error {
+
+	report, found := k.GetSlashReport(ctx, uint64(ctx.BlockHeight()))
+	if !found {
+		return nil // no report
+	}
+
+	var err error
+	for _, entry := range report.Entries {
+		delAddr := sdk.MustAccAddressFromBech32(entry.DelegatorAddress)
+		if entry.DelegatorBondedBalance, err = k.stakingKeeper.GetDelegatorBonded(ctx, delAddr); err != nil {
+			return err
+		}
+		if entry.DelegatorUnbondingBalance, err = k.stakingKeeper.GetDelegatorUnbonding(ctx, delAddr); err != nil {
+			return err
+		}
+	}
+
+	k.SetSlashReport(ctx, report)
+	return nil
 }
