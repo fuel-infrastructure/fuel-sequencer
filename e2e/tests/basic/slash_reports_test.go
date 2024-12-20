@@ -100,8 +100,8 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport() {
 		// - New validator tokens (NVT) = 500000010
 		// - Delegator0 tokens from shares = Truncate((D0S * NVT) / VS) = 500000004
 		// - Delegator1 tokens from shares = Truncate((D1S * NVT) / VS) = 5
-		expectedSlashReport := reportstypes.SlashReport{
-			Height: 0,
+		expectedSlashReport := &reportstypes.SlashReport{
+			Height: foundAt,
 			Entries: []reportstypes.SlashEntry{
 				{
 					ValidatorAddress:          s.SeqKeys[0].ValAddressSeq,
@@ -115,7 +115,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport() {
 					DelegatorAddress:          s.SeqKeys[1].AddressSeq, // user 1
 					DelegatorSlashAmount:      sdkmath.NewInt(4),
 					DelegatorBondedBalance:    sdkmath.NewInt(5),
-					DelegatorUnbondingBalance: sdkmath.Int{},
+					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
 				},
 			},
 		}
