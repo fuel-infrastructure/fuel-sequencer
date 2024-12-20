@@ -147,7 +147,7 @@ func TestUpdateSlashReportBalancesAtCurrentHeight(t *testing.T) {
 			Entries: []types.SlashEntry{entry0},
 		}
 		keeper.SetSlashReport(ctx, report)
-		report = keepertest.OrderSlashReportLexicographically(report)
+		// report = keepertest.OrderSlashReportLexicographically(report) // uncomment if you're going to use the report
 
 		err := keeper.UpdateSlashReportBalancesAtCurrentHeight(ctx)
 		require.ErrorContains(t, err, "unexpected error")
@@ -169,7 +169,7 @@ func TestUpdateSlashReportBalancesAtCurrentHeight(t *testing.T) {
 			Entries: []types.SlashEntry{entry0},
 		}
 		keeper.SetSlashReport(ctx, report)
-		report = keepertest.OrderSlashReportLexicographically(report)
+		// report = keepertest.OrderSlashReportLexicographically(report) // uncomment if you're going to use the report
 
 		err := keeper.UpdateSlashReportBalancesAtCurrentHeight(ctx)
 		require.ErrorContains(t, err, "unexpected error")
