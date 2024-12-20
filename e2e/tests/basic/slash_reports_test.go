@@ -261,7 +261,6 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashOneDe
 	s.Run("Check that slashing due to downtime results in a slash report getting generated", func() {
 
 		initStake := testsuite.InitStakedCoin
-		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
 		twiceStake := sdk.NewCoin(initStake.Denom, initStake.Amount.MulRaw(2))
 
 		// Increase validator 1's and 2's stake so that when we shut off validator 0, the chain proceeds without it
@@ -346,7 +345,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashOneDe
 					DelegatorAddress:          s.SeqKeys[0].AddressSeq,
 					DelegatorSlashAmount:      initStake.Amount,
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
-					DelegatorUnbondingBalance: halfStake.Amount,
+					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
 				},
 			},
 		}
