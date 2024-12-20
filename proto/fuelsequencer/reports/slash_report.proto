@@ -22,8 +22,8 @@ message SlashEntry {
   // tokens and tokens that were still bonded at the time of the infraction but
   // have since started unbonding.
   string delegator_slash_amount = 3 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
@@ -31,8 +31,8 @@ message SlashEntry {
   // remain delegated to the slashed validator after the slashing event has been
   // processed.
   string delegator_bonded_balance = 4 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
@@ -40,8 +40,8 @@ message SlashEntry {
   // currently undergoing the unbonding process from the slashed validator after
   // the slashing event has been processed.
   string delegator_unbonding_balance = 5 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

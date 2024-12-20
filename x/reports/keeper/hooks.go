@@ -74,7 +74,7 @@ func (h Hooks) AfterUnbondingDelegationSlashed(
 	sdkCtx.Logger().Warn("AfterUnbondingDelegationSlashed :: INSERTING SLASH ENTRY", "del", delAddr.String(), "amt", slashAmount.String())
 
 	// Create slash entry for the unbonding delegation
-	if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, sdkmath.LegacyNewDecFromInt(slashAmount)); err != nil {
+	if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, slashAmount); err != nil {
 
 		// The function will panic if an error is returned, as any error from InsertSlashEntry is highly unlikely
 		// and would indicate a logical error in the code.
@@ -93,7 +93,7 @@ func (h Hooks) AfterRedelegationSlashed(
 	sdkCtx.Logger().Warn("AfterRedelegationSlashed :: INSERTING SLASH ENTRY", "del", delAddr.String(), "amt", slashAmount.String())
 
 	// Create slash entry for the redelegation
-	if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, sdkmath.LegacyNewDecFromInt(slashAmount)); err != nil {
+	if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, slashAmount); err != nil {
 
 		// The function will panic if an error is returned, as any error from InsertSlashEntry is highly unlikely
 		// and would indicate a logical error in the code.
@@ -146,6 +146,7 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 			// precise as possible
 			delCurrentTokensDec := validator.TokensFromShares(delegation.GetShares())
 			delSlashAmtDec := delCurrentTokensDec.Mul(fraction)
+			delSlashAmt := delSlashAmtDec.TruncateInt()
 
 			// Skip if slashed amount is zero as this means that the effective fraction is so low that the slash for
 			// the delegator is negligible. In other words this means that the delegator was not slashed.
@@ -154,7 +155,7 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 			// 2. If slashed amount is negative we want to panic as this means that something went wrong in the
 			// calculation. For this case we are relying on the fact that InsertSlashEntry errors if the slash amount is
 			// not positive.
-			if delSlashAmtDec.IsZero() {
+			if delSlashAmt.IsZero() {
 				h.k.Logger().Warn(
 					"CustomBeforeValidatorSlashed: skipping delegator because slashed amount is effectively zero",
 					"delegator", delAddr.String(),
@@ -166,11 +167,11 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 			sdkCtx := sdk.UnwrapSDKContext(ctx)
 			sdkCtx.Logger().Warn(
 				"CustomBeforeValidatorSlashed :: INSERTING SLASH ENTRY",
-				"del", delAddr.String(), "amt", delSlashAmtDec.String(),
+				"del", delAddr.String(), "amt", delSlashAmt.String(),
 				"tokens_from_shares", delCurrentTokensDec.String(), "fraction", fraction.String())
 
 			// Create slash entry for the delegator
-			if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, delSlashAmtDec); err != nil {
+			if err := h.k.InsertSlashEntry(ctx, valAddr, delAddr, delSlashAmt); err != nil {
 
 				// The function will panic if an error is returned, as any error from InsertSlashEntry is highly
 				// unlikely and would indicate a logical error in the code.

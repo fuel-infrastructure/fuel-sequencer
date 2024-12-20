@@ -65,72 +65,72 @@ var (
 	ValidSlashEntry1 = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom1Val,
 		DelegatorAddress:          TestFrom1Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyOneDec(),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(20),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(10),
+		DelegatorSlashAmount:      sdkmath.OneInt(),
+		DelegatorBondedBalance:    sdkmath.NewInt(20),
+		DelegatorUnbondingBalance: sdkmath.NewInt(10),
 	}
 	ValidSlashEntry2 = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Val,
 		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(2),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	ValidSlashEntry3 = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom3Val,
 		DelegatorAddress:          TestFrom3Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(3),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(0),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(0),
+		DelegatorSlashAmount:      sdkmath.NewInt(3),
+		DelegatorBondedBalance:    sdkmath.NewInt(0),
+		DelegatorUnbondingBalance: sdkmath.NewInt(0),
 	}
 	InvalidSlashEntryValidatorAddressNotValoper = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Seq,
 		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(2),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	InvalidSlashEntryValidatorAddressNotAccAddress = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Val,
 		DelegatorAddress:          TestFrom2Val,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(2),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	InvalidSlashEntryNegativeDelegatorSlashAmount = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Val,
 		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(-1),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.NewInt(-1),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	InvalidSlashEntryZeroDelegatorSlashAmount = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Val,
 		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyZeroDec(),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.ZeroInt(),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	InvalidSlashEntryNegativeDelegatorBondedBalance = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Val,
 		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(2),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(-1),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(-1),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	InvalidSlashEntryNegativeDelegatorUnbondingBalance = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom2Val,
 		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(2),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(-1),
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(-1),
 	}
 	InvalidSlashEntryNonUnique = reportstypes.SlashEntry{
 		ValidatorAddress:          TestFrom1Val, // Equal to ValidSlashEntry1
 		DelegatorAddress:          TestFrom1Seq, // Equal to ValidSlashEntry1
-		DelegatorSlashAmount:      sdkmath.LegacyNewDec(2),
-		DelegatorBondedBalance:    sdkmath.LegacyNewDec(30),
-		DelegatorUnbondingBalance: sdkmath.LegacyNewDec(20),
+		DelegatorSlashAmount:      sdkmath.NewInt(2),
+		DelegatorBondedBalance:    sdkmath.NewInt(30),
+		DelegatorUnbondingBalance: sdkmath.NewInt(20),
 	}
 	ValidSlashReport1 = reportstypes.SlashReport{
 		Height:  1,

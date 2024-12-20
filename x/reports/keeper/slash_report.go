@@ -156,7 +156,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if !errors.Is(err, stakingtypes.ErrNoDelegation) {
 				return err
 			}
-			report.Entries[i].DelegatorBondedBalance = sdkmath.LegacyZeroDec()
+			report.Entries[i].DelegatorBondedBalance = sdkmath.ZeroInt()
 		} else {
 
 			// When calculating tokens from shares we always want to truncate, to not report tokens that the delegator
@@ -168,7 +168,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if err != nil {
 				return err
 			}
-			report.Entries[i].DelegatorBondedBalance = validator.TokensFromShares(del.Shares)
+			report.Entries[i].DelegatorBondedBalance = validator.TokensFromShares(del.Shares).TruncateInt()
 		}
 
 		// Calculate delegator unbonding balance
@@ -178,7 +178,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			if !errors.Is(err, stakingtypes.ErrNoUnbondingDelegation) {
 				return err
 			}
-			report.Entries[i].DelegatorUnbondingBalance = sdkmath.LegacyZeroDec()
+			report.Entries[i].DelegatorUnbondingBalance = sdkmath.ZeroInt()
 		} else {
 
 			// Replicate logic from GetDelegatorUnbonding but for just one validator.
@@ -188,7 +188,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 			for _, entry := range ubd.Entries {
 				unbonding = unbonding.Add(entry.Balance)
 			}
-			report.Entries[i].DelegatorUnbondingBalance = sdkmath.LegacyNewDecFromInt(unbonding)
+			report.Entries[i].DelegatorUnbondingBalance = unbonding
 		}
 	}
 

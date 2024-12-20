@@ -83,16 +83,16 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport() {
 				{
 					ValidatorAddress:          s.SeqKeys[0].ValAddressSeq,
 					DelegatorAddress:          s.SeqKeys[0].AddressSeq, // user 0
-					DelegatorSlashAmount:      sdkmath.LegacyNewDec(499999995),
-					DelegatorBondedBalance:    sdkmath.LegacyNewDec(500000004),
-					DelegatorUnbondingBalance: sdkmath.LegacyNewDecFromInt(halfStake.Amount),
+					DelegatorSlashAmount:      sdkmath.NewInt(499999995),
+					DelegatorBondedBalance:    sdkmath.NewInt(500000004),
+					DelegatorUnbondingBalance: halfStake.Amount,
 				},
 				{
 					ValidatorAddress:          s.SeqKeys[0].ValAddressSeq,
 					DelegatorAddress:          s.SeqKeys[1].AddressSeq, // user 1
-					DelegatorSlashAmount:      sdkmath.LegacyNewDec(4),
-					DelegatorBondedBalance:    sdkmath.LegacyNewDec(5),
-					DelegatorUnbondingBalance: sdkmath.LegacyZeroDec(),
+					DelegatorSlashAmount:      sdkmath.NewInt(4),
+					DelegatorBondedBalance:    sdkmath.NewInt(5),
+					DelegatorUnbondingBalance: sdkmath.Int{},
 				},
 			},
 		}
