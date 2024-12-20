@@ -462,13 +462,13 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuel-sequencer", "reports", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "reports", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SlashReport_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"fuel-sequencer", "reports", "v1", "slash_report", "height"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SlashReport_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"fuelsequencer", "reports", "v1", "slash_report", "height"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SlashReportAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuel-sequencer", "reports", "v1", "slash_report"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SlashReportAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"fuelsequencer", "reports", "v1", "slash_reports"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SlashEntry_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 1, 0, 4, 1, 5, 6}, []string{"fuel-sequencer", "reports", "v1", "slash_report", "height", "delegator_address", "validator_address"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SlashEntry_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 1, 0, 4, 1, 5, 6}, []string{"fuelsequencer", "reports", "v1", "slash_report", "height", "delegator_address", "validator_address"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
