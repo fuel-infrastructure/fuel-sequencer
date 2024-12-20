@@ -6,7 +6,7 @@ toolchain go1.22.7
 
 replace (
 	// point to Fuel's Cosmos SDK fork
-	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.11-0.20241219161419-f0794642cdc9
+	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.11-0.20241220162041-53a2c2d7e40b
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	// replace broken goleveldb
