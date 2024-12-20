@@ -26,12 +26,14 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Deposit, using the vesting seconds as the amount, so that 1 token becomes spendable per second
-		sendAmount := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		// Deposit, using the vesting seconds as the amount, so that 1 token becomes spendable per second. Note that
+		// we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		sendAmount := new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
 		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration2Years)
 
 		// Match the expected balance for the receiver on the Sequencer
-		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
 		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
 
 		// Calculate expected values
@@ -146,13 +148,17 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Deposit and Delegate, using the vesting seconds as the amount, so that 1 token becomes spendable per second
-		sendAmount := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		// Deposit and Delegate, using the vesting seconds as the amount, so that 1 token becomes spendable per second.
+		// Note that we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
 		validatorAddress := common.HexToAddress(validatorAddressHex)
-		delegation := s.DepositTokenToSequencerFromMigration(sendAmount, validatorAddress, testsuite.VestingDuration2Years)
+		sendAmount := new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
+		delegation := s.DepositTokenToSequencerFromMigrationAndDelegate(
+			sendAmount, validatorAddress, testsuite.VestingDuration2Years,
+		)
 
 		// Expect a failure because not enough time has elapsed yet
-		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation.BlockNumber.Uint64()) // wait until tx processed
 		s.PollForBalance(s.Ctx(), 0, ownedReceiverAddressSeq, amountCoin)              // deposit successful
 		s.PollForNoDelegation(s.Ctx(), 0, senderAddress, validatorAddressHex)          // delegation unsuccessful
@@ -197,13 +203,17 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		bridgeParamsAfterProposal := s.QueryBridgeParams(s.Ctx())
 		s.Require().Equal(bridgeParams.VestingStartTime, bridgeParamsAfterProposal.VestingStartTime)
 
-		// Deposit and Delegate - the amount does not matter much here, but we'll use the same amount as other tests
-		sendAmount := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		// Deposit and Delegate - the amount does not matter much here, but we'll use the same amount as other tests.
+		// Note that we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
 		validatorAddress := common.HexToAddress(validatorAddressHex)
-		delegation := s.DepositTokenToSequencerFromMigration(sendAmount, validatorAddress, testsuite.VestingDuration2Years)
+		sendAmount := new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
+		delegation := s.DepositTokenToSequencerFromMigrationAndDelegate(
+			sendAmount, validatorAddress, testsuite.VestingDuration2Years,
+		)
 
 		// Expect delegation to go through
-		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation.BlockNumber.Uint64()) // wait until tx processed
 		s.PollForDelegationBalance(s.Ctx(), 0, senderAddress, validatorAddressHex, amountCoin)
 
@@ -249,9 +259,13 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		//
 		// The amount that we deposit and delegate here must be less than or equal to the amount already available.
 		// Otherwise, the total spendable (i.e. stakeable) coins will not be enough to perform the delegation.
+		// Note that we need to downscale using the v1 to v2 migration ratio.
 		sendAmount := big.NewInt(1000)
+		sendAmountScaledDown := new(big.Int).Quo(sendAmount, testsuite.MigrationRatio)
 		validatorAddress := common.HexToAddress(validatorAddressHex)
-		_ = s.DepositTokenToSequencerFromMigration(sendAmount, validatorAddress, testsuite.VestingDuration2Years)
+		_ = s.DepositTokenToSequencerFromMigrationAndDelegate(
+			sendAmountScaledDown, validatorAddress, testsuite.VestingDuration2Years,
+		)
 
 		// Match the expected delegation for the receiver on the Sequencer
 		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
@@ -269,90 +283,6 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
-	})
-}
-
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockupShorterThanVestingStartTimeDelay() {
-	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
-		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
-		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
-
-		// --------------------------------------- Deposit
-
-		// Make sure that the balance of the receiver is as expected.
-		expectedInitBalance := sdk.NewInt64Coin(testsuite.BridgeDenom, 0)
-		balance, err := s.QueryAllBalances(s.Ctx(), ownedReceiverAddressSeq, nil)
-		s.Require().NoError(err)
-		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
-
-		// Deposit, using the vesting seconds as the amount, so that 1 token becomes spendable per second
-		sendAmount := big.NewInt(int64(testsuite.VestingDuration6Months.Seconds()))
-		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration6Months)
-
-		// Match the expected balance for the receiver on the Sequencer
-		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
-		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
-
-		// Calculate expected values
-		bridgeParams := s.QueryBridgeParams(s.Ctx())
-		vestingStartTime := bridgeParams.VestingStartTime // Note how no vesting start time delay applied here
-		vestingEndTime := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration6Months)
-
-		ethOwnedVestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
-		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, ethOwnedVestingAcc.AccountOwner)
-		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
-		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
-
-		// --------------------------------------- Delegate
-
-		validator1Address := s.SeqKeys[0].ValAddressSeq
-		delegatorAddress := s.EthKeys[0].AddressHex
-
-		// Make sure that there is no pre-existing delegation between the delegator and validator1.
-		delegationRaw, err := s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validator1Address)
-		s.Require().Nil(delegationRaw)
-		s.Require().ErrorContains(
-			err,
-			fmt.Sprintf("delegation with delegator %s not found for validator %s", delegatorAddress, validator1Address),
-		)
-
-		// Generate Authorize event wrapping a MsgDelegate to validator1.
-		// Expect 60 seconds from vestingStartTime for 60 tokens to be available.
-		timeForUnlock := time.Second * 60
-		delegateAmount, ok := sdkmath.NewIntFromString("60")
-		s.Require().True(ok)
-		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
-		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-
-		// Expect a failure because not enough time has elapsed yet
-		delegation1, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation1.BlockNumber.Uint64()) // wait until tx processed
-		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
-
-		// Sleep the remaining time so that enough tokens will be spendable
-		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
-
-		// Confirm that the delegation went through and is as expected.
-		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation2.BlockNumber.Uint64()) // wait until tx processed
-		s.PollForDelegationBalance(s.Ctx(), 0, delegatorAddress, validator1Address, delegateCoin)
-
-		// Check account again
-		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
-		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, ethOwnedVestingAcc.AccountOwner)
-		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
-		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -380,8 +310,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().Equal(initBalance, balance.Balances)
 
 		// Deposit!
+		//
+		// Note that we need to downscale using the v1 to v2 migration ratio.
 		sendAmount := big.NewInt(200)
-		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration2Years)
+		sendAmountScaledDown := new(big.Int).Quo(sendAmount, testsuite.MigrationRatio)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmountScaledDown, testsuite.VestingDuration2Years)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly deposited vesting tokens.
@@ -440,8 +373,11 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 		s.Require().Equal(initVestingAmountCoins, continuousVestingAccount.OriginalVesting)
 
 		// Deposit!
+		//
+		// Note that we need to downscale using the v1 to v2 migration ratio.
 		sendAmount := big.NewInt(200)
-		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration2Years)
+		sendAmountScaledDown := new(big.Int).Quo(sendAmount, testsuite.MigrationRatio)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmountScaledDown, testsuite.VestingDuration2Years)
 
 		// Match the expected balance for the receiver on the Sequencer. This should be the summation of the initial
 		// balance and the newly deposited vesting tokens.

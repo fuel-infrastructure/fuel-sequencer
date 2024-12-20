@@ -144,14 +144,16 @@ var (
 
 	// Vesting params
 
-	VestingStartTimeDelay  = time.Duration(0)           // Set to zero because latest requirements indicate no cliffs
-	VestingDuration2Years  = time.Hour * 24 * 365 * 2   // 2 years, to be used when migrating V1 tokens to V2
-	VestingDuration6Months = (time.Hour * 24 * 365) / 2 // 6 months, to be used when migrating V1 tokens to V2
+	VestingStartTimeDelay = time.Duration(0)         // Set to zero because latest requirements indicate no cliffs
+	VestingDuration2Years = time.Hour * 24 * 365 * 2 // 2 years, to be used when migrating V1 tokens to V2
 
 	// V1 to V2 migration
 
 	// MigrateAmountUpscalingFactor counteracts the DECIMALS_DOWNSCALING_FACTOR of 1e9 applied by the migrator contract.
 	MigrateAmountUpscalingFactor = big.NewInt(1000000000)
+
+	// MigrationRatio is the factor by which v1 tokens will be converted to v2 tokens. i.e. 1 v1 token = 100 v2 tokens
+	MigrationRatio = big.NewInt(100)
 
 	// Logging
 
