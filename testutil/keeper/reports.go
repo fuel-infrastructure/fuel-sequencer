@@ -75,9 +75,9 @@ func createNSlashEntryWithoutStoring(n int) []types.SlashEntry {
 	for i := range slashEntries {
 		slashEntries[i].ValidatorAddress = sample.ValAddress()
 		slashEntries[i].DelegatorAddress = sample.AccAddress()
-		slashEntries[i].DelegatorSlashAmount = math.OneInt().Add(math.NewInt(int64(i)))
-		slashEntries[i].DelegatorUnbondingBalance = math.NewInt(10).Add(math.NewInt(int64(i)))
-		slashEntries[i].DelegatorBondedBalance = math.NewInt(20).Add(math.NewInt(int64(i)))
+		slashEntries[i].DelegatorSlashAmount = math.LegacyOneDec().Add(math.LegacyNewDec(int64(i)))
+		slashEntries[i].DelegatorUnbondingBalance = math.LegacyNewDec(10).Add(math.LegacyNewDec(int64(i)))
+		slashEntries[i].DelegatorBondedBalance = math.LegacyNewDec(20).Add(math.LegacyNewDec(int64(i)))
 	}
 
 	return slashEntries

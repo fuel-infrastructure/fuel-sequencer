@@ -68,7 +68,7 @@ func ValidateSlashEntryDelegatorAddress(i interface{}) error {
 func ValidateSlashEntryDelegatorSlashAmount(i interface{}) error {
 
 	// Make sure that the value is of correct type
-	v, ok := i.(math.Int)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -85,7 +85,7 @@ func ValidateSlashEntryDelegatorSlashAmount(i interface{}) error {
 func ValidateSlashEntryDelegatorBondedBalance(i interface{}) error {
 
 	// Make sure that the value is of correct type
-	v, ok := i.(math.Int)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -101,7 +101,7 @@ func ValidateSlashEntryDelegatorBondedBalance(i interface{}) error {
 func ValidateSlashEntryDelegatorUnbondingBalance(i interface{}) error {
 
 	// Make sure that the value is of correct type
-	v, ok := i.(math.Int)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

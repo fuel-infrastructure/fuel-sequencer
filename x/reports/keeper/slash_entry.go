@@ -79,7 +79,7 @@ func (k Keeper) IterateSlashEntries(
 // InsertSlashEntry is a helper function that adds slash entries with pre-checks. For instance, it ensures that an
 // existing slash entry's slashed amount is not overwritten, but incremented.
 func (k Keeper) InsertSlashEntry(
-	ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashAmount sdkmath.Int,
+	ctx context.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, slashAmount sdkmath.LegacyDec,
 ) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
@@ -106,8 +106,8 @@ func (k Keeper) InsertSlashEntry(
 		// been slashed at this height. Set the unbonding and bonded balances to zero as that should be computed by
 		// other functionality that is called from the reports module's BeginBlocker.
 		slashEntry.DelegatorSlashAmount = slashEntry.DelegatorSlashAmount.Add(slashAmount)
-		slashEntry.DelegatorBondedBalance = sdkmath.ZeroInt()
-		slashEntry.DelegatorUnbondingBalance = sdkmath.ZeroInt()
+		slashEntry.DelegatorBondedBalance = sdkmath.LegacyZeroDec()
+		slashEntry.DelegatorUnbondingBalance = sdkmath.LegacyZeroDec()
 	} else {
 		// Otherwise create a new slash entry. For the same reason as the found=true case, delegator bonded and
 		// unbonding balances should be set to zero.
@@ -115,8 +115,8 @@ func (k Keeper) InsertSlashEntry(
 			ValidatorAddress:          validatorAddress,
 			DelegatorAddress:          delegatorAddress,
 			DelegatorSlashAmount:      slashAmount,
-			DelegatorBondedBalance:    sdkmath.ZeroInt(),
-			DelegatorUnbondingBalance: sdkmath.ZeroInt(),
+			DelegatorBondedBalance:    sdkmath.LegacyZeroDec(),
+			DelegatorUnbondingBalance: sdkmath.LegacyZeroDec(),
 		}
 	}
 
