@@ -77,6 +77,29 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport() {
 		// Check that there is a slash report at the slash height
 		slashReport := s.QuerySlashReport(s.Ctx(), foundAt)
 
+		// Original values:
+		// - Validator shares (VS) = 1000000010
+		// - Validator tokens (VT) = 1000000010
+		// - Delegator0 shares (D0S) = 1000000000
+		// - Delegator1 shares (D1S) = 10
+		//
+		// During slash (Cosmos SDK side):
+		// - Slash factor (SF) = 0.5
+		// - Validator consensus power (VCP) = 1
+		// - Validator tokens from consensus power (VTCP): VCP x 1e9 = 1000000000
+		// - Slash amount (SA) = Truncate(VTCP * SF) = 500000000
+		// - Effective fraction (EF) = QuoRoundUp(SA, VT) = 0.499999995000000050
+		//
+		// During slash (Reports module side):
+		// - Delegator0 tokens from shares (D0TFS) = (D0S * VT) / VS = 1000000000
+		// - Delegator1 tokens from shares (D1TFS) = (D1S * VT) / VS = 10
+		// - Delegator0 slash = Truncate(D0TFS * EF) = 499999995
+		// - Delegator1 slash = Truncate(D1TFS * EF) = 4
+		//
+		// Post slash:
+		// - New validator tokens (NVT) = 500000010
+		// - Delegator0 tokens from shares = Truncate((D0S * NVT) / VS) = 500000004
+		// - Delegator1 tokens from shares = Truncate((D1S * NVT) / VS) = 5
 		expectedSlashReport := reportstypes.SlashReport{
 			Height: 0,
 			Entries: []reportstypes.SlashEntry{
@@ -96,21 +119,6 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport() {
 				},
 			},
 		}
-		s.Require().Equal(expectedSlashReport, slashReport)
-
-		// BEFORE
-		// fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm : 10test
-		// fuelsequencer15yk64u7zc9g9k2yr2wmzeva5qgwxps6y3z4xeu : 1000000000test
-		//
-		// TOTAL: 1000000010test
-		//
-		// AFTER
-		// fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm : 5test			(slash: 4)
-		// fuelsequencer15yk64u7zc9g9k2yr2wmzeva5qgwxps6y3z4xeu : 500000004test (slash: 499999995)
-		//
-		// TOTAL: 1000000008test
-
-		// 2024-12-19 16:56:27 3:56PM WRN CustomBeforeValidatorSlashed :: INSERTING SLASH ENTRY amt=4 del=fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm fraction=0.499999995000000050 module=server tokens_from_shares=10.000000000000000000
-		// 2024-12-19 16:56:27 3:56PM WRN CustomBeforeValidatorSlashed :: INSERTING SLASH ENTRY amt=499999995 del=fuelsequencer15yk64u7zc9g9k2yr2wmzeva5qgwxps6y3z4xeu fraction=0.499999995000000050 module=server tokens_from_shares=1000000000.000000000000000000
+		s.Require().EqualValues(expectedSlashReport, slashReport)
 	})
 }
