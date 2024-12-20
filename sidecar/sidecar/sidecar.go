@@ -247,7 +247,9 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 		case header := <-ch:
 			headerTimeoutTimer.Reset(ethwrappedclient.HeaderSyncTimeout) // header successfully detected
 
-			s.metrics.ObserveHeaderDelay(time.Unix(int64(header.Time), 0), time.Now())
+			now := time.Now()
+			headerTime := time.Unix(int64(header.Time), 0)
+			s.metrics.ObserveHeaderDelay(headerTime, now)
 			s.metrics.SetLastHeaderSeen(header.Number)
 
 			// If the sidecar has been stopped, exit.
@@ -269,6 +271,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 				zap.Uint64("max_syncable_block", maxSyncableBlock.Uint64()),
 				zap.Uint64("detected_eth_height", header.Number.Uint64()),
 				zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
+				zap.Duration("header_delay", now.Sub(headerTime)),
 			)
 
 			// If new blocks are syncable, process all logs between the last synced blocked and max syncable block.
