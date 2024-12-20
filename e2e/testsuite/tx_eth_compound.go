@@ -6,7 +6,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 )
 
 // DepositTokenToSequencer generates a deposit to an account owned by the sender by depositing V2 tokens, which results
@@ -23,6 +22,19 @@ func (s *E2ETestSuite) DepositTokenToSequencer(amount *big.Int) *ethereumtypes.R
 	// ...deposit.
 	depositData := PackDeposit(amount)
 	receipt, err := s.SendEthTransactionToSequencerInterfaceContract(depositData)
+	s.Require().NoError(err)
+
+	return receipt
+}
+
+// DelegateTokenToSequencer generates a delegation to a validator on the Sequencer. The returned transaction receipt is
+// the one from the last transaction.
+//
+// Note: by default the sender is s.EthKeys[0]
+func (s *E2ETestSuite) DelegateTokenToSequencer(amount *big.Int, validator common.Address) *ethereumtypes.Receipt {
+	// ...delegate.
+	delegateData := PackDelegate(amount, validator)
+	receipt, err := s.SendEthTransactionToSequencerInterfaceContract(delegateData)
 	s.Require().NoError(err)
 
 	return receipt
@@ -50,23 +62,16 @@ func (s *E2ETestSuite) DepositAndDelegateTokenToSequencer(
 	return receipt
 }
 
-// DepositTokenToSequencerFromMigrationNoDelegation calls DepositTokenToSequencerFromMigration with a null Ethereum
-// address as the validator to delegate to, meaning that there will be no delegation.
+// DepositTokenToSequencerFromMigrationNoDelegation generates a deposit to an account owned by the sender by migrating
+// V1 tokens to V2 tokens, which results in a deposit with lockup. The returned transaction receipt is the one from the
+// last transaction.
+//
+// Notes:
+// 1. by default the sender is s.EthKeys[0]
+// 2. by default, the migrate function does not generate a delegation
 func (s *E2ETestSuite) DepositTokenToSequencerFromMigrationNoDelegation(
 	amount *big.Int, vestingPeriod time.Duration,
 ) *ethereumtypes.Receipt {
-	validator := common.HexToAddress(keeper.NullEthereumAddress)
-	return s.DepositTokenToSequencerFromMigration(amount, validator, vestingPeriod)
-}
-
-// DepositTokenToSequencerFromMigration generates a deposit to an account owned by the sender by migrating V1 tokens to
-// V2 tokens, which results in a deposit with lockup. The returned receipt is the one from the last transaction.
-//
-// Note: by default the sender is s.EthKeys[0]
-func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(
-	amount *big.Int, validator common.Address, vestingPeriod time.Duration,
-) *ethereumtypes.Receipt {
-
 	// Amount needs to be upscaled by 1e9 to counteract the DECIMALS_DOWNSCALING_FACTOR of 1e9 applied by the migrator.
 	amountToMigrate := new(big.Int).Mul(amount, MigrateAmountUpscalingFactor)
 
@@ -81,9 +86,27 @@ func (s *E2ETestSuite) DepositTokenToSequencerFromMigration(
 	s.Require().NoError(err)
 
 	// ...migrate V1 tokens to V2 tokens.
-	depositData := PackMigrate(amountToMigrate, validator, new(big.Int).SetInt64(int64(vestingPeriod.Seconds())))
+	depositData := PackMigrate(amountToMigrate, new(big.Int).SetInt64(int64(vestingPeriod.Seconds())))
 	receipt, err := s.SendEthTransactionToTokenMigratorContract(depositData)
 	s.Require().NoError(err)
+
+	return receipt
+}
+
+// DepositTokenToSequencerFromMigrationAndDelegate generates a deposit to an account owned by the sender by first
+// migrating V1 tokens to V2 tokens, which results in a deposit with lockup, and then initiates a delegation. The
+// returned transaction receipt is the one from the last transaction.
+//
+// Note: by default the sender is s.EthKeys[0]
+func (s *E2ETestSuite) DepositTokenToSequencerFromMigrationAndDelegate(
+	amount *big.Int, validator common.Address, vestingPeriod time.Duration,
+) *ethereumtypes.Receipt {
+	// ... migrate tokens
+	s.DepositTokenToSequencerFromMigrationNoDelegation(amount, vestingPeriod)
+
+	// ...delegate tokens on Sequencer. Amount needs to take into consideration the migration ratio.
+	amountToDelegate := new(big.Int).Mul(amount, MigrationRatio)
+	receipt := s.DelegateTokenToSequencer(amountToDelegate, validator)
 
 	return receipt
 }
