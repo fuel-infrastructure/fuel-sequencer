@@ -110,8 +110,7 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 ) error {
 
 	// If the total slash amount is not positive, there is likely an issue with the staking module's Slash function,
-	// as this hook should only be called when totalSlashedAmt is positive. We opt for a panic, prioritizing safety over
-	// liveness.
+	// as this hook should only be called when totalSlashedAmt is positive. We panic to prioritize safety over liveness.
 	if !totalSlashedAmt.IsPositive() {
 		panic(fmt.Errorf(
 			"CustomBeforeValidatorSlashed: total slashed amount must be positive, received: %v", totalSlashedAmt,
@@ -125,11 +124,11 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 		panic(fmt.Errorf("CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", fraction))
 	}
 
-	// At this stage, we are certain that redelegations and unbonding delegations that were active at the time of the
-	// infraction have already been slashed. Therefore, we can iterate over active delegations and calculate the slashed
-	// amount.
-	// Note: This is only possible because the fraction represents the percentage of tokens slashed, excluding
-	// redelegations and unbonding delegations that were active at the time of the infraction.
+	// At this stage, we are sure that redelegations and unbonding delegations that were active at the infraction time
+	// have already been slashed. Therefore, we can iterate over active delegations and calculate the slashed amount.
+	//
+	// Note: This is only possible because the fraction represents the percentage of tokens slashed, excluding unbonding
+	// delegations and redelegations that were active at the time of the infraction.
 	err := h.k.stakingKeeper.IterateValidatorDelegations(
 		ctx, valAddr, func(delegation stakingtypes.Delegation) (stop bool) {
 			delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
@@ -150,11 +149,11 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 
 			// Skip if slashed amount is zero as this means that the effective fraction is so low that the slash for
 			// the delegator is negligible. In other words this means that the delegator was not slashed.
+			//
 			// Notes:
 			// 1. This was done for the sake of completion as it is highly unexpected.
-			// 2. If slashed amount is negative we want to panic as this means that something went wrong in the
-			// calculation. For this case we are relying on the fact that InsertSlashEntry errors if the slash amount is
-			// not positive.
+			// 2. If slashed amount is negative we want to panic as this means something went wrong in the calculation.
+			//    Here we are relying on the fact that InsertSlashEntry errors if the slash amount is not positive.
 			if delSlashAmt.IsZero() {
 				h.k.Logger().Warn(
 					"CustomBeforeValidatorSlashed: skipping delegator because slashed amount is effectively zero",
