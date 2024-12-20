@@ -202,6 +202,12 @@ func startSidecarServerCmd() *cobra.Command {
 		time.Second*5,
 		"minimum wait between successive queries for logs",
 	)
+	cmd.Flags().DurationVar(
+		&ethCfg.rpcQueryTimeout,
+		FlagEthereumRpcQueryTimeout,
+		time.Second*20,
+		"maximum wait for an ethereum rpc query to return a result",
+	)
 	cmd.Flags().Int64Var(
 		&ethCfg.unsafeStartBlock,
 		FlagEthereumUnsafeStartBlock,
@@ -281,14 +287,15 @@ func startSidecar(
 		return fmt.Errorf("failed to create logger: %s", err)
 	}
 
-	if ethCfg.unsafeStartBlock < 0 {
-		return fmt.Errorf("ethereum unsafe start block must be >= 0, got: %d", ethCfg.unsafeStartBlock)
+	// Config validation
+	if err := scrCfg.Validate(); err != nil {
+		return fmt.Errorf("invalid sidecar config: %s", err)
 	}
-	if ethCfg.unsafeEndBlock < 0 {
-		return fmt.Errorf("ethereum unsafe end block must be >= 0, got: %d", ethCfg.unsafeEndBlock)
+	if err := seqCfg.Validate(); err != nil {
+		return fmt.Errorf("invalid sequencer config: %s", err)
 	}
-	if ethCfg.maxBlockRange < 1 {
-		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", ethCfg.maxBlockRange)
+	if err := ethCfg.Validate(); err != nil {
+		return fmt.Errorf("invalid ethereum config: %s", err)
 	}
 
 	// Check if the unsafe start block is provided and use it.
@@ -414,7 +421,7 @@ func startSidecar(
 	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
-		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethclientMetrics,
+		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethCfg.rpcQueryTimeout, ethclientMetrics,
 	)
 
 	// Create the store

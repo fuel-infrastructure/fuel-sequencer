@@ -1,6 +1,9 @@
 package cmd
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	// Sidecar flags
@@ -15,6 +18,7 @@ const (
 	FlagEthereumContractAddr         = "eth_contract_address"
 	FlagEthereumMaxBlockRange        = "eth_max_block_range"
 	FlagEthereumMinLogsQueryInterval = "eth_min_logs_query_interval"
+	FlagEthereumRpcQueryTimeout      = "eth_rpc_query_timeout"
 	FlagEthereumUnsafeStartBlock     = "unsafe_eth_start_block"
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
@@ -41,9 +45,17 @@ type sidecarConfig struct {
 	pathToKeyFile  string
 }
 
+func (cfg *sidecarConfig) Validate() error {
+	return nil
+}
+
 type sequencerConfig struct {
 	grpcUrl        string
 	pathToCertFile string
+}
+
+func (cfg *sequencerConfig) Validate() error {
+	return nil
 }
 
 type ethereumConfig struct {
@@ -52,8 +64,25 @@ type ethereumConfig struct {
 	contractAddrHex      string
 	maxBlockRange        int64
 	minLogsQueryInterval time.Duration
+	rpcQueryTimeout      time.Duration
 	unsafeStartBlock     int64
 	unsafeEndBlock       int64
+}
+
+func (cfg *ethereumConfig) Validate() error {
+	if cfg.unsafeStartBlock < 0 {
+		return fmt.Errorf("ethereum unsafe start block must be >= 0, got: %d", cfg.unsafeStartBlock)
+	}
+	if cfg.unsafeEndBlock < 0 {
+		return fmt.Errorf("ethereum unsafe end block must be >= 0, got: %d", cfg.unsafeEndBlock)
+	}
+	if cfg.maxBlockRange < 1 {
+		return fmt.Errorf("ethereum max block range must be >= 1, got: %d", cfg.maxBlockRange)
+	}
+	if cfg.rpcQueryTimeout <= 0 {
+		return fmt.Errorf("ethereum rpc query timeout must be > 0, got: %s", cfg.rpcQueryTimeout.String())
+	}
+	return nil
 }
 
 // AppOptionsMap is a stub implementing AppOptions which can get data from a map.

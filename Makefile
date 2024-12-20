@@ -186,6 +186,7 @@ run-sidecar-binary:
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
+	@$(eval ETH_RPC_QUERY_TIMEOUT ?= "20s")
 	@$(eval DEVELOPMENT ?= "false")
 	@$(eval ARCH ?= linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
@@ -201,6 +202,7 @@ run-sidecar-binary:
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--eth_rpc_query_timeout "$(ETH_RPC_QUERY_TIMEOUT)" \
 		--development "$(DEVELOPMENT)"
 
 ###############################################################################
@@ -254,6 +256,7 @@ run-sidecar:
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
+	@$(eval ETH_RPC_QUERY_TIMEOUT ?= "20s")
 	@$(eval DEVELOPMENT ?= "true")
 	@$(eval PROMETHEUS_ENABLED ?= "true")
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
@@ -282,6 +285,7 @@ run-sidecar:
 		--eth_contract_address="$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range="$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval="$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--eth_rpc_query_timeout="$(ETH_RPC_QUERY_TIMEOUT)" \
 		--development="$(DEVELOPMENT)" \
 		--prometheus_enabled="$(PROMETHEUS_ENABLED)"
 
