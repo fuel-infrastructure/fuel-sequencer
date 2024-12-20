@@ -12,7 +12,7 @@ import (
 	reportstypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
-func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlash() {
+func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlashMultipleDelegators() {
 	s.Run("Check that slashing due to downtime results in a slash report getting generated", func() {
 
 		initStake := testsuite.InitStakedCoin
@@ -123,7 +123,7 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlash()
 	})
 }
 
-func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlash() {
+func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashMultipleDelegators() {
 	s.Run("Change slash fraction to 100%", func() {
 
 		// Create a new dummy proposal to vote on
@@ -238,6 +238,115 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlash() {
 					DelegatorSlashAmount:      sdkmath.NewInt(9),
 					DelegatorBondedBalance:    sdkmath.ZeroInt(),
 					DelegatorUnbondingBalance: sdkmath.ZeroInt(),
+				},
+			},
+		}
+		s.Require().EqualValues(expectedSlashReport, slashReport)
+	})
+}
+
+func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashOneDelegator() {
+	s.Run("Change slash fraction to 100%", func() {
+
+		// Create a new dummy proposal to vote on
+		slashingParams := s.QuerySlashingParams(s.Ctx())
+		slashingParams.SlashFractionDowntime = sdkmath.LegacyOneDec()
+		msgUpdateParams := slashingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *slashingParams,
+		}
+		s.ExecuteGovProposal(&msgUpdateParams)
+	})
+
+	s.Run("Check that slashing due to downtime results in a slash report getting generated", func() {
+
+		initStake := testsuite.InitStakedCoin
+		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
+		twiceStake := sdk.NewCoin(initStake.Denom, initStake.Amount.MulRaw(2))
+
+		// Increase validator 1's and 2's stake so that when we shut off validator 0, the chain proceeds without it
+		_, err := s.SubmitMsgsFromValidatorN(1, &stakingtypes.MsgDelegate{
+			DelegatorAddress: s.SeqKeys[1].AddressSeq,
+			ValidatorAddress: s.SeqKeys[1].ValAddressSeq,
+			Amount:           initStake,
+		})
+		s.Require().NoError(err)
+		s.PollForDelegationBalance(s.Ctx(), 10, s.SeqKeys[1].AddressSeq, s.SeqKeys[1].ValAddressSeq, twiceStake)
+		_, err = s.SubmitMsgsFromValidatorN(2, &stakingtypes.MsgDelegate{
+			DelegatorAddress: s.SeqKeys[2].AddressSeq,
+			ValidatorAddress: s.SeqKeys[2].ValAddressSeq,
+			Amount:           initStake,
+		})
+		s.Require().NoError(err)
+		s.PollForDelegationBalance(s.Ctx(), 10, s.SeqKeys[2].AddressSeq, s.SeqKeys[2].ValAddressSeq, twiceStake)
+
+		// Wait for delegations to take effect
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*10))
+
+		// Pause validator
+		from, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
+		s.PauseSequencer(0)
+
+		// Wait enough time for enough blocks, for the validator to get slashed.
+		// Note: we cannot wait for blocks because validator 0 is down.
+		s.Sleep(time.Second * 15)
+
+		// Unpause validator
+		s.UnpauseSequencer(0)
+		s.Sleep(time.Second * 5) // give some time for the validator to sync up
+		until, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
+
+		// Look for the slash event
+		var slashEvent *abcitypes.Event
+		var foundAt uint64
+		for block := from; block <= until; block++ {
+			event, found := s.SearchForEventInBlockResults(s.Ctx(), slashingtypes.EventTypeSlash, int64(block))
+			if found {
+				slashEvent = event
+				foundAt = block
+				break
+			}
+		}
+		s.Require().NotZero(foundAt)
+
+		// Check that all the initial stake was burned
+		slashAmount, ok := sdkmath.NewIntFromString(slashEvent.Attributes[4].Value)
+		s.Require().True(ok)
+		s.Require().Equal(slashAmount.String(), initStake.Amount.String())
+
+		// Check that there is a slash report at the slash height
+		slashReport := s.QuerySlashReport(s.Ctx(), foundAt)
+
+		// Original values:
+		// - Validator shares (VS) = 2000000000
+		// - Validator tokens (VT) = 2000000000
+		// - Delegator0 shares (D0S) = 2000000000
+		//
+		// During slash (Cosmos SDK side):
+		// - Slash factor (SF) = 1.0
+		// - Validator consensus power (VCP) = 1
+		// - Validator tokens from consensus power (VTCP): VCP x 1e9 = 2000000000
+		// - Slash amount (SA) = Truncate(VTCP * SF) = 2000000000
+		// - Effective fraction (EF) = QuoRoundUp(SA, VT) = 1.0
+		//
+		// During slash (Reports module side):
+		// - Delegator0 tokens from shares (D0TFS) = (D0S * VT) / VS = 2000000000
+		// - Delegator0 slash = Truncate(D0TFS * EF) = 2000000000
+		//
+		// Post slash:
+		// - New validator tokens (NVT) = 0
+		// - Delegator0 tokens from shares = Truncate((D0S * NVT) / VS) = 0
+		expectedSlashReport := &reportstypes.SlashReport{
+			Height: foundAt,
+			Entries: []reportstypes.SlashEntry{
+				{
+					ValidatorAddress:          s.SeqKeys[0].ValAddressSeq,
+					DelegatorAddress:          s.SeqKeys[0].AddressSeq,
+					DelegatorSlashAmount:      initStake.Amount,
+					DelegatorBondedBalance:    sdkmath.ZeroInt(),
+					DelegatorUnbondingBalance: halfStake.Amount,
 				},
 			},
 		}
