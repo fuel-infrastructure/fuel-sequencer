@@ -28,6 +28,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Shows a SlashReport",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "height"}},
 				},
+				{
+					RpcMethod:      "SlashEntry",
+					Use:            "slash-entry [height] [delegator-addr]",
+					Short:          "Shows a SlashEntry",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "height"}},
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},

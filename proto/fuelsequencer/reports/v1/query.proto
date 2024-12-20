@@ -29,6 +29,14 @@ service Query {
       returns (QueryAllSlashReportResponse) {
     option (google.api.http).get = "/fuel-sequencer/reports/v1/slash_report";
   }
+
+  // Queries a slashing entry by height, delegator, and validator.
+  rpc SlashEntry(QueryGetSlashEntryRequest)
+      returns (QueryGetSlashEntryResponse) {
+    option (google.api.http).get =
+        "/fuel-sequencer/reports/v1/slash_report/{height}/{delegator_address}/"
+        "{validator_address}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -72,4 +80,27 @@ message QueryAllSlashReportResponse {
   repeated SlashReport slash_report = 1 [ (gogoproto.nullable) = false ];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryGetSlashEntryRequest is request type for the Query/GetSlashEntry RPC
+// method.
+message QueryGetSlashEntryRequest {
+
+  // the height of the slashing entry to query from state
+  uint64 height = 1;
+
+  // address of the delegator delegating to the slashed validator.
+  string delegator_address = 2;
+
+  // address of the validator that has been slashed.
+  string validator_address = 3;
+}
+
+// QueryGetSlashEntryResponse is response type for the Query/GetSlashEntry RPC
+// method.
+message QueryGetSlashEntryResponse {
+
+  // slash_entry holds the slashing entry queried by height, delegator, and
+  // validator
+  SlashEntry slash_entry = 1 [ (gogoproto.nullable) = false ];
 }

@@ -14,4 +14,6 @@ func (s *KeeperTestSuite) TestQueriesRegisteredWithCorrectPath() {
 	s.Require().NotNil(handler)
 	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.reports.v1.Query/SlashReportAll")
 	s.Require().NotNil(handler)
+	handler = s.App.GRPCQueryRouter().Route("/fuelsequencer.reports.v1.Query/SlashEntry")
+	s.Require().NotNil(handler)
 }
