@@ -14,27 +14,27 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/reports/typ
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/fuel-sequencer/reports/v1/params";
+    option (google.api.http).get = "/fuelsequencer/reports/v1/params";
   }
 
   // Queries a slashing report by height.
   rpc SlashReport(QueryGetSlashReportRequest)
       returns (QueryGetSlashReportResponse) {
     option (google.api.http).get =
-        "/fuel-sequencer/reports/v1/slash_report/{height}";
+        "/fuelsequencer/reports/v1/slash_report/{height}";
   }
 
   // Queries all slashing reports in state.
   rpc SlashReportAll(QueryAllSlashReportRequest)
       returns (QueryAllSlashReportResponse) {
-    option (google.api.http).get = "/fuel-sequencer/reports/v1/slash_report";
+    option (google.api.http).get = "/fuelsequencer/reports/v1/slash_reports";
   }
 
   // Queries a slashing entry by height, delegator, and validator.
   rpc SlashEntry(QueryGetSlashEntryRequest)
       returns (QueryGetSlashEntryResponse) {
     option (google.api.http).get =
-        "/fuel-sequencer/reports/v1/slash_report/{height}/{delegator_address}/"
+        "/fuelsequencer/reports/v1/slash_report/{height}/{delegator_address}/"
         "{validator_address}";
   }
 }
