@@ -1020,12 +1020,12 @@ paths:
           type: string
           format: uint64
         - name: delegator_address
-          description: address of the delegator delegating to the slashed validator.
+          description: address of the delegator delegating to the slashed validator
           in: path
           required: true
           type: string
         - name: validator_address
-          description: address of the validator that has been slashed.
+          description: address of the validator that has been slashed
           in: path
           required: true
           type: string

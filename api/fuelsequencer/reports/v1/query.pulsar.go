@@ -3867,9 +3867,9 @@ type QueryGetSlashEntryRequest struct {
 
 	// the height of the slashing entry to query from state
 	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
-	// address of the delegator delegating to the slashed validator.
+	// address of the delegator delegating to the slashed validator
 	DelegatorAddress string `protobuf:"bytes,2,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
-	// address of the validator that has been slashed.
+	// address of the validator that has been slashed
 	ValidatorAddress string `protobuf:"bytes,3,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 }
 

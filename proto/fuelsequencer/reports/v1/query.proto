@@ -89,10 +89,10 @@ message QueryGetSlashEntryRequest {
   // the height of the slashing entry to query from state
   uint64 height = 1;
 
-  // address of the delegator delegating to the slashed validator.
+  // address of the delegator delegating to the slashed validator
   string delegator_address = 2;
 
-  // address of the validator that has been slashed.
+  // address of the validator that has been slashed
   string validator_address = 3;
 }
 
