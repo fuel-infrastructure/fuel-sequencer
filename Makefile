@@ -158,6 +158,9 @@ build-fuelsequencerd:
 	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
 	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
 
+	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-arm64..."
+	@GOOS=darwin GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-arm64 $(MAIN)
+
 build-all: clean build-fuelsequencerd
 	@echo "✅ Finished building all!"
 
