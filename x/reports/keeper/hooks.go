@@ -144,7 +144,8 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 			delSlashAmt := delSlashAmtDec.TruncateInt()
 
 			// Skip if slashed amount is zero as this means that the effective fraction is so low that the slash for
-			// the delegator is negligible. In other words this means that the delegator was not slashed.
+			// the delegator is negligible. In other words, this means that the delegator was not slashed, or that they
+			// were slashed less than 1 unit of the staking token.
 			//
 			// Notes:
 			// 1. This was done for the sake of completion as it is highly unexpected.
