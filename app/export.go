@@ -180,18 +180,16 @@ func (app *FuelSequencerApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllow
 
 	// iterate through unbonding delegations, reset creation height
 	//nolint:errcheck
-	app.StakingKeeper.IterateUnbondingDelegations(
-		ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation,
-		) (stop bool) {
-			for i := range ubd.Entries {
-				ubd.Entries[i].CreationHeight = 0
-			}
-			err = app.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
-			if err != nil {
-				panic(err)
-			}
-			return false
-		})
+	app.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
+		for i := range ubd.Entries {
+			ubd.Entries[i].CreationHeight = 0
+		}
+		err = app.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
+		if err != nil {
+			panic(err)
+		}
+		return false
+	})
 
 	// Iterate through validators by power descending, reset bond heights, and
 	// update bond intra-tx counters.
