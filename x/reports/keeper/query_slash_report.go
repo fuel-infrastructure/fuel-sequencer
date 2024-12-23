@@ -35,8 +35,8 @@ func initPageRequestDefaults(pageRequest *query.PageRequest) *query.PageRequest 
 }
 
 // paginateSlashReports does pagination on all SlashReports in state. We cannot use the SDK's Paginate implementation
-// because we store slash entries. Using the SDK's paginate implementation may cause partial slash report data to be
-// retrieved from state.
+// since we store slash entries. The SDK implementation may cause partial slash report data to be retrieved from state.
+// Ref to SDK's Paginate: https://github.com/fuel-infrastructure/cosmos-sdk/blob/v0.50.10/types/query/pagination.go#L52
 func paginateSlashReports(
 	allSlashReports []types.SlashReport,
 	pageRequest *query.PageRequest,
