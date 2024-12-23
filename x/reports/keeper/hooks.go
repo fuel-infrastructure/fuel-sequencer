@@ -121,8 +121,10 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 	// At this stage, we are sure that redelegations and unbonding delegations that were active at the infraction time
 	// have already been slashed. Therefore, we can iterate over active delegations and calculate the slashed amount.
 	//
-	// Note: This is only possible because the fraction represents the percentage of tokens slashed, excluding unbonding
-	// delegations and redelegations that were active at the time of the infraction.
+	// Note: This is only possible because the fraction (a.k.a effective fraction) represents the percentage of tokens
+	// slashed, excluding unbonding delegations and redelegations that were active at the time of the infraction.
+	//
+	// Ref to effectiveFraction: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/slash.go#L164
 	err := h.k.stakingKeeper.IterateValidatorDelegations(
 		ctx, valAddr, func(delegation stakingtypes.Delegation) (stop bool) {
 			delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
