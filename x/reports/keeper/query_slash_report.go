@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// initPageRequestDefaults is a copy of the SDK's unexported initPageRequestDefaults function from the pagination
-// package.
+// initPageRequestDefaults is a copy of the unexported initPageRequestDefaults function from the pagination query types.
+// Ref: https://github.com/fuel-infrastructure/cosmos-sdk/blob/v0.50.10/types/query/pagination.go#L140-L160
 func initPageRequestDefaults(pageRequest *query.PageRequest) *query.PageRequest {
 	// if the PageRequest is nil, use default PageRequest
 	if pageRequest == nil {
