@@ -8,9 +8,10 @@ import (
 
 var (
 	// Binary Parameters
-	makefileDir string = "/home/user/fuel-sequencer" // Absolute path to the directory where makefile is located
-	wantArch    string = "linux-amd64"               // Arch specified from build binary suffix
-	buildPath   string = makefileDir + "/build"      // Path where binary will be built
+	makefileDir string = "/home/user/fuel-sequencer"         // Absolute path to the directory where makefile is located
+	wantArch    string = "linux-amd64"                       // Arch specified from build binary suffix
+	buildPath   string = makefileDir + "/build"              // Path where binary will be built
+	dataDir     string = makefileDir + "/data/fuelsequencer" // Directory with template data
 
 	// Sequencer Parameters
 

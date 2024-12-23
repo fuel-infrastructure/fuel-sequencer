@@ -44,7 +44,7 @@ func Setup() error {
 	// }
 
 	// Transfer binary to all destinations
-	if err := transferBinary(connections, binaryPath); err != nil {
+	if err := transferFiles(connections, binaryPath); err != nil {
 		return logAndWrapErr("binary transfer failed", err)
 	}
 
