@@ -62,7 +62,7 @@ func ValidateSlashReportEntries(i interface{}) error {
 		// stage because all slash entries within the same slash report are assigned the same height.
 		slashEntryKey := fmt.Sprintf("%s|%s", slashEntry.DelegatorAddress, slashEntry.ValidatorAddress)
 		if uniqueSlashEntries[slashEntryKey] {
-			return ErrSlashEntryNotUnique.Wrapf("%s", slashEntryKey)
+			return ErrSlashEntryNotUnique.Wrapf("slash entry not unique at key %s", slashEntryKey)
 		}
 		uniqueSlashEntries[slashEntryKey] = true
 	}
