@@ -440,7 +440,7 @@ func TestRemoveAllSlashReportsUntilHeight(t *testing.T) {
 			testKeeper, ctx := keepertest.ReportsKeeper(t)
 
 			// Set all slash reports
-			for _, report := range slashReports {
+			for _, report := range tc.setSlashReports {
 				testKeeper.SetSlashReport(ctx, report)
 			}
 
@@ -525,7 +525,7 @@ func TestPruneSlashReports(t *testing.T) {
 			name:                    "No reports => no pruning",
 			setSlashReports:         nil,
 			currentHeight:           110,
-			maxSlashReportAgeBlocks: 1,
+			maxSlashReportAgeBlocks: 10,
 			expectSlashReports:      nil,
 		},
 	}
@@ -542,7 +542,7 @@ func TestPruneSlashReports(t *testing.T) {
 			require.NoError(t, testKeeper.SetParams(ctx, params))
 
 			// Set all slash reports
-			for _, report := range slashReports {
+			for _, report := range tc.setSlashReports {
 				testKeeper.SetSlashReport(ctx, report)
 			}
 
