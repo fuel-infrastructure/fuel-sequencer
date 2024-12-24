@@ -392,33 +392,45 @@ func TestRemoveAllSlashReportsUntilHeight(t *testing.T) {
 
 	testCases := []struct {
 		name               string
+		setSlashReports    []types.SlashReport
 		removeUntil        uint64
 		expectSlashReports []types.SlashReport
 	}{
 		{
 			name:               "Remove until < startHeight",
+			setSlashReports:    slashReports,
 			removeUntil:        startHeight - 1,
 			expectSlashReports: slashReports,
 		},
 		{
 			name:               "Remove until == startHeight",
+			setSlashReports:    slashReports,
 			removeUntil:        startHeight,
 			expectSlashReports: slashReports[1:], // 1 removed
 		},
 		{
 			name:               "Remove until is mid way through",
+			setSlashReports:    slashReports,
 			removeUntil:        startHeight + 4,
 			expectSlashReports: slashReports[5:], // 5 removed
 		},
 		{
 			name:               "One remaining",
+			setSlashReports:    slashReports,
 			removeUntil:        startHeight + 8,
 			expectSlashReports: []types.SlashReport{slashReports[len(slashReports)-1]}, // 9 removed
 		},
 		{
 			name:               "Remove until last height",
+			setSlashReports:    slashReports,
 			removeUntil:        slashReports[len(slashReports)-1].Height,
 			expectSlashReports: nil, // All removed
+		},
+		{
+			name:               "No reports == no pruning",
+			setSlashReports:    nil,
+			removeUntil:        startHeight,
+			expectSlashReports: nil,
 		},
 	}
 
@@ -455,12 +467,14 @@ func TestPruneSlashReports(t *testing.T) {
 
 	testCases := []struct {
 		name                    string
+		setSlashReports         []types.SlashReport
 		currentHeight           int64
 		maxSlashReportAgeBlocks uint64
 		expectSlashReports      []types.SlashReport
 	}{
 		{
 			name:                    "Max age is large enough to keep all reports",
+			setSlashReports:         slashReports,
 			currentHeight:           110, // last report generated at the previous height
 			maxSlashReportAgeBlocks: 11,
 			expectSlashReports:      slashReports,
@@ -468,13 +482,16 @@ func TestPruneSlashReports(t *testing.T) {
 		},
 		{
 			name:                    "First report is too old",
+			setSlashReports:         slashReports,
 			currentHeight:           110, // last report generated at the previous height
 			maxSlashReportAgeBlocks: 10,
 			expectSlashReports:      slashReports[1:],
 			// First report is at height 100. Remove until is 110-10 = 100. 1 report removed.
 		},
 		{
-			name:                    "Half of the reports are too old",
+			name: "Half of the reports are too old",
+
+			setSlashReports:         slashReports,
 			currentHeight:           110, // last report generated at the previous height
 			maxSlashReportAgeBlocks: 6,
 			expectSlashReports:      slashReports[5:],
@@ -482,6 +499,7 @@ func TestPruneSlashReports(t *testing.T) {
 		},
 		{
 			name:                    "Only the last report is not too old",
+			setSlashReports:         slashReports,
 			currentHeight:           110, // last report generated at the previous height
 			maxSlashReportAgeBlocks: 2,
 			expectSlashReports:      []types.SlashReport{slashReports[len(slashReports)-1]},
@@ -489,6 +507,7 @@ func TestPruneSlashReports(t *testing.T) {
 		},
 		{
 			name:                    "All reports are too old",
+			setSlashReports:         slashReports,
 			currentHeight:           110, // last report generated at the previous height
 			maxSlashReportAgeBlocks: 1,
 			expectSlashReports:      nil,
@@ -496,10 +515,18 @@ func TestPruneSlashReports(t *testing.T) {
 		},
 		{
 			name:                    "Last report is at current height, with max age 1 => last report retained",
+			setSlashReports:         slashReports,
 			currentHeight:           109, // last report generated at the current height
 			maxSlashReportAgeBlocks: 1,
 			expectSlashReports:      []types.SlashReport{slashReports[len(slashReports)-1]},
 			// First report is at height 100. Remove until is 109-1 = 108. 9 reports removed.
+		},
+		{
+			name:                    "No reports => no pruning",
+			setSlashReports:         nil,
+			currentHeight:           110,
+			maxSlashReportAgeBlocks: 1,
+			expectSlashReports:      nil,
 		},
 	}
 
