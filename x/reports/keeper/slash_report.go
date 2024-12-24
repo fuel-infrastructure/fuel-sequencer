@@ -192,6 +192,14 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 		}
 	}
 
+	err := ctx.EventManager().EmitTypedEvent(&types.EventSlashReportGenerated{
+		Height:     uint64(ctx.BlockHeight()),
+		NumEntries: uint64(len(report.Entries)),
+	})
+	if err != nil {
+		return err
+	}
+
 	k.SetSlashReport(ctx, report)
 	return nil
 }
