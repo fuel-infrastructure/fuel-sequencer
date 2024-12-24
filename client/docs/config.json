@@ -33,6 +33,19 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/fuelsequencer/reports/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ReportsParams"
+        }
+      },
+      "tags": {
+        "rename": {
+          "Query": "Fuel Sequencer Queries"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/fuelsequencer/commitments/v1/query.swagger.json",
       "tags": {
         "rename": {

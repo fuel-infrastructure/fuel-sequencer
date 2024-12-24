@@ -110,6 +110,20 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 }
 
 func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
+	s.Run("Set short signing window and slash fraction to 50%", func() {
+
+		// 50% of every 10-block window has to be signed. Otherwise, the validator not signing will get slashed.
+		slashingParams := s.QuerySlashingParams(s.Ctx())
+		slashingParams.SignedBlocksWindow = int64(10)
+		slashingParams.MinSignedPerWindow = sdkmath.LegacyMustNewDecFromStr("0.5")
+		slashingParams.SlashFractionDowntime = sdkmath.LegacyMustNewDecFromStr("0.5")
+		msgUpdateParams := slashingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *slashingParams,
+		}
+		s.ExecuteGovProposal(&msgUpdateParams)
+	})
+
 	s.Run("Check that slashing due to downtime results in an offset in the supply delta", func() {
 
 		supplyDeltaPeriod := s.QueryBridgeParams(s.Ctx()).SupplyDeltaPeriod

@@ -64,8 +64,8 @@ import (
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	reportsmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
-
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
@@ -110,6 +110,7 @@ type FuelSequencerApp struct {
 
 	BridgeKeeper     bridgemodulekeeper.Keeper
 	SequencingKeeper sequencingmodulekeeper.Keeper
+	ReportsKeeper    reportsmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -259,6 +260,7 @@ func NewFuelSequencerApp(
 		&app.EvidenceKeeper,
 		&app.BridgeKeeper,
 		&app.SequencingKeeper,
+		&app.ReportsKeeper,
 		// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	); err != nil {
 		panic(err)

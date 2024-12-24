@@ -1,0 +1,106 @@
+syntax = "proto3";
+package fuelsequencer.reports.v1;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "fuelsequencer/reports/params.proto";
+import "fuelsequencer/reports/slash_report.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/fuelsequencer/reports/v1/params";
+  }
+
+  // Queries a slashing report by height.
+  rpc SlashReport(QueryGetSlashReportRequest)
+      returns (QueryGetSlashReportResponse) {
+    option (google.api.http).get =
+        "/fuelsequencer/reports/v1/slash_report/{height}";
+  }
+
+  // Queries all slashing reports in state.
+  rpc SlashReportAll(QueryAllSlashReportRequest)
+      returns (QueryAllSlashReportResponse) {
+    option (google.api.http).get = "/fuelsequencer/reports/v1/slash_reports";
+  }
+
+  // Queries a slashing entry by height, delegator, and validator.
+  rpc SlashEntry(QueryGetSlashEntryRequest)
+      returns (QueryGetSlashEntryResponse) {
+    option (google.api.http).get =
+        "/fuelsequencer/reports/v1/slash_report/{height}/{delegator_address}/"
+        "{validator_address}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+
+  // params holds all the parameters of this module.
+  Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+// QueryGetSlashReportRequest is request type for the Query/GetSlashReport RPC
+// method.
+message QueryGetSlashReportRequest {
+
+  // the height of the slashing report to query from state
+  uint64 height = 1;
+}
+
+// QueryGetSlashReportResponse is response type for the Query/GetSlashReport RPC
+// method.
+message QueryGetSlashReportResponse {
+
+  // slash_report holds the slashing report queried by height
+  SlashReport slash_report = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryAllSlashReportRequest is request type for the Query/AllSlashReport RPC
+// method.
+message QueryAllSlashReportRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryAllSlashReportResponse is response type for the Query/AllSlashReport RPC
+// method.
+message QueryAllSlashReportResponse {
+
+  // slash_report holds all the slashing reports stored in state
+  repeated SlashReport slash_report = 1 [ (gogoproto.nullable) = false ];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryGetSlashEntryRequest is request type for the Query/GetSlashEntry RPC
+// method.
+message QueryGetSlashEntryRequest {
+
+  // the height of the slashing entry to query from state
+  uint64 height = 1;
+
+  // address of the delegator delegating to the slashed validator
+  string delegator_address = 2;
+
+  // address of the validator that has been slashed
+  string validator_address = 3;
+}
+
+// QueryGetSlashEntryResponse is response type for the Query/GetSlashEntry RPC
+// method.
+message QueryGetSlashEntryResponse {
+
+  // slash_entry holds the slashing entry queried by height, delegator, and
+  // validator
+  SlashEntry slash_entry = 1 [ (gogoproto.nullable) = false ];
+}
