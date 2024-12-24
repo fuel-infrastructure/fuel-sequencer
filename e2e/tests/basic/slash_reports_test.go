@@ -13,6 +13,20 @@ import (
 )
 
 func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlashMultipleDelegators() {
+	s.Run("Set short signing window and slash fraction to 50%", func() {
+
+		// 50% of every 10-block window has to be signed. Otherwise, the validator not signing will get slashed.
+		slashingParams := s.QuerySlashingParams(s.Ctx())
+		slashingParams.SignedBlocksWindow = int64(10)
+		slashingParams.MinSignedPerWindow = sdkmath.LegacyMustNewDecFromStr("0.5")
+		slashingParams.SlashFractionDowntime = sdkmath.LegacyMustNewDecFromStr("0.5")
+		msgUpdateParams := slashingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *slashingParams,
+		}
+		s.ExecuteGovProposal(&msgUpdateParams)
+	})
+
 	s.Run("Check that slashing due to downtime results in a slash report getting generated", func() {
 
 		initStake := testsuite.InitStakedCoin
@@ -124,10 +138,12 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlashMu
 }
 
 func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashMultipleDelegators() {
-	s.Run("Change slash fraction to 100%", func() {
+	s.Run("Set short signing window and slash fraction to 100%", func() {
 
-		// Create a new dummy proposal to vote on
+		// 50% of every 10-block window has to be signed. Otherwise, the validator not signing will get slashed.
 		slashingParams := s.QuerySlashingParams(s.Ctx())
+		slashingParams.SignedBlocksWindow = int64(10)
+		slashingParams.MinSignedPerWindow = sdkmath.LegacyMustNewDecFromStr("0.5")
 		slashingParams.SlashFractionDowntime = sdkmath.LegacyOneDec()
 		msgUpdateParams := slashingtypes.MsgUpdateParams{
 			Authority: s.GetGovernanceAddress(),
@@ -246,10 +262,12 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashMulti
 }
 
 func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashOneDelegator() {
-	s.Run("Change slash fraction to 100%", func() {
+	s.Run("Set short signing window and slash fraction to 50%", func() {
 
-		// Create a new dummy proposal to vote on
+		// 50% of every 10-block window has to be signed. Otherwise, the validator not signing will get slashed.
 		slashingParams := s.QuerySlashingParams(s.Ctx())
+		slashingParams.SignedBlocksWindow = int64(10)
+		slashingParams.MinSignedPerWindow = sdkmath.LegacyMustNewDecFromStr("0.5")
 		slashingParams.SlashFractionDowntime = sdkmath.LegacyOneDec()
 		msgUpdateParams := slashingtypes.MsgUpdateParams{
 			Authority: s.GetGovernanceAddress(),
