@@ -131,10 +131,10 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 	s.Require().NoError(err)
 	s.Require().Equal(expectedBurn, s.App.BankKeeper.GetAllBalances(hctx, acc.GetAddress()))
 
-	// Unbonding delegation from validator0 to validator1
+	// Unbonding delegation
 	undelegation := stakingtypes.UnbondingDelegation{
-		DelegatorAddress: testtypes.TestSeqAddr1Str,
-		ValidatorAddress: testtypes.TestValAddr1Str,
+		DelegatorAddress: testtypes.TestSeqAddr1Str, // arbitrary
+		ValidatorAddress: testtypes.TestValAddr1Str, // arbitrary
 		Entries: []stakingtypes.UnbondingDelegationEntry{
 			{
 				CreationHeight:          currHeight + 1,                   // after current height
@@ -270,6 +270,7 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	hctx := s.Ctx().WithBlockHeight(currHeight)
 	slashFraction := sdkmath.LegacyOneDec()
 	validatorTokens := sdkmath.NewIntWithDecimal(1, 9)
+	undelegationBalance := sdkmath.OneInt() // just 1 unit, so we can focus more on the redelegation
 
 	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx())
 	s.Require().NoError(err)
@@ -294,15 +295,47 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 		ValidatorDstAddress: validators[1].OperatorAddress,
 		Entries: []stakingtypes.RedelegationEntry{
 			{
+				CreationHeight:          currHeight + 1,                   // after current height
+				CompletionTime:          currTime.Add(-time.Hour),         // before current time
+				InitialBalance:          sdkmath.NewIntWithDecimal(1, 20), // Large value to make sure we slash both the undelegation and redelegation
+				SharesDst:               sdkmath.LegacyOneDec(),           // validator has 1 share
+				UnbondingId:             0,                                // n/a
+				UnbondingOnHoldRefCount: 0,                                // n/a
+			},
+		},
+	}
+
+	// Sanity check the NotBondedPoolName balance
+	acc := s.App.AccountKeeper.GetModuleAccount(hctx, stakingtypes.NotBondedPoolName)
+	s.Require().Empty(s.App.BankKeeper.GetAllBalances(hctx, acc.GetAddress()))
+
+	// Mint the amount to be burned, due to the unbonding delegation, to the NotBondedPoolName, to avoid errors.
+	expectedBurn := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, undelegationBalance))
+	err = s.App.BankKeeper.MintCoins(hctx, minttypes.ModuleName, expectedBurn)
+	s.Require().NoError(err)
+	err = s.App.BankKeeper.SendCoinsFromModuleToModule(
+		hctx, minttypes.ModuleName, stakingtypes.NotBondedPoolName, expectedBurn,
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(expectedBurn, s.App.BankKeeper.GetAllBalances(hctx, acc.GetAddress()))
+
+	// Unbonding delegation from validator1 - will get slashed first by SlashRedelegation
+	undelegation := stakingtypes.UnbondingDelegation{
+		DelegatorAddress: validator1Delegator,
+		ValidatorAddress: validators[1].OperatorAddress,
+		Entries: []stakingtypes.UnbondingDelegationEntry{
+			{
 				CreationHeight:          currHeight + 1,           // after current height
 				CompletionTime:          currTime.Add(-time.Hour), // before current time
-				InitialBalance:          sdkmath.OneInt(),         // n/a, but cannot be nil or zero
-				SharesDst:               sdkmath.LegacyOneDec(),   // validator has 1 share
+				InitialBalance:          sdkmath.Int{},            // n/a in this context
+				Balance:                 undelegationBalance,      // Amount that will get slashed
 				UnbondingId:             0,                        // n/a
 				UnbondingOnHoldRefCount: 0,                        // n/a
 			},
 		},
 	}
+	err = s.App.StakingKeeper.SetUnbondingDelegation(hctx, undelegation)
+	s.Require().NoError(err)
 
 	_, err = s.App.StakingKeeper.SlashRedelegation(hctx, validators[0], redelegation, infractionHeight, slashFraction)
 	s.Require().NoError(err)
@@ -316,13 +349,20 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 			{
 				ValidatorAddress:          validators[1].OperatorAddress,
 				DelegatorAddress:          validator1Delegator,
-				DelegatorSlashAmount:      validators[1].Tokens, // all tokens slashed
-				DelegatorBondedBalance:    sdkmath.ZeroInt(),    // n/a
-				DelegatorUnbondingBalance: sdkmath.ZeroInt(),    // n/a
+				DelegatorSlashAmount:      validators[1].Tokens.Add(undelegationBalance), // all validator and undelegation tokens slashed
+				DelegatorBondedBalance:    sdkmath.ZeroInt(),                             // n/a
+				DelegatorUnbondingBalance: sdkmath.ZeroInt(),                             // n/a
 			},
 		},
 	}
 	s.Require().Equal(expectedSlashReport, slashReport)
+
+	// Sanity check unbonding delegation
+	undelegationAfter, err := s.App.StakingKeeper.GetUnbondingDelegation(
+		hctx, sdk.MustAccAddressFromBech32(validator1Delegator), validator1Address,
+	)
+	s.Require().NoError(err)
+	s.Require().True(undelegationAfter.Entries[0].Balance.IsZero()) // the undelegation was fully slashed
 }
 
 func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
