@@ -386,7 +386,7 @@ func TestRemoveAllSlashReportsUntilHeight(t *testing.T) {
 
 	// Set heights to start from startHeight
 	slashReports := keepertest.CreateNSlashReportWithoutStoring(10)
-	for i, _ := range slashReports {
+	for i := range slashReports {
 		slashReports[i].Height = startHeight + uint64(i)
 	}
 
@@ -461,7 +461,7 @@ func TestPruneSlashReports(t *testing.T) {
 	// Set heights to start from startHeight
 	n := 10
 	slashReports := keepertest.CreateNSlashReportWithoutStoring(n)
-	for i, _ := range slashReports {
+	for i := range slashReports {
 		slashReports[i].Height = startHeight + uint64(i)
 	}
 
