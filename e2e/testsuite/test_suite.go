@@ -159,7 +159,7 @@ type E2ETestSuite struct {
 
 	log *zap.Logger
 
-	Chain         *chain
+	Chain         *Chain
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
@@ -233,7 +233,7 @@ func (s *E2ETestSuite) SetupTest() {
 	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.Chain.id))
 	s.Require().NoError(err)
 
-	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.dataDir)
+	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.DataDir)
 
 	// Derive and print the Ethereum keys with the hex and bech32 representation of the addresses.
 	for _, mnemonic := range MNEMONICS {
@@ -249,7 +249,7 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// Derive and print the Sequencer keys with the hex and bech32 representation of the addresses.
 	for _, mnemonic := range MNEMONICS {
-		s.SeqKeys = append(s.SeqKeys, mustNewSequencerKeyFromMnemonic(mnemonic))
+		s.SeqKeys = append(s.SeqKeys, MustNewSequencerKeyFromMnemonic(mnemonic))
 	}
 	s.T().Logf("sequencer keys:")
 	for _, key := range s.SeqKeys {
@@ -313,7 +313,7 @@ func (s *E2ETestSuite) TearDownTest() {
 	s.T().Log("tearing down e2e integration test suite...")
 
 	s.Require().NoError(s.Chain.rpcClient.Stop())
-	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
+	s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
 	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
 
@@ -339,18 +339,18 @@ func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
 	s.Require().NoError(s.Chain.createAndInitFuelSequencerValidators(mnemonics))
 
 	// initialize a genesis file for the first validator
-	val0ConfigDir := s.Chain.validators[0].configDir()
-	for _, val := range s.Chain.validators {
+	val0ConfigDir := s.Chain.Validators[0].ConfigDir()
+	for _, val := range s.Chain.Validators {
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.address()),
+			AddGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.Address()),
 		)
 	}
 
 	// copy the genesis file to the remaining validators
-	for _, val := range s.Chain.validators[1:] {
-		err := copyFile(
+	for _, val := range s.Chain.Validators[1:] {
+		err := CopyFile(
 			filepath.Join(val0ConfigDir, "config", "genesis.json"),
-			filepath.Join(val.configDir(), "config", "genesis.json"),
+			filepath.Join(val.ConfigDir(), "config", "genesis.json"),
 		)
 		s.Require().NoError(err)
 	}
@@ -575,15 +575,15 @@ func (s *E2ETestSuite) runSequencerValidatorsWithOverrides(
 	user, err := osuser.Current()
 	s.Require().NoError(err)
 
-	s.valResources = make([]*dockertest.Resource, len(s.Chain.validators))
-	for i, val := range s.Chain.validators {
+	s.valResources = make([]*dockertest.Resource, len(s.Chain.Validators))
+	for i, val := range s.Chain.Validators {
 		runOpts := &dockertest.RunOptions{
-			Name:       val.instanceName(),
+			Name:       val.InstanceName(),
 			NetworkID:  s.dockerNetwork.Network.ID,
 			Repository: s.FuelSequencerDockerImageRepo,
 			Tag:        s.FuelSequencerDockerImageTag,
 			Mounts: []string{
-				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
+				fmt.Sprintf("%s/:%s", val.ConfigDir(), fuelSequencerValidatorDefaultHome),
 			},
 			User:       fmt.Sprintf("%s:%s", user.Uid, user.Gid),
 			Entrypoint: entrypoint,
