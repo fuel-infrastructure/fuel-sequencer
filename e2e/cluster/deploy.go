@@ -30,7 +30,7 @@ func deployNode(l *zap.SugaredLogger, conn connection, binaryName string) error 
 	defer session.Close()
 
 	// Start the node with appropriate configuration
-	cmd := fmt.Sprintf("%s --home %s", remotePath, homeDir(conn.destination))
+	cmd := fmt.Sprintf("%s --home %s start", remotePath, homeDir(conn.destination))
 	if err := remotely(l, session, cmd); err != nil {
 		return fmt.Errorf("failed to start node: %w", err)
 	}

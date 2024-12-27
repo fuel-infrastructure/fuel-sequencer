@@ -14,7 +14,7 @@ import (
 // }
 
 func buildBinary() (string, error) {
-	l := logging.Named("Build Binary")
+	l := logging.Named("Build")
 
 	// // Checkout the specific tag
 	// log.Debugf("Checking out tag: %s", repoTag)
