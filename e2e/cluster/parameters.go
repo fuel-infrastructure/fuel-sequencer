@@ -15,10 +15,10 @@ const (
 
 var (
 	// Binary Parameters
-	makefileDir string = "/home/user/fuel-sequencer"       // Absolute path to the directory where makefile is located
-	wantArch    string = "linux-amd64"                     // Arch specified from build binary suffix
-	buildPath   string = makefileDir + "/build"            // Path where binary will be built
-	dataDir     string = makefileDir + "/e2e/cluster/data" // Directory with template data
+	makefileDir string = "/home/user/fuel-sequencer"                                 // Absolute path to the directory where makefile is located
+	wantArch    string = "linux-amd64"                                               // Arch specified from build binary suffix
+	buildPath   string = makefileDir + "/build"                                      // Path where binary will be built
+	dataDir     string = makefileDir + "/e2e/cluster/data"                           // Directory with template data
 	servicePath string = makefileDir + "/e2e/cluster/systemd/fuelsequencerd.service" // Path to the systemd service file
 	systemdPath string = "/etc/systemd/system/fuelsequencerd.service"                // Path to the systemd service file on the remote machine
 	binaryName  string = "fuelsequencerd"                                            // Name of the binary
