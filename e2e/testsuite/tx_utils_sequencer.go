@@ -20,12 +20,12 @@ func decodeTx(txBytes []byte) (*sdktx.Tx, error) {
 		return nil, fmt.Errorf("failed to reject unknown fields: %w", err)
 	}
 
-	if err := cdc.Unmarshal(txBytes, &raw); err != nil {
+	if err := Cdc.Unmarshal(txBytes, &raw); err != nil {
 		return nil, err
 	}
 
 	var body sdktx.TxBody
-	if err := cdc.Unmarshal(raw.BodyBytes, &body); err != nil {
+	if err := Cdc.Unmarshal(raw.BodyBytes, &body); err != nil {
 		return nil, fmt.Errorf("failed to decode tx: %w", err)
 	}
 
@@ -37,7 +37,7 @@ func decodeTx(txBytes []byte) (*sdktx.Tx, error) {
 		return nil, fmt.Errorf("failed to reject unknown fields: %w", err)
 	}
 
-	if err := cdc.Unmarshal(raw.AuthInfoBytes, &authInfo); err != nil {
+	if err := Cdc.Unmarshal(raw.AuthInfoBytes, &authInfo); err != nil {
 		return nil, fmt.Errorf("failed to decode auth info: %w", err)
 	}
 
@@ -56,11 +56,11 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 }
 
 func (s *E2ETestSuite) SubmitMsgs(msgs ...sdk.Msg) (*sdk.TxResponse, error) {
-	return s.SubmitMsgsFrom(s.Chain.validators[0], msgs...)
+	return s.SubmitMsgsFrom(s.Chain.Validators[0], msgs...)
 }
 
 func (s *E2ETestSuite) SubmitMsgsWithGas(gas uint64, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
-	return s.SubmitMsgsWithGasFrom(s.Chain.validators[0], gas, msgs...)
+	return s.SubmitMsgsWithGasFrom(s.Chain.Validators[0], gas, msgs...)
 }
 
 func (s *E2ETestSuite) SubmitMsgsFrom(val *validator, msgs ...sdk.Msg) (*sdk.TxResponse, error) {
@@ -74,7 +74,7 @@ func (s *E2ETestSuite) SubmitMsgsWithGasFrom(val *validator, gas uint64, msgs ..
 	addr := val.hostRPCPort
 
 	outputBuffer := &bytes.Buffer{} // TODO: consider reusing this buffer with a reset in between each use
-	clientCtx, err := s.Chain.clientContext(addr, &kr, validatorKeyName, val.address(), outputBuffer)
+	clientCtx, err := s.Chain.clientContext(addr, &kr, validatorKeyName, val.Address(), outputBuffer)
 	s.Require().NoError(err)
 
 	respWithTxHash, err := s.Chain.sendMsgs(*clientCtx, outputBuffer, gas, msgs...)

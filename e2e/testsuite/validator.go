@@ -34,14 +34,14 @@ import (
 )
 
 type validator struct {
-	chain        *chain
+	chain        *Chain
 	index        int
-	moniker      string
+	Moniker      string
 	mnemonic     string
 	keyRecord    keyring.Record
 	privateKey   cryptotypes.PrivKey
 	consensusKey privval.FilePVKey
-	nodeKey      p2p.NodeKey
+	NodeKey      p2p.NodeKey
 
 	// FuelSequencer ports set during startup.
 	hostRPCPort     string
@@ -50,16 +50,16 @@ type validator struct {
 	sidecarGRPCPort string
 }
 
-func (v *validator) instanceName() string {
-	return fmt.Sprintf("%s%d", v.moniker, v.index)
+func (v *validator) InstanceName() string {
+	return fmt.Sprintf("%s%d", v.Moniker, v.index)
 }
 
-func (v *validator) configDir() string {
-	return fmt.Sprintf("%s/%s", v.chain.configDir(), v.instanceName())
+func (v *validator) ConfigDir() string {
+	return filepath.Join(v.chain.configDir(), v.InstanceName())
 }
 
 func (v *validator) createConfig() error {
-	p := path.Join(v.configDir(), "config")
+	p := path.Join(v.ConfigDir(), "config")
 	return os.MkdirAll(p, 0755)
 }
 
@@ -71,10 +71,10 @@ func (v *validator) init() error {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
-	config.SetRoot(v.configDir())
-	config.Moniker = v.moniker
+	config.SetRoot(v.ConfigDir())
+	config.Moniker = v.Moniker
 
-	genDoc, err := getGenDoc(v.configDir())
+	genDoc, err := getGenDoc(v.ConfigDir())
 	if err != nil {
 		return err
 	}
@@ -119,15 +119,15 @@ func (v *validator) createNodeKey() error {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
-	config.SetRoot(v.configDir())
-	config.Moniker = v.moniker
+	config.SetRoot(v.ConfigDir())
+	config.Moniker = v.Moniker
 
 	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
-	v.nodeKey = *nodeKey
+	v.NodeKey = *nodeKey
 	return nil
 }
 
@@ -135,8 +135,8 @@ func (v *validator) createConsensusKey() error {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
-	config.SetRoot(v.configDir())
-	config.Moniker = v.moniker
+	config.SetRoot(v.ConfigDir())
+	config.Moniker = v.Moniker
 
 	pvKeyFile := config.PrivValidatorKeyFile()
 	if err := cmos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
@@ -155,7 +155,7 @@ func (v *validator) createConsensusKey() error {
 }
 
 func (v *validator) createKeyFromMnemonic(name, mnemonic string, passphrase string) error {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, cdc)
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.ConfigDir(), nil, Cdc)
 	if err != nil {
 		return err
 	}
@@ -197,8 +197,8 @@ func (v *validator) createKey(name string) error { //nolint:unused
 	return v.createKeyFromMnemonic(name, mnemonic, "")
 }
 
-func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
-	description := stakingtypes.NewDescription(v.moniker, "", "", "", "")
+func (v *validator) BuildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
+	description := stakingtypes.NewDescription(v.Moniker, "", "", "", "")
 	commissionRates := stakingtypes.CommissionRates{
 		Rate:          math.LegacyMustNewDecFromStr("0.1"),
 		MaxRate:       math.LegacyMustNewDecFromStr("0.2"),
@@ -228,14 +228,14 @@ func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
 	)
 }
 
-func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
+func (v *validator) SignMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 
 	if err := txBuilder.SetMsgs(msgs...); err != nil {
 		return nil, err
 	}
 
-	txBuilder.SetMemo(fmt.Sprintf("%s@%s:26656", v.nodeKey.ID(), v.instanceName()))
+	txBuilder.SetMemo(fmt.Sprintf("%s@%s:26656", v.NodeKey.ID(), v.InstanceName()))
 	txBuilder.SetFeeAmount(sdk.NewCoins())
 	txBuilder.SetGasLimit(200000)
 
@@ -306,10 +306,10 @@ func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 }
 
 func (v *validator) keyring() (keyring.Keyring, error) {
-	return keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, cdc)
+	return keyring.New(keyringAppName, keyring.BackendTest, v.ConfigDir(), nil, Cdc)
 }
 
-func (v *validator) address() sdk.AccAddress {
+func (v *validator) Address() sdk.AccAddress {
 	addr, err := v.keyRecord.GetAddress()
 	if err != nil {
 		panic(err)
@@ -319,7 +319,7 @@ func (v *validator) address() sdk.AccAddress {
 }
 
 func (v *validator) validatorAddress() sdk.ValAddress {
-	return sdk.ValAddress(v.address())
+	return sdk.ValAddress(v.Address())
 }
 
 func (v *validator) pubKey() cryptotypes.PubKey {

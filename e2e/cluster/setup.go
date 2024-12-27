@@ -31,6 +31,11 @@ func Setup() error {
 		return logAndWrapErr("binary build failed", err)
 	}
 
+	// Configure the network
+	if err := configureNetwork(); err != nil {
+		return logAndWrapErr("network configuration failed", err)
+	}
+
 	// Establish connection to all destinations
 	connections, err := establishConnections()
 	if err != nil {
