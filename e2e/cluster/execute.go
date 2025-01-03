@@ -119,3 +119,29 @@ func (s *sshSessionExecutor) StderrPipe() (io.ReadCloser, error) {
 	}
 	return &ioCloser{r}, nil
 }
+
+func withSudo(cmd string, password string) string {
+	return fmt.Sprintf("echo %s | sudo -S %s", password, cmd)
+}
+
+func calculateFileHash(filepath string, client *ssh.Client) ([]byte, error) {
+	cmd := "sha256sum " + filepath + " | cut -d' ' -f1"
+
+	// Local file
+	if client == nil {
+		output, err := exec.Command("sh", "-c", cmd).Output()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get file hash: %w", err)
+		}
+		return output, nil
+	}
+
+	// Remote file
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create session: %w", err)
+	}
+	defer session.Close()
+	session.Stdout = nil // Disable stdout to capture output
+	return session.Output(cmd)
+}

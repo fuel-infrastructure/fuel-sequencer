@@ -19,6 +19,9 @@ var (
 	wantArch    string = "linux-amd64"                     // Arch specified from build binary suffix
 	buildPath   string = makefileDir + "/build"            // Path where binary will be built
 	dataDir     string = makefileDir + "/e2e/cluster/data" // Directory with template data
+	servicePath string = makefileDir + "/e2e/cluster/systemd/fuelsequencerd.service" // Path to the systemd service file
+	systemdPath string = "/etc/systemd/system/fuelsequencerd.service"                // Path to the systemd service file on the remote machine
+	binaryName  string = "fuelsequencerd"                                            // Name of the binary
 
 	// Sequencer Parameters
 	chainName = "seq-benchnet-1"
@@ -60,6 +63,10 @@ var (
 	}
 )
 
-func homeDir(d destination) string {
-	return filepath.Join("/home", d.user, ".fuelsequencer")
+func chainHomeDir(d destination) string {
+	return filepath.Join(d.dir, ".fuelsequencer")
+}
+
+func remoteBinaryPath(d destination) string {
+	return filepath.Join(d.dir, binaryName)
 }

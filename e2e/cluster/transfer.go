@@ -10,26 +10,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func transferFiles(connections []connection, binaryPath string) error {
-	l := logging.Named("Transfer")
-	binaryName := filepath.Base(binaryPath)
-	for _, conn := range connections {
-		remoteBinaryPath := filepath.Join(conn.dir, binaryName)
-		logging.Infow("transferring binary...", "from", binaryPath, "to", fmt.Sprintf("%s@%s:%s", conn.user, conn.host, remoteBinaryPath))
-		if err := transfer(l, conn.SSH, binaryPath, remoteBinaryPath); err != nil {
-			return fmt.Errorf("failed to transfer binary to %s: %w", conn.destination.host, err)
-		}
-
-		remoteDataDir := filepath.Join(conn.dir, ".fuelsequencer")
-		logging.Infow("transferring data...", "from", dataDir, "to", fmt.Sprintf("%s@%s:%s", conn.user, conn.host, remoteDataDir))
-		if err := transfer(l, conn.SSH, dataDir, remoteDataDir); err != nil {
-			return fmt.Errorf("failed to transfer data to %s: %w", conn.destination.host, err)
-		}
-	}
-
-	return nil
-}
-
 // transfer a file over ssh using scp
 func transfer(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath string) error {
 	if err := ensureDir(l, client, filepath.Dir(remotePath)); err != nil {
@@ -39,10 +19,6 @@ func transfer(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath st
 	if err := transferPath(l, client, localPath, remotePath); err != nil {
 		return fmt.Errorf("failed to transfer file: %w", err)
 	}
-
-	// if err := verifyTransfer(conn.SSH, remotePath, 0); err != nil {
-	// 	return fmt.Errorf("failed to verify binary transfer to %s: %w", conn.destination.host, err)
-	// }
 
 	return nil
 }
@@ -169,34 +145,3 @@ func sendFile(w io.Writer, localPath, remoteName string, stat os.FileInfo) error
 	fmt.Fprint(w, "\x00")
 	return nil
 }
-
-// // Additional helper function to verify file transfer
-// func verifyTransfer(client *ssh.Client, remotePath string, expectedSize int64) error {
-// 	log.Debugf("Verifying file transfer: %s", remotePath)
-
-// 	cmd := fmt.Sprintf("stat -f '%%z' %s", remotePath)
-// 	session, err := client.NewSession()
-// 	if err != nil {
-// 		return fmt.Errorf("failed to create session: %w", err)
-// 	}
-// 	defer session.Close()
-
-// 	var output bytes.Buffer
-// 	session.Stdout = &output
-
-// 	if err := session.Run(cmd); err != nil {
-// 		return fmt.Errorf("failed to verify file: %w", err)
-// 	}
-
-// 	size, err := strconv.ParseInt(strings.TrimSpace(output.String()), 10, 64)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to parse file size: %w", err)
-// 	}
-
-// 	if size != expectedSize {
-// 		return fmt.Errorf("size mismatch: expected %d, got %d", expectedSize, size)
-// 	}
-
-// 	log.Debug("File transfer verified successfully")
-// 	return nil
-// }
