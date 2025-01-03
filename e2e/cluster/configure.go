@@ -3,6 +3,7 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -36,17 +37,18 @@ type sequencer struct {
 func configureNetwork() error {
 	l := logging.Named("Configure")
 
-	// Initialize chain with 3 nodes
+	// Initialize chain with defined number of nodes
 	chain, err := testsuite.NewFixedChain(chainName, dataDir, len(mnemonics))
 	if err != nil {
 		return fmt.Errorf("failed to create chain: %w", err)
 	}
 
-	// if _, err := os.Stat(chain.DataDir); !os.IsNotExist(err) {
-	// 	return fmt.Errorf("data directory already exists: %s", chain.DataDir)
-	// }
+	if _, err := os.Stat(chain.ConfigDir()); !os.IsNotExist(err) {
+		l.Warnw("data directory already exists - skipping configuration setup...", "network", chainName, "path", chain.ConfigDir())
+		return nil
+	}
 
-	l.Infow("setting up data for new chain...", "name", chainName, "path", chain.DataDir)
+	l.Infow("setting up data for new chain...", "name", chainName, "path", chain.ConfigDir())
 
 	s := &sequencer{chain: chain}
 
