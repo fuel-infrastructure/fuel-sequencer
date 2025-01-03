@@ -201,7 +201,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// generate genesis txs
 	genTxs := make([]json.RawMessage, len(s.Chain.Validators))
 	for i, val := range s.Chain.Validators {
-		createValmsg, err := val.BuildCreateValidatorMsg(InitStakedCoin)
+		createValmsg, err := val.BuildCreateValidatorMsg(val.InstanceName(), InitStakedCoin)
 		s.Require().NoError(err)
 
 		signedTx, err := val.SignMsg(createValmsg)

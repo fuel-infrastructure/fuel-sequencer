@@ -197,8 +197,8 @@ func (v *validator) createKey(name string) error { //nolint:unused
 	return v.createKeyFromMnemonic(name, mnemonic, "")
 }
 
-func (v *validator) BuildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
-	description := stakingtypes.NewDescription(v.Moniker, "", "", "", "")
+func (v *validator) BuildCreateValidatorMsg(moniker string, amount sdk.Coin) (sdk.Msg, error) {
+	description := stakingtypes.NewDescription(moniker, "", "", "", "")
 	commissionRates := stakingtypes.CommissionRates{
 		Rate:          math.LegacyMustNewDecFromStr("0.1"),
 		MaxRate:       math.LegacyMustNewDecFromStr("0.2"),
