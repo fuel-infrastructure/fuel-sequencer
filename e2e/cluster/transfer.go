@@ -48,17 +48,10 @@ func transfer(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath st
 }
 
 func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) error {
-	// Create new SFTP client
-	session, err := client.NewSession()
-	if err != nil {
-		return fmt.Errorf("failed to create session: %w", err)
-	}
-	defer session.Close()
-
 	// First, ensure the remote directory exists
 	remoteDir := filepath.Dir(remotePath)
 	mkdirCmd := fmt.Sprintf("mkdir -vp %s", remoteDir)
-	if err := remotely(l, session, mkdirCmd); err != nil {
+	if err := remotely(l, client, mkdirCmd); err != nil {
 		return fmt.Errorf("failed to create remote directory: %w", err)
 	}
 

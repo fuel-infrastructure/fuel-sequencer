@@ -74,7 +74,14 @@ func locally(l *zap.SugaredLogger, name string, args ...string) error {
 	return execute(l.Named("CMD"), exec.Command(name, args...))
 }
 
-func remotely(l *zap.SugaredLogger, session *ssh.Session, cmd string) error {
+func remotely(l *zap.SugaredLogger, client *ssh.Client, cmd string) error {
+	// Create new SSH client
+	session, err := client.NewSession()
+	if err != nil {
+		return fmt.Errorf("failed to create session: %w", err)
+	}
+	defer session.Close()
+
 	return execute(l.Named("SSH"), &sshSessionExecutor{Session: session, cmd: cmd})
 }
 
