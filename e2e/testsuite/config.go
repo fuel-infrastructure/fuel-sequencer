@@ -31,7 +31,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		valConfig.LogLevel = "info"
 		valConfig.Instrumentation.Prometheus = true
 
-		// speed up blocks // TODO: Configurable/Discuss??
+		// speed up blocks
 		valConfig.Consensus.TimeoutCommit = 1 * time.Second
 		valConfig.Consensus.TimeoutPropose = 1 * time.Second
 
