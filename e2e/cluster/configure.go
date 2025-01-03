@@ -303,7 +303,7 @@ func (s *sequencer) initValidatorConfigs() error {
 		}
 
 		valConfig.P2P.PersistentPeers = strings.Join(peers, ",")
-
+		valConfig.Moniker = val.InstanceName()
 		cmconfig.WriteConfigFile(cmCfgPath, valConfig)
 
 		// set application configuration
