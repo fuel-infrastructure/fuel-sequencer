@@ -10,10 +10,11 @@ import (
 )
 
 type destination struct {
-	host string
-	user string
-	auth ssh.AuthMethod
-	dir  string
+	peer_ip string
+	host    string
+	user    string
+	auth    ssh.AuthMethod
+	dir     string
 }
 
 type connection struct {

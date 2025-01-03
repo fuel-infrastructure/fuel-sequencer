@@ -48,7 +48,13 @@ var (
 
 	// Remote Parameters
 	destinations = []destination{
-		{host: "localhost", user: "benchmarks", auth: ssh.Password("password"), dir: "/home/benchmarks"},
+		{
+			peer_ip: "127.0.0.1",
+			host:    "localhost",
+			user:    "benchmarks",
+			auth:    ssh.Password("password"),
+			dir:     "/home/benchmarks",
+		},
 	}
 )
 

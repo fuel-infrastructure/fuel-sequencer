@@ -278,7 +278,7 @@ func (s *sequencer) initValidatorConfigs() error {
 
 		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
 		valConfig.P2P.AddrBookStrict = false
-		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", val.InstanceName(), 26656)
+		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", destinations[i].peer_ip, 26656)
 		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
@@ -296,7 +296,7 @@ func (s *sequencer) initValidatorConfigs() error {
 			}
 
 			peer := s.chain.Validators[j]
-			peerID := fmt.Sprintf("%s@%s%d:26656", peer.NodeKey.ID(), peer.Moniker, j)
+			peerID := fmt.Sprintf("%s@%s:26656", peer.NodeKey.ID(), destinations[j].peer_ip)
 			peers = append(peers, peerID)
 		}
 
