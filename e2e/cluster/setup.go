@@ -49,18 +49,13 @@ func Setup() error {
 	}
 	defer closeConnections(connections)
 
-	// // Ensure destinations are clean (no existing instance running)
-	// if err := cleanDestinations(connections); err != nil {
-	// 	return logAndWrapErr("destination cleanup failed", err)
-	// }
-
-	// Transfer binary to all destinations
-	if err := transferFiles(connections, binaryPath); err != nil {
-		return logAndWrapErr("binary transfer failed", err)
+	// Manage destinations (clean existing instances and transfer necessary files)
+	if err := manageDestinations(connections, binaryPath); err != nil {
+		return logAndWrapErr("destination cleanup failed", err)
 	}
 
-	// Setup each node in the cluster, using E2ETestSuite
-	if err := deployNetwork(connections, binaryPath); err != nil {
+	// Setup and run each node in the cluster
+	if err := deployNetwork(connections); err != nil {
 		return logAndWrapErr("cluster setup failed", err)
 	}
 
