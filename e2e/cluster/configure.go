@@ -201,7 +201,7 @@ func (s *sequencer) initGenesis() error {
 	// generate genesis txs
 	genTxs := make([]json.RawMessage, len(s.chain.Validators))
 	for i, val := range s.chain.Validators {
-		createValmsg, err := val.BuildCreateValidatorMsg(InitStakedCoin)
+		createValmsg, err := val.BuildCreateValidatorMsg(val.InstanceName(), InitStakedCoin)
 		if err != nil {
 			return fmt.Errorf("failed to build create validator message: %w", err)
 		}
