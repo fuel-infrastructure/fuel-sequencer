@@ -153,7 +153,7 @@ func newChain(numNodes int) (*Chain, error) {
 	}, nil
 }
 
-func (c *Chain) configDir() string {
+func (c *Chain) ConfigDir() string {
 	return fmt.Sprintf("%s/%s", c.DataDir, c.id)
 }
 

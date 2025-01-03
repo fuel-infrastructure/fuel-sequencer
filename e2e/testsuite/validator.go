@@ -55,7 +55,7 @@ func (v *validator) InstanceName() string {
 }
 
 func (v *validator) ConfigDir() string {
-	return filepath.Join(v.chain.configDir(), v.InstanceName())
+	return filepath.Join(v.chain.ConfigDir(), v.InstanceName())
 }
 
 func (v *validator) createConfig() error {
