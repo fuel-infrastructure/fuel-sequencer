@@ -13,7 +13,7 @@ type destination struct {
 	peer_ip string
 	host    string
 	user    string
-	auth    ssh.AuthMethod
+	pass    string
 	dir     string
 }
 
@@ -74,7 +74,7 @@ func connectSSH(dest destination) (*ssh.Client, error) {
 
 	config := &ssh.ClientConfig{
 		User:            dest.user,
-		Auth:            []ssh.AuthMethod{dest.auth},
+		Auth:            []ssh.AuthMethod{ssh.Password(dest.pass)},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Note: In production, use ssh.FixedHostKey() or ssh.KnownHosts()
 		Timeout:         30 * time.Second,
 	}
