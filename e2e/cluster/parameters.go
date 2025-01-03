@@ -4,17 +4,20 @@ import (
 	"path/filepath"
 	"time"
 
-	"golang.org/x/crypto/ssh"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+)
+
+const (
+	BridgeDenom = testsuite.BridgeDenom // as configuration is being generated from testsuite, tied to it - effectively constant
 )
 
 var (
 	// Binary Parameters
-	makefileDir string = "/home/user/fuel-sequencer"         // Absolute path to the directory where makefile is located
-	wantArch    string = "linux-amd64"                       // Arch specified from build binary suffix
-	buildPath   string = makefileDir + "/build"              // Path where binary will be built
+	makefileDir string = "/home/user/fuel-sequencer"       // Absolute path to the directory where makefile is located
+	wantArch    string = "linux-amd64"                     // Arch specified from build binary suffix
+	buildPath   string = makefileDir + "/build"            // Path where binary will be built
 	dataDir     string = makefileDir + "/e2e/cluster/data" // Directory with template data
 
 	// Sequencer Parameters
@@ -33,7 +36,6 @@ var (
 	BridgeDenomTotalSupply, initSupplyValid = sdkmath.NewIntFromString("10000000000000000000") // 10 bil x 1e9
 
 	// Balance and staked amount per validator
-	BridgeDenom                   = /*cl*/ "uster"
 	initBalance, initBalanceValid = sdkmath.NewIntFromString("20000000000000000000") // 20 bil x 1e9
 	initStaked, initStakedValid   = sdkmath.NewIntFromString("2000000000")           // 2e9
 	InitBalanceCoin               = sdk.NewCoin(BridgeDenom, initBalance)
@@ -52,7 +54,7 @@ var (
 			peer_ip: "127.0.0.1",
 			host:    "localhost",
 			user:    "benchmarks",
-			auth:    ssh.Password("password"),
+			pass:    "password",
 			dir:     "/home/benchmarks",
 		},
 	}
