@@ -286,9 +286,9 @@ func (s *sequencer) initValidatorConfigs() error {
 		valConfig.LogLevel = "info"
 		valConfig.Instrumentation.Prometheus = true
 
-		// speed up blocks // TODO: Configurable/Discuss??
-		valConfig.Consensus.TimeoutCommit = 1 * time.Second
-		valConfig.Consensus.TimeoutPropose = 1 * time.Second
+		// speed up blocks
+		valConfig.Consensus.TimeoutCommit = 5 * time.Second
+		valConfig.Consensus.TimeoutPropose = 3 * time.Second
 
 		var peers []string
 
