@@ -161,7 +161,7 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 
 			// When calculating tokens from shares we always want to truncate, to not report tokens that the delegator
 			// does not actually have. An example of this reasoning in practice is RemoveDelShares, which calculates
-			// the tokens returned from removing a number of shared from a validator.
+			// the tokens returned from removing a number of shares from a validator.
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/types/validator.go#L414
 
 			validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
