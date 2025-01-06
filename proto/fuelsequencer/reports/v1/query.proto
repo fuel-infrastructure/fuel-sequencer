@@ -1,6 +1,7 @@
 syntax = "proto3";
 package fuelsequencer.reports.v1;
 
+import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -90,10 +91,12 @@ message QueryGetSlashEntryRequest {
   uint64 height = 1;
 
   // address of the delegator delegating to the slashed validator
-  string delegator_address = 2;
+  string delegator_address = 2
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // address of the validator that has been slashed
-  string validator_address = 3;
+  string validator_address = 3
+      [ (cosmos_proto.scalar) = "cosmos.ValidatorAddressString" ];
 }
 
 // QueryGetSlashEntryResponse is response type for the Query/GetSlashEntry RPC
