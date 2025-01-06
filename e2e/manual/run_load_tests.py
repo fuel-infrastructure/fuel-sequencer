@@ -47,6 +47,7 @@ if __name__ == "__main__":
     seq = FuelSequencerChain(
         binary=CONFIG.seq_bin,
         node=CONFIG.seq_rpc,
+        rest=CONFIG.seq_rest,
         chain_id=CONFIG.seq_chain,
         key_name=key,
         voting_period=10,
