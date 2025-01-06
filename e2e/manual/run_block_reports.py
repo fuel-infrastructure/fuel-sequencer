@@ -46,18 +46,33 @@ def base64_decoded_size(encoded_str):
     return (l * 3) // 4 - p
 
 
-def run_report_1(start_height: int, end_height: int):
+def run_blob_report(start_height: int, end_height: int, blob_size_bytes: int = None):
     start_block = get_commit(start_height)
     start_block_timestamp = parser.parse(start_block["signed_header"]["header"]["time"])
     end_block = get_commit(end_height)
     end_block_timestamp = parser.parse(end_block["signed_header"]["header"]["time"])
     block_range_time = end_block_timestamp - start_block_timestamp
     seconds_per_block = block_range_time / (end_height - start_height)
+    count = end_height - start_height
+
+    blob_str = ""
+    if blob_size_bytes is not None:
+        blob_data_stored = blob_size_bytes * count
+        blob_throughput = blob_data_stored / block_range_time.total_seconds()
+        blob_throughput_mb = blob_throughput / 1000000
+
+        blob_str = (
+            f"\n- Blob size: {blob_size_bytes} Bytes"
+            f"\n- Blob data stored: {blob_data_stored} Bytes"
+            f"\n- Blob throughput: {blob_throughput:.3f} B/s"
+            f"\n- Blob throughput: {blob_throughput_mb:.3f} MB/s"
+        )
+
     print(
         f"From {start_height} to {end_height}:\n"
-        f"- Number of blocks: {end_height - start_height}\n"
+        f"- Number of blocks: {count}\n"
         f"- Time elapsed: {block_range_time}\n"
-        f"- Seconds per block: {seconds_per_block}"
+        f"- Seconds per block: {seconds_per_block}" + blob_str
     )
 
 
@@ -125,7 +140,7 @@ if __name__ == "__main__":
     # Report 1
     for i in range(len(start_heights)):
         print(f"\n--- (Report 1.{i})")
-        run_report_1(start_heights[i], end_heights[i])
+        run_blob_report(start_heights[i], end_heights[i])
 
     # Report 2
     for i, signer in enumerate(signers):
