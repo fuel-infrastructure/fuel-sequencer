@@ -18,9 +18,7 @@ account_query = "/cosmos/auth/v1beta1/account_info/"
 
 
 def get_account(address: str, height: Optional[Union[str, int]] = None):
-    headers = {
-        "x-cosmos-block-height": str(height)
-    } if height is not None else {}
+    headers = {"x-cosmos-block-height": str(height)} if height is not None else {}
     return requests.get(
         f"{sequencer_rest}{account_query}{address}",
         headers=headers,
@@ -28,11 +26,11 @@ def get_account(address: str, height: Optional[Union[str, int]] = None):
 
 
 def get_block(n):
-    return requests.get(f"{sequencer_rpc}{block_query}{n}").json()['result']
+    return requests.get(f"{sequencer_rpc}{block_query}{n}").json()["result"]
 
 
 def get_commit(n):
-    return requests.get(f"{sequencer_rpc}{commit_query}{n}").json()['result']
+    return requests.get(f"{sequencer_rpc}{commit_query}{n}").json()["result"]
 
 
 def get_latest_commit():
@@ -45,7 +43,7 @@ def get_latest_block():
 
 # Calculate block range based on latest height
 latest_block = get_latest_commit()
-latest_height = int(latest_block['signed_header']['header']['height'])
+latest_height = int(latest_block["signed_header"]["header"]["height"])
 end_heights = [latest_height]
 start_heights = [latest_height - 200]
 
@@ -71,20 +69,16 @@ signers = [
 
 def base64_decoded_size(encoded_str):
     l = len(encoded_str)
-    p = encoded_str.count('=')  # Count padding characters
+    p = encoded_str.count("=")  # Count padding characters
     return (l * 3) // 4 - p
 
 
 def run_report_1(start_height: int, end_height: int):
     start_block = get_commit(start_height)
-    start_block_timestamp = parser.parse(
-        start_block['signed_header']['header']['time']
-    )
+    start_block_timestamp = parser.parse(start_block["signed_header"]["header"]["time"])
     end_block = get_commit(end_height)
-    end_block_timestamp = parser.parse(
-        end_block['signed_header']['header']['time']
-    )
-    block_range_time = (end_block_timestamp - start_block_timestamp)
+    end_block_timestamp = parser.parse(end_block["signed_header"]["header"]["time"])
+    block_range_time = end_block_timestamp - start_block_timestamp
     seconds_per_block = block_range_time / (end_height - start_height)
     print(
         f"From {start_height} to {end_height}:\n"
@@ -95,8 +89,8 @@ def run_report_1(start_height: int, end_height: int):
 
 
 def run_report_2(start_height: int, end_height: int, address: str):
-    sequence1 = int(get_account(address, start_height)['info']['sequence'])
-    sequence2 = int(get_account(address, end_height)['info']['sequence'])
+    sequence1 = int(get_account(address, start_height)["info"]["sequence"])
+    sequence2 = int(get_account(address, end_height)["info"]["sequence"])
     print(
         f"Transactions from {start_height} to {end_height} ({address}): "
         f"{sequence2 - sequence1}"
@@ -106,16 +100,15 @@ def run_report_2(start_height: int, end_height: int, address: str):
 def run_report_3(start_height: int, end_height: int):
     previous_block_timestamp = None
     for n in range(start_height, end_height):
-
         try:
             block = get_block(n)
-            block_timestamp = parser.parse(block['block']['header']['time'])
+            block_timestamp = parser.parse(block["block"]["header"]["time"])
 
-            block_txs = block['block']['data']['txs']
+            block_txs = block["block"]["data"]["txs"]
             txs_size = sum(base64_decoded_size(item) for item in block_txs)
 
             if previous_block_timestamp is not None:
-                block_time = (block_timestamp - previous_block_timestamp)
+                block_time = block_timestamp - previous_block_timestamp
                 print(
                     f"{n - 1} to {n} :: {block_time} "
                     f"(at {block_timestamp}) (size {txs_size})"
