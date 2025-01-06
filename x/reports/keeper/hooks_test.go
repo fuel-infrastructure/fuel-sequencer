@@ -117,6 +117,11 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 	slashFraction := sdkmath.LegacyOneDec()
 	undelegationBalance := sdkmath.NewIntWithDecimal(1, 9)
 
+	// Sanity check Governance account balance pre-slash
+	govAccount := s.App.GovKeeper.GetGovernanceAccount(hctx).GetAddress()
+	govAccountBalance := s.App.BankKeeper.GetBalance(hctx, govAccount, sdk.DefaultBondDenom)
+	s.Require().True(govAccountBalance.IsZero())
+
 	// Sanity check the NotBondedPoolName balance
 	acc := s.App.AccountKeeper.GetModuleAccount(hctx, stakingtypes.NotBondedPoolName)
 	s.Require().Empty(s.App.BankKeeper.GetAllBalances(hctx, acc.GetAddress()))
@@ -153,19 +158,24 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 	slashReport, found := s.App.ReportsKeeper.GetSlashReport(hctx, uint64(currHeight))
 	s.Require().True(found)
 
+	expectedTotalSlash := undelegationBalance // all tokens slashed
 	expectedSlashReport := types.SlashReport{
 		Height: uint64(currHeight),
 		Entries: []types.SlashEntry{
 			{
 				ValidatorAddress:          testtypes.TestValAddr1Str,
 				DelegatorAddress:          testtypes.TestSeqAddr1Str,
-				DelegatorSlashAmount:      undelegationBalance, // all tokens slashed
-				DelegatorBondedBalance:    sdkmath.ZeroInt(),   // n/a
-				DelegatorUnbondingBalance: sdkmath.ZeroInt(),   // n/a
+				DelegatorSlashAmount:      expectedTotalSlash,
+				DelegatorBondedBalance:    sdkmath.ZeroInt(), // n/a
+				DelegatorUnbondingBalance: sdkmath.ZeroInt(), // n/a
 			},
 		},
 	}
 	s.Require().Equal(expectedSlashReport, slashReport)
+
+	// Sanity check that tokens don't actually get burned
+	govAccountBalance = s.App.BankKeeper.GetBalance(hctx, govAccount, sdk.DefaultBondDenom)
+	s.Require().True(govAccountBalance.Amount.Equal(expectedTotalSlash))
 }
 
 func (s *KeeperTestSuite) TestAfterRedelegationSlashed() {
@@ -272,6 +282,11 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	validatorTokens := sdkmath.NewIntWithDecimal(1, 9)
 	undelegationBalance := sdkmath.OneInt() // just 1 unit, so we can focus more on the redelegation
 
+	// Sanity check Governance account balance pre-slash
+	govAccount := s.App.GovKeeper.GetGovernanceAccount(hctx).GetAddress()
+	govAccountBalance := s.App.BankKeeper.GetBalance(hctx, govAccount, sdk.DefaultBondDenom)
+	s.Require().True(govAccountBalance.IsZero())
+
 	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx())
 	s.Require().NoError(err)
 
@@ -343,15 +358,16 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	slashReport, found := s.App.ReportsKeeper.GetSlashReport(hctx, uint64(currHeight))
 	s.Require().True(found)
 
+	expectedTotalSlash := validators[1].Tokens.Add(undelegationBalance) // all validator and undelegation tokens slashed
 	expectedSlashReport := types.SlashReport{
 		Height: uint64(currHeight),
 		Entries: []types.SlashEntry{
 			{
 				ValidatorAddress:          validators[1].OperatorAddress,
 				DelegatorAddress:          validator1Delegator,
-				DelegatorSlashAmount:      validators[1].Tokens.Add(undelegationBalance), // all validator and undelegation tokens slashed
-				DelegatorBondedBalance:    sdkmath.ZeroInt(),                             // n/a
-				DelegatorUnbondingBalance: sdkmath.ZeroInt(),                             // n/a
+				DelegatorSlashAmount:      expectedTotalSlash,
+				DelegatorBondedBalance:    sdkmath.ZeroInt(), // n/a
+				DelegatorUnbondingBalance: sdkmath.ZeroInt(), // n/a
 			},
 		},
 	}
@@ -363,6 +379,10 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	)
 	s.Require().NoError(err)
 	s.Require().True(undelegationAfter.Entries[0].Balance.IsZero()) // the undelegation was fully slashed
+
+	// Sanity check that tokens don't actually get burned
+	govAccountBalance = s.App.BankKeeper.GetBalance(hctx, govAccount, sdk.DefaultBondDenom)
+	s.Require().True(govAccountBalance.Amount.Equal(expectedTotalSlash))
 }
 
 func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
