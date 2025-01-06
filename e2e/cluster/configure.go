@@ -320,6 +320,7 @@ func (s *sequencer) initValidatorConfigs() error {
 		appConfig.CommitmentsConfig.MaxQueryRange = 4096
 		appConfig.Telemetry.Enabled = true
 		appConfig.Telemetry.PrometheusRetentionTime = 60 // 1 minute
+		appConfig.SidecarConfig.Enabled = false
 
 		srvconfig.SetConfigTemplate(customAppTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
