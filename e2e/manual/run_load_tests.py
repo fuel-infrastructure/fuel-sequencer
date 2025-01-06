@@ -10,6 +10,7 @@ from load_test.utils import *
 from utils.classes import FuelSequencerChain
 from utils.constants import *
 from utils.networks import Networks, NetworkConfig
+from run_block_reports import run_blob_report
 
 NETWORK = Networks.TESTNET  # Change me to load test other networks!
 CONFIG = NetworkConfig(NETWORK)
@@ -140,3 +141,6 @@ if __name__ == "__main__":
     # Wait for last process to finish
     if process:
         process.join()
+
+    print(f"\n\nRunning blob report...")
+    run_blob_report(start_block, last_block, blob_size_bytes=BLOB_SIZE_BYTES)
