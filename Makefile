@@ -148,18 +148,20 @@ clean: clean-e2e
 	@echo "✅ Finished cleaning!"
 
 build-fuelsequencerd:
-	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 $(MAIN)
-
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 $(MAIN)
-
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
-
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-arm64..."
-	@GOOS=darwin GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-arm64 $(MAIN)
+	@$(eval UNAME_S := $(shell uname -s))
+    ifeq ($(UNAME_S),Darwin)
+		@echo "⚠️ Only building darwin binaries. Linux device required to build linux binaries."
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
+		@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 ./cmd/fuelsequencerd/main.go
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-arm64..."
+		@GOOS=darwin GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-arm64 ./cmd/fuelsequencerd/main.go
+    else
+		@echo "⚠️ Only building linux binaries. Darwin device required to build darwin binaries."
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
+		@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 ./cmd/fuelsequencerd/main.go
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
+		@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 ./cmd/fuelsequencerd/main.go
+    endif
 
 build-all: clean build-fuelsequencerd
 	@echo "✅ Finished building all!"
