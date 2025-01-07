@@ -113,7 +113,7 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 	currHeight := int64(100)
 	infractionHeight := currHeight
 	currTime := time.Now()
-	hctx := s.Ctx().WithBlockHeight(currHeight)
+	hctx := s.Ctx().WithBlockHeight(currHeight).WithBlockTime(currTime)
 	slashFraction := sdkmath.LegacyOneDec()
 	undelegationBalance := sdkmath.NewIntWithDecimal(1, 9)
 
@@ -143,7 +143,7 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 		Entries: []stakingtypes.UnbondingDelegationEntry{
 			{
 				CreationHeight:          currHeight + 1,                   // after current height
-				CompletionTime:          currTime.Add(-time.Hour),         // before current time
+				CompletionTime:          currTime.Add(time.Hour),          // after current time
 				InitialBalance:          sdkmath.NewIntWithDecimal(1, 20), // Should be >= Balance
 				Balance:                 undelegationBalance,              // Amount that will get slashed
 				UnbondingId:             0,                                // n/a
@@ -277,7 +277,7 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	currHeight := int64(100)
 	infractionHeight := currHeight
 	currTime := time.Now()
-	hctx := s.Ctx().WithBlockHeight(currHeight)
+	hctx := s.Ctx().WithBlockHeight(currHeight).WithBlockTime(currTime)
 	slashFraction := sdkmath.LegacyOneDec()
 	validatorTokens := sdkmath.NewIntWithDecimal(1, 9)
 	undelegationBalance := sdkmath.OneInt() // just 1 unit, so we can focus more on the redelegation
@@ -311,7 +311,7 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 		Entries: []stakingtypes.RedelegationEntry{
 			{
 				CreationHeight:          currHeight + 1,                   // after current height
-				CompletionTime:          currTime.Add(-time.Hour),         // before current time
+				CompletionTime:          currTime.Add(time.Hour),          // after current time
 				InitialBalance:          sdkmath.NewIntWithDecimal(1, 20), // Large value to make sure we slash both the undelegation and redelegation
 				SharesDst:               sdkmath.LegacyOneDec(),           // validator has 1 share
 				UnbondingId:             0,                                // n/a
@@ -340,12 +340,12 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 		ValidatorAddress: validators[1].OperatorAddress,
 		Entries: []stakingtypes.UnbondingDelegationEntry{
 			{
-				CreationHeight:          currHeight + 1,           // after current height
-				CompletionTime:          currTime.Add(-time.Hour), // before current time
-				InitialBalance:          sdkmath.Int{},            // n/a in this context
-				Balance:                 undelegationBalance,      // Amount that will get slashed
-				UnbondingId:             0,                        // n/a
-				UnbondingOnHoldRefCount: 0,                        // n/a
+				CreationHeight:          currHeight + 1,          // after current height
+				CompletionTime:          currTime.Add(time.Hour), // after current time
+				InitialBalance:          sdkmath.Int{},           // n/a in this context
+				Balance:                 undelegationBalance,     // Amount that will get slashed
+				UnbondingId:             0,                       // n/a
+				UnbondingOnHoldRefCount: 0,                       // n/a
 			},
 		},
 	}

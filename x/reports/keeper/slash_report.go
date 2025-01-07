@@ -161,7 +161,6 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 	for i, entry := range report.Entries {
 
 		// We can assume addresses are bech32 encoded since the reports are not populated from hex addresses.
-
 		delAddr := sdk.MustAccAddressFromBech32(entry.DelegatorAddress)
 		valAddr, err := sdk.ValAddressFromBech32(entry.ValidatorAddress)
 		if err != nil {
@@ -169,7 +168,6 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 		}
 
 		// Calculate delegator bonded balance
-
 		del, err := k.stakingKeeper.GetDelegation(ctx, delAddr, valAddr)
 		if err != nil {
 			if !errors.Is(err, stakingtypes.ErrNoDelegation) {
@@ -180,9 +178,8 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 
 			// When calculating tokens from shares we always want to truncate, to not report tokens that the delegator
 			// does not actually have. An example of this reasoning in practice is RemoveDelShares, which calculates
-			// the tokens returned from removing a number of shared from a validator.
+			// the tokens returned from removing a number of shares from a validator.
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/types/validator.go#L414
-
 			validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
 			if err != nil {
 				return err
@@ -191,7 +188,6 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 		}
 
 		// Calculate delegator unbonding balance
-
 		ubd, err := k.stakingKeeper.GetUnbondingDelegation(ctx, delAddr, valAddr)
 		if err != nil {
 			if !errors.Is(err, stakingtypes.ErrNoUnbondingDelegation) {
@@ -202,7 +198,6 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 
 			// Replicate logic from GetDelegatorUnbonding but for just one validator.
 			// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/delegation.go#L268
-
 			unbonding := sdkmath.ZeroInt()
 			for _, entry := range ubd.Entries {
 				unbonding = unbonding.Add(entry.Balance)

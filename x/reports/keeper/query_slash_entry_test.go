@@ -60,7 +60,7 @@ func TestQuerySlashEntry(t *testing.T) {
 		{
 			desc: "KeyNotFound - wrong delegator",
 			request: &types.QueryGetSlashEntryRequest{
-				Height:           orderedSlashReports[1].Height,
+				Height:           orderedSlashReports[0].Height,
 				DelegatorAddress: sample.AccAddress(),
 				ValidatorAddress: orderedSlashReports[0].Entries[0].ValidatorAddress,
 			},
@@ -69,7 +69,7 @@ func TestQuerySlashEntry(t *testing.T) {
 		{
 			desc: "KeyNotFound - wrong validator",
 			request: &types.QueryGetSlashEntryRequest{
-				Height:           orderedSlashReports[1].Height,
+				Height:           orderedSlashReports[0].Height,
 				DelegatorAddress: orderedSlashReports[0].Entries[0].DelegatorAddress,
 				ValidatorAddress: sample.ValAddress(),
 			},
