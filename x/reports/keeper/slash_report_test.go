@@ -423,7 +423,7 @@ func TestRemoveAllSlashReportsUntilHeight(t *testing.T) {
 		{
 			name:               "Remove until last height",
 			setSlashReports:    slashReports,
-			removeUntil:        startHeight + 9
+			removeUntil:        startHeight + 9,
 			expectSlashReports: nil, // All removed
 		},
 		{
