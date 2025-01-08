@@ -1124,7 +1124,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// DepositEvent represents the corresponding event raised by the SequencerProxy
+// DepositEvent represents the deposit event raised by the SequencerProxy
 // contract. This message represents the event structure on the Sequencer.
 type DepositEvent struct {
 	state         protoimpl.MessageState
@@ -1192,9 +1192,8 @@ func (x *DepositEvent) GetLockup() string {
 	return ""
 }
 
-// AuthorizeEvent represents the corresponding event raised by the
-// SequencerProxy contract. This message represents the event structure on the
-// Sequencer.
+// AuthorizeEvent represents the authorize event raised by the SequencerProxy
+// contract. This message represents the event structure on the Sequencer.
 type AuthorizeEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
