@@ -72,7 +72,7 @@ func (k Keeper) RemoveSlashReport(ctx context.Context, height uint64) {
 }
 
 // RemoveAllSlashReportsUntilHeight removes all SlashReport with height smaller than or equal to the specified height.
-func (k Keeper) RemoveAllSlashReportsUntilHeight(ctx context.Context, upToHeight uint64) (list []types.SlashReport) {
+func (k Keeper) RemoveAllSlashReportsUntilHeight(ctx context.Context, upToHeight uint64) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
