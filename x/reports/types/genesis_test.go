@@ -39,7 +39,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "params not set",
 			genState: &types.GenesisState{
-				SlashReportList: []types.SlashReport{testtypes.ValidSlashReport1, testtypes.ValidSlashReport1},
+				SlashReportList: []types.SlashReport{testtypes.ValidSlashReport1, testtypes.ValidSlashReport2},
 			},
 			valid: false,
 		},

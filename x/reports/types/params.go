@@ -7,6 +7,7 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 const (
+	// DefaultMaxSlashReportAgeBlocks is 1 day assuming an average block time of 6 seconds.
 	DefaultMaxSlashReportAgeBlocks = 14400
 )
 
