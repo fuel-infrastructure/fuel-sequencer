@@ -298,15 +298,12 @@ func startSidecar(
 	if err := scrCfg.Validate(); err != nil {
 		return fmt.Errorf("invalid sidecar config: %s", err)
 	}
-	logger.Info("validated sidecar config", zap.Any("config", scrCfg))
 	if err := seqCfg.Validate(); err != nil {
 		return fmt.Errorf("invalid sequencer config: %s", err)
 	}
-	logger.Info("validated sequencer config", zap.Any("config", seqCfg))
 	if err := ethCfg.Validate(); err != nil {
 		return fmt.Errorf("invalid ethereum config: %s", err)
 	}
-	logger.Info("validated ethereum config", zap.Any("config", ethCfg))
 
 	// Check if the unsafe start block is provided and use it.
 	startBlock := big.NewInt(0)
