@@ -11,7 +11,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgSend_ViaOffchainEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgSend_ViaOffchainEncoding() {
 	s.Run("Submit an authorized MsgSend from Ethereum and check execution results on Sequencer", func() {
 		senderAddress := s.EthKeys[0].AddressHex
 		receiverAddress := s.EthKeys[1].AddressHex
@@ -43,7 +43,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgSend_ViaOffchainEncodi
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_StakingOperations_ViaOffchainEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_StakingOperations_ViaOffchainEncoding() {
 	s.Run("Submit authorized staking operations from Ethereum and check execution results on Sequencer", func() {
 		validator1Address := s.SeqKeys[0].ValAddressSeq
 		validator2Address := s.SeqKeys[1].ValAddressSeq
@@ -165,7 +165,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_StakingOperations_ViaOffc
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_ViaOffchainEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_ViaOffchainEncoding() {
 	s.Run("Submit authorized withdraw to Ethereum from Ethereum and check execution results on Sequencer", func() {
 		withdrawerAddress := s.EthKeys[0].AddressHex
 
@@ -192,7 +192,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_Via
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgVote_ViaOffchainEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgVote_ViaOffchainEncoding() {
 	s.Run("Submit authorized vote from Ethereum and check execution results on Sequencer", func() {
 		voter := s.EthKeys[0].AddressHex
 

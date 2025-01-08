@@ -11,7 +11,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgSend_ViaSidecarEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgSend_ViaSidecarEncoding() {
 	s.Run("Submit a transfer from Ethereum and check execution results on Sequencer", func() {
 		senderAddress := s.EthKeys[0].AddressHex
 		receiverAddress := s.EthKeys[1].AddressHex
@@ -41,7 +41,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgSend_ViaSidecarEncodin
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_StakingOperations_ViaSidecarEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_StakingOperations_ViaSidecarEncoding() {
 	s.Run("Submit staking operations from Ethereum and check execution results on Sequencer", func() {
 		validator1Address := s.SeqKeys[0].ValAddressSeq
 		validator1AddressEth := s.SeqKeys[0].ValAddressEth
@@ -149,7 +149,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_StakingOperations_ViaSide
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_ViaSidecarEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_ViaSidecarEncoding() {
 	s.Run("Submit a withdrawal to Ethereum from Ethereum and check execution results on Sequencer", func() {
 		withdrawerAddress := s.EthKeys[0].AddressHex
 		recipientAddressEth := s.EthKeys[1].Address
@@ -180,7 +180,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_Via
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_MsgVote_ViaSidecarEncoding() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgVote_ViaSidecarEncoding() {
 	s.Run("Submit a vote from Ethereum and check execution results on Sequencer", func() {
 
 		// Create a new dummy proposal to vote on

@@ -10,7 +10,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_InvalidDataDoesNotCauseHalt() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_InvalidDataDoesNotCauseHalt() {
 	s.Run("Invalid data from Ethereum causes Sequencer to skip an invalid authorize event", func() {
 
 		// Generate Authorize event wrapping invalid data.
@@ -27,7 +27,7 @@ func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_InvalidDataDoesNotCauseHa
 	})
 }
 
-func (s *AuthorizeEventsTestSuite) TestAuthorizeEvents_AuthorizeWithTooManyMessagesIsSkipped() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthorizeWithTooManyMessagesIsSkipped() {
 	s.Run("An AuthorizeEvent with more messages than MaxAuthorizeMessages is skipped", func() {
 		senderAddress := s.EthKeys[0].AddressHex
 		receiverAddress := s.EthKeys[1].AddressHex
