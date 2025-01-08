@@ -220,10 +220,10 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		if supplyDeltaHeight == int(supplyDeltaPeriod) {
 			expectInitialSupply, ok := sdkmath.NewIntFromString("60000000000000000000000000000")
 			s.Require().True(ok)
-			expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply).Sub(slashAmount)
+			expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply) // .Sub(slashAmount) :: NOTE: we no longer burn slashed amounts
 			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
 		} else {
-			expectReport := supplyDeltaPeriodProvision.Sub(slashAmount)
+			expectReport := supplyDeltaPeriodProvision // .Sub(slashAmount) :: NOTE: we no longer burn slashed amounts
 			s.Require().EqualValues(expectReport.String(), supplyDeltaAmount.String())
 		}
 	})
