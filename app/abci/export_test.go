@@ -7,7 +7,11 @@ import (
 
 // AuthenticateTx is an export of authenticateTx for testing.
 func (h *FuelSequencerProposalHandler) AuthenticateTx(
-	sender string, msgs []sdk.Msg, params *bridgetypes.Params, blockedAddresses map[string]bool,
+	sender string,
+	msgs []sdk.Msg,
+	params *bridgetypes.Params,
+	blockedAddresses map[string]bool,
+	msgsAreFromAuthorizeEvent bool,
 ) error {
-	return h.authenticateTx(sender, msgs, params, blockedAddresses)
+	return h.authenticateTx(sender, msgs, params, blockedAddresses, msgsAreFromAuthorizeEvent)
 }

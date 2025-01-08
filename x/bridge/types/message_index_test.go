@@ -116,10 +116,10 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 	require.NoError(t, err)
 
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestToken, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 	eventsSize := testtypes.MustGetSizeFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestToken, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 
 	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize
@@ -168,10 +168,10 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 
 	events := testtypes.TestMsgIndex.Events
 	eventTxs := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestToken, events, msgIndexSequence+1,
 	)
 	eventsSize := testtypes.MustGetSizeFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestToken, events, msgIndexSequence+1,
 	)
 
 	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize
@@ -227,7 +227,7 @@ func TestMsgIndex_TrimEventsFromHead(t *testing.T) {
 
 	firstEventTxsSequence := uint64(1)
 	events := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, firstEventTxsSequence,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestToken, testtypes.TestMsgIndex.Events, firstEventTxsSequence,
 	)
 
 	testCases := []struct {
@@ -319,7 +319,7 @@ func TestMsgIndex_KeepEventsFromHead(t *testing.T) {
 
 	eventTxsSequence := uint64(1) // arbitrary
 	eventTxs := testtypes.MustGetEventTxsFromEvents(
-		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, eventTxsSequence,
+		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestToken, testtypes.TestMsgIndex.Events, eventTxsSequence,
 	)
 
 	testCases := []struct {

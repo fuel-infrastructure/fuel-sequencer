@@ -13,57 +13,66 @@ import (
 // be executed, and that any messages resulting from the encoded transaction are valid. An error returned from this
 // function can cause block production to stop, whereas no authentication just means the event should just be skipped.
 //
+// For deposit events, this function is a no-op since MsgDepositFromEthereum does not have a ValidateBasic. We also
+// don't check if the depositor address is blocked. This is intentional, since we want to perform some logic in the
+// message handler even if some values are invalid, ensuring that we always mint the deposited amount.
+//
 // Note: the error always takes priority over the value of the returned bool.
 func (h *FuelSequencerProposalHandler) authenticateEvent(
-	event *sidecartypes.Event, rawTxBytes []byte, params *bridgetypes.Params, blockedBech32Addresses map[string]bool,
+	event *sidecartypes.Event,
+	rawTxBytes []byte,
+	params *bridgetypes.Params,
+	blockedBech32Addresses map[string]bool,
 ) (bool, error) {
 
-	switch event.EventType {
-	case sidecartypes.DepositEventName:
-		// Note: deposits from blocked addresses are considered valid at this stage. This is instead handled
-		// by the message handler, which mints to the governance address if the depositor address is blocked.
-	case sidecartypes.AuthorizeEventName:
-		parsedEvent, err := event.UnmarshalParsedEvent()
-		if err != nil {
-			return false, fmt.Errorf("failed to unmarshal parsed event: %s; event: %s", err.Error(), event)
-		}
+	// Skip deposit event, as outlined in the function documentation.
+	if event.EventType == sidecartypes.DepositEventName {
+		return true, nil
+	}
 
-		authorizeEvent, ok := parsedEvent.(*sidecartypes.AuthorizeEvent)
+	// For other event types, it is very important to validate the messages, otherwise invalid messages will not be seen
+	// by the AnteHandler, which means we will not track the injected transactions correctly.
+
+	parsedEvent, err := event.UnmarshalParsedEvent()
+	if err != nil {
+		return false, fmt.Errorf("failed to unmarshal parsed event: %s; event: %s", err.Error(), event)
+	}
+
+	tx, err := h.txVerifier.TxDecode(rawTxBytes)
+	if err != nil {
+		return false, fmt.Errorf("failed to decode event transaction: %s", err.Error())
+	}
+	msgs := tx.GetMsgs()
+
+	for _, msg := range msgs {
+		m, ok := msg.(sdk.HasValidateBasic)
 		if !ok {
-			return false, fmt.Errorf("failed to assert type of event to AuthorizeEvent; event: %s", event)
+			continue
 		}
 
-		tx, err := h.txVerifier.TxDecode(rawTxBytes)
-		if err != nil {
-			return false, fmt.Errorf("failed to decode event transaction: %s", err.Error())
-		}
-		msgs := tx.GetMsgs()
-
-		// It is very important to validate the Authorize event's messages, otherwise invalid messages will not be seen
-		// by the AnteHandler, which means we will not track the injected transactions correctly.
-		for _, msg := range msgs {
-			m, ok := msg.(sdk.HasValidateBasic)
-			if !ok {
-				continue
-			}
-
-			if err := m.ValidateBasic(); err != nil {
-				return false, nil // do not return the error, otherwise it takes priority over the boolean
-			}
-		}
-
-		err = h.authenticateTx(authorizeEvent.Sender, msgs, params, blockedBech32Addresses)
-		if err != nil {
+		if err := m.ValidateBasic(); err != nil {
 			return false, nil // do not return the error, otherwise it takes priority over the boolean
 		}
+	}
+
+	isAuthorizeEvent := event.EventType == sidecartypes.AuthorizeEventName
+	err = h.authenticateTx(parsedEvent.Signer(), msgs, params, blockedBech32Addresses, isAuthorizeEvent)
+	if err != nil {
+		return false, nil // do not return the error, otherwise it takes priority over the boolean
 	}
 
 	return true, nil
 }
 
-// authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender
+// authenticateTx ensures that the msgs signer is the mapped Sequencer address of the sender.
+//
+// Special case: if messages are from an AuthorizeEvent we also check that they are listed in the allow list.
 func (h *FuelSequencerProposalHandler) authenticateTx(
-	sender string, msgs []sdk.Msg, params *bridgetypes.Params, blockedBech32Addresses map[string]bool,
+	sender string,
+	msgs []sdk.Msg,
+	params *bridgetypes.Params,
+	blockedBech32Addresses map[string]bool,
+	msgsAreFromAuthorizeEvent bool,
 ) error {
 
 	// Generate the Sequencer address from the Ethereum address
@@ -74,8 +83,8 @@ func (h *FuelSequencerProposalHandler) authenticateTx(
 
 	for _, msg := range msgs {
 
-		// Check that the message is authorized
-		if !params.IsAuthorizedMessage(msg) {
+		// If message is from AuthorizeEvent, check that the message is allowed
+		if msgsAreFromAuthorizeEvent && !params.IsAuthorizedMessage(msg) {
 			return bridgetypes.ErrMsgNotAuthorizedOnSequencer.Wrapf("%s", sdk.MsgTypeURL(msg))
 		}
 

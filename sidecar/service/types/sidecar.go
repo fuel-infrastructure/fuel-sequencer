@@ -10,14 +10,44 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
+// These EthEvent types represent events raised by the SequencerProxy contract. They represent the structure on Ethereum
+// and are used as an intermediary type to convert into the event expected by the Sequencer. Some fields are indexed,
+// so they will show up as vLog topics instead of fields within these structs, when we are parsing the Ethereum events.
 type (
-	// EthDepositEvent represents a DepositEvent event raised by the proxy contract. This represents the structure on
-	// Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
-	// Note: Depositor and Recipient are indexed, so they will show up as a vLog topics instead of fields here.
 	EthDepositEvent struct {
 		Amount *big.Int `json:"amount"`
 		Lockup *big.Int `json:"lockup"`
 	}
+
+	EthDelegateEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthRedelegateEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthClaimRewardsEvent struct{}
+
+	EthUnbondEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthWithdrawEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthTransferEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthVoteEvent struct {
+		ProposalId uint64 `json:"proposal_id"`
+		Option     uint32 `json:"option"`
+		Metadata   string `json:"metadata"`
+	}
+
+	EthSetRewardRecipientEvent struct{}
 
 	// EthAuthorizeEvent represents an AuthorizeEvent event raised by the bridge contract. This represents the structure
 	// on Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
@@ -40,14 +70,70 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 		var eventData DepositEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", DepositEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case DelegateEventName:
+		var eventData DelegateEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case RedelegateEventName:
+		var eventData RedelegateEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case ClaimRewardsEventName:
+		var eventData ClaimRewardsEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case UnbondEventName:
+		var eventData UnbondEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case WithdrawEventName:
+		var eventData WithdrawEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case TransferEventName:
+		var eventData TransferEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case VoteEventName:
+		var eventData VoteEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
+		}
+		return &eventData, nil
+	case SetRewardRecipientEventName:
+		var eventData SetRewardRecipientEvent
+		err := eventData.Unmarshal(m.Data)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
 		}
 		return &eventData, nil
 	case AuthorizeEventName:
 		var eventData AuthorizeEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
 		}
 		return &eventData, nil
 	default:
@@ -89,21 +175,21 @@ func (m *Event) Validate(ethereumProxyContractAddress string) error {
 
 // Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
 // To do so, we unmarshal the event into a parsed event, and then extract the messages from it.
-func (m *Event) Messages(cdc codec.BinaryCodec, authority string) ([]*codectypes.Any, error) {
+func (m *Event) Messages(cdc codec.BinaryCodec, authority, denom string) ([]*codectypes.Any, error) {
 
 	parsedEvent, err := m.UnmarshalParsedEvent()
 	if err != nil {
 		return nil, err
 	}
 
-	return parsedEvent.Messages(cdc, authority)
+	return parsedEvent.Messages(cdc, authority, denom)
 }
 
 // RawTxBytes converts the event to a valid tx that can be injected into a block and produces a tx result.
 // The sequence, presumed to be unique, ensures that the generated tx is unique and thus has a unique tx hash.
-func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string, sequence uint64) ([]byte, error) {
+func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority, denom string, sequence uint64) ([]byte, error) {
 
-	messages, err := m.Messages(cdc, authority)
+	messages, err := m.Messages(cdc, authority, denom)
 	if err != nil {
 		return nil, err
 	}
@@ -114,10 +200,10 @@ func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string, sequence uin
 // RawTxBytesWithMaxBytes makes use of RawTxBytes with an additional size verification. This function will error if the
 // bytes returned from RawTxBytes exceed the specified max bytes.
 func (m *Event) RawTxBytesWithMaxBytes(
-	cdc codec.BinaryCodec, authority string, maxBytes uint64, sequence uint64,
+	cdc codec.BinaryCodec, authority, denom string, maxBytes uint64, sequence uint64,
 ) ([]byte, error) {
 
-	bz, err := m.RawTxBytes(cdc, authority, sequence)
+	bz, err := m.RawTxBytes(cdc, authority, denom, sequence)
 	if err != nil {
 		return nil, err
 	}
@@ -134,11 +220,11 @@ func (m *Event) RawTxBytesWithMaxBytes(
 // bytes exceed the specified maxBytes or if an Authorize event has more messages than the specified
 // maxAuthorizeMessages
 func (m *Event) RawTxBytesWithLimitChecks(
-	cdc codec.BinaryCodec, authority string, maxBytes, maxAuthorizeMessages, sequence uint64,
+	cdc codec.BinaryCodec, authority, denom string, maxBytes, maxAuthorizeMessages, sequence uint64,
 ) ([]byte, error) {
 
 	if m.EventType == AuthorizeEventName {
-		messages, err := m.Messages(cdc, authority)
+		messages, err := m.Messages(cdc, authority, denom)
 		if err != nil {
 			return nil, err
 		}
@@ -150,5 +236,5 @@ func (m *Event) RawTxBytesWithLimitChecks(
 		}
 	}
 
-	return m.RawTxBytesWithMaxBytes(cdc, authority, maxBytes, sequence)
+	return m.RawTxBytesWithMaxBytes(cdc, authority, denom, maxBytes, sequence)
 }

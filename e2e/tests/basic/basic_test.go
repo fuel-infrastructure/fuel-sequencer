@@ -88,11 +88,17 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		sendCoins := sdk.NewCoins(sendCoin)
 		from := s.EthKeys[0].AddressHex
 		to := s.EthKeys[1].AddressHex
+		toEth := s.EthKeys[1].Address
 		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
 
 		// Try generating some events via a transaction (RPC) - via authorize.
 		authorizeData := testsuite.PackAuthorize(msgSendBz)
 		authorizeTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		s.Require().NoError(err)
+
+		// Try generating some events via a transaction (RPC) - via transfer.
+		transferData := testsuite.PackTransfer(toEth, sendAmount.BigInt())
+		transferTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(transferData)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events
@@ -107,12 +113,12 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		var depositEventData sidecartypes.DepositEvent
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
+		s.Require().Equal(depositEventData, sidecartypes.DepositEvent{
 			Depositor: s.EthKeys[0].AddressHex,
 			Recipient: s.EthKeys[0].AddressHex, // sender == recipient unless otherwise specified
 			Amount:    depositAmount.String(),
 			Lockup:    "0", // the deposit initiated from Ethereum has no lockup
-		}))
+		})
 
 		// Ensure authorize event is at the expected height.
 		authorizeEvents, err := s.PollForSidecarBlockEvents(
@@ -126,10 +132,28 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		var authorizeEventData sidecartypes.AuthorizeEvent
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
+		s.Require().Equal(authorizeEventData, sidecartypes.AuthorizeEvent{
 			Sender: s.EthKeys[0].AddressHex,
 			Data:   msgSendBz,
-		}))
+		})
+
+		// Ensure transfer event is at the expected height.
+		transferEvents, err := s.PollForSidecarBlockEvents(
+			s.Ctx(), time.Second*20, int(transferTxReceipt.BlockNumber.Int64()),
+		)
+		s.Require().NoError(err)
+		s.Require().Len(transferEvents, 1)
+		s.Require().Equal(sidecartypes.TransferEventName, transferEvents[0].EventType)
+
+		// Check transfer event data is as expected
+		var transferEventData sidecartypes.TransferEvent
+		err = transferEventData.Unmarshal(transferEvents[0].Data)
+		s.Require().NoError(err)
+		s.Require().Equal(transferEventData, sidecartypes.TransferEvent{
+			Sender:    s.EthKeys[0].AddressHex,
+			Recipient: s.EthKeys[1].AddressHex,
+			Amount:    sendAmount.String(),
+		})
 	})
 
 	s.Run("Ensure LastEthereumBlockSynced is being updated", func() {
