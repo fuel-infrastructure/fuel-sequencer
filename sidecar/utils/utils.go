@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -35,7 +35,11 @@ func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
 }
 
 // ExtractLogDataToEvent decodes an Ethereum log into a specific event struct.
-func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI, bridgeDenom string) (*sidecartypes.Event, error) {
+func ExtractLogDataToEvent(
+	vLog ethereumtypes.Log,
+	contractAbi abi.ABI,
+	bridgeDenom string,
+) (*sidecartypes.Event, error) {
 	var event sidecartypes.Event
 	var err error
 
@@ -343,7 +347,7 @@ func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI, bridgeDenom stri
 }
 
 // ValidateIsLogSequential checks if the log is sequential based on TxIndex and LogIndex.
-func ValidateIsLogSequential(vLog types.Log, lastBlockNumber *uint64, lastTxIndex, lastLogIndex *int) error {
+func ValidateIsLogSequential(vLog ethereumtypes.Log, lastBlockNumber *uint64, lastTxIndex, lastLogIndex *int) error {
 	currentBlockNumber := vLog.BlockNumber
 	currentTxIndex := int(vLog.TxIndex)
 	currentLogIndex := int(vLog.Index)

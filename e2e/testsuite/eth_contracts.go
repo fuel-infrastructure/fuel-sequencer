@@ -41,6 +41,7 @@ const (
 	// SequencerInterface contract
 
 	DepositFunctionName            = "deposit"
+	DepositForFunctionName         = "depositFor"
 	DelegateFunctionName           = "delegate"
 	DepositAndDelegateFunctionName = "depositAndDelegate"
 	RedelegateFunctionName         = "redelegate"
