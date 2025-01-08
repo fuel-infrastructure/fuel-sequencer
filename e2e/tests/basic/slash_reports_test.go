@@ -34,8 +34,14 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlashMu
 		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
 		quarterStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(4))
 
+		// Sanity check Governance account balance pre-slash
+		govAccount := s.GetGovernanceAddress()
+		govAccountBalance, err := s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.IsZero())
+
 		// Reduce validator 0's stake so that when we shut it off, the chain proceeds without it
-		_, err := s.SubmitMsgsFromValidatorN(0, &stakingtypes.MsgUndelegate{
+		_, err = s.SubmitMsgsFromValidatorN(0, &stakingtypes.MsgUndelegate{
 			DelegatorAddress: s.SeqKeys[0].AddressSeq,
 			ValidatorAddress: s.SeqKeys[0].ValAddressSeq,
 			Amount:           halfStake,
@@ -134,6 +140,11 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_PartialSlashMu
 			},
 		}
 		s.Require().EqualValues(expectedSlashReport, slashReport)
+
+		// Sanity check that tokens don't actually get burned
+		govAccountBalance, err = s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.Amount.Equal(sdkmath.NewInt(500000000)))
 	})
 }
 
@@ -158,8 +169,14 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashMulti
 		smallStake := sdk.NewInt64Coin(initStake.Denom, 10)
 		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
 
+		// Sanity check Governance account balance pre-slash
+		govAccount := s.GetGovernanceAddress()
+		govAccountBalance, err := s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.IsZero())
+
 		// Reduce validator 0's stake so that when we shut it off, the chain proceeds without it
-		_, err := s.SubmitMsgsFromValidatorN(0, &stakingtypes.MsgUndelegate{
+		_, err = s.SubmitMsgsFromValidatorN(0, &stakingtypes.MsgUndelegate{
 			DelegatorAddress: s.SeqKeys[0].AddressSeq,
 			ValidatorAddress: s.SeqKeys[0].ValAddressSeq,
 			Amount:           halfStake,
@@ -258,6 +275,11 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashMulti
 			},
 		}
 		s.Require().EqualValues(expectedSlashReport, slashReport)
+
+		// Sanity check that tokens don't actually get burned
+		govAccountBalance, err = s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.Amount.Equal(sdkmath.NewInt(1000000000)))
 	})
 }
 
@@ -281,8 +303,14 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashOneDe
 		initStake := testsuite.InitStakedCoin
 		twiceStake := sdk.NewCoin(initStake.Denom, initStake.Amount.MulRaw(2))
 
+		// Sanity check Governance account balance pre-slash
+		govAccount := s.GetGovernanceAddress()
+		govAccountBalance, err := s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.IsZero())
+
 		// Increase validator 1's and 2's stake so that when we shut off validator 0, the chain proceeds without it
-		_, err := s.SubmitMsgsFromValidatorN(1, &stakingtypes.MsgDelegate{
+		_, err = s.SubmitMsgsFromValidatorN(1, &stakingtypes.MsgDelegate{
 			DelegatorAddress: s.SeqKeys[1].AddressSeq,
 			ValidatorAddress: s.SeqKeys[1].ValAddressSeq,
 			Amount:           initStake,
@@ -368,5 +396,10 @@ func (s *BasicTestSuite) TestDowntimeSlashingRegistersSlashReport_FullSlashOneDe
 			},
 		}
 		s.Require().EqualValues(expectedSlashReport, slashReport)
+
+		// Sanity check that tokens don't actually get burned
+		govAccountBalance, err = s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.Amount.Equal(initStake.Amount))
 	})
 }
