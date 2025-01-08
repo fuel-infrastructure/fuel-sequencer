@@ -86,8 +86,6 @@ func (k Keeper) RemoveAllSlashReportsUntilHeight(ctx context.Context, upToHeight
 		}
 		store.Delete(iterator.Key())
 	}
-
-	return
 }
 
 // GetAllSlashReport returns all SlashReport
