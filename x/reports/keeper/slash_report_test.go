@@ -379,3 +379,180 @@ func TestUpdateSlashReportBalancesAtCurrentHeight(t *testing.T) {
 		require.EqualValues(t, report, reportAfter)
 	})
 }
+
+func TestRemoveAllSlashReportsUntilHeight(t *testing.T) {
+
+	startHeight := uint64(100)
+
+	// Set heights to start from startHeight
+	slashReports := keepertest.CreateNSlashReportWithoutStoring(10)
+	for i := range slashReports {
+		slashReports[i].Height = startHeight + uint64(i)
+	}
+
+	testCases := []struct {
+		name               string
+		setSlashReports    []types.SlashReport
+		removeUntil        uint64
+		expectSlashReports []types.SlashReport
+	}{
+		{
+			name:               "Remove until < startHeight",
+			setSlashReports:    slashReports,
+			removeUntil:        startHeight - 1,
+			expectSlashReports: slashReports,
+		},
+		{
+			name:               "Remove until == startHeight",
+			setSlashReports:    slashReports,
+			removeUntil:        startHeight,
+			expectSlashReports: slashReports[1:], // 1 removed
+		},
+		{
+			name:               "Remove until is mid way through",
+			setSlashReports:    slashReports,
+			removeUntil:        startHeight + 4,
+			expectSlashReports: slashReports[5:], // 5 removed
+		},
+		{
+			name:               "One remaining",
+			setSlashReports:    slashReports,
+			removeUntil:        startHeight + 8,
+			expectSlashReports: slashReports[9:], // 9 removed
+		},
+		{
+			name:               "Remove until last height",
+			setSlashReports:    slashReports,
+			removeUntil:        startHeight + 9,
+			expectSlashReports: nil, // All removed
+		},
+		{
+			name:               "No reports == no pruning",
+			setSlashReports:    nil,
+			removeUntil:        startHeight,
+			expectSlashReports: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			testKeeper, ctx := keepertest.ReportsKeeper(t)
+
+			// Set all slash reports
+			for _, report := range tc.setSlashReports {
+				testKeeper.SetSlashReport(ctx, report)
+			}
+
+			testKeeper.RemoveAllSlashReportsUntilHeight(ctx, tc.removeUntil)
+
+			// Check remaining slash reports
+			remainingReports := testKeeper.GetAllSlashReport(ctx)
+			expectSlashReports := keepertest.OrderSlashReportsLexicographically(tc.expectSlashReports)
+			require.EqualValues(t, expectSlashReports, remainingReports)
+		})
+	}
+}
+
+func TestPruneSlashReports(t *testing.T) {
+
+	startHeight := uint64(100)
+
+	// Set heights to start from startHeight
+	n := 10
+	slashReports := keepertest.CreateNSlashReportWithoutStoring(n)
+	for i := range slashReports {
+		slashReports[i].Height = startHeight + uint64(i)
+	}
+
+	testCases := []struct {
+		name                    string
+		setSlashReports         []types.SlashReport
+		currentHeight           int64
+		maxSlashReportAgeBlocks uint64
+		expectSlashReports      []types.SlashReport
+	}{
+		{
+			name:                    "Max age is large enough to keep all reports",
+			setSlashReports:         slashReports,
+			currentHeight:           110, // last report generated at the previous height
+			maxSlashReportAgeBlocks: 11,
+			expectSlashReports:      slashReports,
+			// First report is at height 100. Remove until is 110-11 = 99. No reports removed.
+		},
+		{
+			name:                    "First report is too old",
+			setSlashReports:         slashReports,
+			currentHeight:           110, // last report generated at the previous height
+			maxSlashReportAgeBlocks: 10,
+			expectSlashReports:      slashReports[1:],
+			// First report is at height 100. Remove until is 110-10 = 100. 1 report removed.
+		},
+		{
+			name: "Half of the reports are too old",
+
+			setSlashReports:         slashReports,
+			currentHeight:           110, // last report generated at the previous height
+			maxSlashReportAgeBlocks: 6,
+			expectSlashReports:      slashReports[5:],
+			// First report is at height 100. Remove until is 110-6 = 104. 5 reports removed.
+		},
+		{
+			name:                    "Only the last report is not too old",
+			setSlashReports:         slashReports,
+			currentHeight:           110, // last report generated at the previous height
+			maxSlashReportAgeBlocks: 2,
+			expectSlashReports:      slashReports[9:],
+			// First report is at height 100. Remove until is 110-2 = 108. 9 reports removed.
+		},
+		{
+			name:                    "All reports are too old",
+			setSlashReports:         slashReports,
+			currentHeight:           110, // last report generated at the previous height
+			maxSlashReportAgeBlocks: 1,
+			expectSlashReports:      nil,
+			// First report is at height 100. Remove until is 110-1 = 109. All reports removed.
+		},
+		{
+			name:                    "Last report is at current height, with max age 1 => last report retained",
+			setSlashReports:         slashReports,
+			currentHeight:           109, // last report generated at the current height
+			maxSlashReportAgeBlocks: 1,
+			expectSlashReports:      slashReports[9:],
+			// First report is at height 100. Remove until is 109-1 = 108. 9 reports removed.
+		},
+		{
+			name:                    "No reports => no pruning",
+			setSlashReports:         nil,
+			currentHeight:           110,
+			maxSlashReportAgeBlocks: 10,
+			expectSlashReports:      nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			testKeeper, ctx := keepertest.ReportsKeeper(t)
+			ctx = ctx.WithBlockHeight(tc.currentHeight)
+
+			// Set param
+			params := testKeeper.GetParams(ctx)
+			params.MaxSlashReportAgeBlocks = tc.maxSlashReportAgeBlocks
+			require.NoError(t, testKeeper.SetParams(ctx, params))
+
+			// Set all slash reports
+			for _, report := range tc.setSlashReports {
+				testKeeper.SetSlashReport(ctx, report)
+			}
+
+			err := testKeeper.PruneSlashReports(ctx)
+			require.NoError(t, err)
+
+			// Check remaining slash reports
+			remainingReports := testKeeper.GetAllSlashReport(ctx)
+			expectSlashReports := keepertest.OrderSlashReportsLexicographically(tc.expectSlashReports)
+			require.EqualValues(t, expectSlashReports, remainingReports)
+		})
+	}
+}

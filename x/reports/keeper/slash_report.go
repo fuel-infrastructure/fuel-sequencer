@@ -71,6 +71,25 @@ func (k Keeper) RemoveSlashReport(ctx context.Context, height uint64) {
 	}
 }
 
+// RemoveAllSlashReportsUntilHeight removes all SlashReport with height smaller than or equal to the specified height.
+func (k Keeper) RemoveAllSlashReportsUntilHeight(ctx context.Context, upToHeight uint64) {
+	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		height := types.ExtractHeightFromSlashEntryKey(iterator.Key())
+		if height > upToHeight {
+			break // stop pruning once we've skipped the upToHeight
+		}
+		store.Delete(iterator.Key())
+	}
+
+	return
+}
+
 // GetAllSlashReport returns all SlashReport
 func (k Keeper) GetAllSlashReport(ctx context.Context) (list []types.SlashReport) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
@@ -196,5 +215,41 @@ func (k Keeper) UpdateSlashReportBalancesAtCurrentHeight(ctx sdk.Context) error 
 	}
 
 	k.SetSlashReport(ctx, report)
+	return nil
+}
+
+// PruneSlashReports removes all slash reports until currentHeight - maxReportAgeBlocks.
+// Due to parameter validation, maxReportAgeBlocks must be greater than zero.
+//
+// Example scenario 1:
+// - slashReportHeight: 50
+// - currentHeight: 50
+// - maxReportAgeBlocks: 1
+// - Remove until 50-1 = 49, so slash report not deleted
+//
+// Example scenario 2:
+// - slashReportHeight: 50
+// - currentHeight: 51
+// - maxReportAgeBlocks: 1
+// - Remove until 51-1 = 50, so slash report deleted
+//
+// Example scenario 3:
+// - slashReportHeight: 50
+// - currentHeight: 50
+// - maxReportAgeBlocks: 100
+// - currentHeight < maxReportAgeBlocks, so no deletion takes place
+func (k Keeper) PruneSlashReports(ctx sdk.Context) error {
+
+	currentHeight := uint64(ctx.BlockHeight())
+	maxReportAgeBlocks := k.GetParams(ctx).MaxSlashReportAgeBlocks
+
+	// Sanity check that we've already produced maxReportAgeBlocks blocks
+	if currentHeight < maxReportAgeBlocks {
+		return nil
+	}
+
+	removeUntil := currentHeight - maxReportAgeBlocks
+	k.RemoveAllSlashReportsUntilHeight(ctx, removeUntil)
+
 	return nil
 }

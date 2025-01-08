@@ -8,6 +8,8 @@ import (
 )
 
 func TestParams_Validate(t *testing.T) {
+	validMaxSlashReportAgeBlocks := uint64(5)
+
 	cases := []struct {
 		name      string
 		param     types.Params
@@ -18,7 +20,20 @@ func TestParams_Validate(t *testing.T) {
 			types.DefaultParams(),
 			false,
 		},
-		// TODO: Add valid and invalid param test cases when params are implemented
+		{
+			"Valid params valid",
+			types.Params{
+				MaxSlashReportAgeBlocks: validMaxSlashReportAgeBlocks,
+			},
+			false,
+		},
+		{
+			"Invalid params - zero for MaxSlashReportAgeBlocks",
+			types.Params{
+				MaxSlashReportAgeBlocks: 0,
+			},
+			true,
+		},
 	}
 
 	for _, c := range cases {
