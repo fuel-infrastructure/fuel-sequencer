@@ -418,12 +418,12 @@ func TestRemoveAllSlashReportsUntilHeight(t *testing.T) {
 			name:               "One remaining",
 			setSlashReports:    slashReports,
 			removeUntil:        startHeight + 8,
-			expectSlashReports: []types.SlashReport{slashReports[len(slashReports)-1]}, // 9 removed
+			expectSlashReports: slashReports[9:], // 9 removed
 		},
 		{
 			name:               "Remove until last height",
 			setSlashReports:    slashReports,
-			removeUntil:        slashReports[len(slashReports)-1].Height,
+			removeUntil:        startHeight + 9
 			expectSlashReports: nil, // All removed
 		},
 		{
@@ -502,7 +502,7 @@ func TestPruneSlashReports(t *testing.T) {
 			setSlashReports:         slashReports,
 			currentHeight:           110, // last report generated at the previous height
 			maxSlashReportAgeBlocks: 2,
-			expectSlashReports:      []types.SlashReport{slashReports[len(slashReports)-1]},
+			expectSlashReports:      slashReports[9:],
 			// First report is at height 100. Remove until is 110-2 = 108. 9 reports removed.
 		},
 		{
@@ -518,7 +518,7 @@ func TestPruneSlashReports(t *testing.T) {
 			setSlashReports:         slashReports,
 			currentHeight:           109, // last report generated at the current height
 			maxSlashReportAgeBlocks: 1,
-			expectSlashReports:      []types.SlashReport{slashReports[len(slashReports)-1]},
+			expectSlashReports:      slashReports[9:],
 			// First report is at height 100. Remove until is 109-1 = 108. 9 reports removed.
 		},
 		{
