@@ -13,7 +13,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup_AndAuthorizeDelegate() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup_AndDelegate() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
 		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
 		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
