@@ -186,6 +186,7 @@ run-sidecar-binary:
 	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
+	@$(eval UNSAFE_SEQUENCER_BRIDGE_DENOM ?= "utest")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
@@ -202,6 +203,7 @@ run-sidecar-binary:
 		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--unsafe_sequencer_bridge_denom "$(UNSAFE_SEQUENCER_BRIDGE_DENOM)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_rpc_url "$(ETH_RPC_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
@@ -256,6 +258,7 @@ run-sidecar:
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")  # for the wait below
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
+	@$(eval UNSAFE_SEQUENCER_BRIDGE_DENOM ?= "utest")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below and Sidecar RPC calls
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
@@ -283,6 +286,7 @@ run-sidecar:
 		--port="$(SIDECAR_PORT)" \
 		--sequencer_grpc_url="$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file="$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--unsafe_sequencer_bridge_denom="$(UNSAFE_SEQUENCER_BRIDGE_DENOM)" \
 		--sidecar_path_to_cert_file="$(SIDECAR_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_key_file="$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--eth_ws_url="$(ETH_WS_URL)" \
