@@ -18,6 +18,7 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+// AuthorizeTxFromMsg packs a message into an AuthorizeTx which the Sequencer can then unpack.
 func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
 	anyMsg, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
