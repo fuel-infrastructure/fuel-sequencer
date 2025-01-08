@@ -156,8 +156,12 @@ func (am AppModule) BeginBlock(goCtx context.Context) error {
 
 // EndBlock contains the logic that is automatically triggered at the end of each block.
 // The end block implementation is optional.
-func (am AppModule) EndBlock(_ context.Context) error {
-	return nil
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	defer telemetry.ModuleMeasureSince(types.ModuleName, telemetry.Now(), telemetry.MetricKeyEndBlocker)
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	return am.keeper.PruneSlashReports(ctx)
 }
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
