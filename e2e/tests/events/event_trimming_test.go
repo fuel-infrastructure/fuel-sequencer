@@ -49,7 +49,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 			Sender: from,
 			Data:   msgSendBz,
 		}
-		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
 		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, nonZeroSequence)
 		s.Require().NoError(err)
@@ -140,7 +140,7 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 			Sender: from,
 			Data:   msgSendBz,
 		}
-		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
 		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, nonZeroSequence)
 		s.Require().NoError(err)

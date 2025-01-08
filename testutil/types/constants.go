@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // Required to load the right config for testing
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
@@ -20,7 +19,6 @@ var (
 	TestEthAddr1Str = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
 	TestValAddr1Str = "fuelsequencervaloper1w8rk2mk84wytpxx7ld63kaqpkhmd39m0ky2e6a"
-	TestValAddr2Str = "fuelsequencervaloper1q9jc0zjefj392vu2m7jdfpzf76fy96u0dl8xn7"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
 	FirstAccountSequence             = uint64(0)
@@ -301,55 +299,6 @@ var (
 		Amount:    "faulty-amount",
 		Lockup:    TestLockup1,
 	}
-
-	TestDelegateEvent = &sidecartypes.DelegateEvent{
-		Delegator: TestFrom1,
-		Validator: TestValAddr1Str,
-		Amount:    TestAmount1,
-	}
-
-	TestRedelegateEvent = &sidecartypes.RedelegateEvent{
-		Delegator:    TestFrom1,
-		SrcValidator: TestValAddr1Str,
-		DstValidator: TestValAddr2Str,
-		Amount:       TestAmount1,
-	}
-
-	TestClaimRewardsEvent = &sidecartypes.ClaimRewardsEvent{
-		Delegator: TestFrom1,
-		Validator: TestValAddr1Str,
-	}
-
-	TestUnbondEvent = &sidecartypes.UnbondEvent{
-		Delegator: TestFrom1,
-		Validator: TestValAddr1Str,
-		Amount:    TestAmount1,
-	}
-
-	TestWithdrawEvent = &sidecartypes.WithdrawEvent{
-		From:   TestFrom1,
-		To:     TestTo1,
-		Amount: TestAmount1,
-	}
-
-	TestTransferEvent = &sidecartypes.TransferEvent{
-		Sender:    TestFrom1,
-		Recipient: TestTo1,
-		Amount:    TestAmount1,
-	}
-
-	TestVoteEvent = &sidecartypes.VoteEvent{
-		Voter:      TestFrom1,
-		ProposalId: 1,
-		Option:     uint32(govtypesv1.VoteOption_VOTE_OPTION_YES),
-		Metadata:   "",
-	}
-
-	TestSetRewardRecipientEvent = &sidecartypes.SetRewardRecipientEvent{
-		Delegator:       TestFrom1,
-		RewardRecipient: TestTo1,
-	}
-
 	TestAuthorizeEvent1 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom1,
 		Data:   testutils.MustHexDecodeString(TestData1),
@@ -580,15 +529,15 @@ var (
 )
 
 func init() {
-	TestEvent1Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent1)
-	TestEvent3Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent3)
-	TestEvent4Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent4)
-	TestEvent5Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent5)
-	TestEvent6Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent6)
-	TestEvent7Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent7)
-	TestEvent8Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent8)
-	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent9)
-	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent10)
-	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent11)
-	TestEvent12Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestToken, TestEvent12)
+	TestEvent1Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent1)
+	TestEvent3Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent3)
+	TestEvent4Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent4)
+	TestEvent5Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent5)
+	TestEvent6Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent6)
+	TestEvent7Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent7)
+	TestEvent8Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent8)
+	TestEvent9Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent9)
+	TestEvent10Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent10)
+	TestEvent11Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent11)
+	TestEvent12Msg = MustGetDepositMsgFromDepositEvent(TestCdc, TestGovernanceAddress, TestEvent12)
 }

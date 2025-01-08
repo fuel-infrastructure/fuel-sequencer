@@ -150,10 +150,8 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 		sequence += 1 // sequence consumed by MsgSupplyDelta transaction
 	}
 
-	bridgeDenom := s.App.BridgeKeeper.GetParams(s.Ctx()).BridgeDenom
-
 	for _, event := range tx.Events {
-		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority(), bridgeDenom, sequence)
+		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority(), sequence)
 		if err != nil {
 			panic(fmt.Sprintf("could not get raw tx bytes from event: %s", event.String()))
 		}

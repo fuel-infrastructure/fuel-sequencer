@@ -15,119 +15,13 @@ message DepositEvent {
   // address, the Sequencer uses the depositor address as the recipient.
   string recipient = 2;
 
-  // the amount sent encoded as string to prevent loss of precision. Sign is also preserved.
+  // the amount sent encoded as string to prevent loss of precision. Sign is
+  // also preserved.
   string amount = 3;
 
   // vesting duration encoded in string to prevent loss of precision. Sign is
   // also preserved. This can be zero if no duration is specified.
   string lockup = 4;
-}
-
-// DelegateEvent represents the corresponding event raised by the SequencerProxy
-// contract. This message represents the event structure on the Sequencer.
-message DelegateEvent {
-  // the delegator as an Ethereum address in hex format
-  string delegator = 1;
-
-  // the validator as an Ethereum address in hex format
-  string validator = 2;
-
-  // the amount to be delegated, encoded as string to prevent loss of precision. Sign is also preserved.
-  string amount = 3;
-}
-
-// RedelegateEvent represents the corresponding event raised by the
-// SequencerProxy contract. This message represents the event structure on the
-// Sequencer.
-message RedelegateEvent {
-  // the delegator as an Ethereum address in hex format
-  string delegator = 1;
-
-  // the source validator as an Ethereum address in hex format
-  string srcValidator = 2;
-
-  // the destination validator as an Ethereum address in hex format
-  string dstValidator = 3;
-
-  // the amount to be redelegated, encoded as string to prevent loss of precision. Sign is also preserved.
-  string amount = 4;
-}
-
-// ClaimRewardsEvent represents the corresponding event raised by the
-// SequencerProxy contract. This message represents the event structure on the
-// Sequencer.
-message ClaimRewardsEvent {
-  // the delegator as an Ethereum address in hex format
-  string delegator = 1;
-
-  // the validator as an Ethereum address in hex format
-  string validator = 2;
-}
-
-// UnbondEvent represents the corresponding event raised by the SequencerProxy
-// contract. This message represents the event structure on the Sequencer.
-message UnbondEvent {
-  // the delegator as an Ethereum address in hex format
-  string delegator = 1;
-
-  // the validator as an Ethereum address in hex format
-  string validator = 2;
-
-  // the amount to be unbonded, encoded as string to prevent loss of precision. Sign is also preserved.
-  string amount = 3;
-}
-
-// WithdrawEvent represents the corresponding event raised by the SequencerProxy
-// contract. This message represents the event structure on the Sequencer.
-message WithdrawEvent {
-  // the withdrawer as an Ethereum address in hex format
-  string from = 1;
-
-  // the recipient as an Ethereum address in hex format
-  string to = 2;
-
-  // the amount to be withdrawn, encoded as string to prevent loss of precision. Sign is also preserved.
-  string amount = 3;
-}
-
-// TransferEvent represents the corresponding event raised by the SequencerProxy
-// contract. This message represents the event structure on the Sequencer.
-message TransferEvent {
-  // the sender as an Ethereum address in hex format
-  string sender = 1;
-
-  // the recipient as an Ethereum address in hex format
-  string recipient = 2;
-
-  // the amount to be transferred, encoded as string to prevent loss of precision. Sign is also preserved.
-  string amount = 3;
-}
-
-// VoteEvent represents the corresponding event raised by the SequencerProxy
-// contract. This message represents the event structure on the Sequencer.
-message VoteEvent {
-  // the voter as an Ethereum address in hex format
-  string voter = 1;
-
-  // the ID of the proposal being voted on
-  uint64 proposalId = 2;
-
-  // the voting option (e.g. yes, no, no-with-veto, abstain)
-  uint32 option = 3;
-
-  // extra metadata attached to the vote
-  string metadata = 4;
-}
-
-// SetRewardRecipientEvent represents the corresponding event raised by the
-// SequencerProxy contract. This message represents the event structure on the
-// Sequencer.
-message SetRewardRecipientEvent {
-  // the delegator as an Ethereum address in hex format
-  string delegator = 1;
-
-  // the reward recipient as an Ethereum address in hex format
-  string rewardRecipient = 2;
 }
 
 // AuthorizeEvent represents the corresponding event raised by the

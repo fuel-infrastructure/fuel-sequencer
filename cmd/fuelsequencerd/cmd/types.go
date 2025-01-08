@@ -23,6 +23,7 @@ const (
 	FlagEthereumUnsafeEndBlock       = "unsafe_eth_end_block"
 	FlagSequencerGrpcUrl             = "sequencer_grpc_url"
 	FlagSequencerPathToCertFile      = "sequencer_path_to_cert_file"
+	FlagSequencerUnsafeBridgeDenom   = "unsafe_sequencer_bridge_denom"
 	FlagPrometheusEnabled            = "prometheus_enabled"
 	FlagPrometheusListenAddress      = "prometheus_listen_address"
 	FlagPrometheusMaxOpenConnections = "prometheus_max_open_connections"
@@ -50,8 +51,9 @@ func (cfg *sidecarConfig) Validate() error {
 }
 
 type sequencerConfig struct {
-	grpcUrl        string
-	pathToCertFile string
+	grpcUrl           string
+	pathToCertFile    string
+	unsafeBridgeDenom string
 }
 
 func (cfg *sequencerConfig) Validate() error {

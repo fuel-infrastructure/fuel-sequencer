@@ -553,8 +553,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	// - fails to be encoded as bytes tx
 	// - is bigger than the allowed max bytes
 	// - has more messages than the allowable limit
-	//
-	// For all non-deposit events, we skip the event if it fails authentication (incl. ValidateBasic and signer check)
+	// - it fails authentication (incl. ValidateBasic and signer check)
 	//
 	// Deposit events are expected to follow a strict structure as they are fully generated on-chain by the contracts.
 	// We also want to make sure deposits go through because otherwise the contract-side accounting gets disrupted.
@@ -571,7 +570,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		eventTx, err := event.RawTxBytesWithLimitChecks(
 			h.cdc,
 			h.bridgeKeeper.GetAuthority(),
-			params.BridgeDenom,
 			params.InjectedEventTxMaxBytes,
 			params.MaxAuthorizeMessages,
 			eventTxsSequence,

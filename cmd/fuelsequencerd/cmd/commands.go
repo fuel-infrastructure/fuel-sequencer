@@ -39,6 +39,7 @@ import (
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -234,6 +235,12 @@ func startSidecarServerCmd() *cobra.Command {
 			credentials.UseDefaultTLS,
 		),
 	)
+	cmd.Flags().StringVar(
+		&seqCfg.unsafeBridgeDenom,
+		FlagSequencerUnsafeBridgeDenom,
+		bridgetypes.DefaultBridgeDenom,
+		"denom used to fill-in any missing denoms when encoding AuthorizeTx messages",
+	)
 
 	// Prometheus
 	cmd.Flags().BoolVar(
@@ -291,12 +298,15 @@ func startSidecar(
 	if err := scrCfg.Validate(); err != nil {
 		return fmt.Errorf("invalid sidecar config: %s", err)
 	}
+	logger.Info("validated sidecar config", zap.Any("config", scrCfg))
 	if err := seqCfg.Validate(); err != nil {
 		return fmt.Errorf("invalid sequencer config: %s", err)
 	}
+	logger.Info("validated sequencer config", zap.Any("config", seqCfg))
 	if err := ethCfg.Validate(); err != nil {
 		return fmt.Errorf("invalid ethereum config: %s", err)
 	}
+	logger.Info("validated ethereum config", zap.Any("config", ethCfg))
 
 	// Check if the unsafe start block is provided and use it.
 	startBlock := big.NewInt(0)
@@ -421,7 +431,14 @@ func startSidecar(
 	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
-		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethCfg.rpcQueryTimeout, ethclientMetrics,
+		logger,
+		ethRpcClient,
+		contractAddr,
+		contractAbi,
+		seqCfg.unsafeBridgeDenom,
+		ethCfg.minLogsQueryInterval,
+		ethCfg.rpcQueryTimeout,
+		ethclientMetrics,
 	)
 
 	// Create the store

@@ -3,233 +3,337 @@ package utils
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Serialize the message to bytes
+	bz, err := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: []*codectypes.Any{anyMsg}})
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
+}
+
 // ExtractLogDataToEvent decodes an Ethereum log into a specific event struct.
-func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI) (*sidecartypes.Event, error) {
+func ExtractLogDataToEvent(vLog types.Log, contractAbi abi.ABI, bridgeDenom string) (*sidecartypes.Event, error) {
 	var event sidecartypes.Event
 	var err error
 
 	switch vLog.Topics[0].Hex() {
 	case sidecartypes.DepositEventHashFn:
-		var sequencerEvent sidecartypes.DepositEvent
-
 		// Process the event
 		var ethEvent sidecartypes.EthDepositEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.DepositEventName, vLog.Data)
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthDepositEventName, vLog.Data)
 		if err != nil {
 			return nil, err
 		}
 
+		var depositEvent sidecartypes.DepositEvent
+
 		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Depositor = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.Recipient = common.HexToAddress(vLog.Topics[2].Hex()).String()
+		depositEvent.Depositor = common.HexToAddress(vLog.Topics[1].Hex()).String()
+		depositEvent.Recipient = common.HexToAddress(vLog.Topics[2].Hex()).String()
 
 		// Convert the rest of the fields as required
-		sequencerEvent.Lockup = ethEvent.Lockup.String()
-		sequencerEvent.Amount = ethEvent.Amount.String()
+		depositEvent.Lockup = ethEvent.Lockup.String()
+		depositEvent.Amount = ethEvent.Amount.String()
 
 		// Fill up the generic event with fields
 		event.EventType = sidecartypes.DepositEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
+		event.Data, err = depositEvent.Marshal()
 
 	case sidecartypes.DelegateEventHashFn:
-		var sequencerEvent sidecartypes.DelegateEvent
-
 		// Process the event
 		var ethEvent sidecartypes.EthDelegateEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.DelegateEventName, vLog.Data)
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthDelegateEventName, vLog.Data)
 		if err != nil {
 			return nil, err
 		}
 
 		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Delegator = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.Validator = common.HexToAddress(vLog.Topics[2].Hex()).String()
+		delegator := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		validator := common.HexToAddress(vLog.Topics[2].Hex()).String()
 
 		// Convert the rest of the fields as required
-		sequencerEvent.Amount = ethEvent.Amount.String()
+		amount := sdkmath.NewIntFromBigInt(ethEvent.Amount)
 
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.DelegateEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.RedelegateEventHashFn:
-		var sequencerEvent sidecartypes.RedelegateEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthRedelegateEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.RedelegateEventName, vLog.Data)
+		// Build an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = delegator
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&stakingtypes.MsgDelegate{
+			DelegatorAddress: delegator,
+			ValidatorAddress: validator,
+			Amount:           sdk.NewCoin(bridgeDenom, amount),
+		})
 		if err != nil {
 			return nil, err
 		}
 
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Delegator = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.SrcValidator = common.HexToAddress(vLog.Topics[2].Hex()).String()
-		sequencerEvent.DstValidator = common.HexToAddress(vLog.Topics[3].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Amount = ethEvent.Amount.String()
-
 		// Fill up the generic event with fields
-		event.EventType = sidecartypes.RedelegateEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.ClaimRewardsEventHashFn:
-		var sequencerEvent sidecartypes.ClaimRewardsEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthClaimRewardsEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.ClaimRewardsEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Delegator = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.Validator = common.HexToAddress(vLog.Topics[2].Hex()).String()
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.ClaimRewardsEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.UnbondEventHashFn:
-		var sequencerEvent sidecartypes.UnbondEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthUnbondEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.UnbondEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Delegator = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.Validator = common.HexToAddress(vLog.Topics[2].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Amount = ethEvent.Amount.String()
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.UnbondEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.WithdrawEventHashFn:
-		var sequencerEvent sidecartypes.WithdrawEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthWithdrawEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.WithdrawEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.From = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.To = common.HexToAddress(vLog.Topics[2].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Amount = ethEvent.Amount.String()
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.WithdrawEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.TransferEventHashFn:
-		var sequencerEvent sidecartypes.TransferEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthTransferEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.TransferEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Sender = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.Recipient = common.HexToAddress(vLog.Topics[2].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Amount = ethEvent.Amount.String()
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.TransferEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.VoteEventHashFn:
-		var sequencerEvent sidecartypes.VoteEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthVoteEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.VoteEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Voter = common.HexToAddress(vLog.Topics[1].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.ProposalId = ethEvent.ProposalId
-		sequencerEvent.Option = ethEvent.Option
-		sequencerEvent.Metadata = ethEvent.Metadata
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.VoteEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.SetRewardRecipientEventHashFn:
-		var sequencerEvent sidecartypes.SetRewardRecipientEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthSetRewardRecipientEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.SetRewardRecipientEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Some values are indexed, so extract them from Topics
-		sequencerEvent.Delegator = common.HexToAddress(vLog.Topics[1].Hex()).String()
-		sequencerEvent.RewardRecipient = common.HexToAddress(vLog.Topics[2].Hex()).String()
-
-		// Fill up the generic event with fields
-		event.EventType = sidecartypes.SetRewardRecipientEventName
-		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
-
-	case sidecartypes.AuthorizeEventHashFn:
-		var sequencerEvent sidecartypes.AuthorizeEvent
-
-		// Process the event
-		var ethEvent sidecartypes.EthAuthorizeEvent
-		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.AuthorizeEventName, vLog.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		// Sender is indexed, so extract it from Topics
-		sequencerEvent.Sender = common.HexToAddress(vLog.Topics[1].Hex()).String()
-
-		// Convert the rest of the fields as required
-		sequencerEvent.Data = ethEvent.Data
-
-		// Fillup the generic event with fields
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
-		event.Data, err = sequencerEvent.Marshal()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.RedelegateEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthRedelegateEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthRedelegateEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		delegator := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		srcValidator := common.HexToAddress(vLog.Topics[2].Hex()).String()
+		dstValidator := common.HexToAddress(vLog.Topics[3].Hex()).String()
+
+		// Convert the rest of the fields as required
+		amount := sdkmath.NewIntFromBigInt(ethEvent.Amount)
+
+		// Build an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = delegator
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&stakingtypes.MsgBeginRedelegate{
+			DelegatorAddress:    delegator,
+			ValidatorSrcAddress: srcValidator,
+			ValidatorDstAddress: dstValidator,
+			Amount:              sdk.NewCoin(bridgeDenom, amount),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.ClaimRewardsEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthClaimRewardsEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthClaimRewardsEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		delegator := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		validator := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = delegator
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&distributiontypes.MsgWithdrawDelegatorReward{
+			DelegatorAddress: delegator,
+			ValidatorAddress: validator,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.UnbondEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthUnbondEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthUnbondEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		delegator := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		validator := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+		// Convert the rest of the fields as required
+		amount := sdkmath.NewIntFromBigInt(ethEvent.Amount)
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = delegator
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&stakingtypes.MsgUndelegate{
+			DelegatorAddress: delegator,
+			ValidatorAddress: validator,
+			Amount:           sdk.NewCoin(bridgeDenom, amount),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.WithdrawEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthWithdrawEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthWithdrawEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		from := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		to := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+		// Convert the rest of the fields as required
+		amount := sdkmath.NewIntFromBigInt(ethEvent.Amount)
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = from
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&bridgetypes.MsgWithdrawToEthereum{
+			From:   from,
+			To:     to,
+			Amount: sdk.NewCoin(bridgeDenom, amount),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.TransferEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthTransferEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthTransferEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		sender := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		recipient := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+		// Convert the rest of the fields as required
+		amount := sdkmath.NewIntFromBigInt(ethEvent.Amount)
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = sender
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&banktypes.MsgSend{
+			FromAddress: sender,
+			ToAddress:   recipient,
+			Amount:      sdk.NewCoins(sdk.NewCoin(bridgeDenom, amount)),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.VoteEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthVoteEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthVoteEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		voter := common.HexToAddress(vLog.Topics[1].Hex()).String()
+
+		// Convert the rest of the fields as required
+		proposalId := ethEvent.ProposalId
+		option := ethEvent.Option
+		metadata := ethEvent.Metadata
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = voter
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&govtypesv1.MsgVote{
+			ProposalId: proposalId,
+			Voter:      voter,
+			Option:     govtypesv1.VoteOption(option),
+			Metadata:   metadata,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.SetRewardRecipientEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthSetRewardRecipientEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthSetRewardRecipientEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		delegator := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		rewardRecipient := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = delegator
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&distributiontypes.MsgSetWithdrawAddress{
+			DelegatorAddress: delegator,
+			WithdrawAddress:  rewardRecipient,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.AuthorizeEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthAuthorizeEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthAuthorizeEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		var authorizeEvent sidecartypes.AuthorizeEvent
+
+		// Some values are indexed, so extract them from Topics
+		authorizeEvent.Sender = common.HexToAddress(vLog.Topics[1].Hex()).String()
+
+		// Convert the rest of the fields as required
+		authorizeEvent.Data = ethEvent.Data
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
 	default:
 		return nil, nil
 	}
