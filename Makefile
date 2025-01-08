@@ -359,7 +359,7 @@ test-e2e: \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
-	test-e2e-authorize-transactions \
+	test-e2e-authorize \
 	test-e2e-deposits \
 	test-e2e-special-messages
 
@@ -500,8 +500,8 @@ test-e2e-events:
 test-e2e-withdrawals:
 	@cd e2e/tests && go test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
 
-test-e2e-authorize-transactions:
-	@cd e2e/tests && go test -mod=readonly -race -v ./authorize-transactions/... --test.timeout 0
+test-e2e-authorize:
+	@cd e2e/tests && go test -mod=readonly -race -v ./authorize/... --test.timeout 0
 
 test-e2e-deposits:
 	@cd e2e/tests && go test -mod=readonly -race -v ./deposits/... --test.timeout 0
