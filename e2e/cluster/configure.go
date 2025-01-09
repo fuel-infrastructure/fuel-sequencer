@@ -45,8 +45,8 @@ func configureNetwork() error {
 	}
 
 	if _, err := os.Stat(chain.ConfigDir()); !os.IsNotExist(err) {
-		l.Warnw("data directory already exists - skipping configuration setup...", "network", chainName, "path", chain.ConfigDir())
-		return nil
+		l.Warnw("data directory already exists - deleting existing configuration...", "network", chainName, "path", chain.ConfigDir())
+		locally(l, "rm", "-rf", chain.ConfigDir())
 	}
 
 	l.Infow("setting up data for new chain...", "name", chainName, "path", chain.ConfigDir())
