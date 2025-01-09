@@ -11,6 +11,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"github.com/spf13/viper"
 
 	"cosmossdk.io/math"
@@ -194,6 +195,19 @@ func (s *sequencer) initGenesis() error {
 	}
 	appGenState[bridgetypes.ModuleName] = bz
 
+	var sequencingGenState sequencingtypes.GenesisState
+	err = cdc.UnmarshalJSON(appGenState[sequencingtypes.ModuleName], &sequencingGenState)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal sequencing genesis state: %w", err)
+	}
+	sequencingGenState.Params.MaxBlobSizeBytes = blobMaxBytes
+	sequencingGenState.Params.SequencerTxMaxBytes = blockMaxGas
+	bz, err = cdc.MarshalJSON(&sequencingGenState)
+	if err != nil {
+		return fmt.Errorf("failed to marshal sequencing genesis state: %w", err)
+	}
+	appGenState[sequencingtypes.ModuleName] = bz
+
 	var genUtilGenState genutiltypes.GenesisState
 	err = cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState)
 	if err != nil {
@@ -244,8 +258,6 @@ func (s *sequencer) initGenesis() error {
 	}
 
 	genDoc.AppState = bz
-	genDoc.Consensus.Params.Block.MaxBytes = 22020096
-	genDoc.Consensus.Params.Block.MaxGas = 300000000
 
 	bz, err = cmjson.MarshalIndent(genDoc, "", "  ")
 	if err != nil {

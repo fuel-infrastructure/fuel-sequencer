@@ -47,6 +47,8 @@ var (
 	// Genesis configs
 	governanceVotingPeriod = time.Second * 20 // default - can be overridden
 	supplyDeltaPeriod      = uint64(10)       // default - can be overridden
+	blobMaxBytes           = uint64(2147483648)
+	blockMaxGas            = uint64(4294967296)
 
 	// Gas configs
 	minGasPrices = "0.01"
