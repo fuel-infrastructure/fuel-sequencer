@@ -51,7 +51,7 @@ var (
 	blockMaxGas            = uint64(4294967296)
 
 	// Gas configs
-	minGasPrices = "0.01"
+	minGasPrices = "0.0"
 
 	// Remote Parameters
 	destinations = []destination{
