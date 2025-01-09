@@ -164,6 +164,50 @@ To follow the container's logs run the following command:
 make follow-docker-logs
 ```
 
+### Run With Memory Profiling
+
+#### For Development
+
+Before proceeding, ensure that you have a valid Sequencer chain directory located at `./data/fuelsequencer`. If the Sequencer chain directory does not exist, you need to create it by following these steps:
+
+- Remove all profiling-related code from `cmd/fuelsequencerd/main.go`. The sections to be removed are marked with the comment `// TO REMOVE IF CHAIN DIRECTORY NEEDS TO BE INITIALIZED`.
+- Run `make install init`. This will initialize the chain directory at `./data/fuelsequencer`.
+- Once the chain directory has been created, restore the profiling code in `cmd/fuelsequencerd/main.go`.
+- Run `make install` to install the application again.
+
+Run the Sequencer, Sidecar and Pyroscope as follows:
+
+```bash
+make run-pyroscope # Starts the Pyroscope server in Docker.
+make run-sequencer-with-pyroscope #  Runs the Sequencer with compatibility for Pyroscope
+make run-sidecar-with-pyroscope  # Runs the Sidecar with compatibility for Pyroscope
+```
+
+Once executed successfully, the Pyroscope UI will be available at http://localhost:4040 for long-term monitoring.
+
+#### For Production
+
+Before proceeding, ensure that a valid Sequencer chain directory exists at `<NODE-HOME>`. If the directory is missing, use an older binary and follow the instructions in this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2) to create it.
+
+The next step is to run the Pyroscope server:
+
+```bash
+make run-pyroscope
+```
+
+To enable profiling for the Sequencer, simply replace the old binary with the binary versioned `seq-testnet-2-with-profiling` and restart the daemon service. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
+
+To enable profiling for the Sidecar, use the new binary version `seq-testnet-2-with-profiling` and update the `ExecStart` command in the recommended service file. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
+
+```bash
+ExecStart=SERVICE_TYPE="sidecar" <HOME>/go/bin/fuelsequencerd start-sidecar \
+    --host "0.0.0.0" \
+    --sequencer_grpc_url "127.0.0.1:9090" \
+    --eth_ws_url "<ETHEREUM_NODE_WS>" \
+    --eth_rpc_url "<ETHEREUM_NODE_RPC>" \
+    --eth_contract_address "0x0E5CAcD6899a1E2a4B4E6e0c8a1eA7feAD3E25eD"
+```
+
 ### References
 
 - https://github.com/Stride-Labs/stride/blob/main/.dockerignore
