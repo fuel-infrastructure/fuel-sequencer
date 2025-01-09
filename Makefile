@@ -142,7 +142,7 @@ go.sum: go.mod
 	@echo "🤔 Ensure dependencies have not been modified"
 	@go mod verify
 
-clean: clean-e2e
+clean: clean-e2e clean-pyroscope
 	@echo "🧹 Cleaning..."
 	@rm -rf $(BUILDDIR)/*
 	@echo "✅ Finished cleaning!"
@@ -273,7 +273,7 @@ run-sidecar:
 	done
 	@echo "Waiting for Sequencer gRPC $(SEQUENCER_GRPC_URL) to be accessible..."
 	@sleep 3  # buffer for Sequencer gRPC server to start properly
-	@fuelsequencerd start-sidecar \
+	SERVICE_TYPE="sidecar" fuelsequencerd start-sidecar \
 		--host="$(SIDECAR_HOST)" \
 		--port="$(SIDECAR_PORT)" \
 		--sequencer_grpc_url="$(SEQUENCER_GRPC_URL)" \
@@ -480,6 +480,14 @@ run-eth-e2e-containers: e2e/fuel-rollup/.npmrc
 		"$(ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE)" \
 		"$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)"
 
+run-pyroscope:
+	@docker run -d --name pyroscope -p 4040:4040 grafana/pyroscope
+
+run-sequencer-with-pyroscope: proto-go-gen
+	@fuelsequencerd start --home ./data/fuelsequencer
+
+run-sidecar-with-pyroscope: run-sidecar
+
 # Removes node and contract deployment containers
 remove-eth-e2e-containers:
 	@echo "🤖 Removing Docker containers..."
@@ -524,3 +532,13 @@ clean-e2e:
 	@docker network prune -f
 
 	@echo "✅ Finished cleaning E2E!"
+
+clean-pyroscope:
+	@echo "🧹 Stopping Pyroscope Docker container..."
+	@docker ps -aq --filter "name=pyroscope" | xargs -r docker stop
+
+	@echo "🧹 Removing Pyroscope Docker container..."
+	@docker ps -aq --filter "name=pyroscope" | xargs -r docker rm
+
+	@echo "✅ Finished cleaning Pyroscope!"
+
