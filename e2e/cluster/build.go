@@ -3,6 +3,8 @@ package cluster
 import (
 	"fmt"
 	"path/filepath"
+
+	"go.uber.org/zap"
 )
 
 // func checkGitTag() error {
@@ -26,13 +28,30 @@ func buildBinary() (string, error) {
 	// 	return "", fmt.Errorf("failed to checkout tag: %w", err)
 	// }
 
+	binaryPath, err := findBuild(l)
+	if err == nil {
+		l.Infow("existing build found", "path", binaryPath)
+		return binaryPath, nil
+	}
+
 	// Run make target
-	l.Info("running make build")
+	l.Info("build not found, running make build...")
 	if err := locally(l, "make", "--directory", makefileDir, "build-fuelsequencerd"); err != nil {
 		l.Errorw("make build failed", "error", err)
 		return "", fmt.Errorf("make build failed: %w", err)
 	}
 
+	// Verify binary exists
+	binaryPath, err = findBuild(l)
+	if err != nil {
+		return "", fmt.Errorf("failed to verify build: %w", err)
+	}
+
+	l.Infow("build successful", "path", binaryPath)
+	return binaryPath, nil
+}
+
+func findBuild(l *zap.SugaredLogger) (string, error) {
 	// Verify binary exists
 	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+wantArch))
 	if err != nil {
@@ -45,6 +64,5 @@ func buildBinary() (string, error) {
 	}
 	binaryPath := files[0]
 
-	l.Infow("build successful", "path", binaryPath)
 	return binaryPath, nil
 }
