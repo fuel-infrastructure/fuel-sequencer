@@ -29,5 +29,6 @@ func deployNode(l *zap.SugaredLogger, conn connection) error {
 		return fmt.Errorf("failed to start node: %w", err)
 	}
 
+	// TODO: Check if node is ready
 	return nil
 }
