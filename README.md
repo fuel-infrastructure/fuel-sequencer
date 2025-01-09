@@ -200,6 +200,7 @@ To enable profiling for the Sequencer, simply replace the old binary with the bi
 To enable profiling for the Sidecar, use the new binary version `seq-testnet-2-with-profiling` and update the `ExecStart` command in the recommended service file. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
 
 ```bash
+# Basically just add ExecStart=SERVICE_TYPE="sidecar" to your existing command
 ExecStart=SERVICE_TYPE="sidecar" <HOME>/go/bin/fuelsequencerd start-sidecar \
     --host "0.0.0.0" \
     --sequencer_grpc_url "127.0.0.1:9090" \
