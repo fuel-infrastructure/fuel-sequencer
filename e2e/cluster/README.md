@@ -16,7 +16,6 @@
     - [execute.go](#executego)
 
 
-
 ## Overview
 
 The cluster package provides functionality for setting up and configuring a distributed test network of Fuel Sequencer nodes for end-to-end testing.
@@ -34,9 +33,7 @@ The cluster package provides functionality for setting up and configuring a dist
 - Verify network connectivity between validator nodes
 - Make sure the user has sufficient permissions on remote systems
 
-This package is primarily used for testing and development purposes. 
-
-Not intended for production deployments.
+This package is primarily used for testing and development purposes. It is not intended for production deployments.
 
 ## Running the Cluster
 
