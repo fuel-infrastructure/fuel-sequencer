@@ -76,7 +76,7 @@ def run_blob_report(start_height: int, end_height: int, blob_size_bytes: int = N
     )
 
 
-def run_report_2(start_height: int, end_height: int, address: str):
+def run_tx_count_report(start_height: int, end_height: int, address: str):
     sequence1 = int(get_account(address, start_height)["info"]["sequence"])
     sequence2 = int(get_account(address, end_height)["info"]["sequence"])
     print(
@@ -85,7 +85,7 @@ def run_report_2(start_height: int, end_height: int, address: str):
     )
 
 
-def run_report_3(start_height: int, end_height: int):
+def run_block_intervals_report(start_height: int, end_height: int):
     previous_block_timestamp = None
     for n in range(start_height, end_height):
         try:
@@ -137,18 +137,18 @@ if __name__ == "__main__":
         # "fuelsequencer1lut8dr0473pxm9ayynay7hhya9n8dnsa6egh5p",  # temp10
     ]
 
-    # Report 1
+    # Blob Throughput Report
     for i in range(len(start_heights)):
-        print(f"\n--- (Report 1.{i})")
+        print(f"\n--- (Blob Throughput Report.{i})")
         run_blob_report(start_heights[i], end_heights[i])
 
-    # Report 2
+    # Transaction Count Report
     for i, signer in enumerate(signers):
-        print(f"\n--- (Report 2.{i})")
+        print(f"\n--- (Transaction Count Report.{i})")
         for j in range(len(start_heights)):
-            run_report_2(start_heights[j], end_heights[j], signer)
+            run_tx_count_report(start_heights[j], end_heights[j], signer)
 
-    # Report 3
+    # Block Intervals Report
     for i in range(len(start_heights)):
-        print(f"\n--- (Report 3.{i})")
-        run_report_3(start_heights[i], end_heights[i])
+        print(f"\n--- (Block Intervals Report.{i})")
+        run_block_intervals_report(start_heights[i], end_heights[i])
