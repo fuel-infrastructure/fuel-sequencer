@@ -209,7 +209,7 @@ ExecStart=SERVICE_TYPE="sidecar" <HOME>/go/bin/fuelsequencerd start-sidecar \
     --eth_contract_address "0x0E5CAcD6899a1E2a4B4E6e0c8a1eA7feAD3E25eD"
 ```
 
-Once executed successfully, the Pyroscope UI will be available at http://localhost:4040 for long-term monitoring.
+Once executed successfully, the Pyroscope UI will be available at http://<vm-ip>:4040 for long-term monitoring.
 
 ### References
 
