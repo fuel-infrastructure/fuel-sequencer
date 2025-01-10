@@ -3,6 +3,14 @@
 // deployment and management of the network.
 package cluster
 
+// TODO: This is a temporary file to store parameters for the cluster.
+// It should be replaced with a proper configuration management system in the future.
+// In the meantime, primary parameters to configure are:
+// - makefileDir: The directory where the makefile is located
+// - destinations: The list of destinations to deploy to
+//
+// The rest are applied remotely or intended to be consistent across a deployment. Ultimately depends on the usecase.
+
 import (
 	"path/filepath"
 	"time"

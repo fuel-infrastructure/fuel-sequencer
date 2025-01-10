@@ -64,6 +64,8 @@ var (
 )
 ```
 
+As noted in `e2e/cluster/parameters.go`, mainly makefileDir and destinations are the parameters to configure.
+
 2. Run the cluster setup:
 
 ```bash
