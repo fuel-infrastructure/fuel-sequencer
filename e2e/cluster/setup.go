@@ -34,10 +34,7 @@ func Setup() error {
 		logging.Fatalw("check config: number of destinations (%d) does not match number of mnemonics (%d)", ld, lm)
 	}
 
-	// // Ensure git repository tag exists
-	// if err := checkGitTag(); err != nil {
-	// 	return logAndWrapErr("git tag check failed", err)
-	// }
+	// TODO: build against existing git tag
 
 	// Build binary
 	binaryPath, err := buildBinary()

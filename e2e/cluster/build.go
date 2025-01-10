@@ -10,14 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// func checkGitTag() error {
-// 	cmd := exec.Command("git", "rev-parse", repoTag)
-// 	if err := cmd.Run(); err != nil {
-// 		return fmt.Errorf("tag %s not found: %w", repoTag, err)
-// 	}
-// 	return nil
-// }
-
 // buildBinary builds or finds an existing fuelsequencerd binary.
 // Returns the path to the binary and any error encountered.
 // If an existing binary is found with matching architecture, it will be used.
