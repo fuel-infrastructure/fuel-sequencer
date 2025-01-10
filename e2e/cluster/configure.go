@@ -303,6 +303,8 @@ func (s *sequencer) initValidatorConfigs() error {
 			return fmt.Errorf("failed to unmarshal config file: %w", err)
 		}
 
+		valConfig.Mempool.MaxTxBytes = int(blockMaxGas)
+		valConfig.Mempool.MaxTxsBytes = int64(blockMaxGas)
 		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
 		valConfig.P2P.AddrBookStrict = false
 		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", destinations[i].peer_ip, 26656)
@@ -337,6 +339,8 @@ func (s *sequencer) initValidatorConfigs() error {
 
 		customAppTemplate, customAppConfig := app.DefaultCustomAppConfig()
 		appConfig := customAppConfig.(app.CustomAppConfig)
+		appConfig.Mempool.MaxTxs = 0 // unlimited txs
+		appConfig.QueryGasLimit = 0  // unlimited gas
 		appConfig.API.Enable = true
 		appConfig.API.Address = "tcp://0.0.0.0:1317"
 		appConfig.API.RPCMaxBodyBytes = uint(blockMaxGas)
