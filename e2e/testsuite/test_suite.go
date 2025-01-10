@@ -336,7 +336,7 @@ func (s *E2ETestSuite) TearDownTest() {
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
 // It also sets up the genesis file using the first validator and copies it to all other validator nodes.
 func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
-	s.Require().NoError(s.Chain.createAndInitFuelSequencerValidators(mnemonics))
+	s.Require().NoError(s.Chain.CreateAndInitFuelSequencerValidators(mnemonics))
 
 	// initialize a genesis file for the first validator
 	val0ConfigDir := s.Chain.Validators[0].ConfigDir()

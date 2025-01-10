@@ -84,7 +84,7 @@ func configureNetwork() error {
 }
 
 func (s *sequencer) initNodes() error {
-	err := testsuite.CreateAndInitFuelSequencerValidatorsFromGenesis(s.chain, mnemonics)
+	err := s.chain.CreateAndInitFuelSequencerValidators(mnemonics)
 	if err != nil {
 		return fmt.Errorf("failed to setup nodes from genesis: %w", err)
 	}

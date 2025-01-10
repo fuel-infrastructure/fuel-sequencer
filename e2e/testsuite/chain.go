@@ -158,12 +158,8 @@ func (c *Chain) ConfigDir() string {
 	return fmt.Sprintf("%s/%s", c.DataDir, c.id)
 }
 
-// createAndInitFuelSequencerValidators initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
-func (c *Chain) createAndInitFuelSequencerValidators(mnemonics []string) error {
-	return CreateAndInitFuelSequencerValidatorsFromGenesis(c, mnemonics)
-}
-
-func CreateAndInitFuelSequencerValidatorsFromGenesis(c *Chain, mnemonics []string) error {
+// CreateAndInitFuelSequencerValidators initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
+func (c *Chain) CreateAndInitFuelSequencerValidators(mnemonics []string) error {
 	// Determine whether to use mnemonics.
 	useMnemonics := len(mnemonics) > 0
 
