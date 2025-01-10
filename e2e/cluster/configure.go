@@ -307,6 +307,7 @@ func (s *sequencer) initValidatorConfigs() error {
 		valConfig.P2P.AddrBookStrict = false
 		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", destinations[i].peer_ip, 26656)
 		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
+		valConfig.RPC.MaxBodyBytes = int64(blockMaxGas)
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
 		valConfig.Instrumentation.Prometheus = true
@@ -338,6 +339,7 @@ func (s *sequencer) initValidatorConfigs() error {
 		appConfig := customAppConfig.(app.CustomAppConfig)
 		appConfig.API.Enable = true
 		appConfig.API.Address = "tcp://0.0.0.0:1317"
+		appConfig.API.RPCMaxBodyBytes = uint(blockMaxGas)
 		appConfig.GRPC.Address = "0.0.0.0:9090"
 		appConfig.Pruning = "nothing"
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)
