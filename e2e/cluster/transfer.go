@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -10,7 +13,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// transfer a file over ssh using scp
+// transfer copies a file or directory from the local machine to a remote destination using SCP.
+// Takes a logger, SSH client, local path, and remote path.
+// Returns an error if the transfer fails.
 func transfer(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath string) error {
 	if err := ensureDir(l, client, filepath.Dir(remotePath)); err != nil {
 		return fmt.Errorf("failed to ensure remote directory: %w", err)
@@ -23,6 +28,9 @@ func transfer(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath st
 	return nil
 }
 
+// ensureDir ensures that a directory exists on the remote machine.
+// Creates the directory and any parent directories if they don't exist.
+// Returns an error if directory creation fails.
 func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) error {
 	// First, ensure the remote directory exists
 	remoteDir := filepath.Dir(remotePath)
@@ -34,6 +42,9 @@ func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) erro
 	return nil
 }
 
+// transferPath handles the actual SCP transfer of files or directories.
+// Implements the SCP protocol for secure file transfer.
+// Returns an error if the transfer fails.
 func transferPath(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath string) error {
 	session, err := client.NewSession()
 	if err != nil {
@@ -88,6 +99,9 @@ func transferPath(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePat
 	return nil
 }
 
+// sendDirectory recursively transfers a directory and its contents using SCP.
+// Implements the SCP protocol's directory transfer functionality.
+// Returns an error if the directory transfer fails.
 func sendDirectory(w io.Writer, localPath, remoteName string) error {
 	stat, err := os.Stat(localPath)
 	if err != nil {
@@ -126,6 +140,9 @@ func sendDirectory(w io.Writer, localPath, remoteName string) error {
 	return nil
 }
 
+// sendFile transfers a single file using SCP.
+// Implements the SCP protocol's file transfer functionality.
+// Returns an error if the file transfer fails.
 func sendFile(w io.Writer, localPath, remoteName string, stat os.FileInfo) error {
 	// Send file header
 	fmt.Fprintf(w, "C%04o %d %s\n", stat.Mode().Perm(), stat.Size(), remoteName)

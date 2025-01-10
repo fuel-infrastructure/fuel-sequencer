@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -11,6 +14,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// executor defines an interface for executing commands either locally or remotely
 type executor interface {
 	StdoutPipe() (io.ReadCloser, error)
 	StderrPipe() (io.ReadCloser, error)
@@ -18,7 +22,8 @@ type executor interface {
 	Wait() error
 }
 
-// execute can use exec.Cmd directly
+// execute runs a command through the provided executor, capturing and logging output.
+// It streams stdout and stderr through the logger and returns any error encountered.
 func execute(l *zap.SugaredLogger, e executor) error {
 
 	// Capture output for logging by creating pipes for stdout and stderr
@@ -70,10 +75,14 @@ func execute(l *zap.SugaredLogger, e executor) error {
 	return nil
 }
 
+// locally executes a command on the local machine with the given name and arguments.
+// Returns an error if the command fails.
 func locally(l *zap.SugaredLogger, name string, args ...string) error {
 	return execute(l.Named("CMD"), exec.Command(name, args...))
 }
 
+// remotely executes a command on a remote machine through an SSH connection.
+// Returns an error if the command fails.
 func remotely(l *zap.SugaredLogger, client *ssh.Client, cmd string) error {
 	// Create new SSH client
 	session, err := client.NewSession()
@@ -85,12 +94,13 @@ func remotely(l *zap.SugaredLogger, client *ssh.Client, cmd string) error {
 	return execute(l.Named("SSH"), &sshSessionExecutor{Session: session, cmd: cmd})
 }
 
-// Need to wrap ssh.Session now
+// sshSessionExecutor wraps an SSH session to implement the executor interface
 type sshSessionExecutor struct {
 	*ssh.Session
 	cmd string
 }
 
+// Start begins execution of the SSH command
 func (s *sshSessionExecutor) Start() error {
 	return s.Session.Start(s.cmd)
 }
@@ -100,10 +110,12 @@ type ioCloser struct {
 	io.Reader
 }
 
+// Close implements io.Closer for the ioCloser type
 func (r *ioCloser) Close() error {
 	return nil // SSH session handles closing
 }
 
+// StdoutPipe returns a pipe that will be connected to the command's standard output
 func (s *sshSessionExecutor) StdoutPipe() (io.ReadCloser, error) {
 	r, err := s.Session.StdoutPipe()
 	if err != nil {
@@ -112,6 +124,7 @@ func (s *sshSessionExecutor) StdoutPipe() (io.ReadCloser, error) {
 	return &ioCloser{r}, nil
 }
 
+// StderrPipe returns a pipe that will be connected to the command's standard error
 func (s *sshSessionExecutor) StderrPipe() (io.ReadCloser, error) {
 	r, err := s.Session.StderrPipe()
 	if err != nil {
@@ -120,10 +133,13 @@ func (s *sshSessionExecutor) StderrPipe() (io.ReadCloser, error) {
 	return &ioCloser{r}, nil
 }
 
+// withSudo wraps a command to be executed with sudo privileges using the provided password
 func withSudo(cmd string, password string) string {
 	return fmt.Sprintf("echo %s | sudo -S %s", password, cmd)
 }
 
+// calculateFileHash computes the SHA256 hash of a file, either locally or remotely.
+// Returns the hash as a byte slice and any error encountered.
 func calculateFileHash(filepath string, client *ssh.Client) ([]byte, error) {
 	cmd := "sha256sum " + filepath + " | cut -d' ' -f1"
 

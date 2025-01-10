@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -9,19 +12,23 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// destination represents a remote host configuration for SSH connections
 type destination struct {
-	peer_ip string
-	host    string
-	user    string
-	pass    string
-	dir     string
+	peer_ip string // IP address used for P2P communication
+	host    string // Hostname or IP for SSH connection
+	user    string // SSH username
+	pass    string // SSH password
+	dir     string // Working directory on remote host
 }
 
+// connection wraps a destination with its active SSH client connection
 type connection struct {
 	destination
 	SSH *ssh.Client
 }
 
+// establishConnections creates SSH connections to all destinations in parallel.
+// Returns a slice of connections and any error encountered.
 func establishConnections() ([]connection, error) {
 	var connections []connection
 	var mu sync.Mutex
@@ -58,6 +65,7 @@ func establishConnections() ([]connection, error) {
 	return connections, nil
 }
 
+// closeConnections closes all SSH connections in the provided slice.
 func closeConnections(connections []connection) {
 	for _, conn := range connections {
 		if conn.SSH != nil {
@@ -66,7 +74,8 @@ func closeConnections(connections []connection) {
 	}
 }
 
-// connectSSH establishes an SSH connection to the specified destination
+// connectSSH establishes an SSH connection to a single destination.
+// Returns the SSH client and any error encountered.
 func connectSSH(dest destination) (*ssh.Client, error) {
 	l := logging.Named("Connection")
 

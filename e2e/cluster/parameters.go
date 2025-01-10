@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -65,14 +68,17 @@ var (
 	}
 )
 
+// chainHomeDir returns the path to the chain's home directory on the remote host
 func chainHomeDir(d destination) string {
 	return filepath.Join(d.dir, ".fuelsequencer")
 }
 
+// remoteBinaryPath returns the path where the binary should be installed on the remote host
 func remoteBinaryPath(d destination) string {
 	return filepath.Join(d.dir, binaryName)
 }
 
+// init validates the initialization parameters
 func init() {
 	if !initSupplyValid {
 		logging.Panicw("parameter initSupplyValid is invalid")

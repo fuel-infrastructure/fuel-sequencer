@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -7,6 +10,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// manageDestinations handles the management of all destination nodes including
+// service configuration, binary deployment and data management.
+// Returns an error if management of any destination fails.
 func manageDestinations(connections []connection, localBinaryPath string) error {
 	l := logging.Named("Manage")
 
@@ -28,6 +34,9 @@ func manageDestinations(connections []connection, localBinaryPath string) error 
 	return nil
 }
 
+// manage handles the management of a single destination including service,
+// binary and data management.
+// Returns an error if any management step fails.
 func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath string, localServiceHash, localBinaryHash []byte) error {
 	if err := manageService(l, conn, localServiceHash); err != nil {
 		return fmt.Errorf("failed to manage service: %w", err)
@@ -44,6 +53,9 @@ func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath s
 	return nil
 }
 
+// manageService handles the systemd service configuration for a destination.
+// Checks if service exists, compares hashes and transfers updated service file if needed.
+// Returns an error if service management fails.
 func manageService(l *zap.SugaredLogger, conn connection, localHash []byte) error {
 	// Check if systemd service exists
 	checkCmd := "test -f /etc/systemd/system/fuelsequencerd.service"
@@ -89,6 +101,8 @@ func manageService(l *zap.SugaredLogger, conn connection, localHash []byte) erro
 	return nil
 }
 
+// transferService transfers the systemd service file to a destination.
+// Returns an error if transfer fails.
 func transferService(l *zap.SugaredLogger, conn connection) error {
 	// First transfer to temporary location
 	tmpServicePath := filepath.Join(conn.dir, "tmp-fuelsequencerd.service")
@@ -108,6 +122,9 @@ func transferService(l *zap.SugaredLogger, conn connection) error {
 	return nil
 }
 
+// manageBinary handles the binary deployment for a destination.
+// Checks if binary exists, compares hashes and transfers updated binary if needed.
+// Returns an error if binary management fails.
 func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte, localBinaryPath string) error {
 	// check if binary exists
 	remoteBinaryPath := remoteBinaryPath(conn.destination)
@@ -140,6 +157,8 @@ func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte,
 	return nil
 }
 
+// transferBinary transfers the fuelsequencerd binary to a destination.
+// Returns an error if transfer fails.
 func transferBinary(l *zap.SugaredLogger, conn connection, localBinaryPath, remoteBinaryPath string) error {
 	logging.Infow("transferring binary...", "from", localBinaryPath, "to", fmt.Sprintf("%s:%s", conn.host, remoteBinaryPath))
 	if err := transfer(l, conn.SSH, localBinaryPath, remoteBinaryPath); err != nil {
@@ -154,6 +173,9 @@ func transferBinary(l *zap.SugaredLogger, conn connection, localBinaryPath, remo
 	return nil
 }
 
+// manageData handles the chain data management for a destination.
+// Cleans existing data and transfers new configuration.
+// Returns an error if data management fails.
 func manageData(l *zap.SugaredLogger, conn connection, nodeId int) error {
 	// if data on remote exists, remove it
 	homeDir := chainHomeDir(conn.destination)
@@ -175,6 +197,10 @@ func manageData(l *zap.SugaredLogger, conn connection, nodeId int) error {
 	return nil
 }
 
+// transferConfig transfers the chain configuration files to a destination node.
+// Takes a logger, connection details, and node ID.
+// Transfers the configuration files and sets appropriate permissions.
+// Returns an error if transfer fails.
 func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
 	instanceDir := filepath.Join(dataDir, chainName, fmt.Sprintf("fuelsequencer%d", nodeId))
 	remoteDataDir := chainHomeDir(conn.destination)

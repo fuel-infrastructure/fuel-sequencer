@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -15,6 +18,10 @@ import (
 // 	return nil
 // }
 
+// buildBinary builds or finds an existing fuelsequencerd binary.
+// Returns the path to the binary and any error encountered.
+// If an existing binary is found with matching architecture, it will be used.
+// Otherwise, a new binary will be built using make.
 func buildBinary() (string, error) {
 	l := logging.Named("Build")
 
@@ -51,6 +58,9 @@ func buildBinary() (string, error) {
 	return binaryPath, nil
 }
 
+// findBuild looks for an existing fuelsequencerd binary in the build directory
+// matching the desired architecture. Returns the path to the binary if found
+// or an error if not found or multiple matches exist.
 func findBuild(l *zap.SugaredLogger) (string, error) {
 	// Verify binary exists
 	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+wantArch))

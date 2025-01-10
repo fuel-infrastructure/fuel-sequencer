@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -6,6 +9,8 @@ import (
 	"go.uber.org/zap"
 )
 
+// deployNetwork deploys the fuelsequencerd service to all nodes in the cluster.
+// Takes a slice of connections and returns an error if any node deployment fails.
 func deployNetwork(connections []connection) error {
 	l := logging.Named("Deploy")
 
@@ -17,6 +22,9 @@ func deployNetwork(connections []connection) error {
 	return nil
 }
 
+// deployNode deploys the fuelsequencerd service to a single node.
+// Enables and starts the systemd service on the remote host.
+// Returns an error if service deployment fails.
 func deployNode(l *zap.SugaredLogger, conn connection) error {
 	cmd := "systemctl enable fuelsequencerd"
 	if err := remotely(l, conn.SSH, withSudo(cmd, conn.destination.pass)); err != nil {

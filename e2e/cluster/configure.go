@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -27,6 +30,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
+// sequencer represents a validator node setup in the Fuel Sequencer network
 type sequencer struct {
 	chain *testsuite.Chain
 
@@ -35,6 +39,9 @@ type sequencer struct {
 	keys []*testsuite.SequencerKey
 }
 
+// configureNetwork sets up the initial network configuration including chain creation,
+// genesis initialization, and validator configurations.
+// Returns an error if any configuration step fails.
 func configureNetwork() error {
 	l := logging.Named("Configure")
 
@@ -83,6 +90,8 @@ func configureNetwork() error {
 	return nil
 }
 
+// initNodes initializes validator nodes and their genesis accounts.
+// Returns an error if node initialization fails.
 func (s *sequencer) initNodes() error {
 	err := s.chain.CreateAndInitFuelSequencerValidators(mnemonics)
 	if err != nil {
@@ -111,6 +120,9 @@ func (s *sequencer) initNodes() error {
 	return nil
 }
 
+// initGenesis initializes and customizes the genesis state for all validators.
+// Configures governance, mint, bank, bridge and sequencing parameters.
+// Returns an error if genesis initialization fails.
 func (s *sequencer) initGenesis() error {
 	cdc := testsuite.TestCdc
 
@@ -273,6 +285,9 @@ func (s *sequencer) initGenesis() error {
 	return nil
 }
 
+// initValidatorConfigs initializes validator-specific configurations including
+// P2P settings, RPC endpoints, and application parameters.
+// Returns an error if validator configuration fails.
 func (s *sequencer) initValidatorConfigs() error {
 	for i, val := range s.chain.Validators {
 		cmCfgPath := filepath.Join(val.ConfigDir(), "config", "config.toml")

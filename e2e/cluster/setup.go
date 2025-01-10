@@ -1,3 +1,6 @@
+// Package cluster provides functionality for setting up and managing a distributed
+// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
+// deployment and management of the network.
 package cluster
 
 import (
@@ -8,17 +11,22 @@ import (
 
 var logging *zap.SugaredLogger
 
+// init initializes the package-level logger
 func init() {
 	logger, _ := zap.NewDevelopment()
 	logging = logger.Sugar().Named("Setup")
 	defer logger.Sync()
 }
 
+// logAndWrapErr logs an error message and wraps the original error with additional context
 func logAndWrapErr(msg string, err error) error {
 	logging.Errorw(msg, "error", err)
 	return fmt.Errorf("%s: %w", msg, err)
 }
 
+// Setup orchestrates the entire cluster setup process including building binaries,
+// configuring the network, establishing connections, managing destinations and deploying
+// the network. Returns an error if any step fails.
 func Setup() error {
 
 	ld, lm := len(destinations), len(mnemonics)
