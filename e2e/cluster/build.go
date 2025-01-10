@@ -17,16 +17,6 @@ import (
 func buildBinary() (string, error) {
 	l := logging.Named("Build")
 
-	// // Checkout the specific tag
-	// log.Debugf("Checking out tag: %s", repoTag)
-	// cmd := exec.Command("git", "checkout", repoTag)
-	// if err := cmd.Run(); err != nil {
-	// 	log.Errorw("Failed to checkout tag",
-	// 		"tag", repoTag,
-	// 		"error", err)
-	// 	return "", fmt.Errorf("failed to checkout tag: %w", err)
-	// }
-
 	binaryPath, err := findBuild(l)
 	if err == nil {
 		l.Infow("existing build found", "path", binaryPath)
