@@ -195,9 +195,9 @@ The next step is to run the Pyroscope server:
 make run-pyroscope
 ```
 
-To enable profiling for the Sequencer, simply replace the old binary with the binary versioned `seq-testnet-2-with-profiling` and restart the daemon service. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
+To enable profiling for the Sequencer, simply replace the old binary with the binary versioned `seq-testnet-2-with-profiling-tag` and restart the daemon service. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
 
-To enable profiling for the Sidecar, use the new binary version `seq-testnet-2-with-profiling` and update the `ExecStart` command in the recommended service file. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
+To enable profiling for the Sidecar, use the new binary version `seq-testnet-2-with-profiling-tag` and update the `ExecStart` command in the recommended service file. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
 
 ```bash
 # Basically just add ExecStart=SERVICE_TYPE="sidecar" to your existing command
