@@ -26,8 +26,8 @@ var (
 	// Sequencer Parameters
 	chainName = "seq-benchnet-1"
 
-	//// Use predefined mnemonics for deterministic addresses
-	//// Also dictates the number of validators
+	// Use predefined mnemonics for deterministic addresses
+	// Also dictates the number of validators
 	mnemonics = []string{
 		"test test test test test test test test test test test junk",
 		"dinner crash nurse casino baby fold race cheese elite column sausage sleep close royal rain over mechanic minimum outdoor conduct cash wagon frog evidence",
@@ -71,4 +71,16 @@ func chainHomeDir(d destination) string {
 
 func remoteBinaryPath(d destination) string {
 	return filepath.Join(d.dir, binaryName)
+}
+
+func init() {
+	if !initSupplyValid {
+		logging.Panicw("parameter initSupplyValid is invalid")
+	}
+	if !initBalanceValid {
+		logging.Panicw("parameter initBalanceValid is invalid")
+	}
+	if !initStakedValid {
+		logging.Panicw("parameter initStakedValid is invalid")
+	}
 }

@@ -30,7 +30,7 @@ import (
 type sequencer struct {
 	chain *testsuite.Chain
 
-	// keys are the FuelSequencer wallets derived from the above MNEMONICS, with hex versions of the addresses.
+	// keys are the FuelSequencer wallets derived from the mnemonics, with hex versions of the addresses.
 	// This is filled-in later on in SetupTest, once the address codec has been initialised.
 	keys []*testsuite.SequencerKey
 }
@@ -64,8 +64,6 @@ func configureNetwork() error {
 	if err != nil {
 		return fmt.Errorf("failed to initialise nodes: %w", err)
 	}
-
-	// setContractAddresses??
 
 	err = s.initGenesis()
 	if err != nil {
