@@ -66,7 +66,8 @@ As noted in `e2e/cluster/parameters.go`, mainly makefileDir and destinations are
 2. Run the cluster setup:
 
 ```bash
-go run e2e/cmd/cluster/main.go
+cd e2e
+go run ./cmd/cluster
 ```
 
 ## Directory Structure
