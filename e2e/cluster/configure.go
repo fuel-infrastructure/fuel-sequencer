@@ -39,7 +39,7 @@ func configureNetwork() error {
 	l := logging.Named("Configure")
 
 	// Initialize chain with defined number of nodes
-	chain, err := testsuite.NewFixedChain(chainName, dataDir, len(mnemonics))
+	chain, err := testsuite.NewNamedChain(chainName, dataDir, len(mnemonics))
 	if err != nil {
 		return fmt.Errorf("failed to create chain: %w", err)
 	}

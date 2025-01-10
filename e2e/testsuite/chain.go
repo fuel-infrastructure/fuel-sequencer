@@ -123,7 +123,8 @@ type Chain struct {
 	ethClient     *ethclient.Client
 }
 
-func NewFixedChain(chainName, dataDir string, numNodes int) (*Chain, error) {
+// NewNamedChain creates a chain with fixed chain name (i.e. no randomness in naming)
+func NewNamedChain(chainName, dataDir string, numNodes int) (*Chain, error) {
 	return &Chain{
 		id:       chainName,
 		DataDir:  dataDir,
