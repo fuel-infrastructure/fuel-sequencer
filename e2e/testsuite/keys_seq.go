@@ -22,7 +22,7 @@ type SequencerKey struct {
 	ValAddressEth common.Address
 }
 
-func mustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
+func MustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
 	key, err := newSequencerKeyFromMnemonic(mnemonic)
 	if err != nil {
 		panic(err)
@@ -31,7 +31,7 @@ func mustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
 }
 
 func newSequencerKeyFromMnemonic(mnemonic string) (*SequencerKey, error) {
-	kb := keyring.NewInMemory(cdc)
+	kb := keyring.NewInMemory(Cdc)
 
 	name := "name"
 	passphrase := ""

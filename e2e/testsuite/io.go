@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func copyFile(src, dst string) error {
+func CopyFile(src, dst string) error {
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func copyFile(src, dst string) error {
 	return err
 }
 
-func writeFile(path string, body []byte) error {
+func WriteFile(path string, body []byte) error {
 	_, err := os.Create(path)
 	if err != nil {
 		return err
