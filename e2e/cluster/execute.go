@@ -135,7 +135,7 @@ func (s *sshSessionExecutor) StderrPipe() (io.ReadCloser, error) {
 
 // withSudo wraps a command to be executed with sudo privileges using the provided password
 func withSudo(cmd string, password string) string {
-	return fmt.Sprintf("echo %s | sudo -S %s", password, cmd)
+	return fmt.Sprintf("echo '%s' | sudo -S %s", password, cmd)
 }
 
 // calculateFileHash computes the SHA256 hash of a file, either locally or remotely.
