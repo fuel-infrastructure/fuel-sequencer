@@ -197,16 +197,17 @@ make run-pyroscope
 
 To enable profiling for the Sequencer, simply replace the old binary with the binary versioned `seq-testnet-2-with-profiling-tag` and restart the daemon service. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
 
-To enable profiling for the Sidecar, use the new binary version `seq-testnet-2-with-profiling-tag` and update the `ExecStart` command in the recommended service file. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
+To enable profiling for the Sidecar, use the new binary version `seq-testnet-2-with-profiling-tag` and add `SERVICE_TYPE="sidecar"` as an environment variable in the recommended service file. For detailed instructions on the suggested service file refer to this [guide](https://github.com/fuel-infrastructure/networks/tree/main/seq-testnet-2).
 
 ```bash
-# Basically just add ExecStart=SERVICE_TYPE="sidecar" to your existing command
-ExecStart=SERVICE_TYPE="sidecar" <HOME>/go/bin/fuelsequencerd start-sidecar \
+ExecStart=<HOME>/go/bin/fuelsequencerd start-sidecar \
     --host "0.0.0.0" \
     --sequencer_grpc_url "127.0.0.1:9090" \
     --eth_ws_url "<ETHEREUM_NODE_WS>" \
     --eth_rpc_url "<ETHEREUM_NODE_RPC>" \
     --eth_contract_address "0x0E5CAcD6899a1E2a4B4E6e0c8a1eA7feAD3E25eD"
+
+Environment="SERVICE_TYPE="sidecar"" 
 ```
 
 Once executed successfully, the Pyroscope UI will be available at http://<vm-ip>:4040 for long-term monitoring.
