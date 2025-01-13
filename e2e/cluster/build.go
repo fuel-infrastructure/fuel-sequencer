@@ -17,21 +17,22 @@ import (
 func buildBinary() (string, error) {
 	l := logging.Named("Build")
 
-	binaryPath, err := findBuild(l)
-	if err == nil {
-		l.Infow("existing build found", "path", binaryPath)
-		return binaryPath, nil
+	// Remove any existing build directory
+	err := locally(l, "rm", "-rf", buildPath)
+	if err != nil {
+		l.Errorw("failed to remove build directory", "error", err)
+		return "", fmt.Errorf("failed to remove build directory: %w", err)
 	}
 
 	// Run make target
-	l.Info("build not found, running make build...")
+	l.Info("running make build...")
 	if err := locally(l, "make", "--directory", makefileDir, "build-fuelsequencerd"); err != nil {
 		l.Errorw("make build failed", "error", err)
 		return "", fmt.Errorf("make build failed: %w", err)
 	}
 
 	// Verify binary exists
-	binaryPath, err = findBuild(l)
+	binaryPath, err := findBuild(l)
 	if err != nil {
 		return "", fmt.Errorf("failed to verify build: %w", err)
 	}
