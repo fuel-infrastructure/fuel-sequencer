@@ -162,7 +162,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.ZeroInt(),
-			expErrMsg:        "message size 500 exceeds max blob size bytes 400",
+			expErrMsg:        "blob size 500 exceeds max blob size bytes 400",
 		},
 		{
 			name: "post a blob with incorrect order",
