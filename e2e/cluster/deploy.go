@@ -38,5 +38,6 @@ func deployNode(l *zap.SugaredLogger, conn connection) error {
 	}
 
 	// TODO: Check if node is ready
+	l.Infow("deployed node", "host", conn.destination.host)
 	return nil
 }
