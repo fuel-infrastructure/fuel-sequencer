@@ -60,8 +60,8 @@ var (
 	supplyDeltaPeriod      = uint64(10)       // default - can be overridden
 	blobMaxBytes           = uint64(2147483648)
 	blockMaxGas            = uint64(4294967296)
-	mempoolMaxTxBytes      = int(blockMaxGas)
-	mempoolMaxTxsBytes     = int64(blockMaxGas)
+	mempoolMaxTxBytes      = int(4294967296)   // 4 GiB
+	mempoolMaxTxsBytes     = int64(4294967296) // 4 GiB
 
 	// Gas configs
 	minGasPrices = "0.0"
