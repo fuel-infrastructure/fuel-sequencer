@@ -8,7 +8,6 @@ class Networks(Enum):
 
 
 class NetworkConfig:
-
     def __init__(self, network: Networks):
         self.explorer_tx_url = EXPLORER_TX_URLS[network]
 

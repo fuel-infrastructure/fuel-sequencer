@@ -10,6 +10,7 @@ from load_test.utils import *
 from utils.classes import FuelSequencerChain
 from utils.constants import *
 from utils.networks import Networks, NetworkConfig
+from run_block_reports import run_blob_report
 
 NETWORK = Networks.TESTNET  # Change me to load test other networks!
 CONFIG = NetworkConfig(NETWORK)
@@ -28,8 +29,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse key and mnemonic")
 
     # Add arguments
-    parser.add_argument('--key', type=str, required=False, help='key name')
-    parser.add_argument('--mnemonic', type=str, required=False, help='mnemonic')
+    parser.add_argument("--key", type=str, required=False, help="key name")
+    parser.add_argument("--mnemonic", type=str, required=False, help="mnemonic")
 
     # Parse the arguments
     args = parser.parse_args()
@@ -59,8 +60,7 @@ if __name__ == "__main__":
 
     # MsgPostBlob transaction configuration
     gas = 100000 + (10 * BLOB_SIZE_BYTES)  # 10 = tx_size_cost_per_byte
-    fee_amount = int(
-        int(gas) * float(seq.gas_prices.replace(seq.fee_token, "")))
+    fee_amount = int(int(gas) * float(seq.gas_prices.replace(seq.fee_token, "")))
     fee = [{"amount": f"{fee_amount}", "denom": seq.fee_token}]
 
     # Ensure key is in place
@@ -68,14 +68,16 @@ if __name__ == "__main__":
 
     stop_event = multiprocessing.Event()
 
-    print(f"Running load test for {BLOCKS_TO_LOAD_TEST} blocks "
-          f"with blobs of {BLOB_SIZE_BYTES} bytes")
+    print(
+        f"Running load test for {BLOCKS_TO_LOAD_TEST} blocks "
+        f"with blobs of {BLOB_SIZE_BYTES} bytes"
+    )
 
     # Get account number and starting sequence
     sender = seq.keys(f"show {key} -a")
-    account = json.loads(seq.query_account(sender))['account']['value']
-    acc_num = account['account_number'] if 'account_number' in account else 0
-    acc_starting_seq = account['sequence'] if 'sequence' in account else 0
+    account = json.loads(seq.query_account(sender))["account"]["value"]
+    acc_num = account["account_number"] if "account_number" in account else 0
+    acc_starting_seq = account["sequence"] if "sequence" in account else 0
 
     # Pre-test cleanup
     filename_prefix = get_temp_tx_file_prefix(seq.key_name)
@@ -85,13 +87,11 @@ if __name__ == "__main__":
     print(f"Cleaned up previous test files ({filename_prefix}*)")
 
     # Generate a topic with a unique ID and starting order of 0
-    topic_id = base64.b64encode(os.urandom(32)).decode('utf-8')
+    topic_id = base64.b64encode(os.urandom(32)).decode("utf-8")
     topic_order = 0
 
     logging_queue = multiprocessing.Queue()
-    listener = logging.handlers.QueueListener(
-        logging_queue, logging.StreamHandler()
-    )
+    listener = logging.handlers.QueueListener(logging_queue, logging.StreamHandler())
     listener.start()
 
     # Calculate block range that test will run for
@@ -108,7 +108,7 @@ if __name__ == "__main__":
             time.sleep(0.5)
             continue
 
-        print(f'Detected block={curr_block}')
+        print(f"Detected block={curr_block}")
 
         # Processing
         process = post_blob_async(
@@ -141,3 +141,6 @@ if __name__ == "__main__":
     # Wait for last process to finish
     if process:
         process.join()
+
+    print(f"\n\nRunning blob report...")
+    run_blob_report(start_block, last_block, blob_size_bytes=BLOB_SIZE_BYTES)
