@@ -42,9 +42,8 @@ type (
 	}
 
 	EthVoteEvent struct {
-		ProposalId uint64 `json:"proposal_id"`
-		Option     uint32 `json:"option"`
-		Metadata   string `json:"metadata"`
+		Option   uint32 `json:"option"`
+		Metadata string `json:"metadata"`
 	}
 
 	EthSetRewardRecipientEvent struct{}

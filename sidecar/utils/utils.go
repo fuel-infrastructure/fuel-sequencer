@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -267,9 +268,11 @@ func ExtractLogDataToEvent(
 
 		// Some values are indexed, so extract them from Topics
 		voter := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		proposalIdBig := new(big.Int)
+		proposalIdBig.SetBytes(vLog.Topics[2].Bytes())
+		proposalId := proposalIdBig.Uint64()
 
 		// Convert the rest of the fields as required
-		proposalId := ethEvent.ProposalId
 		option := ethEvent.Option
 		metadata := ethEvent.Metadata
 
