@@ -31,6 +31,14 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		valConfig.LogLevel = "info"
 		valConfig.Instrumentation.Prometheus = true
 
+		if i == 0 {
+			valConfig.Blobs.SendFirst = true
+		} else {
+			valConfig.Blobs.SendFirst = false
+		}
+		valConfig.Blobs.DataSizeBytes = 1024 * 1024 * 100 // 100MiB
+		valConfig.Blobs.WaitBeforeSend = 1 * time.Minute
+
 		// speed up blocks
 		valConfig.Consensus.TimeoutCommit = 1 * time.Second
 		valConfig.Consensus.TimeoutPropose = 1 * time.Second
