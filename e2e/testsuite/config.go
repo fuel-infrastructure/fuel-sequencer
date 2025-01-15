@@ -36,8 +36,11 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		} else {
 			valConfig.Blobs.SendFirst = false
 		}
-		valConfig.Blobs.DataSizeBytes = 1024 * 1024 * 100 // 100MiB
+		valConfig.Blobs.DataSizeBytes = 1024 * 1024 * 1024 // 1GiB
 		valConfig.Blobs.WaitBeforeSend = 1 * time.Minute
+
+		valConfig.P2P.SendRate = 1024 * 1024 * 100 // 100 MB/s
+		valConfig.P2P.RecvRate = 1024 * 1024 * 100 // 100 MB/s
 
 		// speed up blocks
 		valConfig.Consensus.TimeoutCommit = 1 * time.Second
