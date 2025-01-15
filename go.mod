@@ -6,7 +6,7 @@ toolchain go1.22.7
 
 replace (
 	// custom CometBFT for blob throughput investigation
-	github.com/cometbft/cometbft => github.com/fuel-infrastructure/cometbft v0.38.8-0.20250115172002-8f5aa31767a8
+	github.com/cometbft/cometbft => github.com/fuel-infrastructure/cometbft v0.38.8-0.20250115183243-21c4f9e008d6
 	// point to Fuel's Cosmos SDK fork
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.10-no-burning
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
