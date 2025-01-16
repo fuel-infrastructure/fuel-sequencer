@@ -318,6 +318,21 @@ func (s *sequencer) initValidatorConfigs() error {
 		valConfig.Consensus.TimeoutCommit = 5 * time.Second
 		valConfig.Consensus.TimeoutPropose = 3 * time.Second
 
+		if i == 0 {
+			valConfig.Blobs.SendFirst = true
+		} else {
+			valConfig.Blobs.SendFirst = false
+		}
+		valConfig.Blobs.DataSizeBytes = 1e6 // 1 MB
+		valConfig.Blobs.WaitBeforeSend = 0 * time.Second
+		valConfig.Blobs.RecvBufferCapacity = 200e6  // 200 MB
+		valConfig.Blobs.RecvMessageCapacity = 200e6 // 200 MB
+
+		valConfig.P2P.SendRate = 1e9 // 1 GB/s
+		valConfig.P2P.RecvRate = 1e9 // 1 GB/s
+
+		valConfig.P2P.MaxPacketMsgPayloadSize = 100e6 // 100 MB
+
 		var peers []string
 
 		for j := 0; j < len(s.chain.Validators); j++ {
