@@ -174,6 +174,9 @@ type E2ETestSuite struct {
 	// applied, SetupTest needs to be overridden so that genesisOverrides can be changed before invoking SetupTest.
 	GenesisOverrides *ModifyGenesisFunc
 
+	// SequencerOnly allows certain test suites to run without Ethereum and without Sidecars.
+	SequencerOnly bool
+
 	// Docker images, which can be overridden
 	FuelSequencerDockerImageRepo      string
 	FuelSequencerDockerImageTag       string
@@ -235,16 +238,18 @@ func (s *E2ETestSuite) SetupTest() {
 
 	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.DataDir)
 
-	// Derive and print the Ethereum keys with the hex and bech32 representation of the addresses.
-	for _, mnemonic := range MNEMONICS {
-		s.EthKeys = append(s.EthKeys, mustNewEthereumKeyFromMnemonic(mnemonic))
-	}
-	s.EthGuardian = mustNewEthereumKeyFromPrivateKey(GuardianPrivateKey)
-	s.EthDeployer = mustNewEthereumKeyFromPrivateKey(DeployerPrivateKey)
-	s.EthUser = mustNewEthereumKeyFromPrivateKey(UserPrivateKey)
-	s.T().Logf("ethereum keys:")
-	for _, key := range append(s.EthKeys, s.EthGuardian, s.EthDeployer, s.EthUser) {
-		s.T().Logf("\tpriv:%s hex:%s seq:%s", key.PrivateKeyHex, key.AddressHex, key.AddressSeq)
+	if !s.SequencerOnly {
+		// Derive and print the Ethereum keys with the hex and bech32 representation of the addresses.
+		for _, mnemonic := range MNEMONICS {
+			s.EthKeys = append(s.EthKeys, mustNewEthereumKeyFromMnemonic(mnemonic))
+		}
+		s.EthGuardian = mustNewEthereumKeyFromPrivateKey(GuardianPrivateKey)
+		s.EthDeployer = mustNewEthereumKeyFromPrivateKey(DeployerPrivateKey)
+		s.EthUser = mustNewEthereumKeyFromPrivateKey(UserPrivateKey)
+		s.T().Logf("ethereum keys:")
+		for _, key := range append(s.EthKeys, s.EthGuardian, s.EthDeployer, s.EthUser) {
+			s.T().Logf("\tpriv:%s hex:%s seq:%s", key.PrivateKeyHex, key.AddressHex, key.AddressSeq)
+		}
 	}
 
 	// Derive and print the Sequencer keys with the hex and bech32 representation of the addresses.
@@ -259,18 +264,24 @@ func (s *E2ETestSuite) SetupTest() {
 	// Initialization
 	s.initFuelSequencerNodes(MNEMONICS)
 
-	// Run Ethereum node and deploy contracts
-	s.runEthereumNodeContainer()
-	s.runEthereumDeploymentContainer()
-	s.initEthereumRPCClient()
+	if !s.SequencerOnly {
+		// Run Ethereum node and deploy contracts
+		s.runEthereumNodeContainer()
+		s.runEthereumDeploymentContainer()
+		s.initEthereumRPCClient()
 
-	// Deployment is done so we can get the contract addresses
-	s.setContractAddresses()
+		// Deployment is done so we can get the contract addresses
+		s.setContractAddresses()
+	}
 
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
-	s.RunSequencerValidators()
+	if s.SequencerOnly {
+		s.RunSequencerValidatorsNoSidecar()
+	} else {
+		s.RunSequencerValidators()
+	}
 	s.initGRPCClients()
 	s.initRPCClient()
 	s.initSidecarClient()
@@ -279,21 +290,23 @@ func (s *E2ETestSuite) SetupTest() {
 	err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
 	s.Require().NoError(err)
 
-	// Get genesis header
-	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
-	s.Require().NoError(err)
+	if !s.SequencerOnly {
+		// Get genesis header
+		genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
+		s.Require().NoError(err)
 
-	// Check that the deployer has the DEFAULT_ADMIN_ROLE, allowing them to set the genesis header
-	hasRole, err := s.QueryEthereumAddressHasRole_FuelStreamXContract(
-		s.Ctx(), s.EthDeployer.Address, common.HexToHash(DefaultAdminRoleHash),
-	)
-	s.Require().NoError(err)
-	s.Require().True(hasRole)
+		// Check that the deployer has the DEFAULT_ADMIN_ROLE, allowing them to set the genesis header
+		hasRole, err := s.QueryEthereumAddressHasRole_FuelStreamXContract(
+			s.Ctx(), s.EthDeployer.Address, common.HexToHash(DefaultAdminRoleHash),
+		)
+		s.Require().NoError(err)
+		s.Require().True(hasRole)
 
-	// Set the genesis header
-	data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
-	_, err = s.SendEthTransactionToFuelStreamXContractAsDeployer(data)
-	s.Require().NoError(err)
+		// Set the genesis header
+		data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
+		_, err = s.SendEthTransactionToFuelStreamXContractAsDeployer(data)
+		s.Require().NoError(err)
+	}
 
 	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
@@ -314,8 +327,10 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.Require().NoError(s.Chain.rpcClient.Stop())
 	s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
-	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
-	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
+	if !s.SequencerOnly {
+		s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
+		s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
+	}
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
@@ -325,6 +340,7 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.govProposalIdCounter = 1
 	s.GenesisOverrides = nil
+	s.SequencerOnly = false
 
 	s.SeqKeys = nil
 	s.EthKeys = nil
@@ -545,6 +561,10 @@ func (s *E2ETestSuite) UnpauseEthereum() {
 
 func (s *E2ETestSuite) RunSequencerValidators() {
 	s.runSequencerValidatorsWithOverrides(nil, nil, true)
+}
+
+func (s *E2ETestSuite) RunSequencerValidatorsNoSidecar() {
+	s.runSequencerValidatorsWithOverrides([]string{"fuelsequencerd", "start"}, nil, true)
 }
 
 func (s *E2ETestSuite) ExportSequencerState() string {

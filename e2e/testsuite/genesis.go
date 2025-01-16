@@ -180,9 +180,12 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	// making them consistently pass regardless of when they are executed.
 	vestingStartingTime := genDoc.GenesisTime
 
-	ethBlockNumber, err := s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
-	s.Require().NoError(err)
-	s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
+	ethBlockNumber := uint64(1)
+	if !s.SequencerOnly {
+		ethBlockNumber, err = s.Chain.ethClient.BlockNumber(s.Ctx()) // start syncing from the current Ethereum block
+		s.Require().NoError(err)
+		s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
+	}
 
 	var bridgeGenState bridgetypes.GenesisState
 	s.Require().NoError(Cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))

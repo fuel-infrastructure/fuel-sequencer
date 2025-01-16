@@ -79,6 +79,10 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		appConfig.Telemetry.Enabled = true
 		appConfig.Telemetry.PrometheusRetentionTime = 60 // 1 minute
 
+		if s.SequencerOnly {
+			appConfig.SidecarConfig.Enabled = false
+		}
+
 		srvconfig.SetConfigTemplate(customAppTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
