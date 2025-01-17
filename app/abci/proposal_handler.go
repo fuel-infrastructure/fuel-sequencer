@@ -550,7 +550,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	// Identify all events in the MsgIndex and produce one new valid transaction per event.
 	//
 	// To protect the Sequencer from attacks induced from a large or invalid payload, we skip an Authorize event if:
-	// - fails to be encoded as bytes tx
+	// - it fails to be encoded as bytes tx
 	// - is bigger than the allowed max bytes
 	// - has more messages than the allowable limit
 	// - it fails authentication (incl. ValidateBasic and signer check)
