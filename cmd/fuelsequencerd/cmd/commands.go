@@ -239,7 +239,7 @@ func startSidecarServerCmd() *cobra.Command {
 		&seqCfg.unsafeBridgeDenom,
 		FlagSequencerUnsafeBridgeDenom,
 		bridgetypes.DefaultBridgeDenom,
-		"denom used to fill-in any missing denoms when encoding AuthorizeTx messages",
+		"denom used when encoding AuthorizeTx messages",
 	)
 
 	// Prometheus
