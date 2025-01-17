@@ -11,7 +11,8 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-// TestGenerateEventLogFixtures generates fixtures used in Sidecar testing.
+// TestGenerateEventLogFixtures generates fixtures used in Sidecar unit testing.
+// Specifically sidecar/utils/utils.go, at the time of writing.
 func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	senderAddress := s.EthKeys[0].AddressHex
 	receiverAddress := s.EthKeys[1].AddressHex
