@@ -323,13 +323,13 @@ func (s *sequencer) initValidatorConfigs() error {
 		} else {
 			valConfig.Blobs.SendFirst = false
 		}
-		valConfig.Blobs.DataSizeBytes = 1e6 // 1 MB
-		valConfig.Blobs.WaitBeforeSend = 0 * time.Second
-		valConfig.Blobs.RecvBufferCapacity = 200e6  // 200 MB
-		valConfig.Blobs.RecvMessageCapacity = 200e6 // 200 MB
+		valConfig.Blobs.DataSizeBytes = 10e6 // 10 MB
+		valConfig.Blobs.WaitBeforeSend = 10 * time.Second
+		valConfig.Blobs.RecvBufferCapacity = 20e6  // 20 MB
+		valConfig.Blobs.RecvMessageCapacity = 20e6 // 20 MB
 
-		valConfig.P2P.SendRate = 1e9 // 1 GB/s
-		valConfig.P2P.RecvRate = 1e9 // 1 GB/s
+		valConfig.P2P.SendRate = 10e6 // 10 MB/s
+		valConfig.P2P.RecvRate = 10e6 // 10 MB/s
 
 		valConfig.P2P.MaxPacketMsgPayloadSize = 100e6 // 100 MB
 
