@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -21,13 +20,13 @@ import (
 
 // AuthorizeTxFromMsg packs a message into an AuthorizeTx which the Sequencer can then unpack.
 func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
+	anyMsgs, err := sidecartypes.NewAnysWithValue(msg)
 	if err != nil {
 		return nil, err
 	}
 
 	// Serialize the message to bytes
-	bz, err := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: []*codectypes.Any{anyMsg}})
+	bz, err := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: anyMsgs})
 	if err != nil {
 		return nil, err
 	}
