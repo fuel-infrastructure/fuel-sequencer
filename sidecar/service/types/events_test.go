@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -12,12 +12,12 @@ import (
 )
 
 func TestParsedEvent_ValidateBasic(t *testing.T) {
-	var nilDepositEvent *sidecartypes.DepositEvent = nil
-	var nilAuthorizeEvent *sidecartypes.AuthorizeEvent = nil
+	var nilDepositEvent *types.DepositEvent = nil
+	var nilAuthorizeEvent *types.AuthorizeEvent = nil
 
 	testCases := []struct {
 		name      string
-		event     sidecartypes.ParsedEvent
+		event     types.ParsedEvent
 		expErrMsg string
 	}{
 		{
@@ -39,7 +39,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "DepositEvent - invalid depositor - NO ERROR",
-			event: &sidecartypes.DepositEvent{
+			event: &types.DepositEvent{
 				Depositor: "invalid-depositor",
 				Recipient: testtypes.TestTo1,
 				Amount:    testtypes.TestAmount1,
@@ -48,7 +48,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "DepositEvent - invalid recipient - NO ERROR",
-			event: &sidecartypes.DepositEvent{
+			event: &types.DepositEvent{
 				Depositor: testtypes.TestFrom1,
 				Recipient: "invalid-recipient",
 				Amount:    testtypes.TestAmount1,
@@ -57,7 +57,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "DepositEvent - invalid lockup - error",
-			event: &sidecartypes.DepositEvent{
+			event: &types.DepositEvent{
 				Depositor: testtypes.TestFrom1,
 				Recipient: testtypes.TestTo1,
 				Amount:    testtypes.TestAmount1,
@@ -67,7 +67,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "DepositEvent - amount is zero - error",
-			event: &sidecartypes.DepositEvent{
+			event: &types.DepositEvent{
 				Depositor: testtypes.TestFrom1,
 				Recipient: testtypes.TestTo1,
 				Amount:    "0",
@@ -77,7 +77,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "DepositEvent - amount is float - error",
-			event: &sidecartypes.DepositEvent{
+			event: &types.DepositEvent{
 				Depositor: testtypes.TestFrom1,
 				Recipient: testtypes.TestTo1,
 				Amount:    "0.4356346",
@@ -96,7 +96,7 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "AuthorizeEvent - invalid sender - error",
-			event: &sidecartypes.AuthorizeEvent{
+			event: &types.AuthorizeEvent{
 				Sender: "invalid-sender",
 				Data:   testutils.MustHexDecodeString(testtypes.TestData1),
 			},
@@ -121,7 +121,7 @@ func TestParsedEvent_Messages(t *testing.T) {
 
 	testCases := []struct {
 		name       string
-		event      sidecartypes.ParsedEvent
+		event      types.ParsedEvent
 		getExpMsgs func() []*codectypes.Any
 		expErrMsg  string
 	}{
@@ -129,7 +129,7 @@ func TestParsedEvent_Messages(t *testing.T) {
 			name:  "DepositEvent",
 			event: testtypes.TestDepositEvent1,
 			getExpMsgs: func() []*codectypes.Any {
-				anys, err := sidecartypes.NewAnysWithValue(
+				anys, err := types.NewAnysWithValue(
 					&bridgetypes.MsgDepositFromEthereum{
 						Authority: testtypes.TestGovernanceAddress,
 						Depositor: testtypes.TestDepositEvent1.Depositor,
