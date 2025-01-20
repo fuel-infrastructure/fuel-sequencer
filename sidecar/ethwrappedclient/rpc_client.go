@@ -29,7 +29,7 @@ type EthRpcClient struct {
 	contractABI abi.ABI
 
 	// seqBridgeDenom is the denom used when encoding AuthorizeTx messages.
-	// For example, if we observe a DelegateEvent with amount 100, this is translated to a MsgDelegate of 100ufuel.
+	// For example, if we observe a DelegateEvent with amount 100, this is translated to a MsgDelegate of 100seqBridgeDenom.
 	seqBridgeDenom string
 
 	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.
