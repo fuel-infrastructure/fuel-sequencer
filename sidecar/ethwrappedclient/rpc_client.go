@@ -28,7 +28,7 @@ type EthRpcClient struct {
 	// contractABI is the ABI of the SequencerProxy contract.
 	contractABI abi.ABI
 
-	// seqBridgeDenom is the denom used to fill-in any missing denoms when encoding AuthorizeTx messages.
+	// seqBridgeDenom is the denom used when encoding AuthorizeTx messages.
 	// For example, if we observe a DelegateEvent with amount 100, this is translated to a MsgDelegate of 100ufuel.
 	seqBridgeDenom string
 
