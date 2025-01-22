@@ -2,6 +2,7 @@
 
 # Sequencer's Docker image and container names.
 DOCKER := $(shell which docker)
+DOCKER_COMPOSE := $(shell which docker-compose)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
@@ -234,7 +235,7 @@ proto-go-gen:
 
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
-	@docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+	@$(DOCKER) run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
 		find ./proto -name "*.proto" -exec clang-format -i {} \;
 	@echo "✅ Finished formatting Protobuf files!"
 
@@ -272,7 +273,7 @@ run-sidecar:
 	    sleep 1; \
 	done
 	@echo "Waiting for Ethereum deployment container '$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)' to stop..."
-	@while [ -n "$$(docker ps -q -f name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE))" ]; do \
+	@while [ -n "$$($(DOCKER) ps -q -f name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE))" ]; do \
 		sleep 1; \
 	done
 	@echo "Waiting for Sequencer node $(SEQUENCER_RPC_URL) to start..."
@@ -393,7 +394,7 @@ metrics:
 ###############################################################################
 
 check-docker-image-exists:
-ifeq (,$(shell docker images -q ${DOCKER_IMAGE_NAME}:latest 2> /dev/null))
+ifeq (,$(shell $(DOCKER) images -q ${DOCKER_IMAGE_NAME}:latest 2> /dev/null))
 	@echo "❌ Docker image ${DOCKER_IMAGE_NAME}:latest not found";
 	@exit 1;
 else
@@ -402,13 +403,13 @@ endif
 
 build-docker-image:
 	@echo "🤖 Building Docker image..."
-	@docker build \
+	@$(DOCKER) build \
 		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} \
 		--build-arg GO_VERSION=${REQUIRE_GO_VERSION} \
 		.
-	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
+	@$(DOCKER) tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
-	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest
+	@$(DOCKER) tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished building Docker image!"
 
@@ -424,7 +425,7 @@ run-docker-container: check-docker-image-exists
 	@$(eval DATA_FOLDER ?= "/data/fuelsequencer")
 	@$(eval COMMAND ?= "node_and_sidecar")
 	@echo "🤖 Running Docker container..."
-	@docker run -d \
+	@$(DOCKER) run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
     		-p 26656:26656 -p 26657:26657 -p 1317:1317 -p 8080:8080 -p 8081:8081 \
@@ -435,21 +436,21 @@ run-docker-container: check-docker-image-exists
 
 start-docker-container:
 	@echo "🤖 Starting Docker container..."
-	@docker start $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) start $(DOCKER_CONTAINER_NAME)
 	@echo "✅ Started Docker container!"
 
 stop-docker-container:
 	@echo "🤖 Stopping Docker container..."
-	@docker stop $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) stop $(DOCKER_CONTAINER_NAME)
 	@echo "✅ Stopped Docker container!"
 
 remove-docker-container:
 	@echo "🤖 Removing Docker container..."
-	@docker rm -v $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) rm -v $(DOCKER_CONTAINER_NAME)
 	@echo "✅ Removed Docker container!"
 
 follow-docker-logs:
-	@docker logs -f $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) logs -f $(DOCKER_CONTAINER_NAME)
 
 ###############################################################################
 ###                                   E2E                                   ###
@@ -460,7 +461,7 @@ build-all-docker-images: \
 	build-eth-deployment-docker-image
 
 check-eth-deployment-docker-image-exists:
-ifeq (,$(shell docker images -q ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} 2> /dev/null))
+ifeq (,$(shell $(DOCKER) images -q ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} 2> /dev/null))
 	@echo "❌ Docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} not found";
 	@exit 1;
 else
@@ -473,7 +474,7 @@ build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote e2e/fuel-rollup
 	@echo "🤖 Building Docker image..."
-	@docker build \
+	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
@@ -485,14 +486,14 @@ build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 # Runs node and contract deployment containers
 run-eth-e2e-containers: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Running Docker containers..."
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build \
+	@$(DOCKER_COMPOSE) -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build \
 		"$(ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE)" \
 		"$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)"
 
 # Removes node and contract deployment containers
 remove-eth-e2e-containers:
 	@echo "🤖 Removing Docker containers..."
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
+	@$(DOCKER_COMPOSE) -f ./e2e/fuel-rollup/docker/$(DOCKER_COMPOSE).yml down
 	@echo "✅ Removed Docker containers!"
 
 test-e2e-basic:
@@ -515,21 +516,21 @@ test-e2e-special-messages:
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
-	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
-	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
-	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
-	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
-	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer1" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
+	@$(DOCKER_COMPOSE) -f $(CURDIR)/e2e/fuel-rollup/docker/docker-compose.yml down
 
 	@echo "🧹 Removing Docker containers..."
-	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
-	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
-	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
-	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker rm
-	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker rm
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer1" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 
 	@echo "🧹 Pruning Docker networks..."
-	@docker network prune -f
+	@$(DOCKER) network prune -f
 
 	@echo "✅ Finished cleaning E2E!"
