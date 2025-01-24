@@ -116,7 +116,7 @@ func (s *E2ETestSuite) SendEthTransactionFrom(privateKey *ecdsa.PrivateKey, toAd
 		s.Require().NoError(err)
 		receiptJson, err := receipt.MarshalJSON()
 		s.Require().NoError(err)
-		return nil, fmt.Errorf("transaction failed - check Ethereum node logs; tx:%X; receipt:%s", txJson, receiptJson)
+		return nil, fmt.Errorf("transaction failed - check Ethereum node logs; height:%d; tx:%X; receipt:%s", receipt.BlockNumber, txJson, receiptJson)
 	}
 
 	return receipt, nil
