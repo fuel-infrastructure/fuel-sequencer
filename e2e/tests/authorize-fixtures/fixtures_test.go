@@ -12,7 +12,7 @@ import (
 )
 
 // TestGenerateEventLogFixtures generates fixtures used in unit testing.
-// The generated fixtures should be copied to testutil/fixtures/fixtures.go
+// The generated fixtures should be copied to sidecar/testutil/fixtures/fixtures.go
 // They are currently only used by sidecar/utils/utils.go.
 func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	senderAddress := s.EthKeys[0].AddressHex
