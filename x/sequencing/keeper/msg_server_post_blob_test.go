@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/math"
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
@@ -31,21 +31,21 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "successfully post a blob - creates new topic - lowercase sender",
 			msg: types.MsgPostBlob{
 				From:  senderLower,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  senderLower,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: senderLower,
 				Order: math.ZeroInt(),
 			},
@@ -55,21 +55,21 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "successfully post a blob - creates new topic - uppercase sender",
 			msg: types.MsgPostBlob{
 				From:  senderUpper,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  senderLower, // changed to lowercase
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: senderUpper,
 				Order: math.ZeroInt(),
 			},
@@ -79,21 +79,21 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "successfully post a blob - nonce update verification",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(101),
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.NewInt(100),
 			expTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: sender,
 				Order: math.ZeroInt(),
 			},
@@ -103,26 +103,26 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "successfully post a blob - updates existing topic",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.OneInt(),
 				Data:  make([]byte, 4),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.OneInt(),
 				Data:  make([]byte, 4),
 			},
 			maxBlobSizeBytes: 400,
 			preSetTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: sender,
 				Order: math.ZeroInt(),
 			},
 			setNonce: math.ZeroInt(),
 			expTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: sender,
 				Order: math.OneInt(),
 			},
@@ -132,21 +132,21 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "successfully post a blob - large data",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 54),
 			},
 			msgResponse: &types.MsgPostBlobResponse{
 				Nonce: math.NewInt(1),
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 54),
 			},
 			maxBlobSizeBytes: 400,
 			setNonce:         math.ZeroInt(),
 			expTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: sender,
 				Order: math.ZeroInt(),
 			},
@@ -156,7 +156,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "post a blob that exceeds max size",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.ZeroInt(),
 				Data:  make([]byte, 500),
 			},
@@ -168,13 +168,13 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "post a blob with incorrect order",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(1),
+				Topic: testutil.MockTopicIDHex(1),
 				Order: math.NewInt(2),
 				Data:  []byte("data"),
 			},
 			maxBlobSizeBytes: 400,
 			preSetTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(1),
+				Id:    testutil.MockTopicIDHex(1),
 				Owner: sender,
 				Order: math.ZeroInt(),
 			},
@@ -185,7 +185,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "post a new blob with non-zero order",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(0),
+				Topic: testutil.MockTopicIDHex(0),
 				Order: math.OneInt(), // non-zero
 				Data:  make([]byte, 4),
 			},
@@ -197,13 +197,13 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "post a blob with mismatching topic owner",
 			msg: types.MsgPostBlob{
 				From:  sender,
-				Topic: utilstest.MockTopicIDHex(1),
+				Topic: testutil.MockTopicIDHex(1),
 				Order: math.OneInt(),
 				Data:  []byte("data"),
 			},
 			maxBlobSizeBytes: 400,
 			preSetTopic: &types.Topic{
-				Id:    utilstest.MockTopicIDHex(1),
+				Id:    testutil.MockTopicIDHex(1),
 				Owner: anotherAccount,
 				Order: math.ZeroInt(),
 			},
@@ -217,7 +217,7 @@ func (s *KeeperTestSuite) TestPostBlob() {
 			name: "post a blob with invalid topic owner",
 			msg: types.MsgPostBlob{
 				From:  "some-invalid-address", // invalid!
-				Topic: utilstest.MockTopicIDHex(1),
+				Topic: testutil.MockTopicIDHex(1),
 				Order: math.ZeroInt(),
 				Data:  []byte("data"),
 			},
