@@ -11,54 +11,17 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil/fixtures"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func sequencerProxyContractABI(t *testing.T) abi.ABI {
-	var contractAbi abi.ABI
-	err := contractAbi.UnmarshalJSON([]byte(sidecartypes.SequencerProxyContractABI))
-	require.NoError(t, err)
-	return contractAbi
-}
-
-func eventFromMsg(t *testing.T, msg sdk.Msg) *sidecartypes.Event {
-	data, err := AuthorizeTxFromMsg(msg)
-	require.NoError(t, err)
-
-	authorizeEvent := sidecartypes.AuthorizeEvent{
-		Sender: fixtures.SenderAddress,
-		Data:   data,
-	}
-	authorizeEventBz, err := authorizeEvent.Marshal()
-	require.NoError(t, err)
-
-	event := &sidecartypes.Event{
-		EventType:       sidecartypes.AuthorizeEventName,
-		Data:            authorizeEventBz,
-		ContractAddress: fixtures.SequencerProxyContractAddress,
-	}
-	return event
-}
-
-func eventFromDepositEvent(t *testing.T, depositEvent sidecartypes.DepositEvent) *sidecartypes.Event {
-	depositEventBz, err := depositEvent.Marshal()
-	require.NoError(t, err)
-
-	return &sidecartypes.Event{
-		EventType:       sidecartypes.DepositEventName,
-		Data:            depositEventBz,
-		ContractAddress: fixtures.SequencerProxyContractAddress,
-	}
-}
-
 func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
-	sequencerProxyABI := sequencerProxyContractABI(t)
+	sequencerProxyABI := testutil.SequencerProxyContractABI(t)
 	amountParsed := sdkmath.NewInt(fixtures.Amount)
 
 	testCases := []struct {
@@ -71,7 +34,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Deposit event via Deposit",
 			logs: fixtures.DepositLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromDepositEvent(t, sidecartypes.DepositEvent{
+				return testutil.EventFromDepositEvent(t, sidecartypes.DepositEvent{
 					Depositor: fixtures.SenderAddress,
 					Recipient: fixtures.SenderAddress, // sender deposits to themselves
 					Amount:    strconv.FormatInt(fixtures.Amount, 10),
@@ -83,7 +46,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Deposit event via DepositFor",
 			logs: fixtures.DepositForLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromDepositEvent(t, sidecartypes.DepositEvent{
+				return testutil.EventFromDepositEvent(t, sidecartypes.DepositEvent{
 					Depositor: fixtures.SenderAddress,
 					Recipient: fixtures.ReceiverAddress,
 					Amount:    strconv.FormatInt(fixtures.Amount, 10),
@@ -95,7 +58,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Deposit event with lockup",
 			logs: fixtures.DepositWithLockupLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromDepositEvent(t, sidecartypes.DepositEvent{
+				return testutil.EventFromDepositEvent(t, sidecartypes.DepositEvent{
 					Depositor: fixtures.SenderAddress,
 					Recipient: fixtures.SenderAddress, // sender deposits to themselves
 					Amount:    strconv.FormatInt(fixtures.Amount, 10),
@@ -107,7 +70,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Delegate event",
 			logs: fixtures.DelegateLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &stakingtypes.MsgDelegate{
+				return testutil.EventFromMsg(t, &stakingtypes.MsgDelegate{
 					DelegatorAddress: fixtures.SenderAddress,
 					ValidatorAddress: fixtures.Validator1Address,
 					Amount:           sdk.NewCoin(fixtures.BridgeDenom, amountParsed),
@@ -118,7 +81,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Redelegate event",
 			logs: fixtures.RedelegateLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &stakingtypes.MsgBeginRedelegate{
+				return testutil.EventFromMsg(t, &stakingtypes.MsgBeginRedelegate{
 					DelegatorAddress:    fixtures.SenderAddress,
 					ValidatorSrcAddress: fixtures.Validator1Address,
 					ValidatorDstAddress: fixtures.Validator2Address,
@@ -130,7 +93,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "ClaimRewards event",
 			logs: fixtures.ClaimRewardsLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &distributiontypes.MsgWithdrawDelegatorReward{
+				return testutil.EventFromMsg(t, &distributiontypes.MsgWithdrawDelegatorReward{
 					DelegatorAddress: fixtures.SenderAddress,
 					ValidatorAddress: fixtures.Validator1Address,
 				})
@@ -140,7 +103,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Unbond event",
 			logs: fixtures.UnbondLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &stakingtypes.MsgUndelegate{
+				return testutil.EventFromMsg(t, &stakingtypes.MsgUndelegate{
 					DelegatorAddress: fixtures.SenderAddress,
 					ValidatorAddress: fixtures.Validator1Address,
 					Amount:           sdk.NewCoin(fixtures.BridgeDenom, amountParsed),
@@ -151,7 +114,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Withdraw event via Withdraw",
 			logs: fixtures.WithdrawLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &bridgetypes.MsgWithdrawToEthereum{
+				return testutil.EventFromMsg(t, &bridgetypes.MsgWithdrawToEthereum{
 					From:   fixtures.SenderAddress,
 					To:     fixtures.SenderAddress, // sender withdraws to themselves
 					Amount: sdk.NewCoin(fixtures.BridgeDenom, amountParsed),
@@ -162,7 +125,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Withdraw event via WithdrawTo",
 			logs: fixtures.WithdrawToLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &bridgetypes.MsgWithdrawToEthereum{
+				return testutil.EventFromMsg(t, &bridgetypes.MsgWithdrawToEthereum{
 					From:   fixtures.SenderAddress,
 					To:     fixtures.ReceiverAddress,
 					Amount: sdk.NewCoin(fixtures.BridgeDenom, amountParsed),
@@ -173,7 +136,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Transfer event",
 			logs: fixtures.TransferLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &banktypes.MsgSend{
+				return testutil.EventFromMsg(t, &banktypes.MsgSend{
 					FromAddress: fixtures.SenderAddress,
 					ToAddress:   fixtures.ReceiverAddress,
 					Amount:      sdk.NewCoins(sdk.NewCoin(fixtures.BridgeDenom, amountParsed)),
@@ -184,7 +147,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Vote event",
 			logs: fixtures.VoteLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &govtypesv1.MsgVote{
+				return testutil.EventFromMsg(t, &govtypesv1.MsgVote{
 					ProposalId: fixtures.VoteProposalId,
 					Voter:      fixtures.SenderAddress,
 					Option:     govtypesv1.VoteOption(fixtures.VoteOption),
@@ -196,7 +159,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "SetRewardRecipient event",
 			logs: fixtures.SetRewardRecipientLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &distributiontypes.MsgSetWithdrawAddress{
+				return testutil.EventFromMsg(t, &distributiontypes.MsgSetWithdrawAddress{
 					DelegatorAddress: fixtures.SenderAddress,
 					WithdrawAddress:  fixtures.ReceiverAddress,
 				})
@@ -206,7 +169,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			name: "Authorize event",
 			logs: fixtures.AuthorizeLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return eventFromMsg(t, &banktypes.MsgSend{
+				return testutil.EventFromMsg(t, &banktypes.MsgSend{
 					FromAddress: fixtures.SenderAddress,
 					ToAddress:   fixtures.ReceiverAddress,
 					Amount:      sdk.NewCoins(sdk.NewCoin(fixtures.BridgeDenom, amountParsed)),
