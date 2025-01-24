@@ -1,4 +1,4 @@
-package authorize_transactions_test
+package authorize_test
 
 import (
 	"encoding/json"
@@ -18,16 +18,16 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type AuthorizeTransactionsTestSuite struct {
+type AuthorizeTestSuite struct {
 	e2etestsuite.E2ETestSuite
 }
 
-func TestAuthorizeTransactionsTestSuite(t *testing.T) {
-	suite.Run(t, new(AuthorizeTransactionsTestSuite))
+func TestAuthorizeTestSuite(t *testing.T) {
+	suite.Run(t, new(AuthorizeTestSuite))
 }
 
-// SetupTest modifies the genesis file as required by AuthorizeTransactionsTestSuite
-func (s *AuthorizeTransactionsTestSuite) SetupTest() {
+// SetupTest modifies the genesis file as required by AuthorizeTestSuite
+func (s *AuthorizeTestSuite) SetupTest() {
 
 	genesisModifier := e2etestsuite.ModifyGenesisFunc(
 		func(cdc codec.Codec, genesisState map[string]json.RawMessage) error {

@@ -48,7 +48,7 @@ func TestUnmarshalParsedEvent(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			require.True(t, event.Equal(tc.expectedEvent))
+			require.Equal(t, event, tc.expectedEvent)
 		})
 	}
 }

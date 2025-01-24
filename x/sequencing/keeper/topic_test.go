@@ -6,18 +6,18 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 func createTestTopic(keeper keeper.Keeper, ctx context.Context, num int) types.Topic {
-	topicId := utilstest.MockTopicIDHex(num)
+	topicId := testutil.MockTopicIDHex(num)
 	item := types.Topic{
 		Id:    topicId,
 		Owner: sample.AccAddress(),

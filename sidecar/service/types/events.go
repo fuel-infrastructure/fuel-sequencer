@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"errors"
 
 	sdkmath "cosmossdk.io/math"
@@ -15,12 +14,33 @@ import (
 var (
 	// Hash function signatures used to identify events
 
-	DepositEventHashFn   = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,uint256)")).Hex()
-	AuthorizeEventHashFn = crypto.Keccak256Hash([]byte("Authorize(address,bytes)")).Hex()
+	DepositEventHashFn            = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,uint256)")).Hex()
+	DelegateEventHashFn           = crypto.Keccak256Hash([]byte("Delegate(address,address,uint256)")).Hex()
+	RedelegateEventHashFn         = crypto.Keccak256Hash([]byte("Redelegate(address,address,address,uint256)")).Hex()
+	ClaimRewardsEventHashFn       = crypto.Keccak256Hash([]byte("ClaimRewards(address,address)")).Hex()
+	UnbondEventHashFn             = crypto.Keccak256Hash([]byte("Unbond(address,address,uint256)")).Hex()
+	WithdrawEventHashFn           = crypto.Keccak256Hash([]byte("Withdraw(address,address,uint256)")).Hex()
+	TransferEventHashFn           = crypto.Keccak256Hash([]byte("Transfer(address,address,uint256)")).Hex()
+	VoteEventHashFn               = crypto.Keccak256Hash([]byte("Vote(address,uint64,uint32,string)")).Hex()
+	SetRewardRecipientEventHashFn = crypto.Keccak256Hash([]byte("SetRewardRecipient(address,address)")).Hex()
+	AuthorizeEventHashFn          = crypto.Keccak256Hash([]byte("Authorize(address,bytes)")).Hex()
 )
 
 const (
-	// Event names used when parsing log data to events
+	// Event names used when parsing log data to events using the SequencerProxy contract ABI
+
+	EthDepositEventName            = "Deposit"
+	EthDelegateEventName           = "Delegate"
+	EthRedelegateEventName         = "Redelegate"
+	EthClaimRewardsEventName       = "ClaimRewards"
+	EthUnbondEventName             = "Unbond"
+	EthWithdrawEventName           = "Withdraw"
+	EthTransferEventName           = "Transfer"
+	EthVoteEventName               = "Vote"
+	EthSetRewardRecipientEventName = "SetRewardRecipient"
+	EthAuthorizeEventName          = "Authorize"
+
+	// Event names recognised by the Sequencer
 
 	DepositEventName   = "Deposit"
 	AuthorizeEventName = "Authorize"
@@ -28,37 +48,13 @@ const (
 
 // ParsedEvent is a common interface for parsed Ethereum events.
 type ParsedEvent interface {
-	Equal(ParsedEvent) bool
 	ValidateBasic() error
 	Marshal() (dAtA []byte, err error)
 	Unmarshal(dAtA []byte) error
 	Messages(cdc codec.BinaryCodec, authority string) ([]*codectypes.Any, error)
 }
 
-// Equal attempts to compare two DepositEvent structs for equality
-func (m *DepositEvent) Equal(e ParsedEvent) bool {
-	// Structs are not equal if they are of different type
-	other, ok := e.(*DepositEvent)
-	if !ok {
-		return false
-	}
-
-	// If both structs are nil then they are equal
-	if m == nil && other == nil {
-		return true
-	}
-
-	// If one of them only is nil then they are not equal
-	if m == nil || other == nil {
-		return false
-	}
-
-	// Two DepositEvents are equal if all their elements are equal
-	return m.Depositor == other.Depositor &&
-		m.Recipient == other.Recipient &&
-		m.Lockup == other.Lockup &&
-		m.Amount == other.Amount
-}
+// ---------------------------------------------------------------------- DEPOSIT
 
 // ValidateBasic performs some sanity checks on the DepositEvent
 func (m *DepositEvent) ValidateBasic() error {
@@ -88,8 +84,7 @@ func (m *DepositEvent) ValidateBasic() error {
 	return nil
 }
 
-// ToMsgDepositFromEthereum is a convenient function for getting a MsgDepositFromEthereum from the DepositEvent.
-// This is easy because these two have the exact same fields.
+// ToMsgDepositFromEthereum is a convenient function for getting a MsgDepositFromEthereum from the event.
 func (m *DepositEvent) ToMsgDepositFromEthereum(authority string) *bridgetypes.MsgDepositFromEthereum {
 	return &bridgetypes.MsgDepositFromEthereum{
 		Authority: authority,
@@ -101,38 +96,12 @@ func (m *DepositEvent) ToMsgDepositFromEthereum(authority string) *bridgetypes.M
 }
 
 // Messages converts the event to a set of messages encoded as Anys, typically to be included in an SDK transaction.
-// In this case we only get one message, i.e. a MsgDepositFromEthereum.
+// In this case we only get one message.
 func (m *DepositEvent) Messages(_ codec.BinaryCodec, authority string) ([]*codectypes.Any, error) {
-
-	msgDepositFromEthereumAny, err := codectypes.NewAnyWithValue(m.ToMsgDepositFromEthereum(authority))
-	if err != nil {
-		return nil, err
-	}
-
-	return []*codectypes.Any{msgDepositFromEthereumAny}, nil
+	return NewAnysWithValue(m.ToMsgDepositFromEthereum(authority))
 }
 
-// Equal attempts to compare two AuthorizeEvent structs for equality
-func (m *AuthorizeEvent) Equal(e ParsedEvent) bool {
-	// Structs are not equal if they are of different type
-	other, ok := e.(*AuthorizeEvent)
-	if !ok {
-		return false
-	}
-
-	// If both structs are nil then they are equal
-	if m == nil && other == nil {
-		return true
-	}
-
-	// If one of them only is nil then they are not equal
-	if m == nil || other == nil {
-		return false
-	}
-
-	// Two AuthorizeEvents are equal if all their elements are equal
-	return m.Sender == other.Sender && bytes.Equal(m.Data, other.Data)
-}
+// ---------------------------------------------------------------------- AUTHORIZE
 
 func (m *AuthorizeEvent) ValidateBasic() error {
 	// TODO: More checks can be added in the future
