@@ -2,11 +2,14 @@ package utils
 
 import (
 	"encoding/json"
+	"math"
 	"strconv"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -162,6 +165,42 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 				return testutil.EventFromMsg(t, &distributiontypes.MsgSetWithdrawAddress{
 					DelegatorAddress: fixtures.SenderAddress,
 					WithdrawAddress:  fixtures.ReceiverAddress,
+				})
+			},
+		},
+		{
+			name: "Grant event",
+			logs: fixtures.GrantLogs,
+			getExpEvent: func() *sidecartypes.Event {
+				var expiration *time.Time = nil
+				if fixtures.AuthzExpiration != 0 {
+					if fixtures.AuthzExpiration > math.MaxInt64 {
+						t.Fatalf("AuthzExpiration is too large to be represented as a Unix timestamp")
+					}
+					e := time.Unix(int64(fixtures.AuthzExpiration), 0)
+					expiration = &e
+				}
+
+				msgGrant := authz.MsgGrant{
+					Granter: fixtures.SenderAddress,
+					Grantee: fixtures.ReceiverAddress,
+					Grant: authz.Grant{
+						Expiration: expiration,
+					},
+				}
+				msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+
+				return testutil.EventFromMsg(t, &msgGrant)
+			},
+		},
+		{
+			name: "Revoke event",
+			logs: fixtures.RevokeLogs,
+			getExpEvent: func() *sidecartypes.Event {
+				return testutil.EventFromMsg(t, &authz.MsgRevoke{
+					Granter:    fixtures.SenderAddress,
+					Grantee:    fixtures.ReceiverAddress,
+					MsgTypeUrl: fixtures.AuthzMsgTypeUrl,
 				})
 			},
 		},

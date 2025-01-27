@@ -5,7 +5,10 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -208,4 +211,89 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgVote_ViaSidecarEncoding() {
 		// Make sure that the vote gets submitted by checking that the votes tally has increased from 0 to 1
 		s.PollForNumberOfVotes(s.Ctx(), 10, proposalId, 1)
 	})
+}
+
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncoding() {
+	s.Run("Grant an account authorisation from Ethereum and check Exec succeeds on Sequencer", func() {
+		granterAddress := s.EthKeys[0].AddressHex
+
+		granteeAddress := s.SeqKeys[1].AddressHex
+		granteeAddressEth := s.SeqKeys[1].AddressEth
+
+		// Make sure that the balances are as expected.
+		expectedInitGranterBalance := testsuite.InitBalanceCoin
+		granterBalance, err := s.QueryAllBalances(s.Ctx(), granterAddress, nil)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedInitGranterBalance.Amount, granterBalance.Balances.AmountOf(testsuite.BridgeDenom))
+
+		expectedInitGranteeBalance := testsuite.InitBalanceCoin.Sub(testsuite.InitStakedCoin)
+		granteeBalance, err := s.QueryAllBalances(s.Ctx(), granteeAddress, nil)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedInitGranteeBalance.Amount, granteeBalance.Balances.AmountOf(testsuite.BridgeDenom))
+
+		// Prepare a send amount for testing execution
+		sendAmount, ok := sdkmath.NewIntFromString("451")
+		sendAmountUint := sendAmount.Uint64()
+		s.Require().True(ok)
+		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
+
+		execMsg, err := mustPackGrantExecSendMsg(granteeAddress, granterAddress, sendCoin)
+		s.Require().NoError(err)
+
+		// Attempt to execute a MsgExec on Sequencer before authorisation is granted
+		resp, err := s.SubmitMsgsFromValidatorN(1, execMsg)
+		s.Require().NoError(err)
+		// While tx submission succeeds, response should show failure as no authorization exists yet
+		s.Require().Equal(authz.ErrNoAuthorizationFound.ABCICode(), resp.Code)
+
+		// Grant an authorisation from Ethereum
+		grantData := testsuite.PackGrant(granteeAddressEth, "/cosmos.bank.v1beta1.MsgSend", nil)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(grantData)
+		s.Require().NoError(err)
+
+		// Wait for the grant to be processed
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, txReceipt.BlockNumber.Uint64())
+
+		// Execute a MsgExec on Sequencer after authorisation is granted
+		resp, err = s.SubmitMsgsFromValidatorN(1, execMsg)
+		s.Require().NoError(err)
+		// Response should show success as authorisation is granted
+		s.Require().Zero(resp.Code)
+
+		// Verify the send was successful by checking balances
+		s.PollForBalance(s.Ctx(), sendAmountUint, granterAddress, expectedInitGranterBalance.Sub(sendCoin))
+		feeCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*(0.01*1000000)) // hardcoded values found from e2e/testsuite/test_suite.go; TODO: export to make this dynamic
+		s.PollForBalance(s.Ctx(), sendAmountUint, granteeAddress, expectedInitGranteeBalance.Sub(feeCoin).Add(sendCoin))
+
+		// Revoke the authorisation from Ethereum
+		revokeData := testsuite.PackRevoke(granteeAddressEth, "/cosmos.bank.v1beta1.MsgSend")
+		txReceipt, err = s.SendEthTransactionToSequencerInterfaceContract(revokeData)
+		s.Require().NoError(err)
+
+		// Wait for the revocation to be processed
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, txReceipt.BlockNumber.Uint64())
+
+		// Attempt to execute a MsgExec on Sequencer after authorisation is revoked
+		resp, err = s.SubmitMsgsFromValidatorN(1, execMsg)
+		s.Require().NoError(err)
+		// While tx submission succeeds, response should show failure as no authorization exists yet
+		s.Require().Equal(authz.ErrNoAuthorizationFound.ABCICode(), resp.Code)
+	})
+}
+
+// Helper function to create an exec message containing a send message
+func mustPackGrantExecSendMsg(grantee, granter string, amount sdk.Coin) (*authz.MsgExec, error) {
+	msg := &banktypes.MsgSend{
+		FromAddress: granter,
+		ToAddress:   grantee,
+		Amount:      sdk.NewCoins(amount),
+	}
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		return nil, err
+	}
+	return &authz.MsgExec{
+		Grantee: grantee,
+		Msgs:    []*codectypes.Any{anyMsg},
+	}, nil
 }

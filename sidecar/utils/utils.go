@@ -3,9 +3,11 @@ package utils
 import (
 	"fmt"
 	"math/big"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -16,6 +18,7 @@ import (
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/holiman/uint256"
 )
 
 // AuthorizeTxFromMsg packs a message into an AuthorizeTx which the Sequencer can then unpack.
@@ -321,6 +324,88 @@ func ExtractLogDataToEvent(
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
 
+	case sidecartypes.GrantEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthGrantEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthGrantEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		granter := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		grantee := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+		msgAuth := authz.GenericAuthorization{Msg: ethEvent.MsgTypeUrl}
+		expiration, overflow := uint256.FromBig(ethEvent.Expiration)
+		if overflow {
+			return nil, fmt.Errorf("expiration for grant event has overflowed")
+		}
+
+		var authExpiration *time.Time = nil
+		if expiration != nil && !expiration.IsZero() {
+			if !expiration.IsUint64() {
+				return nil, fmt.Errorf("expiration for grant event is not a uint64")
+			}
+
+			a := time.Unix(int64(expiration.Uint64()), 0)
+			authExpiration = &a
+		}
+		// Generate grant msg
+		grantMsg := authz.MsgGrant{
+			Granter: granter,
+			Grantee: grantee,
+			Grant: authz.Grant{
+				Expiration: authExpiration,
+			},
+		}
+		grantMsg.SetAuthorization(&msgAuth)
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = granter
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&grantMsg)
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
+
+	case sidecartypes.RevokeEventHashFn:
+		// Process the event
+		var ethEvent sidecartypes.EthRevokeEvent
+		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthRevokeEventName, vLog.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Some values are indexed, so extract them from Topics
+		granter := common.HexToAddress(vLog.Topics[1].Hex()).String()
+		grantee := common.HexToAddress(vLog.Topics[2].Hex()).String()
+		msgTypeUrl := ethEvent.MsgTypeUrl
+
+		// Generate revoke msg
+		revokeMsg := authz.MsgRevoke{
+			Granter:    granter,
+			Grantee:    grantee,
+			MsgTypeUrl: msgTypeUrl,
+		}
+
+		// Generate an authorize event
+		var authorizeEvent sidecartypes.AuthorizeEvent
+		authorizeEvent.Sender = granter
+		authorizeEvent.Data, err = AuthorizeTxFromMsg(&revokeMsg)
+		if err != nil {
+			return nil, err
+		}
+
+		// Fill up the generic event with fields
+		event.EventType = sidecartypes.AuthorizeEventName
+		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
+		event.Data, err = authorizeEvent.Marshal()
 	case sidecartypes.AuthorizeEventHashFn:
 		// Process the event
 		var ethEvent sidecartypes.EthAuthorizeEvent

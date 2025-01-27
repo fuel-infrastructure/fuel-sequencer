@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -34,6 +35,7 @@ var (
 func init() {
 	modules := []module.AppModuleBasic{
 		auth.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distribution.AppModuleBasic{},
