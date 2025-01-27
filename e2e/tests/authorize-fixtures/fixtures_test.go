@@ -40,7 +40,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err := json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("depositLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("DepositLogs = `%s`\n", logs)
 
 	// DepositFor
 	data = testsuite.PackDepositFor(amount, receiverAddressEth)
@@ -48,7 +48,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("depositForLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("DepositForLogs = `%s`\n", logs)
 
 	// Deposit with lockup
 	vestingDuration := testsuite.VestingDuration2Years
@@ -57,7 +57,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("depositWithLockupLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("DepositWithLockupLogs = `%s`\n", logs)
 
 	// Delegate
 	data = testsuite.PackDelegate(amount, validator1AddressEth)
@@ -65,7 +65,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("delegateLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("DelegateLogs = `%s`\n", logs)
 
 	// Redelegate
 	data = testsuite.PackRedelegate(amount, validator1AddressEth, validator2AddressEth)
@@ -73,7 +73,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("redelegateLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("RedelegateLogs = `%s`\n", logs)
 
 	// ClaimRewards
 	data = testsuite.PackClaimRewards(validator1AddressEth)
@@ -81,7 +81,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("claimRewardsLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("ClaimRewardsLogs = `%s`\n", logs)
 
 	// Unbond
 	data = testsuite.PackUnbond(amount, validator1AddressEth)
@@ -89,7 +89,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("unbondLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("UnbondLogs = `%s`\n", logs)
 
 	// Withdraw
 	data = testsuite.PackWithdraw(amount)
@@ -97,7 +97,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("withdrawLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("WithdrawLogs = `%s`\n", logs)
 
 	// WithdrawTo
 	data = testsuite.PackWithdrawTo(amount, receiverAddressEth)
@@ -105,7 +105,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("withdrawToLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("WithdrawToLogs = `%s`\n", logs)
 
 	// Transfer
 	data = testsuite.PackTransfer(receiverAddressEth, amount)
@@ -113,7 +113,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("transferLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("TransferLogs = `%s`\n", logs)
 
 	// Vote
 	voteProposalId := uint64(1)
@@ -124,7 +124,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("voteLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("VoteLogs = `%s`\n", logs)
 
 	// SetRewardRecipient
 	data = testsuite.PackSetRewardRecipient(receiverAddressEth)
@@ -132,7 +132,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("setRewardRecipientLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("SetRewardRecipientLogs = `%s`\n", logs)
 
 	// Authorize
 	amountCoin := sdk.NewCoin(testsuite.BridgeDenom, amountSDK)
@@ -143,19 +143,20 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("authorizeLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("AuthorizeLogs = `%s`\n", logs)
 
 	// Print the fixtures
-	fmt.Printf("amount = %d", amount.Uint64())
-	fmt.Printf("bridgeDenom = \"%s\"", testsuite.BridgeDenom)
-	fmt.Printf("vestingDurationSeconds = \"%d\"", int64(vestingDuration.Seconds()))
-	fmt.Printf("voteProposalId = uint64(%d)", voteProposalId)
-	fmt.Printf("voteOption = int32(%d)", voteOption)
-	fmt.Printf("voteMetadata = \"%s\"", voteMetadata)
-	fmt.Printf("senderAddress = \"%s\"", senderAddress)
-	fmt.Printf("receiverAddress = \"%s\"", receiverAddress)
-	fmt.Printf("validator1Address = \"%s\"", validator1AddressEth)
-	fmt.Printf("validator2Address = \"%s\"", validator2AddressEth)
-	fmt.Printf("sequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr)
+	fmt.Printf("Amount = %d", amount.Uint64())
+	fmt.Printf("\nBridgeDenom = \"%s\"", testsuite.BridgeDenom)
+	fmt.Printf("\nVestingDurationSeconds = \"%d\"", int64(vestingDuration.Seconds()))
+	fmt.Printf("\nVoteProposalId = uint64(%d)", voteProposalId)
+	fmt.Printf("\nVoteOption = int32(%d)", voteOption)
+	fmt.Printf("\nVoteMetadata = \"%s\"", voteMetadata)
+	fmt.Printf("\nSenderAddress = \"%s\"", senderAddress)
+	fmt.Printf("\nReceiverAddress = \"%s\"", receiverAddress)
+	fmt.Printf("\nValidator1Address = \"%s\"", validator1AddressEth)
+	fmt.Printf("\nValidator2Address = \"%s\"", validator2AddressEth)
+	fmt.Printf("\nSequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr)
+	fmt.Print("\n\n")
 	fmt.Println(logsString)
 }
