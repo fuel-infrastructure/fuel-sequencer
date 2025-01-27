@@ -1,3 +1,7 @@
+// Offchain encoding tests was the initial approach where the messages arrived to the sidecar pre-encoded.
+// Specifically, these tests make use of testsuite.PackAuthorize which use pre-encoded messages.
+// This approach is being deprecated in favour of the sidecar performing the encoding.
+
 package authorize_test
 
 import (
