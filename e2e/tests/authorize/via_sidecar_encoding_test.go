@@ -1,22 +1,21 @@
-package authorize_transactions_test
+package authorize_test
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
-	s.Run("Submit an authorized MsgSend from Ethereum and check execution results on Sequencer", func() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgSend_ViaSidecarEncoding() {
+	s.Run("Submit a transfer from Ethereum and check execution results on Sequencer", func() {
 		senderAddress := s.EthKeys[0].AddressHex
 		receiverAddress := s.EthKeys[1].AddressHex
+		receiverAddressEth := s.EthKeys[1].Address
 
 		// Make sure that the balance of the sender is as expected.
 		expectedInitBalance := testsuite.InitBalanceCoin
@@ -29,14 +28,11 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Generate Authorize event wrapping a MsgSend.
 		sendAmount, ok := sdkmath.NewIntFromString("10")
 		s.Require().True(ok)
 		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(senderAddress, receiverAddress, sendCoins)
-		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		transferData := testsuite.PackTransfer(receiverAddressEth, sendAmount.BigInt())
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(transferData)
 		s.Require().NoError(err)
 
 		// Match the expected balances for each user depending on whether they are a sender or a receiver.
@@ -45,13 +41,15 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgSend() {
 	})
 }
 
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOperations() {
-	s.Run("Submit authorized delegation messages from Ethereum and check execution results on Sequencer", func() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_StakingOperations_ViaSidecarEncoding() {
+	s.Run("Submit staking operations from Ethereum and check execution results on Sequencer", func() {
 		validator1Address := s.SeqKeys[0].ValAddressSeq
+		validator1AddressEth := s.SeqKeys[0].ValAddressEth
 		validator2Address := s.SeqKeys[1].ValAddressSeq
+		validator2AddressEth := s.SeqKeys[1].ValAddressEth
 		delegatorAddress := s.EthKeys[0].AddressHex
-		withdrawAddress := s.EthKeys[1].AddressHex    // alternate rewards withdrawal address (hex)
 		withdrawAddressSeq := s.EthKeys[1].AddressSeq // alternate rewards withdrawal address (bech32)
+		withdrawAddressEth := s.EthKeys[1].Address
 
 		// Make sure that the delegator's balance is as expected.
 		expectedInitDelegatorBalance := testsuite.InitBalanceCoin
@@ -69,13 +67,11 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 			fmt.Sprintf("delegation with delegator %s not found for validator %s", delegatorAddress, validator1Address),
 		)
 
-		// Generate Authorize event wrapping a MsgDelegate to validator1.
 		delegateAmount, ok := sdkmath.NewIntFromString("110000000000")
 		s.Require().True(ok)
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
-		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		delegateData := testsuite.PackDelegate(delegateAmount.BigInt(), validator1AddressEth)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(delegateData)
 		s.Require().NoError(err)
 
 		// Confirm that the delegation went through and is as expected.
@@ -91,12 +87,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 			fmt.Sprintf("delegation with delegator %s not found for validator %s", delegatorAddress, validator2Address),
 		)
 
-		// Generate Authorize event wrapping a MsgBeginRedelegate to validator2.
-		msgBeginRedelegateBz := s.E2ETestSuite.GenerateMsgBeginRedelegateBz(
-			delegatorAddress, validator1Address, validator2Address, delegateCoin,
-		)
-		authorizeData = testsuite.PackAuthorize(msgBeginRedelegateBz)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		redelegateData := testsuite.PackRedelegate(delegateAmount.BigInt(), validator1AddressEth, validator2AddressEth)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(redelegateData)
 		s.Require().NoError(err)
 
 		// Confirm that the redelegation to validator2 went through and was executed as expected.
@@ -120,12 +112,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		rewards := s.QueryDelegationRewards(s.Ctx(), delegatorAddress, validator2Address)
 		s.Require().NotZero(rewards.AmountOf(testsuite.BridgeDenom))
 
-		// Generate Authorize event wrapping a MsgWithdrawDelegatorReward.
-		msgWithdrawDelegatorRewardBz := s.E2ETestSuite.GenerateMsgWithdrawDelegatorRewardBz(
-			delegatorAddress, validator2Address,
-		)
-		authorizeData = testsuite.PackAuthorize(msgWithdrawDelegatorRewardBz)
-		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		claimRewardsData := testsuite.PackClaimRewards(validator2AddressEth)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(claimRewardsData)
 		s.Require().NoError(err)
 
 		// Wait for the withdrawal to be processed.
@@ -137,12 +125,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 
 		// ----------------------------------- Test MsgSetWithdrawAddress
 
-		// Generate Authorize event wrapping a MsgSetWithdrawAddress.
-		msgSetWithdrawAddressBz := s.E2ETestSuite.GenerateMsgSetWithdrawAddressBz(
-			delegatorAddress, withdrawAddress,
-		)
-		authorizeData = testsuite.PackAuthorize(msgSetWithdrawAddressBz)
-		txReceipt, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		setRewardRecipientData := testsuite.PackSetRewardRecipient(withdrawAddressEth)
+		txReceipt, err = s.SendEthTransactionToSequencerInterfaceContract(setRewardRecipientData)
 		s.Require().NoError(err)
 
 		// Wait for the change to be processed.
@@ -156,10 +140,8 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 		// Make sure that the delegation is still as originally set.
 		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator2Address, delegateCoin)
 
-		// Generate Authorize event wrapping a MsgUndelegate.
-		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBz(delegatorAddress, validator2Address, delegateCoin)
-		authorizeData = testsuite.PackAuthorize(msgUndelegateBz)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		unbondData := testsuite.PackUnbond(delegateAmount.BigInt(), validator2AddressEth)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(unbondData)
 		s.Require().NoError(err)
 
 		// To make sure that the execution of MsgUndelegate went through check that all funds where withdrawn.
@@ -167,9 +149,10 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_StakingOpera
 	})
 }
 
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawToEthereum() {
-	s.Run("Submit authorized withdraw to Ethereum from Ethereum and check execution results on Sequencer", func() {
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgWithdrawToEthereum_ViaSidecarEncoding() {
+	s.Run("Submit a withdrawal to Ethereum from Ethereum and check execution results on Sequencer", func() {
 		withdrawerAddress := s.EthKeys[0].AddressHex
+		recipientAddressEth := s.EthKeys[1].Address
 
 		// Make sure that the withdrawer's balance is as expected.
 		expectedInitWithdrawerBalance := testsuite.InitBalanceCoin
@@ -177,26 +160,28 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgWithdrawT
 		s.Require().NoError(err)
 		s.Require().Equal(expectedInitWithdrawerBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
 
-		// Generate Authorize event wrapping a MsgWithdrawToEthereum.
 		withdrawAmount, ok := sdkmath.NewIntFromString("110000000000")
 		s.Require().True(ok)
 		withdrawCoin := sdk.NewCoin(testsuite.BridgeDenom, withdrawAmount)
-		msgWithdrawToEthereumBz := s.E2ETestSuite.GenerateMsgWithdrawToEthereumBz(
-			withdrawerAddress, withdrawerAddress, withdrawCoin,
-		)
-		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+
+		// Address withdraws to itself.
+		withdrawData1 := testsuite.PackWithdraw(withdrawAmount.BigInt())
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(withdrawData1)
 		s.Require().NoError(err)
 
-		// Make sure that the withdrawal was executed by checking the withdrawers' balance
-		postWithdrawalBalance := expectedInitWithdrawerBalance.Sub(withdrawCoin)
+		// Address withdraws to recipient.
+		withdrawData2 := testsuite.PackWithdrawTo(withdrawAmount.BigInt(), recipientAddressEth)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(withdrawData2)
+		s.Require().NoError(err)
+
+		// Make sure that the withdrawals were executed by checking the withdrawers' balance
+		postWithdrawalBalance := expectedInitWithdrawerBalance.Sub(withdrawCoin).Sub(withdrawCoin)
 		s.PollForBalance(s.Ctx(), 10, withdrawerAddress, postWithdrawalBalance)
 	})
 }
 
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
-	s.Run("Submit authorized vote from Ethereum and check execution results on Sequencer", func() {
-		voter := s.EthKeys[0].AddressHex
+func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgVote_ViaSidecarEncoding() {
+	s.Run("Submit a vote from Ethereum and check execution results on Sequencer", func() {
 
 		// Create a new dummy proposal to vote on
 		consensusParams := s.QueryConsensusParams(s.Ctx())
@@ -216,62 +201,11 @@ func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_MsgVote() {
 		votes := s.QueryVotes(s.Ctx(), proposalId)
 		s.Require().Empty(votes)
 
-		// Generate Authorize event wrapping a MsgVote.
-		msgVoteBz := s.E2ETestSuite.GenerateMsgVoteBz(proposalId, voter, "", govtypesv1.VoteOption_VOTE_OPTION_YES)
-		authorizeData := testsuite.PackAuthorize(msgVoteBz)
-		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		voteData := testsuite.PackVote(proposalId, uint32(govtypesv1.VoteOption_VOTE_OPTION_YES), "")
+		_, err := s.SendEthTransactionToSequencerInterfaceContract(voteData)
 		s.Require().NoError(err)
 
 		// Make sure that the vote gets submitted by checking that the votes tally has increased from 0 to 1
 		s.PollForNumberOfVotes(s.Ctx(), 10, proposalId, 1)
-	})
-}
-
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_InvalidDataDoesNotCauseHalt() {
-	s.Run("Invalid data from Ethereum causes Sequencer to skip an invalid authorize event", func() {
-
-		// Generate Authorize event wrapping invalid data.
-		invalidBz := []byte("some invalid data")
-		authorizeData := testsuite.PackAuthorize(invalidBz)
-		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// Check that the Sequencer skips the event
-		re := regexp.MustCompile("skipping event; failed to encode event as raw tx bytes with err")
-		s.Require().Eventually(func() bool {
-			return len(s.FindSequencerLogs(re)) > 0
-		}, time.Minute, time.Second)
-	})
-}
-
-func (s *AuthorizeTransactionsTestSuite) TestAuthorizedTransactions_AuthorizeWithManyMessagesIsSkipped() {
-	s.Run("An AuthorizeEvent with more messages than MaxAuthorizeMessages is skipped", func() {
-		senderAddress := s.EthKeys[0].AddressHex
-		receiverAddress := s.EthKeys[1].AddressHex
-
-		// Generate Authorize tx with 100 MsgSends.
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		msgSend := banktypes.MsgSend{
-			FromAddress: senderAddress,
-			ToAddress:   receiverAddress,
-			Amount:      sendCoins,
-		}
-		msgSendBz := s.E2ETestSuite.GenerateNMsgsBz(&msgSend, 100)
-
-		// Send Authorize tx
-		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// Make sure that the Sequencer skips the event
-		re := regexp.MustCompile(
-			"skipping event; failed to encode event as raw tx bytes with err: authorize event has too many messages",
-		)
-		s.Require().Eventually(func() bool {
-			return len(s.FindSequencerLogs(re)) > 0
-		}, time.Minute, time.Second)
 	})
 }

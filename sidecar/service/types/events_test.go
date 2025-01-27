@@ -3,91 +3,13 @@ package types_test
 import (
 	"testing"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
-
-func TestParsedEvent_Equal(t *testing.T) {
-	var nilDepositEvent *types.DepositEvent = nil
-	var nilAuthorizeEvent *types.AuthorizeEvent = nil
-
-	testCases := []struct {
-		name          string
-		event1        types.ParsedEvent
-		event2        types.ParsedEvent
-		expectedEqual bool
-	}{
-		{
-			name:          "DepositEvent - equal events - both nil",
-			event1:        nilDepositEvent,
-			event2:        nilDepositEvent,
-			expectedEqual: true,
-		},
-		{
-			name:   "DepositEvent - equal events - both not nil",
-			event1: testtypes.TestDepositEvent1,
-			event2: &types.DepositEvent{
-				Depositor: testtypes.TestFrom1,
-				Recipient: testtypes.TestTo1,
-				Amount:    testtypes.TestAmount1,
-				Lockup:    testtypes.TestLockup1,
-			},
-			expectedEqual: true,
-		},
-		{
-			name:          "DepositEvent - unequal events - one is nil the other is not",
-			event1:        testtypes.TestDepositEvent1,
-			event2:        nilDepositEvent,
-			expectedEqual: false,
-		},
-		{
-			name:          "DepositEvent - unequal events - both not nil",
-			event1:        testtypes.TestDepositEvent1,
-			event2:        testtypes.TestDepositEvent2,
-			expectedEqual: false,
-		},
-		{
-			name:          "AuthorizeEvent - equal events - both nil",
-			event1:        nilAuthorizeEvent,
-			event2:        nilAuthorizeEvent,
-			expectedEqual: true,
-		},
-		{
-			name:   "AuthorizeEvent - equal events - both not nil",
-			event1: testtypes.TestAuthorizeEvent1,
-			event2: &types.AuthorizeEvent{
-				Sender: testtypes.TestFrom1,
-				Data:   testutils.MustHexDecodeString(testtypes.TestData1),
-			},
-			expectedEqual: true,
-		},
-		{
-			name:          "AuthorizeEvent - unequal events - one is nil the other is not",
-			event1:        testtypes.TestAuthorizeEvent1,
-			event2:        nilAuthorizeEvent,
-			expectedEqual: false,
-		},
-		{
-			name:          "AuthorizeEvent - unequal events - both not nil",
-			event1:        testtypes.TestAuthorizeEvent1,
-			event2:        testtypes.TestAuthorizeEvent2,
-			expectedEqual: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			actualEqual := tc.event1.Equal(tc.event2)
-			if tc.expectedEqual {
-				require.True(t, actualEqual)
-			} else {
-				require.False(t, actualEqual)
-			}
-		})
-	}
-}
 
 func TestParsedEvent_ValidateBasic(t *testing.T) {
 	var nilDepositEvent *types.DepositEvent = nil
@@ -191,6 +113,60 @@ func TestParsedEvent_ValidateBasic(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestParsedEvent_Messages(t *testing.T) {
+
+	testCases := []struct {
+		name       string
+		event      types.ParsedEvent
+		getExpMsgs func() []*codectypes.Any
+		expErrMsg  string
+	}{
+		{
+			name:  "DepositEvent",
+			event: testtypes.TestDepositEvent1,
+			getExpMsgs: func() []*codectypes.Any {
+				anys, err := types.NewAnysWithValue(
+					&bridgetypes.MsgDepositFromEthereum{
+						Authority: testtypes.TestGovernanceAddress,
+						Depositor: testtypes.TestDepositEvent1.Depositor,
+						Recipient: testtypes.TestDepositEvent1.Recipient,
+						Amount:    testtypes.TestDepositEvent1.Amount,
+						Lockup:    testtypes.TestDepositEvent1.Lockup,
+					})
+				require.NoError(t, err)
+				return anys
+			},
+		},
+		{
+			name:  "AuthorizeEvent",
+			event: testtypes.TestAuthorizeEvent1,
+			getExpMsgs: func() []*codectypes.Any {
+
+				var authorizeTx bridgetypes.AuthorizeTx
+				err := testtypes.TestCdc.Unmarshal(testtypes.TestAuthorizeEvent1.Data, &authorizeTx)
+				require.NoError(t, err)
+
+				return authorizeTx.Messages
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			msgs, err := tc.event.Messages(testtypes.TestCdc, testtypes.TestGovernanceAddress)
+			if len(tc.expErrMsg) > 0 {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+
+			expMsgs := tc.getExpMsgs()
+			require.Equal(t, expMsgs, msgs)
 		})
 	}
 }

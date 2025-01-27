@@ -23,13 +23,13 @@ import (
 type Sidecar struct {
 	logger *zap.Logger
 
-	// Ethereum RPC client used for querying data from an Ethereum node.
+	// ethRpcClient is used for querying data from an Ethereum node.
 	ethRpcClient *ethwrappedclient.EthRpcClient
 
-	// Ethereum WS client used for subscribing to block headers from an Ethereum node.
+	// ethWsClient is used for subscribing to block headers from an Ethereum node.
 	ethWsClient *ethwrappedclient.EthWsClient
 
-	// SequencerClient is used for querying data from a Sequencer node.
+	// sequencerClient is used for querying data from a Sequencer node.
 	sequencerClient *sequencerclient.SequencerClient
 
 	// eventStore stores all the necessary information needed to run the sidecar.

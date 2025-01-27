@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
 	"github.com/stretchr/testify/require"
@@ -26,10 +26,10 @@ func TestValidateGenesisState(t *testing.T) {
 				Params: types.DefaultParams(),
 				TopicList: []types.Topic{
 					{
-						Id: utilstest.MockTopicIDHex(0),
+						Id: testutil.MockTopicIDHex(0),
 					},
 					{
-						Id: utilstest.MockTopicIDHex(1),
+						Id: testutil.MockTopicIDHex(1),
 					},
 				},
 			},
@@ -41,10 +41,10 @@ func TestValidateGenesisState(t *testing.T) {
 				Params: types.DefaultParams(),
 				TopicList: []types.Topic{
 					{
-						Id: utilstest.MockTopicIDHex(0),
+						Id: testutil.MockTopicIDHex(0),
 					},
 					{
-						Id: utilstest.MockTopicIDHex(0),
+						Id: testutil.MockTopicIDHex(0),
 					},
 				},
 			},
@@ -55,10 +55,10 @@ func TestValidateGenesisState(t *testing.T) {
 			genState: &types.GenesisState{
 				TopicList: []types.Topic{
 					{
-						Id: utilstest.MockTopicIDHex(0),
+						Id: testutil.MockTopicIDHex(0),
 					},
 					{
-						Id: utilstest.MockTopicIDHex(1),
+						Id: testutil.MockTopicIDHex(1),
 					},
 				},
 			},

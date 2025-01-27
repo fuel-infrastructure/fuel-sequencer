@@ -107,12 +107,12 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		var depositEventData sidecartypes.DepositEvent
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
+		s.Require().Equal(depositEventData, sidecartypes.DepositEvent{
 			Depositor: s.EthKeys[0].AddressHex,
 			Recipient: s.EthKeys[0].AddressHex, // sender == recipient unless otherwise specified
 			Amount:    depositAmount.String(),
 			Lockup:    "0", // the deposit initiated from Ethereum has no lockup
-		}))
+		})
 
 		// Ensure authorize event is at the expected height.
 		authorizeEvents, err := s.PollForSidecarBlockEvents(
@@ -126,10 +126,10 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		var authorizeEventData sidecartypes.AuthorizeEvent
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
+		s.Require().Equal(authorizeEventData, sidecartypes.AuthorizeEvent{
 			Sender: s.EthKeys[0].AddressHex,
 			Data:   msgSendBz,
-		}))
+		})
 	})
 
 	s.Run("Ensure LastEthereumBlockSynced is being updated", func() {

@@ -15,7 +15,7 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_AndAuthorizeDelegateAndUndelegate() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_AndDelegateAndUndelegate() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
 		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
 		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
@@ -53,6 +53,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		// --------------------------------------- Delegate
 
 		validator1Address := s.SeqKeys[0].ValAddressSeq
+		validator1AddressEth := s.SeqKeys[0].ValAddressEth
 		delegatorAddress := s.EthKeys[0].AddressHex
 
 		// Make sure that there is no pre-existing delegation between the delegator and validator1.
@@ -69,11 +70,10 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		delegateAmount, ok := sdkmath.NewIntFromString("60")
 		s.Require().True(ok)
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
-		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
+		delegateData := testsuite.PackDelegate(delegateAmount.BigInt(), validator1AddressEth)
 
 		// Expect a failure because not enough time has elapsed yet
-		delegation1, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		delegation1, err := s.SendEthTransactionToSequencerInterfaceContract(delegateData)
 		s.Require().NoError(err)
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation1.BlockNumber.Uint64()) // wait until tx processed
 		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
@@ -82,7 +82,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
 
 		// Confirm that the delegation went through and is as expected.
-		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(delegateData)
 		s.Require().NoError(err)
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation2.BlockNumber.Uint64()) // wait until tx processed
 		s.PollForDelegationBalance(s.Ctx(), 0, delegatorAddress, validator1Address, delegateCoin)
@@ -110,13 +110,12 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		// Ensure value updated
 		s.Require().Equal(time.Second, s.QueryStakingParams(s.Ctx()).UnbondingTime)
 
-		// Generate Authorize event wrapping a MsgUndelegate to validator1 with the amount previously delegated.
+		// Delegate to validator1 with the amount previously delegated.
 		undelegateCoin := delegateCoin
-		msgUndelegateBz := s.E2ETestSuite.GenerateMsgUndelegateBz(delegatorAddress, validator1Address, undelegateCoin)
-		authorizeData = testsuite.PackAuthorize(msgUndelegateBz)
+		unbondData := testsuite.PackUnbond(undelegateCoin.Amount.BigInt(), validator1AddressEth)
 
 		// Confirm that the undelegation went through by checking for no delegation
-		undelegation, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		undelegation, err := s.SendEthTransactionToSequencerInterfaceContract(unbondData)
 		s.Require().NoError(err)
 		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, undelegation.BlockNumber.Uint64()) // wait until tx processed
 		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)

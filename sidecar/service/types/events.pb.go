@@ -23,16 +23,16 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// DepositEvent represents a deposit event raised by the proxy contract.
-// This message represents the event structure on the Sequencer.
+// DepositEvent represents the deposit event raised by the SequencerProxy
+// contract. This message represents the event structure on the Sequencer.
 type DepositEvent struct {
-	// the sending Ethereum address in hex format
+	// the depositor as an Ethereum address in hex format
 	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
 	// recipient address in hex or bech32 format. If the recipient is the null
 	// address, the Sequencer uses the depositor address as the recipient.
 	Recipient string `protobuf:"bytes,2,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// the amount sent encoded as string to prevent loss of precision. Sign is
-	// also preserved
+	// also preserved.
 	Amount string `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// vesting duration encoded in string to prevent loss of precision. Sign is
 	// also preserved. This can be zero if no duration is specified.
@@ -100,8 +100,8 @@ func (m *DepositEvent) GetLockup() string {
 	return ""
 }
 
-// AuthorizeEvent represents an authorize event raised by the proxy contract.
-// This message represents the event structure on the Sequencer.
+// AuthorizeEvent represents the authorize event raised by the SequencerProxy
+// contract. This message represents the event structure on the Sequencer.
 type AuthorizeEvent struct {
 	// the Ethereum address granting authorization in hex format
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
