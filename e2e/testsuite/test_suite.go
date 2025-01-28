@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"net/http"
 	"os"
 	osuser "os/user"
 	"path/filepath"
@@ -165,6 +166,7 @@ type E2ETestSuite struct {
 
 	ethNodeResource       *dockertest.Resource
 	ethDeploymentResource *dockertest.Resource
+	otterscanResource     *dockertest.Resource
 	valResources          []*dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
@@ -270,6 +272,7 @@ func (s *E2ETestSuite) SetupTest() {
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
+	// s.runOtterscanContainer()
 	s.RunSequencerValidators()
 	s.initGRPCClients()
 	s.initRPCClient()
@@ -316,6 +319,9 @@ func (s *E2ETestSuite) TearDownTest() {
 	s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
 	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
+	if s.otterscanResource != nil { // purge otterscan container if it was started
+		s.Require().NoError(s.dockerPool.Purge(s.otterscanResource))
+	}
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
@@ -446,6 +452,47 @@ func (s *E2ETestSuite) runEthereumDeploymentContainer() {
 	defer cancel()
 	_, err = s.dockerPool.Client.WaitContainerWithContext(s.ethDeploymentResource.Container.ID, waitContext)
 	s.Require().NoError(err)
+}
+
+func (s *E2ETestSuite) runOtterscanContainer() {
+	s.T().Log("starting Otterscan container...")
+	var err error
+	runOpts := dockertest.RunOptions{
+		Name:       "otterscan",
+		Repository: "otterscan/otterscan",
+		Tag:        "latest",
+		NetworkID:  s.dockerNetwork.Network.ID,
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"80/tcp": {{HostPort: "5100"}},
+		},
+		Env: []string{
+			"ERIGON_URL=http://127.0.0.1:8545",
+		},
+	}
+
+	s.otterscanResource, err = s.dockerPool.RunWithOptions(
+		&runOpts,
+		noRestart,
+	)
+	s.Require().NoError(err)
+
+	// Wait for Otterscan to be ready
+	s.Require().Eventually(
+		func() bool {
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%s", s.otterscanResource.GetPort("80/tcp")))
+			if err != nil {
+				s.T().Logf("error connecting to otterscan: %v", err)
+				return false
+			}
+			defer resp.Body.Close()
+			return resp.StatusCode == http.StatusOK
+		},
+		1*time.Minute,
+		1*time.Second,
+		"otterscan failed to respond",
+	)
+
+	s.T().Logf("started Otterscan container: %s", s.otterscanResource.Container.ID)
 }
 
 func (s *E2ETestSuite) setContractAddresses() {
