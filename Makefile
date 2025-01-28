@@ -13,7 +13,7 @@ ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
 # Ethereum containers' names when they are run from the E2E tests.
 ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME := "ethereum-deployment"
-
+OTTERSCAN_DOCKER_CONTAINER_NAME := "otterscan"
 # Ethereum containers' names when they are run from the docker-compose.
 ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE := "eth_node"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE := "deploy"
@@ -529,6 +529,7 @@ clean-e2e:
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(OTTERSCAN_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 
 	@echo "🧹 Pruning Docker networks..."
 	@$(DOCKER) network prune -f
