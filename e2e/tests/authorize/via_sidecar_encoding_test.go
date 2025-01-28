@@ -262,7 +262,8 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncod
 
 		// Verify the send was successful by checking balances
 		s.PollForBalance(s.Ctx(), sendAmountUint, granterAddress, expectedInitGranterBalance.Sub(sendCoin))
-		feeCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*(0.01*1000000)) // hardcoded values found from e2e/testsuite/test_suite.go; TODO: export to make this dynamic
+		// Account for the fees of the 2 txs that previously took place...
+		feeCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*(testsuite.MinGasPricesFloat*testsuite.DefaultTxGas))
 		s.PollForBalance(s.Ctx(), sendAmountUint, granteeAddress, expectedInitGranteeBalance.Sub(feeCoin).Add(sendCoin))
 
 		// Revoke the authorisation from Ethereum

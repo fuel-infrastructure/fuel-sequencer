@@ -41,8 +41,8 @@ const (
 	BridgeDenom = "utest"
 
 	// Gas configs
-	minGasPrices = "0.01"
-	defaultTxGas = 1000000
+	MinGasPricesFloat, minGasPrices = 0.01, "0.01"
+	DefaultTxGas                    = 1000000
 
 	// Genesis configs
 	supplyDeltaPeriod      = uint64(10)       // default - can be overridden
