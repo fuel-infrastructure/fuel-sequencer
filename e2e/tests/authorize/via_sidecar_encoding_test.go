@@ -214,6 +214,23 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgVote_ViaSidecarEncoding() {
 }
 
 func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncoding() {
+	// Helper function to create an exec message containing a send message
+	mustPackGrantExecSendMsg := func(grantee, granter string, amount sdk.Coin) (*authz.MsgExec, error) {
+		msg := &banktypes.MsgSend{
+			FromAddress: granter,
+			ToAddress:   grantee,
+			Amount:      sdk.NewCoins(amount),
+		}
+		anyMsg, err := codectypes.NewAnyWithValue(msg)
+		if err != nil {
+			return nil, err
+		}
+		return &authz.MsgExec{
+			Grantee: grantee,
+			Msgs:    []*codectypes.Any{anyMsg},
+		}, nil
+	}
+
 	s.Run("Grant and Revoke an account authorisation from Ethereum and check Exec respectively succeeds and fails on Sequencer", func() {
 		granterAddress := s.EthKeys[0].AddressHex
 
@@ -280,21 +297,4 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncod
 		// While tx submission succeeds, response should show failure as no authorization exists yet
 		s.Require().Equal(authz.ErrNoAuthorizationFound.ABCICode(), resp.Code)
 	})
-}
-
-// Helper function to create an exec message containing a send message
-func mustPackGrantExecSendMsg(grantee, granter string, amount sdk.Coin) (*authz.MsgExec, error) {
-	msg := &banktypes.MsgSend{
-		FromAddress: granter,
-		ToAddress:   grantee,
-		Amount:      sdk.NewCoins(amount),
-	}
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-	return &authz.MsgExec{
-		Grantee: grantee,
-		Msgs:    []*codectypes.Any{anyMsg},
-	}, nil
 }
