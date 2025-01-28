@@ -23,7 +23,7 @@ var (
 	TransferEventHashFn           = crypto.Keccak256Hash([]byte("Transfer(address,address,uint256)")).Hex()
 	VoteEventHashFn               = crypto.Keccak256Hash([]byte("Vote(address,uint64,uint32,string)")).Hex()
 	SetRewardRecipientEventHashFn = crypto.Keccak256Hash([]byte("SetRewardRecipient(address,address)")).Hex()
-	GrantEventHashFn              = crypto.Keccak256Hash([]byte("Grant(address,address,string,uint256)")).Hex()
+	GrantEventHashFn              = crypto.Keccak256Hash([]byte("Grant(address,address,string,uint32)")).Hex()
 	RevokeEventHashFn             = crypto.Keccak256Hash([]byte("Revoke(address,address,string)")).Hex()
 	AuthorizeEventHashFn          = crypto.Keccak256Hash([]byte("Authorize(address,bytes)")).Hex()
 )

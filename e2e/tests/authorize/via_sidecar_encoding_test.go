@@ -247,7 +247,7 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncod
 		s.Require().Equal(authz.ErrNoAuthorizationFound.ABCICode(), resp.Code)
 
 		// Grant an authorisation from Ethereum
-		grantData := testsuite.PackGrant(granteeAddressEth, "/cosmos.bank.v1beta1.MsgSend", nil)
+		grantData := testsuite.PackGrant(granteeAddressEth, "/cosmos.bank.v1beta1.MsgSend", 0)
 		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(grantData)
 		s.Require().NoError(err)
 

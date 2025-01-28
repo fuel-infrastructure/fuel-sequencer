@@ -18,7 +18,6 @@ import (
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/holiman/uint256"
 )
 
 // AuthorizeTxFromMsg packs a message into an AuthorizeTx which the Sequencer can then unpack.
@@ -337,18 +336,10 @@ func ExtractLogDataToEvent(
 		grantee := common.HexToAddress(vLog.Topics[2].Hex()).String()
 
 		msgAuth := authz.GenericAuthorization{Msg: ethEvent.MsgTypeUrl}
-		expiration, overflow := uint256.FromBig(ethEvent.Expiration)
-		if overflow {
-			return nil, fmt.Errorf("expiration for grant event has overflowed")
-		}
 
 		var authExpiration *time.Time = nil
-		if expiration != nil && !expiration.IsZero() {
-			if !expiration.IsUint64() {
-				return nil, fmt.Errorf("expiration for grant event is not a uint64")
-			}
-
-			a := time.Unix(int64(expiration.Uint64()), 0)
+		if ethEvent.Expiration > 0 {
+			a := time.Unix(int64(ethEvent.Expiration), 0)
 			authExpiration = &a
 		}
 		// Generate grant msg

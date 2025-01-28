@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
-	"github.com/holiman/uint256"
 )
 
 // TestGenerateEventLogFixtures generates fixtures used in unit testing.
@@ -23,7 +22,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	validator1AddressEth := s.SeqKeys[0].ValAddressEth
 	validator2AddressEth := s.SeqKeys[1].ValAddressEth
 	authzMsgTypeUrl := "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
-	authzExpiration := uint256.NewInt(math.MaxUint32) // Unix Timestamp about year 2106
+	authzExpiration := uint32(math.MaxUint32) // Unix Timestamp about year 2106
 	// Approve V2 tokens for use by SequencerInterfaceContract.
 	approveAmount := new(big.Int).SetInt64(1000000000000)
 	approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, approveAmount)
@@ -138,7 +137,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	logsString += fmt.Sprintf("SetRewardRecipientLogs = `%s`\n", logs)
 
 	// Grant with no expiration
-	data = testsuite.PackGrant(receiverAddressEth, authzMsgTypeUrl, nil)
+	data = testsuite.PackGrant(receiverAddressEth, authzMsgTypeUrl, 0)
 	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
@@ -185,7 +184,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	fmt.Printf("\nValidator2Address = \"%s\"", validator2AddressEth)
 	fmt.Printf("\nSequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr)
 	fmt.Printf("\nAuthzMsgTypeUrl = \"%s\"", authzMsgTypeUrl)
-	fmt.Printf("\nAuthzExpiration = uint64(%d)", authzExpiration)
+	fmt.Printf("\nAuthzExpiration = uint32(%d)", authzExpiration)
 	fmt.Print("\n\n")
 	fmt.Println(logsString)
 }

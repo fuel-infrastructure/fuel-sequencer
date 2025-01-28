@@ -49,10 +49,10 @@ type (
 	EthSetRewardRecipientEvent struct{}
 
 	EthGrantEvent struct {
-		Grantee    string   `json:"grantee"`
-		Grant      string   `json:"grant"`
-		MsgTypeUrl string   `json:"msgTypeUrl"`
-		Expiration *big.Int `json:"expiration"`
+		Grantee    string `json:"grantee"`
+		Grant      string `json:"grant"`
+		MsgTypeUrl string `json:"msgTypeUrl"`
+		Expiration uint32 `json:"expiration"`
 	}
 
 	EthRevokeEvent struct {

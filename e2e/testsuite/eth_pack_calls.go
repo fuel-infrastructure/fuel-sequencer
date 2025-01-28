@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/holiman/uint256"
 )
 
 func PackBalanceOfERC20Token(tokenContractAbi string, address common.Address) []byte {
@@ -207,18 +206,14 @@ func PackSetRewardRecipient(recipient common.Address) []byte {
 	)
 }
 
-func PackGrant(grantee common.Address, msgTypeUrl string, expiration *uint256.Int) []byte {
-	if expiration == nil {
-		expiration = uint256.NewInt(0)
-	}
-
+func PackGrant(grantee common.Address, msgTypeUrl string, expiration uint32) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
 		GrantFunctionName,
 		[]interface{}{
 			grantee,
 			msgTypeUrl,
-			expiration.ToBig(),
+			expiration,
 		},
 	)
 }

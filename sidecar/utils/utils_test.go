@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"math"
 	"strconv"
 	"testing"
 	"time"
@@ -190,9 +189,6 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			getExpEvent: func() *sidecartypes.Event {
 				if fixtures.AuthzExpiration == 0 {
 					t.Fatalf("AuthzExpiration is 0 - use a non-zero value to confirm setting the expiration works...")
-				}
-				if fixtures.AuthzExpiration > math.MaxInt64 {
-					t.Fatalf("AuthzExpiration is too large to be represented as a Unix timestamp")
 				}
 				e := time.Unix(int64(fixtures.AuthzExpiration), 0)
 				expiration := &e
