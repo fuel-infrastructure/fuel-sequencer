@@ -214,7 +214,7 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_MsgVote_ViaSidecarEncoding() {
 }
 
 func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncoding() {
-	s.Run("Grant an account authorisation from Ethereum and check Exec succeeds on Sequencer", func() {
+	s.Run("Grant and Revoke an account authorisation from Ethereum and check Exec respectively succeeds and fails on Sequencer", func() {
 		granterAddress := s.EthKeys[0].AddressHex
 
 		granteeAddress := s.SeqKeys[1].AddressHex
