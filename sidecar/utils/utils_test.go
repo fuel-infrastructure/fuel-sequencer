@@ -169,17 +169,33 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "Grant event",
-			logs: fixtures.GrantLogs,
+			name: "Grant event with no expiration",
+			logs: fixtures.GrantNoExpirationLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				var expiration *time.Time = nil
-				if fixtures.AuthzExpiration != 0 {
-					if fixtures.AuthzExpiration > math.MaxInt64 {
-						t.Fatalf("AuthzExpiration is too large to be represented as a Unix timestamp")
-					}
-					e := time.Unix(int64(fixtures.AuthzExpiration), 0)
-					expiration = &e
+				msgGrant := authz.MsgGrant{
+					Granter: fixtures.SenderAddress,
+					Grantee: fixtures.ReceiverAddress,
+					Grant: authz.Grant{
+						Expiration: nil,
+					},
 				}
+				msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+
+				return testutil.EventFromMsg(t, &msgGrant)
+			},
+		},
+		{
+			name: "Grant event with expiration",
+			logs: fixtures.GrantWithExpirationLogs,
+			getExpEvent: func() *sidecartypes.Event {
+				if fixtures.AuthzExpiration == 0 {
+					t.Fatalf("AuthzExpiration is 0 - use a non-zero value to confirm setting the expiration works...")
+				}
+				if fixtures.AuthzExpiration > math.MaxInt64 {
+					t.Fatalf("AuthzExpiration is too large to be represented as a Unix timestamp")
+				}
+				e := time.Unix(int64(fixtures.AuthzExpiration), 0)
+				expiration := &e
 
 				msgGrant := authz.MsgGrant{
 					Granter: fixtures.SenderAddress,

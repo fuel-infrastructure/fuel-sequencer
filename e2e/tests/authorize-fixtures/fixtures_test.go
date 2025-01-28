@@ -3,6 +3,7 @@ package authorize_fixtures_test
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -22,7 +23,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	validator1AddressEth := s.SeqKeys[0].ValAddressEth
 	validator2AddressEth := s.SeqKeys[1].ValAddressEth
 	authzMsgTypeUrl := "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
-	authzExpiration := uint256.NewInt(0)
+	authzExpiration := uint256.NewInt(math.MaxUint32) // Unix Timestamp about year 2106
 	// Approve V2 tokens for use by SequencerInterfaceContract.
 	approveAmount := new(big.Int).SetInt64(1000000000000)
 	approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, approveAmount)
@@ -136,13 +137,21 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logsString += fmt.Sprintf("SetRewardRecipientLogs = `%s`\n", logs)
 
-	// Grant
+	// Grant with no expiration
+	data = testsuite.PackGrant(receiverAddressEth, authzMsgTypeUrl, nil)
+	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
+	s.Require().NoError(err)
+	logs, err = json.Marshal(tx.Logs)
+	s.Require().NoError(err)
+	logsString += fmt.Sprintf("GrantNoExpirationLogs = `%s`\n", logs)
+
+	// Grant with expiration
 	data = testsuite.PackGrant(receiverAddressEth, authzMsgTypeUrl, authzExpiration)
 	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("GrantLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("GrantWithExpirationLogs = `%s`\n", logs)
 
 	// Revoke
 	data = testsuite.PackRevoke(receiverAddressEth, authzMsgTypeUrl)
