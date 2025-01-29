@@ -1,8 +1,8 @@
 #!/usr/bin/make -f
 
 # Sequencer's Docker image and container names.
-DOCKER := $(shell which podman)
-DOCKER_COMPOSE := $(shell which podman-compose)
+DOCKER := $(shell which docker)
+DOCKER_COMPOSE := $(shell which docker-compose)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
