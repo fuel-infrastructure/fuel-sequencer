@@ -272,7 +272,7 @@ func (s *E2ETestSuite) SetupTest() {
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
-	// s.runOtterscanContainer()
+	// s.runOtterscanContainer() // disabled by default as intended for debugging e2e tests
 	s.RunSequencerValidators()
 	s.initGRPCClients()
 	s.initRPCClient()
