@@ -294,7 +294,7 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzOperations_ViaSidecarEncod
 		// Attempt to execute a MsgExec on Sequencer after authorisation is revoked
 		resp, err = s.SubmitMsgsFromValidatorN(1, execMsg)
 		s.Require().NoError(err)
-		// While tx submission succeeds, response should show failure as no authorization exists yet
+		// While tx submission succeeds, response should show failure as no authorization exists now
 		s.Require().Equal(authz.ErrNoAuthorizationFound.ABCICode(), resp.Code)
 	})
 }
