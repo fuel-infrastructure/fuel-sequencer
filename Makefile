@@ -1,11 +1,14 @@
 #!/usr/bin/make -f
 
 # Sequencer's Docker image and container names.
-DOCKER := $(shell which docker)
-DOCKER_COMPOSE := $(shell which docker-compose)
+DOCKER := $(shell which podman)
+DOCKER_COMPOSE := $(shell which podman-compose)
 DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
+
+# Fuel Rollup local repository.
+ROLLUP_DIR = $(CURDIR)/e2e/fuel-rollup
 
 # Name of the Ethereum contract deployment image.
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
@@ -476,7 +479,7 @@ build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 	@echo "🤖 Building Docker image..."
 	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
-		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
+		-f $(ROLLUP_DIR)/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
 		./e2e/fuel-rollup/
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
@@ -484,16 +487,16 @@ build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
 	@echo "✅ Finished!"
 
 # Runs node and contract deployment containers
-run-eth-e2e-containers: e2e/fuel-rollup/.npmrc
+run-eth-e2e-containers: $(ROLLUP_DIR)/.npmrc
 	@echo "🤖 Running Docker containers..."
-	@$(DOCKER_COMPOSE) -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build \
+	@$(DOCKER_COMPOSE) -f $(ROLLUP_DIR)/docker/docker-compose.yml up -d --build \
 		"$(ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE)" \
 		"$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)"
 
 # Removes node and contract deployment containers
 remove-eth-e2e-containers:
 	@echo "🤖 Removing Docker containers..."
-	@$(DOCKER_COMPOSE) -f ./e2e/fuel-rollup/docker/$(DOCKER_COMPOSE).yml down
+	@$(DOCKER_COMPOSE) -f $(ROLLUP_DIR)/docker/$(DOCKER_COMPOSE).yml down
 	@echo "✅ Removed Docker containers!"
 
 test-e2e-basic:
@@ -521,7 +524,7 @@ clean-e2e:
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) stop
 	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
 	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
-	@$(DOCKER_COMPOSE) -f $(CURDIR)/e2e/fuel-rollup/docker/docker-compose.yml down
+	@$(DOCKER_COMPOSE) -f $(ROLLUP_DIR)/docker/docker-compose.yml down
 
 	@echo "🧹 Removing Docker containers..."
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) rm
