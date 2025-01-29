@@ -190,14 +190,13 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 				if fixtures.AuthzExpiration == 0 {
 					t.Fatalf("AuthzExpiration is 0 - use a non-zero value to confirm setting the expiration works...")
 				}
-				e := time.Unix(int64(fixtures.AuthzExpiration), 0)
-				expiration := &e
+				expiration := time.Unix(int64(fixtures.AuthzExpiration), 0)
 
 				msgGrant := authz.MsgGrant{
 					Granter: fixtures.SenderAddress,
 					Grantee: fixtures.ReceiverAddress,
 					Grant: authz.Grant{
-						Expiration: expiration,
+						Expiration: &expiration,
 					},
 				}
 				msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))

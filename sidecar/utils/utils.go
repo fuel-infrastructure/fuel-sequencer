@@ -376,13 +376,12 @@ func ExtractLogDataToEvent(
 		// Some values are indexed, so extract them from Topics
 		granter := common.HexToAddress(vLog.Topics[1].Hex()).String()
 		grantee := common.HexToAddress(vLog.Topics[2].Hex()).String()
-		msgTypeUrl := ethEvent.MsgTypeUrl
 
 		// Generate revoke msg
 		revokeMsg := authz.MsgRevoke{
 			Granter:    granter,
 			Grantee:    grantee,
-			MsgTypeUrl: msgTypeUrl,
+			MsgTypeUrl: ethEvent.MsgTypeUrl,
 		}
 
 		// Generate an authorize event
