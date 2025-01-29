@@ -178,7 +178,10 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: nil,
 					},
 				}
-				msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+				if err != nil {
+					t.Fatalf("error when setting authorization: %x", err)
+				}
 
 				return testutil.EventFromMsg(t, &msgGrant)
 			},
@@ -199,7 +202,10 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: &expiration,
 					},
 				}
-				msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+				if err != nil {
+					t.Fatalf("error when setting authorization: %x", err)
+				}
 
 				return testutil.EventFromMsg(t, &msgGrant)
 			},

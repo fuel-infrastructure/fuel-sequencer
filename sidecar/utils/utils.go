@@ -350,7 +350,10 @@ func ExtractLogDataToEvent(
 				Expiration: authExpiration,
 			},
 		}
-		grantMsg.SetAuthorization(&msgAuth)
+		err := grantMsg.SetAuthorization(&msgAuth)
+		if err != nil {
+			return nil, err
+		}
 
 		// Generate an authorize event
 		var authorizeEvent sidecartypes.AuthorizeEvent
@@ -364,6 +367,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, err
+		}
 
 	case sidecartypes.RevokeEventHashFn:
 		// Process the event
