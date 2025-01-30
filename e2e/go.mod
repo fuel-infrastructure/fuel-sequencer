@@ -6,7 +6,7 @@ toolchain go1.22.7
 
 replace (
 	// custom CometBFT for blob throughput investigation
-	github.com/cometbft/cometbft => github.com/fuel-infrastructure/cometbft v0.38.8-0.20250116111214-bcf2768b19e3
+	github.com/cometbft/cometbft => github.com/fuel-infrastructure/cometbft v0.38.8-0.20250130095313-b4572d996365
 	// point to Fuel's Cosmos SDK fork
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.10-no-burning
 	// use local FuelSequencer

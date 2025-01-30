@@ -2,11 +2,18 @@ package app
 
 import (
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/p2p/conn"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 )
+
+func init() {
+	conn.BlobsWritingPacketMessageLogEnabled = false
+	conn.BlobsWrotePacketMessageLogEnabled = false
+	conn.BlobsBlobTooLargeLogEnabled = false
+}
 
 func InitSDKConfig() {
 	// Set prefixes
