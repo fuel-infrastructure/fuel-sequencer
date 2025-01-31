@@ -2,6 +2,7 @@ package events_test
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -35,18 +36,18 @@ func (s *EventsTestSuite) TestEventTrimming() {
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
-		// Generate a MsgSend
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		from := s.EthKeys[0].AddressHex
-		to := s.EthKeys[1].AddressHex
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
+		// Generate a Transfer
+		sendAmount := int64(10)
+		from := s.EthKeys[0]
+		to := s.EthKeys[1]
+		msgSend := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(
+			from.AddressHex, to.AddressHex, sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))),
+		)
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: from,
+			Sender: from.AddressHex,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
@@ -88,17 +89,18 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		consensusParams = s.QueryConsensusParams(s.Ctx())
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
-		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
+		// Try generating some events via a transaction (RPC) - i = number of events
+		for i := 0; i < 4; i++ {
+			_, err := s.SendEthTransactionToSequencerInterfaceContract(msgSend)
+			s.Require().NoError(err, fmt.Errorf("error while sending transaction no.%d: err: %w", i+1, err))
+		}
 
 		// 1st event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 0)
 		// 2nd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 2)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 		// 3rd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 3)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 		// 4th event of 4 processed
 		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 	})
@@ -126,18 +128,18 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
-		// Generate a MsgSend
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		from := s.EthKeys[0].AddressHex
-		to := s.EthKeys[1].AddressHex
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
+		// Generate a Transfer
+		sendAmount := int64(10)
+		from := s.EthKeys[0]
+		to := s.EthKeys[1]
+		msgSend := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(
+			from.AddressHex, to.AddressHex, sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))),
+		)
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
 		authorizeEvent := types.AuthorizeEvent{
-			Sender: from,
+			Sender: from.AddressHex,
 			Data:   msgSendBz,
 		}
 		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
@@ -179,10 +181,12 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		consensusParams = s.QueryConsensusParams(s.Ctx())
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
-		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
+		// -------- Send transactions
+
+		for i := 0; i < 4; i++ {
+			_, err := s.SendEthTransactionToSequencerInterfaceContract(msgSend)
+			s.Require().NoError(err, fmt.Errorf("error while sending transaction no.%d: err: %w", i+1, err))
+		}
 
 		// -------- Delay sync up
 
@@ -194,11 +198,11 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		// -------- Check that events are eventually processed
 
 		// 1st event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 0)
 		// 2nd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 2)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 		// 3rd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 3)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 		// 4th event of 4 processed
 		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
 	})
