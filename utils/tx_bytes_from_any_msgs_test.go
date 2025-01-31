@@ -3,11 +3,10 @@ package utils_test
 import (
 	"testing"
 
+	banktypes "cosmossdk.io/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -66,7 +65,7 @@ func TestValidRawTxBytesFromAnyMsgs_CorrectEncoding(t *testing.T) {
 		{
 			name:                "Invalid message",
 			msgAnys:             []*codectypes.Any{invalidMsgAny},
-			expErrMsgAtDecoding: "unable to resolve type URL /fuelsequencer.bridge.Params: tx parse error",
+			expErrMsgAtDecoding: "tx parse error",
 		},
 	}
 
@@ -81,7 +80,7 @@ func TestValidRawTxBytesFromAnyMsgs_CorrectEncoding(t *testing.T) {
 			require.NoError(t, err)
 
 			// Decode to validate
-			sdkTx, err := tx.DefaultTxDecoder(testutiltypes.TestCdc)(bz)
+			sdkTx, err := testutiltypes.TestTxDecoder(bz)
 			if tc.expErrMsgAtDecoding != "" {
 				require.ErrorContains(t, err, tc.expErrMsgAtDecoding)
 				return

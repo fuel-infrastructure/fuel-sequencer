@@ -5,11 +5,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
 )
-
-var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
 
@@ -133,13 +130,6 @@ func DefaultParams() Params {
 		DefaultSequencerTxsAllocation,
 		DefaultMaxAuthorizeMessages,
 	)
-}
-
-// ParamSetPairs implements params.ParamSet
-//
-// Deprecated.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{}
 }
 
 // Validate validates the set of params.

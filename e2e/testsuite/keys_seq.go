@@ -31,7 +31,7 @@ func MustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
 }
 
 func newSequencerKeyFromMnemonic(mnemonic string) (*SequencerKey, error) {
-	kb := keyring.NewInMemory(Cdc)
+	kb := keyring.NewInMemory(TestCdc)
 
 	name := "name"
 	passphrase := ""

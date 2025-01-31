@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	banktypes "cosmossdk.io/x/bank/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
@@ -42,8 +42,8 @@ func (s *AppTestSuite) CreateDummyTxs(amount uint64, gasLimit uint64) []sdk.Tx {
 			txBuilder,
 			[]sdk.Msg{
 				&banktypes.MsgSend{
-					FromAddress: "test-from",
-					ToAddress:   "test-to",
+					FromAddress: types.TestSeqAddr1Str,
+					ToAddress:   types.TestSeqAddr2Str,
 					Amount:      sdk.NewCoins(),
 				},
 			},

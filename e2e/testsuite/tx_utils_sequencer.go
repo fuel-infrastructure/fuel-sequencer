@@ -20,12 +20,12 @@ func decodeTx(txBytes []byte) (*sdktx.Tx, error) {
 		return nil, fmt.Errorf("failed to reject unknown fields: %w", err)
 	}
 
-	if err := Cdc.Unmarshal(txBytes, &raw); err != nil {
+	if err := TestCdc.Unmarshal(txBytes, &raw); err != nil {
 		return nil, err
 	}
 
 	var body sdktx.TxBody
-	if err := Cdc.Unmarshal(raw.BodyBytes, &body); err != nil {
+	if err := TestCdc.Unmarshal(raw.BodyBytes, &body); err != nil {
 		return nil, fmt.Errorf("failed to decode tx: %w", err)
 	}
 
@@ -37,7 +37,7 @@ func decodeTx(txBytes []byte) (*sdktx.Tx, error) {
 		return nil, fmt.Errorf("failed to reject unknown fields: %w", err)
 	}
 
-	if err := Cdc.Unmarshal(raw.AuthInfoBytes, &authInfo); err != nil {
+	if err := TestCdc.Unmarshal(raw.AuthInfoBytes, &authInfo); err != nil {
 		return nil, fmt.Errorf("failed to decode auth info: %w", err)
 	}
 

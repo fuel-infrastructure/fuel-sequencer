@@ -6,8 +6,9 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	stakingtypes "cosmossdk.io/x/staking/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
@@ -63,7 +64,7 @@ func (h Hooks) BeforeValidatorSlashed(_ context.Context, _ sdk.ValAddress, _ sdk
 	return nil
 }
 
-func (h Hooks) AfterUnbondingInitiated(_ context.Context, _ uint64) error {
+func (h Hooks) AfterConsensusPubKeyUpdate(_ context.Context, _, _ cryptotypes.PubKey, _ sdk.Coin) error {
 	return nil
 }
 
@@ -77,7 +78,7 @@ func (h Hooks) AfterUnbondingDelegationSlashed(
 		// and would indicate a logical error in the code.
 		// Note: The staking module does not panic when calling AfterUnbondingDelegationSlashed. Therefore, we must
 		// panic here to ensure the chain is halted.
-		panic(errors.Wrap(err, "AfterUnbondingDelegationSlashed: could not insert slash entry"))
+		return errors.Wrap(err, "AfterUnbondingDelegationSlashed: could not insert slash entry")
 	}
 
 	return nil
@@ -93,7 +94,7 @@ func (h Hooks) AfterRedelegationSlashed(
 		// and would indicate a logical error in the code.
 		// Note: The staking module does not panic when calling AfterRedelegationSlashed. Therefore, we must panic here
 		// to ensure the chain is halted.
-		panic(errors.Wrap(err, "AfterRedelegationSlashed: could not insert slash entry"))
+		return errors.Wrap(err, "AfterRedelegationSlashed: could not insert slash entry")
 	}
 
 	return nil
@@ -106,16 +107,16 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 	// If the total slash amount is not positive, there is likely an issue with the staking module's Slash function,
 	// as this hook should only be called when totalSlashedAmt is positive. We panic to prioritize safety over liveness.
 	if !totalSlashedAmt.IsPositive() {
-		panic(fmt.Errorf(
+		return fmt.Errorf(
 			"CustomBeforeValidatorSlashed: total slashed amount must be positive, received: %v", totalSlashedAmt,
-		))
+		)
 	}
 
 	// If the fraction is less than or equal to 0, or greater than 1, it indicates a potential issue with the staking
 	// module's Slash function. In such cases, a panic is triggered because it implies an inability to accurately
 	// calculate the portion to be slashed for delegators, even though the validator will still be slashed.
 	if !fraction.IsPositive() || fraction.GT(sdkmath.LegacyOneDec()) {
-		panic(fmt.Errorf("CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", fraction))
+		return fmt.Errorf("CustomBeforeValidatorSlashed: fraction must be >0 and <=1, current fraction: %v", fraction)
 	}
 
 	// At this stage, we are sure that redelegations and unbonding delegations that were active at the infraction time
@@ -126,14 +127,14 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 	//
 	// Ref to effectiveFraction: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/staking/keeper/slash.go#L164
 	err := h.k.stakingKeeper.IterateValidatorDelegations(
-		ctx, valAddr, func(delegation stakingtypes.Delegation) (stop bool) {
+		ctx, valAddr, func(delegation stakingtypes.Delegation) (stop bool, err error) {
 			delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 
 			// For every delegation, get the validator object from state. There must be something really wrong if the
 			// validator object could not be obtained at this stage, therefore, in that case panic.
 			validator, err := h.k.stakingKeeper.GetValidator(ctx, valAddr)
 			if err != nil {
-				panic(errors.Wrap(err, "CustomBeforeValidatorSlashed: could not get validator"))
+				return true, errors.Wrap(err, "CustomBeforeValidatorSlashed: could not get validator")
 			}
 
 			// delegator slashed amount = current delegated tokens * effective slash fraction
@@ -157,7 +158,7 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 					"delegator", delAddr.String(),
 					"validator", valAddr.String(),
 				)
-				return false
+				return false, nil
 			}
 
 			// Create slash entry for the delegator
@@ -167,19 +168,19 @@ func (h Hooks) CustomBeforeValidatorSlashed(
 				// unlikely and would indicate a logical error in the code.
 				// Note: The staking module does not panic when calling CustomBeforeValidatorSlashed. Therefore, we must
 				// panic here to ensure that the chain is halted.
-				panic(errors.Wrap(err, "CustomBeforeValidatorSlashed: could not insert slash entry"))
+				return true, errors.Wrap(err, "CustomBeforeValidatorSlashed: could not insert slash entry")
 			}
 
-			return false
+			return false, nil
 		},
 	)
 	if err != nil {
 
 		// If we error while iterating over delegations there is something wrong in the store. Therefore, panic since we
 		// could not store the slash entries.
-		panic(errors.Wrapf(
+		return errors.Wrapf(
 			err, "CustomBeforeValidatorSlashed: could not iterate validator %s delegations", valAddr.String(),
-		))
+		)
 	}
 
 	return nil

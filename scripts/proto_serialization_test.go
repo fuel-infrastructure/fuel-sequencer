@@ -7,12 +7,11 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cometbft/cometbft/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -173,7 +172,7 @@ func TestDecodeAuthorizeEventData(t *testing.T) {
 	}
 
 	// Decode again to extract SDK messages
-	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(rawTxBz)
+	tx, err := testutiltypes.TestTxDecoder(rawTxBz)
 	if err != nil {
 		panic(err)
 	}
@@ -220,7 +219,7 @@ func TestDecodeAuthorizeEventDataFromEthereum(t *testing.T) {
 	}
 
 	// Decode again to extract SDK messages
-	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(rawTxBz)
+	tx, err := testutiltypes.TestTxDecoder(rawTxBz)
 	if err != nil {
 		panic(err)
 	}
@@ -240,7 +239,7 @@ func TestDecodeTx_Base64(t *testing.T) {
 	fmt.Printf("SIZE: %d\n", utils.TxSize(dataBz))
 	fmt.Printf("HASH: %X\n", types.Tx(dataBz).Hash())
 
-	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
+	tx, err := testutiltypes.TestTxDecoder(dataBz)
 	if err != nil {
 		panic(err)
 	}
@@ -260,7 +259,7 @@ func TestDecodeTx_Hex(t *testing.T) {
 	fmt.Printf("SIZE: %d\n", utils.TxSize(dataBz))
 	fmt.Printf("HASH: %X\n", types.Tx(dataBz).Hash())
 
-	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(dataBz)
+	tx, err := testutiltypes.TestTxDecoder(dataBz)
 	if err != nil {
 		panic(err)
 	}

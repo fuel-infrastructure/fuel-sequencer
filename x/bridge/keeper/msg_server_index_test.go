@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -167,7 +168,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 				s.App.BridgeKeeper.SetIndex(s.Ctx(), *tc.setIndex)
 			}
 
-			msgIndexCtx := s.Ctx().WithBlockTime(testBlockTime).WithBlockHeight(tc.blockHeight)
+			msgIndexCtx := testutil.CtxWithTime(s.Ctx().WithBlockHeight(tc.blockHeight), testBlockTime)
 			_, err = msgServer.Index(msgIndexCtx, &tc.msg)
 			if tc.expectErrMsg != "" {
 				s.Require().ErrorContains(err, tc.expectErrMsg)
@@ -634,7 +635,7 @@ func (s *KeeperTestSuite) TestMsgIndex_Combinations() {
 			for i := 0; i < len(tc.msg); i++ {
 
 				heightToAvoidSupplyDelta := int64(999)
-				indexCtx := s.Ctx().WithBlockTime(tc.blockTime[i]).WithBlockHeight(heightToAvoidSupplyDelta)
+				indexCtx := testutil.CtxWithTime(s.Ctx().WithBlockHeight(heightToAvoidSupplyDelta), tc.blockTime[i])
 				_, err := msgServer.Index(indexCtx, &tc.msg[i])
 				if tc.expectErrMsg != nil && tc.expectErrMsg[i] != "" {
 					s.Require().ErrorContains(err, tc.expectErrMsg[i])

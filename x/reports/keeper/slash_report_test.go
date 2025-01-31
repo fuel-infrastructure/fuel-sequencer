@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"

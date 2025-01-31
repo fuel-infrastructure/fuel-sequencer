@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	govtypes "cosmossdk.io/x/gov/types"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
 func (s *E2ETestSuite) GetGovernanceAddress() string {

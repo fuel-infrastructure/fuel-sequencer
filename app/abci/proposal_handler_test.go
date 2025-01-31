@@ -9,7 +9,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	comettypes "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -72,7 +72,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		expQueryBlockEventsCalled      int
 		expQueryBlockEventsReq         *sidecartypes.QueryBlockEventsRequest
 		queryBlockEventsRet            apptesting.MockQueryBlockEventsResponse
-		requestPrepareProposal         *abcitypes.RequestPrepareProposal
+		requestPrepareProposal         *abcitypes.PrepareProposalRequest
 		maxBlockGas                    int64
 		supplyDeltaPeriod              uint64
 		ethereumProxyContractAddress   string
@@ -80,7 +80,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 		maxAuthorizeMessages           uint64
 		sequencerTxsAllocation         sdkmath.LegacyDec
 		expErrMsg                      string
-		expRes                         *abcitypes.ResponsePrepareProposal
+		expRes                         *abcitypes.PrepareProposalResponse
 	}{
 		{
 			name:                      "returns supply delta tx if expected at height and other txs",
@@ -89,7 +89,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
@@ -100,7 +100,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
@@ -117,7 +117,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -128,7 +128,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithEvents(false),
 					encodedDummyTxs[0],
@@ -144,7 +144,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{}, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -155,7 +155,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithoutEvents(false),
 					encodedDummyTxs[0],
@@ -171,7 +171,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: nil, Error: errors.New("block not yet processed 1"),
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -182,7 +182,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexSidecarErr(false),
 					encodedDummyTxs[0],
@@ -198,7 +198,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				// Set to the size of a partial MsgIndex tx, so that the last event does not fit. We need to add +2
 				// since the generated MsgIndex will have NewEthereumBlock set to true at first until the proposer
 				// updates it. When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume
@@ -218,7 +218,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			// Sequencer-native transactions.
 			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
 
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: encodedMsgIndexPartialBlock(false), // partial MsgIndex tx
 			},
 		},
@@ -228,7 +228,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
 			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: 0,
 				Txs:        nil,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -247,7 +247,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expQueryBlockEventsCalled:      0,
 			expQueryBlockEventsReq:         nil,
 			queryBlockEventsRet:            apptesting.MockQueryBlockEventsResponse{},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: 0,
 				Txs:        nil,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -270,7 +270,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				}},
 				Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: 0,
 				Txs:        nil,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -297,7 +297,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				},
 				Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: 0,
 				Txs:        nil,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -317,7 +317,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: 0, // Set to zero to make sure there is no capacity for the MsgIndex events
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -337,7 +337,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				// Set to the size of MsgSupplyDeltaTx so that MsgIndex does not fit
 				MaxTxBytes: int64(utils.TxSize(msgSupplyDeltaTx)),
 				Txs:        encodedDummyTxs,
@@ -359,7 +359,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				// Set to EXACTLY the size of MsgSupplyDelta transaction plus MsgIndex
 				MaxTxBytes: int64(utils.TxsSize(append(encodedMsgIndexWithEvents(true), msgSupplyDeltaTx))),
 				Txs:        encodedDummyTxs,
@@ -374,7 +374,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			// We need to set SequencerTxsAllocation to zero so that Sequencer-native transactions are ignored.
 			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
 
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(encodedMsgIndexWithEvents(true), msgSupplyDeltaTx),
 			},
 		},
@@ -385,7 +385,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				// Set to expected size - 1 to omit last tx
 				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta - 1),
 				Txs:        encodedDummyTxs,
@@ -400,7 +400,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			// Set a zero percentage so that we do not prioritize Sequencer-native transactions.
 			sequencerTxsAllocation: sdkmath.LegacyZeroDec(),
 
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
@@ -416,7 +416,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
@@ -427,7 +427,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
@@ -444,7 +444,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
@@ -465,7 +465,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseInvalidDeposit, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -485,7 +485,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseInvalidAuthorize, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -496,7 +496,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithoutEvents(false),
 					encodedDummyTxs[0],
@@ -512,7 +512,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseDepositOnly, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -532,7 +532,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -543,7 +543,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      1, // To ensure authorize event is too big
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithoutEvents(false),
 					encodedDummyTxs[0],
@@ -559,7 +559,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
 				Height:     1, // We do not expect MsgSupplyDelta to be injected
@@ -570,7 +570,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         0, // Only empty Authorize txs are allowed
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithoutEvents(false),
 					encodedDummyTxs[0],
@@ -586,7 +586,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), // All transactions should exactly fit
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
@@ -610,7 +610,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			).Quo(sdkmath.LegacyMustNewDecFromStr(
 				strconv.FormatUint(totalTxsBytesWithEventsAndSupplyDelta, 10),
 			)),
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
@@ -631,7 +631,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Response: testtypes.TestSidecarResponseWithFourEvents, Error: nil,
 			},
 
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 
 				// We set the maximum size such that we are able to fit in four events to demonstrate that even though
 				// we can fit all events, some limited block space is reserve for Sequencer-native transactions.
@@ -663,7 +663,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				strconv.FormatUint(totalTxsBytesWithFourEventsAndSupplyDeltaOnly, 10),
 			)),
 
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexPartialBlockWith3Events(true),
 					msgSupplyDeltaTx,
@@ -681,7 +681,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta),
 				Txs:        encodedDummyTxs,
 				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
@@ -707,7 +707,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				strconv.FormatUint(totalTxsBytesWithEventsAndSupplyDelta, 10),
 			)),
 
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithEvents(true),
 					msgSupplyDeltaTx,
@@ -727,7 +727,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseWithFourEvents, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 
 				// MaxTxBytes is set to the size of three events + supply delta + 5 dummy transactions to demonstrate
 				// that event number 4 is still included in the block even though there is fixed block space reserved
@@ -760,7 +760,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				strconv.FormatUint(totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs, 10),
 			)),
 
-			expRes: &abcitypes.ResponsePrepareProposal{
+			expRes: &abcitypes.PrepareProposalResponse{
 				Txs: append(
 					encodedMsgIndexWithFourEvents(true),
 					msgSupplyDeltaTx,
@@ -856,7 +856,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler_ReqTxsValueWhenErrorOccurs() {
 		expQueryBlockEventsCalled int
 		expQueryBlockEventsReq    *sidecartypes.QueryBlockEventsRequest
 		queryBlockEventsRet       apptesting.MockQueryBlockEventsResponse
-		requestPrepareProposal    *abcitypes.RequestPrepareProposal
+		requestPrepareProposal    *abcitypes.PrepareProposalRequest
 		expReqTxs                 [][]byte
 	}{
 		{
@@ -866,7 +866,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler_ReqTxsValueWhenErrorOccurs() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestEmptySidecarResponse, Error: nil,
 			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+			requestPrepareProposal: &abcitypes.PrepareProposalRequest{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        [][]byte{[]byte("badly-encoded-tx")},
 				Height:     2, // Not expected to be a supply delta height
@@ -933,8 +933,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_ReqTxsValueWhenErrorOccurs() {
 }
 
 func (s *AppTestSuite) TestProcessProposalHandler() {
-	rejectResponse := &abcitypes.ResponseProcessProposal{Status: abcitypes.ResponseProcessProposal_REJECT}
-	acceptResponse := &abcitypes.ResponseProcessProposal{Status: abcitypes.ResponseProcessProposal_ACCEPT}
+	rejectResponse := &abcitypes.ProcessProposalResponse{Status: abcitypes.PROCESS_PROPOSAL_STATUS_REJECT}
+	acceptResponse := &abcitypes.ProcessProposalResponse{Status: abcitypes.PROCESS_PROPOSAL_STATUS_ACCEPT}
 
 	totalTxsGas := int64(3000) // Dummy Txs consume at most 1000 units of gas each. Injected Txs don't consume any gas
 	encodedDummyTxs := s.CreateEncodedDummyTxs(3, 1000)
@@ -1004,7 +1004,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 		expQueryBlockEventsCalled      int
 		expQueryBlockEventsReq         *sidecartypes.QueryBlockEventsRequest
 		queryBlockEventsRet            apptesting.MockQueryBlockEventsResponse
-		requestProcessProposal         *abcitypes.RequestProcessProposal
+		requestProcessProposal         *abcitypes.ProcessProposalRequest
 		maxBlockGas                    int64
 		supplyDeltaPeriod              uint64
 		ethereumProxyContractAddress   string
@@ -1019,7 +1019,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEventsAndSupplyDelta,
 				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
 			},
@@ -1036,7 +1036,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1054,7 +1054,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponse, // full response, which will get trimmed
 				Error:    nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsPartialBlock,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1071,7 +1071,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: &sidecartypes.QueryBlockEventsResponse{}, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithoutEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1088,7 +1088,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
 			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsSidecarErr,                // Problem is both with validator and the proposer
 				Height: 1,                                 // We do not expect MsgSupplyDelta to be injected
 				Time:   testCurrentTimeDoesNotExceedDelay, // Block time within syncing delay
@@ -1106,7 +1106,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
 			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsSidecarErr,          // Problem is both with validator and the proposer
 				Height: 1,                           // We do not expect MsgSupplyDelta to be injected
 				Time:   testCurrentTimeExceedsDelay, // Block time exceeds syncing delay
@@ -1128,7 +1128,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled: 0,
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    nil,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1144,7 +1144,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled: 0,
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    encodedDummyTxs,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1160,7 +1160,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled: 0,
 			expQueryBlockEventsReq:    nil,
 			queryBlockEventsRet:       apptesting.MockQueryBlockEventsResponse{},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    [][]byte{[]byte("invalid-MsgSupplyDelta")},
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1177,7 +1177,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			expQueryBlockEventsCalled:     0,
 			expQueryBlockEventsReq:        nil,
 			queryBlockEventsRet:           apptesting.MockQueryBlockEventsResponse{},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1196,7 +1196,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1217,7 +1217,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				}},
 				Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
 				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1242,7 +1242,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				},
 				Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
 				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1261,7 +1261,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: nil,
 				Error:    errors.New("block not yet processed 1"),
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents, // Problem is with validator not the proposer
 				Height: 1,                  // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1280,7 +1280,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithDifferentEvents, // Different events injected by proposer
 				Height: 1,                           // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1299,7 +1299,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithoutEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1318,7 +1318,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestEmptySidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1337,7 +1337,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseReduced, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1355,7 +1355,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEventsReduced,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1375,7 +1375,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithIncorrectAuthority,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1395,7 +1395,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithNoNewEthBlock,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1415,7 +1415,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithDiffBlockNumber,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1435,7 +1435,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1453,7 +1453,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				// MsgSupplyDelta not injected even though expected in height
 				Txs:    validTxsWithEventsWithMissingSupplyDelta[:1],
 				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
@@ -1472,7 +1472,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				// MsgSupplyDelta not injected even though expected in height
 				Txs:    validTxsWithEventsWithMissingSupplyDelta,
 				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
@@ -1483,8 +1483,9 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
 			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
 			expErrMsg: "generated MsgSupplyDelta tx differs from that of the block proposal " +
-				"(injected: 0A390A340A1C2F636F736D6F732E62616E6B2E763162657461312E4D736753656E6412140A09746573742D66726F6D1207746573742D746F12013212070A00120310E8071A00) " +
+				"(injected: 0A92010A8C010A1C2F636F736D6F732E62616E6B2E763162657461312E4D736753656E64126C0A346675656C73657175656E636572317738726B326D6B3834777974707878376C6436336B6171706B686D6433396D3035786C67743412346675656C73657175656E636572316E37397773737470616B763067773265666D7275663978387873396D34727166617A6675386712013012090A021200120310E8071A00) " +
 				"(generated: 0A630A610A272F6675656C73657175656E6365722E6272696467652E76312E4D7367537570706C7944656C746112360A346675656C73657175656E636572313064303779323635676D6D757674347A30773961773838306A6E73723730306A646A66766B3312060A0218021200)",
+			// Note: the injected transaction comes from dummy txs generated by the test suite. If the dummy txs are updated, the error message will change.
 		},
 		{
 			name:                        "returns error if Ethereum event index offset larger than events list",
@@ -1494,7 +1495,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithEvents,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1513,7 +1514,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithLargeAuthorizeSkipped,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1531,7 +1532,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				Txs:    validTxsWithLargeAuthorizeSkipped,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
@@ -1548,7 +1549,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseDepositOnly, Error: nil,
 			},
-			requestProcessProposal: &abcitypes.RequestProcessProposal{
+			requestProcessProposal: &abcitypes.ProcessProposalRequest{
 				// If a big deposit is also matched at PrepareProposal no MsgIndex tx is returned, thus we would
 				// error when we try to parse a MsgIndex. To make ProcessProposal error at generateMsgIndexAndEventTxs
 				// we need to make use of a different set of txs (one which has a MsgIndex)

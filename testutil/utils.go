@@ -4,9 +4,17 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
+
+func CtxWithTime(ctx sdk.Context, blockTime time.Time) sdk.Context {
+	headerInfo := ctx.HeaderInfo()
+	headerInfo.Time = blockTime
+	return ctx.WithHeaderInfo(headerInfo)
+}
 
 // MockTopicIDHex generates a mock 32-byte hash for testing, represented as a hexadecimal string, based on an input number.
 func MockTopicIDHex(num int) []byte {

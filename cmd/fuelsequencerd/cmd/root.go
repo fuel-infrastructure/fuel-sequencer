@@ -5,31 +5,37 @@ import (
 	"os"
 	"strings"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/client/v2/autocli"
 	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
 	"cosmossdk.io/core/address"
+	"cosmossdk.io/core/registry"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+
+	authv1 "cosmossdk.io/api/cosmos/auth/module/v1"
+	stakingv1 "cosmossdk.io/api/cosmos/staking/module/v1"
+	basedepinject "cosmossdk.io/x/accounts/defaults/base/depinject"
+	lockupdepinject "cosmossdk.io/x/accounts/defaults/lockup/depinject"
+	multisigdepinject "cosmossdk.io/x/accounts/defaults/multisig/depinject"
 )
 
 // NewRootCmd creates a new root command for fuelsequencerd. It is called once in the main function.
@@ -37,10 +43,10 @@ func NewRootCmd() *cobra.Command {
 	app.InitSDKConfig()
 
 	var (
-		txConfigOpts       tx.ConfigOptions
-		autoCliOpts        autocli.AppOptions
-		moduleBasicManager module.BasicManager
-		clientCtx          client.Context
+		txConfigOpts  tx.ConfigOptions
+		autoCliOpts   autocli.AppOptions
+		moduleManager *module.Manager
+		clientCtx     client.Context
 	)
 
 	if err := depinject.Inject(
@@ -51,29 +57,22 @@ func NewRootCmd() *cobra.Command {
 				servertypes.AppOptions(AppOptionsMap{
 					flags.FlagHome: app.DefaultNodeHome, // otherwise x/upgrade creates a data/ folder at the CWD
 				}),
-				func() address.Codec {
-					return appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(
-						app.AccountAddressPrefix))
-				},
-				func() runtime.ValidatorAddressCodec {
-					return appcodec.NewFuelSequencerAddressCodec(
-						sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valoper"),
-					)
-				},
-				func() runtime.ConsensusAddressCodec {
-					return appcodec.NewFuelSequencerAddressCodec(
-						sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valcons"),
-					)
-				},
 			),
 			depinject.Provide(
 				ProvideClientContext,
 				ProvideKeyring,
+
+				multisigdepinject.ProvideAccount,
+				basedepinject.ProvideAccount,
+				lockupdepinject.ProvideAllLockupAccounts,
+
+				// provide base account options
+				basedepinject.ProvideSecp256K1PubKey,
 			),
 		),
 		&txConfigOpts,
 		&autoCliOpts,
-		&moduleBasicManager,
+		&moduleManager,
 		&clientCtx,
 	); err != nil {
 		panic(err)
@@ -94,15 +93,19 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			clientCtx, err = config.ReadFromClientConfig(clientCtx)
+			// We can override default client config template and configs.
+			customClientTemplate := ""
+			customConfig := interface{}(nil)
+
+			clientCtx, err = config.CreateClientConfig(clientCtx, customClientTemplate, customConfig)
 			if err != nil {
 				return err
 			}
 
 			// This needs to go after ReadFromClientConfig, as that function
 			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
-			txConfigOpts.EnabledSignModes = append(txConfigOpts.EnabledSignModes, signing.SignMode_SIGN_MODE_TEXTUAL)
-			txConfigOpts.TextualCoinMetadataQueryFn = txmodule.NewGRPCCoinMetadataQueryFn(clientCtx)
+			txConfigOpts.EnabledSignModes = append(txConfigOpts.EnabledSignModes, signingv1beta1.SignMode_SIGN_MODE_TEXTUAL)
+			txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(clientCtx)
 			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
 				codec.NewProtoCodec(clientCtx.InterfaceRegistry),
 				txConfigOpts,
@@ -123,7 +126,11 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(rootCmd, clientCtx.TxConfig, clientCtx.InterfaceRegistry, clientCtx.Codec, moduleBasicManager)
+	initRootCmd(rootCmd, moduleManager)
+
+	nodeCmds := nodeservice.NewNodeCommands()
+	autoCliOpts.ModuleOptions = make(map[string]*autocliv1.ModuleOptions)
+	autoCliOpts.ModuleOptions[nodeCmds.Name()] = nodeCmds.AutoCLIOptions()
 
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
@@ -158,24 +165,51 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 func ProvideClientContext(
 	appCodec codec.Codec,
 	interfaceRegistry codectypes.InterfaceRegistry,
-	txConfig client.TxConfig,
-	legacyAmino *codec.LegacyAmino,
+	txConfigOpts tx.ConfigOptions,
+	legacyAmino registry.AminoRegistrar,
+	addressCodec address.Codec,
+	validatorAddressCodec address.ValidatorAddressCodec,
+	consensusAddressCodec address.ConsensusAddressCodec,
+	authConfig *authv1.Module,
+	stakingConfig *stakingv1.Module,
 ) client.Context {
+	var err error
+
+	amino, ok := legacyAmino.(*codec.LegacyAmino)
+	if !ok {
+		panic("ProvideClientContext requires a *codec.LegacyAmino instance")
+	}
+
 	clientCtx := client.Context{}.
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
-		WithTxConfig(txConfig).
-		WithLegacyAmino(legacyAmino).
+		WithLegacyAmino(amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
+		WithAddressCodec(addressCodec).
+		WithValidatorAddressCodec(validatorAddressCodec).
+		WithConsensusAddressCodec(consensusAddressCodec).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper(app.Name) // env variable prefix
+		WithViper(app.Name). // env variable prefix
+		WithAddressPrefix(authConfig.Bech32Prefix).
+		WithValidatorPrefix(stakingConfig.Bech32PrefixValidator)
 
-	// Read the config again to overwrite the default values with the values from the config file
-	clientCtx, err := config.ReadFromClientConfig(clientCtx)
+	// We can override default client config template and configs.
+	customClientTemplate := ""
+	customConfig := interface{}(nil)
+
+	clientCtx, err = config.CreateClientConfig(clientCtx, customClientTemplate, customConfig)
 	if err != nil {
 		panic(err)
 	}
+
+	// textual is enabled by default, we need to re-create the tx config grpc instead of bank keeper.
+	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(clientCtx)
+	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
+	if err != nil {
+		panic(err)
+	}
+	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx
 }
@@ -186,5 +220,5 @@ func ProvideKeyring(clientCtx client.Context, addressCodec address.Codec) (clien
 		return nil, err
 	}
 
-	return keyring.NewAutoCLIKeyring(kb)
+	return keyring.NewAutoCLIKeyring(kb, addressCodec)
 }

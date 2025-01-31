@@ -13,7 +13,7 @@ import (
 // SetLastEthereumBlockSynced sets lastEthereumBlockSynced in the store and metrics server
 func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBlockSynced uint64) {
 	defer metrics.SetLastEthereumBlockSynced(ctx, lastEthereumBlockSynced)
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
 	b := sdk.Uint64ToBigEndian(lastEthereumBlockSynced)
 	store.Set([]byte{0}, b)
@@ -21,7 +21,7 @@ func (k Keeper) SetLastEthereumBlockSynced(ctx context.Context, lastEthereumBloc
 
 // GetLastEthereumBlockSynced returns lastEthereumBlockSynced
 func (k Keeper) GetLastEthereumBlockSynced(ctx context.Context) (val uint64, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
 
 	b := store.Get([]byte{0})
@@ -43,7 +43,7 @@ func (k Keeper) MustGetLastEthereumBlockSynced(ctx context.Context) uint64 {
 
 // RemoveLastEthereumBlockSynced removes lastEthereumBlockSynced from the store
 func (k Keeper) RemoveLastEthereumBlockSynced(ctx context.Context) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumBlockSyncedKey)
 	store.Delete([]byte{0})
 }

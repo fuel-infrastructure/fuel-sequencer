@@ -4,7 +4,7 @@ import (
 	"context"
 
 	sdkmath "cosmossdk.io/math"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	minttypes "cosmossdk.io/x/mint/types"
 )
 
 func (s *E2ETestSuite) QueryMintParams(ctx context.Context) *minttypes.Params {

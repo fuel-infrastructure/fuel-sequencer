@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,9 +13,10 @@ import (
 
 type (
 	Keeper struct {
-		cdc          codec.BinaryCodec
-		storeService store.KVStoreService
-		logger       log.Logger
+		appmodule.Environment
+
+		cdc    codec.BinaryCodec
+		logger log.Logger
 
 		// Keepers
 		stakingKeeper types.StakingKeeper
@@ -28,7 +29,7 @@ type (
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeService store.KVStoreService,
+	env appmodule.Environment,
 	logger log.Logger,
 	stakingKeeper types.StakingKeeper,
 	authority string,
@@ -38,8 +39,8 @@ func NewKeeper(
 	}
 
 	return Keeper{
+		Environment:   env,
 		cdc:           cdc,
-		storeService:  storeService,
 		authority:     authority,
 		logger:        logger,
 		stakingKeeper: stakingKeeper,

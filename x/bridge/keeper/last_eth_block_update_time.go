@@ -12,7 +12,7 @@ import (
 
 // SetLastEthBlockUpdateTime sets lastEthBlockUpdateTime in the store
 func (k Keeper) SetLastEthBlockUpdateTime(ctx context.Context, lastEthBlockUpdateTime time.Time) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthBlockUpdateTimeKey)
 	b := sdk.Uint64ToBigEndian(uint64(lastEthBlockUpdateTime.UnixNano()))
 	store.Set([]byte{0}, b)
@@ -20,7 +20,7 @@ func (k Keeper) SetLastEthBlockUpdateTime(ctx context.Context, lastEthBlockUpdat
 
 // GetLastEthBlockUpdateTime returns lastEthBlockUpdateTime
 func (k Keeper) GetLastEthBlockUpdateTime(ctx context.Context) (val time.Time, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthBlockUpdateTimeKey)
 
 	b := store.Get([]byte{0})
@@ -43,7 +43,7 @@ func (k Keeper) MustGetLastEthBlockUpdateTime(ctx context.Context) time.Time {
 
 // RemoveLastEthBlockUpdateTime removes lastEthBlockUpdateTime from the store
 func (k Keeper) RemoveLastEthBlockUpdateTime(ctx context.Context) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthBlockUpdateTimeKey)
 	store.Delete([]byte{0})
 }

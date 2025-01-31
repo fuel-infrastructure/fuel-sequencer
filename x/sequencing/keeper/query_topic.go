@@ -21,7 +21,7 @@ func (k Keeper) TopicAll(
 
 	var topics []types.Topic
 
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.TopicKey))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {

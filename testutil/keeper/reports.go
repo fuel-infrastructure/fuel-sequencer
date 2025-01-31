@@ -10,15 +10,13 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	govtypes "cosmossdk.io/x/gov/types"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
@@ -129,24 +127,31 @@ func ReportsKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 func ReportsKeeperWithKeepers(t testing.TB, sk types.StakingKeeper) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
+	logger := log.NewNopLogger()
+
 	db := dbm.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
+	cdc := testutiltypes.TestCdc
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 
+	authorityAddr, err := testutiltypes.TestAddressCdc.BytesToString(authority)
+	if err != nil {
+		panic(err)
+	}
+
+	kvs := runtime.NewKVStoreService(storeKey)
 	k := keeper.NewKeeper(
 		cdc,
-		runtime.NewKVStoreService(storeKey),
+		runtime.NewEnvironment(kvs, logger.With(log.ModuleKey, "x/reports")),
 		log.NewNopLogger(),
 		sk,
-		authority.String(),
+		authorityAddr,
 	)
 
-	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
+	ctx := sdk.NewContext(stateStore, false, log.NewNopLogger())
 
 	// Initialize params
 	//nolint:errcheck

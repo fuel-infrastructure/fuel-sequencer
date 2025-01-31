@@ -1,20 +1,19 @@
 package bridge
 
 import (
+	"context"
 	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+func InitGenesis(ctx context.Context, k keeper.Keeper, genState types.GenesisState) error {
 	defaults := types.DefaultGenesis()
 
 	if err := k.SetParams(ctx, genState.Params); err != nil {
-		panic(fmt.Sprintf("error when setting params: %x", err))
+		return fmt.Errorf("error when setting params: %x", err)
 	}
 
 	// Set if defined, otherwise use default
@@ -36,10 +35,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetLastConsensusTxsSequence(ctx, genState.LastConsensusTxsSequence)
 
 	// this line is used by starport scaffolding # genesis/module/init
+	return nil
 }
 
 // ExportGenesis returns the module's exported genesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func ExportGenesis(ctx context.Context, k keeper.Keeper) (*types.GenesisState, error) {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
 
@@ -75,5 +75,5 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	// this line is used by starport scaffolding # genesis/module/export
 
-	return genesis
+	return genesis, nil
 }

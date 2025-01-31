@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
+	minttypes "cosmossdk.io/x/mint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
+	bridgetestutil "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +32,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAddressFromEthereumAddress() {
 func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 
 	// The first account number depends on the number of module accounts created.
-	firstAccNumber := uint64(len(s.App.AccountKeeper.GetModulePermissions()))
+	firstAccNumber := uint64(len(s.App.AuthKeeper.GetModulePermissions()))
 
 	seqAddr1BaseAcc := &authtypes.BaseAccount{
 		Address:       testutiltypes.TestSeqAddr1Str,
@@ -71,7 +72,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 		vestingStartTime     time.Time
 		fundAccount          sdk.Coins
 		args                 fnArgs
-		isAccountAsExpected  testutil.AccountValidator
+		isAccountAsExpected  bridgetestutil.AccountValidator
 		expectSpendableCoins sdk.Coins
 		expectErrMsg         string
 	}{
@@ -96,7 +97,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: 0,
 				totalCoins:      nil,
 			},
-			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  bridgetestutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: nil,
 		},
 		{
@@ -108,7 +109,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  bridgetestutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token100,
 		},
 		{
@@ -121,7 +122,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: months6,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -144,7 +145,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years1,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -167,7 +168,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -196,7 +197,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -222,7 +223,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  bridgetestutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
 		{
@@ -250,7 +251,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  bridgetestutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token200, // all the 200 tokens are available
 		},
 		{
@@ -264,7 +265,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected:  testutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
+			isAccountAsExpected:  bridgetestutil.MatchesEthOwnedAccRaw(seqAddr1BaseAcc, testutiltypes.TestEthAddr1Str),
 			expectSpendableCoins: token200, // precreated account's 100 plus newly deposited 100
 		},
 		{
@@ -298,7 +299,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: 0,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(), // this was untouched
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -355,7 +356,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -395,7 +396,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(), // precreated account's vesting start time is disregarded
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -428,7 +429,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years2,
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(),
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -472,7 +473,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years100, // NB: this gets ignored if account is EthOwnedContinuousVestingAccount
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(), // this was untouched
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -541,7 +542,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				vestingDuration: years100, // NB: this gets ignored if account is EthOwnedContinuousVestingAccount
 				totalCoins:      token100,
 			},
-			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
+			isAccountAsExpected: bridgetestutil.MatchesEthOwnedContinuousVestingAccRaw(
 				&vestingtypes.ContinuousVestingAccount{
 					StartTime: t0.Unix(), // this was untouched
 					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
@@ -563,7 +564,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			ctx := s.Ctx().WithBlockTime(tc.blockTime)
+			ctx := testutil.CtxWithTime(s.Ctx(), tc.blockTime)
 
 			// Set vesting start time
 			params := s.App.BridgeKeeper.GetParams(ctx)
@@ -573,12 +574,12 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 
 			// Precreate account
 			if tc.precreateAccount != nil {
-				s.App.AccountKeeper.NewAccount(ctx, tc.precreateAccount)
-				s.App.AccountKeeper.SetAccount(ctx, tc.precreateAccount)
+				s.App.AuthKeeper.NewAccount(ctx, tc.precreateAccount)
+				s.App.AuthKeeper.SetAccount(ctx, tc.precreateAccount)
 
 				// Confirm creation
 				addr := tc.precreateAccount.GetAddress()
-				s.Require().True(s.App.AccountKeeper.GetAccount(ctx, addr).GetAddress().Equals(addr))
+				s.Require().True(s.App.AuthKeeper.GetAccount(ctx, addr).GetAddress().Equals(addr))
 			}
 
 			// Get sequencer account
@@ -601,7 +602,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				s.Require().NoError(err)
 			}
 
-			account := s.App.AccountKeeper.GetAccount(ctx, accAddress)
+			account := s.App.AuthKeeper.GetAccount(ctx, accAddress)
 			s.Require().True(tc.isAccountAsExpected(account))
 
 			spendableCoins := s.App.BankKeeper.SpendableCoins(ctx, accAddress)

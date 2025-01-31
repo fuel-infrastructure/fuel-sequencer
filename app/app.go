@@ -2,73 +2,64 @@ package app
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	_ "cosmossdk.io/api/cosmos/tx/config/v1" // import for side-effects
+	"cosmossdk.io/core/appmodule"
+	govkeeper "cosmossdk.io/x/gov/keeper"
+	mintkeeper "cosmossdk.io/x/mint/keeper"
+	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
+	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
+	reportskeeper "github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
+	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
+	_ "github.com/jackc/pgx/v5/stdlib" // Import and register pgx driver
+
 	"cosmossdk.io/core/address"
+	"cosmossdk.io/core/registry"
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
+	_ "cosmossdk.io/indexer/postgres" // register the postgres indexer
 	"cosmossdk.io/log"
-	sdkmath "cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
-	_ "cosmossdk.io/x/evidence" // import for side-effects
+	"cosmossdk.io/x/accounts"
+	basedepinject "cosmossdk.io/x/accounts/defaults/base/depinject"
+	lockupdepinject "cosmossdk.io/x/accounts/defaults/lockup/depinject"
+	multisigdepinject "cosmossdk.io/x/accounts/defaults/multisig/depinject"
+	authzkeeper "cosmossdk.io/x/authz/keeper"
+	bankkeeper "cosmossdk.io/x/bank/keeper"
+	consensuskeeper "cosmossdk.io/x/consensus/keeper"
+	distrkeeper "cosmossdk.io/x/distribution/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	_ "cosmossdk.io/x/upgrade" // import for side-effects
+	_ "cosmossdk.io/x/protocolpool"
+	slashingkeeper "cosmossdk.io/x/slashing/keeper"
+	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	dbm "github.com/cosmos/cosmos-db"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	_ "github.com/cosmos/cosmos-sdk/x/auth" // import for side-effects
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"   // import for side-effects
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/authz/module" // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/bank"         // import for side-effects
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
-	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/distribution" // import for side-effects
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/slashing" // import for side-effects
-	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
+	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
+	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vesting_accounts_staking"
+	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
-	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
-	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
-
-	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
-	reportsmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
-	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
-	// this line is used by starport scaffolding # stargate/app/moduleImport
-
-	"github.com/fuel-infrastructure/fuel-sequencer/client/docs"
 )
 
 const (
@@ -89,28 +80,31 @@ var (
 // They are exported for convenience in creating helper functions, as object capabilities aren't needed for testing.
 type FuelSequencerApp struct {
 	*runtime.App
-	legacyAmino       *codec.LegacyAmino
+	legacyAmino       registry.AminoRegistrar
 	appCodec          codec.Codec
 	txConfig          client.TxConfig
 	interfaceRegistry codectypes.InterfaceRegistry
 
-	// keepers
-	AccountKeeper         authkeeper.AccountKeeper
+	// required keepers during wiring
+	// others keepers are all in the app
+	AccountsKeeper accounts.Keeper
+
+	AuthKeeper            authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
+	SlashingKeeper        slashingkeeper.Keeper
 
-	SlashingKeeper slashingkeeper.Keeper
-	MintKeeper     mintkeeper.Keeper
-	GovKeeper      *govkeeper.Keeper
+	MintKeeper     mintkeeper.Keeper // TODO: remove?
+	GovKeeper      *govkeeper.Keeper // TODO: remove?
 	UpgradeKeeper  *upgradekeeper.Keeper
-	AuthzKeeper    authzkeeper.Keeper
-	EvidenceKeeper evidencekeeper.Keeper
+	AuthzKeeper    authzkeeper.Keeper    // TODO: remove?
+	EvidenceKeeper evidencekeeper.Keeper // TODO: remove?
 
-	BridgeKeeper     bridgemodulekeeper.Keeper
-	SequencingKeeper sequencingmodulekeeper.Keeper
-	ReportsKeeper    reportsmodulekeeper.Keeper
+	BridgeKeeper     bridgekeeper.Keeper
+	SequencingKeeper sequencingkeeper.Keeper
+	ReportsKeeper    reportskeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -138,31 +132,14 @@ func init() {
 	sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000000)
 }
 
-// getGovProposalHandlers return the chain proposal handlers.
-// Deprecated: This function is added just in case we need to register any module param handlers with the gov module.
-func getGovProposalHandlers() []govclient.ProposalHandler {
-	var govProposalHandlers []govclient.ProposalHandler
-	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
-
-	//nolint:staticcheck
-	govProposalHandlers = append(govProposalHandlers) // this line is used by starport scaffolding # stargate/app/govProposalHandler
-
-	return govProposalHandlers
-}
-
 // AppConfig returns the default app config.
 func AppConfig() depinject.Config {
 	return depinject.Configs(
 		appConfig,
 		// Loads the app config from a YAML file.
 		// appconfig.LoadYAML(AppConfigYAML),
-		depinject.Supply(
-			// supply custom module basics
-			map[string]module.AppModuleBasic{
-				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				govtypes.ModuleName:     gov.NewAppModuleBasic(getGovProposalHandlers()),
-				// this line is used by starport scaffolding # stargate/appConfig/moduleBasic
-			},
+		depinject.Provide(
+		// TODO: ProvideExampleMintFn, // optional: override the mint module's mint function with epoched minting
 		),
 	)
 }
@@ -170,7 +147,7 @@ func AppConfig() depinject.Config {
 // NewFuelSequencerApp returns a reference to an initialized Fuel Sequencer App.
 func NewFuelSequencerApp(
 	logger log.Logger,
-	db dbm.DB,
+	db corestore.KVStoreWithBatch,
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
@@ -215,17 +192,17 @@ func NewFuelSequencerApp(
 				//
 				// STAKING
 				//
-				// For providing a different validator and consensus address codec, add it below.
-				// By default, the staking module uses the bech32 prefix provided in the auth config,
+				// For provinding a different validator and consensus address codec, add it below.
+				// By default the staking module uses the bech32 prefix provided in the auth config,
 				// and appends "valoper" and "valcons" for validator and consensus addresses respectively.
 				// When providing a custom address codec in auth, custom address codecs must be provided here as well.
 				//
-				func() runtime.ValidatorAddressCodec {
+				func() address.ValidatorAddressCodec {
 					return appcodec.NewFuelSequencerAddressCodec(
 						sdkAddressCodec.NewBech32Codec(AccountAddressPrefix + "valoper"),
 					)
 				},
-				func() runtime.ConsensusAddressCodec {
+				func() address.ConsensusAddressCodec {
 					return appcodec.NewFuelSequencerAddressCodec(
 						sdkAddressCodec.NewBech32Codec(AccountAddressPrefix + "valcons"),
 					)
@@ -235,29 +212,53 @@ func NewFuelSequencerApp(
 				// MINT
 				//
 				// For providing a custom inflation function for x/mint add here your
-				// custom function that implements the minttypes.InflationCalculationFn
-				// interface.
+				// custom function that implements the minttypes.MintFn interface.
+			),
+			depinject.Provide(
+				// inject desired account types:
+				multisigdepinject.ProvideAccount,
+				basedepinject.ProvideAccount,
+				lockupdepinject.ProvideAllLockupAccounts,
+				// TODO: Ethreum-Owned accounts?
+
+				// provide base account options
+				basedepinject.ProvideSecp256K1PubKey,
+				// if you want to provide a custom public key you
+				// can do it from here.
+				// Example:
+				// 		basedepinject.ProvideCustomPubkey[Ed25519PublicKey]()
+				//
+				// You can also provide a custom public key with a custom validation function:
+				//
+				// 		basedepinject.ProvideCustomPubKeyAndValidationFunc(func(pub Ed25519PublicKey) error {
+				//			if len(pub.Key) != 64 {
+				//				return fmt.Errorf("invalid pub key size")
+				//			}
+				// 		})
 			),
 		)
 	)
 
+	var appModules map[string]appmodule.AppModule
 	if err := depinject.Inject(appConfig,
 		&appBuilder,
+		&appModules,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,
 		&app.interfaceRegistry,
-		&app.AccountKeeper,
+		&app.AuthKeeper,
+		&app.AccountsKeeper,
 		&app.BankKeeper,
 		&app.StakingKeeper,
 		&app.DistrKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.SlashingKeeper,
-		&app.MintKeeper,
-		&app.GovKeeper,
+		// TODO: remove? &app.MintKeeper,
+		// TODO: remove? &app.GovKeeper,
 		&app.UpgradeKeeper,
-		&app.AuthzKeeper,
-		&app.EvidenceKeeper,
+		// TODO: remove? &app.AuthzKeeper,
+		// TODO: remove? &app.EvidenceKeeper,
 		&app.BridgeKeeper,
 		&app.SequencingKeeper,
 		&app.ReportsKeeper,
@@ -338,10 +339,10 @@ func NewFuelSequencerApp(
 		}()
 	}
 
-	app.UpgradeKeeper.SetUpgradeHandler(
-		vesting_accounts_staking.UpgradeName,
-		vesting_accounts_staking.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
-	)
+	//app.UpgradeKeeper.SetUpgradeHandler(
+	//	vesting_accounts_staking.UpgradeName,
+	//	vesting_accounts_staking.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+	//)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(
@@ -350,44 +351,16 @@ func NewFuelSequencerApp(
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
-	// ANTEHANDLER
-	anteHandler, err := NewAnteHandler(
-		ante.HandlerOptions{
-			AccountKeeper:   app.AccountKeeper,
-			BankKeeper:      app.BankKeeper,
-			SignModeHandler: app.txConfig.SignModeHandler(),
-			FeegrantKeeper:  nil,
-			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
-		},
-		app.BridgeKeeper,
-		app.SequencingKeeper,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create ante handler: %w", err)
-	}
-	app.SetAnteHandler(anteHandler)
-
 	// SET mempool to NoOp. This is required for PrepareProposal and ProcessProposal to work as expected.
 	app.SetMempool(mempool.NoOpMempool{})
 
-	// Register legacy modules
-
-	// register streaming services
-	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
-		return nil, err
-	}
-
 	/****  Module Options ****/
-
-	// CrisisKeeper is not wired, therefore, no invariants are registered.
-	// Justification: https://github.com/cosmos/cosmos-sdk/issues/15706
-	//app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
 	// NOTE: this is not required for apps that don't use the simulator for fuzz testing transactions
 	//overrideModules := map[string]module.AppModuleSimulation{
-	//	authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+	//	authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AuthKeeper, &app.AccountsKeeper, authsims.RandomGenesisAccounts, nil),
 	//}
 	//app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
 	//app.sm.RegisterStoreDecoders()
@@ -398,10 +371,40 @@ func NewFuelSequencerApp(
 	// However, when registering a module manually (i.e. that does not support app wiring), the module version map
 	// must be set manually as follow. The upgrade module will de-duplicate the module version map.
 	//
-	// app.SetInitChainer(func(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	// app.SetInitChainer(func(ctx sdk.Context, req *abci.InitChainRequest) (*abci.InitChainResponse, error) {
 	// 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap())
 	// 	return app.App.InitChainer(ctx, req)
 	// })
+
+	//// register custom snapshot extensions (if any)
+	//if manager := app.SnapshotManager(); manager != nil {
+	//	if err := manager.RegisterExtensions(
+	//		unorderedtx.NewSnapshotter(app.UnorderedTxManager),
+	//	); err != nil {
+	//		panic(fmt.Errorf("failed to register snapshot extension: %w", err))
+	//	}
+	//}
+
+	// ANTEHANDLER
+	anteHandler, err := NewAnteHandler(
+		ante.HandlerOptions{
+			AccountKeeper:            app.AuthKeeper,
+			BankKeeper:               app.BankKeeper,
+			ConsensusKeeper:          app.ConsensusParamsKeeper,
+			SignModeHandler:          app.txConfig.SignModeHandler(),
+			FeegrantKeeper:           nil,
+			SigGasConsumer:           ante.DefaultSigVerificationGasConsumer,
+			UnorderedTxManager:       app.UnorderedTxManager,
+			Environment:              app.AuthKeeper.Environment,
+			AccountAbstractionKeeper: app.AccountsKeeper,
+		},
+		app.BridgeKeeper,
+		app.SequencingKeeper,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ante handler: %w", err)
+	}
+	app.SetAnteHandler(anteHandler)
 
 	if err := app.Load(loadLatest); err != nil {
 		return nil, err
@@ -415,7 +418,12 @@ func NewFuelSequencerApp(
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *FuelSequencerApp) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
+	switch cdc := app.legacyAmino.(type) {
+	case *codec.LegacyAmino:
+		return cdc
+	default:
+		panic("unexpected codec type")
+	}
 }
 
 // AppCodec returns App's app codec.
@@ -426,13 +434,9 @@ func (app *FuelSequencerApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// GetKey returns the KVStoreKey for the provided store key.
-func (app *FuelSequencerApp) GetKey(storeKey string) *storetypes.KVStoreKey {
-	kvStoreKey, ok := app.UnsafeFindStoreKey(storeKey).(*storetypes.KVStoreKey)
-	if !ok {
-		return nil
-	}
-	return kvStoreKey
+// InterfaceRegistry returns FuelSequencerApp's InterfaceRegistry.
+func (app *FuelSequencerApp) InterfaceRegistry() codectypes.InterfaceRegistry {
+	return app.interfaceRegistry
 }
 
 // GetMemKey returns the MemoryStoreKey for the provided store key.
@@ -443,18 +447,6 @@ func (app *FuelSequencerApp) GetMemKey(storeKey string) *storetypes.MemoryStoreK
 	}
 
 	return key
-}
-
-// kvStoreKeys returns all the kv store keys registered inside App.
-func (app *FuelSequencerApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
-	keys := make(map[string]*storetypes.KVStoreKey)
-	for _, k := range app.GetStoreKeys() {
-		if kv, ok := k.(*storetypes.KVStoreKey); ok {
-			keys[kv.Name()] = kv
-		}
-	}
-
-	return keys
 }
 
 // SimulationManager implements the SimulationApp interface.
@@ -525,8 +517,11 @@ func GetMaccPerms() map[string][]string {
 }
 
 // BlockedAddresses returns all the app's blocked account addresses.
-func BlockedAddresses() map[string]bool {
+// This function takes an address.Codec parameter to maintain compatibility
+// with the signature of the same function in appV1.
+func BlockedAddresses(_ address.Codec) (map[string]bool, error) {
 	result := make(map[string]bool)
+
 	if len(blockAccAddrs) > 0 {
 		for _, addr := range blockAccAddrs {
 			result[addr] = true
@@ -536,5 +531,6 @@ func BlockedAddresses() map[string]bool {
 			result[addr] = true
 		}
 	}
-	return result
+
+	return result, nil
 }

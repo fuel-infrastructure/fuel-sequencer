@@ -11,9 +11,10 @@ import (
 	"strconv"
 	"time"
 
+	"cosmossdk.io/client/v2/offchain"
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -21,13 +22,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -53,44 +55,42 @@ import (
 
 func initRootCmd(
 	rootCmd *cobra.Command,
-	txConfig client.TxConfig,
-	_ codectypes.InterfaceRegistry,
-	_ codec.Codec,
-	basicManager module.BasicManager,
+	moduleManager *module.Manager,
 ) {
+	cfg := sdk.GetConfig()
+	cfg.Seal()
+
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
+		genutilcli.InitCmd(moduleManager),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
-		pruning.Cmd(newApp, app.DefaultNodeHome),
+		pruning.Cmd(newApp),
 		snapshot.Cmd(newApp),
 	)
 
-	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addStartFlags)
+	server.AddCommands(rootCmd, newApp, server.StartCmdOptions[servertypes.Application]{AddFlags: addStartFlags})
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
-		genesisCommand(txConfig, basicManager),
+		genesisCommand(moduleManager, appExport),
 		queryCommand(),
 		txCommand(),
 		startSidecarServerCmd(),
 		querySidecarServerCmd(),
 		keys.Commands(),
+		offchain.OffChain(),
 	)
 }
 
 func addStartFlags(startCmd *cobra.Command) {
-	// Crisis module is not wired, therefore, no related flags need to be added
-	//crisis.AddModuleInitFlags(startCmd)
 	sidecarconfig.AddStartCmdFlags(startCmd)
 	commitmentsconfig.AddStartCmdFlags(startCmd)
 }
 
 // genesisCommand builds genesis-related `fuelsequencerd genesis` command. Users may provide application specific commands as a parameter
-func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, basicManager, app.DefaultNodeHome)
-
+func genesisCommand(moduleManager *module.Manager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
+	cmd := genutilcli.Commands(moduleManager.Modules[genutiltypes.ModuleName].(genutil.AppModule), moduleManager, appExport)
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
 	}
@@ -109,7 +109,6 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		rpc.QueryEventForTxCmd(),
-		rpc.ValidatorCommand(),
 		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		server.QueryBlocksCmd(),
@@ -569,7 +568,7 @@ func queryBlockEvents(cmd *cobra.Command, args []string) error {
 // newApp creates the application
 func newApp(
 	logger log.Logger,
-	db dbm.DB,
+	db corestore.KVStoreWithBatch,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
@@ -589,7 +588,7 @@ func newApp(
 // appExport creates a new app (optionally at a given height) and exports state.
 func appExport(
 	logger log.Logger,
-	db dbm.DB,
+	db corestore.KVStoreWithBatch,
 	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
@@ -616,14 +615,12 @@ func appExport(
 
 	// overwrite the FlagInvCheckPeriod
 	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
-	appOpts = viperAppOpts
 
 	// overwrite the FlagSidecarEnabled since we don't need it for app export
 	viperAppOpts.Set(sidecarconfig.FlagSidecarEnabled, false)
-	appOpts = viperAppOpts
 
 	if height != -1 {
-		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, false, appOpts)
+		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, false, viperAppOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}
@@ -632,7 +629,7 @@ func appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, true, appOpts)
+		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, true, viperAppOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}

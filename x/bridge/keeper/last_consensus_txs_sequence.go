@@ -13,7 +13,7 @@ import (
 // SetLastConsensusTxsSequence sets lastConsensusTxsSequence in the store
 func (k Keeper) SetLastConsensusTxsSequence(ctx context.Context, lastConsensusTxsSequence uint64) {
 	defer metrics.SetLastConsensusTxsSequence(ctx, lastConsensusTxsSequence)
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
 	b := sdk.Uint64ToBigEndian(lastConsensusTxsSequence)
 	store.Set([]byte{0}, b)
@@ -21,7 +21,7 @@ func (k Keeper) SetLastConsensusTxsSequence(ctx context.Context, lastConsensusTx
 
 // GetLastConsensusTxsSequence returns lastConsensusTxsSequence
 func (k Keeper) GetLastConsensusTxsSequence(ctx context.Context) (val uint64, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
 
 	b := store.Get([]byte{0})
@@ -57,7 +57,7 @@ func (k Keeper) MustGetNextConsensusTxsSequenceAndIncrement(ctx context.Context)
 
 // RemoveLastConsensusTxsSequence removes lastConsensusTxsSequence from the store
 func (k Keeper) RemoveLastConsensusTxsSequence(ctx context.Context) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastConsensusTxsSequenceKey)
 	store.Delete([]byte{0})
 }

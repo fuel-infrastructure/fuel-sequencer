@@ -18,8 +18,10 @@ func TestGenesis_ValidState(t *testing.T) {
 	}
 
 	k, ctx := keepertest.ReportsKeeper(t)
-	reports.InitGenesis(ctx, k, genesisState)
-	got := reports.ExportGenesis(ctx, k)
+	err := reports.InitGenesis(ctx, k, genesisState)
+	require.NoError(t, err)
+	got, err := reports.ExportGenesis(ctx, k)
+	require.NoError(t, err)
 	require.NotNil(t, got)
 
 	require.Equal(
@@ -43,16 +45,6 @@ func TestGenesis_InvalidSlashReport(t *testing.T) {
 
 	k, ctx := keepertest.ReportsKeeper(t)
 
-	var panicMsg string
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				panicMsg = r.(error).Error()
-			}
-		}()
-
-		reports.InitGenesis(ctx, k, genesisState)
-		require.Fail(t, "Expected panic")
-	}()
-	require.Contains(t, panicMsg, "duplicate slash entry found")
+	err := reports.InitGenesis(ctx, k, genesisState)
+	require.ErrorContains(t, err, "duplicate slash entry found")
 }

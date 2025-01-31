@@ -1,11 +1,5 @@
 package types
 
-import (
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-)
-
-var _ paramtypes.ParamSet = (*Params)(nil)
-
 const (
 	// DefaultMaxSlashReportAgeBlocks is 1 day assuming an average block time of 6 seconds.
 	DefaultMaxSlashReportAgeBlocks = 14400
@@ -25,13 +19,6 @@ func DefaultParams() Params {
 	return NewParams(
 		DefaultMaxSlashReportAgeBlocks,
 	)
-}
-
-// ParamSetPairs get the params.ParamSet
-//
-// Deprecated.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{}
 }
 
 // Validate validates the set of params

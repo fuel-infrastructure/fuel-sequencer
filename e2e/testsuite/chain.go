@@ -7,11 +7,23 @@ import (
 	"os"
 	"time"
 
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/core/address"
+	"cosmossdk.io/math/unsafe"
+	"cosmossdk.io/x/accounts"
+	"cosmossdk.io/x/bank"
+	"cosmossdk.io/x/consensus"
+	"cosmossdk.io/x/distribution"
 	"cosmossdk.io/x/evidence"
+	"cosmossdk.io/x/gov"
+	"cosmossdk.io/x/mint"
+	"cosmossdk.io/x/slashing"
+	"cosmossdk.io/x/staking"
+	stakingtypes "cosmossdk.io/x/staking/types"
+	txdecode "cosmossdk.io/x/tx/decode"
+	"cosmossdk.io/x/tx/signing"
 	"cosmossdk.io/x/upgrade"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-	cmrand "github.com/cometbft/cometbft/libs/rand"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -19,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
+	codectestutil "github.com/cosmos/cosmos-sdk/codec/testutil"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -26,18 +39,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/consensus"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
@@ -59,31 +64,44 @@ const (
 )
 
 var (
-	encodingConfig testutil.TestEncodingConfig
-	Cdc            codec.Codec
-	TestCdc        codec.Codec // an exported alias of cdc
-	TestGrpcCdc    grpcencoding.Codec
-
-	addressCdc     address.Codec
-	TestAddressCdc address.Codec // an exported alias of cdc
+	encodingConfig          testutil.TestEncodingConfig
+	TestCdc                 codec.Codec
+	TestGrpcCdc             grpcencoding.Codec
+	TestAddressCdc          signing.AddressCodec
+	TestValidatorAddressCdc address.ValidatorAddressCodec
+	TestDecoder             *txdecode.Decoder
+	TestTxDecoder           func([]byte) (sdk.Tx, error)
 )
 
 func init() {
-	modules := []module.AppModuleBasic{
-		auth.AppModuleBasic{},
-		bank.AppModuleBasic{},
-		staking.AppModuleBasic{},
-		distribution.AppModuleBasic{},
-		consensus.AppModuleBasic{},
-		slashing.AppModuleBasic{},
-		mint.AppModuleBasic{},
-		gov.AppModuleBasic{},
-		upgrade.AppModuleBasic{},
-		evidence.AppModuleBasic{},
-		bridge.AppModuleBasic{},
-		sequencing.AppModuleBasic{},
+	TestAddressCdc = appcodec.NewFuelSequencerAddressCodec(
+		sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix),
+	)
+	TestValidatorAddressCdc = appcodec.NewFuelSequencerAddressCodec(
+		sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix + "valoper"),
+	)
+
+	modules := []module.AppModule{
+		auth.AppModule{},
+		accounts.AppModule{},
+		bank.AppModule{},
+		staking.AppModule{},
+		distribution.AppModule{},
+		consensus.AppModule{},
+		slashing.AppModule{},
+		mint.AppModule{},
+		gov.AppModule{},
+		upgrade.AppModule{},
+		evidence.AppModule{},
+		bridge.AppModule{},
+		sequencing.AppModule{},
 	}
-	encodingConfig = testutil.MakeTestEncodingConfig(modules...)
+	encodingConfig = testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{
+		AccAddressPrefix: app.AccountAddressPrefix,
+		ValAddressPrefix: app.AccountAddressPrefix + "valoper",
+		AddressCodec:     TestAddressCdc,
+		ValidatorCodec:   TestValidatorAddressCdc,
+	}, modules...)
 
 	encodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*sdk.Msg)(nil),
@@ -103,12 +121,17 @@ func init() {
 		&vestingtypes.ContinuousVestingAccount{},
 	)
 
-	Cdc = encodingConfig.Codec
-	TestCdc = Cdc
-	TestGrpcCdc = Cdc.(codec.GRPCCodecProvider).GRPCCodec()
+	TestCdc = encodingConfig.Codec
+	decoder, err := txdecode.NewDecoder(txdecode.Options{
+		SigningContext: TestCdc.InterfaceRegistry().SigningContext(),
+		ProtoCodec:     TestCdc,
+	})
+	if err != nil {
+		panic(err)
+	}
+	TestDecoder = decoder
 
-	addressCdc = appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix))
-	TestAddressCdc = addressCdc
+	TestTxDecoder = authtx.DefaultTxDecoder(TestAddressCdc, TestCdc, TestDecoder)
 }
 
 type Chain struct {
@@ -148,7 +171,7 @@ func newChain(numNodes int) (*Chain, error) {
 	}
 
 	return &Chain{
-		id:       "Chain-" + cmrand.NewRand().Str(6),
+		id:       "Chain-" + unsafe.NewRand().Str(6),
 		DataDir:  tmpDir,
 		numNodes: numNodes,
 	}, nil
@@ -208,7 +231,7 @@ func (c *Chain) clientContext(
 
 	// TODO: if anything goes wrong with unregistered types, might need to re-add some stuff to this function
 
-	rpcClient, err := rpchttp.New(nodeURI, "/websocket")
+	rpcClient, err := rpchttp.New(nodeURI)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +272,7 @@ func (c *Chain) sendMsgs(
 		WithKeybase(clientCtx.Keyring).
 		WithGas(gas).
 		WithGasPrices(fmt.Sprintf("%s%s", minGasPrices, BridgeDenom)).
-		WithSignMode(signing.SignMode_SIGN_MODE_DIRECT)
+		WithSignMode(signingv1beta1.SignMode_SIGN_MODE_DIRECT)
 
 	fromAddr := clientCtx.GetFromAddress()
 
@@ -284,7 +307,7 @@ func (c *Chain) sendMsgs(
 	resBytes := outputBuffer.Bytes()
 
 	var res sdk.TxResponse
-	err = Cdc.UnmarshalJSON(resBytes, &res)
+	err = TestCdc.UnmarshalJSON(resBytes, &res)
 	if err != nil {
 		return nil, err
 	}

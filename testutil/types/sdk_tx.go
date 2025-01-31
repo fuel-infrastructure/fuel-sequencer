@@ -3,7 +3,6 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
@@ -24,7 +23,7 @@ func MustGetTxFromMsgs(msgs []proto.Message, sequence uint64) sdk.Tx {
 		panic(err)
 	}
 
-	sdkTx, err := tx.DefaultTxDecoder(TestCdc)(bz)
+	sdkTx, err := TestTxDecoder(bz)
 	if err != nil {
 		panic(err)
 	}

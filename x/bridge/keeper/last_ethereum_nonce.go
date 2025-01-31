@@ -13,7 +13,7 @@ import (
 // SetLastEthereumNonce set lastEthereumNonce in the store
 func (k Keeper) SetLastEthereumNonce(ctx context.Context, lastEthereumNonce math.Int) {
 	defer metrics.SetLastEthereumNonce(ctx, lastEthereumNonce)
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumNonceKey)
 
 	b, err := lastEthereumNonce.Marshal()
@@ -25,7 +25,7 @@ func (k Keeper) SetLastEthereumNonce(ctx context.Context, lastEthereumNonce math
 
 // GetLastEthereumNonce returns lastEthereumNonce
 func (k Keeper) GetLastEthereumNonce(ctx context.Context) (val math.Int, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumNonceKey)
 
 	b := store.Get([]byte{0})
@@ -65,7 +65,7 @@ func (k Keeper) MustGetNextEthereumNonceAndIncrement(ctx context.Context) math.I
 
 // RemoveLastEthereumNonce removes lastEthereumNonce from the store
 func (k Keeper) RemoveLastEthereumNonce(ctx context.Context) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthereumNonceKey)
 	store.Delete([]byte{0})
 }

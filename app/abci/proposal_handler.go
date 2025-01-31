@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -74,7 +74,7 @@ func NewFuelSequencerProposalHandler(
 // to CometBFT.
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L447-L451
 func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
-	return func(ctx sdk.Context, req *abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error) {
+	return func(ctx sdk.Context, req *abci.PrepareProposalRequest) (*abci.PrepareProposalResponse, error) {
 		proposerConsAddress := sdk.ConsAddress(req.ProposerAddress)
 		ctx.Logger().Info("preparing proposal", "proposer", proposerConsAddress, "num_txs", len(req.Txs))
 
@@ -234,7 +234,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 
 		ctx.Logger().Debug("prepared proposal", "txs", len(selectedTxs))
 
-		return &abci.ResponsePrepareProposal{Txs: selectedTxs}, nil
+		return &abci.PrepareProposalResponse{Txs: selectedTxs}, nil
 	}
 }
 
@@ -261,10 +261,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 // the block proposal.
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
-	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
+	return func(ctx sdk.Context, req *abci.ProcessProposalRequest) (*abci.ProcessProposalResponse, error) {
 		// Expect that there is at least one transaction (MsgIndex must be there)
 		if len(req.Txs) == 0 {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, errors.New(
 				"block proposal doesn't have any transactions: first tx expected to be MsgIndex",
 			)
 		}
@@ -277,7 +277,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		blockedBech32Addresses, err := h.bridgeKeeper.GetAllBlockedBech32Addresses(ctx)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"failed to get blocked addresses: %w", err,
 			)
 		}
@@ -286,14 +286,14 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		var injectedMsgIndex bridgetypes.MsgIndex
 		err = injectedMsgIndex.FromRawTxBytes(req.Txs[0], h.txVerifier.TxDecode)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"first transaction expected to be a valid MsgIndex: %w", err,
 			)
 		}
 
 		lastEthereumBlockSynced, found := h.bridgeKeeper.GetLastEthereumBlockSynced(ctx)
 		if !found {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, errors.New(
 				"could not get last Ethereum block synced from state",
 			)
 		}
@@ -318,7 +318,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				lastEthBlockUpdateTime.Add(bridgeParams.MaxEthBlockUpdateDelay),
 			)
 			if ethSyncDelayExceeded {
-				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 					"last syncup with Ethereum was at %s; block time: %s; max delay allowed: %s",
 					lastEthBlockUpdateTime.String(),
 					req.Time.String(),
@@ -352,7 +352,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 				ctx, response, ethBlockToQuery, sidecarErr, &bridgeParams, blockedBech32Addresses, firstEventTxsSequence,
 			)
 			if err != nil {
-				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 					"failed to generate MsgIndex and event txs: %w", err,
 				)
 			}
@@ -360,7 +360,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		ethereumEventIndexOffset, found := h.bridgeKeeper.GetEthereumEventIndexOffset(ctx)
 		if !found {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, errors.New(
 				"could not get Ethereum event index offset from state",
 			)
 		}
@@ -368,7 +368,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Trim events from head to skip the events that were already processed.
 		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"failed to trim event txs from head: %w", err,
 			)
 		}
@@ -379,7 +379,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		originalNumberOfEvents := msgIndex.NumInjectedEventTxs
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, injectedMsgIndex.NumInjectedEventTxs)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"failed to trim event txs from tail: %w", err,
 			)
 		}
@@ -392,7 +392,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 
 		// Sanity check: number of event txs is equal to NumInjectedEventTxs
 		if msgIndex.NumInjectedEventTxs != uint64(len(eventTxs)) {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"mismatch between NumInjectedEventTxs in index and actual number of event txs; expected: %d, got: %d",
 				msgIndex.NumInjectedEventTxs, len(eventTxs),
 			)
@@ -401,7 +401,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Extract the injected event txs and ensure that we've gotten the right amount of transactions.
 		injectedEventTxs := req.Txs[1 : injectedMsgIndex.NumInjectedEventTxs+1]
 		if uint64(len(injectedEventTxs)) != injectedMsgIndex.NumInjectedEventTxs {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"unexpected number of injected event txs; expected: %d, got: %d",
 				injectedMsgIndex.NumInjectedEventTxs, len(injectedEventTxs),
 			)
@@ -410,7 +410,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Check that MsgIndex was injected correctly
 		err = h.verifyInjectedMsgIndexTx(req.Txs[0], indexSequence, msgIndex)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"failed to verify injected MsgIndexTx: %w", err,
 			)
 		}
@@ -418,7 +418,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Check that event transactions were injected correctly
 		err = h.verifyInjectedEventTxs(injectedEventTxs, eventTxs)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 				"failed to verify injected event txs: %w", err,
 			)
 		}
@@ -427,7 +427,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		if expectMsgSupplyDelta {
 			err := h.verifyInjectedMsgSupplyDeltaTx(req.Txs, msgIndex.NumInjectedEventTxs, supplyDeltaSequence)
 			if err != nil {
-				return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, fmt.Errorf(
 					"failed to verify injected MsgSupplyDeltaTx: %w", err,
 				)
 			}
@@ -436,18 +436,18 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Verify transactions' bytes and gas consumption.
 		err = verifyTransactionsInProposal(ctx, req.Txs, h.txVerifier.TxDecode)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, err
 		}
 
 		// Check that we've collected the minimum expected transactions
 		err = checkMinimumNumTxs(uint64(len(req.Txs)), msgIndex, expectMsgSupplyDelta)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
+			return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, err
 		}
 
 		ctx.Logger().Debug("processed proposal", "height", req.Height, "num_txs", len(req.Txs))
 
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
+		return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_ACCEPT}, nil
 	}
 }
 

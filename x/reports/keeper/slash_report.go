@@ -8,9 +8,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
@@ -18,7 +18,7 @@ import (
 // delegator address and validator address. We will be storing individual slash entries for optimized querying by the
 // staking module hooks.
 func (k Keeper) SetSlashReport(ctx context.Context, slashReport types.SlashReport) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	for _, slashEntry := range slashReport.Entries {
 		b := k.cdc.MustMarshal(&slashEntry)
@@ -32,7 +32,7 @@ func (k Keeper) SetSlashReport(ctx context.Context, slashReport types.SlashRepor
 // GetSlashReport returns a SlashReport by its height. The SlashReport needs to be reconstructed from the individual
 // SlashEntries
 func (k Keeper) GetSlashReport(ctx context.Context, height uint64) (val types.SlashReport, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	iteratorPrefix := types.SlashReportKeyPrefix(height)
 	iterator := storetypes.KVStorePrefixIterator(store, iteratorPrefix)
@@ -59,7 +59,7 @@ func (k Keeper) GetSlashReport(ctx context.Context, height uint64) (val types.Sl
 // RemoveSlashReport removes a SlashReport from the store. It iterates through the individual slash entries for a
 // particular height and deletes them one by one.
 func (k Keeper) RemoveSlashReport(ctx context.Context, height uint64) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	iteratorPrefix := types.SlashReportKeyPrefix(height)
 	iterator := storetypes.KVStorePrefixIterator(store, iteratorPrefix)
@@ -73,7 +73,7 @@ func (k Keeper) RemoveSlashReport(ctx context.Context, height uint64) {
 
 // RemoveAllSlashReportsUntilHeight removes all SlashReport with height smaller than or equal to the specified height.
 func (k Keeper) RemoveAllSlashReportsUntilHeight(ctx context.Context, upToHeight uint64) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
@@ -90,7 +90,7 @@ func (k Keeper) RemoveAllSlashReportsUntilHeight(ctx context.Context, upToHeight
 
 // GetAllSlashReport returns all SlashReport
 func (k Keeper) GetAllSlashReport(ctx context.Context) (list []types.SlashReport) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
@@ -139,7 +139,7 @@ func (k Keeper) GetAllSlashReport(ctx context.Context) (list []types.SlashReport
 
 // HasSlashReport checks if a SlashReport exists in the store.
 func (k Keeper) HasSlashReport(ctx context.Context, height uint64) bool {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.KeyPrefix(types.SlashReportKey))
 	iteratorPrefix := types.SlashReportKeyPrefix(height)
 	iterator := storetypes.KVStorePrefixIterator(store, iteratorPrefix)

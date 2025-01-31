@@ -9,6 +9,7 @@ import (
 	cmtypes "github.com/cometbft/cometbft/types"
 	fuelsequencerapp "github.com/fuel-infrastructure/fuel-sequencer/app"
 
+	banktypes "cosmossdk.io/x/bank/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -16,7 +17,6 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 
@@ -62,7 +62,7 @@ func SetupTestingApp(isCheckTx bool) *fuelsequencerapp.FuelSequencerApp {
 	}
 	if !isCheckTx {
 		_, _ = app.BaseApp.InitChain(
-			&abci.RequestInitChain{
+			&abci.InitChainRequest{
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: simtestutil.DefaultConsensusParams,
 				AppStateBytes:   GetDefaultGenesisStateBytes(app),

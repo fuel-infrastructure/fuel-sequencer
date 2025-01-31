@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	govtypes "cosmossdk.io/x/gov/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
@@ -13,7 +13,7 @@ import (
 )
 
 func (s *KeeperTestSuite) TestDepositFromEthereum() {
-	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	govAddr := s.App.AuthKeeper.GetModuleAddress(govtypes.ModuleName)
 
 	// These accounts correspond to the from and to addresses of the DepositEvent
 	fromAccOne, _ := s.App.BridgeKeeper.GenerateSequencerAddressFromEthereumAddress(testtypes.TestFrom3)
@@ -243,7 +243,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 				s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
 
 				// Verify if the account is ETH owned
-				account := s.App.AccountKeeper.GetAccount(s.Ctx(), *tc.fromAcc)
+				account := s.App.AuthKeeper.GetAccount(s.Ctx(), *tc.fromAcc)
 				_, ok := account.(types.EthOwnedAccountI)
 				s.Require().Equal(tc.isFromEthOwned, ok)
 			}
@@ -252,7 +252,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 				s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
 
 				// Verify if the account is ETH owned
-				account := s.App.AccountKeeper.GetAccount(s.Ctx(), *tc.toAcc)
+				account := s.App.AuthKeeper.GetAccount(s.Ctx(), *tc.toAcc)
 				_, ok := account.(types.EthOwnedAccountI)
 				s.Require().Equal(tc.isToEthOwned, ok)
 			}
@@ -271,7 +271,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 }
 
 func (s *KeeperTestSuite) TestDepositFromEthereum_AmountParseFailure() {
-	govAddr := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	govAddr := s.App.AuthKeeper.GetModuleAddress(govtypes.ModuleName)
 
 	msg := testtypes.TestEvent8Msg
 	s.SetupTest() // Reset the test suite

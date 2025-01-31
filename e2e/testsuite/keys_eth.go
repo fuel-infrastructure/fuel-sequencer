@@ -63,11 +63,11 @@ func newEthereumKeyFromMnemonic(mnemonic string) (*EthereumKey, error) {
 
 	address := account.Address
 
-	addressBz, err := addressCdc.StringToBytes(address.Hex())
+	addressBz, err := TestAddressCdc.StringToBytes(address.Hex())
 	if err != nil {
 		return nil, err
 	}
-	addressSeq, err := addressCdc.BytesToString(addressBz)
+	addressSeq, err := TestAddressCdc.BytesToString(addressBz)
 	if err != nil {
 		return nil, err
 	}
@@ -109,11 +109,11 @@ func newEthereumKeyFromPrivateKey(privateKey string) (*EthereumKey, error) {
 
 	address := crypto.PubkeyToAddress(*publicKeyECDSA)
 
-	addressBz, err := addressCdc.StringToBytes(address.Hex())
+	addressBz, err := TestAddressCdc.StringToBytes(address.Hex())
 	if err != nil {
 		return nil, err
 	}
-	addressSeq, err := addressCdc.BytesToString(addressBz)
+	addressSeq, err := TestAddressCdc.BytesToString(addressBz)
 	if err != nil {
 		return nil, err
 	}

@@ -9,8 +9,9 @@ import (
 	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
 
-	tmtypes "github.com/cometbft/cometbft/proto/tendermint/types"
-
+	"cosmossdk.io/x/bank/testutil"
+	distrtypes "cosmossdk.io/x/distribution/types"
+	minttypes "cosmossdk.io/x/mint/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -18,9 +19,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 
@@ -43,10 +41,18 @@ type KeeperTestHelper struct {
 
 // Setup sets up basic environment for suite (App, Ctx, and test accounts) with Now() as block time
 func (s *KeeperTestHelper) Setup() {
+
 	s.App = SetupTestingApp(false)
+
+	// Set block time
+	ctx := s.Ctx()
+	headerInfo := ctx.HeaderInfo()
+	headerInfo.Time = time.Now().UTC()
+	ctx = ctx.WithHeaderInfo(headerInfo)
+
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
-		Ctx:             s.Ctx().WithBlockTime(time.Now().UTC()),
+		Ctx:             ctx,
 	}
 	s.TestAccs = sims.CreateRandomAccounts(3)
 }
@@ -71,7 +77,7 @@ func (s *KeeperTestHelper) CreateTestContextWithMultiStore() (sdk.Context, store
 
 	ms := rootmulti.NewStore(db, logger, metrics.NoOpMetrics{})
 
-	return sdk.NewContext(ms, tmtypes.Header{}, false, logger), ms
+	return sdk.NewContext(ms, false, logger), ms
 }
 
 // FundAcc funds target address with specified amount.

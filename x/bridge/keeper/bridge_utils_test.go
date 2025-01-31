@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/x/staking/testutil"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -71,8 +71,8 @@ func (s *KeeperTestSuite) TestGetAllBlockedBech32Addresses() {
 
 	var addressesToBlock []string
 
-	for _, permission := range s.App.AccountKeeper.GetModulePermissions() {
-		addrStr, err := s.App.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
+	for _, permission := range s.App.AuthKeeper.GetModulePermissions() {
+		addrStr, err := s.App.AuthKeeper.AddressCodec().BytesToString(permission.GetAddress())
 		if err != nil {
 			s.Require().NoError(err)
 		}
@@ -171,8 +171,8 @@ func (s *KeeperTestSuite) TestIsAddressBlocked() {
 	var addrsBlockedByKeeperBech32 []string
 	var addrsBlockedByKeeperHex []string
 
-	for _, permission := range s.App.AccountKeeper.GetModulePermissions() {
-		addrBech32, err := s.App.AccountKeeper.AddressCodec().BytesToString(permission.GetAddress())
+	for _, permission := range s.App.AuthKeeper.GetModulePermissions() {
+		addrBech32, err := s.App.AuthKeeper.AddressCodec().BytesToString(permission.GetAddress())
 		if err != nil {
 			s.Require().NoError(err)
 		}

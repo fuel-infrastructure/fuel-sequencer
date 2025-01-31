@@ -3,36 +3,39 @@ package app
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante/unorderedtx"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 )
 
+// NewAnteHandler extends the default Cosmos SDK AnteHandler
 func NewAnteHandler(
 	options ante.HandlerOptions,
 	bridgeKeeper bridgekeeper.Keeper,
 	sequencingKeeper sequencingkeeper.Keeper,
 ) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
-		return nil, sdkerrors.ErrLogic.Wrap("account keeper is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
 	}
 
 	if options.BankKeeper == nil {
-		return nil, sdkerrors.ErrLogic.Wrap("bank keeper is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "bank keeper is required for ante builder")
 	}
 
 	if options.SignModeHandler == nil {
-		return nil, sdkerrors.ErrLogic.Wrap("sign mode handler is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		// Outermost AnteDecorator. SetUpContext must be called first.
-		ante.NewSetUpContextDecorator(),
+		ante.NewSetUpContextDecorator(options.Environment, options.ConsensusKeeper),
 
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		NewInjectedTxsDecorator(bridgeKeeper),
@@ -41,21 +44,20 @@ func NewAnteHandler(
 		// Note: Injected txs are not expected to reach this point.
 		NewSequencerNativeTxsDecorator(sequencingKeeper),
 
-		ante.NewValidateBasicDecorator(),
-		ante.NewTxTimeoutHeightDecorator(),
+		ante.NewValidateBasicDecorator(options.Environment),
+		ante.NewTxTimeoutHeightDecorator(options.Environment),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
 		ante.NewDeductFeeDecorator(
 			options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker,
 		),
 
-		// SetPubKeyDecorator must be called before all signature verification decorators
-		ante.NewSetPubKeyDecorator(options.AccountKeeper),
-
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
-		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler, options.SigGasConsumer, options.AccountAbstractionKeeper),
+	}
+
+	if options.UnorderedTxManager != nil {
+		anteDecorators = append(anteDecorators, ante.NewUnorderedTxDecorator(unorderedtx.DefaultMaxTimeoutDuration, options.UnorderedTxManager, options.Environment, ante.DefaultSha256Cost))
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil

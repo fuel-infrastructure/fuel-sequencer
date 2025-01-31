@@ -1,6 +1,10 @@
 package app
 
 import (
+	poolmodulev1 "cosmossdk.io/api/cosmos/protocolpool/module/v1"
+	"cosmossdk.io/x/accounts"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	"github.com/cosmos/cosmos-sdk/x/validate"
 	bridgemodulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bridge/module"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module" // import for side-effects
 	bridgemoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -13,6 +17,7 @@ import (
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/reports/module" // import for side-effects
 	reportsmoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 
+	accountsmodulev1 "cosmossdk.io/api/cosmos/accounts/module/v1"
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
@@ -29,21 +34,40 @@ import (
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	upgrademodulev1 "cosmossdk.io/api/cosmos/upgrade/module/v1"
 	vestingmodulev1 "cosmossdk.io/api/cosmos/vesting/module/v1"
-	"cosmossdk.io/core/appconfig"
+	"cosmossdk.io/depinject/appconfig"
+	_ "cosmossdk.io/x/accounts" // import for side-effects
+	"cosmossdk.io/x/authz"
+	_ "cosmossdk.io/x/authz"        // import for side-effects
+	_ "cosmossdk.io/x/authz/module" // import for side-effects
+	_ "cosmossdk.io/x/bank"         // import for side-effects
+	banktypes "cosmossdk.io/x/bank/types"
+	_ "cosmossdk.io/x/consensus" // import for side-effects
+	consensustypes "cosmossdk.io/x/consensus/types"
+	_ "cosmossdk.io/x/distribution" // import for side-effects
+	distrtypes "cosmossdk.io/x/distribution/types"
+	_ "cosmossdk.io/x/epochs"   // import for side-effects
+	_ "cosmossdk.io/x/evidence" // import for side-effects
 	evidencetypes "cosmossdk.io/x/evidence/types"
+	_ "cosmossdk.io/x/gov" // import for side-effects
+	govtypes "cosmossdk.io/x/gov/types"
+	_ "cosmossdk.io/x/mint" // import for side-effects
+	minttypes "cosmossdk.io/x/mint/types"
+	_ "cosmossdk.io/x/protocolpool" // import for side-effects
+	pooltypes "cosmossdk.io/x/protocolpool/types"
+	_ "cosmossdk.io/x/slashing" // import for side-effects
+	slashingtypes "cosmossdk.io/x/slashing/types"
+	_ "cosmossdk.io/x/staking" // import for side-effects
+	stakingtypes "cosmossdk.io/x/staking/types"
+	_ "cosmossdk.io/x/upgrade" // import for side-effects
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	_ "github.com/cosmos/cosmos-sdk/x/auth"           // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/tx"        // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting" // import for side-effects
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -54,8 +78,10 @@ var (
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
-	genesisModuleOrder = []string{
+	initGenesisOrder = []string{
 		// cosmos-sdk/ibc modules
+		consensustypes.ModuleName,
+		accounts.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
@@ -68,12 +94,36 @@ var (
 		authz.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		consensustypes.ModuleName,
+		pooltypes.ModuleName,
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
 		reportsmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
+	}
+
+	exportGenesisOrder = []string{
+		// cosmos-sdk/ibc modules
+		consensustypes.ModuleName,
+		accounts.ModuleName,
+		authtypes.ModuleName,
+		pooltypes.ModuleName, // Must be exported before bank
+		banktypes.ModuleName,
+		distrtypes.ModuleName,
+		stakingtypes.ModuleName,
+		slashingtypes.ModuleName,
+		govtypes.ModuleName,
+		minttypes.ModuleName,
+		genutiltypes.ModuleName,
+		evidencetypes.ModuleName,
+		authz.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+		// chain modules
+		bridgemoduletypes.ModuleName,
+		sequencingmoduletypes.ModuleName,
+		reportsmoduletypes.ModuleName,
+		// this line is used by starport scaffolding # stargate/app/exportGenesis
 	}
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -85,6 +135,7 @@ var (
 		// cosmos sdk modules
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
+		pooltypes.ModuleName,
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
@@ -102,6 +153,7 @@ var (
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
+		pooltypes.ModuleName,
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
@@ -118,6 +170,9 @@ var (
 	moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
 		{Account: authtypes.FeeCollectorName},
 		{Account: distrtypes.ModuleName},
+		{Account: pooltypes.ModuleName},
+		{Account: pooltypes.StreamAccount},
+		{Account: pooltypes.ProtocolPoolDistrAccount},
 		{Account: minttypes.ModuleName, Permissions: []string{authtypes.Minter}},
 		{Account: stakingtypes.BondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
 		{Account: stakingtypes.NotBondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
@@ -136,6 +191,7 @@ var (
 		bridgemoduletypes.ModuleName,
 		// We allow the following module accounts to receive funds:
 		// govtypes.ModuleName
+		// pooltypes.ModuleName
 	}
 
 	// appConfig application configuration (used by depinject)
@@ -148,19 +204,36 @@ var (
 					PreBlockers:   preBlockers,
 					BeginBlockers: beginBlockers,
 					EndBlockers:   endBlockers,
-					InitGenesis:   genesisModuleOrder,
+					InitGenesis:   initGenesisOrder,
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{
 							ModuleName: authtypes.ModuleName,
 							KvStoreKey: "acc",
 						},
+						{
+							ModuleName: accounts.ModuleName,
+							KvStoreKey: accounts.StoreKey,
+						},
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
-					// ExportGenesis: genesisModuleOrder,
+					ExportGenesis: exportGenesisOrder,
 					// Uncomment if you want to set a custom migration order here.
 					// OrderMigrations: nil,
+					// SkipStoreKeys is an optional list of store keys to skip when constructing the
+					// module's keeper. This is useful when a module does not have a store key.
+					SkipStoreKeys: []string{
+						authtxconfig.DepinjectModuleName,
+						validate.ModuleName,
+						genutiltypes.ModuleName,
+						runtime.ModuleName,
+						vestingtypes.ModuleName,
+					},
 				}),
+			},
+			{
+				Name:   authtxconfig.DepinjectModuleName, // x/auth/tx/config depinject module (not app module), use to provide tx configuration
+				Config: appconfig.WrapAny(&txconfigv1.Config{}),
 			},
 			{
 				Name: authtypes.ModuleName,
@@ -186,7 +259,7 @@ var (
 				Name: stakingtypes.ModuleName,
 				Config: appconfig.WrapAny(&stakingmodulev1.Module{
 					// NOTE: specifying a prefix is only necessary when using bech32 addresses
-					// If not specfied, the auth Bech32Prefix appended with "valoper" and "valcons" is used by default
+					// If not specified, the auth Bech32Prefix appended with "valoper" and "valcons" is used by default
 					Bech32PrefixValidator: AccountAddressPrefix + "valoper",
 					Bech32PrefixConsensus: AccountAddressPrefix + "valcons",
 				}),
@@ -194,10 +267,6 @@ var (
 			{
 				Name:   slashingtypes.ModuleName,
 				Config: appconfig.WrapAny(&slashingmodulev1.Module{}),
-			},
-			{
-				Name:   "tx",
-				Config: appconfig.WrapAny(&txconfigv1.Config{}),
 			},
 			{
 				Name:   genutiltypes.ModuleName,
@@ -242,6 +311,14 @@ var (
 			{
 				Name:   reportsmoduletypes.ModuleName,
 				Config: appconfig.WrapAny(&reportsmodulev1.Module{}),
+			},
+			{
+				Name:   pooltypes.ModuleName,
+				Config: appconfig.WrapAny(&poolmodulev1.Module{}),
+			},
+			{
+				Name:   accounts.ModuleName,
+				Config: appconfig.WrapAny(&accountsmodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},

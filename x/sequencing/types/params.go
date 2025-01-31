@@ -2,10 +2,7 @@ package types
 
 import (
 	comettypes "github.com/cometbft/cometbft/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
-
-var _ paramtypes.ParamSet = (*Params)(nil)
 
 const (
 	DefaultMaxBlobSize = 1_048_576 // 1 MiB
@@ -31,13 +28,6 @@ func NewParams(maxBlobSizeBytes, sequencerTxMaxBytes uint64) Params {
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(DefaultMaxBlobSize, DefaultSequencerTxMaxBytes)
-}
-
-// ParamSetPairs implements params.ParamSet
-//
-// Deprecated.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{}
 }
 
 // Validate validates the set of params

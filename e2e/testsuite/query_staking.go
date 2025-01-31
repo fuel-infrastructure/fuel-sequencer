@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	stakingtypes "cosmossdk.io/x/staking/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 func (s *E2ETestSuite) QueryStakingParams(ctx context.Context) *stakingtypes.Params {

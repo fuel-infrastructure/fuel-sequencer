@@ -89,6 +89,8 @@ func (cfg *ethereumConfig) Validate() error {
 
 // AppOptionsMap is a stub implementing AppOptions which can get data from a map.
 // It is used to inject app options very early on, for the NewRootCmd function.
+//
+// Copied from https://github.com/cosmos/cosmos-sdk/blob/v0.52.0-rc.2/testutil/sims/app_helpers.go#L302
 type AppOptionsMap map[string]interface{}
 
 func (m AppOptionsMap) Get(key string) interface{} {
@@ -98,4 +100,13 @@ func (m AppOptionsMap) Get(key string) interface{} {
 	}
 
 	return v
+}
+
+func (m AppOptionsMap) GetString(key string) string {
+	v, ok := m[key]
+	if !ok {
+		return ""
+	}
+
+	return v.(string)
 }

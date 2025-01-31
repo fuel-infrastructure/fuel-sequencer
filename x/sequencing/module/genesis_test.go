@@ -19,12 +19,12 @@ func TestGenesis(t *testing.T) {
 		TopicList: []types.Topic{
 			{
 				Id:    testutil.MockTopicIDHex(0),
-				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
+				Owner: "fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm",
 				Order: math.ZeroInt(),
 			},
 			{
 				Id:    testutil.MockTopicIDHex(1),
-				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
+				Owner: "fuelsequencer163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m",
 				Order: math.ZeroInt(),
 			},
 		},
@@ -32,8 +32,10 @@ func TestGenesis(t *testing.T) {
 	}
 
 	k, ctx := keepertest.SequencingKeeper(t)
-	sequencing.InitGenesis(ctx, k, genesisState)
-	got := sequencing.ExportGenesis(ctx, k)
+	err := sequencing.InitGenesis(ctx, k, genesisState)
+	require.NoError(t, err)
+	got, err := sequencing.ExportGenesis(ctx, k)
+	require.NoError(t, err)
 	require.NotNil(t, got)
 
 	require.Equal(t, genesisState.Params, got.Params)

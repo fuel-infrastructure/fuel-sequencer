@@ -3,13 +3,16 @@ package types
 import (
 	"context"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/math"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // AccountKeeper defines the expected interface for the Account module.
 type AccountKeeper interface {
+	AddressCodec() address.Codec
+
 	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
 	// Methods imported from account should be defined here
 }
@@ -57,7 +60,7 @@ type StakingKeeper interface {
 	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
 
 	IterateValidatorDelegations(
-		ctx context.Context, valAddr sdk.ValAddress, cb func(delegation stakingtypes.Delegation) (stop bool),
+		ctx context.Context, valAddr sdk.ValAddress, cb func(delegation stakingtypes.Delegation) (stop bool, err error),
 	) error
 
 	GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, error)

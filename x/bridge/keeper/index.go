@@ -10,7 +10,7 @@ import (
 
 // SetIndex sets Index in the store.
 func (k Keeper) SetIndex(ctx context.Context, index types.Index) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.IndexKey)
 	b := k.cdc.MustMarshal(&index)
 	store.Set(types.IndexKey, b)
@@ -18,7 +18,7 @@ func (k Keeper) SetIndex(ctx context.Context, index types.Index) {
 
 // GetIndex returns Index.
 func (k Keeper) GetIndex(ctx context.Context) (val types.Index, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.IndexKey)
 
 	b := store.Get(types.IndexKey)
@@ -32,7 +32,7 @@ func (k Keeper) GetIndex(ctx context.Context) (val types.Index, found bool) {
 
 // RemoveIndex removes Index from the store.
 func (k Keeper) RemoveIndex(ctx context.Context) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.IndexKey)
 	store.Delete(types.IndexKey)
 }

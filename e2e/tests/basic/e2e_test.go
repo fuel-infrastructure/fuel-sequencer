@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	minttypes "cosmossdk.io/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	"github.com/stretchr/testify/suite"
 )

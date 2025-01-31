@@ -18,7 +18,7 @@ func (k Keeper) ResetEthereumEventIndexOffset(ctx context.Context) {
 // SetEthereumEventIndexOffset sets ethereumEventIndexOffset in the store and metrics server
 func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIndexOffset uint64) {
 	defer metrics.SetEthereumEventIndexOffset(ctx, ethereumEventIndexOffset)
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
 	b := sdk.Uint64ToBigEndian(ethereumEventIndexOffset)
 	store.Set([]byte{0}, b)
@@ -26,7 +26,7 @@ func (k Keeper) SetEthereumEventIndexOffset(ctx context.Context, ethereumEventIn
 
 // GetEthereumEventIndexOffset returns ethereumEventIndexOffset
 func (k Keeper) GetEthereumEventIndexOffset(ctx context.Context) (val uint64, found bool) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
 
 	b := store.Get([]byte{0})
@@ -48,7 +48,7 @@ func (k Keeper) MustGetEthereumEventIndexOffset(ctx context.Context) uint64 {
 
 // RemoveEthereumEventIndexOffset removes ethereumEventIndexOffset from the store
 func (k Keeper) RemoveEthereumEventIndexOffset(ctx context.Context) {
-	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	storeAdapter := runtime.KVStoreAdapter(k.Environment.KVStoreService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.EthereumEventIndexOffsetKey)
 	store.Delete([]byte{0})
 }

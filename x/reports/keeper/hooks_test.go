@@ -5,10 +5,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	minttypes "cosmossdk.io/x/mint/types"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
@@ -28,7 +29,6 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed() {
 		slashAmount   sdkmath.Int
 		expSlashEntry types.SlashEntry
 		expErrMsg     string
-		expPanic      bool
 	}{
 		// There is no need to test all cases here because InsertSlashEntry has its own unit tests
 
@@ -47,14 +47,13 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed() {
 			},
 		},
 		{
-			name:        "panics if InsertSlashEntry errors - context height is zero",
+			name:        "errors if InsertSlashEntry errors - context height is zero",
 			height:      0,
 			delAddr:     delegatorAccAddress,
 			valAddr:     validatorAddress,
 			slashAmount: sdkmath.OneInt(),
 			expErrMsg: "AfterUnbondingDelegationSlashed: could not insert slash entry: slashing height must be" +
 				" positive, received: 0",
-			expPanic: true,
 		},
 	}
 
@@ -65,45 +64,21 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed() {
 			// Update context's height as required by test
 			ctxWithHeight := s.Ctx().WithBlockHeight(tc.height)
 
-			// Execute hook
-			if tc.expPanic {
-
-				// Expect a panic if required by test
-				var panicMsg string
-				func() {
-					defer func() {
-						if r := recover(); r != nil {
-							panicMsg = r.(error).Error()
-						}
-					}()
-
-					err := s.App.ReportsKeeper.Hooks().AfterUnbondingDelegationSlashed(
-						ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
-					)
-					s.Require().Fail(fmt.Sprintf("Expected panic but got error: %v", err))
-				}()
-				s.Require().Contains(panicMsg, tc.expErrMsg)
-
-			} else {
-
-				// If no panic is expected, run the hook without wrapping a deferred function and check for errors or
-				// the execution results, as required by the test case.
-				err := s.App.ReportsKeeper.Hooks().AfterUnbondingDelegationSlashed(
-					ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
-				)
-				if len(tc.expErrMsg) > 0 {
-					s.Require().Error(err)
-					s.Require().ErrorContains(err, tc.expErrMsg)
-					return
-				}
-				s.Require().NoError(err)
-
-				actualSlashEntry, found := s.App.ReportsKeeper.GetSlashEntry(
-					ctxWithHeight, uint64(tc.height), tc.delAddr.String(), tc.valAddr.String(),
-				)
-				s.Require().True(found)
-				s.Require().Equal(tc.expSlashEntry, actualSlashEntry)
+			err := s.App.ReportsKeeper.Hooks().AfterUnbondingDelegationSlashed(
+				ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
+			)
+			if len(tc.expErrMsg) > 0 {
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErrMsg)
+				return
 			}
+			s.Require().NoError(err)
+
+			actualSlashEntry, found := s.App.ReportsKeeper.GetSlashEntry(
+				ctxWithHeight, uint64(tc.height), tc.delAddr.String(), tc.valAddr.String(),
+			)
+			s.Require().True(found)
+			s.Require().Equal(tc.expSlashEntry, actualSlashEntry)
 		})
 	}
 }
@@ -113,7 +88,7 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 	currHeight := int64(100)
 	infractionHeight := currHeight
 	currTime := time.Now()
-	hctx := s.Ctx().WithBlockHeight(currHeight).WithBlockTime(currTime)
+	hctx := testutil.CtxWithTime(s.Ctx().WithBlockHeight(currHeight), currTime)
 	slashFraction := sdkmath.LegacyOneDec()
 	undelegationBalance := sdkmath.NewIntWithDecimal(1, 9)
 
@@ -123,7 +98,7 @@ func (s *KeeperTestSuite) TestAfterUnbondingDelegationSlashed_Integration() {
 	s.Require().True(govAccountBalance.IsZero())
 
 	// Sanity check the NotBondedPoolName balance
-	acc := s.App.AccountKeeper.GetModuleAccount(hctx, stakingtypes.NotBondedPoolName)
+	acc := s.App.AuthKeeper.GetModuleAccount(hctx, stakingtypes.NotBondedPoolName)
 	s.Require().Empty(s.App.BankKeeper.GetAllBalances(hctx, acc.GetAddress()))
 
 	// Mint the amount to be burned to the NotBondedPoolName, to avoid errors.
@@ -192,7 +167,6 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed() {
 		slashAmount   sdkmath.Int
 		expSlashEntry types.SlashEntry
 		expErrMsg     string
-		expPanic      bool
 	}{
 		// There is no need to test all cases here because InsertSlashEntry has its own unit tests
 
@@ -211,14 +185,13 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed() {
 			},
 		},
 		{
-			name:        "panics if InsertSlashEntry errors - context height is zero",
+			name:        "errors if InsertSlashEntry errors - context height is zero",
 			height:      0,
 			delAddr:     delegatorAccAddress,
 			valAddr:     validatorAddress,
 			slashAmount: sdkmath.OneInt(),
 			expErrMsg: "AfterRedelegationSlashed: could not insert slash entry: slashing height must be positive, " +
 				"received: 0",
-			expPanic: true,
 		},
 	}
 
@@ -229,45 +202,21 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed() {
 			// Update context's height as required by test
 			ctxWithHeight := s.Ctx().WithBlockHeight(tc.height)
 
-			// Execute hook
-			if tc.expPanic {
-
-				// Expect a panic if required by test
-				var panicMsg string
-				func() {
-					defer func() {
-						if r := recover(); r != nil {
-							panicMsg = r.(error).Error()
-						}
-					}()
-
-					err := s.App.ReportsKeeper.Hooks().AfterRedelegationSlashed(
-						ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
-					)
-					s.Require().Fail(fmt.Sprintf("Expected panic but got error: %v", err))
-				}()
-				s.Require().Contains(panicMsg, tc.expErrMsg)
-
-			} else {
-
-				// If no panic is expected, run the hook without wrapping a deferred function and check for errors or
-				// the execution results, as required by the test case.
-				err := s.App.ReportsKeeper.Hooks().AfterRedelegationSlashed(
-					ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
-				)
-				if len(tc.expErrMsg) > 0 {
-					s.Require().Error(err)
-					s.Require().ErrorContains(err, tc.expErrMsg)
-					return
-				}
-				s.Require().NoError(err)
-
-				actualSlashEntry, found := s.App.ReportsKeeper.GetSlashEntry(
-					ctxWithHeight, uint64(tc.height), tc.delAddr.String(), tc.valAddr.String(),
-				)
-				s.Require().True(found)
-				s.Require().Equal(tc.expSlashEntry, actualSlashEntry)
+			err := s.App.ReportsKeeper.Hooks().AfterRedelegationSlashed(
+				ctxWithHeight, tc.valAddr, tc.delAddr, tc.slashAmount,
+			)
+			if len(tc.expErrMsg) > 0 {
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErrMsg)
+				return
 			}
+			s.Require().NoError(err)
+
+			actualSlashEntry, found := s.App.ReportsKeeper.GetSlashEntry(
+				ctxWithHeight, uint64(tc.height), tc.delAddr.String(), tc.valAddr.String(),
+			)
+			s.Require().True(found)
+			s.Require().Equal(tc.expSlashEntry, actualSlashEntry)
 		})
 	}
 }
@@ -277,7 +226,7 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	currHeight := int64(100)
 	infractionHeight := currHeight
 	currTime := time.Now()
-	hctx := s.Ctx().WithBlockHeight(currHeight).WithBlockTime(currTime)
+	hctx := testutil.CtxWithTime(s.Ctx().WithBlockHeight(currHeight), currTime)
 	slashFraction := sdkmath.LegacyOneDec()
 	validatorTokens := sdkmath.NewIntWithDecimal(1, 9)
 	undelegationBalance := sdkmath.OneInt() // just 1 unit, so we can focus more on the redelegation
@@ -321,7 +270,7 @@ func (s *KeeperTestSuite) TestAfterRedelegationSlashed_Integration() {
 	}
 
 	// Sanity check the NotBondedPoolName balance
-	acc := s.App.AccountKeeper.GetModuleAccount(hctx, stakingtypes.NotBondedPoolName)
+	acc := s.App.AuthKeeper.GetModuleAccount(hctx, stakingtypes.NotBondedPoolName)
 	s.Require().Empty(s.App.BankKeeper.GetAllBalances(hctx, acc.GetAddress()))
 
 	// Mint the amount to be burned, due to the unbonding delegation, to the NotBondedPoolName, to avoid errors.
@@ -556,7 +505,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			},
 		},
 		{
-			name:            "panics if total slashed amount is zero",
+			name:            "errors if total slashed amount is zero",
 			height:          height,
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyMustNewDecFromStr("0.1"),
@@ -568,7 +517,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			expPanic: true,
 		},
 		{
-			name:            "panics if total slashed amount is negative",
+			name:            "errors if total slashed amount is negative",
 			height:          height,
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyMustNewDecFromStr("0.1"),
@@ -580,7 +529,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			expPanic: true,
 		},
 		{
-			name:            "panics if fraction is greater than one",
+			name:            "errors if fraction is greater than one",
 			height:          height,
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyMustNewDecFromStr("2"),
@@ -592,7 +541,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			expPanic: true,
 		},
 		{
-			name:            "panics if fraction is zero",
+			name:            "errors if fraction is zero",
 			height:          height,
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyZeroDec(),
@@ -604,7 +553,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			expPanic: true,
 		},
 		{
-			name:            "panics if fraction is negative",
+			name:            "errors if fraction is negative",
 			height:          height,
 			valAddr:         validatorAddress,
 			fraction:        sdkmath.LegacyMustNewDecFromStr("-1"),
@@ -616,7 +565,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			expPanic: true,
 		},
 		{
-			name:   "panics if could not find validator object",
+			name:   "errors if could not find validator object",
 			height: height,
 			setDelegations: &[]stakingtypes.Delegation{
 				{
@@ -632,7 +581,7 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 			expPanic:        true,
 		},
 		{
-			name:   "panics if InsertSlashEntry errors - context height is zero",
+			name:   "errors if InsertSlashEntry errors - context height is zero",
 			height: 0,
 			setValidator: &stakingtypes.Validator{
 				OperatorAddress:         validatorAddress.String(),
@@ -687,46 +636,22 @@ func (s *KeeperTestSuite) TestCustomBeforeValidatorSlashed() {
 				}
 			}
 
-			// Execute hook
-			if tc.expPanic {
-
-				// Expect a panic if required by test
-				var panicMsg string
-				func() {
-					defer func() {
-						if r := recover(); r != nil {
-							panicMsg = r.(error).Error()
-						}
-					}()
-
-					err := s.App.ReportsKeeper.Hooks().CustomBeforeValidatorSlashed(
-						ctxWithHeight, tc.valAddr, tc.fraction, tc.totalSlashedAmt,
-					)
-					s.Require().Fail(fmt.Sprintf("Expected panic but got error: %v", err))
-				}()
-				s.Require().Contains(panicMsg, tc.expErrMsg)
-
-			} else {
-
-				// If no panic is expected, run the hook without wrapping a deferred function and check for errors or
-				// the execution results, as required by the test case.
-				err := s.App.ReportsKeeper.Hooks().CustomBeforeValidatorSlashed(
-					ctxWithHeight, tc.valAddr, tc.fraction, tc.totalSlashedAmt,
-				)
-				if len(tc.expErrMsg) > 0 {
-					s.Require().Error(err)
-					s.Require().ErrorContains(err, tc.expErrMsg)
-					return
-				}
-				s.Require().NoError(err)
-
-				slashReport, found := s.App.ReportsKeeper.GetSlashReport(ctxWithHeight, uint64(tc.height))
-				s.Require().True(found)
-				s.Require().Equal(
-					keepertest.OrderSlashEntriesLexicographically(tc.expSlashEntries),
-					keepertest.OrderSlashEntriesLexicographically(slashReport.Entries),
-				)
+			err := s.App.ReportsKeeper.Hooks().CustomBeforeValidatorSlashed(
+				ctxWithHeight, tc.valAddr, tc.fraction, tc.totalSlashedAmt,
+			)
+			if len(tc.expErrMsg) > 0 {
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErrMsg)
+				return
 			}
+			s.Require().NoError(err)
+
+			slashReport, found := s.App.ReportsKeeper.GetSlashReport(ctxWithHeight, uint64(tc.height))
+			s.Require().True(found)
+			s.Require().Equal(
+				keepertest.OrderSlashEntriesLexicographically(tc.expSlashEntries),
+				keepertest.OrderSlashEntriesLexicographically(slashReport.Entries),
+			)
 		})
 	}
 }

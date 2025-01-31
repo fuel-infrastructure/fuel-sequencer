@@ -3,8 +3,8 @@ package testsuite
 import (
 	"time"
 
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
 func (s *E2ETestSuite) SubmitGovProposal(msg sdk.Msg) uint64 {

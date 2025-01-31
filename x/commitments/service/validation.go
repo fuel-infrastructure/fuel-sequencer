@@ -24,7 +24,7 @@ func (q queryServer) validateBridgeCommitmentRange(ctx context.Context, start, e
 		return fmt.Errorf("the query exceeds the maximum block range %d", q.maxQueryRange)
 	}
 	// The bridge commitment range is end exclusive.
-	height, err := getLatestBlockHeight(ctx, q.clientCtx)
+	height, err := getLatestBlockHeight(ctx, q.node)
 	if err != nil {
 		return err
 	}

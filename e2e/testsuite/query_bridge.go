@@ -6,7 +6,6 @@ import (
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -86,7 +85,7 @@ func (s *E2ETestSuite) GetMsgIndexFromBlock(ctx context.Context, block int64) *b
 	s.Require().GreaterOrEqual(len(blockByHeight.Data.Txs), 1)
 
 	txBz := blockByHeight.Data.Txs[0]
-	sdkTx, err := authtx.DefaultTxDecoder(TestCdc)(txBz)
+	sdkTx, err := TestTxDecoder(txBz)
 	s.Require().NoError(err)
 
 	var msg bridgetypes.MsgIndex
@@ -127,13 +126,11 @@ func (s *E2ETestSuite) SearchForMsgInBlock(
 ) (msg sdk.Msg, txBz []byte, found bool) {
 	s.Logger().Info(fmt.Sprintf("Looking for msg %s at block %d", msgTypeUrl, block))
 
-	txDecoder := authtx.DefaultTxDecoder(TestCdc)
-
 	blockByHeight, err := s.GetBlockByHeight(ctx, block)
 	s.Require().NoError(err)
 
 	for _, txBz := range blockByHeight.Data.Txs {
-		sdkTx, err := txDecoder(txBz)
+		sdkTx, err := TestTxDecoder(txBz)
 		s.Require().NoError(err)
 
 		for _, msg := range sdkTx.GetMsgs() {

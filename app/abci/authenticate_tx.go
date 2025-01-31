@@ -84,7 +84,7 @@ func (h *FuelSequencerProposalHandler) authenticateTx(
 		if !ok {
 			return bridgetypes.ErrCodecIsNotSupported.Wrap(bridgetypes.ErrStrOnlyProtoCodecAllowed)
 		}
-		signers, _, err := protoCodec.GetMsgV1Signers(msg)
+		signers, _, err := protoCodec.GetMsgSigners(msg)
 		if err != nil {
 			return bridgetypes.ErrFailedToObtainMsgSigners.Wrapf("msg %s, err %v", sdk.MsgTypeURL(msg), err)
 		}

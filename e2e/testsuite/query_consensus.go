@@ -3,8 +3,8 @@ package testsuite
 import (
 	"context"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	consensustypes "cosmossdk.io/x/consensus/types"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 )
 
 func (s *E2ETestSuite) QueryConsensusParams(ctx context.Context) *cmtproto.ConsensusParams {

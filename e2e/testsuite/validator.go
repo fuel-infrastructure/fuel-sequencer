@@ -8,10 +8,11 @@ import (
 	"path"
 	"path/filepath"
 
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	cmcfg "github.com/cometbft/cometbft/config"
-	cmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/privval"
 	dbm "github.com/cosmos/cosmos-db"
@@ -28,7 +29,6 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	fuelsequencerapp "github.com/fuel-infrastructure/fuel-sequencer/app"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
@@ -139,23 +139,25 @@ func (v *validator) createConsensusKey() error {
 	config.Moniker = v.Moniker
 
 	pvKeyFile := config.PrivValidatorKeyFile()
-	if err := cmos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
-		return err
+	dir := filepath.Dir(pvKeyFile)
+	if err := os.MkdirAll(dir, 0777); err != nil {
+		return fmt.Errorf("could not create directory %q: %w", dir, err)
 	}
 
 	pvStateFile := config.PrivValidatorStateFile()
-	if err := cmos.EnsureDir(filepath.Dir(pvStateFile), 0777); err != nil {
-		return err
+	dir = filepath.Dir(pvStateFile)
+	if err := os.MkdirAll(dir, 0777); err != nil {
+		return fmt.Errorf("could not create directory %q: %w", dir, err)
 	}
 
-	filePV := privval.LoadOrGenFilePV(pvKeyFile, pvStateFile)
+	filePV := privval.LoadFilePV(pvKeyFile, pvStateFile)
 	v.consensusKey = filePV.Key
 
 	return nil
 }
 
 func (v *validator) createKeyFromMnemonic(name, mnemonic string, passphrase string) error {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.ConfigDir(), nil, Cdc)
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.ConfigDir(), nil, TestCdc)
 	if err != nil {
 		return err
 	}
@@ -208,7 +210,7 @@ func (v *validator) BuildCreateValidatorMsg(moniker string, amount sdk.Coin) (sd
 	// get the initial validator min self delegation
 	minSelfDelegation, _ := math.NewIntFromString("1")
 
-	valPubKey, err := cryptocodec.FromTmPubKeyInterface(v.consensusKey.PubKey)
+	valPubKey, err := cryptocodec.FromCmtPubKeyInterface(v.consensusKey.PubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +260,7 @@ func (v *validator) SignMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	sig := txsigning.SignatureV2{
 		PubKey: v.pubKey(),
 		Data: &txsigning.SingleSignatureData{
-			SignMode:  txsigning.SignMode_SIGN_MODE_DIRECT,
+			SignMode:  signingv1beta1.SignMode_SIGN_MODE_DIRECT,
 			Signature: nil,
 		},
 		Sequence: 0,
@@ -271,7 +273,7 @@ func (v *validator) SignMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	bytesToSign, err := authsigning.GetSignBytesAdapter(
 		context.Background(), // TODO: is this fine?
 		encodingConfig.TxConfig.SignModeHandler(),
-		txsigning.SignMode_SIGN_MODE_DIRECT,
+		signingv1beta1.SignMode_SIGN_MODE_DIRECT,
 		signerData,
 		txBuilder.GetTx(),
 	)
@@ -287,7 +289,7 @@ func (v *validator) SignMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	sig = txsigning.SignatureV2{
 		PubKey: v.pubKey(),
 		Data: &txsigning.SingleSignatureData{
-			SignMode:  txsigning.SignMode_SIGN_MODE_DIRECT,
+			SignMode:  signingv1beta1.SignMode_SIGN_MODE_DIRECT,
 			Signature: sigBytes,
 		},
 		Sequence: 0,
@@ -306,7 +308,7 @@ func (v *validator) SignMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 }
 
 func (v *validator) keyring() (keyring.Keyring, error) {
-	return keyring.New(keyringAppName, keyring.BackendTest, v.ConfigDir(), nil, Cdc)
+	return keyring.New(keyringAppName, keyring.BackendTest, v.ConfigDir(), nil, TestCdc)
 }
 
 func (v *validator) Address() sdk.AccAddress {

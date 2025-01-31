@@ -30,8 +30,10 @@ func TestGenesis(t *testing.T) {
 	}
 
 	k, ctx := keepertest.BridgeKeeper(t)
-	bridge.InitGenesis(ctx, k, genesisState)
-	got := bridge.ExportGenesis(ctx, k)
+	err := bridge.InitGenesis(ctx, k, genesisState)
+	require.NoError(t, err)
+	got, err := bridge.ExportGenesis(ctx, k)
+	require.NoError(t, err)
 	require.NotNil(t, got)
 
 	require.Equal(t, genesisState.Params, got.Params)

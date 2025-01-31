@@ -100,6 +100,9 @@ genesis:
     staking:
       params:
         bond_denom: "utest"
+        key_rotation_fee:
+          amount: "1000000"
+          denom: "utest"
     bridge:
       params:
         bridge_denom: "utest"
@@ -123,3 +126,7 @@ genesis:
     sequencing:
       params:
         max_blob_size_bytes: 1000
+    protocolpool:
+      params:
+        enabled_distribution_denoms:
+          - "utest"

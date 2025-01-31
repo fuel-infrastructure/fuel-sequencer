@@ -13,18 +13,18 @@ import (
 )
 
 type queryServer struct {
-	clientCtx         client.Context
+	node              client.CometRPC
 	interfaceRegistry codectypes.InterfaceRegistry
 	maxQueryRange     uint64
 }
 
 func NewQueryServer(
-	clientCtx client.Context,
+	node client.CometRPC,
 	interfaceRegistry codectypes.InterfaceRegistry,
 	maxQueryRange uint64,
 ) types.QueryServer {
 	return queryServer{
-		clientCtx:         clientCtx,
+		node:              node,
 		interfaceRegistry: interfaceRegistry,
 		maxQueryRange:     maxQueryRange,
 	}
@@ -43,7 +43,7 @@ func (q queryServer) BridgeCommitment(
 	}
 
 	// Fetch data.
-	leaves, err := fetchBridgeCommitmentLeaves(ctx, q.clientCtx, req.Start, req.End)
+	leaves, err := fetchBridgeCommitmentLeaves(ctx, q.node, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 	}
 
 	// Fetch data.
-	leaves, err := fetchBridgeCommitmentLeaves(ctx, q.clientCtx, req.Start, req.End)
+	leaves, err := fetchBridgeCommitmentLeaves(ctx, q.node, req.Start, req.End)
 	if err != nil {
 		return nil, err
 	}
@@ -98,14 +98,14 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 
 	// Load the transactions that composed the LastResultsHash at height.
 	txResultHeight := req.Height - 1
-	finalizeBlockResponse, err := getBlockResults(ctx, q.clientCtx, &txResultHeight)
+	finalizeBlockResponse, err := getBlockResults(ctx, q.node, &txResultHeight)
 	if err != nil {
 		return nil, err
 	}
 
 	// If there are no transactions in the block it is not possible to generate an inclusion proof for a transaction
 	// response. However, we can still return the proof showing that the block was included in the bridge commitment.
-	if len(finalizeBlockResponse.TxsResults) == 0 && int(req.TxIndex) == 0 {
+	if len(finalizeBlockResponse.TxResults) == 0 && int(req.TxIndex) == 0 {
 		return &types.QueryBridgeCommitmentInclusionProofResponse{
 			BridgeCommitmentProof: *types.NewBinaryMerkleProof(*bcProof),
 			BridgeCommitmentLeaf:  bcLeaf,
@@ -113,13 +113,13 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 	}
 
 	// Sanity check.
-	if int(req.TxIndex) >= len(finalizeBlockResponse.TxsResults) {
+	if int(req.TxIndex) >= len(finalizeBlockResponse.TxResults) {
 		return nil, fmt.Errorf("transaction index too high %d", req.TxIndex)
 	}
 
 	// Remove non-deterministic fields from ExecTxResult responses to match LastResultsHash from the
 	// header computation. Ref: https://github.com/cometbft/cometbft/blob/v0.38.5/state/store.go#L412
-	deterministicTxResults := cmtypes.NewResults(finalizeBlockResponse.TxsResults)
+	deterministicTxResults := cmtypes.NewResults(finalizeBlockResponse.TxResults)
 	// Get the merkle proof for this transaction.
 	txMerkleProof := deterministicTxResults.ProveResult(int(req.TxIndex))
 	// Get the marshalled transaction result
@@ -139,14 +139,14 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 // fetchBridgeCommitmentLeaves takes an end exclusive range of heights and fetches its
 // corresponding BridgeCommitmentLeafs.
 func fetchBridgeCommitmentLeaves(
-	ctx context.Context, clientCtx client.Context, start, end uint64,
+	ctx context.Context, node client.CometRPC, start, end uint64,
 ) ([]types.BridgeCommitmentLeaf, error) {
 
 	bridgeCommitmentLeaves := make([]types.BridgeCommitmentLeaf, 0, end-start)
 	for height := start; height < end; height++ {
 
 		int64Height := int64(height)
-		commit, err := getCommit(ctx, clientCtx, &int64Height)
+		commit, err := getCommit(ctx, node, &int64Height)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load block %d: %s", height, err.Error())
 		}

@@ -18,16 +18,16 @@ import (
 	"github.com/spf13/viper"
 
 	"cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
+	govtypes "cosmossdk.io/x/gov/types"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+	minttypes "cosmossdk.io/x/mint/types"
 	cmconfig "github.com/cometbft/cometbft/config"
 	cmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // sequencer represents a validator node setup in the Fuel Sequencer network

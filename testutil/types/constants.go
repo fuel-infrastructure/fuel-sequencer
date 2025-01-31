@@ -4,9 +4,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	govtypes "cosmossdk.io/x/gov/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // Required to load the right config for testing
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
@@ -18,8 +18,10 @@ var (
 	// TestEthAddr1Str maps to TestSeqAddr1Str deterministically
 	TestEthAddr1Str = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
 	TestSeqAddr1Str = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
+	TestSeqAddr2Str = "fuelsequencer1n79wsstpakv0gw2efmruf9x8xs9m4rqfazfu8g"
 	TestValAddr1Str = "fuelsequencervaloper1w8rk2mk84wytpxx7ld63kaqpkhmd39m0ky2e6a"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
+	TestSeqAddr2    = sdk.MustAccAddressFromBech32(TestSeqAddr2Str)
 
 	FirstAccountSequence             = uint64(0)
 	TestToken                        = "token"
