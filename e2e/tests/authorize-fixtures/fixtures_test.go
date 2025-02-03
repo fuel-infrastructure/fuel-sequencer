@@ -7,7 +7,6 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
@@ -159,17 +158,6 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
 	logsString += fmt.Sprintf("RevokeLogs = `%s`\n", logs)
-
-	// Authorize
-	amountCoin := sdk.NewCoin(testsuite.BridgeDenom, amountSDK)
-	amountCoins := sdk.NewCoins(amountCoin)
-	msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(senderAddress, receiverAddress, amountCoins)
-	authorizeData := testsuite.PackAuthorize(msgSendBz)
-	tx, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-	s.Require().NoError(err)
-	logs, err = json.Marshal(tx.Logs)
-	s.Require().NoError(err)
-	logsString += fmt.Sprintf("AuthorizeLogs = `%s`\n", logs)
 
 	// Print the fixtures
 	fmt.Printf("Amount = %d", amount.Uint64())

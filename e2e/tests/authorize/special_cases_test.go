@@ -1,60 +1,35 @@
 package authorize_test
 
-import (
-	"regexp"
-	"time"
+// TODO: Restore this test, by sending a deposit and delegate combined message, with the sequencer params configured to allow only 1 message.
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
-)
+// func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthorizeWithTooManyMessagesIsSkipped() {
+// 	s.Run("An AuthorizeEvent with more messages than MaxAuthorizeMessages is skipped", func() {
+// 		senderAddress := s.EthKeys[0].AddressHex
+// 		receiverAddress := s.EthKeys[1].AddressHex
 
-func (s *AuthorizeTestSuite) TestAuthorizeEvents_InvalidDataDoesNotCauseHalt() {
-	s.Run("Invalid data from Ethereum causes Sequencer to skip an invalid authorize event", func() {
+// 		// Generate and send a deposit and delegate combined message.
+// 		sendAmount := big.NewInt(10)
+// 		msgDepositAndDelegate := testsuite.PackDepositAndDelegate(sendAmount, validatorAddress)
+// 		_, err := s.SendEthTransactionToSequencerInterfaceContract(msgDepositAndDelegate)
+// 		s.Require().NoError(err)
 
-		// Generate Authorize event wrapping invalid data.
-		invalidBz := []byte("some invalid data")
-		authorizeData := testsuite.PackAuthorize(invalidBz)
-		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
+// 		// TODO: Generate and send a deposit and delegate combined message.
+// 		// sendAmount := big.NewInt(10)
+// 		// msgDepositAndDelegate := testsuite.PackDepositAndDelegate(sendAmount, validatorAddress)
+// 		// _, err := s.SendEthTransactionToSequencerInterfaceContract(msgDepositAndDelegate)
+// 		// s.Require().NoError(err)
 
-		// Check that the Sequencer skips the event
-		re := regexp.MustCompile("skipping event; failed to encode event as raw tx bytes with err")
-		s.Require().Eventually(func() bool {
-			return len(s.FindSequencerLogs(re)) > 0
-		}, time.Minute, time.Second)
-	})
-}
+// 		// Send Authorize tx
+// 		authorizeData := testsuite.PackAuthorize(msgSendBz)
+// 		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+// 		s.Require().NoError(err)
 
-func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthorizeWithTooManyMessagesIsSkipped() {
-	s.Run("An AuthorizeEvent with more messages than MaxAuthorizeMessages is skipped", func() {
-		senderAddress := s.EthKeys[0].AddressHex
-		receiverAddress := s.EthKeys[1].AddressHex
-
-		// Generate Authorize tx with 100 MsgSends.
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		msgSend := banktypes.MsgSend{
-			FromAddress: senderAddress,
-			ToAddress:   receiverAddress,
-			Amount:      sendCoins,
-		}
-		msgSendBz := s.E2ETestSuite.GenerateNMsgsBz(&msgSend, 100)
-
-		// Send Authorize tx
-		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		_, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// Make sure that the Sequencer skips the event
-		re := regexp.MustCompile(
-			"skipping event; failed to encode event as raw tx bytes with err: authorize event has too many messages",
-		)
-		s.Require().Eventually(func() bool {
-			return len(s.FindSequencerLogs(re)) > 0
-		}, time.Minute, time.Second)
-	})
-}
+// 		// Make sure that the Sequencer skips the event
+// 		re := regexp.MustCompile(
+// 			"skipping event; failed to encode event as raw tx bytes with err: authorize event has too many messages",
+// 		)
+// 		s.Require().Eventually(func() bool {
+// 			return len(s.FindSequencerLogs(re)) > 0
+// 		}, time.Minute, time.Second)
+// 	})
+// }

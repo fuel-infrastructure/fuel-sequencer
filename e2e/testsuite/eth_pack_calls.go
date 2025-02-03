@@ -229,20 +229,6 @@ func PackRevoke(grantee common.Address, msgTypeUrl string) []byte {
 	)
 }
 
-func PackAuthorize(data []byte) []byte {
-	return PackBatchAuthorize([][]byte{data})
-}
-
-func PackBatchAuthorize(data [][]byte) []byte {
-	return packCall(
-		SequencerInterfaceContractABI,
-		BatchAuthorizeFunctionName,
-		[]interface{}{
-			data,
-		},
-	)
-}
-
 func PackProcessSequencerWithdrawalMessage(
 	proofNonce *big.Int,
 	bridgeCommitmentLeaf BridgeCommitmentLeafForEthereum,

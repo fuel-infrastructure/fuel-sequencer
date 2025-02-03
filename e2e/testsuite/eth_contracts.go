@@ -55,9 +55,6 @@ const (
 	GrantFunctionName              = "grant"
 	RevokeFunctionName             = "revoke"
 
-	AuthorizeFunctionName      = "authorize"
-	BatchAuthorizeFunctionName = "batchAuthorize"
-
 	// FuelStreamX contract
 
 	UpdateGenesisStateFunctionName                = "updateGenesisState"
