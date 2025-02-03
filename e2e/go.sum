@@ -483,6 +483,7 @@ github.com/fuel-infrastructure/cosmos-sdk/x/slashing v0.52.0-custom-3 h1:pM0lfuX
 github.com/fuel-infrastructure/cosmos-sdk/x/slashing v0.52.0-custom-3/go.mod h1:E51/hlkHDfdVpkh8I5jl9GY0IyiFSxxfIG+e28b18Ko=
 github.com/fuel-infrastructure/cosmos-sdk/x/staking v0.52.0-custom-3 h1:spcnLsF6a3s/HBIMHKHMlMFHk0+u5TEgk1ay3vxR8xw=
 github.com/fuel-infrastructure/cosmos-sdk/x/staking v0.52.0-custom-3/go.mod h1:UDqT4bbVaaz2+rv+FWi3MMEQQX8fsVTGBNnAf8Zs880=
+github.com/fuel-infrastructure/cosmos-sdk/x/staking v0.52.0-custom-4/go.mod h1:UDqT4bbVaaz2+rv+FWi3MMEQQX8fsVTGBNnAf8Zs880=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff h1:tY80oXqGNY4FhTFhk+o9oFHGINQ/+vhlm8HFzi6znCI=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff/go.mod h1:x7DCsMOv1taUwEWCzT4cmDeAkigA5/QCwUodaVOe8Ww=
 github.com/getsentry/sentry-go v0.30.0 h1:lWUwDnY7sKHaVIoZ9wYqRHJ5iEmoc0pqcRqFkosKzBo=

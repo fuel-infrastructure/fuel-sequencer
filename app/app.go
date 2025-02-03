@@ -13,6 +13,7 @@ import (
 	mintkeeper "cosmossdk.io/x/mint/keeper"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
 	reportskeeper "github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	sequencingkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	_ "github.com/jackc/pgx/v5/stdlib" // Import and register pgx driver
@@ -139,7 +140,7 @@ func AppConfig() depinject.Config {
 		// Loads the app config from a YAML file.
 		// appconfig.LoadYAML(AppConfigYAML),
 		depinject.Provide(
-		// TODO: ProvideExampleMintFn, // optional: override the mint module's mint function with epoched minting
+			mint.ProvideMintFn, // override the mint module's mint function with custom minting logic`
 		),
 	)
 }
