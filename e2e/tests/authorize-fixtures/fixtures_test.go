@@ -20,7 +20,6 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	receiverAddressEth := s.EthKeys[1].Address
 	validator1AddressEth := s.SeqKeys[0].ValAddressEth
 	validator2AddressEth := s.SeqKeys[1].ValAddressEth
-	authzMsgTypeUrl := "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
 	authzExpiration := uint32(math.MaxUint32) // Unix Timestamp about year 2106
 	// Approve V2 tokens for use by SequencerInterfaceContract.
 	approveAmount := new(big.Int).SetInt64(1000000000000)
@@ -135,29 +134,29 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logsString += fmt.Sprintf("SetRewardRecipientLogs = `%s`\n", logs)
 
-	// Grant with no expiration
-	data = testsuite.PackGrant(receiverAddressEth, authzMsgTypeUrl, 0)
+	// Grant Claim Rewards with no expiration
+	data = testsuite.PackGrantClaimRewards(receiverAddressEth, 0)
 	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("GrantNoExpirationLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("GrantClaimRewardsNoExpirationLogs = `%s`\n", logs)
 
-	// Grant with expiration
-	data = testsuite.PackGrant(receiverAddressEth, authzMsgTypeUrl, authzExpiration)
+	// Grant Claim Rewards with expiration
+	data = testsuite.PackGrantClaimRewards(receiverAddressEth, authzExpiration)
 	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("GrantWithExpirationLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("GrantClaimRewardsWithExpirationLogs = `%s`\n", logs)
 
-	// Revoke
-	data = testsuite.PackRevoke(receiverAddressEth, authzMsgTypeUrl)
+	// Revoke Claim Rewards
+	data = testsuite.PackRevokeClaimRewards(receiverAddressEth)
 	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("RevokeLogs = `%s`\n", logs)
+	logsString += fmt.Sprintf("RevokeClaimRewardsLogs = `%s`\n", logs)
 
 	// Print the fixtures
 	fmt.Printf("Amount = %d", amount.Uint64())
@@ -171,7 +170,6 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	fmt.Printf("\nValidator1Address = \"%s\"", validator1AddressEth)
 	fmt.Printf("\nValidator2Address = \"%s\"", validator2AddressEth)
 	fmt.Printf("\nSequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr)
-	fmt.Printf("\nAuthzMsgTypeUrl = \"%s\"", authzMsgTypeUrl)
 	fmt.Printf("\nAuthzExpiration = uint32(%d)", authzExpiration)
 	fmt.Print("\n\n")
 	fmt.Println(logsString)

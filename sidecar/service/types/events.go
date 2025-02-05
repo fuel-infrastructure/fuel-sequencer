@@ -43,7 +43,6 @@ const (
 	EthGrantEventName              = "Grant"
 	EthRevokeEventName             = "Revoke"
 	EthAuthorizeEventName          = "Authorize"
-
 	// Event names recognised by the Sequencer
 
 	DepositEventName   = "Deposit"

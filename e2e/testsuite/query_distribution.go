@@ -39,6 +39,24 @@ func (s *E2ETestSuite) QueryDelegatorWithdrawAddress(ctx context.Context, delega
 	return res.WithdrawAddress
 }
 
+func (s *E2ETestSuite) ParseWithdrawDelegatorRewardFromTxResponse(txResponse *sdk.TxResponse) (claimedAmount sdk.Coins) {
+	// Parse the claimed rewards from the tx events
+	for _, event := range txResponse.Events {
+		if event.Type == "withdraw_rewards" {
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == "amount" {
+					parsedCoins, err := sdk.ParseCoinsNormalized(string(attr.Value))
+					s.Require().NoError(err)
+					claimedAmount = parsedCoins
+					break
+				}
+			}
+		}
+	}
+
+	return
+}
+
 // PollForDelegationRewards polls until the rewards balance matches
 func (s *E2ETestSuite) PollForDelegationRewards(
 	ctx context.Context, deltaBlocks uint64, delegatorAddress, validatorAddress string, balance sdk.DecCoins,

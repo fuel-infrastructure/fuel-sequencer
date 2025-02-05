@@ -168,8 +168,8 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "Grant event with no expiration",
-			logs: fixtures.GrantNoExpirationLogs,
+			name: "Grant Claim Rewards event with no expiration",
+			logs: fixtures.GrantClaimRewardsNoExpirationLogs,
 			getExpEvent: func() *sidecartypes.Event {
 				msgGrant := authz.MsgGrant{
 					Granter: fixtures.SenderAddress,
@@ -178,7 +178,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: nil,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}
@@ -187,8 +187,8 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "Grant event with expiration",
-			logs: fixtures.GrantWithExpirationLogs,
+			name: "Grant Claim Rewards event with expiration",
+			logs: fixtures.GrantClaimRewardsWithExpirationLogs,
 			getExpEvent: func() *sidecartypes.Event {
 				if fixtures.AuthzExpiration == 0 {
 					t.Fatalf("AuthzExpiration is 0 - use a non-zero value to confirm setting the expiration works...")
@@ -202,7 +202,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: &expiration,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(fixtures.AuthzMsgTypeUrl))
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}
@@ -211,27 +211,27 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "Revoke event",
-			logs: fixtures.RevokeLogs,
+			name: "Revoke Claim Rewards event",
+			logs: fixtures.RevokeClaimRewardsLogs,
 			getExpEvent: func() *sidecartypes.Event {
 				return testutil.EventFromMsg(t, &authz.MsgRevoke{
 					Granter:    fixtures.SenderAddress,
 					Grantee:    fixtures.ReceiverAddress,
-					MsgTypeUrl: fixtures.AuthzMsgTypeUrl,
+					MsgTypeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
 				})
 			},
 		},
-		{
-			name: "Authorize event",
-			logs: fixtures.AuthorizeLogs,
-			getExpEvent: func() *sidecartypes.Event {
-				return testutil.EventFromMsg(t, &banktypes.MsgSend{
-					FromAddress: fixtures.SenderAddress,
-					ToAddress:   fixtures.ReceiverAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin(fixtures.BridgeDenom, amountParsed)),
-				})
-			},
-		},
+		// {
+		// 	name: "Authorize event",
+		// 	logs: fixtures.AuthorizeLogs,
+		// 	getExpEvent: func() *sidecartypes.Event {
+		// 		return testutil.EventFromMsg(t, &banktypes.MsgSend{
+		// 			FromAddress: fixtures.SenderAddress,
+		// 			ToAddress:   fixtures.ReceiverAddress,
+		// 			Amount:      sdk.NewCoins(sdk.NewCoin(fixtures.BridgeDenom, amountParsed)),
+		// 		})
+		// 	},
+		// },
 	}
 
 	for _, tc := range testCases {

@@ -206,25 +206,23 @@ func PackSetRewardRecipient(recipient common.Address) []byte {
 	)
 }
 
-func PackGrant(grantee common.Address, msgTypeUrl string, expiration uint32) []byte {
+func PackGrantClaimRewards(grantee common.Address, expiration uint32) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
-		GrantFunctionName,
+		GrantClaimRewardsFunctionName,
 		[]interface{}{
 			grantee,
-			msgTypeUrl,
 			expiration,
 		},
 	)
 }
 
-func PackRevoke(grantee common.Address, msgTypeUrl string) []byte {
+func PackRevokeClaimRewards(grantee common.Address) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
-		RevokeFunctionName,
+		RevokeClaimRewardsFunctionName,
 		[]interface{}{
 			grantee,
-			msgTypeUrl,
 		},
 	)
 }
