@@ -272,15 +272,6 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzClaimRewardsOperations_Via
 		_, err = s.SendEthTransactionToSequencerInterfaceContract(delegateData)
 		s.Require().NoError(err)
 
-		// delegateMsg := &stakingtypes.MsgDelegate{
-		// 	DelegatorAddress: granter.AddressSeq,
-		// 	ValidatorAddress: validator.ValAddressSeq,
-		// 	Amount:           delegateCoin,
-		// }
-		// resp, err := s.SubmitMsgs(delegateMsg)
-		// s.Require().NoError(err)
-		// s.Require().Zero(resp.Code, resp.RawLog)
-
 		s.PollForDelegationBalance(s.Ctx(), 10, granter.AddressSeq, validator.ValAddressSeq, delegateCoin)
 
 		// Prepare a claim rewards exec message for testing execution
