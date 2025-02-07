@@ -53,8 +53,6 @@ const (
 	VoteFunctionName               = "vote"
 	SetRewardRecipientFunctionName = "setRewardRecipient"
 
-	AuthorizeFunctionName = "authorize"
-
 	// FuelStreamX contract
 
 	UpdateGenesisStateFunctionName                = "updateGenesisState"
