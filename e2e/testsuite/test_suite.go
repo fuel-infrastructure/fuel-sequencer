@@ -126,7 +126,7 @@ var (
 	// VaultContractAddressStr is the address of the vault contract.
 	VaultContractAddressStr = ""
 	VaultContractAddress    = common.Address{}
-	// SequencerProxyContractAddressStr is the address of the contract that emits events that the Sequencer will process.
+	// SequencerProxyContractAddressStr is the address of the contract that emits events that the sidecar will process.
 	SequencerProxyContractAddressStr = ""
 	SequencerProxyContractAddress    = common.Address{}
 	// TokenMigratorContractAddressStr is the address of the V1 to V2 token migrator contract.
