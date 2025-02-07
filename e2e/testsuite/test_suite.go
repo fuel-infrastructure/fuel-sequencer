@@ -118,7 +118,7 @@ var (
 	// TokenContractAddressStr is the address of the FUEL V2 token contract.
 	TokenContractAddressStr = ""
 	TokenContractAddress    = common.Address{}
-	// SequencerInterfaceContractAddressStr is the address of the contract that has the batchAuthorize function.
+	// SequencerInterfaceContractAddressStr is the address of the contract that allows users to interact with the sequencer (Deposit, Delegate, etc.)
 	SequencerInterfaceContractAddressStr = ""
 	SequencerInterfaceContractAddress    = common.Address{}
 	// MigratedTokenContractAddressStr is the address of the FUEL V1 token contract.
@@ -127,7 +127,7 @@ var (
 	// VaultContractAddressStr is the address of the vault contract.
 	VaultContractAddressStr = ""
 	VaultContractAddress    = common.Address{}
-	// SequencerProxyContractAddressStr is the address of the contract that emits Deposit and Authorize events.
+	// SequencerProxyContractAddressStr is the address of the contract that emits events that the sidecar will process.
 	SequencerProxyContractAddressStr = ""
 	SequencerProxyContractAddress    = common.Address{}
 	// TokenMigratorContractAddressStr is the address of the V1 to V2 token migrator contract.
