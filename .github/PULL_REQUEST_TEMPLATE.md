@@ -55,8 +55,8 @@ Testing and docs:
         ```
       - Sanity checks:
         ```
-        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect +20
-        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # expect +80 (+100-10-10)
+        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect +10
+        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # expect +90 (+100-10)
         fuelsequencerd q block-results 100 # expect supply delta event to be reported
         ```
    5. `make clean` once you're done.
