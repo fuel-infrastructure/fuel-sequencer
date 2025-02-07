@@ -1,4 +1,4 @@
 [submodule "e2e/fuel-rollup"]
 	path = e2e/fuel-rollup
-	url = git@github.com:atharen/fuel-rollup
-	branch = atharen/rollup-updates
+	url = git@github.com:FuelLabs/fuel-rollup
+	branch = migueldingli1997/event-per-message
