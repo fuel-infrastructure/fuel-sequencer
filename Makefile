@@ -472,17 +472,17 @@ endif
 
 # Builds contract deployment container for automated E2E tests
 # Note: this assumes evm_setIntervalMining is set to 3.
-build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
+build-eth-deployment-docker-image: $(ROLLUP_DIR)/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
-	@git submodule update --init --remote e2e/fuel-rollup
+	@git submodule update --init --remote $(ROLLUP_DIR)
 	@echo "🤖 Building Docker image..."
 	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
 		-f $(ROLLUP_DIR)/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
-		./e2e/fuel-rollup/
+		$(ROLLUP_DIR)
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
-	@git submodule update --remote e2e/fuel-rollup
+	@git submodule update --remote $(ROLLUP_DIR)
 	@echo "✅ Finished!"
 
 # Runs node and contract deployment containers
