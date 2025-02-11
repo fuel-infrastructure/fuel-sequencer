@@ -1,0 +1,13 @@
+syntax = "proto3";
+package fuelsequencer.reports;
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types";
+
+message EventSlashReportGenerated {
+
+  // height is the block at which the report was generated.
+  uint64 height = 1;
+
+  // num_entries is the number of slash entries in the report.
+  uint64 num_entries = 2;
+}

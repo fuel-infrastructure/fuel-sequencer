@@ -23,13 +23,20 @@ type EthRpcClient struct {
 	// The base struct.
 	*EthWrappedClient
 
-	// contractAddress is the address of the contract we'll be querying.
+	// contractAddress is the address of the SequencerProxy contract.
 	contractAddress common.Address
-	// contractABI is the ABI of the contract we're querying.
+	// contractABI is the ABI of the SequencerProxy contract.
 	contractABI abi.ABI
+
+	// seqBridgeDenom is the denom used when encoding AuthorizeTx messages.
+	// For example, if we observe a DelegateEvent with amount 100, this is translated to a MsgDelegate of 100seqBridgeDenom.
+	seqBridgeDenom string
 
 	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.
 	logsQueryLimiter *rate.Limiter
+
+	// queryTimeout is the duration to wait before a query is timed-out.
+	queryTimeout time.Duration
 }
 
 // NewEthRpcClient creates a new EthRpcClient instance.
@@ -38,7 +45,9 @@ func NewEthRpcClient(
 	ethClient *ethclient.Client,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
+	seqBridgeDenom string,
 	minLogsQueryInterval time.Duration,
+	queryTimeout time.Duration,
 	metrics *Metrics,
 ) *EthRpcClient {
 	return &EthRpcClient{
@@ -49,20 +58,26 @@ func NewEthRpcClient(
 		},
 		contractAddress:  contractAddress,
 		contractABI:      contractAbi,
+		seqBridgeDenom:   seqBridgeDenom,
 		logsQueryLimiter: rate.NewLimiter(rate.Every(minLogsQueryInterval), 1), // max 1 request per interval
+		queryTimeout:     queryTimeout,
 	}
 }
 
 // BlockNumber wraps the BlockNumber call to get the current block number.
 func (ec *EthRpcClient) BlockNumber(ctx context.Context) (uint64, error) {
-	return ec.ethClient.BlockNumber(ctx)
+	tctx, cancel := context.WithTimeout(ctx, ec.queryTimeout)
+	defer cancel()
+	return ec.ethClient.BlockNumber(tctx)
 }
 
 // FinalizedBlockNumber contains logic for querying the block number of the latest finalized block.
 // NOTE: This was copied from https://github.com/ethereum/go-ethereum/blob/7f131dcbc9ffe986f91a1f51025bcfdcc0aa8f0e/ethclient/ethclient.go#L128
 func (ec *EthRpcClient) FinalizedBlockNumber(ctx context.Context) (*big.Int, error) {
 	var raw json.RawMessage
-	err := ec.ethClient.Client().CallContext(ctx, &raw, "eth_getBlockByNumber", "finalized", true)
+	tctx, cancel := context.WithTimeout(ctx, ec.queryTimeout)
+	defer cancel()
+	err := ec.ethClient.Client().CallContext(tctx, &raw, "eth_getBlockByNumber", "finalized", true)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +123,9 @@ func (ec *EthRpcClient) FilterLogs(ctx context.Context, fromBlock, toBlock *big.
 	queriedAt := time.Now()
 	defer func() { ec.metrics.ObserveLogsQueryDelay(queriedAt, time.Now()) }()
 
-	return ec.ethClient.FilterLogs(ctx, query)
+	tctx, cancel := context.WithTimeout(ctx, ec.queryTimeout)
+	defer cancel()
+	return ec.ethClient.FilterLogs(tctx, query)
 }
 
 // FetchAndProcessLogs fetches the logs from the blockchain and processes them. It returns the events and the last block
@@ -184,7 +201,7 @@ func (ec *EthRpcClient) processLogs(
 			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
-		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI)
+		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI, ec.seqBridgeDenom)
 		if err != nil {
 			errMsg := "error processing log"
 			ec.logger.Error(errMsg, zap.Error(err))

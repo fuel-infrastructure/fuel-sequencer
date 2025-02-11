@@ -23,13 +23,13 @@ import (
 type Sidecar struct {
 	logger *zap.Logger
 
-	// Ethereum RPC client used for querying data from an Ethereum node.
+	// ethRpcClient is used for querying data from an Ethereum node.
 	ethRpcClient *ethwrappedclient.EthRpcClient
 
-	// Ethereum WS client used for subscribing to block headers from an Ethereum node.
+	// ethWsClient is used for subscribing to block headers from an Ethereum node.
 	ethWsClient *ethwrappedclient.EthWsClient
 
-	// SequencerClient is used for querying data from a Sequencer node.
+	// sequencerClient is used for querying data from a Sequencer node.
 	sequencerClient *sequencerclient.SequencerClient
 
 	// eventStore stores all the necessary information needed to run the sidecar.
@@ -175,6 +175,10 @@ func (s *Sidecar) startFetchingLogs(ctx context.Context) error {
 
 // catchUpWithEthereumLogs syncs logs from the last synced block up to the last finalized Ethereum block.
 func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.ExponentialBackOff) error {
+	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
+	s.logger.Debug("checking ethereum sync status",
+		zap.Uint64("last_synced_block", s.eventStore.GetLastSyncedBlock().Uint64()),
+	)
 
 	// Get the max syncable block (considers finalized Ethereum height and the end query block)
 	maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
@@ -185,7 +189,6 @@ func (s *Sidecar) catchUpWithEthereumLogs(ctx context.Context, backOff *backoff.
 	// If we're behind, fetch the logs up till the max syncable block.
 	// Note: in the meantime more Ethereum blocks might be finalized, but, these can be detected and fetched in the
 	// main data fetching loop.
-	lastSyncedBlock := s.eventStore.GetLastSyncedBlock()
 	if maxSyncableBlock.Cmp(lastSyncedBlock) > 0 {
 		s.logger.Info("catching up with ethereum",
 			zap.Uint64("last_synced_block", lastSyncedBlock.Uint64()),
@@ -225,19 +228,28 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 		s.logger.Error("error when subscribing to logs", zap.Error(err))
 		return err, true // retry
 	}
+	defer sub.Unsubscribe()
+
+	// Timeout for when we're not receiving new headers
+	headerTimeoutTimer := time.NewTimer(ethwrappedclient.HeaderSyncTimeout)
 
 	for {
 		select {
 		case <-ctx.Done():
 			s.logger.Warn("sidecar stopped via context", zap.Error(ctx.Err()))
-			sub.Unsubscribe()
 			return ctx.Err(), false // no retry
+		case <-headerTimeoutTimer.C:
+			s.logger.Error("header timeout exceeded", zap.Duration("timeout", ethwrappedclient.HeaderSyncTimeout))
+			return fmt.Errorf("header timeout exceeded"), true // retry
 		case err := <-sub.Err():
 			s.logger.Error("error from logs subscription", zap.Error(err))
-			sub.Unsubscribe()
 			return err, true // retry
 		case header := <-ch:
-			s.metrics.ObserveHeaderDelay(time.Unix(int64(header.Time), 0), time.Now())
+			headerTimeoutTimer.Reset(ethwrappedclient.HeaderSyncTimeout) // header successfully detected
+
+			now := time.Now()
+			headerTime := time.Unix(int64(header.Time), 0)
+			s.metrics.ObserveHeaderDelay(headerTime, now)
 			s.metrics.SetLastHeaderSeen(header.Number)
 
 			// If the sidecar has been stopped, exit.
@@ -248,7 +260,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			// Get the max syncable block (considers finalized Ethereum height and the end query block)
 			maxSyncableBlock, err := s.getMaxSyncableBlock(ctx)
 			if err != nil {
-				return err, true
+				return err, true // retry
 			}
 
 			// Get the last Ethereum block synced by the Sidecar
@@ -259,6 +271,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 				zap.Uint64("max_syncable_block", maxSyncableBlock.Uint64()),
 				zap.Uint64("detected_eth_height", header.Number.Uint64()),
 				zap.Uint64("max_query_range", s.eventStore.GetMaxQueryRange().Uint64()),
+				zap.Duration("header_delay", now.Sub(headerTime)),
 			)
 
 			// If new blocks are syncable, process all logs between the last synced blocked and max syncable block.

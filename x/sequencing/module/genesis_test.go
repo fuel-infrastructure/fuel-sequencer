@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
@@ -19,12 +18,12 @@ func TestGenesis(t *testing.T) {
 
 		TopicList: []types.Topic{
 			{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
 				Order: math.ZeroInt(),
 			},
 			{
-				Id:    utilstest.MockTopicIDHex(1),
+				Id:    testutil.MockTopicIDHex(1),
 				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
 				Order: math.ZeroInt(),
 			},
@@ -37,11 +36,7 @@ func TestGenesis(t *testing.T) {
 	got := sequencing.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
-	require.ElementsMatch(t, genesisState.TopicList, got.TopicList)
-
-	// Verify other genesis state elements as needed
 	require.Equal(t, genesisState.Params, got.Params)
+	require.Equal(t, genesisState.TopicList, got.TopicList)
+	// this line is used by starport scaffolding # genesis/test/assert
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
-func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup_AndAuthorizeDelegate() {
+func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup_AndDelegate() {
 	s.Run("Submit deposits on Ethereum to Sequencer accounts that do not exist yet and check results", func() {
 		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
 		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
@@ -41,6 +41,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup_An
 		// --------------------------------------- Delegate
 
 		validator1Address := s.SeqKeys[0].ValAddressSeq
+		validator1AddressEth := s.SeqKeys[0].ValAddressEth
 		delegatorAddress := s.EthKeys[0].AddressHex
 
 		// Make sure that there is no pre-existing delegation between the delegator and validator1.
@@ -55,9 +56,8 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_NoLockup_An
 		delegateAmount, ok := sdkmath.NewIntFromString("100")
 		s.Require().True(ok)
 		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
-		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		delegateData := testsuite.PackDelegate(delegateAmount.BigInt(), validator1AddressEth)
+		_, err = s.SendEthTransactionToSequencerInterfaceContract(delegateData)
 		s.Require().NoError(err)
 
 		// Confirm that the delegation went through and is as expected.

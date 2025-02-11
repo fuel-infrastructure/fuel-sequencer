@@ -65,13 +65,12 @@ func PackMintMigratedToken(address common.Address, amount *big.Int) []byte {
 	return PackMintERC20Token(MigratedTokenContractABI, address, amount)
 }
 
-func PackMigrate(amount *big.Int, validator common.Address, vestingPeriod *big.Int) []byte {
+func PackMigrate(amount *big.Int, vestingPeriod *big.Int) []byte {
 	return packCall(
 		TokenMigratorContractABI,
 		MigrateFunctionName,
 		[]interface{}{
 			amount,
-			validator,
 			vestingPeriod,
 		},
 	)
@@ -98,6 +97,17 @@ func PackDepositFor(amount *big.Int, recipient common.Address) []byte {
 	)
 }
 
+func PackDelegate(amount *big.Int, validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		DelegateFunctionName,
+		[]interface{}{
+			amount,
+			validator,
+		},
+	)
+}
+
 func PackDepositAndDelegate(amount *big.Int, validator common.Address) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
@@ -109,16 +119,89 @@ func PackDepositAndDelegate(amount *big.Int, validator common.Address) []byte {
 	)
 }
 
-func PackAuthorize(data []byte) []byte {
-	return PackBatchAuthorize([][]byte{data})
-}
-
-func PackBatchAuthorize(data [][]byte) []byte {
+func PackRedelegate(amount *big.Int, srcValidator, dstValidator common.Address) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
-		BatchAuthorizeFunctionName,
+		RedelegateFunctionName,
 		[]interface{}{
-			data,
+			amount,
+			srcValidator,
+			dstValidator,
+		},
+	)
+}
+
+func PackClaimRewards(validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		ClaimRewardsFunctionName,
+		[]interface{}{
+			validator,
+		},
+	)
+}
+
+func PackUnbond(amount *big.Int, validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		UnbondFunctionName,
+		[]interface{}{
+			amount,
+			validator,
+		},
+	)
+}
+
+func PackWithdraw(amount *big.Int) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		WithdrawFunctionName,
+		[]interface{}{
+			amount,
+		},
+	)
+}
+
+func PackWithdrawTo(amount *big.Int, recipient common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		WithdrawToFunctionName,
+		[]interface{}{
+			amount,
+			recipient,
+		},
+	)
+}
+
+func PackTransfer(recipient common.Address, amount *big.Int) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		TransferFunctionName,
+		[]interface{}{
+			recipient,
+			amount,
+		},
+	)
+}
+
+func PackVote(proposalId uint64, option uint32, memory string) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		VoteFunctionName,
+		[]interface{}{
+			proposalId,
+			option,
+			memory,
+		},
+	)
+}
+
+func PackSetRewardRecipient(recipient common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		SetRewardRecipientFunctionName,
+		[]interface{}{
+			recipient,
 		},
 	)
 }

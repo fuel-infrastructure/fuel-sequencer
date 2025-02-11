@@ -4,11 +4,13 @@
 : "${SIDECAR_HOST:="0.0.0.0"}"
 : "${SIDECAR_PORT:="8080"}"
 : "${SEQUENCER_GRPC_URL:="127.0.0.1:9090"}"
+: "${UNSAFE_SEQUENCER_BRIDGE_DENOM:="utest"}"
 : "${ETH_WS_URL:="ws://ethereum-node:8545"}" # set to the same port as RPC because e2e testing uses anvil nodes
 : "${ETH_RPC_URL:="http://ethereum-node:8545"}"
 : "${ETH_CONTRACT_ADDRESS:="0x0165878A594ca255338adfa4d48449f69242Eb8F"}"
 : "${ETH_MAX_BLOCK_RANGE:="100"}"
 : "${ETH_MIN_LOGS_QUERY_INTERVAL:="1s"}" # this is low because this script is used for E2E purposes where the block time is 1s
+: "${ETH_RPC_QUERY_TIMEOUT:="20s"}"
 : "${ETH_UNSAFE_START_BLOCK:="1"}"
 : "${DEVELOPMENT:="true"}"
 : "${PROMETHEUS_ENABLED:="true"}"
@@ -25,11 +27,13 @@ fuelsequencerd start-sidecar \
   --host="$SIDECAR_HOST" \
   --port="$SIDECAR_PORT" \
   --sequencer_grpc_url="$SEQUENCER_GRPC_URL" \
+  --unsafe_sequencer_bridge_denom="$UNSAFE_SEQUENCER_BRIDGE_DENOM" \
   --eth_ws_url="$ETH_WS_URL" \
   --eth_rpc_url="$ETH_RPC_URL" \
   --eth_contract_address="$ETH_CONTRACT_ADDRESS" \
   --eth_max_block_range="$ETH_MAX_BLOCK_RANGE" \
   --eth_min_logs_query_interval="$ETH_MIN_LOGS_QUERY_INTERVAL" \
+  --eth_rpc_query_timeout="$ETH_RPC_QUERY_TIMEOUT" \
   --unsafe_eth_start_block="$ETH_UNSAFE_START_BLOCK" \
   --development="$DEVELOPMENT" \
   --prometheus_enabled="$PROMETHEUS_ENABLED" \

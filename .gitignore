@@ -26,7 +26,7 @@ release/
 .DS_Store
 
 # Blockchain data
-/data/
+**/data/
 
 # Build directories
 build/

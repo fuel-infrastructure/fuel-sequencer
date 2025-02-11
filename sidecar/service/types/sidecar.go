@@ -10,14 +10,43 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
+// These EthEvent types represent events raised by the SequencerProxy contract. They represent the structure on Ethereum
+// and are used as an intermediary type to convert into the event expected by the Sequencer. Some fields are indexed,
+// so they will show up as vLog topics instead of fields within these structs, when we are parsing the Ethereum events.
 type (
-	// EthDepositEvent represents a DepositEvent event raised by the proxy contract. This represents the structure on
-	// Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
-	// Note: Depositor and Recipient are indexed, so they will show up as a vLog topics instead of fields here.
 	EthDepositEvent struct {
 		Amount *big.Int `json:"amount"`
 		Lockup *big.Int `json:"lockup"`
 	}
+
+	EthDelegateEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthRedelegateEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthClaimRewardsEvent struct{}
+
+	EthUnbondEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthWithdrawEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthTransferEvent struct {
+		Amount *big.Int `json:"amount"`
+	}
+
+	EthVoteEvent struct {
+		Option   uint32 `json:"option"`
+		Metadata string `json:"metadata"`
+	}
+
+	EthSetRewardRecipientEvent struct{}
 
 	// EthAuthorizeEvent represents an AuthorizeEvent event raised by the bridge contract. This represents the structure
 	// on Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
@@ -40,14 +69,14 @@ func (m *Event) UnmarshalParsedEvent() (ParsedEvent, error) {
 		var eventData DepositEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", DepositEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
 		}
 		return &eventData, nil
 	case AuthorizeEventName:
 		var eventData AuthorizeEvent
 		err := eventData.Unmarshal(m.Data)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal to %s: %w", AuthorizeEventName, err)
+			return nil, fmt.Errorf("could not unmarshal to %s: %w", m.EventType, err)
 		}
 		return &eventData, nil
 	default:

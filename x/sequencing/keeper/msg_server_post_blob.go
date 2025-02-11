@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
@@ -21,11 +22,11 @@ func (k msgServer) PostBlob(
 	// Verify that the data satisfies a maximum transaction size (using MaxBlobSizeBytes)
 	// Note: Here we are not using utils.TxSize since the data being posted from the rollups is not necessarily protobuf
 	// encoded transactions.
-	msgLength := uint64(len(msg.Data))
-	if msgLength > maxBlobSizeBytes {
+	blobSize := len(msg.Data)
+	if uint64(blobSize) > maxBlobSizeBytes {
 		return nil, types.ErrDataTooBig.Wrapf(
-			"message size %d exceeds max blob size bytes %d",
-			msgLength, maxBlobSizeBytes,
+			"blob size %d exceeds max blob size bytes %d",
+			blobSize, maxBlobSizeBytes,
 		)
 	}
 
@@ -82,6 +83,8 @@ func (k msgServer) PostBlob(
 	k.bridgeKeeper.SetLastEthereumNonce(ctx, nonce)
 
 	// Addresses are lowercase for simpler parsing on Ethereum.
+	defer metrics.ObserveTotalBlobsPosted(goCtx, topic.Id)
+	defer metrics.ObserveTotalBlobsPostedSize(goCtx, topic.Id, blobSize)
 	return &types.MsgPostBlobResponse{
 		Nonce: nonce,
 		From:  strings.ToLower(msg.From),

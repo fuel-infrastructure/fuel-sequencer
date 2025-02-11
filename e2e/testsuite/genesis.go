@@ -62,7 +62,7 @@ func getGenDoc(path string) (*cmtypes.GenesisDoc, error) {
 	return doc, nil
 }
 
-func addGenesisAccount(path, moniker, amountStr string, accAddr sdk.AccAddress) error { //nolint:unparam
+func AddGenesisAccount(path, moniker, amountStr string, accAddr sdk.AccAddress) error { //nolint:unparam
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
@@ -83,7 +83,7 @@ func addGenesisAccount(path, moniker, amountStr string, accAddr sdk.AccAddress) 
 		return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 	}
 
-	authGenState := authtypes.GetGenesisStateFromAppState(cdc, appState)
+	authGenState := authtypes.GetGenesisStateFromAppState(Cdc, appState)
 
 	accs, err := authtypes.UnpackAccounts(authGenState.Accounts)
 	if err != nil {
@@ -106,18 +106,18 @@ func addGenesisAccount(path, moniker, amountStr string, accAddr sdk.AccAddress) 
 
 	authGenState.Accounts = genAccs
 
-	authGenStateBz, err := cdc.MarshalJSON(&authGenState)
+	authGenStateBz, err := Cdc.MarshalJSON(&authGenState)
 	if err != nil {
 		return fmt.Errorf("failed to marshal auth genesis state: %w", err)
 	}
 
 	appState[authtypes.ModuleName] = authGenStateBz
 
-	bankGenState := banktypes.GetGenesisStateFromAppState(cdc, appState)
+	bankGenState := banktypes.GetGenesisStateFromAppState(Cdc, appState)
 	bankGenState.Balances = append(bankGenState.Balances, balances)
 	bankGenState.Balances = banktypes.SanitizeGenesisBalances(bankGenState.Balances)
 
-	bankGenStateBz, err := cdc.MarshalJSON(bankGenState)
+	bankGenStateBz, err := Cdc.MarshalJSON(bankGenState)
 	if err != nil {
 		return fmt.Errorf("failed to marshal bank genesis state: %w", err)
 	}
@@ -137,8 +137,8 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 
-	config.SetRoot(s.Chain.validators[0].configDir())
-	config.Moniker = s.Chain.validators[0].moniker
+	config.SetRoot(s.Chain.Validators[0].ConfigDir())
+	config.Moniker = s.Chain.Validators[0].Moniker
 
 	genFilePath := config.GenesisFile()
 	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
@@ -146,33 +146,33 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 
 	// set short voting periods to allow gov proposals in tests
 	var govGenState govtypesv1.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
+	s.Require().NoError(Cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
 	votingPeriod := governanceVotingPeriod
 	govGenState.Params.VotingPeriod = &votingPeriod
 	govGenState.Params.ExpeditedVotingPeriod = &votingPeriod
 	govGenState.Params.MinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
 	govGenState.Params.ExpeditedMinDeposit = sdk.Coins{{Denom: BridgeDenom, Amount: math.OneInt()}}
-	bz, err := cdc.MarshalJSON(&govGenState)
+	bz, err := Cdc.MarshalJSON(&govGenState)
 	s.Require().NoError(err)
 	appGenState[govtypes.ModuleName] = bz
 
 	// set mint denom
 	var mintGenState minttypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
+	s.Require().NoError(Cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
 	mintGenState.Params.InflationMax = math.LegacyZeroDec()
 	mintGenState.Params.InflationMin = math.LegacyZeroDec()
 	mintGenState.Params.InflationRateChange = math.LegacyZeroDec()
 	mintGenState.Minter.Inflation = math.LegacyZeroDec()
-	bz, err = cdc.MarshalJSON(&mintGenState)
+	bz, err = Cdc.MarshalJSON(&mintGenState)
 	s.Require().NoError(err)
 	appGenState[minttypes.ModuleName] = bz
 
 	// TODO: genesis supply will be incorrect if we add more accounts
 	var bankGenState banktypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
-	genesisSupply := InitBalanceCoin.Amount.MulRaw(int64(len(s.Chain.validators)))
+	s.Require().NoError(Cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
+	genesisSupply := InitBalanceCoin.Amount.MulRaw(int64(len(s.Chain.Validators)))
 	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(BridgeDenom, genesisSupply))
-	bz, err = cdc.MarshalJSON(&bankGenState)
+	bz, err = Cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
@@ -185,29 +185,29 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 	s.T().Logf("set last Ethereum block synced to %d", ethBlockNumber)
 
 	var bridgeGenState bridgetypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
+	s.Require().NoError(Cdc.UnmarshalJSON(appGenState[bridgetypes.ModuleName], &bridgeGenState))
 	bridgeGenState.Params.BridgeDenom = BridgeDenom
 	bridgeGenState.Params.SupplyDeltaPeriod = supplyDeltaPeriod
 	bridgeGenState.Params.VestingStartTime = vestingStartingTime
 	bridgeGenState.Params.BridgeDenomTotalSupply = BridgeDenomTotalSupply
 	bridgeGenState.LastEthereumBlockSynced = ethBlockNumber
-	bz, err = cdc.MarshalJSON(&bridgeGenState)
+	bz, err = Cdc.MarshalJSON(&bridgeGenState)
 	s.Require().NoError(err)
 	appGenState[bridgetypes.ModuleName] = bz
 
 	var genUtilGenState genutiltypes.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
+	s.Require().NoError(Cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
 
 	// generate genesis txs
-	genTxs := make([]json.RawMessage, len(s.Chain.validators))
-	for i, val := range s.Chain.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(InitStakedCoin)
+	genTxs := make([]json.RawMessage, len(s.Chain.Validators))
+	for i, val := range s.Chain.Validators {
+		createValmsg, err := val.BuildCreateValidatorMsg(val.InstanceName(), InitStakedCoin)
 		s.Require().NoError(err)
 
-		signedTx, err := val.signMsg(createValmsg)
+		signedTx, err := val.SignMsg(createValmsg)
 		s.Require().NoError(err)
 
-		txRaw, err := cdc.MarshalJSON(signedTx)
+		txRaw, err := Cdc.MarshalJSON(signedTx)
 		s.Require().NoError(err)
 
 		genTxs[i] = txRaw
@@ -215,13 +215,13 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 
 	genUtilGenState.GenTxs = genTxs
 
-	bz, err = cdc.MarshalJSON(&genUtilGenState)
+	bz, err = Cdc.MarshalJSON(&genUtilGenState)
 	s.Require().NoError(err)
 	appGenState[genutiltypes.ModuleName] = bz
 
 	// Apply any genesis overrides
 	if s.GenesisOverrides != nil {
-		err = (*s.GenesisOverrides)(cdc, appGenState)
+		err = (*s.GenesisOverrides)(Cdc, appGenState)
 		s.Require().NoError(err)
 	}
 
@@ -241,7 +241,7 @@ func (s *E2ETestSuite) initFuelSequencerGenesis() {
 }
 
 func (s *E2ETestSuite) WriteSequencerGenesisFile(genDocBz []byte) {
-	for _, val := range s.Chain.validators {
-		s.Require().NoError(writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), genDocBz))
+	for _, val := range s.Chain.Validators {
+		s.Require().NoError(WriteFile(filepath.Join(val.ConfigDir(), "config", "genesis.json"), genDocBz))
 	}
 }

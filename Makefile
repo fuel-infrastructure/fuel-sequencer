@@ -148,15 +148,20 @@ clean: clean-e2e
 	@echo "✅ Finished cleaning!"
 
 build-fuelsequencerd:
-	@$(eval MAIN := ./cmd/fuelsequencerd/main.go)
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
-	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 $(MAIN)
-
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
-	@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 $(MAIN)
-
-	@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 $(MAIN)
+	@$(eval UNAME_S := $(shell uname -s))
+    ifeq ($(UNAME_S),Darwin)
+		@echo "⚠️ Only building darwin binaries. Linux device required to build linux binaries."
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
+		@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 ./cmd/fuelsequencerd/main.go
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-arm64..."
+		@GOOS=darwin GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-arm64 ./cmd/fuelsequencerd/main.go
+    else
+		@echo "⚠️ Only building linux binaries. Darwin device required to build darwin binaries."
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
+		@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 ./cmd/fuelsequencerd/main.go
+		@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
+		@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 ./cmd/fuelsequencerd/main.go
+    endif
 
 build-all: clean build-fuelsequencerd
 	@echo "✅ Finished building all!"
@@ -181,11 +186,13 @@ run-sidecar-binary:
 	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
+	@$(eval UNSAFE_SEQUENCER_BRIDGE_DENOM ?= "utest")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "100")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "10s")
+	@$(eval ETH_RPC_QUERY_TIMEOUT ?= "20s")
 	@$(eval DEVELOPMENT ?= "false")
 	@$(eval ARCH ?= linux-amd64)
 	@echo "Running sidecar $(VERSION) for $(ARCH)..."
@@ -196,11 +203,13 @@ run-sidecar-binary:
 		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--unsafe_sequencer_bridge_denom "$(UNSAFE_SEQUENCER_BRIDGE_DENOM)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_rpc_url "$(ETH_RPC_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range "$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval "$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--eth_rpc_query_timeout "$(ETH_RPC_QUERY_TIMEOUT)" \
 		--development "$(DEVELOPMENT)"
 
 ###############################################################################
@@ -249,11 +258,13 @@ run-sidecar:
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")  # for the wait below
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
+	@$(eval UNSAFE_SEQUENCER_BRIDGE_DENOM ?= "utest")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below and Sidecar RPC calls
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
 	@$(eval ETH_MAX_BLOCK_RANGE ?= "1")
 	@$(eval ETH_MIN_LOGS_QUERY_INTERVAL ?= "1s")
+	@$(eval ETH_RPC_QUERY_TIMEOUT ?= "20s")
 	@$(eval DEVELOPMENT ?= "true")
 	@$(eval PROMETHEUS_ENABLED ?= "true")
 	@echo "Waiting for Ethereum node $(ETH_RPC_URL) to start..."
@@ -275,6 +286,7 @@ run-sidecar:
 		--port="$(SIDECAR_PORT)" \
 		--sequencer_grpc_url="$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file="$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--unsafe_sequencer_bridge_denom="$(UNSAFE_SEQUENCER_BRIDGE_DENOM)" \
 		--sidecar_path_to_cert_file="$(SIDECAR_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_key_file="$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--eth_ws_url="$(ETH_WS_URL)" \
@@ -282,6 +294,7 @@ run-sidecar:
 		--eth_contract_address="$(ETH_CONTRACT_ADDRESS)" \
 		--eth_max_block_range="$(ETH_MAX_BLOCK_RANGE)" \
 		--eth_min_logs_query_interval="$(ETH_MIN_LOGS_QUERY_INTERVAL)" \
+		--eth_rpc_query_timeout="$(ETH_RPC_QUERY_TIMEOUT)" \
 		--development="$(DEVELOPMENT)" \
 		--prometheus_enabled="$(PROMETHEUS_ENABLED)"
 
@@ -350,7 +363,7 @@ test-e2e: \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
-	test-e2e-authorize-transactions \
+	test-e2e-authorize \
 	test-e2e-deposits \
 	test-e2e-special-messages
 
@@ -491,8 +504,8 @@ test-e2e-events:
 test-e2e-withdrawals:
 	@cd e2e/tests && go test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
 
-test-e2e-authorize-transactions:
-	@cd e2e/tests && go test -mod=readonly -race -v ./authorize-transactions/... --test.timeout 0
+test-e2e-authorize:
+	@cd e2e/tests && go test -mod=readonly -race -v ./authorize/... --test.timeout 0
 
 test-e2e-deposits:
 	@cd e2e/tests && go test -mod=readonly -race -v ./deposits/... --test.timeout 0
