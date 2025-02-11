@@ -2,4 +2,3 @@
 	path = e2e/fuel-rollup
 	url = git@github.com:FuelLabs/fuel-rollup
 	branch = migueldingli1997/event-per-message
-	branch = atharen/authz-events
