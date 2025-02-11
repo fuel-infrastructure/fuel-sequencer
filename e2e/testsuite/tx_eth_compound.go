@@ -6,8 +6,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 )
 
 // DepositTokenToSequencer generates a deposit to an account owned by the sender by depositing V2 tokens, which results

@@ -62,14 +62,6 @@ func (s *E2ETestSuite) SendEthTransactionToTokenMigratorContract(data []byte) (*
 	return s.SendEthTransactionFrom(s.EthKeys[0].PrivateKey, TokenMigratorContractAddress, data)
 }
 
-func (s *E2ETestSuite) GetFuelStreamXAddress() common.Address {
-	return FuelStreamXContractAddress
-}
-
-func (s *E2ETestSuite) GetSequencerProxyAddress() common.Address {
-	return SequencerProxyContractAddress
-}
-
 func (s *E2ETestSuite) SendEthTransactionFrom(privateKey *ecdsa.PrivateKey, toAddress common.Address, data []byte) (*ethereumtypes.Receipt, error) {
 
 	publicKey := privateKey.Public().(*ecdsa.PublicKey)

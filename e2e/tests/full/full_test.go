@@ -38,7 +38,6 @@ type EthLogsParams struct {
 
 func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthereum() {
 	var fixtureEthereumDepositBlock string
-	var fixtureEthereumAuthorizeBlock string
 	var fixtureEthereumBridgeCommitmentBlock string
 	var fixtureEthereumWithdrawalBlock string
 	var fixtureEthereumSupplyDeltaBlock string
@@ -85,34 +84,6 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 
 		fixtureEthereumDepositBlock = hexutil.EncodeUint64(receiptDeposit.BlockNumber.Uint64())
 		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: deposit on block %s", fixtureEthereumDepositBlock))
-
-		// --------------------------------------- Authorize
-
-		validator1Address := s.SeqKeys[0].ValAddressSeq
-		delegatorAddress := s.EthKeys[0].AddressHex
-
-		// Make sure that there is no pre-existing delegation between the delegator and validator1.
-		delegationRaw, err := s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validator1Address)
-		s.Require().Nil(delegationRaw)
-		s.Require().ErrorContains(
-			err,
-			fmt.Sprintf("delegation with delegator %s not found for validator %s", delegatorAddress, validator1Address),
-		)
-
-		// Generate Authorize event wrapping a MsgDelegate to validator1.
-		delegateAmount, ok := sdkmath.NewIntFromString("100")
-		s.Require().True(ok)
-		delegateCoin := sdk.NewCoin(testsuite.BridgeDenom, delegateAmount)
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(delegatorAddress, validator1Address, delegateCoin)
-		authorizeData := testsuite.PackAuthorize(msgDelegateBz)
-		receiptAuthorize, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// Confirm that the delegation went through and is as expected.
-		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validator1Address, delegateCoin)
-
-		fixtureEthereumAuthorizeBlock = hexutil.EncodeUint64(receiptAuthorize.BlockNumber.Uint64())
-		fmt.Println(fmt.Sprintf("FIXTURE ETHEREUM: authorize on block %s", fixtureEthereumAuthorizeBlock))
 	})
 
 	s.Run("Submit a withdrawal from Ethereum and make sure it can be actioned on Ethereum", func() {
@@ -137,11 +108,8 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 		s.Require().NoError(err)
 
 		// Generate Authorize event wrapping a MsgWithdrawToEthereum.
-		msgWithdrawToEthereumBz := s.E2ETestSuite.GenerateMsgWithdrawToEthereumBz(
-			withdrawerAddress, withdrawerAddress, withdrawCoin,
-		)
-		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		withdrawData := testsuite.PackWithdraw(withdrawCoin.Amount.BigInt())
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(withdrawData)
 		s.Require().NoError(err)
 
 		// The LastResultsHash is generated at the block right after the withdrawal
@@ -357,7 +325,6 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 
 		blocks := []string{
 			fixtureEthereumDepositBlock,
-			fixtureEthereumAuthorizeBlock,
 			fixtureEthereumBridgeCommitmentBlock,
 			fixtureEthereumWithdrawalBlock,
 			fixtureEthereumSupplyDeltaBlock,
@@ -380,7 +347,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			Params: []interface{}{EthLogsParams{
 				FromBlock: fixtureEthereumDepositBlock,
 				ToBlock:   fixtureEthereumDepositBlock,
-				Address:   s.GetSequencerProxyAddress().String(),
+				Address:   testsuite.SequencerProxyContractAddressStr,
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositBlock))
@@ -389,20 +356,9 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			JsonRPC: "2.0",
 			Method:  "eth_getLogs",
 			Params: []interface{}{EthLogsParams{
-				FromBlock: fixtureEthereumAuthorizeBlock,
-				ToBlock:   fixtureEthereumAuthorizeBlock,
-				Address:   s.GetSequencerProxyAddress().String(),
-			}},
-			ID: 1,
-		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumAuthorizeBlock))
-
-		s.apiCallHelperEthereum("http://localhost:8545", RPCRequest{
-			JsonRPC: "2.0",
-			Method:  "eth_getLogs",
-			Params: []interface{}{EthLogsParams{
 				FromBlock: fixtureEthereumBridgeCommitmentBlock,
 				ToBlock:   fixtureEthereumBridgeCommitmentBlock,
-				Address:   s.GetFuelStreamXAddress().String(),
+				Address:   testsuite.FuelStreamXContractAddressStr,
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumBridgeCommitmentBlock))
@@ -413,7 +369,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			Params: []interface{}{EthLogsParams{
 				FromBlock: fixtureEthereumWithdrawalBlock,
 				ToBlock:   fixtureEthereumWithdrawalBlock,
-				Address:   s.GetFuelStreamXAddress().String(),
+				Address:   testsuite.FuelStreamXContractAddressStr,
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumWithdrawalBlock))
@@ -424,7 +380,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			Params: []interface{}{EthLogsParams{
 				FromBlock: fixtureEthereumSupplyDeltaBlock,
 				ToBlock:   fixtureEthereumSupplyDeltaBlock,
-				Address:   s.GetFuelStreamXAddress().String(),
+				Address:   testsuite.FuelStreamXContractAddressStr,
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumSupplyDeltaBlock))
@@ -435,7 +391,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			Params: []interface{}{EthLogsParams{
 				FromBlock: fixtureEthereumDepositWithLockupBlock,
 				ToBlock:   fixtureEthereumDepositWithLockupBlock,
-				Address:   s.GetSequencerProxyAddress().String(),
+				Address:   testsuite.SequencerProxyContractAddressStr,
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositWithLockupBlock))
@@ -446,7 +402,7 @@ func (s *FullTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalFromEthe
 			Params: []interface{}{EthLogsParams{
 				FromBlock: fixtureEthereumDepositWithRecipientBlock,
 				ToBlock:   fixtureEthereumDepositWithRecipientBlock,
-				Address:   s.GetSequencerProxyAddress().String(),
+				Address:   testsuite.SequencerProxyContractAddressStr,
 			}},
 			ID: 1,
 		}, fmt.Sprintf("eth_getLogs?height=%s", fixtureEthereumDepositWithRecipientBlock))
