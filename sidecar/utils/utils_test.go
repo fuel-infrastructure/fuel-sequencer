@@ -221,17 +221,6 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 				})
 			},
 		},
-		// {
-		// 	name: "Authorize event",
-		// 	logs: fixtures.AuthorizeLogs,
-		// 	getExpEvent: func() *sidecartypes.Event {
-		// 		return testutil.EventFromMsg(t, &banktypes.MsgSend{
-		// 			FromAddress: fixtures.SenderAddress,
-		// 			ToAddress:   fixtures.ReceiverAddress,
-		// 			Amount:      sdk.NewCoins(sdk.NewCoin(fixtures.BridgeDenom, amountParsed)),
-		// 		})
-		// 	},
-		// },
 	}
 
 	for _, tc := range testCases {
