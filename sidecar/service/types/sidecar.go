@@ -50,14 +50,14 @@ type (
 
 	EthGrantEvent struct {
 		Grantee    string `json:"grantee"`
-		Grant      string `json:"grant"`
+		Granter    string `json:"granter"`
 		MsgTypeUrl string `json:"msgTypeUrl"`
 		Expiration uint32 `json:"expiration"`
 	}
 
 	EthRevokeEvent struct {
 		Grantee    string `json:"grantee"`
-		Grant      string `json:"grant"`
+		Granter    string `json:"granter"`
 		MsgTypeUrl string `json:"msgTypeUrl"`
 	}
 
