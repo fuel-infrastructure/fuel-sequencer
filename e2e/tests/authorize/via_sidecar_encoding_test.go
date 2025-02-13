@@ -307,12 +307,10 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzClaimRewardsOperations_Via
 		rewardsAfterClaim := s.QueryDelegationRewards(s.Ctx(), granter.AddressSeq, validator.ValAddressSeq)
 		s.Require().True(rewardsAfterClaim.AmountOf(testsuite.BridgeDenom).LT(rewardsBeforeClaim.AmountOf(testsuite.BridgeDenom)))
 
-		//// Granter paid for the delegation and its fee, and the fee for the grant authorization
-		// granterFeesCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*(testsuite.MinGasPricesFloat*testsuite.DefaultTxGas))
-		// TODO: Why shouldn't .Sub(granterFeesCoin) not included? As it is matches correctly with the actual balance...
+		// Check that granter's balance now has the claimed rewards, minus the delegation.
 		s.PollForBalance(s.Ctx(), 10, granter.AddressSeq, expectedInitGranterBalance.Sub(delegateCoin).Add(denomClaimedCoin))
 
-		//// Grantee paid for the failed and successful MsgExec of the ClaimRewards
+		// Grantee paid for the failed and successful MsgExec of the ClaimRewards
 		granteeFeesCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*(testsuite.MinGasPricesFloat*testsuite.DefaultTxGas))
 		s.PollForBalance(s.Ctx(), 10, grantee.AddressSeq, expectedInitGranteeBalance.Sub(granteeFeesCoin))
 
