@@ -39,7 +39,10 @@ func (s *E2ETestSuite) QueryDelegatorWithdrawAddress(ctx context.Context, delega
 	return res.WithdrawAddress
 }
 
-func (s *E2ETestSuite) ParseWithdrawDelegatorRewardFromTxResponse(txResponse *sdk.TxResponse) (claimedAmount sdk.Coins) {
+func (s *E2ETestSuite) ParseAndExpectWithdrawDelegatorRewardFromTxResponse(txResponse *sdk.TxResponse) (sdk.Coins, sdk.Coin) {
+	var claimedAmount sdk.Coins
+	var bridgeDenomClaimedCoin sdk.Coin
+
 	// Parse the claimed rewards from the tx events
 	for _, event := range txResponse.Events {
 		if event.Type == "withdraw_rewards" {
@@ -54,7 +57,11 @@ func (s *E2ETestSuite) ParseWithdrawDelegatorRewardFromTxResponse(txResponse *sd
 		}
 	}
 
-	return
+	s.Require().False(claimedAmount.IsZero(), "claimed amount should not be zero")
+	denomFound, bridgeDenomClaimedCoin := claimedAmount.Find(BridgeDenom)
+	s.Require().True(denomFound, "rewards with test denom should be found")
+
+	return claimedAmount, bridgeDenomClaimedCoin
 }
 
 // PollForDelegationRewards polls until the rewards balance matches
