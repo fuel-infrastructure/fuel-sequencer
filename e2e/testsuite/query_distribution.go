@@ -50,7 +50,7 @@ func (s *E2ETestSuite) ParseAndExpectWithdrawDelegatorRewardFromTxResponse(txRes
 				if string(attr.Key) == "amount" {
 					parsedCoins, err := sdk.ParseCoinsNormalized(string(attr.Value))
 					s.Require().NoError(err)
-					claimedAmount.Add(parsedCoins...)
+					claimedAmount = claimedAmount.Add(parsedCoins...)
 					break
 				}
 			}
