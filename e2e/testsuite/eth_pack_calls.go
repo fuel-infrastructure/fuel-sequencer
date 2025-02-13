@@ -206,6 +206,27 @@ func PackSetRewardRecipient(recipient common.Address) []byte {
 	)
 }
 
+func PackGrantClaimRewards(grantee common.Address, expiration uint32) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		GrantClaimRewardsFunctionName,
+		[]interface{}{
+			grantee,
+			expiration,
+		},
+	)
+}
+
+func PackRevokeClaimRewards(grantee common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		RevokeClaimRewardsFunctionName,
+		[]interface{}{
+			grantee,
+		},
+	)
+}
+
 func PackProcessSequencerWithdrawalMessage(
 	proofNonce *big.Int,
 	bridgeCommitmentLeaf BridgeCommitmentLeafForEthereum,

@@ -48,6 +48,15 @@ type (
 
 	EthSetRewardRecipientEvent struct{}
 
+	EthGrantEvent struct {
+		MsgTypeUrl string `json:"msgTypeUrl"`
+		Expiration uint32 `json:"expiration"`
+	}
+
+	EthRevokeEvent struct {
+		MsgTypeUrl string `json:"msgTypeUrl"`
+	}
+
 	// EthAuthorizeEvent represents an AuthorizeEvent event raised by the bridge contract. This represents the structure
 	// on Ethereum, so it should be used as an intermediary type to convert into the event expected by the Sequencer.
 	// Note: Sender is indexed, so it will show up as a vLog topic instead of a field here.

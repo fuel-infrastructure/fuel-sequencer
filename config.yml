@@ -107,6 +107,8 @@ genesis:
         ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
         authorize_messages_allowed:
           - "/fuelsequencer.bridge.v1.MsgWithdrawToEthereum"
+          - "/cosmos.authz.v1beta1.MsgGrant"
+          - "/cosmos.authz.v1beta1.MsgRevoke"
           - "/cosmos.bank.v1beta1.MsgSend"
           - "/cosmos.staking.v1beta1.MsgDelegate"
           - "/cosmos.staking.v1beta1.MsgBeginRedelegate"
