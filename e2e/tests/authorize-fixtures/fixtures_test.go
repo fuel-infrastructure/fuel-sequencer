@@ -3,7 +3,9 @@ package authorize_fixtures_test
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/big"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -19,7 +21,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	receiverAddressEth := s.EthKeys[1].Address
 	validator1AddressEth := s.SeqKeys[0].ValAddressEth
 	validator2AddressEth := s.SeqKeys[1].ValAddressEth
-
+	authzExpiration := uint32(math.MaxUint32) // Unix Timestamp about year 2106
 	// Approve V2 tokens for use by SequencerInterfaceContract.
 	approveAmount := new(big.Int).SetInt64(1000000000000)
 	approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, approveAmount)
@@ -31,7 +33,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	amountSDK := sdkmath.NewInt(100)
 	amount := amountSDK.BigInt()
 
-	var logsString string
+	var constLines, logLines []string
 
 	// Deposit
 	data := testsuite.PackDeposit(amount)
@@ -39,7 +41,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err := json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("depositLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DepositLogs = `%s`", logs))
 
 	// DepositFor
 	data = testsuite.PackDepositFor(amount, receiverAddressEth)
@@ -47,7 +49,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("depositForLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DepositForLogs = `%s`", logs))
 
 	// Deposit with lockup
 	vestingDuration := testsuite.VestingDuration2Years
@@ -56,7 +58,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("depositWithLockupLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DepositWithLockupLogs = `%s`", logs))
 
 	// Delegate
 	data = testsuite.PackDelegate(amount, validator1AddressEth)
@@ -64,7 +66,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("delegateLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DelegateLogs = `%s`", logs))
 
 	// Redelegate
 	data = testsuite.PackRedelegate(amount, validator1AddressEth, validator2AddressEth)
@@ -72,7 +74,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("redelegateLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("RedelegateLogs = `%s`", logs))
 
 	// ClaimRewards
 	data = testsuite.PackClaimRewards(validator1AddressEth)
@@ -80,7 +82,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("claimRewardsLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("ClaimRewardsLogs = `%s`", logs))
 
 	// Unbond
 	data = testsuite.PackUnbond(amount, validator1AddressEth)
@@ -88,7 +90,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("unbondLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("UnbondLogs = `%s`", logs))
 
 	// Withdraw
 	data = testsuite.PackWithdraw(amount)
@@ -96,7 +98,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("withdrawLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("WithdrawLogs = `%s`", logs))
 
 	// WithdrawTo
 	data = testsuite.PackWithdrawTo(amount, receiverAddressEth)
@@ -104,7 +106,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("withdrawToLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("WithdrawToLogs = `%s`", logs))
 
 	// Transfer
 	data = testsuite.PackTransfer(receiverAddressEth, amount)
@@ -112,7 +114,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("transferLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("TransferLogs = `%s`", logs))
 
 	// Vote
 	voteProposalId := uint64(1)
@@ -123,7 +125,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("voteLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("VoteLogs = `%s`", logs))
 
 	// SetRewardRecipient
 	data = testsuite.PackSetRewardRecipient(receiverAddressEth)
@@ -131,19 +133,60 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("setRewardRecipientLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("SetRewardRecipientLogs = `%s`", logs))
+
+	// Grant Claim Rewards with no expiration
+	data = testsuite.PackGrantClaimRewards(receiverAddressEth, 0)
+	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
+	s.Require().NoError(err)
+	logs, err = json.Marshal(tx.Logs)
+	s.Require().NoError(err)
+	logLines = append(logLines, fmt.Sprintf("GrantClaimRewardsNoExpirationLogs = `%s`", logs))
+
+	// Grant Claim Rewards with expiration
+	data = testsuite.PackGrantClaimRewards(receiverAddressEth, authzExpiration)
+	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
+	s.Require().NoError(err)
+	logs, err = json.Marshal(tx.Logs)
+	s.Require().NoError(err)
+	logLines = append(logLines, fmt.Sprintf("GrantClaimRewardsWithExpirationLogs = `%s`", logs))
+
+	// Revoke Claim Rewards
+	data = testsuite.PackRevokeClaimRewards(receiverAddressEth)
+	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
+	s.Require().NoError(err)
+	logs, err = json.Marshal(tx.Logs)
+	s.Require().NoError(err)
+	logLines = append(logLines, fmt.Sprintf("RevokeClaimRewardsLogs = `%s`", logs))
 
 	// Print the fixtures
-	fmt.Println(fmt.Sprintf("amount = %d", amount.Uint64()))
-	fmt.Println(fmt.Sprintf("bridgeDenom = \"%s\"", testsuite.BridgeDenom))
-	fmt.Println(fmt.Sprintf("vestingDurationSeconds = \"%d\"", int64(vestingDuration.Seconds())))
-	fmt.Println(fmt.Sprintf("voteProposalId = uint64(%d)", voteProposalId))
-	fmt.Println(fmt.Sprintf("voteOption = int32(%d)", voteOption))
-	fmt.Println(fmt.Sprintf("voteMetadata = \"%s\"", voteMetadata))
-	fmt.Println(fmt.Sprintf("senderAddress = \"%s\"", senderAddress))
-	fmt.Println(fmt.Sprintf("receiverAddress = \"%s\"", receiverAddress))
-	fmt.Println(fmt.Sprintf("validator1Address = \"%s\"", validator1AddressEth))
-	fmt.Println(fmt.Sprintf("validator2Address = \"%s\"", validator2AddressEth))
-	fmt.Println(fmt.Sprintf("sequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr))
-	fmt.Println(logsString)
+	constLines = append(constLines,
+		fmt.Sprintf("Amount = %d", amount.Uint64()),
+		fmt.Sprintf("BridgeDenom = \"%s\"", testsuite.BridgeDenom),
+		fmt.Sprintf("VestingDurationSeconds = \"%d\"", int64(vestingDuration.Seconds())),
+		fmt.Sprintf("VoteProposalId = uint64(%d)", voteProposalId),
+		fmt.Sprintf("VoteOption = int32(%d)", voteOption),
+		fmt.Sprintf("VoteMetadata = \"%s\"", voteMetadata),
+		fmt.Sprintf("SenderAddress = \"%s\"", senderAddress),
+		fmt.Sprintf("ReceiverAddress = \"%s\"", receiverAddress),
+		fmt.Sprintf("Validator1Address = \"%s\"", validator1AddressEth),
+		fmt.Sprintf("Validator2Address = \"%s\"", validator2AddressEth),
+		fmt.Sprintf("SequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr),
+		fmt.Sprintf("AuthzExpiration = uint32(%d)", authzExpiration),
+	)
+
+	constString := strings.Join(constLines, "\n\t")
+	logString := strings.Join(logLines, "\n\t")
+
+	template := `package fixtures
+
+const (
+	// Fixtures generated by running the test in e2e/tests/authorize-fixtures
+	%s
+
+	%s
+)
+	
+`
+	fmt.Printf(template, constString, logString)
 }

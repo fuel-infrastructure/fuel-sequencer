@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"strconv"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -166,13 +168,56 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "Authorize event",
-			logs: fixtures.AuthorizeLogs,
+			name: "Grant Claim Rewards event with no expiration",
+			logs: fixtures.GrantClaimRewardsNoExpirationLogs,
 			getExpEvent: func() *sidecartypes.Event {
-				return testutil.EventFromMsg(t, &banktypes.MsgSend{
-					FromAddress: fixtures.SenderAddress,
-					ToAddress:   fixtures.ReceiverAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin(fixtures.BridgeDenom, amountParsed)),
+				msgGrant := authz.MsgGrant{
+					Granter: fixtures.SenderAddress,
+					Grantee: fixtures.ReceiverAddress,
+					Grant: authz.Grant{
+						Expiration: nil,
+					},
+				}
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
+				if err != nil {
+					t.Fatalf("error when setting authorization: %x", err)
+				}
+
+				return testutil.EventFromMsg(t, &msgGrant)
+			},
+		},
+		{
+			name: "Grant Claim Rewards event with expiration",
+			logs: fixtures.GrantClaimRewardsWithExpirationLogs,
+			getExpEvent: func() *sidecartypes.Event {
+				if fixtures.AuthzExpiration == 0 {
+					t.Fatalf("AuthzExpiration is 0 - use a non-zero value to confirm setting the expiration works...")
+				}
+				expiration := time.Unix(int64(fixtures.AuthzExpiration), 0)
+
+				msgGrant := authz.MsgGrant{
+					Granter: fixtures.SenderAddress,
+					Grantee: fixtures.ReceiverAddress,
+					Grant: authz.Grant{
+						Expiration: &expiration,
+					},
+				}
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
+				if err != nil {
+					t.Fatalf("error when setting authorization: %x", err)
+				}
+
+				return testutil.EventFromMsg(t, &msgGrant)
+			},
+		},
+		{
+			name: "Revoke Claim Rewards event",
+			logs: fixtures.RevokeClaimRewardsLogs,
+			getExpEvent: func() *sidecartypes.Event {
+				return testutil.EventFromMsg(t, &authz.MsgRevoke{
+					Granter:    fixtures.SenderAddress,
+					Grantee:    fixtures.ReceiverAddress,
+					MsgTypeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
 				})
 			},
 		},

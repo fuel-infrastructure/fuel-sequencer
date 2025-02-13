@@ -17,6 +17,8 @@ var (
 	// default, we will support staking operations, bank transfers, voting on proposals and Ethereum withdrawals.
 	DefaultAuthorizeMessagesAllowed = []string{
 		"/fuelsequencer.bridge.v1.MsgWithdrawToEthereum",
+		"/cosmos.authz.v1beta1.MsgGrant",
+		"/cosmos.authz.v1beta1.MsgRevoke",
 		"/cosmos.bank.v1beta1.MsgSend",
 		"/cosmos.staking.v1beta1.MsgDelegate",
 		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
