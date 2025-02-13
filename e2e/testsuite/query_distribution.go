@@ -39,7 +39,7 @@ func (s *E2ETestSuite) QueryDelegatorWithdrawAddress(ctx context.Context, delega
 	return res.WithdrawAddress
 }
 
-func (s *E2ETestSuite) ParseAndExpectWithdrawDelegatorRewardFromTxResponse(txResponse *sdk.TxResponse) (sdk.Coins, sdk.Coin) {
+func (s *E2ETestSuite) ParseAndExpectWithdrawDelegatorRewardFromTxResponse(txResponse *sdk.TxResponse) sdk.Coin {
 	var claimedAmount sdk.Coins
 	var bridgeDenomClaimedCoin sdk.Coin
 
@@ -61,7 +61,7 @@ func (s *E2ETestSuite) ParseAndExpectWithdrawDelegatorRewardFromTxResponse(txRes
 	denomFound, bridgeDenomClaimedCoin := claimedAmount.Find(BridgeDenom)
 	s.Require().True(denomFound, "rewards with test denom should be found")
 
-	return claimedAmount, bridgeDenomClaimedCoin
+	return bridgeDenomClaimedCoin
 }
 
 // PollForDelegationRewards polls until the rewards balance matches

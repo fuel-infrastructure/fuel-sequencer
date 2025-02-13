@@ -302,7 +302,7 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzClaimRewardsOperations_Via
 
 		// Verify the claim rewards was successful by checking balances
 		//// Make sure that the rewards balance went down for the respective delegation
-		_, denomClaimedCoin := s.ParseAndExpectWithdrawDelegatorRewardFromTxResponse(resp)
+		denomClaimedCoin := s.ParseAndExpectWithdrawDelegatorRewardFromTxResponse(resp)
 
 		rewardsAfterClaim := s.QueryDelegationRewards(s.Ctx(), granter.AddressSeq, validator.ValAddressSeq)
 		s.Require().True(rewardsAfterClaim.AmountOf(testsuite.BridgeDenom).LT(rewardsBeforeClaim.AmountOf(testsuite.BridgeDenom)))
