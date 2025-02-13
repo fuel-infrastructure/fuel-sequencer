@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -32,7 +33,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	amountSDK := sdkmath.NewInt(100)
 	amount := amountSDK.BigInt()
 
-	var logsString string
+	var constLines, logLines []string
 
 	// Deposit
 	data := testsuite.PackDeposit(amount)
@@ -40,7 +41,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err := json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("DepositLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DepositLogs = `%s`", logs))
 
 	// DepositFor
 	data = testsuite.PackDepositFor(amount, receiverAddressEth)
@@ -48,7 +49,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("DepositForLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DepositForLogs = `%s`", logs))
 
 	// Deposit with lockup
 	vestingDuration := testsuite.VestingDuration2Years
@@ -57,7 +58,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("DepositWithLockupLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DepositWithLockupLogs = `%s`", logs))
 
 	// Delegate
 	data = testsuite.PackDelegate(amount, validator1AddressEth)
@@ -65,7 +66,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("DelegateLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("DelegateLogs = `%s`", logs))
 
 	// Redelegate
 	data = testsuite.PackRedelegate(amount, validator1AddressEth, validator2AddressEth)
@@ -73,7 +74,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("RedelegateLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("RedelegateLogs = `%s`", logs))
 
 	// ClaimRewards
 	data = testsuite.PackClaimRewards(validator1AddressEth)
@@ -81,7 +82,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("ClaimRewardsLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("ClaimRewardsLogs = `%s`", logs))
 
 	// Unbond
 	data = testsuite.PackUnbond(amount, validator1AddressEth)
@@ -89,7 +90,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("UnbondLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("UnbondLogs = `%s`", logs))
 
 	// Withdraw
 	data = testsuite.PackWithdraw(amount)
@@ -97,7 +98,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("WithdrawLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("WithdrawLogs = `%s`", logs))
 
 	// WithdrawTo
 	data = testsuite.PackWithdrawTo(amount, receiverAddressEth)
@@ -105,7 +106,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("WithdrawToLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("WithdrawToLogs = `%s`", logs))
 
 	// Transfer
 	data = testsuite.PackTransfer(receiverAddressEth, amount)
@@ -113,7 +114,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("TransferLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("TransferLogs = `%s`", logs))
 
 	// Vote
 	voteProposalId := uint64(1)
@@ -124,7 +125,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("VoteLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("VoteLogs = `%s`", logs))
 
 	// SetRewardRecipient
 	data = testsuite.PackSetRewardRecipient(receiverAddressEth)
@@ -132,7 +133,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("SetRewardRecipientLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("SetRewardRecipientLogs = `%s`", logs))
 
 	// Grant Claim Rewards with no expiration
 	data = testsuite.PackGrantClaimRewards(receiverAddressEth, 0)
@@ -140,7 +141,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("GrantClaimRewardsNoExpirationLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("GrantClaimRewardsNoExpirationLogs = `%s`", logs))
 
 	// Grant Claim Rewards with expiration
 	data = testsuite.PackGrantClaimRewards(receiverAddressEth, authzExpiration)
@@ -148,7 +149,7 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("GrantClaimRewardsWithExpirationLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("GrantClaimRewardsWithExpirationLogs = `%s`", logs))
 
 	// Revoke Claim Rewards
 	data = testsuite.PackRevokeClaimRewards(receiverAddressEth)
@@ -156,21 +157,36 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	s.Require().NoError(err)
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
-	logsString += fmt.Sprintf("RevokeClaimRewardsLogs = `%s`\n", logs)
+	logLines = append(logLines, fmt.Sprintf("RevokeClaimRewardsLogs = `%s`", logs))
 
 	// Print the fixtures
-	fmt.Printf("Amount = %d", amount.Uint64())
-	fmt.Printf("\nBridgeDenom = \"%s\"", testsuite.BridgeDenom)
-	fmt.Printf("\nVestingDurationSeconds = \"%d\"", int64(vestingDuration.Seconds()))
-	fmt.Printf("\nVoteProposalId = uint64(%d)", voteProposalId)
-	fmt.Printf("\nVoteOption = int32(%d)", voteOption)
-	fmt.Printf("\nVoteMetadata = \"%s\"", voteMetadata)
-	fmt.Printf("\nSenderAddress = \"%s\"", senderAddress)
-	fmt.Printf("\nReceiverAddress = \"%s\"", receiverAddress)
-	fmt.Printf("\nValidator1Address = \"%s\"", validator1AddressEth)
-	fmt.Printf("\nValidator2Address = \"%s\"", validator2AddressEth)
-	fmt.Printf("\nSequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr)
-	fmt.Printf("\nAuthzExpiration = uint32(%d)", authzExpiration)
-	fmt.Print("\n\n")
-	fmt.Println(logsString)
+	constLines = append(constLines,
+		fmt.Sprintf("Amount = %d", amount.Uint64()),
+		fmt.Sprintf("BridgeDenom = \"%s\"", testsuite.BridgeDenom),
+		fmt.Sprintf("VestingDurationSeconds = \"%d\"", int64(vestingDuration.Seconds())),
+		fmt.Sprintf("VoteProposalId = uint64(%d)", voteProposalId),
+		fmt.Sprintf("VoteOption = int32(%d)", voteOption),
+		fmt.Sprintf("VoteMetadata = \"%s\"", voteMetadata),
+		fmt.Sprintf("SenderAddress = \"%s\"", senderAddress),
+		fmt.Sprintf("ReceiverAddress = \"%s\"", receiverAddress),
+		fmt.Sprintf("Validator1Address = \"%s\"", validator1AddressEth),
+		fmt.Sprintf("Validator2Address = \"%s\"", validator2AddressEth),
+		fmt.Sprintf("SequencerProxyContractAddress = \"%s\"", testsuite.SequencerProxyContractAddressStr),
+		fmt.Sprintf("AuthzExpiration = uint32(%d)", authzExpiration),
+	)
+
+	constString := strings.Join(constLines, "\n\t")
+	logString := strings.Join(logLines, "\n\t")
+
+	template := `package fixtures
+
+const (
+	// Fixtures generated by running the test in e2e/tests/authorize-fixtures
+	%s
+
+	%s
+)
+	
+`
+	fmt.Printf(template, constString, logString)
 }
