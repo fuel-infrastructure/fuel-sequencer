@@ -75,12 +75,28 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 
 	// If some syncing took place, emit an event.
 	if msg.IsPartialEthereumSyncing() || msg.IsFullEthereumSyncing() {
-		err = ctx.EventManager().EmitTypedEvent(&types.EventEthereumBlockSynced{
+		eventManager := ctx.EventManager()
+		err = eventManager.EmitTypedEvent(&types.EventEthereumBlockSynced{
 			BlockNumber: msg.BlockNumber,
 			FullSync:    msg.IsFullEthereumSyncing(),
 		})
 		if err != nil {
 			return nil, err
+		}
+
+		// Emit an event for each sequencer tx mapping.
+		for _, txMapping := range msg.TxMappings {
+			err = eventManager.EmitTypedEvent(&types.EventEthereumTxMapping{
+				EthBlockNumber: txMapping.EthBlockNumber,
+				EthLogIndex:    txMapping.EthLogIndex,
+				EthTxIndex:     txMapping.EthTxIndex,
+				EthTxHash:      txMapping.EthTxHash,
+				SeqTxHash:      txMapping.SeqTxHash,
+				ReasonForSkip:  txMapping.ReasonForSkip,
+			})
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

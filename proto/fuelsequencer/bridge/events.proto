@@ -73,3 +73,23 @@ message EventEthereumBlockSynced {
   // full_sync is true if the Ethereum block has been fully synced.
   bool full_sync = 2;
 }
+
+message EventEthereumTxMapping {
+  // eth_block_number is the block number of the tx on Ethereum.
+  uint64 eth_block_number = 1;
+
+  // eth_log_index is the index of the log on Ethereum.
+  uint32 eth_log_index = 2;
+
+  // eth_tx_index is the index of the tx on Ethereum.
+  uint32 eth_tx_index = 3;
+
+  // eth_tx_hash is the hash of the tx on Ethereum.
+  string eth_tx_hash = 4;
+
+  // seq_tx_hash is the hash of the tx on the Sequencer.
+  string seq_tx_hash = 5;
+
+  // reason_for_skip is the justification if the sidecar skipped the tx.
+  string reason_for_skip = 6;
+}

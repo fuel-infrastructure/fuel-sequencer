@@ -9,6 +9,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -547,6 +549,8 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		events = sidecarResponse.Events
 	}
 
+	var txMappings []*bridgetypes.TxMapping
+
 	// Identify all events in the MsgIndex and produce one new valid transaction per event.
 	//
 	// To protect the Sequencer from attacks induced from a large or invalid payload, we skip an Authorize event if:
@@ -561,6 +565,15 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	// - fails to be encoded as a bytes tx
 	// - is bigger than the allowed max bytes
 	for _, event := range events {
+
+		txMapping := &bridgetypes.TxMapping{
+			EthBlockNumber: blockNumber,
+			EthLogIndex:    event.LogIndex,
+			EthTxIndex:     event.TxIndex,
+			EthTxHash:      event.TxHash,
+			SeqTxHash:      "",
+			ReasonForSkip:  "",
+		}
 
 		err = event.Validate(params.EthereumProxyContractAddress)
 		if err != nil {
@@ -578,11 +591,14 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				ctx.Logger().Warn(fmt.Sprintf(
+				errStr := fmt.Sprintf(
 					"skipping event; failed to encode event as raw tx bytes with err: %s; event: %s",
 					err.Error(),
 					event,
-				))
+				)
+				ctx.Logger().Warn(errStr)
+				txMapping.ReasonForSkip = errStr
+				txMappings = append(txMappings, txMapping)
 				continue
 			}
 
@@ -606,8 +622,12 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			eventTxs = append(eventTxs, eventTx)
 			eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
 		} else {
-			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+			warnStr := fmt.Sprintf("skipping unauthorized event: %s", event)
+			ctx.Logger().Warn(warnStr)
+			txMapping.ReasonForSkip = warnStr
 		}
+		txMapping.SeqTxHash = cmtbytes.HexBytes(cmttypes.Tx(eventTx).Hash()).String()
+		txMappings = append(txMappings, txMapping)
 	}
 
 	// Generate MsgIndex based on the number of injected events.
@@ -616,6 +636,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		NumInjectedEventTxs: uint64(len(eventTxs)),
 		NewEthereumBlock:    h.getNewEthereumBlock(sidecarErr),
 		BlockNumber:         blockNumber,
+		TxMappings:          txMappings,
 	}
 
 	return

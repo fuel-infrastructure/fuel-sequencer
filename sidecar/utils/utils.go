@@ -45,6 +45,10 @@ func ExtractLogDataToEvent(
 	var event sidecartypes.Event
 	var err error
 
+	event.TxHash = vLog.TxHash.Hex()
+	event.TxIndex = uint32(vLog.TxIndex)
+	event.LogIndex = uint32(vLog.Index)
+
 	switch vLog.Topics[0].Hex() {
 	case sidecartypes.DepositEventHashFn:
 		// Process the event
