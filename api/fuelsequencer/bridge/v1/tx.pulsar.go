@@ -3999,64 +3999,12 @@ func (x *fastReflection_MsgDepositFromEthereumResponse) ProtoMethods() *protoifa
 	}
 }
 
-var _ protoreflect.List = (*_MsgIndex_5_list)(nil)
-
-type _MsgIndex_5_list struct {
-	list *[]*TxMapping
-}
-
-func (x *_MsgIndex_5_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_MsgIndex_5_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_MsgIndex_5_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*TxMapping)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_MsgIndex_5_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*TxMapping)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_MsgIndex_5_list) AppendMutable() protoreflect.Value {
-	v := new(TxMapping)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_MsgIndex_5_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_MsgIndex_5_list) NewElement() protoreflect.Value {
-	v := new(TxMapping)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_MsgIndex_5_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
 	md_MsgIndex                        protoreflect.MessageDescriptor
 	fd_MsgIndex_authority              protoreflect.FieldDescriptor
 	fd_MsgIndex_num_injected_event_txs protoreflect.FieldDescriptor
 	fd_MsgIndex_new_ethereum_block     protoreflect.FieldDescriptor
 	fd_MsgIndex_block_number           protoreflect.FieldDescriptor
-	fd_MsgIndex_tx_mappings            protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -4066,7 +4014,6 @@ func init() {
 	fd_MsgIndex_num_injected_event_txs = md_MsgIndex.Fields().ByName("num_injected_event_txs")
 	fd_MsgIndex_new_ethereum_block = md_MsgIndex.Fields().ByName("new_ethereum_block")
 	fd_MsgIndex_block_number = md_MsgIndex.Fields().ByName("block_number")
-	fd_MsgIndex_tx_mappings = md_MsgIndex.Fields().ByName("tx_mappings")
 }
 
 var _ protoreflect.Message = (*fastReflection_MsgIndex)(nil)
@@ -4158,12 +4105,6 @@ func (x *fastReflection_MsgIndex) Range(f func(protoreflect.FieldDescriptor, pro
 			return
 		}
 	}
-	if len(x.TxMappings) != 0 {
-		value := protoreflect.ValueOfList(&_MsgIndex_5_list{list: &x.TxMappings})
-		if !f(fd_MsgIndex_tx_mappings, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -4187,8 +4128,6 @@ func (x *fastReflection_MsgIndex) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.NewEthereumBlock != false
 	case "fuelsequencer.bridge.v1.MsgIndex.block_number":
 		return x.BlockNumber != uint64(0)
-	case "fuelsequencer.bridge.v1.MsgIndex.tx_mappings":
-		return len(x.TxMappings) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.MsgIndex"))
@@ -4213,8 +4152,6 @@ func (x *fastReflection_MsgIndex) Clear(fd protoreflect.FieldDescriptor) {
 		x.NewEthereumBlock = false
 	case "fuelsequencer.bridge.v1.MsgIndex.block_number":
 		x.BlockNumber = uint64(0)
-	case "fuelsequencer.bridge.v1.MsgIndex.tx_mappings":
-		x.TxMappings = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.MsgIndex"))
@@ -4243,12 +4180,6 @@ func (x *fastReflection_MsgIndex) Get(descriptor protoreflect.FieldDescriptor) p
 	case "fuelsequencer.bridge.v1.MsgIndex.block_number":
 		value := x.BlockNumber
 		return protoreflect.ValueOfUint64(value)
-	case "fuelsequencer.bridge.v1.MsgIndex.tx_mappings":
-		if len(x.TxMappings) == 0 {
-			return protoreflect.ValueOfList(&_MsgIndex_5_list{})
-		}
-		listValue := &_MsgIndex_5_list{list: &x.TxMappings}
-		return protoreflect.ValueOfList(listValue)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.MsgIndex"))
@@ -4277,10 +4208,6 @@ func (x *fastReflection_MsgIndex) Set(fd protoreflect.FieldDescriptor, value pro
 		x.NewEthereumBlock = value.Bool()
 	case "fuelsequencer.bridge.v1.MsgIndex.block_number":
 		x.BlockNumber = value.Uint()
-	case "fuelsequencer.bridge.v1.MsgIndex.tx_mappings":
-		lv := value.List()
-		clv := lv.(*_MsgIndex_5_list)
-		x.TxMappings = *clv.list
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.MsgIndex"))
@@ -4301,12 +4228,6 @@ func (x *fastReflection_MsgIndex) Set(fd protoreflect.FieldDescriptor, value pro
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_MsgIndex) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.v1.MsgIndex.tx_mappings":
-		if x.TxMappings == nil {
-			x.TxMappings = []*TxMapping{}
-		}
-		value := &_MsgIndex_5_list{list: &x.TxMappings}
-		return protoreflect.ValueOfList(value)
 	case "fuelsequencer.bridge.v1.MsgIndex.authority":
 		panic(fmt.Errorf("field authority of message fuelsequencer.bridge.v1.MsgIndex is not mutable"))
 	case "fuelsequencer.bridge.v1.MsgIndex.num_injected_event_txs":
@@ -4336,9 +4257,6 @@ func (x *fastReflection_MsgIndex) NewField(fd protoreflect.FieldDescriptor) prot
 		return protoreflect.ValueOfBool(false)
 	case "fuelsequencer.bridge.v1.MsgIndex.block_number":
 		return protoreflect.ValueOfUint64(uint64(0))
-	case "fuelsequencer.bridge.v1.MsgIndex.tx_mappings":
-		list := []*TxMapping{}
-		return protoreflect.ValueOfList(&_MsgIndex_5_list{list: &list})
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.MsgIndex"))
@@ -4421,12 +4339,6 @@ func (x *fastReflection_MsgIndex) ProtoMethods() *protoiface.Methods {
 		if x.BlockNumber != 0 {
 			n += 1 + runtime.Sov(uint64(x.BlockNumber))
 		}
-		if len(x.TxMappings) > 0 {
-			for _, e := range x.TxMappings {
-				l = options.Size(e)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -4455,22 +4367,6 @@ func (x *fastReflection_MsgIndex) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.TxMappings) > 0 {
-			for iNdEx := len(x.TxMappings) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.TxMappings[iNdEx])
-				if err != nil {
-					return protoiface.MarshalOutput{
-						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-						Buf:               input.Buf,
-					}, err
-				}
-				i -= len(encoded)
-				copy(dAtA[i:], encoded)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-				i--
-				dAtA[i] = 0x2a
-			}
 		}
 		if x.BlockNumber != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.BlockNumber))
@@ -4638,40 +4534,6 @@ func (x *fastReflection_MsgIndex) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 5:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TxMappings", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.TxMappings = append(x.TxMappings, &TxMapping{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TxMappings[len(x.TxMappings)-1]); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -5028,698 +4890,6 @@ func (x *fastReflection_MsgIndexResponse) ProtoMethods() *protoiface.Methods {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgIndexResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
-var (
-	md_TxMapping                  protoreflect.MessageDescriptor
-	fd_TxMapping_eth_block_number protoreflect.FieldDescriptor
-	fd_TxMapping_eth_log_index    protoreflect.FieldDescriptor
-	fd_TxMapping_eth_tx_index     protoreflect.FieldDescriptor
-	fd_TxMapping_eth_tx_hash      protoreflect.FieldDescriptor
-	fd_TxMapping_seq_tx_hash      protoreflect.FieldDescriptor
-	fd_TxMapping_reason_for_skip  protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fuelsequencer_bridge_v1_tx_proto_init()
-	md_TxMapping = File_fuelsequencer_bridge_v1_tx_proto.Messages().ByName("TxMapping")
-	fd_TxMapping_eth_block_number = md_TxMapping.Fields().ByName("eth_block_number")
-	fd_TxMapping_eth_log_index = md_TxMapping.Fields().ByName("eth_log_index")
-	fd_TxMapping_eth_tx_index = md_TxMapping.Fields().ByName("eth_tx_index")
-	fd_TxMapping_eth_tx_hash = md_TxMapping.Fields().ByName("eth_tx_hash")
-	fd_TxMapping_seq_tx_hash = md_TxMapping.Fields().ByName("seq_tx_hash")
-	fd_TxMapping_reason_for_skip = md_TxMapping.Fields().ByName("reason_for_skip")
-}
-
-var _ protoreflect.Message = (*fastReflection_TxMapping)(nil)
-
-type fastReflection_TxMapping TxMapping
-
-func (x *TxMapping) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_TxMapping)(x)
-}
-
-func (x *TxMapping) slowProtoReflect() protoreflect.Message {
-	mi := &file_fuelsequencer_bridge_v1_tx_proto_msgTypes[10]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_TxMapping_messageType fastReflection_TxMapping_messageType
-var _ protoreflect.MessageType = fastReflection_TxMapping_messageType{}
-
-type fastReflection_TxMapping_messageType struct{}
-
-func (x fastReflection_TxMapping_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_TxMapping)(nil)
-}
-func (x fastReflection_TxMapping_messageType) New() protoreflect.Message {
-	return new(fastReflection_TxMapping)
-}
-func (x fastReflection_TxMapping_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_TxMapping
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_TxMapping) Descriptor() protoreflect.MessageDescriptor {
-	return md_TxMapping
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_TxMapping) Type() protoreflect.MessageType {
-	return _fastReflection_TxMapping_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_TxMapping) New() protoreflect.Message {
-	return new(fastReflection_TxMapping)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_TxMapping) Interface() protoreflect.ProtoMessage {
-	return (*TxMapping)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_TxMapping) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.EthBlockNumber != uint64(0) {
-		value := protoreflect.ValueOfUint64(x.EthBlockNumber)
-		if !f(fd_TxMapping_eth_block_number, value) {
-			return
-		}
-	}
-	if x.EthLogIndex != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.EthLogIndex)
-		if !f(fd_TxMapping_eth_log_index, value) {
-			return
-		}
-	}
-	if x.EthTxIndex != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.EthTxIndex)
-		if !f(fd_TxMapping_eth_tx_index, value) {
-			return
-		}
-	}
-	if x.EthTxHash != "" {
-		value := protoreflect.ValueOfString(x.EthTxHash)
-		if !f(fd_TxMapping_eth_tx_hash, value) {
-			return
-		}
-	}
-	if x.SeqTxHash != "" {
-		value := protoreflect.ValueOfString(x.SeqTxHash)
-		if !f(fd_TxMapping_seq_tx_hash, value) {
-			return
-		}
-	}
-	if x.ReasonForSkip != "" {
-		value := protoreflect.ValueOfString(x.ReasonForSkip)
-		if !f(fd_TxMapping_reason_for_skip, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_TxMapping) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fuelsequencer.bridge.v1.TxMapping.eth_block_number":
-		return x.EthBlockNumber != uint64(0)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_log_index":
-		return x.EthLogIndex != uint32(0)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_index":
-		return x.EthTxIndex != uint32(0)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_hash":
-		return x.EthTxHash != ""
-	case "fuelsequencer.bridge.v1.TxMapping.seq_tx_hash":
-		return x.SeqTxHash != ""
-	case "fuelsequencer.bridge.v1.TxMapping.reason_for_skip":
-		return x.ReasonForSkip != ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.TxMapping"))
-		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.v1.TxMapping does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_TxMapping) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fuelsequencer.bridge.v1.TxMapping.eth_block_number":
-		x.EthBlockNumber = uint64(0)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_log_index":
-		x.EthLogIndex = uint32(0)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_index":
-		x.EthTxIndex = uint32(0)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_hash":
-		x.EthTxHash = ""
-	case "fuelsequencer.bridge.v1.TxMapping.seq_tx_hash":
-		x.SeqTxHash = ""
-	case "fuelsequencer.bridge.v1.TxMapping.reason_for_skip":
-		x.ReasonForSkip = ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.TxMapping"))
-		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.v1.TxMapping does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_TxMapping) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fuelsequencer.bridge.v1.TxMapping.eth_block_number":
-		value := x.EthBlockNumber
-		return protoreflect.ValueOfUint64(value)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_log_index":
-		value := x.EthLogIndex
-		return protoreflect.ValueOfUint32(value)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_index":
-		value := x.EthTxIndex
-		return protoreflect.ValueOfUint32(value)
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_hash":
-		value := x.EthTxHash
-		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bridge.v1.TxMapping.seq_tx_hash":
-		value := x.SeqTxHash
-		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bridge.v1.TxMapping.reason_for_skip":
-		value := x.ReasonForSkip
-		return protoreflect.ValueOfString(value)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.TxMapping"))
-		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.v1.TxMapping does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_TxMapping) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fuelsequencer.bridge.v1.TxMapping.eth_block_number":
-		x.EthBlockNumber = value.Uint()
-	case "fuelsequencer.bridge.v1.TxMapping.eth_log_index":
-		x.EthLogIndex = uint32(value.Uint())
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_index":
-		x.EthTxIndex = uint32(value.Uint())
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_hash":
-		x.EthTxHash = value.Interface().(string)
-	case "fuelsequencer.bridge.v1.TxMapping.seq_tx_hash":
-		x.SeqTxHash = value.Interface().(string)
-	case "fuelsequencer.bridge.v1.TxMapping.reason_for_skip":
-		x.ReasonForSkip = value.Interface().(string)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.TxMapping"))
-		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.v1.TxMapping does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_TxMapping) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fuelsequencer.bridge.v1.TxMapping.eth_block_number":
-		panic(fmt.Errorf("field eth_block_number of message fuelsequencer.bridge.v1.TxMapping is not mutable"))
-	case "fuelsequencer.bridge.v1.TxMapping.eth_log_index":
-		panic(fmt.Errorf("field eth_log_index of message fuelsequencer.bridge.v1.TxMapping is not mutable"))
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_index":
-		panic(fmt.Errorf("field eth_tx_index of message fuelsequencer.bridge.v1.TxMapping is not mutable"))
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_hash":
-		panic(fmt.Errorf("field eth_tx_hash of message fuelsequencer.bridge.v1.TxMapping is not mutable"))
-	case "fuelsequencer.bridge.v1.TxMapping.seq_tx_hash":
-		panic(fmt.Errorf("field seq_tx_hash of message fuelsequencer.bridge.v1.TxMapping is not mutable"))
-	case "fuelsequencer.bridge.v1.TxMapping.reason_for_skip":
-		panic(fmt.Errorf("field reason_for_skip of message fuelsequencer.bridge.v1.TxMapping is not mutable"))
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.TxMapping"))
-		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.v1.TxMapping does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_TxMapping) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fuelsequencer.bridge.v1.TxMapping.eth_block_number":
-		return protoreflect.ValueOfUint64(uint64(0))
-	case "fuelsequencer.bridge.v1.TxMapping.eth_log_index":
-		return protoreflect.ValueOfUint32(uint32(0))
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_index":
-		return protoreflect.ValueOfUint32(uint32(0))
-	case "fuelsequencer.bridge.v1.TxMapping.eth_tx_hash":
-		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bridge.v1.TxMapping.seq_tx_hash":
-		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bridge.v1.TxMapping.reason_for_skip":
-		return protoreflect.ValueOfString("")
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.v1.TxMapping"))
-		}
-		panic(fmt.Errorf("message fuelsequencer.bridge.v1.TxMapping does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_TxMapping) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fuelsequencer.bridge.v1.TxMapping", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_TxMapping) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_TxMapping) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_TxMapping) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_TxMapping) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*TxMapping)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		if x.EthBlockNumber != 0 {
-			n += 1 + runtime.Sov(uint64(x.EthBlockNumber))
-		}
-		if x.EthLogIndex != 0 {
-			n += 1 + runtime.Sov(uint64(x.EthLogIndex))
-		}
-		if x.EthTxIndex != 0 {
-			n += 1 + runtime.Sov(uint64(x.EthTxIndex))
-		}
-		l = len(x.EthTxHash)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.SeqTxHash)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.ReasonForSkip)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*TxMapping)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.ReasonForSkip) > 0 {
-			i -= len(x.ReasonForSkip)
-			copy(dAtA[i:], x.ReasonForSkip)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.ReasonForSkip)))
-			i--
-			dAtA[i] = 0x32
-		}
-		if len(x.SeqTxHash) > 0 {
-			i -= len(x.SeqTxHash)
-			copy(dAtA[i:], x.SeqTxHash)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.SeqTxHash)))
-			i--
-			dAtA[i] = 0x2a
-		}
-		if len(x.EthTxHash) > 0 {
-			i -= len(x.EthTxHash)
-			copy(dAtA[i:], x.EthTxHash)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.EthTxHash)))
-			i--
-			dAtA[i] = 0x22
-		}
-		if x.EthTxIndex != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.EthTxIndex))
-			i--
-			dAtA[i] = 0x18
-		}
-		if x.EthLogIndex != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.EthLogIndex))
-			i--
-			dAtA[i] = 0x10
-		}
-		if x.EthBlockNumber != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.EthBlockNumber))
-			i--
-			dAtA[i] = 0x8
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*TxMapping)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: TxMapping: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: TxMapping: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EthBlockNumber", wireType)
-				}
-				x.EthBlockNumber = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.EthBlockNumber |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-			case 2:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EthLogIndex", wireType)
-				}
-				x.EthLogIndex = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.EthLogIndex |= uint32(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-			case 3:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EthTxIndex", wireType)
-				}
-				x.EthTxIndex = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.EthTxIndex |= uint32(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-			case 4:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EthTxHash", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.EthTxHash = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 5:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SeqTxHash", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.SeqTxHash = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 6:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ReasonForSkip", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.ReasonForSkip = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -6167,8 +5337,6 @@ type MsgIndex struct {
 	// block_number is the block that these events belong to. This is expected to
 	// be LastEthereumBlockSynced+1, since the events are from the next block.
 	BlockNumber uint64 `protobuf:"varint,4,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
-	// tx_mappings is a list of tx_hash -> tx_index mappings.
-	TxMappings []*TxMapping `protobuf:"bytes,5,rep,name=tx_mappings,json=txMappings,proto3" json:"tx_mappings,omitempty"`
 }
 
 func (x *MsgIndex) Reset() {
@@ -6219,13 +5387,6 @@ func (x *MsgIndex) GetBlockNumber() uint64 {
 	return 0
 }
 
-func (x *MsgIndex) GetTxMappings() []*TxMapping {
-	if x != nil {
-		return x.TxMappings
-	}
-	return nil
-}
-
 type MsgIndexResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -6250,87 +5411,6 @@ func (*MsgIndexResponse) ProtoMessage() {}
 // Deprecated: Use MsgIndexResponse.ProtoReflect.Descriptor instead.
 func (*MsgIndexResponse) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bridge_v1_tx_proto_rawDescGZIP(), []int{9}
-}
-
-type TxMapping struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// eth_block_number is the block number of the tx on Ethereum.
-	EthBlockNumber uint64 `protobuf:"varint,1,opt,name=eth_block_number,json=ethBlockNumber,proto3" json:"eth_block_number,omitempty"`
-	// eth_log_index is the index of the log on Ethereum.
-	EthLogIndex uint32 `protobuf:"varint,2,opt,name=eth_log_index,json=ethLogIndex,proto3" json:"eth_log_index,omitempty"`
-	// eth_tx_index is the index of the tx on Ethereum.
-	EthTxIndex uint32 `protobuf:"varint,3,opt,name=eth_tx_index,json=ethTxIndex,proto3" json:"eth_tx_index,omitempty"`
-	// eth_tx_hash is the hash of the tx on Ethereum.
-	EthTxHash string `protobuf:"bytes,4,opt,name=eth_tx_hash,json=ethTxHash,proto3" json:"eth_tx_hash,omitempty"`
-	// seq_tx_hash is the hash of the tx on the Sequencer.
-	SeqTxHash string `protobuf:"bytes,5,opt,name=seq_tx_hash,json=seqTxHash,proto3" json:"seq_tx_hash,omitempty"`
-	// reason_for_skip is the justification if the sidecar skipped the tx.
-	ReasonForSkip string `protobuf:"bytes,6,opt,name=reason_for_skip,json=reasonForSkip,proto3" json:"reason_for_skip,omitempty"`
-}
-
-func (x *TxMapping) Reset() {
-	*x = TxMapping{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fuelsequencer_bridge_v1_tx_proto_msgTypes[10]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *TxMapping) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TxMapping) ProtoMessage() {}
-
-// Deprecated: Use TxMapping.ProtoReflect.Descriptor instead.
-func (*TxMapping) Descriptor() ([]byte, []int) {
-	return file_fuelsequencer_bridge_v1_tx_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *TxMapping) GetEthBlockNumber() uint64 {
-	if x != nil {
-		return x.EthBlockNumber
-	}
-	return 0
-}
-
-func (x *TxMapping) GetEthLogIndex() uint32 {
-	if x != nil {
-		return x.EthLogIndex
-	}
-	return 0
-}
-
-func (x *TxMapping) GetEthTxIndex() uint32 {
-	if x != nil {
-		return x.EthTxIndex
-	}
-	return 0
-}
-
-func (x *TxMapping) GetEthTxHash() string {
-	if x != nil {
-		return x.EthTxHash
-	}
-	return ""
-}
-
-func (x *TxMapping) GetSeqTxHash() string {
-	if x != nil {
-		return x.SeqTxHash
-	}
-	return ""
-}
-
-func (x *TxMapping) GetReasonForSkip() string {
-	if x != nil {
-		return x.ReasonForSkip
-	}
-	return ""
 }
 
 var File_fuelsequencer_bridge_v1_tx_proto protoreflect.FileDescriptor
@@ -6412,7 +5492,7 @@ var file_fuelsequencer_bridge_v1_tx_proto_rawDesc = []byte{
 	0x63, 0x6b, 0x75, 0x70, 0x3a, 0x0e, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f,
 	0x72, 0x69, 0x74, 0x79, 0x22, 0x20, 0x0a, 0x1e, 0x4d, 0x73, 0x67, 0x44, 0x65, 0x70, 0x6f, 0x73,
 	0x69, 0x74, 0x46, 0x72, 0x6f, 0x6d, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x83, 0x02, 0x0a, 0x08, 0x4d, 0x73, 0x67, 0x49, 0x6e,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0xbe, 0x01, 0x0a, 0x08, 0x4d, 0x73, 0x67, 0x49, 0x6e,
 	0x64, 0x65, 0x78, 0x12, 0x1c, 0x0a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74,
 	0x79, 0x12, 0x33, 0x0a, 0x16, 0x6e, 0x75, 0x6d, 0x5f, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65,
@@ -6423,78 +5503,59 @@ var file_fuelsequencer_bridge_v1_tx_proto_rawDesc = []byte{
 	0x28, 0x08, 0x52, 0x10, 0x6e, 0x65, 0x77, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x42,
 	0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x21, 0x0a, 0x0c, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75,
 	0x6d, 0x62, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0b, 0x62, 0x6c, 0x6f, 0x63,
-	0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x43, 0x0a, 0x0b, 0x74, 0x78, 0x5f, 0x6d, 0x61,
-	0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x66,
-	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69,
-	0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x54, 0x78, 0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67,
-	0x52, 0x0a, 0x74, 0x78, 0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x3a, 0x0e, 0x82, 0xe7,
-	0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x22, 0x12, 0x0a, 0x10,
-	0x4d, 0x73, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0xe3, 0x01, 0x0a, 0x09, 0x54, 0x78, 0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x12, 0x28,
-	0x0a, 0x10, 0x65, 0x74, 0x68, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62,
-	0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e, 0x65, 0x74, 0x68, 0x42, 0x6c, 0x6f,
-	0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0d, 0x65, 0x74, 0x68, 0x5f,
-	0x6c, 0x6f, 0x67, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52,
-	0x0b, 0x65, 0x74, 0x68, 0x4c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x20, 0x0a, 0x0c,
-	0x65, 0x74, 0x68, 0x5f, 0x74, 0x78, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x0d, 0x52, 0x0a, 0x65, 0x74, 0x68, 0x54, 0x78, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x1e,
-	0x0a, 0x0b, 0x65, 0x74, 0x68, 0x5f, 0x74, 0x78, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x04, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x09, 0x65, 0x74, 0x68, 0x54, 0x78, 0x48, 0x61, 0x73, 0x68, 0x12, 0x1e,
-	0x0a, 0x0b, 0x73, 0x65, 0x71, 0x5f, 0x74, 0x78, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x05, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x71, 0x54, 0x78, 0x48, 0x61, 0x73, 0x68, 0x12, 0x26,
-	0x0a, 0x0f, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x5f, 0x66, 0x6f, 0x72, 0x5f, 0x73, 0x6b, 0x69,
-	0x70, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x46,
-	0x6f, 0x72, 0x53, 0x6b, 0x69, 0x70, 0x32, 0xb7, 0x04, 0x0a, 0x03, 0x4d, 0x73, 0x67, 0x12, 0x6a,
-	0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x28,
+	0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x3a, 0x0e, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75,
+	0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x22, 0x12, 0x0a, 0x10, 0x4d, 0x73, 0x67, 0x49, 0x6e,
+	0x64, 0x65, 0x78, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xb7, 0x04, 0x0a, 0x03,
+	0x4d, 0x73, 0x67, 0x12, 0x6a, 0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72,
+	0x61, 0x6d, 0x73, 0x12, 0x28, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73,
+	0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x30, 0x2e,
+	0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x67, 0x0a, 0x0b, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61, 0x12, 0x27,
 	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x30, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61,
-	0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x67, 0x0a, 0x0b, 0x53, 0x75,
-	0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61, 0x12, 0x27, 0x2e, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c,
-	0x74, 0x61, 0x1a, 0x2f, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67,
-	0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x7c, 0x0a, 0x12, 0x57, 0x69, 0x74, 0x68, 0x64, 0x72, 0x61, 0x77, 0x54,
-	0x6f, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x12, 0x2e, 0x2e, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x57, 0x69, 0x74, 0x68, 0x64, 0x72, 0x61, 0x77, 0x54,
-	0x6f, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x1a, 0x36, 0x2e, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x57, 0x69, 0x74, 0x68, 0x64, 0x72, 0x61, 0x77, 0x54,
-	0x6f, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x7f, 0x0a, 0x13, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x46, 0x72, 0x6f, 0x6d,
-	0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x12, 0x2f, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x46, 0x72, 0x6f,
-	0x6d, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x1a, 0x37, 0x2e, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x46, 0x72,
-	0x6f, 0x6d, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x55, 0x0a, 0x05, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x21, 0x2e, 0x66, 0x75,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x53, 0x75, 0x70, 0x70,
+	0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61, 0x1a, 0x2f, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65,
+	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76,
+	0x31, 0x2e, 0x4d, 0x73, 0x67, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65, 0x6c, 0x74, 0x61,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7c, 0x0a, 0x12, 0x57, 0x69, 0x74, 0x68,
+	0x64, 0x72, 0x61, 0x77, 0x54, 0x6f, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x12, 0x2e,
+	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x57, 0x69, 0x74, 0x68,
+	0x64, 0x72, 0x61, 0x77, 0x54, 0x6f, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x1a, 0x36,
+	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x57, 0x69, 0x74, 0x68,
+	0x64, 0x72, 0x61, 0x77, 0x54, 0x6f, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7f, 0x0a, 0x13, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69,
+	0x74, 0x46, 0x72, 0x6f, 0x6d, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x12, 0x2f, 0x2e,
+	0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x44, 0x65, 0x70, 0x6f, 0x73,
+	0x69, 0x74, 0x46, 0x72, 0x6f, 0x6d, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x1a, 0x37,
+	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x44, 0x65, 0x70, 0x6f,
+	0x73, 0x69, 0x74, 0x46, 0x72, 0x6f, 0x6d, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x55, 0x0a, 0x05, 0x49, 0x6e, 0x64, 0x65, 0x78,
+	0x12, 0x21, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x49, 0x6e,
+	0x64, 0x65, 0x78, 0x1a, 0x29, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73,
+	0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x1a, 0x05,
+	0x80, 0xe7, 0xb0, 0x2a, 0x01, 0x42, 0xd7, 0x01, 0x0a, 0x1b, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75,
 	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x1a, 0x29,
-	0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x49, 0x6e, 0x64, 0x65,
-	0x78, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x1a, 0x05, 0x80, 0xe7, 0xb0, 0x2a, 0x01,
-	0x42, 0xd7, 0x01, 0x0a, 0x1b, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x76, 0x31,
-	0x42, 0x07, 0x54, 0x78, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x31, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0x2f, 0x76, 0x31, 0x3b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x76, 0x31, 0xa2, 0x02,
-	0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x17, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x56, 0x31, 0xca, 0x02,
-	0x17, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x23, 0x46, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c,
-	0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
-	0x19, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a,
-	0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x67, 0x65, 0x2e, 0x76, 0x31, 0x42, 0x07, 0x54, 0x78, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01,
+	0x5a, 0x31, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x76, 0x31, 0x3b, 0x62, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x17, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0x2e, 0x56, 0x31, 0xca, 0x02, 0x17, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x23,
+	0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0xea, 0x02, 0x19, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x3a, 0x3a, 0x56, 0x31, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -6509,7 +5570,7 @@ func file_fuelsequencer_bridge_v1_tx_proto_rawDescGZIP() []byte {
 	return file_fuelsequencer_bridge_v1_tx_proto_rawDescData
 }
 
-var file_fuelsequencer_bridge_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_fuelsequencer_bridge_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_fuelsequencer_bridge_v1_tx_proto_goTypes = []interface{}{
 	(*MsgUpdateParams)(nil),                // 0: fuelsequencer.bridge.v1.MsgUpdateParams
 	(*MsgUpdateParamsResponse)(nil),        // 1: fuelsequencer.bridge.v1.MsgUpdateParamsResponse
@@ -6521,30 +5582,28 @@ var file_fuelsequencer_bridge_v1_tx_proto_goTypes = []interface{}{
 	(*MsgDepositFromEthereumResponse)(nil), // 7: fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse
 	(*MsgIndex)(nil),                       // 8: fuelsequencer.bridge.v1.MsgIndex
 	(*MsgIndexResponse)(nil),               // 9: fuelsequencer.bridge.v1.MsgIndexResponse
-	(*TxMapping)(nil),                      // 10: fuelsequencer.bridge.v1.TxMapping
-	(*bridge.Params)(nil),                  // 11: fuelsequencer.bridge.Params
-	(*v1beta1.Coin)(nil),                   // 12: cosmos.base.v1beta1.Coin
+	(*bridge.Params)(nil),                  // 10: fuelsequencer.bridge.Params
+	(*v1beta1.Coin)(nil),                   // 11: cosmos.base.v1beta1.Coin
 }
 var file_fuelsequencer_bridge_v1_tx_proto_depIdxs = []int32{
-	11, // 0: fuelsequencer.bridge.v1.MsgUpdateParams.params:type_name -> fuelsequencer.bridge.Params
-	12, // 1: fuelsequencer.bridge.v1.MsgWithdrawToEthereum.amount:type_name -> cosmos.base.v1beta1.Coin
-	12, // 2: fuelsequencer.bridge.v1.MsgWithdrawToEthereumResponse.amount:type_name -> cosmos.base.v1beta1.Coin
-	10, // 3: fuelsequencer.bridge.v1.MsgIndex.tx_mappings:type_name -> fuelsequencer.bridge.v1.TxMapping
-	0,  // 4: fuelsequencer.bridge.v1.Msg.UpdateParams:input_type -> fuelsequencer.bridge.v1.MsgUpdateParams
-	2,  // 5: fuelsequencer.bridge.v1.Msg.SupplyDelta:input_type -> fuelsequencer.bridge.v1.MsgSupplyDelta
-	4,  // 6: fuelsequencer.bridge.v1.Msg.WithdrawToEthereum:input_type -> fuelsequencer.bridge.v1.MsgWithdrawToEthereum
-	6,  // 7: fuelsequencer.bridge.v1.Msg.DepositFromEthereum:input_type -> fuelsequencer.bridge.v1.MsgDepositFromEthereum
-	8,  // 8: fuelsequencer.bridge.v1.Msg.Index:input_type -> fuelsequencer.bridge.v1.MsgIndex
-	1,  // 9: fuelsequencer.bridge.v1.Msg.UpdateParams:output_type -> fuelsequencer.bridge.v1.MsgUpdateParamsResponse
-	3,  // 10: fuelsequencer.bridge.v1.Msg.SupplyDelta:output_type -> fuelsequencer.bridge.v1.MsgSupplyDeltaResponse
-	5,  // 11: fuelsequencer.bridge.v1.Msg.WithdrawToEthereum:output_type -> fuelsequencer.bridge.v1.MsgWithdrawToEthereumResponse
-	7,  // 12: fuelsequencer.bridge.v1.Msg.DepositFromEthereum:output_type -> fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse
-	9,  // 13: fuelsequencer.bridge.v1.Msg.Index:output_type -> fuelsequencer.bridge.v1.MsgIndexResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	10, // 0: fuelsequencer.bridge.v1.MsgUpdateParams.params:type_name -> fuelsequencer.bridge.Params
+	11, // 1: fuelsequencer.bridge.v1.MsgWithdrawToEthereum.amount:type_name -> cosmos.base.v1beta1.Coin
+	11, // 2: fuelsequencer.bridge.v1.MsgWithdrawToEthereumResponse.amount:type_name -> cosmos.base.v1beta1.Coin
+	0,  // 3: fuelsequencer.bridge.v1.Msg.UpdateParams:input_type -> fuelsequencer.bridge.v1.MsgUpdateParams
+	2,  // 4: fuelsequencer.bridge.v1.Msg.SupplyDelta:input_type -> fuelsequencer.bridge.v1.MsgSupplyDelta
+	4,  // 5: fuelsequencer.bridge.v1.Msg.WithdrawToEthereum:input_type -> fuelsequencer.bridge.v1.MsgWithdrawToEthereum
+	6,  // 6: fuelsequencer.bridge.v1.Msg.DepositFromEthereum:input_type -> fuelsequencer.bridge.v1.MsgDepositFromEthereum
+	8,  // 7: fuelsequencer.bridge.v1.Msg.Index:input_type -> fuelsequencer.bridge.v1.MsgIndex
+	1,  // 8: fuelsequencer.bridge.v1.Msg.UpdateParams:output_type -> fuelsequencer.bridge.v1.MsgUpdateParamsResponse
+	3,  // 9: fuelsequencer.bridge.v1.Msg.SupplyDelta:output_type -> fuelsequencer.bridge.v1.MsgSupplyDeltaResponse
+	5,  // 10: fuelsequencer.bridge.v1.Msg.WithdrawToEthereum:output_type -> fuelsequencer.bridge.v1.MsgWithdrawToEthereumResponse
+	7,  // 11: fuelsequencer.bridge.v1.Msg.DepositFromEthereum:output_type -> fuelsequencer.bridge.v1.MsgDepositFromEthereumResponse
+	9,  // 12: fuelsequencer.bridge.v1.Msg.Index:output_type -> fuelsequencer.bridge.v1.MsgIndexResponse
+	8,  // [8:13] is the sub-list for method output_type
+	3,  // [3:8] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_v1_tx_proto_init() }
@@ -6673,18 +5732,6 @@ func file_fuelsequencer_bridge_v1_tx_proto_init() {
 				return nil
 			}
 		}
-		file_fuelsequencer_bridge_v1_tx_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TxMapping); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -6692,7 +5739,7 @@ func file_fuelsequencer_bridge_v1_tx_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_fuelsequencer_bridge_v1_tx_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
