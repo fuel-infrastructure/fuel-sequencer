@@ -60,10 +60,6 @@ func (m *MsgIndex) ValidateBeforeProcessing(lastBlockSynced, eventIndexOffset ui
 // NumberOfEventsWithMaxBytes calculates the number of events that can fit into the specified maxBytes. This considers
 // the size of the MsgIndex as raw tx bytes and iterates over as many events as can fit into the specified maxBytes.
 // The sequence ensures that size calculations are consistent with that of the final MsgIndex transaction in the block.
-//
-// TODO: msgIndexRawTxBytes is assuming that tx mappings will not change, so it is the worst case size for msgIndex.
-//
-//	When we trim we will remove tx mappings, which might unlock new space for another event. A possible optimisation.
 func (m *MsgIndex) NumberOfEventsWithMaxBytes(eventTxs [][]byte, maxBytes, sequence uint64) (int, error) {
 
 	msgIndexRawTxBytes, err := m.RawTxBytes(sequence)
@@ -122,7 +118,6 @@ func (m *MsgIndex) TrimEventsFromHead(eventTxs [][]byte, numEventsToTrim uint64)
 	msgIndexSizeBefore := m.Size()
 	eventTxs = eventTxs[numEventsToTrim:]
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
-	m.TxMappings = m.TxMappings[numEventsToTrim:]
 
 	// Check whether the modification of MsgIndex has increased its size to avoid unexpected behaviour
 	if m.Size() > msgIndexSizeBefore {
@@ -167,7 +162,6 @@ func (m *MsgIndex) KeepEventsFromHead(
 	trimmed = m.NumInjectedEventTxs - numEventsToKeep
 	m.NumInjectedEventTxs = uint64(len(eventTxs))
 	m.NewEthereumBlock = false
-	m.TxMappings = m.TxMappings[:numEventsToKeep]
 
 	// Check whether the modification of MsgIndex has increased its size to avoid unexpected behaviour
 	if m.Size() > msgIndexSizeBefore {

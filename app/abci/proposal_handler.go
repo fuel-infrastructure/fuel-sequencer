@@ -205,14 +205,6 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			)
 		}
 
-		// Sanity check: number of event txs is equal to TxMappings
-		if len(msgIndex.TxMappings) != len(eventTxs) {
-			return nil, fmt.Errorf(
-				"mismatch between len(TxMappings) in index and actual number of event txs; expected: %d, got: %d",
-				len(msgIndex.TxMappings), len(eventTxs),
-			)
-		}
-
 		// ----- Beyond this point, any error returned should consider setting req.Txs = [][]byte{},
 		// otherwise CometBFT will still use the req.Txs even though we return an error or panic.
 		// Anything that comes before this point will cause ProcessProposal to error where a MsgIndex tx is expected.

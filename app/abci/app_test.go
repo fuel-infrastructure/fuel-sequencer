@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-	cmttypes "github.com/cometbft/cometbft/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
@@ -141,14 +139,17 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 ) (txs [][]byte) {
 	sequence := uint64(1)
 
-	msgIndexSequence := sequence // consume sequence for MsgIndex (generated below)
-	sequence += 1                // sequence consumed by MsgIndex transaction
+	msgIndexBz, err := tx.MsgIndex.RawTxBytes(sequence)
+	if err != nil {
+		panic(err)
+	}
+	txs = append(txs, msgIndexBz)
+	sequence += 1 // sequence consumed by MsgIndex transaction
 
 	if isSupplyDeltaHeight {
 		sequence += 1 // sequence consumed by MsgSupplyDelta transaction
 	}
 
-	var txMappings []*bridgetypes.TxMapping
 	for _, event := range tx.Events {
 		eventTx, err := event.RawTxBytes(s.App.AppCodec(), s.App.BridgeKeeper.GetAuthority(), sequence)
 		if err != nil {
@@ -156,31 +157,7 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 		}
 		txs = append(txs, eventTx)
 		sequence += 1
-
-		txMappings = append(txMappings, &bridgetypes.TxMapping{
-			EthBlockNumber: tx.MsgIndex.BlockNumber,
-			EthLogIndex:    event.LogIndex,
-			EthTxIndex:     event.TxIndex,
-			EthTxHash:      event.TxHash,
-			SeqTxHash:      cmtbytes.HexBytes(cmttypes.Tx(eventTx).Hash()).String(),
-			ReasonForSkip:  "",
-		})
 	}
-
-	// Note: we shouldn't change tx.MsgIndex directly, because it's a global variable.
-	msgIndexWithTxMappings := &bridgetypes.MsgIndex{
-		Authority:           tx.MsgIndex.Authority,
-		NumInjectedEventTxs: tx.MsgIndex.NumInjectedEventTxs,
-		NewEthereumBlock:    tx.MsgIndex.NewEthereumBlock,
-		BlockNumber:         tx.MsgIndex.BlockNumber,
-		TxMappings:          txMappings,
-	}
-
-	msgIndexBz, err := msgIndexWithTxMappings.RawTxBytes(msgIndexSequence)
-	if err != nil {
-		panic(err)
-	}
-	txs = append([][]byte{msgIndexBz}, txs...)
 
 	return
 }
