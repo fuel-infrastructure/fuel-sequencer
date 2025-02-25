@@ -578,11 +578,19 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				ctx.Logger().Warn(fmt.Sprintf(
-					"skipping event; failed to encode event as raw tx bytes with err: %s; event: %s",
+				errStr := fmt.Sprintf(
+					"failed to encode event as raw tx bytes with err: %s; event: %s",
 					err.Error(),
 					event,
-				))
+				)
+				ctx.Logger().Warn(fmt.Sprintf("skipping event; %s", errStr))
+
+				skipTxBytes, err := h.generateSkipTxBytes(errStr, event, blockNumber, eventTxsSequence)
+				if err != nil {
+					return nil, nil, fmt.Errorf("failed to generate skip tx bytes: %w", err)
+				}
+				eventTxs = append(eventTxs, skipTxBytes)
+				eventTxsSequence += 1
 				continue
 			}
 
@@ -602,12 +610,20 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("failed to check authorization: %s; event: %s", err.Error(), event)
 		}
 
+		var authenticatedTx []byte
 		if authenticated {
-			eventTxs = append(eventTxs, eventTx)
-			eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
+			authenticatedTx = eventTx
 		} else {
-			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+			errStr := fmt.Sprintf("unauthorized event: %s", event)
+			ctx.Logger().Warn(fmt.Sprintf("skipping %s", errStr))
+
+			authenticatedTx, err = h.generateSkipTxBytes(errStr, event, blockNumber, eventTxsSequence)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to generate skip tx bytes: %w", err)
+			}
 		}
+		eventTxs = append(eventTxs, authenticatedTx)
+		eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
 	}
 
 	// Generate MsgIndex based on the number of injected events.
@@ -616,6 +632,14 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		NumInjectedEventTxs: uint64(len(eventTxs)),
 		NewEthereumBlock:    h.getNewEthereumBlock(sidecarErr),
 		BlockNumber:         blockNumber,
+	}
+
+	// Sanity check: number of events equal generated txs
+	if len(eventTxs) != len(events) {
+		return nil, nil, fmt.Errorf(
+			"mismatch between number of events to be injected and number of generated txs; had: %d, got: %d",
+			len(events), len(eventTxs),
+		)
 	}
 
 	return
@@ -706,4 +730,15 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 	}
 
 	return nil
+}
+
+func (h *FuelSequencerProposalHandler) generateSkipTxBytes(errStr string, event *sidecartypes.Event, blockNumber uint64, eventTxsSequence uint64) ([]byte, error) {
+	return bridgetypes.NewMsgSkippedEventTx(
+		h.bridgeKeeper.GetAuthority(),
+		errStr,
+		blockNumber,
+		event.LogIndex,
+		event.TxIndex,
+		event.TxHash,
+	).RawTxBytes(eventTxsSequence)
 }
