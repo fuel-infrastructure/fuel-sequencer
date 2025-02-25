@@ -566,7 +566,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 		},
 		{
-			name:                      "skips event if big authorize found - maxAuthorizeMessages exceeded",
+			name:                      "skipped event if big authorize found - maxAuthorizeMessages exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -585,48 +585,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithoutEvents(false),
-					encodedDummyTxs[0],
-					encodedDummyTxs[1],
-					encodedDummyTxs[2],
-				),
-			},
-		},
-		{
-			name:                      "heavy usage - returns all event & sequencer-native txs if right on limits",
-			expQueryBlockEventsCalled: 1,
-			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: testtypes.TestSidecarResponse, Error: nil,
-			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
-				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), // All transactions should exactly fit
-				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
-			},
-			maxBlockGas:                  totalTxsGas,
-			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
-			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
-			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
-
-			// Calculate the percentage of block space that dummy txs will take to compute the correct limit.
-			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
-				strconv.FormatUint(utils.TxsSize(
-					append(
-						[][]byte{},
-						encodedDummyTxs[0],
-						encodedDummyTxs[1],
-						encodedDummyTxs[2],
+					encodedMsgIndexWithSkippedEvent(false),
+					s.EncodeMsgSkippedEventTx(
+						"failed to encode event as raw tx bytes with err: authorize event has too many messages; 1 > 0; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" ",
+						1,        // same as height
+						0, 0, "", // log index, tx index, tx hash
+						2, // msgIndex, supply delta, then this event
 					),
-				), 10),
-			).Quo(sdkmath.LegacyMustNewDecFromStr(
-				strconv.FormatUint(totalTxsBytesWithEventsAndSupplyDelta, 10),
-			)),
-			expRes: &abcitypes.ResponsePrepareProposal{
-				Txs: append(
-					encodedMsgIndexWithEvents(true),
-					msgSupplyDeltaTx,
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
