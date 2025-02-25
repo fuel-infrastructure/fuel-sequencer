@@ -486,6 +486,16 @@ var (
 		Events: TestEvents,
 	}
 
+	TestMsgIndexWithSkippedEvent = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: 1,
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: nil,
+	}
+
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,

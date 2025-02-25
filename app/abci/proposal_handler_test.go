@@ -30,6 +30,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	encodedMsgIndexPartialBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexPartial)
 	encodedMsgIndexPartialBlockWith3Events := s.GetMsgIndexWithEventsEncoder(testtypes.TestMsgIndexPartial2)
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexWithSkippedEvent := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithSkippedEvent)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
 	msgIndexSequence := uint64(1)
@@ -479,7 +480,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
-			name:                      "skips event if invalid authorize found",
+			name:                      "skipped event if invalid authorize found",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -498,7 +499,13 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithoutEvents(false),
+					encodedMsgIndexWithSkippedEvent(false),
+					s.EncodeMsgSkippedEventTx(
+						"failed to encode event as raw tx bytes with err: proto: illegal wireType 7; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\021some invalid data\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" ",
+						1,        // same as height
+						0, 0, "", // log index, tx index, tx hash
+						2, // msgIndex, supply delta, then this event
+					),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
