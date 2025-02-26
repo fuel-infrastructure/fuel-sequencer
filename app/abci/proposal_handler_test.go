@@ -925,6 +925,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	encodedMsgIndexWithNoNewEthBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithNoNewEthBlock)
 	encodedMsgIndexWithDiffBlockNumber := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithDiffBlockNumber)
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexWithSkippedEvent := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithSkippedEvent)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
 	msgIndexSequence := uint64(1)
@@ -962,9 +963,17 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	validTxsSidecarErr := append(
 		encodedMsgIndexSidecarErr(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
-	validTxsWithLargeAuthorizeSkipped := append(
-		encodedMsgIndexWithoutEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	)
+	validTxsWithLargeAuthorizeSkippedTx := func(reasonForSkip string) [][]byte {
+		return append(
+			encodedMsgIndexWithSkippedEvent(false),
+			s.EncodeMsgSkippedEventTx(reasonForSkip,
+				1,
+				0, 0, "",
+				2,
+			),
+			encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		)
+	}
 
 	four := uint64(4)
 
@@ -1485,14 +1494,14 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				"at least 4 got 3",
 		},
 		{
-			name:                      "accepts block if match skipped large authorize event - maxBytes exceeded",
+			name:                      "accepts block if with skipped tx for large authorize event - maxBytes exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkipped,
+				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: generated raw tx bytes exceeded max bytes; 150 > 1; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" "),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1502,7 +1511,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
-			name: "accepts block if match skipped large authorize event - maxAuthorizeMessages" +
+			name: "accepts block if match with skipped tx for large authorize event - maxAuthorizeMessages" +
 				" exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
@@ -1510,7 +1519,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkipped,
+				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: authorize event has too many messages; 1 > 0; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" "),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
