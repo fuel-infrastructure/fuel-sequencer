@@ -10,6 +10,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -501,9 +502,14 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Txs: append(
 					encodedMsgIndexWithSkippedEvent(false),
 					s.EncodeMsgSkippedEventTx(
-						"failed to encode event as raw tx bytes with err: proto: illegal wireType 7; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\021some invalid data\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" ",
-						1,        // same as height
-						0, 0, "", // log index, tx index, tx hash
+						abci.WrappedFailureToEncodeEventAsRawTxBytes(
+							fmt.Errorf("proto: illegal wireType 7"),
+							testtypes.TestEventsInvalidAuthorize[0],
+						).Error(),
+						1, // same as height
+						testtypes.TestEventsInvalidAuthorize[0].LogIndex,
+						testtypes.TestEventsInvalidAuthorize[0].TxIndex,
+						testtypes.TestEventsInvalidAuthorize[0].TxHash,
 						2, // msgIndex, supply delta, then this event
 					),
 					encodedDummyTxs[0],
@@ -554,9 +560,14 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Txs: append(
 					encodedMsgIndexWithSkippedEvent(false),
 					s.EncodeMsgSkippedEventTx(
-						"failed to encode event as raw tx bytes with err: generated raw tx bytes exceeded max bytes; 150 > 1; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" ",
-						1,        // same as height
-						0, 0, "", // log index, tx index, tx hash
+						abci.WrappedFailureToEncodeEventAsRawTxBytes(
+							sidecartypes.GeneratedRawTxBytesExceededMaxBytesError(150, 1),
+							testtypes.TestEventsAuthorizeOnly[0],
+						).Error(),
+						1, // same as height
+						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxHash,
 						2, // msgIndex, supply delta, then this event
 					),
 					encodedDummyTxs[0],
@@ -587,9 +598,14 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Txs: append(
 					encodedMsgIndexWithSkippedEvent(false),
 					s.EncodeMsgSkippedEventTx(
-						"failed to encode event as raw tx bytes with err: authorize event has too many messages; 1 > 0; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" ",
-						1,        // same as height
-						0, 0, "", // log index, tx index, tx hash
+						abci.WrappedFailureToEncodeEventAsRawTxBytes(
+							sidecartypes.AuthorizeEventTooManyMessagesError(1, 0),
+							testtypes.TestEventsAuthorizeOnly[0],
+						).Error(),
+						1, // same as height
+						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxHash,
 						2, // msgIndex, supply delta, then this event
 					),
 					encodedDummyTxs[0],

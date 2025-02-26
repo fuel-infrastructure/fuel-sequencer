@@ -578,14 +578,10 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				errStr := fmt.Sprintf(
-					"failed to encode event as raw tx bytes with err: %s; event: %s",
-					err.Error(),
-					event,
-				)
-				ctx.Logger().Warn(fmt.Sprintf("skipping event; %s", errStr))
+				wrappedErr := WrappedFailureToEncodeEventAsRawTxBytes(err, event)
+				ctx.Logger().Warn("skipping event", wrappedErr.LoggableKVs()...)
 
-				skipTxBytes, err := h.generateSkipTxBytes(errStr, event, blockNumber, eventTxsSequence)
+				skipTxBytes, err := h.generateSkipTxBytes(wrappedErr.Error(), event, blockNumber, eventTxsSequence)
 				if err != nil {
 					return nil, nil, fmt.Errorf("failed to generate skip tx bytes: %w", err)
 				}
