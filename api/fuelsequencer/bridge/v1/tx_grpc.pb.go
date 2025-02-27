@@ -24,7 +24,7 @@ const (
 	Msg_WithdrawToEthereum_FullMethodName  = "/fuelsequencer.bridge.v1.Msg/WithdrawToEthereum"
 	Msg_DepositFromEthereum_FullMethodName = "/fuelsequencer.bridge.v1.Msg/DepositFromEthereum"
 	Msg_Index_FullMethodName               = "/fuelsequencer.bridge.v1.Msg/Index"
-	Msg_SkipEventTx_FullMethodName         = "/fuelsequencer.bridge.v1.Msg/SkipEventTx"
+	Msg_SkippedEventTx_FullMethodName      = "/fuelsequencer.bridge.v1.Msg/SkippedEventTx"
 )
 
 // MsgClient is the client API for Msg service.
@@ -43,8 +43,8 @@ type MsgClient interface {
 	DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error)
 	// Index defines an operation for setting information about injected txs.
 	Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOption) (*MsgIndexResponse, error)
-	// SkipEventTx defines an operation for skipping an event tx.
-	SkipEventTx(ctx context.Context, in *MsgSkippedEventTx, opts ...grpc.CallOption) (*MsgSkippedEventTxResponse, error)
+	// SkipEventTx defines an operation for recording a skipped event tx.
+	SkippedEventTx(ctx context.Context, in *MsgSkippedEventTx, opts ...grpc.CallOption) (*MsgSkippedEventTxResponse, error)
 }
 
 type msgClient struct {
@@ -100,9 +100,9 @@ func (c *msgClient) Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOp
 	return out, nil
 }
 
-func (c *msgClient) SkipEventTx(ctx context.Context, in *MsgSkippedEventTx, opts ...grpc.CallOption) (*MsgSkippedEventTxResponse, error) {
+func (c *msgClient) SkippedEventTx(ctx context.Context, in *MsgSkippedEventTx, opts ...grpc.CallOption) (*MsgSkippedEventTxResponse, error) {
 	out := new(MsgSkippedEventTxResponse)
-	err := c.cc.Invoke(ctx, Msg_SkipEventTx_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Msg_SkippedEventTx_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,8 +125,8 @@ type MsgServer interface {
 	DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error)
 	// Index defines an operation for setting information about injected txs.
 	Index(context.Context, *MsgIndex) (*MsgIndexResponse, error)
-	// SkipEventTx defines an operation for skipping an event tx.
-	SkipEventTx(context.Context, *MsgSkippedEventTx) (*MsgSkippedEventTxResponse, error)
+	// SkipEventTx defines an operation for recording a skipped event tx.
+	SkippedEventTx(context.Context, *MsgSkippedEventTx) (*MsgSkippedEventTxResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -149,8 +149,8 @@ func (UnimplementedMsgServer) DepositFromEthereum(context.Context, *MsgDepositFr
 func (UnimplementedMsgServer) Index(context.Context, *MsgIndex) (*MsgIndexResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Index not implemented")
 }
-func (UnimplementedMsgServer) SkipEventTx(context.Context, *MsgSkippedEventTx) (*MsgSkippedEventTxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SkipEventTx not implemented")
+func (UnimplementedMsgServer) SkippedEventTx(context.Context, *MsgSkippedEventTx) (*MsgSkippedEventTxResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SkippedEventTx not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -255,20 +255,20 @@ func _Msg_Index_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_SkipEventTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Msg_SkippedEventTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgSkippedEventTx)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).SkipEventTx(ctx, in)
+		return srv.(MsgServer).SkippedEventTx(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Msg_SkipEventTx_FullMethodName,
+		FullMethod: Msg_SkippedEventTx_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).SkipEventTx(ctx, req.(*MsgSkippedEventTx))
+		return srv.(MsgServer).SkippedEventTx(ctx, req.(*MsgSkippedEventTx))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -301,8 +301,8 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_Index_Handler,
 		},
 		{
-			MethodName: "SkipEventTx",
-			Handler:    _Msg_SkipEventTx_Handler,
+			MethodName: "SkippedEventTx",
+			Handler:    _Msg_SkippedEventTx_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
