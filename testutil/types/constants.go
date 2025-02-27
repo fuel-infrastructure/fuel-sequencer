@@ -536,6 +536,24 @@ var (
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
 	TestSidecarResponseAuthorizeOnly    = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsAuthorizeOnly}
+
+	TestMsgSkippedEventTx = &bridgetypes.MsgSkippedEventTx{
+		Authority:      TestGovernanceAddress,
+		ReasonForSkip:  "testing",
+		EthBlockNumber: 1,
+		EthLogIndex:    0,
+		EthTxIndex:     0,
+		EthTxHash:      "0x1234567890abcdef",
+	}
+
+	TestMsgSkippedEventTx2 = &bridgetypes.MsgSkippedEventTx{
+		Authority:      TestGovernanceAddress,
+		ReasonForSkip:  "testing multiple",
+		EthBlockNumber: 1,
+		EthLogIndex:    1,
+		EthTxIndex:     1,
+		EthTxHash:      "0xfedcba9876543210",
+	}
 )
 
 func init() {
