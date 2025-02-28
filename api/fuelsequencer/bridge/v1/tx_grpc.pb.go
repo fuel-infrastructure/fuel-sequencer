@@ -43,7 +43,7 @@ type MsgClient interface {
 	DepositFromEthereum(ctx context.Context, in *MsgDepositFromEthereum, opts ...grpc.CallOption) (*MsgDepositFromEthereumResponse, error)
 	// Index defines an operation for setting information about injected txs.
 	Index(ctx context.Context, in *MsgIndex, opts ...grpc.CallOption) (*MsgIndexResponse, error)
-	// SkipEventTx defines an operation for recording a skipped event tx.
+	// SkippedEventTx defines an operation for recording a skipped event tx.
 	SkippedEventTx(ctx context.Context, in *MsgSkippedEventTx, opts ...grpc.CallOption) (*MsgSkippedEventTxResponse, error)
 }
 
@@ -125,7 +125,7 @@ type MsgServer interface {
 	DepositFromEthereum(context.Context, *MsgDepositFromEthereum) (*MsgDepositFromEthereumResponse, error)
 	// Index defines an operation for setting information about injected txs.
 	Index(context.Context, *MsgIndex) (*MsgIndexResponse, error)
-	// SkipEventTx defines an operation for recording a skipped event tx.
+	// SkippedEventTx defines an operation for recording a skipped event tx.
 	SkippedEventTx(context.Context, *MsgSkippedEventTx) (*MsgSkippedEventTxResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }

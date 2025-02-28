@@ -34,7 +34,7 @@ service Msg {
   // Index defines an operation for setting information about injected txs.
   rpc Index(MsgIndex) returns (MsgIndexResponse);
 
-  // SkipEventTx defines an operation for recording a skipped event tx.
+  // SkippedEventTx defines an operation for recording a skipped event tx.
   rpc SkippedEventTx(MsgSkippedEventTx) returns (MsgSkippedEventTxResponse);
 }
 
