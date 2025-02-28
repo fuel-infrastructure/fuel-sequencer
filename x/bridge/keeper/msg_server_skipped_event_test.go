@@ -18,11 +18,6 @@ func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 	heightToAvoidSupplyDelta := int64(999)
 	heightForSupplyDelta := int64(testtypes.TestSupplyDeltaPeriod)
 
-	// // Get Ethereum block synced event type
-	// skippedEvent, err := sdk.TypedEventToEvent(&types.MsgSkippedEventTx{})
-	// s.Require().NoError(err)
-	// skippedEventType := skippedEvent.Type
-
 	testCases := []struct {
 		name                   string
 		supplyDeltaPeriod      uint64
