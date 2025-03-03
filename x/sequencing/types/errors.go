@@ -8,7 +8,7 @@ import (
 
 // x/sequencing module sentinel errors
 var (
-	ErrInvalidSigner       = sdkerrors.Register(ModuleName, 1100, "invalid signer")
+	ErrInvalidSigner       = sdkerrors.Register(ModuleName, 1100, "expected gov account as only signer for proposal message")
 	ErrSenderNotOwner      = sdkerrors.Register(ModuleName, 1101, "message sender not owner")
 	ErrOrderNotMatching    = sdkerrors.Register(ModuleName, 1102, "order doesn't match")
 	ErrDataTooBig          = sdkerrors.Register(ModuleName, 1103, "data from message too big")

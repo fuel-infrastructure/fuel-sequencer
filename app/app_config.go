@@ -9,10 +9,6 @@ import (
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module" // import for side-effects
 	sequencingmoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
-	reportsmodulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/reports/module"
-	_ "github.com/fuel-infrastructure/fuel-sequencer/x/reports/module" // import for side-effects
-	reportsmoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
-
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
@@ -72,7 +68,6 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
-		reportsmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -93,7 +88,6 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName, // Must be after modules that can change supply, since it tracks supply changes.
 		sequencingmoduletypes.ModuleName,
-		reportsmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -105,7 +99,6 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
-		reportsmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -238,10 +231,6 @@ var (
 			{
 				Name:   sequencingmoduletypes.ModuleName,
 				Config: appconfig.WrapAny(&sequencingmodulev1.Module{}),
-			},
-			{
-				Name:   reportsmoduletypes.ModuleName,
-				Config: appconfig.WrapAny(&reportsmodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},

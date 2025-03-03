@@ -1,7 +1,5 @@
 package types
 
-// this line is used by starport scaffolding # genesis/types/import
-
 import (
 	"encoding/hex"
 )
@@ -22,7 +20,7 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 
-	// Check for duplicated ids in TopicList
+	// Check for duplicated ids in topic
 	uniqueTopics := make(map[string]bool)
 
 	for _, t := range gs.TopicList {

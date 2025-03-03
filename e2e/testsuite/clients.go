@@ -14,13 +14,11 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
-	reportstypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -40,13 +38,11 @@ type GRPCClients struct {
 	ConsensusQueryClient    consensustypes.QueryClient
 	StakingQueryClient      stakingtypes.QueryClient
 	MintQueryClient         minttypes.QueryClient
-	SlashingQueryClient     slashingtypes.QueryClient
 
 	// Custom query clients
 	BridgeQueryClient      bridgetypes.QueryClient
 	SequencingQueryClient  sequencingtypes.QueryClient
 	CommitmentsQueryClient commitmentstypes.QueryClient
-	ReportsQueryClient     reportstypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -83,11 +79,9 @@ func (s *E2ETestSuite) initGRPCClients() {
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
 		CommitmentsQueryClient:  commitmentstypes.NewQueryClient(grpcConn),
-		ReportsQueryClient:      reportstypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
 		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
 		MintQueryClient:         minttypes.NewQueryClient(grpcConn),
-		SlashingQueryClient:     slashingtypes.NewQueryClient(grpcConn),
 	}
 }
 

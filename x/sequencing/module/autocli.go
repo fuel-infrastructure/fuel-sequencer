@@ -19,12 +19,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				},
 				{
 					RpcMethod: "TopicAll",
-					Use:       "topics",
-					Short:     "Lists all topics",
+					Use:       "list-topic",
+					Short:     "List all topic",
 				},
 				{
 					RpcMethod:      "Topic",
-					Use:            "topic [id]",
+					Use:            "show-topic [id]",
 					Short:          "Shows a topic",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "id"}},
 				},
