@@ -10,8 +10,4 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/reports/typ
 message Params {
   option (amino.name) = "fuelsequencer/x/reports/Params";
   option (gogoproto.equal) = true;
-
-  // max_slash_report_age_blocks determines for how many blocks a slash report
-  // will be kept in state before it gets removed by the EndBlocker.
-  uint64 max_slash_report_age_blocks = 1;
 }

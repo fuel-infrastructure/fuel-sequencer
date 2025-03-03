@@ -798,16 +798,6 @@ paths:
               params:
                 description: params holds all the parameters of this module.
                 type: object
-                properties:
-                  max_slash_report_age_blocks:
-                    type: string
-                    format: uint64
-                    description: >-
-                      max_slash_report_age_blocks determines for how many blocks
-                      a slash report
-
-                      will be kept in state before it gets removed by the
-                      EndBlocker.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -31710,15 +31700,6 @@ definitions:
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.reports.Params:
     type: object
-    properties:
-      max_slash_report_age_blocks:
-        type: string
-        format: uint64
-        description: >-
-          max_slash_report_age_blocks determines for how many blocks a slash
-          report
-
-          will be kept in state before it gets removed by the EndBlocker.
     description: Params defines the parameters for the module.
   fuelsequencer.reports.SlashEntry:
     type: object
@@ -32026,15 +32007,6 @@ definitions:
       params:
         description: params holds all the parameters of this module.
         type: object
-        properties:
-          max_slash_report_age_blocks:
-            type: string
-            format: uint64
-            description: >-
-              max_slash_report_age_blocks determines for how many blocks a slash
-              report
-
-              will be kept in state before it gets removed by the EndBlocker.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.commitments.BinaryMerkleProof:
     type: object

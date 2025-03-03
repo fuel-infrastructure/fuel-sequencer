@@ -22,7 +22,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				Params:          types.DefaultParams(),
+				Params:          types.NewParams(),
 				SlashReportList: []types.SlashReport{testtypes.ValidSlashReport1, testtypes.ValidSlashReport2},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
@@ -31,18 +31,27 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated SlashReport",
 			genState: &types.GenesisState{
-				Params:          types.DefaultParams(),
+				Params:          types.NewParams(),
 				SlashReportList: []types.SlashReport{testtypes.ValidSlashReport1, testtypes.ValidSlashReport1},
 			},
 			valid: false,
 		},
-		{
-			desc: "params not set",
-			genState: &types.GenesisState{
-				SlashReportList: []types.SlashReport{testtypes.ValidSlashReport1, testtypes.ValidSlashReport2},
-			},
-			valid: false,
-		},
+		//{ // TODO: Enable test when params are no longer an empty struct
+		//	desc: "params not set",
+		//	genState: &types.GenesisState{
+		//		SlashReportList: []types.SlashReport{
+		//			{
+		//				Height: 0,
+		//				Entries: []string{"entry1", "entry2"},
+		//			},
+		//			{
+		//				Height: 1,
+		//				Entries: []string{"entry3", "entry4"},
+		//			},
+		//		},
+		//	},
+		//	valid: false,
+		//},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	}
 	for _, tc := range tests {
