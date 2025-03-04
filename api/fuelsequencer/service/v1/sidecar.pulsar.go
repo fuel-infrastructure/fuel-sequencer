@@ -1033,14 +1033,14 @@ func (x *fastReflection_Event) Range(f func(protoreflect.FieldDescriptor, protor
 			return
 		}
 	}
-	if x.LogIndex != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.LogIndex)
+	if x.LogIndex != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.LogIndex)
 		if !f(fd_Event_log_index, value) {
 			return
 		}
 	}
-	if x.TxIndex != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.TxIndex)
+	if x.TxIndex != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.TxIndex)
 		if !f(fd_Event_tx_index, value) {
 			return
 		}
@@ -1073,9 +1073,9 @@ func (x *fastReflection_Event) Has(fd protoreflect.FieldDescriptor) bool {
 	case "fuelsequencer.service.v1.Event.contract_address":
 		return x.ContractAddress != ""
 	case "fuelsequencer.service.v1.Event.log_index":
-		return x.LogIndex != uint32(0)
+		return x.LogIndex != uint64(0)
 	case "fuelsequencer.service.v1.Event.tx_index":
-		return x.TxIndex != uint32(0)
+		return x.TxIndex != uint64(0)
 	case "fuelsequencer.service.v1.Event.tx_hash":
 		return x.TxHash != ""
 	default:
@@ -1101,9 +1101,9 @@ func (x *fastReflection_Event) Clear(fd protoreflect.FieldDescriptor) {
 	case "fuelsequencer.service.v1.Event.contract_address":
 		x.ContractAddress = ""
 	case "fuelsequencer.service.v1.Event.log_index":
-		x.LogIndex = uint32(0)
+		x.LogIndex = uint64(0)
 	case "fuelsequencer.service.v1.Event.tx_index":
-		x.TxIndex = uint32(0)
+		x.TxIndex = uint64(0)
 	case "fuelsequencer.service.v1.Event.tx_hash":
 		x.TxHash = ""
 	default:
@@ -1133,10 +1133,10 @@ func (x *fastReflection_Event) Get(descriptor protoreflect.FieldDescriptor) prot
 		return protoreflect.ValueOfString(value)
 	case "fuelsequencer.service.v1.Event.log_index":
 		value := x.LogIndex
-		return protoreflect.ValueOfUint32(value)
+		return protoreflect.ValueOfUint64(value)
 	case "fuelsequencer.service.v1.Event.tx_index":
 		value := x.TxIndex
-		return protoreflect.ValueOfUint32(value)
+		return protoreflect.ValueOfUint64(value)
 	case "fuelsequencer.service.v1.Event.tx_hash":
 		value := x.TxHash
 		return protoreflect.ValueOfString(value)
@@ -1167,9 +1167,9 @@ func (x *fastReflection_Event) Set(fd protoreflect.FieldDescriptor, value protor
 	case "fuelsequencer.service.v1.Event.contract_address":
 		x.ContractAddress = value.Interface().(string)
 	case "fuelsequencer.service.v1.Event.log_index":
-		x.LogIndex = uint32(value.Uint())
+		x.LogIndex = value.Uint()
 	case "fuelsequencer.service.v1.Event.tx_index":
-		x.TxIndex = uint32(value.Uint())
+		x.TxIndex = value.Uint()
 	case "fuelsequencer.service.v1.Event.tx_hash":
 		x.TxHash = value.Interface().(string)
 	default:
@@ -1224,9 +1224,9 @@ func (x *fastReflection_Event) NewField(fd protoreflect.FieldDescriptor) protore
 	case "fuelsequencer.service.v1.Event.contract_address":
 		return protoreflect.ValueOfString("")
 	case "fuelsequencer.service.v1.Event.log_index":
-		return protoreflect.ValueOfUint32(uint32(0))
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.service.v1.Event.tx_index":
-		return protoreflect.ValueOfUint32(uint32(0))
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.service.v1.Event.tx_hash":
 		return protoreflect.ValueOfString("")
 	default:
@@ -1548,7 +1548,7 @@ func (x *fastReflection_Event) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.LogIndex |= uint32(b&0x7F) << shift
+					x.LogIndex |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -1567,7 +1567,7 @@ func (x *fastReflection_Event) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.TxIndex |= uint32(b&0x7F) << shift
+					x.TxIndex |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -1736,8 +1736,8 @@ type Event struct {
 	EventType       string `protobuf:"bytes,1,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
 	Data            []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 	ContractAddress string `protobuf:"bytes,3,opt,name=contract_address,json=contractAddress,proto3" json:"contract_address,omitempty"`
-	LogIndex        uint32 `protobuf:"varint,4,opt,name=log_index,json=logIndex,proto3" json:"log_index,omitempty"`
-	TxIndex         uint32 `protobuf:"varint,5,opt,name=tx_index,json=txIndex,proto3" json:"tx_index,omitempty"`
+	LogIndex        uint64 `protobuf:"varint,4,opt,name=log_index,json=logIndex,proto3" json:"log_index,omitempty"`
+	TxIndex         uint64 `protobuf:"varint,5,opt,name=tx_index,json=txIndex,proto3" json:"tx_index,omitempty"`
 	TxHash          string `protobuf:"bytes,6,opt,name=tx_hash,json=txHash,proto3" json:"tx_hash,omitempty"`
 }
 
@@ -1782,14 +1782,14 @@ func (x *Event) GetContractAddress() string {
 	return ""
 }
 
-func (x *Event) GetLogIndex() uint32 {
+func (x *Event) GetLogIndex() uint64 {
 	if x != nil {
 		return x.LogIndex
 	}
 	return 0
 }
 
-func (x *Event) GetTxIndex() uint32 {
+func (x *Event) GetTxIndex() uint64 {
 	if x != nil {
 		return x.TxIndex
 	}
@@ -1832,8 +1832,8 @@ var file_fuelsequencer_service_v1_sidecar_proto_rawDesc = []byte{
 	0x63, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x0f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
 	0x73, 0x12, 0x1b, 0x0a, 0x09, 0x6c, 0x6f, 0x67, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x04,
-	0x20, 0x01, 0x28, 0x0d, 0x52, 0x08, 0x6c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x19,
-	0x0a, 0x08, 0x74, 0x78, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0d,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x08, 0x6c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x19,
+	0x0a, 0x08, 0x74, 0x78, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04,
 	0x52, 0x07, 0x74, 0x78, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x17, 0x0a, 0x07, 0x74, 0x78, 0x5f,
 	0x68, 0x61, 0x73, 0x68, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74, 0x78, 0x48, 0x61,
 	0x73, 0x68, 0x32, 0xb7, 0x01, 0x0a, 0x07, 0x53, 0x69, 0x64, 0x65, 0x63, 0x61, 0x72, 0x12, 0xab,

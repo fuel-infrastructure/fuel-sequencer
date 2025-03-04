@@ -32,7 +32,7 @@ message Event {
   string event_type = 1;
   bytes data = 2;
   string contract_address = 3;
-  uint32 log_index = 4;
-  uint32 tx_index = 5;
+  uint64 log_index = 4;
+  uint64 tx_index = 5;
   string tx_hash = 6;
 }

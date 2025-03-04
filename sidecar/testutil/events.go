@@ -47,7 +47,7 @@ func EventFromDepositEvent(t *testing.T, depositEvent sidecartypes.DepositEvent)
 }
 
 func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
-	event.LogIndex = uint32(logIndex)
-	event.TxIndex = uint32(txIndex)
+	event.LogIndex = uint64(logIndex)
+	event.TxIndex = uint64(txIndex)
 	event.TxHash = txHash.String()
 }

@@ -8,7 +8,7 @@ import (
 
 var _ sdk.Msg = &MsgSkippedEventTx{}
 
-func NewMsgSkippedEventTx(authority string, reasonForSkip string, ethBlockNumber uint64, ethLogIndex uint32, ethTxIndex uint32, ethTxHash string) *MsgSkippedEventTx {
+func NewMsgSkippedEventTx(authority string, reasonForSkip string, ethBlockNumber uint64, ethLogIndex uint64, ethTxIndex uint64, ethTxHash string) *MsgSkippedEventTx {
 	return &MsgSkippedEventTx{
 		Authority:      authority,
 		ReasonForSkip:  reasonForSkip,

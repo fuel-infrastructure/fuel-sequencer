@@ -5029,14 +5029,14 @@ func (x *fastReflection_MsgSkippedEventTx) Range(f func(protoreflect.FieldDescri
 			return
 		}
 	}
-	if x.EthLogIndex != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.EthLogIndex)
+	if x.EthLogIndex != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.EthLogIndex)
 		if !f(fd_MsgSkippedEventTx_eth_log_index, value) {
 			return
 		}
 	}
-	if x.EthTxIndex != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.EthTxIndex)
+	if x.EthTxIndex != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.EthTxIndex)
 		if !f(fd_MsgSkippedEventTx_eth_tx_index, value) {
 			return
 		}
@@ -5069,9 +5069,9 @@ func (x *fastReflection_MsgSkippedEventTx) Has(fd protoreflect.FieldDescriptor) 
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_block_number":
 		return x.EthBlockNumber != uint64(0)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_log_index":
-		return x.EthLogIndex != uint32(0)
+		return x.EthLogIndex != uint64(0)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_index":
-		return x.EthTxIndex != uint32(0)
+		return x.EthTxIndex != uint64(0)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_hash":
 		return x.EthTxHash != ""
 	default:
@@ -5097,9 +5097,9 @@ func (x *fastReflection_MsgSkippedEventTx) Clear(fd protoreflect.FieldDescriptor
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_block_number":
 		x.EthBlockNumber = uint64(0)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_log_index":
-		x.EthLogIndex = uint32(0)
+		x.EthLogIndex = uint64(0)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_index":
-		x.EthTxIndex = uint32(0)
+		x.EthTxIndex = uint64(0)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_hash":
 		x.EthTxHash = ""
 	default:
@@ -5129,10 +5129,10 @@ func (x *fastReflection_MsgSkippedEventTx) Get(descriptor protoreflect.FieldDesc
 		return protoreflect.ValueOfUint64(value)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_log_index":
 		value := x.EthLogIndex
-		return protoreflect.ValueOfUint32(value)
+		return protoreflect.ValueOfUint64(value)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_index":
 		value := x.EthTxIndex
-		return protoreflect.ValueOfUint32(value)
+		return protoreflect.ValueOfUint64(value)
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_hash":
 		value := x.EthTxHash
 		return protoreflect.ValueOfString(value)
@@ -5163,9 +5163,9 @@ func (x *fastReflection_MsgSkippedEventTx) Set(fd protoreflect.FieldDescriptor, 
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_block_number":
 		x.EthBlockNumber = value.Uint()
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_log_index":
-		x.EthLogIndex = uint32(value.Uint())
+		x.EthLogIndex = value.Uint()
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_index":
-		x.EthTxIndex = uint32(value.Uint())
+		x.EthTxIndex = value.Uint()
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_hash":
 		x.EthTxHash = value.Interface().(string)
 	default:
@@ -5220,9 +5220,9 @@ func (x *fastReflection_MsgSkippedEventTx) NewField(fd protoreflect.FieldDescrip
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_block_number":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_log_index":
-		return protoreflect.ValueOfUint32(uint32(0))
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_index":
-		return protoreflect.ValueOfUint32(uint32(0))
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.bridge.v1.MsgSkippedEventTx.eth_tx_hash":
 		return protoreflect.ValueOfString("")
 	default:
@@ -5526,7 +5526,7 @@ func (x *fastReflection_MsgSkippedEventTx) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.EthLogIndex |= uint32(b&0x7F) << shift
+					x.EthLogIndex |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -5545,7 +5545,7 @@ func (x *fastReflection_MsgSkippedEventTx) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.EthTxIndex |= uint32(b&0x7F) << shift
+					x.EthTxIndex |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -6475,10 +6475,10 @@ type MsgSkippedEventTx struct {
 	EthBlockNumber uint64 `protobuf:"varint,3,opt,name=eth_block_number,json=ethBlockNumber,proto3" json:"eth_block_number,omitempty"`
 	// eth_log_index is the index of the Ethereum log corresponding to the skipped
 	// event tx.
-	EthLogIndex uint32 `protobuf:"varint,4,opt,name=eth_log_index,json=ethLogIndex,proto3" json:"eth_log_index,omitempty"`
+	EthLogIndex uint64 `protobuf:"varint,4,opt,name=eth_log_index,json=ethLogIndex,proto3" json:"eth_log_index,omitempty"`
 	// eth_tx_index is the index of the Ethereum tx corresponding to the skipped
 	// event tx.
-	EthTxIndex uint32 `protobuf:"varint,5,opt,name=eth_tx_index,json=ethTxIndex,proto3" json:"eth_tx_index,omitempty"`
+	EthTxIndex uint64 `protobuf:"varint,5,opt,name=eth_tx_index,json=ethTxIndex,proto3" json:"eth_tx_index,omitempty"`
 	// eth_tx_hash is the hash of the Ethereum tx corresponding to the skipped
 	// event tx.
 	EthTxHash string `protobuf:"bytes,6,opt,name=eth_tx_hash,json=ethTxHash,proto3" json:"eth_tx_hash,omitempty"`
@@ -6525,14 +6525,14 @@ func (x *MsgSkippedEventTx) GetEthBlockNumber() uint64 {
 	return 0
 }
 
-func (x *MsgSkippedEventTx) GetEthLogIndex() uint32 {
+func (x *MsgSkippedEventTx) GetEthLogIndex() uint64 {
 	if x != nil {
 		return x.EthLogIndex
 	}
 	return 0
 }
 
-func (x *MsgSkippedEventTx) GetEthTxIndex() uint32 {
+func (x *MsgSkippedEventTx) GetEthTxIndex() uint64 {
 	if x != nil {
 		return x.EthTxIndex
 	}
@@ -6674,9 +6674,9 @@ var file_fuelsequencer_bridge_v1_tx_proto_rawDesc = []byte{
 	0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28,
 	0x04, 0x52, 0x0e, 0x65, 0x74, 0x68, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65,
 	0x72, 0x12, 0x22, 0x0a, 0x0d, 0x65, 0x74, 0x68, 0x5f, 0x6c, 0x6f, 0x67, 0x5f, 0x69, 0x6e, 0x64,
-	0x65, 0x78, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0b, 0x65, 0x74, 0x68, 0x4c, 0x6f, 0x67,
+	0x65, 0x78, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0b, 0x65, 0x74, 0x68, 0x4c, 0x6f, 0x67,
 	0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x20, 0x0a, 0x0c, 0x65, 0x74, 0x68, 0x5f, 0x74, 0x78, 0x5f,
-	0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0a, 0x65, 0x74, 0x68,
+	0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a, 0x65, 0x74, 0x68,
 	0x54, 0x78, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x1e, 0x0a, 0x0b, 0x65, 0x74, 0x68, 0x5f, 0x74,
 	0x78, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x65, 0x74,
 	0x68, 0x54, 0x78, 0x48, 0x61, 0x73, 0x68, 0x3a, 0x0e, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75,

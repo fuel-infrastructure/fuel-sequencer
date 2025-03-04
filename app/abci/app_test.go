@@ -166,8 +166,8 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 func (s *AppTestSuite) EncodeMsgSkippedEventTx(
 	reasonForSkip string,
 	blockNumber uint64,
-	logIndex uint32,
-	txIndex uint32,
+	logIndex uint64,
+	txIndex uint64,
 	txHash string,
 	sequence uint64,
 ) (tx []byte) {
