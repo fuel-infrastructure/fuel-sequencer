@@ -585,13 +585,17 @@ type MsgSkippedEventTx struct {
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// reason_for_skip is the reason for skipping the event tx.
 	ReasonForSkip string `protobuf:"bytes,2,opt,name=reason_for_skip,json=reasonForSkip,proto3" json:"reason_for_skip,omitempty"`
-	// eth_block_number is the block number of the tx on Ethereum.
+	// eth_block_number is the Ethereum height corresponding to the skipped event
+	// tx.
 	EthBlockNumber uint64 `protobuf:"varint,3,opt,name=eth_block_number,json=ethBlockNumber,proto3" json:"eth_block_number,omitempty"`
-	// eth_log_index is the index of the log on Ethereum.
+	// eth_log_index is the index of the Ethereum log corresponding to the skipped
+	// event tx.
 	EthLogIndex uint32 `protobuf:"varint,4,opt,name=eth_log_index,json=ethLogIndex,proto3" json:"eth_log_index,omitempty"`
-	// eth_tx_index is the index of the tx on Ethereum.
+	// eth_tx_index is the index of the Ethereum tx corresponding to the skipped
+	// event tx.
 	EthTxIndex uint32 `protobuf:"varint,5,opt,name=eth_tx_index,json=ethTxIndex,proto3" json:"eth_tx_index,omitempty"`
-	// eth_tx_hash is the hash of the tx on Ethereum.
+	// eth_tx_hash is the hash of the Ethereum tx corresponding to the skipped
+	// event tx.
 	EthTxHash string `protobuf:"bytes,6,opt,name=eth_tx_hash,json=ethTxHash,proto3" json:"eth_tx_hash,omitempty"`
 }
 
