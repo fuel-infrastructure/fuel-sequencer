@@ -564,11 +564,11 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 							sidecartypes.GeneratedRawTxBytesExceededMaxBytesError(150, 1),
 							testtypes.TestEventsAuthorizeOnly[0],
 						).Error(),
-						1, // same as height
+						1, // same as height of Ethereum block to query
 						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
 						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
 						testtypes.TestEventsAuthorizeOnly[0].TxHash,
-						2, // msgIndex, supply delta, then this event
+						2, // starting from 1 with msgIndex, then this event
 					),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
@@ -606,7 +606,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
 						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
 						testtypes.TestEventsAuthorizeOnly[0].TxHash,
-						2, // msgIndex, supply delta, then this event
+						2, // starting from 1 with msgIndex, then this event
 					),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],

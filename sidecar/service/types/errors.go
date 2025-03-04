@@ -1,6 +1,6 @@
 package types
 
-import fmt "fmt"
+import "fmt"
 
 const (
 	AuthorizeEventTooManyMessagesStr       = "authorize event has too many messages"

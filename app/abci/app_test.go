@@ -162,7 +162,7 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 	return
 }
 
-// EncodeMsgSkippedEventTx is a helper to encode MsgSkippedEventTx to transaction bytes.
+// EncodeMsgSkippedEventTx is a helper to encode MsgSkippedEventTx as transaction bytes.
 func (s *AppTestSuite) EncodeMsgSkippedEventTx(
 	reasonForSkip string,
 	blockNumber uint64,

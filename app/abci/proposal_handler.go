@@ -633,7 +633,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	// Sanity check: number of events equal generated txs
 	if len(eventTxs) != len(events) {
 		return nil, nil, fmt.Errorf(
-			"mismatch between number of events to be injected and number of generated txs; had: %d, got: %d",
+			"mismatch between no. of events to be injected and no. of events extracted from Ethereum; had: %d, got: %d",
 			len(events), len(eventTxs),
 		)
 	}
