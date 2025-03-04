@@ -615,6 +615,47 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 		},
 		{
+			name:                      "heavy usage - returns all event & sequencer-native txs if right on limits",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponse, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), // All transactions should exactly fit
+				Txs:        encodedDummyTxs,
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
+			maxAuthorizeMessages:         testtypes.TestMaxAuthorizeMessages,
+
+			// Calculate the percentage of block space that dummy txs will take to compute the correct limit.
+			sequencerTxsAllocation: sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(utils.TxsSize(
+					append(
+						[][]byte{},
+						encodedDummyTxs[0],
+						encodedDummyTxs[1],
+						encodedDummyTxs[2],
+					),
+				), 10),
+			).Quo(sdkmath.LegacyMustNewDecFromStr(
+				strconv.FormatUint(totalTxsBytesWithEventsAndSupplyDelta, 10),
+			)),
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithEvents(true),
+					msgSupplyDeltaTx,
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
 			name: "heavy usage - allocates limited space for sequencer-native txs if too many " +
 				"events",
 			expQueryBlockEventsCalled: 1,
