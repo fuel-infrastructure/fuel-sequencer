@@ -16,7 +16,7 @@ func (e *authorizeEventTooManyMessagesError) Error() string {
 	return fmt.Sprintf("%s; %d > %d", AuthorizeEventTooManyMessagesStr, e.actual, e.expected)
 }
 
-func AuthorizeEventTooManyMessagesError(actual, expected uint64) error {
+func NewAuthorizeEventTooManyMessagesError(actual, expected uint64) error {
 	return &authorizeEventTooManyMessagesError{actual: actual, expected: expected}
 }
 
@@ -29,6 +29,6 @@ func (e *generatedRawTxBytesExceededMaxBytesError) Error() string {
 	return fmt.Sprintf("%s; %d > %d", GeneratedRawTxBytesExceededMaxBytesStr, e.txSize, e.maxBytes)
 }
 
-func GeneratedRawTxBytesExceededMaxBytesError(txSize, maxBytes uint64) error {
+func NewGeneratedRawTxBytesExceededMaxBytesError(txSize, maxBytes uint64) error {
 	return &generatedRawTxBytesExceededMaxBytesError{txSize: txSize, maxBytes: maxBytes}
 }

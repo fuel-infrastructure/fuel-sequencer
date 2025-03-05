@@ -502,7 +502,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Txs: append(
 					encodedMsgIndexWithSkippedEvent(false),
 					s.EncodeMsgSkippedEventTx(
-						abci.WrappedFailureToEncodeEventAsRawTxBytes(
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
 							fmt.Errorf("proto: illegal wireType 7"),
 							testtypes.TestEventsInvalidAuthorize[0],
 						).Error(),
@@ -560,8 +560,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Txs: append(
 					encodedMsgIndexWithSkippedEvent(false),
 					s.EncodeMsgSkippedEventTx(
-						abci.WrappedFailureToEncodeEventAsRawTxBytes(
-							sidecartypes.GeneratedRawTxBytesExceededMaxBytesError(150, 1),
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
+							sidecartypes.NewGeneratedRawTxBytesExceededMaxBytesError(150, 1),
 							testtypes.TestEventsAuthorizeOnly[0],
 						).Error(),
 						1, // same as height of Ethereum block to query
@@ -598,8 +598,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Txs: append(
 					encodedMsgIndexWithSkippedEvent(false),
 					s.EncodeMsgSkippedEventTx(
-						abci.WrappedFailureToEncodeEventAsRawTxBytes(
-							sidecartypes.AuthorizeEventTooManyMessagesError(1, 0),
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
+							sidecartypes.NewAuthorizeEventTooManyMessagesError(1, 0),
 							testtypes.TestEventsAuthorizeOnly[0],
 						).Error(),
 						1, // same as height

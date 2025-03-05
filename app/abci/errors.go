@@ -17,7 +17,10 @@ type failedToEncodeEventAsRawTxBytesError struct {
 	event *sidecartypes.Event
 }
 
-func WrappedFailureToEncodeEventAsRawTxBytes(err error, event *sidecartypes.Event) *failedToEncodeEventAsRawTxBytesError {
+func NewFailedToEncodeEventAsRawTxBytesError(
+	err error,
+	event *sidecartypes.Event,
+) *failedToEncodeEventAsRawTxBytesError {
 	return &failedToEncodeEventAsRawTxBytesError{
 		err:   err,
 		event: event,
