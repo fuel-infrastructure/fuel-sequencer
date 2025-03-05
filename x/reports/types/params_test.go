@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
 func TestParams_Validate(t *testing.T) {

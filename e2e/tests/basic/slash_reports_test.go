@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	reportstypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )

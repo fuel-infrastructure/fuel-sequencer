@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )

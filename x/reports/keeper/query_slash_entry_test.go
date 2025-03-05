@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"testing"
 
-	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
 func TestQuerySlashEntry(t *testing.T) {

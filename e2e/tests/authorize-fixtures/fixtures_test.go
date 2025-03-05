@@ -9,6 +9,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 

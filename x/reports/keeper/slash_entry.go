@@ -10,6 +10,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 

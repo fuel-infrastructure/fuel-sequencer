@@ -2,19 +2,21 @@
 package sequencingv1
 
 import (
-	_ "cosmossdk.io/api/amino"
-	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-proto"
-	runtime "github.com/cosmos/cosmos-proto/runtime"
-	_ "github.com/cosmos/gogoproto/gogoproto"
-	sequencing "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoiface "google.golang.org/protobuf/runtime/protoiface"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	io "io"
 	reflect "reflect"
 	sync "sync"
+
+	_ "cosmossdk.io/api/amino"
+	_ "cosmossdk.io/api/cosmos/msg/v1"
+	_ "github.com/cosmos/cosmos-proto"
+	runtime "github.com/cosmos/cosmos-proto/runtime"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoiface "google.golang.org/protobuf/runtime/protoiface"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	sequencing "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing"
 )
 
 var (

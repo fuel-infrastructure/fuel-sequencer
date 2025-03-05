@@ -11,10 +11,11 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
+	"go.uber.org/zap"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sequencerclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
-	"go.uber.org/zap"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )

@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 )

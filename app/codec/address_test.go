@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/stretchr/testify/require"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestStringToBytes_ComputesExpectedBytesForHex(t *testing.T) {

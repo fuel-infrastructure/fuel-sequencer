@@ -12,10 +12,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
+
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 )
 
 // EthRpcClient extends the EthWrappedClient with RPC calls.
