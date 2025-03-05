@@ -11,7 +11,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -92,7 +91,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Inject MsgSupplyDeltaTx if expected at current height
 		supplyDeltaBytesSize := uint64(0)
 		if injectMsgSupplyDelta {
-			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx(supplyDeltaSequence)
+			supplyDeltaBytes, err := bridgetypes.NewMsgSupplyDelta(
+				h.bridgeKeeper.GetAuthority(),
+			).RawTxBytes(supplyDeltaSequence)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate msg supply delta tx: %w", err)
 			}
@@ -641,19 +642,6 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 	return
 }
 
-func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx(sequence uint64) ([]byte, error) {
-
-	// Construct Any from message.
-	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(&bridgetypes.MsgSupplyDelta{
-		Authority: h.bridgeKeeper.GetAuthority(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSupplyDeltaAny}, sequence)
-}
-
 // verifyInjectedMsgIndexTx is used by ProcessProposal to check whether MsgIndexTx was injected properly.
 func (h *FuelSequencerProposalHandler) verifyInjectedMsgIndexTx(
 	injectedMsgIndexTx []byte,
@@ -713,7 +701,9 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 	}
 	injectedMsgSupplyDeltaTx := txs[msgSupplyDeltaIndex]
 
-	generatedMsgSupplyDeltaTx, err := h.generateMsgSupplyDeltaTx(expectedSequence)
+	generatedMsgSupplyDeltaTx, err := bridgetypes.NewMsgSupplyDelta(
+		h.bridgeKeeper.GetAuthority(),
+	).RawTxBytes(expectedSequence)
 	if err != nil {
 		return fmt.Errorf("failed to generate MsgSupplyDelta tx: %w", err)
 	}
