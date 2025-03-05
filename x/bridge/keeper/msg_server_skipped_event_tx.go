@@ -23,7 +23,13 @@ func (k msgServer) SkippedEventTx(goCtx context.Context, msg *types.MsgSkippedEv
 }
 
 func (k msgServer) skippedEventTx(ctx sdk.Context, msg *types.MsgSkippedEventTx) (*types.MsgSkippedEventTxResponse, error) {
-	err := ctx.EventManager().EmitTypedEvent(msg)
+	err := ctx.EventManager().EmitTypedEvent(&types.EventSkippedEventTx{
+		ReasonForSkip:  msg.ReasonForSkip,
+		EthBlockNumber: msg.EthBlockNumber,
+		EthLogIndex:    msg.EthLogIndex,
+		EthTxIndex:     msg.EthTxIndex,
+		EthTxHash:      msg.EthTxHash,
+	})
 	if err != nil {
 		return nil, err
 	}
