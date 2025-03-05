@@ -34,10 +34,5 @@ func (m *MsgSkippedEventTx) RawTxBytes(sequence uint64) ([]byte, error) {
 		return nil, err
 	}
 
-	msgSkippedEventTxBz, err := utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSkippedEventTxAny}, sequence)
-	if err != nil {
-		return nil, err
-	}
-
-	return msgSkippedEventTxBz, nil
+	return utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSkippedEventTxAny}, sequence)
 }
