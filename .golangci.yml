@@ -16,6 +16,8 @@ linters-settings:
 
 issues:
   exclude-rules:
+    # NOTE: Regex is RE2 (Golang engine), escaped for YAML
+    #
     # Exclude paths which should not be linted; generated code, etc.
     - path: \.pb\.go$
       linters:
@@ -45,4 +47,10 @@ issues:
         - lll  # Don't enforce line length for encoded tx data
     - source: ".*https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*).*"
       linters:
-        - lll  # Don't enforce line length for encoded tx data
+        - lll  # Don't enforce line length for URLs
+    - source: "\\s+[A-Z][A-Za-z]+:\\s+.*//.*"
+      linters:
+        - lll  # Don't enforce line length of public struct field instances with comments
+    - source: "\\s+[A-Z][A-Za-z]+\\s+.*\\s+`.*`"
+      linters:
+        - lll  # Don't enforce line length for struct tags
