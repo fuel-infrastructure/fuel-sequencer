@@ -20,6 +20,12 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
+	event.LogIndex = uint64(logIndex)
+	event.TxIndex = uint64(txIndex)
+	event.TxHash = txHash.String()
+}
+
 // AuthorizeTxFromMsg packs a message into an AuthorizeTx which the Sequencer can then unpack.
 func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
 	anyMsgs, err := sidecartypes.NewAnysWithValue(msg)
@@ -45,9 +51,7 @@ func ExtractLogDataToEvent(
 	var event sidecartypes.Event
 	var err error
 
-	event.TxHash = vLog.TxHash.Hex()
-	event.TxIndex = uint64(vLog.TxIndex)
-	event.LogIndex = uint64(vLog.Index)
+	PopulateEventTxMapping(&event, vLog.Index, vLog.TxIndex, vLog.TxHash)
 
 	switch vLog.Topics[0].Hex() {
 	case sidecartypes.DepositEventHashFn:

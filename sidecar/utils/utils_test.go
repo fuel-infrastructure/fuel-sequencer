@@ -236,7 +236,7 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			matches := 0
 			for _, log := range parsedLog {
 				// TxMapping details differ across each generation; copy them from fixtures here.
-				testutil.PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
+				PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
 
 				event, err := ExtractLogDataToEvent(log, sequencerProxyABI, fixtures.BridgeDenom)
 				if tc.expErrMsg != "" {

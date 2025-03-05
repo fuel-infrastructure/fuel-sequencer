@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/ethereum/go-ethereum/common"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil/fixtures"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -44,10 +43,4 @@ func EventFromDepositEvent(t *testing.T, depositEvent sidecartypes.DepositEvent)
 		Data:            depositEventBz,
 		ContractAddress: fixtures.SequencerProxyContractAddress,
 	}
-}
-
-func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
-	event.LogIndex = uint64(logIndex)
-	event.TxIndex = uint64(txIndex)
-	event.TxHash = txHash.String()
 }
