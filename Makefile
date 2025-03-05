@@ -470,11 +470,26 @@ else
 	@echo "✅ Found docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME}"
 endif
 
+# Safely initialize submodules without recursion
+# Note: We explicitly set the nested submodules (lib/bridge, lib/sequencer) to their pinned commits
+# to ensure they match exactly what the parent submodule (fuel-rollup) expects
+init-submodules:
+	@echo "🤖 Updating git submodules (fuel-rollup)..."
+	@git submodule update --init --remote --depth 1 $(ROLLUP_DIR)
+	@pushd $(ROLLUP_DIR) > /dev/null && \
+		git submodule update --init --depth 1 lib/bridge lib/sequencer && \
+		pushd lib/bridge > /dev/null && \
+		git checkout $$(git -C $(CURDIR)/$(ROLLUP_DIR) ls-tree HEAD lib/bridge | awk '{print $$3}') && \
+		popd > /dev/null && \
+		pushd lib/sequencer > /dev/null && \
+		git checkout $$(git -C $(CURDIR)/$(ROLLUP_DIR) ls-tree HEAD lib/sequencer | awk '{print $$3}') && \
+		popd > /dev/null && \
+		popd > /dev/null
+	@echo "✅ Finished updating submodules!"
+
 # Builds contract deployment container for automated E2E tests
 # Note: this assumes evm_setIntervalMining is set to 3.
-build-eth-deployment-docker-image: $(ROLLUP_DIR)/.npmrc
-	@echo "🤖 Updating git submodules (fuel-rollup)..."
-	@git submodule update --init --remote $(ROLLUP_DIR)
+build-eth-deployment-docker-image: init-submodules
 	@echo "🤖 Building Docker image..."
 	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
@@ -483,6 +498,9 @@ build-eth-deployment-docker-image: $(ROLLUP_DIR)/.npmrc
 		$(ROLLUP_DIR)
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
 	@git submodule update --remote $(ROLLUP_DIR)
+	@pushd $(ROLLUP_DIR) > /dev/null && \
+		git submodule update --depth 1 lib/bridge lib/sequencer && \
+		popd > /dev/null
 	@echo "✅ Finished!"
 
 # Runs node and contract deployment containers
