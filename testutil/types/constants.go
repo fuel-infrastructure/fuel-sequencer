@@ -493,7 +493,7 @@ var (
 			NewEthereumBlock:    true,
 			BlockNumber:         1,
 		},
-		Events: nil,
+		Events: nil, // events were skipped, and this case should generate skipped event txs accordingly
 	}
 
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
