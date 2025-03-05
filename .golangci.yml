@@ -1,0 +1,48 @@
+linters:
+  enable:
+    - lll
+    - gofmt
+    - goimports
+    - govet
+    - gosimple
+    - staticcheck
+    - ineffassign
+    - unused
+    - misspell
+
+linters-settings:
+  lll:
+    line-length: 120
+
+issues:
+  exclude-rules:
+    # Exclude paths which should not be linted; generated code, etc.
+    - path: \.pb\.go$
+      linters:
+        - lll  # Don't enforce line length in generated protobuf files
+    - path: \.pb\.gw\.go$
+      linters:
+        - lll  # Don't enforce line length in generated protobuf gateway files
+    - path: \.pulsar\.go$
+      linters:
+        - lll  # Don't enforce line length in generated pulsar files
+
+    # Rules within source code
+    - source: "[A-Za-z][A-Za-z]+ContractABI\\s+=\\s+`.*`"
+      linters:
+        - lll  # Don't enforce line length in Contract ABIs
+    - source: "[A-Za-z][A-Za-z]+Logs\\s+=\\s+`.*`"
+      linters:
+        - lll  # Don't enforce line length in Logs (like fixture logs)
+    - source: "data(Hex|Base64)\\s+:=\\s+\".*\""
+      linters:
+        - lll  # Don't enforce line length for hex/base64 data
+    - source: "hexData\\s+:=\\s+\".*\""
+      linters:
+        - lll  # Don't enforce line length for hex data
+    - source: "\\((?:injected|generated): [0-9A-F]+\\)"
+      linters:
+        - lll  # Don't enforce line length for encoded tx data
+    - source: ".*https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*).*"
+      linters:
+        - lll  # Don't enforce line length for encoded tx data

@@ -343,12 +343,12 @@ gosec:
 
 lint:
 	@echo "🔎 Running linter..."
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
 	@echo "✅ Finished running linter!"
 
 format:
 	@echo "🔎 Running formatter..."
-	@gofmt -s -w .
+	@goimports -w -local github.com/fuel-infrastructure/fuel-sequencer .
 	@echo "✅ Finished running formatter!"
 
 ###############################################################################
