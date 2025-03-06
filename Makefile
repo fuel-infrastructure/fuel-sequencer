@@ -338,9 +338,13 @@ keys:
 
 ci: proto-routine mocks format lint test-unit gosec
 
+# Multiple go.mod files can confuse gosec; first run for sequencer, then for its e2e
 gosec:
-	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
-
+	@echo "🔎 Running gosec for sequencer..."
+	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=e2e -severity=high ./...
+	@echo "🔎 Running gosec for e2e..."
+	@cd e2e && go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=fuel-rollup -severity=high ./... && cd ..
+	@echo "✅ Finished running gosec!"
 lint:
 	@echo "🔎 Running linter..."
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
