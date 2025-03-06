@@ -10,7 +10,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k Keeper) LastEthereumBlockSynced(goCtx context.Context, req *types.QueryGetLastEthereumBlockSyncedRequest) (*types.QueryGetLastEthereumBlockSyncedResponse, error) {
+func (k Keeper) LastEthereumBlockSynced(
+	goCtx context.Context,
+	req *types.QueryGetLastEthereumBlockSyncedRequest,
+) (*types.QueryGetLastEthereumBlockSyncedResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

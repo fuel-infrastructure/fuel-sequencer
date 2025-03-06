@@ -179,7 +179,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: nil,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(
+					"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+				))
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}
@@ -203,7 +205,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: &expiration,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
+				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(
+					"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+				))
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}

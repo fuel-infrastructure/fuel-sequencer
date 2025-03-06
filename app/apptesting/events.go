@@ -12,7 +12,11 @@ func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected
 }
 
 // AssertEventInEventsList asserts that the events list argument has the given number of events of the given type.
-func (s *KeeperTestHelper) AssertEventInEventsList(events []abci.Event, eventTypeExpected string, numEventsExpected int) {
+func (s *KeeperTestHelper) AssertEventInEventsList(
+	events []abci.Event,
+	eventTypeExpected string,
+	numEventsExpected int,
+) {
 	// filter out other events
 	eventCounter := 0
 	for _, event := range events {

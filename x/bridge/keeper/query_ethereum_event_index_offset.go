@@ -10,7 +10,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k Keeper) EthereumEventIndexOffset(goCtx context.Context, req *types.QueryGetEthereumEventIndexOffsetRequest) (*types.QueryGetEthereumEventIndexOffsetResponse, error) {
+func (k Keeper) EthereumEventIndexOffset(
+	goCtx context.Context,
+	req *types.QueryGetEthereumEventIndexOffsetRequest,
+) (*types.QueryGetEthereumEventIndexOffsetResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

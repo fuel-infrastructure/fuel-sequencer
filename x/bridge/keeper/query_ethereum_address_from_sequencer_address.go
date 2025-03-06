@@ -9,7 +9,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k Keeper) EthereumAddressFromSequencerAddress(_ context.Context, req *types.QueryEthereumAddressFromSequencerAddressRequest) (*types.QueryEthereumAddressFromSequencerAddressResponse, error) {
+func (k Keeper) EthereumAddressFromSequencerAddress(
+	_ context.Context,
+	req *types.QueryEthereumAddressFromSequencerAddressRequest,
+) (*types.QueryEthereumAddressFromSequencerAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

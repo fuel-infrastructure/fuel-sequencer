@@ -10,7 +10,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k Keeper) SupplyDeltaInfo(goCtx context.Context, req *types.QueryGetSupplyDeltaInfoRequest) (*types.QueryGetSupplyDeltaInfoResponse, error) {
+func (k Keeper) SupplyDeltaInfo(
+	goCtx context.Context,
+	req *types.QueryGetSupplyDeltaInfoRequest,
+) (*types.QueryGetSupplyDeltaInfoResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

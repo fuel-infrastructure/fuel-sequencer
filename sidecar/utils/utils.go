@@ -436,7 +436,8 @@ func ValidateIsLogSequential(vLog ethereumtypes.Log, lastBlockNumber *uint64, la
 	currentTxIndex := int(vLog.TxIndex)
 	currentLogIndex := int(vLog.Index)
 
-	// Initial verification to ascertain that the current block's number sequentially follows the last processed block's number.
+	// Initial verification to ascertain that the current block's number
+	// sequentially follows the last processed block's number.
 	if currentBlockNumber != *lastBlockNumber {
 		if currentBlockNumber < *lastBlockNumber {
 			return fmt.Errorf(
@@ -450,10 +451,12 @@ func ValidateIsLogSequential(vLog ethereumtypes.Log, lastBlockNumber *uint64, la
 		*lastLogIndex = -1
 	}
 
-	// Ensuring within-block log sequentiality by comparing the current log's indices against the last processed log's indices.
+	// Ensuring within-block log sequentiality by comparing the current log's indices
+	// against the last processed log's indices.
 	if currentTxIndex < *lastTxIndex || currentLogIndex <= *lastLogIndex {
 		return fmt.Errorf(
-			"log sequentiality violation within block %d: currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d",
+			("log sequentiality violation within block %d: " +
+				"currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d"),
 			currentBlockNumber, currentTxIndex, *lastTxIndex, currentLogIndex, *lastLogIndex,
 		)
 	}

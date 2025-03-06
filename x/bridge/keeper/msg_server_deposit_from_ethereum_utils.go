@@ -85,8 +85,18 @@ func (k Keeper) processDepositEvent(
 	potentialSequencerAddr, seqErr := k.GenerateSequencerAddressFromEthereumAddress(depositEvent.Depositor)
 
 	// If Recipient is owned by Depositor, send tokens to the address mapped 1-to-1 fom the Depositor Ethereum address.
-	if isRecipientOwnedByDepositor(depositEvent.Depositor, depositEvent.Recipient, potentialSequencerAddr.String(), seqErr) {
-		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, depositEvent.Depositor, vesting, tokensToMint)
+	if isRecipientOwnedByDepositor(
+		depositEvent.Depositor,
+		depositEvent.Recipient,
+		potentialSequencerAddr.String(),
+		seqErr,
+	) {
+		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(
+			ctx,
+			depositEvent.Depositor,
+			vesting,
+			tokensToMint,
+		)
 		if err != nil {
 			k.Logger().Error(
 				"failed to generate sequencer account from ethereum address - minting to gov address",

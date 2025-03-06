@@ -117,7 +117,8 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 			expPanicSpendable:    halfVesting, // half are vested
 		},
 		{
-			name:                  "half way through vesting with some tokens already delegated; can delegate less than half; successful",
+			name: ("half way through vesting with some tokens already delegated; " +
+				"can delegate less than half; successful"),
 			blockTime:             t0Plus6Months,
 			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
@@ -127,7 +128,8 @@ func TestTrackDelegationAndTrackUndelegation(t *testing.T) {
 			expPanic:              false,
 		},
 		{
-			name:                  "half way through vesting with some tokens already delegated; cannot delegate half original vesting; panic",
+			name: ("half way through vesting with some tokens already delegated; " +
+				"cannot delegate half original vesting; panic"),
 			blockTime:             t0Plus6Months,
 			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens

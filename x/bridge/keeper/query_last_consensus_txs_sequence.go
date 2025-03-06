@@ -10,7 +10,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k Keeper) LastConsensusTxsSequence(goCtx context.Context, req *types.QueryGetLastConsensusTxsSequenceRequest) (*types.QueryGetLastConsensusTxsSequenceResponse, error) {
+func (k Keeper) LastConsensusTxsSequence(
+	goCtx context.Context,
+	req *types.QueryGetLastConsensusTxsSequenceRequest,
+) (*types.QueryGetLastConsensusTxsSequenceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
