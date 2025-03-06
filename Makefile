@@ -346,9 +346,22 @@ lint:
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
 	@echo "✅ Finished running linter!"
 
+# Extract and convert excluded paths from .golangci.yml to find-compatible patterns
+# 1. Extract lines with 'path:' that end in '$'
+# 2. Remove 'path:' and whitespace
+# 3. Remove regex end marker '$'
+# 4. Convert '.ext.go$' pattern to '-not -name "*.ext.go"'
+EXCLUDED_PATTERNS := $(shell awk '/path:.*\.go\$$/ { \
+		gsub(/.*path: /, ""); \
+		gsub(/\$$/, ""); \
+		gsub(/\\\./, "."); \
+		printf "-not -name \"*%s\" ", $$0 \
+	}' .golangci.yml)
+
 format:
 	@echo "🔎 Running formatter..."
-	@goimports -w -local github.com/fuel-infrastructure/fuel-sequencer .
+	@find . -type f -name "*.go" $(EXCLUDED_PATTERNS) \
+		| xargs goimports -w -local github.com/fuel-infrastructure/fuel-sequencer
 	@echo "✅ Finished running formatter!"
 
 ###############################################################################
@@ -362,7 +375,7 @@ test-unit:
 
 test-e2e: \
 	check-docker-image-exists \
-	check-eth-deployment-docker-image-exists \
+	check-eth-deployment-docker-image \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
