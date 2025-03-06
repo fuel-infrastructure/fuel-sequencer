@@ -475,6 +475,8 @@ endif
 build-eth-deployment-docker-image: $(ROLLUP_DIR)/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote $(ROLLUP_DIR)
+	@echo "🤖 Building dependencies..."
+	@(cd $(ROLLUP_DIR) && pnpm install && pnpm build)  # @reviewer please confirm if it works without forc installed
 	@echo "🤖 Building Docker image..."
 	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
