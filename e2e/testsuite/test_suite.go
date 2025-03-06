@@ -230,7 +230,7 @@ func (s *E2ETestSuite) SetupTest() {
 	var err error
 	s.Chain, err = newChain(len(MNEMONICS))
 	s.Require().NoError(err)
-	s.dockerPool, err = dockertest.NewPool("unix:///Users/miguel/.docker/run/docker.sock")
+	s.dockerPool, err = dockertest.NewPool("")
 	s.Require().NoError(err)
 	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.Chain.id))
 	s.Require().NoError(err)
