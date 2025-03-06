@@ -361,7 +361,7 @@ EXCLUDED_PATTERNS := $(shell awk '/path:.*\.go\$$/ { \
 format:
 	@echo "🔎 Running formatter..."
 	@find . -type f -name "*.go" $(EXCLUDED_PATTERNS) \
-		| xargs goimports -w -local github.com/fuel-infrastructure/fuel-sequencer
+		| xargs goimports -w -local $(shell go list -m)
 	@echo "✅ Finished running formatter!"
 
 ###############################################################################
