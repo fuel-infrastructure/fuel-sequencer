@@ -336,7 +336,7 @@ keys:
 ###                                   CI                                    ###
 ###############################################################################
 
-ci: proto-routine format lint test-unit gosec
+ci: proto-routine mocks format lint test-unit gosec
 
 gosec:
 	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
