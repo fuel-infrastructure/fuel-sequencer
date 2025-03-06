@@ -17,6 +17,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 

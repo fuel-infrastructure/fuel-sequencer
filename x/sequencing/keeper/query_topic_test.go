@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"

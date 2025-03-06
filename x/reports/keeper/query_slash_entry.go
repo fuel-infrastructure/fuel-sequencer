@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/utils"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
 func (k Keeper) SlashEntry(

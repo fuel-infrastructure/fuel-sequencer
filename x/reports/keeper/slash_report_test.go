@@ -7,13 +7,14 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetSlashReport(t *testing.T) {

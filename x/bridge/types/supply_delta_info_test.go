@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	sdk "cosmossdk.io/math"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func TestSupplyDeltaInfo_ValidateBasic(t *testing.T) {

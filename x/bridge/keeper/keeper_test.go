@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"

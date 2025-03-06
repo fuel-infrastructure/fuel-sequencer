@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtypes "github.com/cometbft/cometbft/types"
+
 	fuelsequencerapp "github.com/fuel-infrastructure/fuel-sequencer/app"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -17,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 

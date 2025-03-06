@@ -8,8 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	gomock "github.com/golang/mock/gomock"
+
+	types "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // MockBridgeKeeper is a mock of BridgeKeeper interface.

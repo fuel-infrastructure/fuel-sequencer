@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSlashReport_ValidateBasic(t *testing.T) {

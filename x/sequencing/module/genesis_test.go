@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"

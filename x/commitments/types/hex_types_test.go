@@ -5,8 +5,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/merkle"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )
 
 func TestBinaryMerkleProofIsLossless(t *testing.T) {
