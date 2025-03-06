@@ -33,7 +33,7 @@ func TestIsEqualBytesSlices(t *testing.T) {
 			expectEqual: false,
 		},
 		{
-			name:        "paddedBytes slices of different length are considered unequal",
+			name:        "Bytes slices of different length are considered unequal",
 			bytesSlice1: bytes1And2,
 			bytesSlice2: bytes1,
 			expectEqual: false,
