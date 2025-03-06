@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/stretchr/testify/require"
-
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/stretchr/testify/require"
 )
 
 func SequencerProxyContractABI(t *testing.T) abi.ABI {

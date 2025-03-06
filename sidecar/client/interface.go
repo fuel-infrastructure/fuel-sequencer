@@ -3,9 +3,8 @@ package client
 import (
 	"context"
 
-	"google.golang.org/grpc"
-
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"google.golang.org/grpc"
 )
 
 // AppSidecarClient defines the interface that will be utilized by the

@@ -40,14 +40,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	grpcencoding "google.golang.org/grpc/encoding"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
+	grpcencoding "google.golang.org/grpc/encoding"
 )
 
 const (

@@ -11,12 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
+	"github.com/spf13/viper"
 
 	"cosmossdk.io/math"
 	cmconfig "github.com/cometbft/cometbft/config"

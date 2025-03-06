@@ -22,7 +22,6 @@ import (
 	// this line is used by starport scaffolding # 1
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/reports/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"

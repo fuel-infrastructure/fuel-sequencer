@@ -6,10 +6,9 @@ import (
 	"net"
 
 	"cosmossdk.io/errors"
-	"google.golang.org/grpc"
-
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
+	"google.golang.org/grpc"
 )
 
 // TestSidecarServer is a lightweight gRPC server used to simulate the Sidecar server. This approach is sometimes

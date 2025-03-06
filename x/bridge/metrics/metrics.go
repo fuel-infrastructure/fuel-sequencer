@@ -8,10 +8,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hashicorp/go-metrics"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/hashicorp/go-metrics"
 )
 
 func ObserveDeposit(goCtx context.Context, depositedToUser bool) {

@@ -5,11 +5,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetSlashEntry(t *testing.T) {

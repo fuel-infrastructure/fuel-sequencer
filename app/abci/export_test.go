@@ -2,7 +2,6 @@ package abci
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 

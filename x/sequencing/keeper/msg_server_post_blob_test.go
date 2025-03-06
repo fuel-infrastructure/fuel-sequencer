@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"cosmossdk.io/math"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"

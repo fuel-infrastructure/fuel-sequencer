@@ -4,9 +4,8 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"google.golang.org/grpc"
-
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"google.golang.org/grpc"
 )
 
 // Addr is an export of c.addr. This should only be used for testing purposes.

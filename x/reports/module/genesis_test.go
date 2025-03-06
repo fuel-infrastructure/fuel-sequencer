@@ -3,12 +3,11 @@ package reports_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	reports "github.com/fuel-infrastructure/fuel-sequencer/x/reports/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenesis_ValidState(t *testing.T) {

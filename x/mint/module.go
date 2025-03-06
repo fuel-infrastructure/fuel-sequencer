@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint/exported"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"

@@ -5,9 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hashicorp/go-metrics"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	"github.com/hashicorp/go-metrics"
 )
 
 func ObserveInjectedTransactionAtAnteHandler(goCtx context.Context, tx sdk.Tx) {

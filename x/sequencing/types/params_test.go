@@ -3,9 +3,8 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateMaxBlobSizeBytes(t *testing.T) {

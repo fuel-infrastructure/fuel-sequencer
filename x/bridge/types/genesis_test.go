@@ -7,7 +7,6 @@ import (
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 
 	"cosmossdk.io/math"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 
 	"github.com/stretchr/testify/require"

@@ -6,10 +6,9 @@ import (
 	"time"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 )
 
 const (

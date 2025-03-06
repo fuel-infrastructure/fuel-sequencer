@@ -5,9 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
+	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"

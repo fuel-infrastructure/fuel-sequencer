@@ -5,11 +5,10 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
 // initPageRequestDefaults is a copy of the unexported initPageRequestDefaults function from the pagination query types.

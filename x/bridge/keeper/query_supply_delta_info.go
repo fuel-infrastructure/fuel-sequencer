@@ -4,10 +4,9 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func (k Keeper) SupplyDeltaInfo(goCtx context.Context, req *types.QueryGetSupplyDeltaInfoRequest) (*types.QueryGetSupplyDeltaInfoResponse, error) {

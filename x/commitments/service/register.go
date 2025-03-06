@@ -6,9 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	gogogrpc "github.com/cosmos/gogoproto/grpc"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
 // RegisterCommitmentsService registers the bridge commitments queries on the gRPC router.

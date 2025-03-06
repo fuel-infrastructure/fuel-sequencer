@@ -7,7 +7,6 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 

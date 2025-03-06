@@ -25,10 +25,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )

@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stretchr/testify/require"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMsgPostBlob_ValidateBasic(t *testing.T) {

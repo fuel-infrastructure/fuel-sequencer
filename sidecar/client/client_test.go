@@ -6,9 +6,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/connectivity"
-
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -16,6 +13,8 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil/servers"
 	apptesttypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/connectivity"
 )
 
 // testGRPCClientFields is a structure defining the fields of GRPCClient that are of interest for testing purposes.

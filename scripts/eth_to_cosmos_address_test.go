@@ -7,9 +7,8 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // Required to load the right config for testing
+	"github.com/stretchr/testify/require"
 )
 
 func TestConvertHexToCosmosAddressAndViceVersa(t *testing.T) {

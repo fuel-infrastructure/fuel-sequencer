@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )

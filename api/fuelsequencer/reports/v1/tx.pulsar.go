@@ -2,21 +2,19 @@
 package reportsv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	_ "cosmossdk.io/api/amino"
 	_ "cosmossdk.io/api/cosmos/msg/v1"
+	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
+	reports "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/reports"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-
-	reports "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/reports"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (

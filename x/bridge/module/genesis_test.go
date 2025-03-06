@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"

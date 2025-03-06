@@ -3,18 +3,16 @@ package commitmentsv1
 
 import (
 	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
+	commitments "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/commitments"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-
-	commitments "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/commitments"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (

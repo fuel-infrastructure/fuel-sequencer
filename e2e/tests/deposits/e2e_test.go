@@ -3,9 +3,8 @@ package deposits_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	"github.com/stretchr/testify/suite"
 )
 
 type DepositsTestSuite struct {

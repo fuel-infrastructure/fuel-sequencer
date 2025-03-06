@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 )
 

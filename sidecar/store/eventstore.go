@@ -4,9 +4,8 @@ import (
 	"math/big"
 	"sync"
 
-	"go.uber.org/zap"
-
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"go.uber.org/zap"
 )
 
 // EventStore holds and manages Ethereum events.

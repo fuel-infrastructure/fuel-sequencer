@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/stretchr/testify/require"
-
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateBasic(t *testing.T) {
