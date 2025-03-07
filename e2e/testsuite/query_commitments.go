@@ -82,8 +82,8 @@ func (s *E2ETestSuite) QueryBridgeCommitmentInclusionProof(
 
 // GetDataForUpdateCommitHeaderRange generates the data needed for the updateCommitHeaderRange function to pass.
 //
-// It includes an option to get the trusted header hash from the contract, since we do not have permission to set the
-// initial trusted header, since it's reserved to the contract admin. Thankfully it's not that important to test this.
+// It includes an option to get the trusted header hash from the contract because we do not have permission to set the
+// initial trusted header, as this functionality is reserved to the contract admin.
 func (s *E2ETestSuite) GetDataForUpdateCommitHeaderRange(
 	ctx context.Context, start, end uint64, trustedHeaderHashFromContract bool,
 ) (proof, publicValuesBz []byte) {
