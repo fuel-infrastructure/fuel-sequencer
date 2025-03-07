@@ -10,9 +10,9 @@ const (
 	FailedToEncodeEventAsRawTxBytesStr = "failed to encode event as raw tx bytes with err"
 )
 
-var _ error = &failedToEncodeEventAsRawTxBytesError{}
+var _ error = &FailedToEncodeEventAsRawTxBytesError{}
 
-type failedToEncodeEventAsRawTxBytesError struct {
+type FailedToEncodeEventAsRawTxBytesError struct {
 	err   error
 	event *sidecartypes.Event
 }
@@ -20,18 +20,18 @@ type failedToEncodeEventAsRawTxBytesError struct {
 func NewFailedToEncodeEventAsRawTxBytesError(
 	err error,
 	event *sidecartypes.Event,
-) *failedToEncodeEventAsRawTxBytesError {
-	return &failedToEncodeEventAsRawTxBytesError{
+) *FailedToEncodeEventAsRawTxBytesError {
+	return &FailedToEncodeEventAsRawTxBytesError{
 		err:   err,
 		event: event,
 	}
 }
 
-func (e *failedToEncodeEventAsRawTxBytesError) Error() string {
+func (e *FailedToEncodeEventAsRawTxBytesError) Error() string {
 	return fmt.Sprintf("%s: %s; event: %s", FailedToEncodeEventAsRawTxBytesStr, e.err.Error(), e.event)
 }
 
-func (e *failedToEncodeEventAsRawTxBytesError) LoggableKVs() []any {
+func (e *FailedToEncodeEventAsRawTxBytesError) LoggableKVs() []any {
 	return []any{
 		"reason", FailedToEncodeEventAsRawTxBytesStr,
 		"error", e.Error(),
