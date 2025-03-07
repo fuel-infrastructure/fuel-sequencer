@@ -493,7 +493,8 @@ var (
 			NewEthereumBlock:    true,
 			BlockNumber:         1,
 		},
-		Events: nil, // events were skipped, and this case should generate skipped event txs accordingly
+		Events: nil, // set to nil so that the developer can use this struct for various test scenarios
+
 	}
 
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
