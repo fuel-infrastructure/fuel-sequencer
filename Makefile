@@ -379,7 +379,7 @@ test-unit:
 
 test-e2e: \
 	check-docker-image-exists \
-	check-eth-deployment-docker-image \
+	check-eth-deployment-docker-image-exists \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
