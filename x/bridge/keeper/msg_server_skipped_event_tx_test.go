@@ -13,6 +13,20 @@ import (
 func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 	msgSkippedEventTx := *testtypes.TestMsgSkippedEventTx
 	msgSkippedEventTx2 := *testtypes.TestMsgSkippedEventTx2
+	eventSkippedEventTx := types.EventSkippedEventTx{
+		ReasonForSkip:  testtypes.TestMsgSkippedEventTx.ReasonForSkip,
+		EthBlockNumber: testtypes.TestMsgSkippedEventTx.EthBlockNumber,
+		EthLogIndex:    testtypes.TestMsgSkippedEventTx.EthLogIndex,
+		EthTxIndex:     testtypes.TestMsgSkippedEventTx.EthTxIndex,
+		EthTxHash:      testtypes.TestMsgSkippedEventTx.EthTxHash,
+	}
+	eventSkippedEventTx2 := types.EventSkippedEventTx{
+		ReasonForSkip:  testtypes.TestMsgSkippedEventTx2.ReasonForSkip,
+		EthBlockNumber: testtypes.TestMsgSkippedEventTx2.EthBlockNumber,
+		EthLogIndex:    testtypes.TestMsgSkippedEventTx2.EthLogIndex,
+		EthTxIndex:     testtypes.TestMsgSkippedEventTx2.EthTxIndex,
+		EthTxHash:      testtypes.TestMsgSkippedEventTx2.EthTxHash,
+	}
 
 	testBlockTime := time.Now().Round(0)
 	heightToAvoidSupplyDelta := int64(999)
@@ -23,22 +37,22 @@ func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 		supplyDeltaPeriod      uint64
 		msgs                   []types.MsgSkippedEventTx
 		blockHeight            int64
-		expectMsgSkippedEvents []*types.MsgSkippedEventTx
+		expectMsgSkippedEvents []*types.EventSkippedEventTx
 	}{
 		{
 			name:                   "No skipped events",
 			supplyDeltaPeriod:      testtypes.TestSupplyDeltaPeriod,
 			msgs:                   []types.MsgSkippedEventTx{msgSkippedEventTx},
 			blockHeight:            heightToAvoidSupplyDelta,
-			expectMsgSkippedEvents: []*types.MsgSkippedEventTx{},
+			expectMsgSkippedEvents: []*types.EventSkippedEventTx{},
 		},
 		{
 			name:              "Single skipped event",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			msgs:              []types.MsgSkippedEventTx{msgSkippedEventTx},
 			blockHeight:       heightToAvoidSupplyDelta,
-			expectMsgSkippedEvents: []*types.MsgSkippedEventTx{
-				&msgSkippedEventTx,
+			expectMsgSkippedEvents: []*types.EventSkippedEventTx{
+				&eventSkippedEventTx,
 			},
 		},
 		{
@@ -46,8 +60,8 @@ func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			msgs:              []types.MsgSkippedEventTx{msgSkippedEventTx},
 			blockHeight:       heightForSupplyDelta,
-			expectMsgSkippedEvents: []*types.MsgSkippedEventTx{
-				&msgSkippedEventTx,
+			expectMsgSkippedEvents: []*types.EventSkippedEventTx{
+				&eventSkippedEventTx,
 			},
 		},
 		{
@@ -55,9 +69,9 @@ func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			msgs:              []types.MsgSkippedEventTx{msgSkippedEventTx, msgSkippedEventTx2},
 			blockHeight:       heightToAvoidSupplyDelta,
-			expectMsgSkippedEvents: []*types.MsgSkippedEventTx{
-				&msgSkippedEventTx,
-				&msgSkippedEventTx2,
+			expectMsgSkippedEvents: []*types.EventSkippedEventTx{
+				&eventSkippedEventTx,
+				&eventSkippedEventTx2,
 			},
 		},
 		{
@@ -65,9 +79,9 @@ func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			msgs:              []types.MsgSkippedEventTx{msgSkippedEventTx, msgSkippedEventTx2},
 			blockHeight:       heightForSupplyDelta,
-			expectMsgSkippedEvents: []*types.MsgSkippedEventTx{
-				&msgSkippedEventTx,
-				&msgSkippedEventTx2,
+			expectMsgSkippedEvents: []*types.EventSkippedEventTx{
+				&eventSkippedEventTx,
+				&eventSkippedEventTx2,
 			},
 		},
 	}

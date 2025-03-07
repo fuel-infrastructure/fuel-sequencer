@@ -545,7 +545,6 @@ var (
 		EthTxIndex:     0,
 		EthTxHash:      "0x1234567890abcdef",
 	}
-
 	TestMsgSkippedEventTx2 = &bridgetypes.MsgSkippedEventTx{
 		Authority:      TestGovernanceAddress,
 		ReasonForSkip:  "testing multiple",
