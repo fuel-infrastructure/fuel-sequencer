@@ -1558,7 +1558,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: generated raw tx bytes exceeded max bytes; 150 > 1; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" "),
+				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: generated raw tx bytes exceeded max bytes; 150 > 1"),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1576,7 +1576,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: authorize event has too many messages; 1 > 0; event: event_type:\"Authorize\" data:\"\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022\\210\\001\\n\\205\\001\\n\\034/cosmos.bank.v1beta1.MsgSend\\022e\\n*0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb\\022*0xd447066a8ba9cb15a862a0f6de961f27be86fc0a\\032\\013\\n\\005ufuel\\022\\00210\" contract_address:\"0x0165878A594ca255338adfa4d48449f69242Eb8F\" "),
+				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: authorize event has too many messages; 1 > 0"),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
