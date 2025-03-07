@@ -611,7 +611,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		if authenticated {
 			authenticatedTx = eventTx
 		} else {
-			errStr := fmt.Sprintf("unauthorized event: %s", event)
+			errStr := "unauthorized event"
 			ctx.Logger().Warn(fmt.Sprintf("skipping %s", errStr))
 
 			authenticatedTx, err = h.generateSkipTxBytes(errStr, event, blockNumber, eventTxsSequence)

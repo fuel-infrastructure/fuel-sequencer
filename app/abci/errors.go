@@ -28,7 +28,7 @@ func NewFailedToEncodeEventAsRawTxBytesError(
 }
 
 func (e *FailedToEncodeEventAsRawTxBytesError) Error() string {
-	return fmt.Sprintf("%s: %s; event: %s", FailedToEncodeEventAsRawTxBytesStr, e.err.Error(), e.event)
+	return fmt.Sprintf("%s: %s", FailedToEncodeEventAsRawTxBytesStr, e.err.Error())
 }
 
 func (e *FailedToEncodeEventAsRawTxBytesError) LoggableKVs() []any {
