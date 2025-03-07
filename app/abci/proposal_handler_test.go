@@ -10,6 +10,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -30,6 +31,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 	encodedMsgIndexPartialBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexPartial)
 	encodedMsgIndexPartialBlockWith3Events := s.GetMsgIndexWithEventsEncoder(testtypes.TestMsgIndexPartial2)
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexWithSkippedEvent := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithSkippedEvent)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
 	msgIndexSequence := uint64(1)
@@ -479,7 +481,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
-			name:                      "skips event if invalid authorize found",
+			name:                      "skipped event if invalid authorize found",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -498,7 +500,18 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithoutEvents(false),
+					encodedMsgIndexWithSkippedEvent(false),
+					s.EncodeMsgSkippedEventTx(
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
+							fmt.Errorf("proto: illegal wireType 7"),
+							testtypes.TestEventsInvalidAuthorize[0],
+						).Error(),
+						1, // same as height
+						testtypes.TestEventsInvalidAuthorize[0].LogIndex,
+						testtypes.TestEventsInvalidAuthorize[0].TxIndex,
+						testtypes.TestEventsInvalidAuthorize[0].TxHash,
+						2, // msgIndex, supply delta, then this event
+					),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
@@ -526,7 +539,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg:                    "generated raw tx bytes exceeded max bytes",
 		},
 		{
-			name:                      "skips event if big authorize found - maxBytes exceeded",
+			name:                      "skipped event if big authorize found - maxBytes exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -545,7 +558,18 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithoutEvents(false),
+					encodedMsgIndexWithSkippedEvent(false),
+					s.EncodeMsgSkippedEventTx(
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
+							sidecartypes.NewGeneratedRawTxBytesExceededMaxBytesError(150, 1),
+							testtypes.TestEventsAuthorizeOnly[0],
+						).Error(),
+						1, // same as height of Ethereum block to query
+						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxHash,
+						2, // starting from 1 with msgIndex, then this event
+					),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
@@ -553,7 +577,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 		},
 		{
-			name:                      "skips event if big authorize found - maxAuthorizeMessages exceeded",
+			name:                      "skipped event if big authorize found - maxAuthorizeMessages exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
@@ -572,7 +596,18 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expRes: &abcitypes.ResponsePrepareProposal{
 				Txs: append(
-					encodedMsgIndexWithoutEvents(false),
+					encodedMsgIndexWithSkippedEvent(false),
+					s.EncodeMsgSkippedEventTx(
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
+							sidecartypes.NewAuthorizeEventTooManyMessagesError(1, 0),
+							testtypes.TestEventsAuthorizeOnly[0],
+						).Error(),
+						1, // same as height
+						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxHash,
+						2, // starting from 1 with msgIndex, then this event
+					),
 					encodedDummyTxs[0],
 					encodedDummyTxs[1],
 					encodedDummyTxs[2],
@@ -947,6 +982,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	encodedMsgIndexWithNoNewEthBlock := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithNoNewEthBlock)
 	encodedMsgIndexWithDiffBlockNumber := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithDiffBlockNumber)
 	encodedMsgIndexWithoutEvents := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithoutEvents)
+	encodedMsgIndexWithSkippedEvent := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexWithSkippedEvent)
 	encodedMsgIndexSidecarErr := s.GetMsgIndexWithEventsEncoder(&testtypes.TestMsgIndexSidecarErr)
 
 	msgIndexSequence := uint64(1)
@@ -984,9 +1020,17 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 	validTxsSidecarErr := append(
 		encodedMsgIndexSidecarErr(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
 	)
-	validTxsWithLargeAuthorizeSkipped := append(
-		encodedMsgIndexWithoutEvents(false), encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
-	)
+	validTxsWithLargeAuthorizeSkippedTx := func(reasonForSkip string) [][]byte {
+		return append(
+			encodedMsgIndexWithSkippedEvent(false),
+			s.EncodeMsgSkippedEventTx(reasonForSkip,
+				1,
+				0, 0, "",
+				2,
+			),
+			encodedDummyTxs[0], encodedDummyTxs[1], encodedDummyTxs[2],
+		)
+	}
 
 	four := uint64(4)
 
@@ -1507,14 +1551,14 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				"at least 4 got 3",
 		},
 		{
-			name:                      "accepts block if match skipped large authorize event - maxBytes exceeded",
+			name:                      "accepts block if with skipped tx for large authorize event - maxBytes exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
 			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkipped,
+				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: generated raw tx bytes exceeded max bytes; 150 > 1"),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1524,7 +1568,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			maxBlockGas:                  totalTxsGas,
 		},
 		{
-			name: "accepts block if match skipped large authorize event - maxAuthorizeMessages" +
+			name: "accepts block if match with skipped tx for large authorize event - maxAuthorizeMessages" +
 				" exceeded",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
@@ -1532,7 +1576,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
-				Txs:    validTxsWithLargeAuthorizeSkipped,
+				Txs:    validTxsWithLargeAuthorizeSkippedTx("failed to encode event as raw tx bytes with err: authorize event has too many messages; 1 > 0"),
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,

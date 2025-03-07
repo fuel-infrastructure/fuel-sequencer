@@ -162,7 +162,7 @@ func (m *Event) RawTxBytesWithMaxBytes(
 
 	txSize := utils.TxSize(bz)
 	if txSize > maxBytes {
-		return nil, fmt.Errorf("generated raw tx bytes exceeded max bytes; %d > %d", txSize, maxBytes)
+		return nil, NewGeneratedRawTxBytesExceededMaxBytesError(txSize, maxBytes)
 	}
 
 	return bz, nil
@@ -182,9 +182,7 @@ func (m *Event) RawTxBytesWithLimitChecks(
 		}
 
 		if uint64(len(messages)) > maxAuthorizeMessages {
-			return nil, fmt.Errorf(
-				"authorize event has too many messages; %d > %d", uint64(len(messages)), maxAuthorizeMessages,
-			)
+			return nil, NewAuthorizeEventTooManyMessagesError(uint64(len(messages)), maxAuthorizeMessages)
 		}
 	}
 
