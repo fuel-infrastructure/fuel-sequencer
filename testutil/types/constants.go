@@ -26,8 +26,6 @@ var (
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod            = uint64(100)
 	TestEthereumProxyContractAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
-	TestInjectedEventTxMaxBytes      = uint64(20_000_000)
-	TestMaxAuthorizeMessages         = uint64(10)
 	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestVestingStartingTime          = time.Now()
@@ -140,10 +138,6 @@ var (
 		Height:  2,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry1},
 	}
-	ValidSlashReport3 = reportstypes.SlashReport{
-		Height:  3,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry3},
-	}
 	InvalidSlashReportHeightZero = reportstypes.SlashReport{
 		Height:  0,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, ValidSlashEntry2},
@@ -159,26 +153,6 @@ var (
 	InvalidSlashReportValidatorAddressNotValoper = reportstypes.SlashReport{
 		Height:  1,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotValoper},
-	}
-	InvalidSlashReportDelegatorAddressNotAccAddress = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotAccAddress},
-	}
-	InvalidSlashReportDelegatorSlashAmountNegative = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorSlashAmount},
-	}
-	InvalidSlashReportDelegatorSlashAmountZero = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryZeroDelegatorSlashAmount},
-	}
-	InvalidSlashReportDelegatorBondedBalanceNegative = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorBondedBalance},
-	}
-	InvalidSlashReportDelegatorUnbondingBalanceNegative = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorUnbondingBalance},
 	}
 	InvalidSlashReportNonUniqueSlashEntries = reportstypes.SlashReport{
 		Height:  1,
@@ -312,8 +286,16 @@ var (
 		Data:   testutils.MustHexDecodeString(TestData3),
 	}
 	TestAuthorizeEvent4 = &sidecartypes.AuthorizeEvent{
+		Sender: "invalid-from",
+		Data:   testutils.MustHexDecodeString(TestData4),
+	}
+	TestAuthorizeEvent5 = &sidecartypes.AuthorizeEvent{
 		Sender: TestFrom3,
 		Data:   []byte("some invalid data"),
+	}
+	TestAuthorizeEvent6 = &sidecartypes.AuthorizeEvent{
+		Sender: TestFrom3,
+		Data:   testutils.MustHexDecodeString(TestData1),
 	}
 
 	TestEvent1 = testutils.MustGetSidecarEventFromParsedEvent(
@@ -355,6 +337,12 @@ var (
 	TestEvent13 = testutils.MustGetSidecarEventFromParsedEvent(
 		TestAuthorizeEvent4, TestEthereumProxyContractAddress,
 	)
+	TestEvent14 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent5, TestEthereumProxyContractAddress,
+	)
+	TestEvent15 = testutils.MustGetSidecarEventFromParsedEvent(
+		TestAuthorizeEvent6, TestEthereumProxyContractAddress,
+	)
 
 	// The below event messages are set in the init() function.
 	// These serve as convenient access to the event's original messages.
@@ -379,11 +367,10 @@ var (
 		TestEvent1, TestEvent2, TestEvent3, TestEvent3,
 	}
 
-	TestEventsInvalidDeposit   = []*sidecartypes.Event{TestEvent12}
-	TestEventsInvalidAuthorize = []*sidecartypes.Event{TestEvent13}
-
-	TestEventsDepositOnly   = []*sidecartypes.Event{TestEvent1}
-	TestEventsAuthorizeOnly = []*sidecartypes.Event{TestEvent2}
+	TestEventsInvalidDeposit        = []*sidecartypes.Event{TestEvent12}
+	TestEventsInvalidAuthorize      = []*sidecartypes.Event{TestEvent13}
+	TestEventsAuthorizeWithBadBytes = []*sidecartypes.Event{TestEvent14}
+	TestEventsAuthorizeWithBadAuth  = []*sidecartypes.Event{TestEvent15}
 
 	TestMsgSupplyDelta = &bridgetypes.MsgSupplyDelta{
 		Authority: TestGovernanceAddress,
@@ -476,6 +463,7 @@ var (
 		},
 		Events: TestEventsReduced,
 	}
+
 	TestMsgIndexPartial2 = &TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,
@@ -533,10 +521,18 @@ var (
 	TestSidecarResponseWithFourEvents = &sidecartypes.QueryBlockEventsResponse{
 		Events: TestEventsWithFourEvents,
 	}
-	TestSidecarResponseInvalidDeposit   = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidDeposit}
-	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
-	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
-	TestSidecarResponseAuthorizeOnly    = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsAuthorizeOnly}
+	TestSidecarResponseInvalidDeposit = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsInvalidDeposit,
+	}
+	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsInvalidAuthorize,
+	}
+	TestSidecarResponseInvalidAuthorizeWithBadBytes = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsAuthorizeWithBadBytes,
+	}
+	TestSidecarResponseInvalidAuthorizeWithBadAuth = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsAuthorizeWithBadAuth,
+	}
 
 	TestMsgSkippedEventTx = &bridgetypes.MsgSkippedEventTx{
 		Authority:      TestGovernanceAddress,
