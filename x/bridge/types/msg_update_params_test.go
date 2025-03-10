@@ -33,14 +33,11 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 		"ufuel",
 		sdkmath.NewInt(10_000_000_000),
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
-		[]string{"/cosmos.bank.v1beta1.MsgSend"},
 		100,
 		time.Now(),
 		[]string{},
 		2*time.Hour,
-		6144,
 		sdkmath.LegacyMustNewDecFromStr("0.3"),
-		2,
 	)
 
 	testCases := []struct {
