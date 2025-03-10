@@ -138,6 +138,10 @@ var (
 		Height:  2,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry1},
 	}
+	ValidSlashReport3 = reportstypes.SlashReport{
+		Height:  3,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry3},
+	}
 	InvalidSlashReportHeightZero = reportstypes.SlashReport{
 		Height:  0,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, ValidSlashEntry2},
@@ -153,6 +157,26 @@ var (
 	InvalidSlashReportValidatorAddressNotValoper = reportstypes.SlashReport{
 		Height:  1,
 		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotValoper},
+	}
+	InvalidSlashReportDelegatorAddressNotAccAddress = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotAccAddress},
+	}
+	InvalidSlashReportDelegatorSlashAmountNegative = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorSlashAmount},
+	}
+	InvalidSlashReportDelegatorSlashAmountZero = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryZeroDelegatorSlashAmount},
+	}
+	InvalidSlashReportDelegatorBondedBalanceNegative = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorBondedBalance},
+	}
+	InvalidSlashReportDelegatorUnbondingBalanceNegative = reportstypes.SlashReport{
+		Height:  1,
+		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorUnbondingBalance},
 	}
 	InvalidSlashReportNonUniqueSlashEntries = reportstypes.SlashReport{
 		Height:  1,
