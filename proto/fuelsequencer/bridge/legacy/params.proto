@@ -1,0 +1,89 @@
+syntax = "proto3";
+package fuelsequencer.bridge.legacy;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types/legacy";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "fuelsequencer/x/bridge/Params";
+  option (gogoproto.equal) = true;
+
+  // bridge_denom is the assumed denom for the bridged token, used when minting
+  // upon deposits, burning when withdrawing, and tracking changes in its
+  // supply that will be reported to Ethereum, amongst other scenarios.
+  string bridge_denom = 1;
+
+  // bridge_denom_total_supply is the assumed total supply of the bridged token.
+  // It is intended to be used instead of the staking token supply reported by
+  // the staking module, when calculating inflation. The staking module does
+  // not know about tokens that have not been bridged to the Sequencer, so we
+  // would mint the wrong amount if we use the staking module's supply value.
+  //
+  // Unless this parameter is changed, the mint module will simply mint the
+  // same amount of tokens at every block based on the value of this param.
+  string bridge_denom_total_supply = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // ethereum_proxy_contract_address is the contract address we expect to
+  // receive deposit and authorize messages from.
+  string ethereum_proxy_contract_address = 3;
+
+  // authorize_messages_allowed is a whitelist for authorize messages that we
+  // can receive and process.
+  repeated string authorize_messages_allowed = 4;
+
+  // supply_delta_period is the frequency in block at which we report supply
+  // delta info to Ethereum.
+  uint64 supply_delta_period = 5;
+
+  // vesting_start_time is the common vesting starting time for vesting accounts
+  // that will be created through deposits from Ethereum.
+  google.protobuf.Timestamp vesting_start_time = 6
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+
+  // additional_blocked_addresses is a list of Cosmos SDK-based bech32 addresses
+  // that are explicitly disallowed from being controlled by authorize messages
+  // within the Sequencer system. This can include addresses of module accounts,
+  // validator operators, or any other addresses deemed necessary to protect
+  // from unauthorized control actions.
+  repeated string additional_blocked_addresses = 7;
+
+  // max_eth_block_update_delay is the maximum amount of time that the Sequencer
+  // allows validators to not sync up with Ethereum. Once
+  // max_eth_block_update_delay is exceeded, the Sequencer's block production
+  // will halt until validators sync up with next Ethereum block.
+  google.protobuf.Duration max_eth_block_update_delay = 8
+      [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
+
+  // injected_event_tx_max_bytes is the maximum amount of block space that an
+  // injected event tx can take in terms of bytes. An Authorize event gets
+  // skipped and never included in a block if it can't be converted into a tx
+  // that can respect this limit. On the other hand, if a Deposit event cannot
+  // be converted into a Tx that can respect this limit, the chain halts.
+  uint64 injected_event_tx_max_bytes = 9;
+
+  // sequencer_txs_allocation is a percentage that controls the maximum amount
+  // of block space that is allocated to Sequencer-native transactions during
+  // heavy bridge usage. This ensures Sequencer blocks are not solely filled
+  // with event transactions if the Ethereum blocks being synced are large.
+  // NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
+  // can fit more Sequencer-native or event transactions.
+  string sequencer_txs_allocation = 10 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+
+  // max_authorize_messages is the maximum amount of Cosmos SDK messages that an
+  // Authorize transaction can have
+  uint64 max_authorize_messages = 11;
+}
