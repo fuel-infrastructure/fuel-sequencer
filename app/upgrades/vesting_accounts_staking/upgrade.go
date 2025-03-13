@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "vesting-accounts-staking"
+const UpgradeName = "features-and-optimisations"
 
 func CreateUpgradeHandler(
 	mm *module.Manager,
