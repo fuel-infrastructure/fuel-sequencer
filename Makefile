@@ -477,13 +477,13 @@ endif
 init-submodules:
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote --depth 1 $(ROLLUP_DIR)
-	@cd $(ROLLUP_DIR) && \
-		git submodule update --init --depth 1 lib/bridge lib/sequencer && \
-		cd lib/bridge && \
-		git checkout $$(git -C $(ROLLUP_DIR) ls-tree HEAD lib/bridge | awk '{print $$3}') && \
-		cd ../sequencer && \
-		git checkout $$(git -C $(ROLLUP_DIR) ls-tree HEAD lib/sequencer | awk '{print $$3}') && \
-		cd $(ROOT)
+	@cd $(ROLLUP_DIR)
+	@git submodule update --init --depth 1 lib/bridge lib/sequencer
+	@cd lib/bridge
+	@git checkout $$(git -C $(ROLLUP_DIR) ls-tree HEAD lib/bridge | awk '{print $$3}')
+	@cd ../sequencer
+	@git checkout $$(git -C $(ROLLUP_DIR) ls-tree HEAD lib/sequencer | awk '{print $$3}')
+	@cd $(ROOT)
 	@echo "✅ Finished updating submodules!"
 
 # Builds contract deployment container for automated E2E tests
@@ -497,9 +497,9 @@ build-eth-deployment-docker-image: init-submodules
 		$(ROLLUP_DIR)
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
 	@git submodule update --remote $(ROLLUP_DIR)
-	@cd $(ROLLUP_DIR) && \
-		git submodule update --depth 1 lib/bridge lib/sequencer && \
-		cd $(ROOT)
+	@cd $(ROLLUP_DIR)
+	@git submodule update --depth 1 lib/bridge lib/sequencer
+	@cd $(ROOT)
 	@echo "✅ Finished!"
 
 # Runs node and contract deployment containers
