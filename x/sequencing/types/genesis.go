@@ -22,7 +22,7 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 
-	// Check for duplicated ids in topic
+	// Check for duplicated ids in TopicList
 	uniqueTopics := make(map[string]bool)
 
 	for _, t := range gs.TopicList {
