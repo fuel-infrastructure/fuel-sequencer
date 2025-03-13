@@ -1,5 +1,7 @@
 package types
 
+// this line is used by starport scaffolding # genesis/types/import
+
 import (
 	"encoding/hex"
 )
