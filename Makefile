@@ -146,7 +146,7 @@ go.sum: go.mod
 	@echo "🤔 Ensure dependencies have not been modified"
 	@go mod verify
 
-clean: clean-e2e
+clean: clean-e2e clean-submodules
 	@echo "🧹 Cleaning..."
 	@rm -rf $(BUILDDIR)/*
 	@echo "✅ Finished cleaning!"
@@ -470,6 +470,11 @@ ifeq (,$(shell $(DOCKER) images -q ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} 2> /dev/n
 else
 	@echo "✅ Found docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME}"
 endif
+
+clean-submodules:
+	@echo "🤖 Cleaning up git submodules..."
+	@git submodule foreach --recursive git clean -fxd
+	@git submodule foreach --recursive git reset --hard
 
 # Safely initialize submodules without recursion
 # Note: We explicitly set the nested submodules (lib/bridge, lib/sequencer) to their pinned commits
