@@ -102,12 +102,6 @@ var (
 		"gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage",
 	}
 
-	// Slashing params - 50% of every 10-block window has to be signed.
-	// Otherwise, the validator not signing will get slashed by 50%.
-	SignedBlocksWindow    = int64(10)
-	MinSignedPerWindow    = sdkmath.LegacyMustNewDecFromStr("0.5")
-	SlashFractionDowntime = sdkmath.LegacyMustNewDecFromStr("0.5")
-
 	// Inflation params
 	Inflation           = sdkmath.LegacyMustNewDecFromStr("0.10") // this is overridden if InflationMin == InflationMax
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13") // this is not actually used by the custom mint module
