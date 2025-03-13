@@ -6,8 +6,9 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
-# Fuel Rollup local repository.
-ROLLUP_DIR = $(CURDIR)/e2e/fuel-rollup
+# Fuel local repositories
+ROOT = $(CURDIR)
+ROLLUP_DIR = $(ROOT)/e2e/fuel-rollup # Rollup submodule directory
 
 # Name of the Ethereum contract deployment image.
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
@@ -23,7 +24,7 @@ ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE := "deploy"
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
-MOCKS_DIR = $(CURDIR)/tests/mocks
+MOCKS_DIR = $(ROOT)/tests/mocks
 
 # don't override user values
 ifeq (,$(VERSION))
@@ -38,7 +39,7 @@ LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 COMETBFT_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::') # grab everything after the space in e.g. "github.com/cometbft/cometbft v0.37.1"
 BUILDFOLDER := build
-BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
+BUILDDIR ?= $(ROOT)/$(BUILDFOLDER)
 
 GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1-2)
 REQUIRE_GO_VERSION = 1.22
@@ -224,10 +225,10 @@ containerProtoFmt=cosmos-sdk-proto-fmt-$(containerProtoVer)
 
 protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+protoImage=$(DOCKER) run --rm -v $(ROOT):/workspace --workdir /workspace $(protoImageName)
 
 cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
-protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
+protoSwaggerImage=$(DOCKER) run --rm -v $(ROOT):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
     # This runs ./scripts/protocgen-pulsar.sh as well, under the hood.
@@ -237,7 +238,7 @@ proto-go-gen:
 
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
-	@$(DOCKER) run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+	@$(DOCKER) run --rm --name $(containerProtoFmt) -v $(ROOT):/workspace --workdir /workspace tendermintdev/docker-build-proto \
 		find ./proto -name "*.proto" -exec clang-format -i {} \;
 	@echo "✅ Finished formatting Protobuf files!"
 
@@ -478,13 +479,8 @@ init-submodules:
 	@git submodule update --init --remote --depth 1 $(ROLLUP_DIR)
 	@pushd $(ROLLUP_DIR) > /dev/null && \
 		git submodule update --init --depth 1 lib/bridge lib/sequencer && \
-		pushd lib/bridge > /dev/null && \
-		git checkout $$(git -C $(CURDIR)/$(ROLLUP_DIR) ls-tree HEAD lib/bridge | awk '{print $$3}') && \
-		popd > /dev/null && \
-		pushd lib/sequencer > /dev/null && \
-		git checkout $$(git -C $(CURDIR)/$(ROLLUP_DIR) ls-tree HEAD lib/sequencer | awk '{print $$3}') && \
-		popd > /dev/null && \
-		popd > /dev/null
+		git checkout $$(git -C $(ROLLUP_DIR) ls-tree HEAD lib/bridge | awk '{print $$3}') && \
+		git checkout $$(git -C $(ROLLUP_DIR) ls-tree HEAD lib/sequencer | awk '{print $$3}') && \
 	@echo "✅ Finished updating submodules!"
 
 # Builds contract deployment container for automated E2E tests
