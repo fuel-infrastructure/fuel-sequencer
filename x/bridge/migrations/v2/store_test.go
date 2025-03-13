@@ -1,117 +1,70 @@
 package v2_test
 
 import (
-	"bytes"
 	"testing"
-	"time"
 
+	v2 "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/migrations/v2"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types/legacy"
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	"github.com/cosmos/cosmos-sdk/testutil/testdata"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v1"
-	v2 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v2"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 func TestMigrateStore(t *testing.T) {
 	cdc := moduletestutil.MakeTestEncodingConfig().Codec
-	govKey := storetypes.NewKVStoreKey("gov")
+	govKey := storetypes.NewKVStoreKey("bridge")
 	ctx := testutil.DefaultContext(govKey, storetypes.NewTransientStoreKey("transient_test"))
 	store := ctx.KVStore(govKey)
 
-	_, _, addr1 := testdata.KeyTestPubAddr()
-	proposalID := uint64(6)
-	now := time.Now()
-	// Use dummy value for keys where we don't test values.
-	dummyValue := []byte("foo")
-	// Use real values for votes, as we're testing weighted votes.
-	oldVote := v1beta1.Vote{ProposalId: 1, Voter: "foobar", Option: v1beta1.OptionNoWithVeto}
-	oldVoteValue := cdc.MustMarshal(&oldVote)
-	newVote := v1beta1.Vote{ProposalId: 1, Voter: "foobar", Options: v1beta1.WeightedVoteOptions{{Option: v1beta1.OptionNoWithVeto, Weight: math.LegacyNewDec(1)}}}
-	newVoteValue := cdc.MustMarshal(&newVote)
-
-	testCases := []struct {
-		name                               string
-		oldKey, oldValue, newKey, newValue []byte
-	}{
-		{
-			"ProposalKey",
-			v1.ProposalKey(proposalID), dummyValue,
-			append(types.ProposalsKeyPrefix, sdk.Uint64ToBigEndian(proposalID)...), dummyValue,
-		},
-		{
-			"ActiveProposalQueue",
-			v1.ActiveProposalQueueKey(proposalID, now), dummyValue,
-			activeProposalQueueKey(proposalID, now), dummyValue,
-		},
-		{
-			"InactiveProposalQueue",
-			v1.InactiveProposalQueueKey(proposalID, now), dummyValue,
-			inactiveProposalQueueKey(proposalID, now), dummyValue,
-		},
-		{
-			"ProposalIDKey",
-			v1.ProposalIDKey, dummyValue,
-			types.ProposalIDKey, dummyValue,
-		},
-		{
-			"DepositKey",
-			v1.DepositKey(proposalID, addr1), dummyValue,
-			depositKey(proposalID, addr1), dummyValue,
-		},
-		{
-			"VotesKeyPrefix",
-			v1.VoteKey(proposalID, addr1), oldVoteValue,
-			voteKey(proposalID, addr1), newVoteValue,
-		},
+	defaultParams := types.DefaultParams()
+	oldParams := legacy.Params{
+		BridgeDenom:                  defaultParams.BridgeDenom,
+		BridgeDenomTotalSupply:       defaultParams.BridgeDenomTotalSupply,
+		EthereumProxyContractAddress: defaultParams.EthereumProxyContractAddress,
+		AuthorizeMessagesAllowed:     []string{"DummyMsgTypeUrl1", "DummyMsgTypeUrl2", "DummyMsgTypeUrl3"},
+		SupplyDeltaPeriod:            defaultParams.SupplyDeltaPeriod,
+		VestingStartTime:             defaultParams.VestingStartTime,
+		AdditionalBlockedAddresses:   defaultParams.AdditionalBlockedAddresses,
+		MaxEthBlockUpdateDelay:       defaultParams.MaxEthBlockUpdateDelay,
+		InjectedEventTxMaxBytes:      1024,
+		SequencerTxsAllocation:       defaultParams.SequencerTxsAllocation,
+		MaxAuthorizeMessages:         5,
 	}
 
-	// Set all the old keys to the store
-	for _, tc := range testCases {
-		store.Set(tc.oldKey, tc.oldValue)
+	expectNewParams := types.Params{
+		BridgeDenom:                  defaultParams.BridgeDenom,
+		BridgeDenomTotalSupply:       defaultParams.BridgeDenomTotalSupply,
+		EthereumProxyContractAddress: defaultParams.EthereumProxyContractAddress,
+		SupplyDeltaPeriod:            defaultParams.SupplyDeltaPeriod,
+		VestingStartTime:             defaultParams.VestingStartTime,
+		AdditionalBlockedAddresses:   defaultParams.AdditionalBlockedAddresses,
+		MaxEthBlockUpdateDelay:       defaultParams.MaxEthBlockUpdateDelay,
+		SequencerTxsAllocation:       defaultParams.SequencerTxsAllocation,
 	}
 
-	// Run migratio
+	// Set old params
+	oldParamsBz := cdc.MustMarshal(&oldParams)
+	store.Set(types.ParamsKey, oldParamsBz)
+
+	// Check that getting and unmarshalling the params before the migration does not work
+	var newParams types.Params
+	newParamsBz := store.Get(types.ParamsKey)
+	require.Error(t, cdc.Unmarshal(newParamsBz, &newParams))
+
+	// Run migration
 	storeService := runtime.NewKVStoreService(govKey)
 	err := v2.MigrateStore(ctx, storeService, cdc)
 	require.NoError(t, err)
 
-	// Make sure the new keys are set and old keys are deleted.
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			if !bytes.Equal(tc.oldKey, tc.newKey) {
-				require.Nil(t, store.Get(tc.oldKey))
-			}
-			require.Equal(t, tc.newValue, store.Get(tc.newKey))
-		})
-	}
-}
+	// Getting and unmarshalling the params after the migration works
+	newParamsBz = store.Get(types.ParamsKey)
+	require.NoError(t, cdc.Unmarshal(newParamsBz, &newParams))
 
-// TODO(tip): remove all the functions below once we delete the migrations
-
-func depositKey(proposalID uint64, depositorAddr sdk.AccAddress) []byte {
-	return append(append(types.DepositsKeyPrefix, sdk.Uint64ToBigEndian(proposalID)...), address.MustLengthPrefix(depositorAddr.Bytes())...)
-}
-
-func voteKey(proposalID uint64, addr sdk.AccAddress) []byte {
-	return append(append(types.VotesKeyPrefix, sdk.Uint64ToBigEndian(proposalID)...), address.MustLengthPrefix(addr.Bytes())...)
-}
-
-func activeProposalQueueKey(proposalID uint64, endTime time.Time) []byte {
-	return append(append(types.ActiveProposalQueuePrefix, sdk.FormatTimeBytes(endTime)...), sdk.Uint64ToBigEndian(proposalID)...)
-}
-
-// InactiveProposalQueueKey returns the key for a proposalID in the inactiveProposalQueue
-func inactiveProposalQueueKey(proposalID uint64, endTime time.Time) []byte {
-	return append(append(types.InactiveProposalQueuePrefix, sdk.FormatTimeBytes(endTime)...), sdk.Uint64ToBigEndian(proposalID)...)
+	// Check that params are as expected
+	require.Equal(t, expectNewParams, newParams)
 }
