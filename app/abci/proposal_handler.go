@@ -11,7 +11,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -92,7 +91,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Inject MsgSupplyDeltaTx if expected at current height
 		supplyDeltaBytesSize := uint64(0)
 		if injectMsgSupplyDelta {
-			supplyDeltaBytes, err := h.generateMsgSupplyDeltaTx(supplyDeltaSequence)
+			supplyDeltaBytes, err := bridgetypes.NewMsgSupplyDelta(
+				h.bridgeKeeper.GetAuthority(),
+			).RawTxBytes(supplyDeltaSequence)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate msg supply delta tx: %w", err)
 			}
@@ -578,11 +579,15 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 
 			// If an event is an authorization it should be skipped.
 			if event.EventType == sidecartypes.AuthorizeEventName {
-				ctx.Logger().Warn(fmt.Sprintf(
-					"skipping event; failed to encode event as raw tx bytes with err: %s; event: %s",
-					err.Error(),
-					event,
-				))
+				wrappedErr := NewFailedToEncodeEventAsRawTxBytesError(err, event)
+				ctx.Logger().Warn("skipping event", wrappedErr.LoggableKVs()...)
+
+				skipTxBytes, err := h.generateSkipTxBytes(wrappedErr.Error(), event, blockNumber, eventTxsSequence)
+				if err != nil {
+					return nil, nil, fmt.Errorf("failed to generate skip tx bytes: %w", err)
+				}
+				eventTxs = append(eventTxs, skipTxBytes)
+				eventTxsSequence += 1
 				continue
 			}
 
@@ -602,12 +607,20 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("failed to check authorization: %s; event: %s", err.Error(), event)
 		}
 
+		var authenticatedTx []byte
 		if authenticated {
-			eventTxs = append(eventTxs, eventTx)
-			eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
+			authenticatedTx = eventTx
 		} else {
-			ctx.Logger().Warn(fmt.Sprintf("skipping unauthorized event: %s", event))
+			errStr := "unauthorized event"
+			ctx.Logger().Warn(fmt.Sprintf("skipping %s", errStr))
+
+			authenticatedTx, err = h.generateSkipTxBytes(errStr, event, blockNumber, eventTxsSequence)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to generate skip tx bytes: %w", err)
+			}
 		}
+		eventTxs = append(eventTxs, authenticatedTx)
+		eventTxsSequence += 1 // increment the sequence since we've officially included the eventTx
 	}
 
 	// Generate MsgIndex based on the number of injected events.
@@ -618,20 +631,15 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 		BlockNumber:         blockNumber,
 	}
 
-	return
-}
-
-func (h *FuelSequencerProposalHandler) generateMsgSupplyDeltaTx(sequence uint64) ([]byte, error) {
-
-	// Construct Any from message.
-	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(&bridgetypes.MsgSupplyDelta{
-		Authority: h.bridgeKeeper.GetAuthority(),
-	})
-	if err != nil {
-		return nil, err
+	// Sanity check: number of events equal generated txs
+	if len(eventTxs) != len(events) {
+		return nil, nil, fmt.Errorf(
+			"mismatch between no. of events to be injected and no. of events extracted from Ethereum; had: %d, got: %d",
+			len(events), len(eventTxs),
+		)
 	}
 
-	return utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSupplyDeltaAny}, sequence)
+	return
 }
 
 // verifyInjectedMsgIndexTx is used by ProcessProposal to check whether MsgIndexTx was injected properly.
@@ -693,7 +701,9 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 	}
 	injectedMsgSupplyDeltaTx := txs[msgSupplyDeltaIndex]
 
-	generatedMsgSupplyDeltaTx, err := h.generateMsgSupplyDeltaTx(expectedSequence)
+	generatedMsgSupplyDeltaTx, err := bridgetypes.NewMsgSupplyDelta(
+		h.bridgeKeeper.GetAuthority(),
+	).RawTxBytes(expectedSequence)
 	if err != nil {
 		return fmt.Errorf("failed to generate MsgSupplyDelta tx: %w", err)
 	}
@@ -706,4 +716,15 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 	}
 
 	return nil
+}
+
+func (h *FuelSequencerProposalHandler) generateSkipTxBytes(errStr string, event *sidecartypes.Event, blockNumber uint64, eventTxsSequence uint64) ([]byte, error) {
+	return bridgetypes.NewMsgSkippedEventTx(
+		h.bridgeKeeper.GetAuthority(),
+		errStr,
+		blockNumber,
+		event.LogIndex,
+		event.TxIndex,
+		event.TxHash,
+	).RawTxBytes(eventTxsSequence)
 }

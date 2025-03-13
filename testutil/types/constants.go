@@ -360,6 +360,17 @@ var (
 		Events: TestEvents,
 	}
 
+	TestMsgIndexWithSkippedEvent = TestMsgIndexWithEvents{
+		MsgIndex: &bridgetypes.MsgIndex{
+			Authority:           TestGovernanceAddress,
+			NumInjectedEventTxs: 1,
+			NewEthereumBlock:    true,
+			BlockNumber:         1,
+		},
+		Events: nil, // set to nil so that the developer can use this struct for various test scenarios
+
+	}
+
 	TestMsgIndexWithoutEvents = TestMsgIndexWithEvents{
 		MsgIndex: &bridgetypes.MsgIndex{
 			Authority:           TestGovernanceAddress,
@@ -400,6 +411,23 @@ var (
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsInvalidAuthorize}
 	TestSidecarResponseDepositOnly      = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
 	TestSidecarResponseAuthorizeOnly    = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsAuthorizeOnly}
+
+	TestMsgSkippedEventTx = &bridgetypes.MsgSkippedEventTx{
+		Authority:      TestGovernanceAddress,
+		ReasonForSkip:  "testing",
+		EthBlockNumber: 1,
+		EthLogIndex:    0,
+		EthTxIndex:     0,
+		EthTxHash:      "0x1234567890abcdef",
+	}
+	TestMsgSkippedEventTx2 = &bridgetypes.MsgSkippedEventTx{
+		Authority:      TestGovernanceAddress,
+		ReasonForSkip:  "testing multiple",
+		EthBlockNumber: 1,
+		EthLogIndex:    1,
+		EthTxIndex:     1,
+		EthTxHash:      "0xfedcba9876543210",
+	}
 )
 
 func init() {

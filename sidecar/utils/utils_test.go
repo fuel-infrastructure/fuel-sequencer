@@ -235,6 +235,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			// There might be multiple logs. Check that there is exactly one log that matches the expected log.
 			matches := 0
 			for _, log := range parsedLog {
+				// TxMapping details differ across each generation; copy them from fixtures here.
+				PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
+
 				event, err := ExtractLogDataToEvent(log, sequencerProxyABI, fixtures.BridgeDenom)
 				if tc.expErrMsg != "" {
 					require.EqualError(t, err, tc.expErrMsg)
