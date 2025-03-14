@@ -11,7 +11,7 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/type
 
 // Params defines the parameters for the module.
 message Params {
-  option (amino.name) = "fuelsequencer/x/bridge/Params";
+  option (amino.name) = "fuelsequencer/x/bridge/legacy/Params";
   option (gogoproto.equal) = true;
 
   // bridge_denom is the assumed denom for the bridged token, used when minting
