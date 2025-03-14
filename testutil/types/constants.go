@@ -11,7 +11,6 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	testutils "github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	reportstypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 )
 
 var (
@@ -38,150 +37,25 @@ var (
 		Offset:     TestOffset,
 		ToReport:   TestToReport,
 	}
-	TestFrom1        = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-	TestFrom2        = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
-	TestFrom3        = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
-	TestFrom4        = "faulty-address"
-	TestFrom1Seq     = "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"
-	TestFrom2Seq     = "fuelsequencer10e0525sfrf53yh2aljmm3sn9jq5njk7lnsk0qn"
-	TestFrom3Seq     = "fuelsequencer16y3q5r8503aeheazu6agnapfwch8hxkmajmslm"
-	TestFrom1Val     = "fuelsequencervaloper17w0adeg64ky0daxwd2ugyuneellmjgnxk05262"
-	TestFrom2Val     = "fuelsequencervaloper10e0525sfrf53yh2aljmm3sn9jq5njk7l3jr73m"
-	TestFrom3Val     = "fuelsequencervaloper16y3q5r8503aeheazu6agnapfwch8hxkmlswpwn"
-	TestAmount1      = "100"
-	TestAmount2      = "101"
-	TestAmount3      = "102"
-	TestTo1          = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
-	TestTo2          = "0x0000000000000000000000000000000000000000" // the null Ethereum address
-	TestTo3          = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
-	TestTo4          = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
-	TestLockup1      = "31536050"
-	TestLockup2      = "31536051"
-	TestLockup3      = "31536052"
-	TestLockup4      = "abc"
-	TestLockup5      = "1"
-	ValidSlashEntry1 = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom1Val,
-		DelegatorAddress:          TestFrom1Seq,
-		DelegatorSlashAmount:      sdkmath.OneInt(),
-		DelegatorBondedBalance:    sdkmath.NewInt(20),
-		DelegatorUnbondingBalance: sdkmath.NewInt(10),
-	}
-	ValidSlashEntry2 = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Val,
-		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.NewInt(2),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	ValidSlashEntry3 = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom3Val,
-		DelegatorAddress:          TestFrom3Seq,
-		DelegatorSlashAmount:      sdkmath.NewInt(3),
-		DelegatorBondedBalance:    sdkmath.NewInt(0),
-		DelegatorUnbondingBalance: sdkmath.NewInt(0),
-	}
-	InvalidSlashEntryValidatorAddressNotValoper = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Seq,
-		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.NewInt(2),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	InvalidSlashEntryValidatorAddressNotAccAddress = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Val,
-		DelegatorAddress:          TestFrom2Val,
-		DelegatorSlashAmount:      sdkmath.NewInt(2),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	InvalidSlashEntryNegativeDelegatorSlashAmount = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Val,
-		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.NewInt(-1),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	InvalidSlashEntryZeroDelegatorSlashAmount = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Val,
-		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.ZeroInt(),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	InvalidSlashEntryNegativeDelegatorBondedBalance = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Val,
-		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.NewInt(2),
-		DelegatorBondedBalance:    sdkmath.NewInt(-1),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	InvalidSlashEntryNegativeDelegatorUnbondingBalance = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom2Val,
-		DelegatorAddress:          TestFrom2Seq,
-		DelegatorSlashAmount:      sdkmath.NewInt(2),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(-1),
-	}
-	InvalidSlashEntryNonUnique = reportstypes.SlashEntry{
-		ValidatorAddress:          TestFrom1Val, // Equal to ValidSlashEntry1
-		DelegatorAddress:          TestFrom1Seq, // Equal to ValidSlashEntry1
-		DelegatorSlashAmount:      sdkmath.NewInt(2),
-		DelegatorBondedBalance:    sdkmath.NewInt(30),
-		DelegatorUnbondingBalance: sdkmath.NewInt(20),
-	}
-	ValidSlashReport1 = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, ValidSlashEntry2},
-	}
-	ValidSlashReport2 = reportstypes.SlashReport{
-		Height:  2,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1},
-	}
-	ValidSlashReport3 = reportstypes.SlashReport{
-		Height:  3,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry3},
-	}
-	InvalidSlashReportHeightZero = reportstypes.SlashReport{
-		Height:  0,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, ValidSlashEntry2},
-	}
-	InvalidSlashReportEmptyEntries = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{},
-	}
-	InvalidSlashReportNilEntries = reportstypes.SlashReport{
-		Height:  1,
-		Entries: nil,
-	}
-	InvalidSlashReportValidatorAddressNotValoper = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotValoper},
-	}
-	InvalidSlashReportDelegatorAddressNotAccAddress = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryValidatorAddressNotAccAddress},
-	}
-	InvalidSlashReportDelegatorSlashAmountNegative = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorSlashAmount},
-	}
-	InvalidSlashReportDelegatorSlashAmountZero = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryZeroDelegatorSlashAmount},
-	}
-	InvalidSlashReportDelegatorBondedBalanceNegative = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorBondedBalance},
-	}
-	InvalidSlashReportDelegatorUnbondingBalanceNegative = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNegativeDelegatorUnbondingBalance},
-	}
-	InvalidSlashReportNonUniqueSlashEntries = reportstypes.SlashReport{
-		Height:  1,
-		Entries: []reportstypes.SlashEntry{ValidSlashEntry1, InvalidSlashEntryNonUnique},
-	}
+	TestFrom1    = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+	TestFrom2    = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+	TestFrom3    = "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"
+	TestFrom4    = "faulty-address"
+	TestFrom1Seq = "fuelsequencer17w0adeg64ky0daxwd2ugyuneellmjgnx5dpmtz"
+	TestFrom2Seq = "fuelsequencer10e0525sfrf53yh2aljmm3sn9jq5njk7lnsk0qn"
+	TestFrom3Seq = "fuelsequencer16y3q5r8503aeheazu6agnapfwch8hxkmajmslm"
+	TestAmount1  = "100"
+	TestAmount2  = "101"
+	TestAmount3  = "102"
+	TestTo1      = "0x62d221db49aef5632f59b900b2ca90e52ecc0a80"
+	TestTo2      = "0x0000000000000000000000000000000000000000" // the null Ethereum address
+	TestTo3      = "0xd447066a8ba9cb15a862a0f6de961f27be86fc0a"
+	TestTo4      = "163rsv65t4893t2rz5rmda9sly7lgdlq2jgr36m"
+	TestLockup1  = "31536050"
+	TestLockup2  = "31536051"
+	TestLockup3  = "31536052"
+	TestLockup4  = "abc"
+	TestLockup5  = "1"
 
 	// TestData1 corresponds to a 10ufuel bank send to TestTo3 from TestFrom1. This was generated with the help of
 	// scripts/proto_serialization_test.go.
