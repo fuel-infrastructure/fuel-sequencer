@@ -1,4 +1,4 @@
-package vesting_accounts_staking
+package features_and_optimisations
 
 import (
 	"context"

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vesting_accounts_staking"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -14,7 +14,7 @@ import (
 const (
 	haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
-	upgradeName        = vesting_accounts_staking.UpgradeName
+	upgradeName        = features_and_optimisations.UpgradeName
 	fromImageVersion   = "b1b847b" // this image needs to exist for this test to run (TODO: update accordingly later on)
 	toImageVersion     = "dc1caf6" // this image needs to exist for this test to run (TODO: update accordingly later on)
 )
@@ -34,7 +34,7 @@ func (s *UpgradesTestSuite) SetupTest() {
 	s.E2ETestSuite.SetupTest()
 }
 
-func (s *UpgradesTestSuite) TestUpgradePowerReduction() {
+func (s *UpgradesTestSuite) TestUpgrade() {
 
 	s.Run("Perform the upgrade", func() {
 		height, err := s.GetFuelSequencerHeight(s.Ctx())
