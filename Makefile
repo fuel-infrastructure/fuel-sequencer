@@ -40,8 +40,8 @@ COMETBFT_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* 
 BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
-GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1-2)
-REQUIRE_GO_VERSION = 1.22
+GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
+REQUIRE_GO_VERSION = 1.22.11
 
 export GO111MODULE = on
 

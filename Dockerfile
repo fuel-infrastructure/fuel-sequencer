@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
 
 # Definition of arg variables.
-ARG GO_VERSION="1.22"
-ARG RUNNER_IMAGE="alpine:3.19"
+ARG GO_VERSION="1.22.11"
+ARG RUNNER_IMAGE="alpine:3.20"
 
 # --------------------------------------------------------
 # Builder
 # --------------------------------------------------------
 
-FROM golang:${GO_VERSION}-alpine3.19 AS builder
+FROM golang:${GO_VERSION}-alpine3.20 AS builder
 
 # Set the working directory inside the container.
 WORKDIR /fuel-sequencer
