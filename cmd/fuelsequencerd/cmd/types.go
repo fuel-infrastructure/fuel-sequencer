@@ -5,7 +5,10 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -92,6 +95,52 @@ type sequencerConfig struct {
 }
 
 func (cfg *sequencerConfig) Validate() error {
+	// Validate gRPC URL
+	if cfg.grpcUrl == "" {
+		return fmt.Errorf("gRPC URL cannot be empty")
+	}
+
+	host, port := "", ""
+	if strings.Contains(cfg.grpcUrl, "://") {
+		// If it's a URL with protocol, parse it
+		parsedURL, err := url.Parse(cfg.grpcUrl)
+		if err != nil {
+			return fmt.Errorf("invalid gRPC URL format: must be a valid URL or host:port format")
+		}
+		host = parsedURL.Hostname()
+		port = parsedURL.Port()
+	} else {
+		// If it's a host:port format, split it
+		h, p, err := net.SplitHostPort(cfg.grpcUrl)
+		if err != nil {
+			return fmt.Errorf("invalid gRPC URL format: must be a valid URL or host:port format")
+		}
+		host = h
+		port = p
+	}
+
+	if err := validatePort(port); err != nil {
+		return err
+	}
+
+	// Try parsing as IP (handles both IPv4 and IPv6)
+	if ip := net.ParseIP(host); ip == nil && host != "localhost" {
+		// Not an IP and not localhost, validate as hostname
+		return fmt.Errorf("invalid hostname in gRPC URL")
+	}
+
+	// Validate certificate file if provided
+	if cfg.pathToCertFile != "" {
+		if _, err := os.Stat(cfg.pathToCertFile); err != nil {
+			return fmt.Errorf("certificate file not found at %s: %w", cfg.pathToCertFile, err)
+		}
+	}
+
+	// Validate bridge denom
+	if err := types.ValidateDenom(cfg.unsafeBridgeDenom); err != nil {
+		return fmt.Errorf("invalid bridge denom format: %w", err)
+	}
+
 	return nil
 }
 

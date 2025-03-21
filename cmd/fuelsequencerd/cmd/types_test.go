@@ -170,3 +170,190 @@ func TestSidecarConfig_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestSequencerConfig_Validate(t *testing.T) {
+	// Create a temporary certificate file for testing
+	tmpDir := t.TempDir()
+	certFile := filepath.Join(tmpDir, "test.cert")
+	if err := os.WriteFile(certFile, []byte("test cert content"), 0644); err != nil {
+		t.Fatalf("Failed to create test certificate file: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		config  sequencerConfig
+		wantErr bool
+	}{
+		{
+			name: "localhost config",
+			config: sequencerConfig{
+				grpcUrl:           "localhost:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: false,
+		},
+		{
+			name: "localhost config without port",
+			config: sequencerConfig{
+				grpcUrl:           "localhost",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid config with IPv4 address",
+			config: sequencerConfig{
+				grpcUrl:           "127.0.0.1:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid config with IPv6 address",
+			config: sequencerConfig{
+				grpcUrl:           "[2001:db8::1]:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid config with malformed IPv4 address",
+			config: sequencerConfig{
+				grpcUrl:           "256.256.256.256:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid config with incomplete IPv4 address",
+			config: sequencerConfig{
+				grpcUrl:           "127.0.1:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid config with malformed IPv6 address",
+			config: sequencerConfig{
+				grpcUrl:           "[2001:zzzz::1]:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid config with unclosed IPv6 brackets",
+			config: sequencerConfig{
+				grpcUrl:           "[2001:db8::1:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid config with URL without port",
+			config: sequencerConfig{
+				grpcUrl:           "https://example.com",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid config without cert file",
+			config: sequencerConfig{
+				grpcUrl:           "localhost:50051",
+				pathToCertFile:    "",
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty grpc url",
+			config: sequencerConfig{
+				grpcUrl:           "",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid grpc url",
+			config: sequencerConfig{
+				grpcUrl:           "invalid:url:format",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "non-existent cert file",
+			config: sequencerConfig{
+				grpcUrl:           "localhost:50051",
+				pathToCertFile:    "non-existent.cert",
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+		{
+			name: "empty bridge denom",
+			config: sequencerConfig{
+				grpcUrl:           "localhost:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "uppercase bridge denom format",
+			config: sequencerConfig{
+				grpcUrl:           "localhost:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "TEST-TOKEN",
+			},
+			wantErr: false,
+		},
+		{
+			name: "bridge denom with invalid characters",
+			config: sequencerConfig{
+				grpcUrl:           "localhost:50051",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test@token", // special characters not allowed
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid https url",
+			config: sequencerConfig{
+				grpcUrl:           "https://localhost:443",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid url without port",
+			config: sequencerConfig{
+				grpcUrl:           "https://localhost",
+				pathToCertFile:    certFile,
+				unsafeBridgeDenom: "test-token",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("sequencerConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
