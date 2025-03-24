@@ -211,6 +211,17 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
+			name: "Grant event with expired timestamp",
+			logs: fixtures.GrantClaimRewardsWithExpiredTimestampLogs,
+			getExpEvent: func() *sidecartypes.Event {
+				// Set a future time to simulate an expired grant
+				timeNow = func() time.Time {
+					return time.Now().Add(24 * time.Hour)
+				}
+				return nil // Expect nil since grant is expired
+			},
+		},
+		{
 			name: "Revoke Claim Rewards event",
 			logs: fixtures.RevokeClaimRewardsLogs,
 			getExpEvent: func() *sidecartypes.Event {
@@ -235,15 +246,21 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			// There might be multiple logs. Check that there is exactly one log that matches the expected log.
 			matches := 0
 			for _, log := range parsedLog {
-				// TxMapping details differ across each generation; copy them from fixtures here.
-				PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
-
 				event, err := ExtractLogDataToEvent(log, sequencerProxyABI, fixtures.BridgeDenom)
 				if tc.expErrMsg != "" {
 					require.EqualError(t, err, tc.expErrMsg)
 					return
 				}
 				require.NoError(t, err)
+
+				if expectedEvent == nil {
+					require.Nil(t, event, "expected nil event but got non-nil")
+					matches += 1
+					continue
+				}
+
+				// TxMapping details differ across each generation; copy them from fixtures here.
+				PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
 
 				if assert.ObjectsAreEqual(expectedEvent, event) {
 					matches += 1

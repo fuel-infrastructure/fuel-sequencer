@@ -20,6 +20,9 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
+// For testing purposes
+var timeNow = time.Now
+
 func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
 	event.LogIndex = uint64(logIndex)
 	event.TxIndex = uint64(txIndex)
@@ -337,6 +340,14 @@ func ExtractLogDataToEvent(
 		err = contractAbi.UnpackIntoInterface(&ethEvent, sidecartypes.EthGrantEventName, vLog.Data)
 		if err != nil {
 			return nil, err
+		}
+
+		// Check expiration first - if expired, skip creating the grant
+		if ethEvent.Expiration > 0 {
+			expiration := time.Unix(int64(ethEvent.Expiration), 0)
+			if expiration.Before(timeNow()) {
+				return nil, nil
+			}
 		}
 
 		// Some values are indexed, so extract them from Topics

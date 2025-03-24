@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/big"
 	"strings"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -150,6 +151,15 @@ func (s *AuthorizeFixturesTestSuite) TestGenerateEventLogFixtures() {
 	logs, err = json.Marshal(tx.Logs)
 	s.Require().NoError(err)
 	logLines = append(logLines, fmt.Sprintf("GrantClaimRewardsWithExpirationLogs = `%s`", logs))
+
+	// Grant Claim Rewards with expired timestamp
+	expiredTimestamp := uint32(time.Now().Add(-24 * time.Hour).Unix())
+	data = testsuite.PackGrantClaimRewards(receiverAddressEth, expiredTimestamp)
+	tx, err = s.SendEthTransactionToSequencerInterfaceContract(data)
+	s.Require().NoError(err)
+	logs, err = json.Marshal(tx.Logs)
+	s.Require().NoError(err)
+	logLines = append(logLines, fmt.Sprintf("GrantClaimRewardsWithExpiredTimestampLogs = `%s`", logs))
 
 	// Revoke Claim Rewards
 	data = testsuite.PackRevokeClaimRewards(receiverAddressEth)
