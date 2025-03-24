@@ -18,6 +18,7 @@ import (
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	"go.uber.org/zap"
 )
 
 func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
@@ -44,6 +45,7 @@ func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
 
 // ExtractLogDataToEvent decodes an Ethereum log into a specific event struct.
 func ExtractLogDataToEvent(
+	logger *zap.Logger,
 	vLog ethereumtypes.Log,
 	contractAbi abi.ABI,
 	bridgeDenom string,
@@ -53,7 +55,7 @@ func ExtractLogDataToEvent(
 
 	PopulateEventTxMapping(&event, vLog.Index, vLog.TxIndex, vLog.TxHash)
 
-	switch vLog.Topics[0].Hex() {
+	switch eventType := vLog.Topics[0].Hex(); eventType {
 	case sidecartypes.DepositEventHashFn:
 		// Process the event
 		var ethEvent sidecartypes.EthDepositEvent
@@ -465,6 +467,7 @@ func ExtractLogDataToEvent(
 			return nil, fmt.Errorf("failed to marshal authorize event: %w", err)
 		}
 	default:
+		logger.Debug("skipping unhandled event", zap.String("event_type", eventType), zap.String("contract_address", vLog.Address.Hex()))
 		return nil, nil
 	}
 
