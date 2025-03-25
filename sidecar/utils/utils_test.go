@@ -20,6 +20,7 @@ import (
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
@@ -30,7 +31,6 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 		name        string
 		logs        string
 		getExpEvent func() *sidecartypes.Event
-		expErrMsg   string
 	}{
 		{
 			name: "Deposit event via Deposit",
@@ -221,6 +221,21 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 				})
 			},
 		},
+		{
+			name: "Unhandled event type",
+			logs: `[{
+				"address": "` + fixtures.SequencerProxyContractAddress + `",
+				"topics": ["0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"],
+				"data": "0x",
+				"blockNumber": "0x1",
+				"transactionHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				"transactionIndex": "0x0",
+				"blockHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				"logIndex": "0x0",
+				"removed": false
+			}]`,
+			getExpEvent: func() *sidecartypes.Event { return nil },
+		},
 	}
 
 	for _, tc := range testCases {
@@ -235,15 +250,17 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			// There might be multiple logs. Check that there is exactly one log that matches the expected log.
 			matches := 0
 			for _, log := range parsedLog {
+				event, err := ExtractLogDataToEvent(zap.NewNop(), log, sequencerProxyABI, fixtures.BridgeDenom)
+				require.NoError(t, err)
+
+				if expectedEvent == nil {
+					require.Nil(t, event, "expected nil event but got non-nil")
+					matches += 1
+					continue
+				}
+
 				// TxMapping details differ across each generation; copy them from fixtures here.
 				PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
-
-				event, err := ExtractLogDataToEvent(log, sequencerProxyABI, fixtures.BridgeDenom)
-				if tc.expErrMsg != "" {
-					require.EqualError(t, err, tc.expErrMsg)
-					return
-				}
-				require.NoError(t, err)
 
 				if assert.ObjectsAreEqual(expectedEvent, event) {
 					matches += 1
