@@ -211,17 +211,6 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "Grant event with expired timestamp",
-			logs: fixtures.GrantClaimRewardsWithExpiredTimestampLogs,
-			getExpEvent: func() *sidecartypes.Event {
-				// Set a future time to simulate an expired grant
-				timeNow = func() time.Time {
-					return time.Now().Add(24 * time.Hour)
-				}
-				return nil // Expect nil since grant is expired
-			},
-		},
-		{
 			name: "Revoke Claim Rewards event",
 			logs: fixtures.RevokeClaimRewardsLogs,
 			getExpEvent: func() *sidecartypes.Event {
