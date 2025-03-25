@@ -261,17 +261,25 @@ func PackUpdateGenesisStateMessage(
 }
 
 func PackUpdateCommitHeaderRangeMessage(
-	targetBlock uint64,
-	targetHeader common.Hash,
-	bridgeCommitment common.Hash,
+	proof []byte,
+	publicValues []byte,
 ) []byte {
 	return packCall(
 		FuelStreamXContractABI,
 		UpdateCommitHeaderRangeFunctionName,
 		[]interface{}{
-			targetBlock,
-			targetHeader,
-			bridgeCommitment,
+			proof,
+			publicValues,
+		},
+	)
+}
+
+func PackBlockHeightToHeaderHash(abi string, height uint64) []byte {
+	return packCall(
+		abi,
+		BlockHeightToHeaderHashQueryName,
+		[]interface{}{
+			height,
 		},
 	)
 }

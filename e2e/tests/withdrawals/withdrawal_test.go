@@ -49,8 +49,8 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Submit bridge commitment to FuelStreamX contract
 		startBlock := uint64(1)
 		endBlock := uint64(lastResultsHashHeight + 1)
-		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
-		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
+		proof, publicValues := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock, true)
+		data := testsuite.PackUpdateCommitHeaderRangeMessage(proof, publicValues)
 		receipt, err := s.SendEthTransactionToFuelStreamXContractAsGuardian(data)
 		s.Require().NoError(err)
 
@@ -173,8 +173,8 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Submit bridge commitment to FuelStreamX contract
 		startBlock := uint64(1)
 		endBlock := uint64(lastResultsHashHeight + 1)
-		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
-		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
+		proof, publicValues := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock, true)
+		data := testsuite.PackUpdateCommitHeaderRangeMessage(proof, publicValues)
 		receipt, err := s.SendEthTransactionToFuelStreamXContractAsGuardian(data)
 		s.Require().NoError(err)
 
