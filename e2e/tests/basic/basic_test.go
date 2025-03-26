@@ -85,13 +85,13 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		sendAmount := int64(10)
 		from := s.EthKeys[0]
 		to := s.EthKeys[1]
-		msgSend := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
+		transfer := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
 		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(
 			from.AddressHex, to.AddressHex,
 			sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))),
 		)
 
-		sendTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(msgSend)
+		transferTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(transfer)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events
@@ -115,7 +115,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 
 		// Ensure authorize event is at the expected height.
 		authorizeEvents, err := s.PollForSidecarBlockEvents(
-			s.Ctx(), time.Second*20, int(sendTxReceipt.BlockNumber.Int64()),
+			s.Ctx(), time.Second*20, int(transferTxReceipt.BlockNumber.Int64()),
 		)
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
