@@ -147,8 +147,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
 
 	//nolint:staticcheck
-	govProposalHandlers = append(govProposalHandlers)
-	// the above line is used by starport scaffolding # stargate/app/govProposalHandler
+	govProposalHandlers = append(govProposalHandlers) // this line is used by starport scaffolding # stargate/app/govProposalHandler
 
 	return govProposalHandlers
 }
