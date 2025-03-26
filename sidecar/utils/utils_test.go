@@ -6,6 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -14,8 +18,6 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -31,7 +33,6 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 		name        string
 		logs        string
 		getExpEvent func() *sidecartypes.Event
-		expErrMsg   string
 	}{
 		{
 			name: "Deposit event via Deposit",
@@ -179,9 +180,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: nil,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(
-					"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-				))
+				err := msgGrant.SetAuthorization(
+					authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"),
+				)
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}
@@ -205,9 +206,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: &expiration,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization(
-					"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-				))
+				err := msgGrant.SetAuthorization(
+					authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"),
+				)
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}
@@ -226,6 +227,21 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 				})
 			},
 		},
+		{
+			name: "Unhandled event type",
+			logs: `[{
+				"address": "` + fixtures.SequencerProxyContractAddress + `",
+				"topics": ["0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"],
+				"data": "0x",
+				"blockNumber": "0x1",
+				"transactionHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				"transactionIndex": "0x0",
+				"blockHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				"logIndex": "0x0",
+				"removed": false
+			}]`,
+			getExpEvent: func() *sidecartypes.Event { return nil },
+		},
 	}
 
 	for _, tc := range testCases {
@@ -240,12 +256,17 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 			// There might be multiple logs. Check that there is exactly one log that matches the expected log.
 			matches := 0
 			for _, log := range parsedLog {
-				event, err := ExtractLogDataToEvent(log, sequencerProxyABI, fixtures.BridgeDenom)
-				if tc.expErrMsg != "" {
-					require.EqualError(t, err, tc.expErrMsg)
-					return
-				}
+				event, err := ExtractLogDataToEvent(zap.NewNop(), log, sequencerProxyABI, fixtures.BridgeDenom)
 				require.NoError(t, err)
+
+				if expectedEvent == nil {
+					require.Nil(t, event, "expected nil event but got non-nil")
+					matches += 1
+					continue
+				}
+
+				// TxMapping details differ across each generation; copy them from fixtures here.
+				PopulateEventTxMapping(expectedEvent, log.Index, log.TxIndex, log.TxHash)
 
 				if assert.ObjectsAreEqual(expectedEvent, event) {
 					matches += 1

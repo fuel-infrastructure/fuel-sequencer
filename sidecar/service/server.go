@@ -205,13 +205,10 @@ func (ss *SidecarServer) GetBlockEvents(
 			return
 		}
 
-		// Convert blockchain events to protobuf `Event` type
+		// Use pointer for blockchain events
+		// TODO: Consider not having to convert to a pointer...
 		for _, be := range blockchainEvents {
-			events = append(events, &types.Event{
-				EventType:       be.EventType,
-				ContractAddress: be.ContractAddress,
-				Data:            be.Data,
-			})
+			events = append(events, &be)
 		}
 
 		defer ss.metrics.BlockEventsRequestsTotal.With("success", "true").Add(1)

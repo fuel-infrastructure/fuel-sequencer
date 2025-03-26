@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	"go.uber.org/zap"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
@@ -20,6 +22,12 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
+
+func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
+	event.LogIndex = uint64(logIndex)
+	event.TxIndex = uint64(txIndex)
+	event.TxHash = txHash.String()
+}
 
 // AuthorizeTxFromMsg packs a message into an AuthorizeTx which the Sequencer can then unpack.
 func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
@@ -39,6 +47,7 @@ func AuthorizeTxFromMsg(msg sdk.Msg) ([]byte, error) {
 
 // ExtractLogDataToEvent decodes an Ethereum log into a specific event struct.
 func ExtractLogDataToEvent(
+	logger *zap.Logger,
 	vLog ethereumtypes.Log,
 	contractAbi abi.ABI,
 	bridgeDenom string,
@@ -46,7 +55,9 @@ func ExtractLogDataToEvent(
 	var event sidecartypes.Event
 	var err error
 
-	switch vLog.Topics[0].Hex() {
+	PopulateEventTxMapping(&event, vLog.Index, vLog.TxIndex, vLog.TxHash)
+
+	switch eventType := vLog.Topics[0].Hex(); eventType {
 	case sidecartypes.DepositEventHashFn:
 		// Process the event
 		var ethEvent sidecartypes.EthDepositEvent
@@ -69,6 +80,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.DepositEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = depositEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal deposit event: %w", err)
+		}
 
 	case sidecartypes.DelegateEventHashFn:
 		// Process the event
@@ -101,6 +115,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal delegate authorize event: %w", err)
+		}
 
 	case sidecartypes.RedelegateEventHashFn:
 		// Process the event
@@ -135,6 +152,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal redelegate authorize event: %w", err)
+		}
 
 	case sidecartypes.ClaimRewardsEventHashFn:
 		// Process the event
@@ -163,6 +183,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal claim rewards authorize event: %w", err)
+		}
 
 	case sidecartypes.UnbondEventHashFn:
 		// Process the event
@@ -195,6 +218,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal unbond authorize event: %w", err)
+		}
 
 	case sidecartypes.WithdrawEventHashFn:
 		// Process the event
@@ -227,6 +253,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal withdraw authorize event: %w", err)
+		}
 
 	case sidecartypes.TransferEventHashFn:
 		// Process the event
@@ -259,6 +288,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal transfer authorize event: %w", err)
+		}
 
 	case sidecartypes.VoteEventHashFn:
 		// Process the event
@@ -295,6 +327,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal vote authorize event: %w", err)
+		}
 
 	case sidecartypes.SetRewardRecipientEventHashFn:
 		// Process the event
@@ -323,6 +358,9 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal set reward recipient authorize event: %w", err)
+		}
 
 	case sidecartypes.GrantEventHashFn:
 		// Process the event
@@ -369,7 +407,7 @@ func ExtractLogDataToEvent(
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to marshal grant authorize event: %w", err)
 		}
 
 	case sidecartypes.RevokeEventHashFn:
@@ -403,6 +441,10 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal revoke authorize event: %w", err)
+		}
+
 	case sidecartypes.AuthorizeEventHashFn:
 		// Process the event
 		var ethEvent sidecartypes.EthAuthorizeEvent
@@ -423,7 +465,14 @@ func ExtractLogDataToEvent(
 		event.EventType = sidecartypes.AuthorizeEventName
 		event.ContractAddress = common.HexToAddress(vLog.Address.Hex()).String()
 		event.Data, err = authorizeEvent.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal authorize event: %w", err)
+		}
 	default:
+		logger.Debug("skipping unhandled event",
+			zap.String("event_type", eventType),
+			zap.String("contract_address", vLog.Address.Hex()),
+		)
 		return nil, nil
 	}
 

@@ -33,6 +33,9 @@ service Msg {
 
   // Index defines an operation for setting information about injected txs.
   rpc Index(MsgIndex) returns (MsgIndexResponse);
+
+  // SkippedEventTx defines an operation for recording a skipped event tx.
+  rpc SkippedEventTx(MsgSkippedEventTx) returns (MsgSkippedEventTxResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -164,3 +167,31 @@ message MsgIndex {
 }
 
 message MsgIndexResponse {}
+
+message MsgSkippedEventTx {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority ensures that users cannot execute this message.
+  string authority = 1;
+
+  // reason_for_skip is the reason for skipping the event tx.
+  string reason_for_skip = 2;
+
+  // eth_block_number is the Ethereum height corresponding to the skipped event
+  // tx.
+  uint64 eth_block_number = 3;
+
+  // eth_log_index is the index of the Ethereum log corresponding to the skipped
+  // event tx.
+  uint64 eth_log_index = 4;
+
+  // eth_tx_index is the index of the Ethereum tx corresponding to the skipped
+  // event tx.
+  uint64 eth_tx_index = 5;
+
+  // eth_tx_hash is the hash of the Ethereum tx corresponding to the skipped
+  // event tx.
+  string eth_tx_hash = 6;
+}
+
+message MsgSkippedEventTxResponse {}

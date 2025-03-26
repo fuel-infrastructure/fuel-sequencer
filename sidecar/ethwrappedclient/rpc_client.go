@@ -203,7 +203,7 @@ func (ec *EthRpcClient) processLogs(
 			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
-		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI, ec.seqBridgeDenom)
+		event, err := utils.ExtractLogDataToEvent(ec.logger, vLog, ec.contractABI, ec.seqBridgeDenom)
 		if err != nil {
 			errMsg := "error processing log"
 			ec.logger.Error(errMsg, zap.Error(err))

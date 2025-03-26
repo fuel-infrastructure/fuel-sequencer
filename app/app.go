@@ -57,7 +57,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vesting_accounts_staking"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -65,7 +65,6 @@ import (
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
 
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
-	reportsmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/reports/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
@@ -112,7 +111,6 @@ type FuelSequencerApp struct {
 
 	BridgeKeeper     bridgemodulekeeper.Keeper
 	SequencingKeeper sequencingmodulekeeper.Keeper
-	ReportsKeeper    reportsmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -262,7 +260,6 @@ func NewFuelSequencerApp(
 		&app.EvidenceKeeper,
 		&app.BridgeKeeper,
 		&app.SequencingKeeper,
-		&app.ReportsKeeper,
 		// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	); err != nil {
 		panic(err)
@@ -341,8 +338,8 @@ func NewFuelSequencerApp(
 	}
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		vesting_accounts_staking.UpgradeName,
-		vesting_accounts_staking.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		features_and_optimisations.UpgradeName,
+		features_and_optimisations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS

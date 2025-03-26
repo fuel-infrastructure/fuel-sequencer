@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
 var _ sdk.Msg = &MsgSupplyDelta{}
@@ -19,6 +22,19 @@ func NewMsgSupplyDelta(authority string) *MsgSupplyDelta {
 // Since we generate the MsgSupplyDelta ourselves, we expect the message to be valid anyway.
 func (*MsgSupplyDelta) ValidateBasic() error {
 	return nil
+}
+
+// RawTxBytes converts the message to a valid tx that can be injected into a block and produces a tx result.
+// The sequence, presumed to be unique, ensures that the generated tx is unique and thus has a unique tx hash.
+func (m *MsgSupplyDelta) RawTxBytes(sequence uint64) ([]byte, error) {
+
+	// Construct Any from message.
+	msgSupplyDeltaAny, err := codectypes.NewAnyWithValue(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.ValidRawTxBytesFromAnyMsgs([]*codectypes.Any{msgSupplyDeltaAny}, sequence)
 }
 
 // FromSdkTx extracts MsgSupplyDelta from an SDK transaction which is expected to contain just MsgSupplyDelta.

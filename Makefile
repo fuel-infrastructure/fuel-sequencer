@@ -40,8 +40,8 @@ COMETBFT_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* 
 BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
-GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1-2)
-REQUIRE_GO_VERSION = 1.22
+GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
+REQUIRE_GO_VERSION = 1.22.11
 
 export GO111MODULE = on
 
@@ -492,6 +492,8 @@ endif
 build-eth-deployment-docker-image: $(ROLLUP_DIR)/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
 	@git submodule update --init --remote $(ROLLUP_DIR)
+	@echo "🤖 Building dependencies..."
+	@(cd $(ROLLUP_DIR) && pnpm install && pnpm build)
 	@echo "🤖 Building Docker image..."
 	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \

@@ -23,7 +23,6 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
-	reportstypes "github.com/fuel-infrastructure/fuel-sequencer/x/reports/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
@@ -47,7 +46,6 @@ type GRPCClients struct {
 	BridgeQueryClient      bridgetypes.QueryClient
 	SequencingQueryClient  sequencingtypes.QueryClient
 	CommitmentsQueryClient commitmentstypes.QueryClient
-	ReportsQueryClient     reportstypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -84,7 +82,6 @@ func (s *E2ETestSuite) initGRPCClients() {
 		BridgeQueryClient:       bridgetypes.NewQueryClient(grpcConn),
 		SequencingQueryClient:   sequencingtypes.NewQueryClient(grpcConn),
 		CommitmentsQueryClient:  commitmentstypes.NewQueryClient(grpcConn),
-		ReportsQueryClient:      reportstypes.NewQueryClient(grpcConn),
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
 		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
 		MintQueryClient:         minttypes.NewQueryClient(grpcConn),
