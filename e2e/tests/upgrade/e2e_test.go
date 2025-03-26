@@ -1,12 +1,22 @@
 package upgrades_test
 
 import (
+	"math/big"
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
-	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 )
@@ -15,12 +25,12 @@ const (
 	haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
 	upgradeName        = features_and_optimisations.UpgradeName
-	fromImageVersion   = "b1b847b" // this image needs to exist for this test to run (TODO: update accordingly later on)
-	toImageVersion     = "dc1caf6" // this image needs to exist for this test to run (TODO: update accordingly later on)
+	fromImageVersion   = "b1b847b" // this image needs to exist for this test to run
+	toImageVersion     = "57b4923" // this image needs to exist for this test to run
 )
 
 type UpgradesTestSuite struct {
-	e2etestsuite.E2ETestSuite
+	testsuite.E2ETestSuite
 }
 
 func TestUpgradesTestSuite(t *testing.T) {
@@ -35,6 +45,20 @@ func (s *UpgradesTestSuite) SetupTest() {
 }
 
 func (s *UpgradesTestSuite) TestUpgrade() {
+
+	s.Run("Set short signing window and slash fraction to 50%", func() {
+
+		// 50% of every 10-block window has to be signed. Otherwise, the validator not signing will get slashed.
+		slashingParams := s.QuerySlashingParams(s.Ctx())
+		slashingParams.SignedBlocksWindow = int64(10)
+		slashingParams.MinSignedPerWindow = sdkmath.LegacyMustNewDecFromStr("0.5")
+		slashingParams.SlashFractionDowntime = sdkmath.LegacyMustNewDecFromStr("0.5")
+		msgUpdateParams := slashingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *slashingParams,
+		}
+		s.ExecuteGovProposal(&msgUpdateParams)
+	})
 
 	s.Run("Perform the upgrade", func() {
 		height, err := s.GetFuelSequencerHeight(s.Ctx())
@@ -81,5 +105,183 @@ func (s *UpgradesTestSuite) TestUpgrade() {
 
 		err = s.WaitForSequencerBlocks(s.Ctx(), int(blocksAfterUpgrade), time.Second*20)
 		s.Require().NoError(err, "chain did not produce blocks after upgrade")
+	})
+
+	s.Run("Check that slashed funds due to downtime are sent to the governance account ", func() {
+
+		initStake := testsuite.InitStakedCoin
+		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
+		quarterStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(4))
+
+		// Sanity check Governance account balance pre-slash
+		govAccount := s.GetGovernanceAddress()
+		govAccountBalance, err := s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.IsZero())
+
+		// Reduce validator 0's stake so that when we shut it off, the chain proceeds without it
+		_, err = s.SubmitMsgs(&stakingtypes.MsgUndelegate{
+			DelegatorAddress: s.SeqKeys[0].AddressSeq,
+			ValidatorAddress: s.SeqKeys[0].ValAddressSeq,
+			Amount:           halfStake,
+		})
+		s.Require().NoError(err)
+		s.PollForDelegationBalance(s.Ctx(), 10, s.SeqKeys[0].AddressSeq, s.SeqKeys[0].ValAddressSeq, halfStake)
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*5))
+
+		// Pause validator
+		from, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
+		s.PauseSequencer(0)
+
+		// Wait enough time for enough blocks, for the validator to get slashed.
+		// Note: we cannot wait for blocks because validator 0 is down.
+		s.Sleep(time.Second * 15)
+
+		// Unpause validator
+		s.UnpauseSequencer(0)
+		s.Sleep(time.Second * 5) // give some time for the validator to sync up
+		until, err := s.GetFuelSequencerHeight(s.Ctx())
+		s.Require().NoError(err)
+
+		// Look for the slash event
+		var slashEvent *abcitypes.Event
+		var foundAt uint64
+		for block := from; block <= until; block++ {
+			event, found := s.SearchForEventInBlockResults(s.Ctx(), slashingtypes.EventTypeSlash, int64(block))
+			if found {
+				slashEvent = event
+				foundAt = block
+				break
+			}
+		}
+		s.Require().NotZero(foundAt)
+
+		// Check that half of the remaining stake (i.e. a quarter of the original) was burned
+		slashAmount, ok := sdkmath.NewIntFromString(slashEvent.Attributes[4].Value)
+		s.Require().True(ok)
+		s.Require().Equal(slashAmount.String(), quarterStake.Amount.String())
+
+		// Sanity check that tokens don't actually get burned
+		govAccountBalance, err = s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().True(govAccountBalance.Balance.Equal(quarterStake))
+	})
+
+	s.Run("Check that Ethereum events get picked up by the Sidecar and processed by the Sequencer", func() {
+
+		// Try getting height (RPC).
+		ethHeight, err := s.GetEthereumHeight(s.Ctx())
+		s.Require().NoError(err)
+		s.Require().Greater(ethHeight, uint64(1))
+
+		// Try generating some events via a transaction (RPC) - via deposit.
+		depositAmount := big.NewInt(200)
+		depositTxReceipt := s.DepositTokenToSequencer(depositAmount)
+
+		// Generate a Transfer
+		sendAmount := int64(10)
+		from := s.EthKeys[0]
+		to := s.EthKeys[1]
+		transfer := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(
+			from.AddressHex, to.AddressHex,
+			sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))),
+		)
+
+		sendTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(transfer)
+		s.Require().NoError(err)
+
+		// --------------------------------------- Ensure Sidecar got the new Events
+
+		// Ensure deposit event is at the expected height.
+		depositEvents, err := s.PollForSidecarBlockEvents(s.Ctx(), time.Second*20, int(depositTxReceipt.BlockNumber.Int64()))
+		s.Require().NoError(err)
+		s.Require().Len(depositEvents, 1)
+		s.Require().Equal(sidecartypes.DepositEventName, depositEvents[0].EventType)
+
+		// Check deposit event data is as expected
+		var depositEventData sidecartypes.DepositEvent
+		err = depositEventData.Unmarshal(depositEvents[0].Data)
+		s.Require().NoError(err)
+		s.Require().Equal(depositEventData, sidecartypes.DepositEvent{
+			Depositor: s.EthKeys[0].AddressHex,
+			Recipient: s.EthKeys[0].AddressHex, // sender == recipient unless otherwise specified
+			Amount:    depositAmount.String(),
+			Lockup:    "0", // the deposit initiated from Ethereum has no lockup
+		})
+
+		// Ensure authorize event is at the expected height.
+		authorizeEvents, err := s.PollForSidecarBlockEvents(
+			s.Ctx(), time.Second*20, int(sendTxReceipt.BlockNumber.Int64()),
+		)
+		s.Require().NoError(err)
+		s.Require().Len(authorizeEvents, 1)
+		s.Require().Equal(sidecartypes.AuthorizeEventName, authorizeEvents[0].EventType)
+
+		// Check authorize event data is as expected
+		var authorizeEventData sidecartypes.AuthorizeEvent
+		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
+		s.Require().NoError(err)
+		s.Require().Equal(authorizeEventData, sidecartypes.AuthorizeEvent{
+			Sender: from.AddressHex,
+			Data:   msgSendBz,
+		})
+
+		// --------------------------------------- Wait until Sequencer has processed the events
+
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 20, sendTxReceipt.BlockNumber.Uint64())
+
+		// --------------------------------------- Ensure deposit and transfer went through
+
+		depositAmountU64 := depositAmount.Uint64()
+		sendAmountU64 := uint64(sendAmount)
+
+		bal0, err := s.QueryBalance(s.Ctx(), s.EthKeys[0].AddressSeq, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().Equal(bal0.Balance.Amount.Uint64(), depositAmountU64-sendAmountU64)
+
+		bal1, err := s.QueryBalance(s.Ctx(), s.EthKeys[1].AddressSeq, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().Equal(bal1.Balance.Amount.Uint64(), sendAmountU64)
+	})
+
+	s.Run("Grant and Revoke from Ethereum to Claim Rewards from the Sequencer on behalf of a granter", func() {
+
+		granter, grantee := s.EthKeys[0], s.SeqKeys[0]
+
+		// No grant yet
+		grants := s.QueryGranterGrants(s.Ctx(), granter.AddressSeq)
+		s.Require().Empty(grants)
+
+		// Grant an authorisation from Ethereum, and wait for the grant to be processed
+		grantData := testsuite.PackGrantClaimRewards(grantee.AddressEth, 0)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(grantData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, txReceipt.BlockNumber.Uint64())
+
+		// Grant exists now
+		grants = s.QueryGranterGrants(s.Ctx(), granter.AddressSeq)
+		s.Require().Len(grants, 1)
+		grant := grants[0]
+		s.Require().Equal(grantee.AddressSeq, grant.Grantee)
+		s.Require().Equal(granter.AddressSeq, grant.Granter)
+
+		// Check the grant's authorization
+		var authorization authz.Authorization
+		s.Require().NoError(testsuite.TestCdc.UnpackAny(grant.Authorization, &authorization))
+		genericAuthz, ok := authorization.(*authz.GenericAuthorization)
+		s.Require().True(ok)
+		s.Require().Equal(cdctypes.MsgTypeURL(&distrtypes.MsgWithdrawDelegatorReward{}), genericAuthz.Msg)
+
+		// Revoke the authorisation from Ethereum, and wait for the revoke to be processed
+		revokeData := testsuite.PackRevokeClaimRewards(grantee.AddressEth)
+		txReceipt, err = s.SendEthTransactionToSequencerInterfaceContract(revokeData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, txReceipt.BlockNumber.Uint64())
+
+		// No grant anymore
+		grants = s.QueryGranterGrants(s.Ctx(), granter.AddressSeq)
+		s.Require().Empty(grants)
 	})
 }
