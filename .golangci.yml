@@ -54,3 +54,6 @@ issues:
     - source: "\\s+[A-Z][A-Za-z]+\\s+.*\\s+`.*`"
       linters:
         - lll  # Don't enforce line length for struct tags
+    - source: "// this line is used by starport scaffolding # stargate/.*"
+      linters:
+        - lll  # Don't enforce line length for Starport scaffolding comments
