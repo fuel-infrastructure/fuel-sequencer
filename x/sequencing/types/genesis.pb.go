@@ -30,6 +30,7 @@ type GenesisState struct {
 	// params defines all the parameters of the module.
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	// topic_list hold all the list of topics.
+	// TODO: should be snake_case but not worth changing because it breaks stuff.
 	TopicList []Topic `protobuf:"bytes,2,rep,name=topicList,proto3" json:"topicList"`
 }
 
