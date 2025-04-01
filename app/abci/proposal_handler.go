@@ -184,9 +184,6 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		//	return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
 		//}
 		maxNumberOfEvents := 1
-		if len(eventTxs) == 0 {
-			maxNumberOfEvents = 0
-		}
 		originalNumberOfEvents := len(eventTxs)
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))
 		if err != nil {
