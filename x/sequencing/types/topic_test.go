@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"github.com/stretchr/testify/require"
 )
@@ -20,12 +20,12 @@ func TestValidateBasic(t *testing.T) {
 	}{
 		{
 			name:   "valid topic",
-			topic:  types.Topic{Owner: validAddress, Id: utilstest.MockTopicIDHex(1), Order: math.NewInt(1)},
+			topic:  types.Topic{Owner: validAddress, Id: testutil.MockTopicIDHex(1), Order: math.NewInt(1)},
 			expErr: false,
 		},
 		{
 			name:   "invalid address",
-			topic:  types.Topic{Owner: invalidAddress, Id: utilstest.MockTopicIDHex(1), Order: math.NewInt(1)},
+			topic:  types.Topic{Owner: invalidAddress, Id: testutil.MockTopicIDHex(1), Order: math.NewInt(1)},
 			expErr: true,
 		},
 		{
@@ -35,7 +35,7 @@ func TestValidateBasic(t *testing.T) {
 		},
 		{
 			name:   "invalid topic order",
-			topic:  types.Topic{Owner: validAddress, Id: utilstest.MockTopicIDHex(1), Order: math.NewInt(-1)},
+			topic:  types.Topic{Owner: validAddress, Id: testutil.MockTopicIDHex(1), Order: math.NewInt(-1)},
 			expErr: true,
 		},
 	}
@@ -60,7 +60,7 @@ func TestValidateTopicId(t *testing.T) {
 	}{
 		{
 			name:    "valid id",
-			id:      utilstest.MockTopicIDHex(1),
+			id:      testutil.MockTopicIDHex(1),
 			wantErr: false,
 		},
 		{

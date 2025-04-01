@@ -13,8 +13,8 @@ import (
 )
 
 func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
-	for i, val := range s.Chain.validators {
-		cmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
+	for i, val := range s.Chain.Validators {
+		cmCfgPath := filepath.Join(val.ConfigDir(), "config", "config.toml")
 
 		vpr := viper.New()
 		vpr.SetConfigFile(cmCfgPath)
@@ -25,7 +25,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 
 		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
 		valConfig.P2P.AddrBookStrict = false
-		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", val.instanceName(), 26656)
+		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", val.InstanceName(), 26656)
 		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
@@ -37,13 +37,13 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 
 		var peers []string
 
-		for j := 0; j < len(s.Chain.validators); j++ {
+		for j := 0; j < len(s.Chain.Validators); j++ {
 			if i == j {
 				continue
 			}
 
-			peer := s.Chain.validators[j]
-			peerID := fmt.Sprintf("%s@%s%d:26656", peer.nodeKey.ID(), peer.moniker, j)
+			peer := s.Chain.Validators[j]
+			peerID := fmt.Sprintf("%s@%s%d:26656", peer.NodeKey.ID(), peer.Moniker, j)
 			peers = append(peers, peerID)
 		}
 
@@ -52,7 +52,7 @@ func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {
 		cmconfig.WriteConfigFile(cmCfgPath, valConfig)
 
 		// set application configuration
-		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
+		appCfgPath := filepath.Join(val.ConfigDir(), "config", "app.toml")
 
 		customAppTemplate, customAppConfig := app.DefaultCustomAppConfig()
 		appConfig := customAppConfig.(app.CustomAppConfig)

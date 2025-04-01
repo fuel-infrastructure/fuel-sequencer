@@ -13,19 +13,6 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
 
-	// DefaultAuthorizeMessagesAllowed is the Sequencer whitelisted messages we support for AuthorizeTx execution. By
-	// default, we will support staking operations, bank transfers, voting on proposals and Ethereum withdrawals.
-	DefaultAuthorizeMessagesAllowed = []string{
-		"/fuelsequencer.bridge.v1.MsgWithdrawToEthereum",
-		"/cosmos.bank.v1beta1.MsgSend",
-		"/cosmos.staking.v1beta1.MsgDelegate",
-		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
-		"/cosmos.staking.v1beta1.MsgUndelegate",
-		"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-		"/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
-		"/cosmos.gov.v1.MsgVote",
-	}
-
 	// DefaultMaxEthBlockUpdateDelay is the default value for tolerating validators not reaching consensus to sync
 	// up with Ethereum. This is set to 1 hour by default.
 	DefaultMaxEthBlockUpdateDelay = time.Hour
@@ -68,25 +55,6 @@ const (
 	// this value has been set to zero to eliminate lockup periods. The functionality has been retained for potential
 	// future use if lockup requirements are reintroduced.
 	vestingStartTimeDelay = 0
-
-	// DefaultInjectedEventTxMaxBytes is the default max size in bytes for an injected event tx in a block. This is set
-	// to 20000000 assuming a max block size of 22020096 bytes, index tx size 103 bytes and supply delta tx size of 105.
-	// The remaining bytes serve as a buffer. This default needs to be revised if any of the values above change.
-	DefaultInjectedEventTxMaxBytes = 20000000
-
-	// MinimumInjectedEventTxMaxBytes is the minimum value that InjectedEventTxMaxBytes can be set to. This is done to
-	// prevent setting InjectedEventTxMaxBytes to a very small value, and thus avoiding situations where event txs are
-	// never injected due to a strict InjectedEventTxMaxBytes.
-	MinimumInjectedEventTxMaxBytes = 1024
-
-	// DefaultMaxAuthorizeMessages is the maximum amount of Cosmos SDK messages that an Authorize transaction can have
-	// by default
-	DefaultMaxAuthorizeMessages = 10
-
-	// MinimumMaxAuthorizeMessages is the minimum value that MaxAuthorizeMessages can be set to. This is set to one to
-	// prevent mistakes that could cause all Authorize transactions to get skipped. Governance should set
-	// AuthorizeMessagesAllowed to [] if the execution of Authorize txs is to be disabled.
-	MinimumMaxAuthorizeMessages = 1
 )
 
 // NewParams creates a new Params instance.
@@ -94,27 +62,21 @@ func NewParams(
 	bridgeDenom string,
 	bridgeDenomTotalSupply sdkmath.Int,
 	ethereumProxyContractAddress string,
-	authorizeMessagesAllowed []string,
 	supplyDeltaPeriod uint64,
 	vestingStartTime time.Time,
 	additionalBlockedAddresses []string,
 	maxEthBlockUpdateDelay time.Duration,
-	injectedEventTxMaxBytes uint64,
 	sequencerTxsAllocation sdkmath.LegacyDec,
-	maxAuthorizeMessages uint64,
 ) Params {
 	return Params{
 		BridgeDenom:                  bridgeDenom,
 		BridgeDenomTotalSupply:       bridgeDenomTotalSupply,
 		EthereumProxyContractAddress: ethereumProxyContractAddress,
-		AuthorizeMessagesAllowed:     authorizeMessagesAllowed,
 		SupplyDeltaPeriod:            supplyDeltaPeriod,
 		VestingStartTime:             vestingStartTime,
 		AdditionalBlockedAddresses:   additionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       maxEthBlockUpdateDelay,
-		InjectedEventTxMaxBytes:      injectedEventTxMaxBytes,
 		SequencerTxsAllocation:       sequencerTxsAllocation,
-		MaxAuthorizeMessages:         maxAuthorizeMessages,
 	}
 }
 
@@ -124,14 +86,11 @@ func DefaultParams() Params {
 		DefaultBridgeDenom,
 		DefaultBridgeDenomTotalSupply,
 		DefaultEthereumProxyContractAddress,
-		DefaultAuthorizeMessagesAllowed,
 		DefaultSupplyDeltaPeriod,
 		DefaultVestingStartTime,
 		nil,
 		DefaultMaxEthBlockUpdateDelay,
-		DefaultInjectedEventTxMaxBytes,
 		DefaultSequencerTxsAllocation,
-		DefaultMaxAuthorizeMessages,
 	)
 }
 
@@ -157,10 +116,6 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := ValidateAuthorizeMessagesAllowed(p.AuthorizeMessagesAllowed); err != nil {
-		return err
-	}
-
 	if err := ValidateSupplyDeltaPeriod(p.SupplyDeltaPeriod); err != nil {
 		return err
 	}
@@ -177,15 +132,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := ValidateInjectedEventTxMaxBytes(p.InjectedEventTxMaxBytes); err != nil {
-		return err
-	}
-
 	if err := ValidateSequencerTxsAllocation(p.SequencerTxsAllocation); err != nil {
-		return err
-	}
-
-	if err := ValidateMaxAuthorizeMessages(p.MaxAuthorizeMessages); err != nil {
 		return err
 	}
 
@@ -225,19 +172,6 @@ func ValidateEthereumProxyContractAddress(i interface{}) error {
 	return nil
 }
 
-func ValidateAuthorizeMessagesAllowed(i interface{}) error {
-	messages, ok := i.([]string)
-	if !ok {
-		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
-	}
-	for _, msg := range messages {
-		if msg == "" {
-			return ErrParamsInvalid.Wrapf("authorizeMessagesAllowed cannot contain empty string literals")
-		}
-	}
-	return nil
-}
-
 func ValidateSupplyDeltaPeriod(i interface{}) error {
 	v, ok := i.(uint64)
 	if !ok {
@@ -266,7 +200,7 @@ func ValidateVestingStartTime(i interface{}) error {
 func ValidateBlockedAddresses(i interface{}) error {
 	additionalBlockedAddresses, ok := i.([]string)
 	if !ok {
-		return ErrParamsInvalid.Wrapf("invalid parameter type for authorizeMessagesAllowed: %T", i)
+		return ErrParamsInvalid.Wrapf("invalid parameter type for additionalBlockedAddresses: %T", i)
 	}
 
 	for _, addr := range additionalBlockedAddresses {
@@ -293,38 +227,6 @@ func ValidateMaxEthBlockUpdateDelay(i interface{}) error {
 	}
 	if v < 0 {
 		return ErrParamsInvalid.Wrapf("tolerance for no Ethereum block syncing cannot be negative")
-	}
-
-	return nil
-}
-
-func ValidateInjectedEventTxMaxBytes(i interface{}) error {
-	v, ok := i.(uint64)
-	if !ok {
-		return ErrParamsInvalid.Wrapf("invalid parameter type for injectedEventTxMaxBytes: %T", i)
-	}
-
-	// value cannot be less than MinimumInjectedEventTxMaxBytes, otherwise, we risk never injecting event txs in a block
-	if v < MinimumInjectedEventTxMaxBytes {
-		return ErrParamsInvalid.Wrapf(
-			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
-		)
-	}
-
-	return nil
-}
-
-func ValidateMaxAuthorizeMessages(i interface{}) error {
-	v, ok := i.(uint64)
-	if !ok {
-		return ErrParamsInvalid.Wrapf("invalid parameter type for maxAuthorizeMessages: %T", i)
-	}
-
-	// value cannot be less than MinimumMaxAuthorizeMessages, otherwise, we risk skipping all Authorize txs.
-	if v < MinimumMaxAuthorizeMessages {
-		return ErrParamsInvalid.Wrapf(
-			"injected event tx max bytes cannot be less than %d: given %d", MinimumInjectedEventTxMaxBytes, v,
-		)
 	}
 
 	return nil
@@ -382,18 +284,6 @@ func (p Params) VestingTimesFromVestingDuration(duration time.Duration) (time.Ti
 	}
 	vestingEndTime := p.VestingStartTime.Add(duration)
 	return vestingStartTime, vestingEndTime, nil
-}
-
-// IsAuthorizedMessage returns true if the sdk.Msg TypeURL is present in Params.AuthorizeMessagesAllowed, otherwise,
-// returns false
-func (p *Params) IsAuthorizedMessage(msg sdk.Msg) bool {
-	for _, messageAllowed := range p.AuthorizeMessagesAllowed {
-		if messageAllowed == sdk.MsgTypeURL(msg) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // IsMsgSupplyDeltaBlock returns true if it's the right height for a MsgSupplyDelta.

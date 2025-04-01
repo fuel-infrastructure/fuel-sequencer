@@ -162,6 +162,31 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 	return
 }
 
+// EncodeMsgSkippedEventTx is a helper to encode MsgSkippedEventTx as transaction bytes.
+func (s *AppTestSuite) EncodeMsgSkippedEventTx(
+	reasonForSkip string,
+	blockNumber uint64,
+	logIndex uint64,
+	txIndex uint64,
+	txHash string,
+	sequence uint64,
+) (tx []byte) {
+	msgSkippedEventTx, err := bridgetypes.NewMsgSkippedEventTx(
+		s.App.BridgeKeeper.GetAuthority(),
+		reasonForSkip,
+		blockNumber,
+		logIndex,
+		txIndex,
+		txHash,
+	).RawTxBytes(sequence)
+
+	if err != nil {
+		panic(fmt.Sprintf("could not get raw tx bytes from MsgSkippedEventTx: %s", err))
+	}
+
+	return msgSkippedEventTx
+}
+
 func (s *AppTestSuite) SetupTest() {
 	s.Setup()
 }

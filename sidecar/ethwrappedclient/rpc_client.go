@@ -23,10 +23,14 @@ type EthRpcClient struct {
 	// The base struct.
 	*EthWrappedClient
 
-	// contractAddress is the address of the contract we'll be querying.
+	// contractAddress is the address of the SequencerProxy contract.
 	contractAddress common.Address
-	// contractABI is the ABI of the contract we're querying.
+	// contractABI is the ABI of the SequencerProxy contract.
 	contractABI abi.ABI
+
+	// seqBridgeDenom is the denom used when encoding AuthorizeTx messages.
+	// For example, if we observe a DelegateEvent with amount 100, this is translated to a MsgDelegate of 100seqBridgeDenom.
+	seqBridgeDenom string
 
 	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.
 	logsQueryLimiter *rate.Limiter
@@ -41,6 +45,7 @@ func NewEthRpcClient(
 	ethClient *ethclient.Client,
 	contractAddress common.Address,
 	contractAbi abi.ABI,
+	seqBridgeDenom string,
 	minLogsQueryInterval time.Duration,
 	queryTimeout time.Duration,
 	metrics *Metrics,
@@ -53,6 +58,7 @@ func NewEthRpcClient(
 		},
 		contractAddress:  contractAddress,
 		contractABI:      contractAbi,
+		seqBridgeDenom:   seqBridgeDenom,
 		logsQueryLimiter: rate.NewLimiter(rate.Every(minLogsQueryInterval), 1), // max 1 request per interval
 		queryTimeout:     queryTimeout,
 	}
@@ -195,7 +201,7 @@ func (ec *EthRpcClient) processLogs(
 			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}
 
-		event, err := utils.ExtractLogDataToEvent(vLog, ec.contractABI)
+		event, err := utils.ExtractLogDataToEvent(ec.logger, vLog, ec.contractABI, ec.seqBridgeDenom)
 		if err != nil {
 			errMsg := "error processing log"
 			ec.logger.Error(errMsg, zap.Error(err))

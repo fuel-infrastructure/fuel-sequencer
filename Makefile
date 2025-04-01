@@ -6,13 +6,16 @@ DOCKER_IMAGE_NAME := "fuel-infrastructure/fuel-sequencer"
 DOCKER_IMAGE_TAG := $(shell git rev-parse --short HEAD)
 DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 
+# Fuel Rollup local repository.
+ROLLUP_DIR = $(CURDIR)/e2e/fuel-rollup
+
 # Name of the Ethereum contract deployment image.
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
 
 # Ethereum containers' names when they are run from the E2E tests.
 ETH_NODE_DOCKER_CONTAINER_NAME := "ethereum-node"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME := "ethereum-deployment"
-
+OTTERSCAN_DOCKER_CONTAINER_NAME := "otterscan"
 # Ethereum containers' names when they are run from the docker-compose.
 ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE := "eth_node"
 ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE := "deploy"
@@ -37,8 +40,8 @@ COMETBFT_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* 
 BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
-GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1-2)
-REQUIRE_GO_VERSION = 1.22
+GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
+REQUIRE_GO_VERSION = 1.22.11
 
 export GO111MODULE = on
 
@@ -186,6 +189,7 @@ run-sidecar-binary:
 	@$(eval SIDECAR_PATH_TO_KEY_FILE ?= "")
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
+	@$(eval UNSAFE_SEQUENCER_BRIDGE_DENOM ?= "utest")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
@@ -202,6 +206,7 @@ run-sidecar-binary:
 		--sidecar_path_to_key_file "$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--sequencer_grpc_url "$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file "$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--unsafe_sequencer_bridge_denom "$(UNSAFE_SEQUENCER_BRIDGE_DENOM)" \
 		--eth_ws_url "$(ETH_WS_URL)" \
 		--eth_rpc_url "$(ETH_RPC_URL)" \
 		--eth_contract_address "$(ETH_CONTRACT_ADDRESS)" \
@@ -232,7 +237,7 @@ proto-go-gen:
 
 proto-format:
 	@echo "🤖 Formatting Protobuf files..."
-	@docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+	@$(DOCKER) run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
 		find ./proto -name "*.proto" -exec clang-format -i {} \;
 	@echo "✅ Finished formatting Protobuf files!"
 
@@ -256,6 +261,7 @@ run-sidecar:
 	@$(eval SEQUENCER_GRPC_URL ?= "127.0.0.1:9090")
 	@$(eval SEQUENCER_RPC_URL ?= "http://127.0.0.1:26657")  # for the wait below
 	@$(eval SEQUENCER_PATH_TO_CERT_FILE ?= "")
+	@$(eval UNSAFE_SEQUENCER_BRIDGE_DENOM ?= "utest")
 	@$(eval ETH_WS_URL ?= "ws://localhost:8545")
 	@$(eval ETH_RPC_URL ?= "http://localhost:8545")  # for the wait below and Sidecar RPC calls
 	@$(eval ETH_CONTRACT_ADDRESS ?= "0x0165878A594ca255338adfa4d48449f69242Eb8F")
@@ -269,7 +275,7 @@ run-sidecar:
 	    sleep 1; \
 	done
 	@echo "Waiting for Ethereum deployment container '$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)' to stop..."
-	@while [ -n "$$(docker ps -q -f name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE))" ]; do \
+	@while [ -n "$$($(DOCKER) ps -q -f name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE))" ]; do \
 		sleep 1; \
 	done
 	@echo "Waiting for Sequencer node $(SEQUENCER_RPC_URL) to start..."
@@ -283,6 +289,7 @@ run-sidecar:
 		--port="$(SIDECAR_PORT)" \
 		--sequencer_grpc_url="$(SEQUENCER_GRPC_URL)" \
 		--sequencer_path_to_cert_file="$(SEQUENCER_PATH_TO_CERT_FILE)" \
+		--unsafe_sequencer_bridge_denom="$(UNSAFE_SEQUENCER_BRIDGE_DENOM)" \
 		--sidecar_path_to_cert_file="$(SIDECAR_PATH_TO_CERT_FILE)" \
 		--sidecar_path_to_key_file="$(SIDECAR_PATH_TO_KEY_FILE)" \
 		--eth_ws_url="$(ETH_WS_URL)" \
@@ -359,7 +366,7 @@ test-e2e: \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
-	test-e2e-authorize-transactions \
+	test-e2e-authorize \
 	test-e2e-deposits \
 	test-e2e-special-messages
 
@@ -389,7 +396,7 @@ metrics:
 ###############################################################################
 
 check-docker-image-exists:
-ifeq (,$(shell docker images -q ${DOCKER_IMAGE_NAME}:latest 2> /dev/null))
+ifeq (,$(shell $(DOCKER) images -q ${DOCKER_IMAGE_NAME}:latest 2> /dev/null))
 	@echo "❌ Docker image ${DOCKER_IMAGE_NAME}:latest not found";
 	@exit 1;
 else
@@ -398,13 +405,13 @@ endif
 
 build-docker-image:
 	@echo "🤖 Building Docker image..."
-	@docker build \
+	@$(DOCKER) build \
 		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} \
 		--build-arg GO_VERSION=${REQUIRE_GO_VERSION} \
 		.
-	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
+	@$(DOCKER) tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
-	@docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest
+	@$(DOCKER) tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:latest
 	@echo "✅ Finished building Docker image!"
 
@@ -420,7 +427,7 @@ run-docker-container: check-docker-image-exists
 	@$(eval DATA_FOLDER ?= "/data/fuelsequencer")
 	@$(eval COMMAND ?= "node_and_sidecar")
 	@echo "🤖 Running Docker container..."
-	@docker run -d \
+	@$(DOCKER) run -d \
     		-v $(shell pwd)${DATA_FOLDER}:/home/fuelsequencer/.fuelsequencer \
     		--name $(DOCKER_CONTAINER_NAME) \
     		-p 26656:26656 -p 26657:26657 -p 1317:1317 -p 8080:8080 -p 8081:8081 \
@@ -431,21 +438,21 @@ run-docker-container: check-docker-image-exists
 
 start-docker-container:
 	@echo "🤖 Starting Docker container..."
-	@docker start $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) start $(DOCKER_CONTAINER_NAME)
 	@echo "✅ Started Docker container!"
 
 stop-docker-container:
 	@echo "🤖 Stopping Docker container..."
-	@docker stop $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) stop $(DOCKER_CONTAINER_NAME)
 	@echo "✅ Stopped Docker container!"
 
 remove-docker-container:
 	@echo "🤖 Removing Docker container..."
-	@docker rm -v $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) rm -v $(DOCKER_CONTAINER_NAME)
 	@echo "✅ Removed Docker container!"
 
 follow-docker-logs:
-	@docker logs -f $(DOCKER_CONTAINER_NAME)
+	@$(DOCKER) logs -f $(DOCKER_CONTAINER_NAME)
 
 ###############################################################################
 ###                                   E2E                                   ###
@@ -456,7 +463,7 @@ build-all-docker-images: \
 	build-eth-deployment-docker-image
 
 check-eth-deployment-docker-image-exists:
-ifeq (,$(shell docker images -q ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} 2> /dev/null))
+ifeq (,$(shell $(DOCKER) images -q ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} 2> /dev/null))
 	@echo "❌ Docker image ${ETH_DEPLOYMENT_DOCKER_IMAGE_NAME} not found";
 	@exit 1;
 else
@@ -465,30 +472,32 @@ endif
 
 # Builds contract deployment container for automated E2E tests
 # Note: this assumes evm_setIntervalMining is set to 3.
-build-eth-deployment-docker-image: e2e/fuel-rollup/.npmrc
+build-eth-deployment-docker-image: $(ROLLUP_DIR)/.npmrc
 	@echo "🤖 Updating git submodules (fuel-rollup)..."
-	@git submodule update --init --remote e2e/fuel-rollup
+	@git submodule update --init --remote $(ROLLUP_DIR)
+	@echo "🤖 Building dependencies..."
+	@(cd $(ROLLUP_DIR) && pnpm install && pnpm build)
 	@echo "🤖 Building Docker image..."
-	@docker build \
+	@$(DOCKER) build \
 		-t $(ETH_DEPLOYMENT_DOCKER_IMAGE_NAME) \
-		-f ./e2e/fuel-rollup/docker/docker.eth_node.Dockerfile \
+		-f $(ROLLUP_DIR)/docker/docker.eth_node.Dockerfile \
 		--build-arg NPM_TOKEN=$$NPM_TOKEN \
-		./e2e/fuel-rollup/
+		$(ROLLUP_DIR)
 	@echo "🤖 Cleaning up git submodules (fuel-rollup)..."
-	@git submodule update --remote e2e/fuel-rollup
+	@git submodule update --remote $(ROLLUP_DIR)
 	@echo "✅ Finished!"
 
 # Runs node and contract deployment containers
-run-eth-e2e-containers: e2e/fuel-rollup/.npmrc
+run-eth-e2e-containers: $(ROLLUP_DIR)/.npmrc
 	@echo "🤖 Running Docker containers..."
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml up -d --build \
+	@$(DOCKER) compose -f $(ROLLUP_DIR)/docker/docker-compose.yml up -d --build \
 		"$(ETH_NODE_DOCKER_CONTAINER_NAME_COMPOSE)" \
 		"$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME_COMPOSE)"
 
 # Removes node and contract deployment containers
 remove-eth-e2e-containers:
 	@echo "🤖 Removing Docker containers..."
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
+	@$(DOCKER) compose -f $(ROLLUP_DIR)/docker/docker-compose.yml down
 	@echo "✅ Removed Docker containers!"
 
 test-e2e-basic:
@@ -500,8 +509,8 @@ test-e2e-events:
 test-e2e-withdrawals:
 	@cd e2e/tests && go test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
 
-test-e2e-authorize-transactions:
-	@cd e2e/tests && go test -mod=readonly -race -v ./authorize-transactions/... --test.timeout 0
+test-e2e-authorize:
+	@cd e2e/tests && go test -mod=readonly -race -v ./authorize/... --test.timeout 0
 
 test-e2e-deposits:
 	@cd e2e/tests && go test -mod=readonly -race -v ./deposits/... --test.timeout 0
@@ -511,21 +520,22 @@ test-e2e-special-messages:
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
-	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker stop
-	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker stop
-	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker stop
-	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
-	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker stop
-	@docker-compose -f ./e2e/fuel-rollup/docker/docker-compose.yml down
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer1" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
+	@$(DOCKER) compose -f $(ROLLUP_DIR)/docker/docker-compose.yml down
 
 	@echo "🧹 Removing Docker containers..."
-	@docker ps -aq --filter "name=fuelsequencer0" | xargs -r docker rm
-	@docker ps -aq --filter "name=fuelsequencer1" | xargs -r docker rm
-	@docker ps -aq --filter "name=fuelsequencer2" | xargs -r docker rm
-	@docker ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r docker rm
-	@docker ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r docker rm
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer1" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(OTTERSCAN_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 
 	@echo "🧹 Pruning Docker networks..."
-	@docker network prune -f
+	@$(DOCKER) network prune -f
 
 	@echo "✅ Finished cleaning E2E!"

@@ -285,15 +285,6 @@ paths:
                       expect to
 
                       receive deposit and authorize messages from.
-                  authorize_messages_allowed:
-                    type: array
-                    items:
-                      type: string
-                    description: >-
-                      authorize_messages_allowed is a whitelist for authorize
-                      messages that we
-
-                      can receive and process.
                   supply_delta_period:
                     type: string
                     format: uint64
@@ -341,24 +332,6 @@ paths:
 
                       will halt until validators sync up with next Ethereum
                       block.
-                  injected_event_tx_max_bytes:
-                    type: string
-                    format: uint64
-                    description: >-
-                      injected_event_tx_max_bytes is the maximum amount of block
-                      space that an
-
-                      injected event tx can take in terms of bytes. An Authorize
-                      event gets
-
-                      skipped and never included in a block if it can't be
-                      converted into a tx
-
-                      that can respect this limit. On the other hand, if a
-                      Deposit event cannot
-
-                      be converted into a Tx that can respect this limit, the
-                      chain halts.
                   sequencer_txs_allocation:
                     type: string
                     description: >-
@@ -378,14 +351,6 @@ paths:
                       algorithm if it
 
                       can fit more Sequencer-native or event transactions.
-                  max_authorize_messages:
-                    type: string
-                    format: uint64
-                    title: >-
-                      max_authorize_messages is the maximum amount of Cosmos SDK
-                      messages that an
-
-                      Authorize transaction can have
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -30368,15 +30333,6 @@ definitions:
         description: |-
           ethereum_proxy_contract_address is the contract address we expect to
           receive deposit and authorize messages from.
-      authorize_messages_allowed:
-        type: array
-        items:
-          type: string
-        description: >-
-          authorize_messages_allowed is a whitelist for authorize messages that
-          we
-
-          can receive and process.
       supply_delta_period:
         type: string
         format: uint64
@@ -30423,22 +30379,6 @@ definitions:
           production
 
           will halt until validators sync up with next Ethereum block.
-      injected_event_tx_max_bytes:
-        type: string
-        format: uint64
-        description: >-
-          injected_event_tx_max_bytes is the maximum amount of block space that
-          an
-
-          injected event tx can take in terms of bytes. An Authorize event gets
-
-          skipped and never included in a block if it can't be converted into a
-          tx
-
-          that can respect this limit. On the other hand, if a Deposit event
-          cannot
-
-          be converted into a Tx that can respect this limit, the chain halts.
       sequencer_txs_allocation:
         type: string
         description: >-
@@ -30457,14 +30397,6 @@ definitions:
           if it
 
           can fit more Sequencer-native or event transactions.
-      max_authorize_messages:
-        type: string
-        format: uint64
-        title: >-
-          max_authorize_messages is the maximum amount of Cosmos SDK messages
-          that an
-
-          Authorize transaction can have
     description: Params defines the parameters for the module.
   fuelsequencer.bridge.SupplyDeltaInfo:
     type: object
@@ -30608,15 +30540,6 @@ definitions:
               to
 
               receive deposit and authorize messages from.
-          authorize_messages_allowed:
-            type: array
-            items:
-              type: string
-            description: >-
-              authorize_messages_allowed is a whitelist for authorize messages
-              that we
-
-              can receive and process.
           supply_delta_period:
             type: string
             format: uint64
@@ -30663,24 +30586,6 @@ definitions:
               production
 
               will halt until validators sync up with next Ethereum block.
-          injected_event_tx_max_bytes:
-            type: string
-            format: uint64
-            description: >-
-              injected_event_tx_max_bytes is the maximum amount of block space
-              that an
-
-              injected event tx can take in terms of bytes. An Authorize event
-              gets
-
-              skipped and never included in a block if it can't be converted
-              into a tx
-
-              that can respect this limit. On the other hand, if a Deposit event
-              cannot
-
-              be converted into a Tx that can respect this limit, the chain
-              halts.
           sequencer_txs_allocation:
             type: string
             description: >-
@@ -30700,14 +30605,6 @@ definitions:
               algorithm if it
 
               can fit more Sequencer-native or event transactions.
-          max_authorize_messages:
-            type: string
-            format: uint64
-            title: >-
-              max_authorize_messages is the maximum amount of Cosmos SDK
-              messages that an
-
-              Authorize transaction can have
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   fuelsequencer.bridge.v1.QuerySequencerAddressFromEthereumAddressResponse:
     type: object

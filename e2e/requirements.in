@@ -1,0 +1,8 @@
+# TL;DR, in virtualenv:
+# pip install pip-tools
+# pip-compile requirements.in
+# pip-sync requirements.txt
+
+python-dateutil
+requests
+web3

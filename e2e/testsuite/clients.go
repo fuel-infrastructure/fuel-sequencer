@@ -14,6 +14,7 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -38,6 +39,7 @@ type GRPCClients struct {
 	ConsensusQueryClient    consensustypes.QueryClient
 	StakingQueryClient      stakingtypes.QueryClient
 	MintQueryClient         minttypes.QueryClient
+	SlashingQueryClient     slashingtypes.QueryClient
 
 	// Custom query clients
 	BridgeQueryClient      bridgetypes.QueryClient
@@ -49,7 +51,7 @@ type GRPCClients struct {
 
 // initGRPCClients establishes GRPC clients using the first validator.
 func (s *E2ETestSuite) initGRPCClients() {
-	addr := s.Chain.validators[0].hostGRPCPort
+	addr := s.Chain.Validators[0].hostGRPCPort
 
 	// Due to an issue with math.LegacyDec deserialization, we have to override the gRPC codec.
 	// Ref 1: https://github.com/cosmos/cosmos-sdk/issues/18430
@@ -82,6 +84,7 @@ func (s *E2ETestSuite) initGRPCClients() {
 		ConsensusServiceClient:  cmtservice.NewServiceClient(grpcConn),
 		StakingQueryClient:      stakingtypes.NewQueryClient(grpcConn),
 		MintQueryClient:         minttypes.NewQueryClient(grpcConn),
+		SlashingQueryClient:     slashingtypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -91,7 +94,7 @@ func (s *E2ETestSuite) getGRPCClients() *GRPCClients {
 
 // initRPCClient establishes an RPC client using the first validator.
 func (s *E2ETestSuite) initRPCClient() {
-	addr := s.Chain.validators[0].hostRPCPort
+	addr := s.Chain.Validators[0].hostRPCPort
 
 	httpClient, err := libclient.DefaultHTTPClient(addr)
 	if err != nil {
@@ -129,7 +132,7 @@ func (s *E2ETestSuite) getEthereumRPCClient() *ethclient.Client {
 
 // initSidecarClient establishes a Sidecar client using the first validator.
 func (s *E2ETestSuite) initSidecarClient() {
-	addr := s.Chain.validators[0].sidecarGRPCPort
+	addr := s.Chain.Validators[0].sidecarGRPCPort
 
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(

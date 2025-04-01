@@ -100,3 +100,30 @@ func (s *E2ETestSuite) QueryEthereumAddressHasRole_FuelStreamXContract(
 ) (bool, error) {
 	return s.QueryEthereumAddressHasRole(ctx, account, FuelStreamXContractAddress, FuelStreamXContractABI, role)
 }
+
+// QueryBlockHeightToHeaderHashQueryName queries the header hash for a block height from FuelStreamX contract.
+func (s *E2ETestSuite) QueryBlockHeightToHeaderHashQueryName(ctx context.Context, height uint64) (common.Hash, error) {
+
+	query := ethereum.CallMsg{
+		To:   &FuelStreamXContractAddress,
+		Data: PackBlockHeightToHeaderHash(FuelStreamXContractABI, height),
+	}
+
+	result, err := s.Chain.ethClient.CallContract(ctx, query, nil)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	parsedABI, err := abi.JSON(strings.NewReader(FuelStreamXContractABI))
+	if err != nil {
+		panic(errorsmod.Wrap(err, "bad ABI definition in code"))
+	}
+
+	var headerHash common.Hash
+	err = parsedABI.UnpackIntoInterface(&headerHash, BlockHeightToHeaderHashQueryName, result)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	return headerHash, nil
+}

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"net/http"
 	"os"
 	osuser "os/user"
 	"path/filepath"
@@ -41,8 +42,8 @@ const (
 	BridgeDenom = "utest"
 
 	// Gas configs
-	minGasPrices = "0.01"
-	defaultTxGas = 1000000
+	MinGasPricesFloat, minGasPrices = 0.01, "0.01"
+	DefaultTxGas                    = 1000000
 
 	// Genesis configs
 	supplyDeltaPeriod      = uint64(10)       // default - can be overridden
@@ -101,12 +102,6 @@ var (
 		"gaze drama excess raven follow antenna swallow beef upper myself question pitch course ill adult century crisp ice rough match praise sing unveil vintage",
 	}
 
-	// Slashing params - 50% of every 10-block window has to be signed.
-	// Otherwise, the validator not signing will get slashed by 50%.
-	SignedBlocksWindow    = int64(10)
-	MinSignedPerWindow    = sdkmath.LegacyMustNewDecFromStr("0.5")
-	SlashFractionDowntime = sdkmath.LegacyMustNewDecFromStr("0.5")
-
 	// Inflation params
 	Inflation           = sdkmath.LegacyMustNewDecFromStr("0.10") // this is overridden if InflationMin == InflationMax
 	InflationRateChange = sdkmath.LegacyMustNewDecFromStr("0.13") // this is not actually used by the custom mint module
@@ -123,7 +118,7 @@ var (
 	// TokenContractAddressStr is the address of the FUEL V2 token contract.
 	TokenContractAddressStr = ""
 	TokenContractAddress    = common.Address{}
-	// SequencerInterfaceContractAddressStr is the address of the contract that has the batchAuthorize function.
+	// SequencerInterfaceContractAddressStr is the address of the contract that allows users to interact with the sequencer (Deposit, Delegate, etc.)
 	SequencerInterfaceContractAddressStr = ""
 	SequencerInterfaceContractAddress    = common.Address{}
 	// MigratedTokenContractAddressStr is the address of the FUEL V1 token contract.
@@ -132,7 +127,7 @@ var (
 	// VaultContractAddressStr is the address of the vault contract.
 	VaultContractAddressStr = ""
 	VaultContractAddress    = common.Address{}
-	// SequencerProxyContractAddressStr is the address of the contract that emits Deposit and Authorize events.
+	// SequencerProxyContractAddressStr is the address of the contract that emits events that the sidecar will process.
 	SequencerProxyContractAddressStr = ""
 	SequencerProxyContractAddress    = common.Address{}
 	// TokenMigratorContractAddressStr is the address of the V1 to V2 token migrator contract.
@@ -165,12 +160,13 @@ type E2ETestSuite struct {
 
 	log *zap.Logger
 
-	Chain         *chain
+	Chain         *Chain
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
 
 	ethNodeResource       *dockertest.Resource
 	ethDeploymentResource *dockertest.Resource
+	otterscanResource     *dockertest.Resource
 	valResources          []*dockertest.Resource
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
@@ -239,7 +235,7 @@ func (s *E2ETestSuite) SetupTest() {
 	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.Chain.id))
 	s.Require().NoError(err)
 
-	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.dataDir)
+	s.T().Logf("starting E2E infrastructure; Chain-id: %s; datadir: %s", s.Chain.id, s.Chain.DataDir)
 
 	// Derive and print the Ethereum keys with the hex and bech32 representation of the addresses.
 	for _, mnemonic := range MNEMONICS {
@@ -255,7 +251,7 @@ func (s *E2ETestSuite) SetupTest() {
 
 	// Derive and print the Sequencer keys with the hex and bech32 representation of the addresses.
 	for _, mnemonic := range MNEMONICS {
-		s.SeqKeys = append(s.SeqKeys, mustNewSequencerKeyFromMnemonic(mnemonic))
+		s.SeqKeys = append(s.SeqKeys, MustNewSequencerKeyFromMnemonic(mnemonic))
 	}
 	s.T().Logf("sequencer keys:")
 	for _, key := range s.SeqKeys {
@@ -276,6 +272,7 @@ func (s *E2ETestSuite) SetupTest() {
 	// Run FuelSequencer nodes and sidecars
 	s.initFuelSequencerGenesis()
 	s.initFuelSequencerValidatorConfigs()
+	// s.runOtterscanContainer() // disabled by default as intended for debugging e2e tests
 	s.RunSequencerValidators()
 	s.initGRPCClients()
 	s.initRPCClient()
@@ -319,9 +316,12 @@ func (s *E2ETestSuite) TearDownTest() {
 	s.T().Log("tearing down e2e integration test suite...")
 
 	s.Require().NoError(s.Chain.rpcClient.Stop())
-	s.Require().NoError(os.RemoveAll(s.Chain.dataDir))
+	s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
 	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
 	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
+	if s.otterscanResource != nil { // purge otterscan container if it was started
+		s.Require().NoError(s.dockerPool.Purge(s.otterscanResource))
+	}
 
 	for _, vc := range s.valResources {
 		s.Require().NoError(s.dockerPool.Purge(vc))
@@ -342,21 +342,21 @@ func (s *E2ETestSuite) TearDownTest() {
 // initFuelSequencerNodes initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
 // It also sets up the genesis file using the first validator and copies it to all other validator nodes.
 func (s *E2ETestSuite) initFuelSequencerNodes(mnemonics []string) {
-	s.Require().NoError(s.Chain.createAndInitFuelSequencerValidators(mnemonics))
+	s.Require().NoError(s.Chain.CreateAndInitFuelSequencerValidators(mnemonics))
 
 	// initialize a genesis file for the first validator
-	val0ConfigDir := s.Chain.validators[0].configDir()
-	for _, val := range s.Chain.validators {
+	val0ConfigDir := s.Chain.Validators[0].ConfigDir()
+	for _, val := range s.Chain.Validators {
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.address()),
+			AddGenesisAccount(val0ConfigDir, "", InitBalanceCoin.String(), val.Address()),
 		)
 	}
 
 	// copy the genesis file to the remaining validators
-	for _, val := range s.Chain.validators[1:] {
-		err := copyFile(
+	for _, val := range s.Chain.Validators[1:] {
+		err := CopyFile(
 			filepath.Join(val0ConfigDir, "config", "genesis.json"),
-			filepath.Join(val.configDir(), "config", "genesis.json"),
+			filepath.Join(val.ConfigDir(), "config", "genesis.json"),
 		)
 		s.Require().NoError(err)
 	}
@@ -452,6 +452,47 @@ func (s *E2ETestSuite) runEthereumDeploymentContainer() {
 	defer cancel()
 	_, err = s.dockerPool.Client.WaitContainerWithContext(s.ethDeploymentResource.Container.ID, waitContext)
 	s.Require().NoError(err)
+}
+
+func (s *E2ETestSuite) runOtterscanContainer() {
+	s.T().Log("starting Otterscan container...")
+	var err error
+	runOpts := dockertest.RunOptions{
+		Name:       "otterscan",
+		Repository: "otterscan/otterscan",
+		Tag:        "latest",
+		NetworkID:  s.dockerNetwork.Network.ID,
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"80/tcp": {{HostPort: "5100"}},
+		},
+		Env: []string{
+			"ERIGON_URL=http://127.0.0.1:8545",
+		},
+	}
+
+	s.otterscanResource, err = s.dockerPool.RunWithOptions(
+		&runOpts,
+		noRestart,
+	)
+	s.Require().NoError(err)
+
+	// Wait for Otterscan to be ready
+	s.Require().Eventually(
+		func() bool {
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%s", s.otterscanResource.GetPort("80/tcp")))
+			if err != nil {
+				s.T().Logf("error connecting to otterscan: %v", err)
+				return false
+			}
+			defer resp.Body.Close()
+			return resp.StatusCode == http.StatusOK
+		},
+		1*time.Minute,
+		1*time.Second,
+		"otterscan failed to respond",
+	)
+
+	s.T().Logf("started Otterscan container: %s", s.otterscanResource.Container.ID)
 }
 
 func (s *E2ETestSuite) setContractAddresses() {
@@ -581,15 +622,15 @@ func (s *E2ETestSuite) runSequencerValidatorsWithOverrides(
 	user, err := osuser.Current()
 	s.Require().NoError(err)
 
-	s.valResources = make([]*dockertest.Resource, len(s.Chain.validators))
-	for i, val := range s.Chain.validators {
+	s.valResources = make([]*dockertest.Resource, len(s.Chain.Validators))
+	for i, val := range s.Chain.Validators {
 		runOpts := &dockertest.RunOptions{
-			Name:       val.instanceName(),
+			Name:       val.InstanceName(),
 			NetworkID:  s.dockerNetwork.Network.ID,
 			Repository: s.FuelSequencerDockerImageRepo,
 			Tag:        s.FuelSequencerDockerImageTag,
 			Mounts: []string{
-				fmt.Sprintf("%s/:%s", val.configDir(), fuelSequencerValidatorDefaultHome),
+				fmt.Sprintf("%s/:%s", val.ConfigDir(), fuelSequencerValidatorDefaultHome),
 			},
 			User:       fmt.Sprintf("%s:%s", user.Uid, user.Gid),
 			Entrypoint: entrypoint,

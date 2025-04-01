@@ -17,12 +17,11 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 	coinsAmt := sdk.NewCoins(coinAmt)
 
 	testCases := []struct {
-		name               string
-		sender             string
-		msgs               []sdk.Msg
-		authorizedMessages []string
-		blockedAddresses   map[string]bool
-		expErrMsg          string
+		name             string
+		sender           string
+		msgs             []sdk.Msg
+		blockedAddresses map[string]bool
+		expErrMsg        string
 	}{
 		{
 			name:   "authenticates valid msgs successfully",
@@ -39,8 +38,7 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 					Amount:      coinsAmt,
 				},
 			},
-			blockedAddresses:   map[string]bool{},
-			authorizedMessages: types.DefaultAuthorizeMessagesAllowed,
+			blockedAddresses: map[string]bool{},
 		},
 		{
 			name:   "errors if signer address is blocked",
@@ -57,9 +55,8 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 					Amount:      coinsAmt,
 				},
 			},
-			blockedAddresses:   map[string]bool{testtypes.TestFrom1Seq: true},
-			authorizedMessages: types.DefaultAuthorizeMessagesAllowed,
-			expErrMsg:          fmt.Sprintf("signer %s is a blocked address", testtypes.TestFrom1Seq),
+			blockedAddresses: map[string]bool{testtypes.TestFrom1Seq: true},
+			expErrMsg:        fmt.Sprintf("signer %s is a blocked address", testtypes.TestFrom1Seq),
 		},
 		{
 			name:   "errors if sender cannot be mapped to its Sequencer address",
@@ -76,26 +73,8 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 					Amount:      coinsAmt,
 				},
 			},
-			blockedAddresses:   map[string]bool{},
-			authorizedMessages: types.DefaultAuthorizeMessagesAllowed,
-			expErrMsg:          "could not generate Sequencer address from Ethereum address",
-		},
-		{
-			name:   "errors if one of the messages is not authorized",
-			sender: testtypes.TestFrom1,
-			msgs: []sdk.Msg{
-				&banktypes.MsgSend{
-					FromAddress: testtypes.TestFrom1Seq,
-					ToAddress:   testtypes.TestTo3,
-					Amount:      coinsAmt,
-				},
-				&types.MsgSupplyDelta{
-					Authority: testtypes.TestGovernanceAddress,
-				},
-			},
-			blockedAddresses:   map[string]bool{},
-			authorizedMessages: []string{sdk.MsgTypeURL(&banktypes.MsgSend{})},
-			expErrMsg:          "message not authorized on Sequencer",
+			blockedAddresses: map[string]bool{},
+			expErrMsg:        "could not generate Sequencer address from Ethereum address",
 		},
 		{
 			name:   "errors if one of the messages' signer is not as expected",
@@ -110,9 +89,8 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 					Authority: testtypes.TestGovernanceAddress, // Message signer not equivalent to testtypes.TestFrom1
 				},
 			},
-			blockedAddresses:   map[string]bool{},
-			authorizedMessages: []string{sdk.MsgTypeURL(&banktypes.MsgSend{}), sdk.MsgTypeURL(&types.MsgSupplyDelta{})},
-			expErrMsg:          "invalid signer",
+			blockedAddresses: map[string]bool{},
+			expErrMsg:        "invalid signer",
 		},
 	}
 
@@ -120,16 +98,9 @@ func (s *AppTestSuite) TestAuthenticateTx() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			// Authorize required messages on Sequencer
-			bridgeParams := &types.Params{
-				AuthorizeMessagesAllowed: tc.authorizedMessages,
-			}
-			err := s.App.BridgeKeeper.SetParams(s.Ctx(), *bridgeParams)
-			s.Require().NoError(err)
-
 			// Execute PrepareProposalHandler
 			propHandler := s.GetTestProposalHandler(nil)
-			err = propHandler.AuthenticateTx(tc.sender, tc.msgs, bridgeParams, tc.blockedAddresses)
+			err := propHandler.AuthenticateTx(tc.sender, tc.msgs, tc.blockedAddresses)
 
 			if len(tc.expErrMsg) > 0 {
 				// Confirm that the expected error was raised

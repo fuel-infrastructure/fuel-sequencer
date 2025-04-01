@@ -3,86 +3,10 @@ package basic_test
 import (
 	"fmt"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func (s *SpecialMsgsTestSuite) TestSpecialMsgsAuthorization() {
-
-	s.Run("Ensure special messages cannot be submitted through an Authorize event", func() {
-
-		// Set SupplyDeltaPeriod to a high number so that we can focus on our messages.
-		bridgeParams := s.QueryBridgeParams(s.Ctx())
-		bridgeParams.SupplyDeltaPeriod = 1000
-		msgUpdateParams := &bridgetypes.MsgUpdateParams{
-			Authority: s.GetGovernanceAddress(),
-			Params:    *bridgeParams,
-		}
-		s.ExecuteGovProposal(msgUpdateParams)
-
-		// Get starting block
-		fromBlock, err := s.GetFuelSequencerHeight(s.Ctx())
-		s.Require().NoError(err)
-
-		// ------------ MsgIndex
-
-		msgIndex := &bridgetypes.MsgIndex{
-			Authority:           s.SeqKeys[0].AddressSeq,
-			NumInjectedEventTxs: 0,
-			NewEthereumBlock:    false,
-			BlockNumber:         s.QueryLastEthereumBlockSynced(s.Ctx()) + 1,
-		}
-		s.Require().NoError(msgIndex.ValidateBasic())
-
-		msgBz := s.GenerateMsgBz(msgIndex)
-		authorizeData := testsuite.PackAuthorize(msgBz)
-		resp, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// ------------ MsgDepositFromEthereum
-
-		msgDepositFromEthereum := &bridgetypes.MsgDepositFromEthereum{
-			Authority: s.SeqKeys[0].AddressSeq,
-			Depositor: s.SeqKeys[0].AddressSeq,
-			Recipient: s.SeqKeys[1].AddressSeq,
-			Amount:    "1000",
-			Lockup:    "0",
-		}
-		s.Require().NoError(msgDepositFromEthereum.ValidateBasic())
-
-		msgBz = s.GenerateMsgBz(msgDepositFromEthereum)
-		authorizeData = testsuite.PackAuthorize(msgBz)
-		resp, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// ------------ MsgSupplyDelta
-
-		msgSupplyDelta := &bridgetypes.MsgSupplyDelta{
-			Authority: s.SeqKeys[0].AddressSeq,
-		}
-		s.Require().NoError(msgSupplyDelta.ValidateBasic())
-
-		msgBz = s.GenerateMsgBz(msgSupplyDelta)
-		authorizeData = testsuite.PackAuthorize(msgBz)
-		resp, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// ------------ Check results...
-
-		// Wait for all messages to get processed
-		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, resp.BlockNumber.Uint64())
-
-		// Get ending block
-		toBlock, err := s.GetFuelSequencerHeight(s.Ctx())
-		s.Require().NoError(err)
-
-		// Check that no block has more than one transaction (the MsgIndex)
-		for block := fromBlock; block <= toBlock; block++ {
-			blockByHeight, err := s.GetBlockByHeight(s.Ctx(), int64(block))
-			s.Require().NoError(err)
-			s.Require().Len(blockByHeight.Data.Txs, 1)
-		}
-	})
 
 	s.Run("Ensure special messages cannot be submitted by users", func() {
 

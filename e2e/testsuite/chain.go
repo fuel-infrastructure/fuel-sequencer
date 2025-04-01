@@ -30,6 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -60,7 +61,7 @@ const (
 
 var (
 	encodingConfig testutil.TestEncodingConfig
-	cdc            codec.Codec
+	Cdc            codec.Codec
 	TestCdc        codec.Codec // an exported alias of cdc
 	TestGrpcCdc    grpcencoding.Codec
 
@@ -71,6 +72,7 @@ var (
 func init() {
 	modules := []module.AppModuleBasic{
 		auth.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distribution.AppModuleBasic{},
@@ -103,19 +105,19 @@ func init() {
 		&vestingtypes.ContinuousVestingAccount{},
 	)
 
-	cdc = encodingConfig.Codec
-	TestCdc = cdc
-	TestGrpcCdc = cdc.(codec.GRPCCodecProvider).GRPCCodec()
+	Cdc = encodingConfig.Codec
+	TestCdc = Cdc
+	TestGrpcCdc = Cdc.(codec.GRPCCodecProvider).GRPCCodec()
 
 	addressCdc = appcodec.NewFuelSequencerAddressCodec(sdkAddressCodec.NewBech32Codec(app.AccountAddressPrefix))
 	TestAddressCdc = addressCdc
 }
 
-type chain struct {
-	dataDir    string
+type Chain struct {
+	DataDir    string
 	id         string
 	numNodes   int
-	validators []*validator
+	Validators []*validator
 
 	grpcClients   *GRPCClients
 	rpcClient     *rpchttp.HTTP
@@ -123,7 +125,16 @@ type chain struct {
 	ethClient     *ethclient.Client
 }
 
-func newChain(numNodes int) (*chain, error) {
+// NewNamedChain creates a chain with fixed chain name (i.e. no randomness in naming)
+func NewNamedChain(chainName, dataDir string, numNodes int) (*Chain, error) {
+	return &Chain{
+		id:       chainName,
+		DataDir:  dataDir,
+		numNodes: numNodes,
+	}, nil
+}
+
+func newChain(numNodes int) (*Chain, error) {
 	var dir string
 	var err error
 	if _, found := os.LookupEnv("CI"); found {
@@ -138,20 +149,19 @@ func newChain(numNodes int) (*chain, error) {
 		return nil, err
 	}
 
-	return &chain{
+	return &Chain{
 		id:       "Chain-" + cmrand.NewRand().Str(6),
-		dataDir:  tmpDir,
+		DataDir:  tmpDir,
 		numNodes: numNodes,
 	}, nil
 }
 
-func (c *chain) configDir() string {
-	return fmt.Sprintf("%s/%s", c.dataDir, c.id)
+func (c *Chain) ConfigDir() string {
+	return fmt.Sprintf("%s/%s", c.DataDir, c.id)
 }
 
-// createAndInitFuelSequencerValidators initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
-func (c *chain) createAndInitFuelSequencerValidators(mnemonics []string) error {
-
+// CreateAndInitFuelSequencerValidators initialises FuelSequencer nodes with mnemonics (if specified) or random keys.
+func (c *Chain) CreateAndInitFuelSequencerValidators(mnemonics []string) error {
 	// Determine whether to use mnemonics.
 	useMnemonics := len(mnemonics) > 0
 
@@ -163,7 +173,7 @@ func (c *chain) createAndInitFuelSequencerValidators(mnemonics []string) error {
 			return err
 		}
 
-		c.validators = append(c.validators, node)
+		c.Validators = append(c.Validators, node)
 
 		// create keys
 		if useMnemonics {
@@ -186,15 +196,15 @@ func (c *chain) createAndInitFuelSequencerValidators(mnemonics []string) error {
 	return nil
 }
 
-func (c *chain) createFuelSequencerValidator(index int) *validator {
+func (c *Chain) createFuelSequencerValidator(index int) *validator {
 	return &validator{
 		chain:   c,
 		index:   index,
-		moniker: validatorMonikerPrefix,
+		Moniker: validatorMonikerPrefix,
 	}
 }
 
-func (c *chain) clientContext(
+func (c *Chain) clientContext(
 	nodeURI string, kb *keyring.Keyring, fromName string, fromAddr sdk.AccAddress, outputBuffer *bytes.Buffer,
 ) (*client.Context, error) { //nolint:unparam
 
@@ -226,7 +236,7 @@ func (c *chain) clientContext(
 	return &clientContext, nil
 }
 
-func (c *chain) sendMsgs(
+func (c *Chain) sendMsgs(
 	clientCtx client.Context,
 	outputBuffer *bytes.Buffer,
 	gas uint64,
@@ -276,7 +286,7 @@ func (c *chain) sendMsgs(
 	resBytes := outputBuffer.Bytes()
 
 	var res sdk.TxResponse
-	err = cdc.UnmarshalJSON(resBytes, &res)
+	err = Cdc.UnmarshalJSON(resBytes, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +294,7 @@ func (c *chain) sendMsgs(
 	return &res, nil
 }
 
-func (c *chain) SubscribeToSequencer(ctx context.Context, query string) (<-chan coretypes.ResultEvent, error) {
+func (c *Chain) SubscribeToSequencer(ctx context.Context, query string) (<-chan coretypes.ResultEvent, error) {
 	res, err := c.rpcClient.Subscribe(ctx, "", query)
 	if err != nil {
 		return nil, fmt.Errorf("rpc client status: %w", err)
@@ -292,7 +302,7 @@ func (c *chain) SubscribeToSequencer(ctx context.Context, query string) (<-chan 
 	return res, nil
 }
 
-func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
+func (c *Chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
 	res, err := c.rpcClient.Status(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("rpc client status: %w", err)
@@ -300,7 +310,7 @@ func (c *chain) FuelSequencerHeight(ctx context.Context) (uint64, error) {
 	return uint64(res.SyncInfo.LatestBlockHeight), nil
 }
 
-func (c *chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.HexBytes, error) {
+func (c *Chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.HexBytes, error) {
 	res, err := c.rpcClient.Block(ctx, &height)
 	if err != nil {
 		return cmtbytes.HexBytes{}, fmt.Errorf("rpc client status: %w", err)
@@ -308,7 +318,7 @@ func (c *chain) GetBlockHeaderHash(ctx context.Context, height int64) (cmtbytes.
 	return res.BlockID.Hash, nil
 }
 
-func (c *chain) EthereumHeight(ctx context.Context) (uint64, error) {
+func (c *Chain) EthereumHeight(ctx context.Context) (uint64, error) {
 	res, err := c.ethClient.BlockNumber(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("rpc client status: %w", err)
