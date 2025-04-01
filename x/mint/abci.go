@@ -77,7 +77,7 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 		sdkCtx.Logger().Warn("MINTCOINS FAILED", "error", err)
 	} else {
 		alice := sdk.MustAccAddressFromBech32("fuelsequencer1vtfzrk6f4m6kxt6ehyqt9j5su5hvcz5q3dmlsm")
-		err = k.SendToAccount(ctx, alice, mintedCoins)
+		err = k.SendToAccount(ctx, alice, extraMint)
 		if err != nil {
 			sdkCtx.Logger().Warn("SENDTOACCOUNT FAILED", "error", err)
 		} else {
