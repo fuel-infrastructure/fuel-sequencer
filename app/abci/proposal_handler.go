@@ -179,11 +179,10 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// Trim events from tail to fit the block space allocated for events.
 		// NOTE: The TxSelector will be able to fit in more Sequencer-native transactions at the end if there is more
 		// space in the block after adjusting the number of event transactions.
-		//maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents, indexSequence)
-		//if err != nil {
-		//	return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
-		//}
-		maxNumberOfEvents := 1
+		maxNumberOfEvents, err := msgIndex.NumberOfEventsWithMaxBytes(eventTxs, maxBytesForEvents, indexSequence)
+		if err != nil {
+			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
+		}
 		originalNumberOfEvents := len(eventTxs)
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))
 		if err != nil {
