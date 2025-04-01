@@ -26,7 +26,7 @@ const (
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
 	upgradeName        = features_and_optimisations.UpgradeName
 	fromImageVersion   = "67fac46" // this image needs to exist for this test to run
-	toImageVersion     = "57b4923" // this image needs to exist for this test to run
+	toImageVersion     = "2305a8e" // this image needs to exist for this test to run
 )
 
 type UpgradesTestSuite struct {
