@@ -107,7 +107,13 @@ func (s *UpgradesTestSuite) TestUpgrade() {
 		s.Require().NoError(err, "chain did not produce blocks after upgrade")
 	})
 
-	s.Run("Check that slashed funds due to downtime are sent to the governance account ", func() {
+	s.Run("Check that bridge module params were migrated", func() {
+
+		// If the query works it's enough evidence that the params were obtained successfully.
+		_ = s.QueryBridgeParams(s.Ctx())
+	})
+
+	s.Run("Check that slashed funds due to downtime are sent to the governance account", func() {
 
 		initStake := testsuite.InitStakedCoin
 		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
