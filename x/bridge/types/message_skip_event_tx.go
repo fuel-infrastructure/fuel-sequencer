@@ -6,6 +6,11 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
+// MaxReasonLength is the maximum allowed length for the ReasonForSkip string.
+// It is set to 1024 characters to prevent potential DoS attacks through oversized log entries
+// while still allowing for detailed explanations of why an event was skipped.
+const MaxReasonLength = 1024
+
 var _ sdk.Msg = &MsgSkippedEventTx{}
 
 func NewMsgSkippedEventTx(
@@ -16,6 +21,11 @@ func NewMsgSkippedEventTx(
 	ethTxIndex uint64,
 	ethTxHash string,
 ) *MsgSkippedEventTx {
+	// Trim reason if it exceeds max length
+	if len(reasonForSkip) > MaxReasonLength {
+		reasonForSkip = reasonForSkip[:MaxReasonLength-3] + "..."
+	}
+
 	return &MsgSkippedEventTx{
 		Authority:      authority,
 		ReasonForSkip:  reasonForSkip,
