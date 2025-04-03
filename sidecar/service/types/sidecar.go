@@ -148,3 +148,40 @@ func (m *Event) RawTxBytes(cdc codec.BinaryCodec, authority string, sequence uin
 
 	return utils.ValidRawTxBytesFromAnyMsgs(messages, sequence)
 }
+
+// RawTxBytesWithMaxBytes makes use of RawTxBytes with an additional size verification. This function will error if the
+// bytes returned from RawTxBytes exceed the specified max bytes.
+func (m *Event) RawTxBytesWithMaxBytes(
+	cdc codec.BinaryCodec, authority string, maxBytes uint64, sequence uint64,
+) ([]byte, error) {
+
+	bz, err := m.RawTxBytes(cdc, authority, sequence)
+	if err != nil {
+		return nil, err
+	}
+
+	txSize := utils.TxSize(bz)
+	if txSize > maxBytes {
+		return nil, fmt.Errorf("generated raw tx bytes exceeded max bytes; %d > %d", txSize, maxBytes)
+	}
+
+	return bz, nil
+}
+
+// RawTxBytesWithLimitChecks computes the bytes using RawTxBytesWithMaxBytes. This function will error if the computed
+// bytes exceed the specified maxBytes or if an Authorize event has more messages than the specified
+// maxAuthorizeMessages
+func (m *Event) RawTxBytesWithLimitChecks(
+	cdc codec.BinaryCodec, authority string, maxBytes, sequence uint64,
+) ([]byte, error) {
+
+	// TODO: Can the event type directly be an Authorize event?
+	if m.EventType == AuthorizeEventName {
+		_, err := m.Messages(cdc, authority)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return m.RawTxBytesWithMaxBytes(cdc, authority, maxBytes, sequence)
+}

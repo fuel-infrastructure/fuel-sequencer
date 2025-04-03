@@ -25,6 +25,7 @@ var (
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	TestSupplyDeltaPeriod            = uint64(100)
 	TestEthereumProxyContractAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+	TestInjectedEventTxMaxBytes      = uint64(20_000_000)
 	TestSequencerTxsAllocation       = sdkmath.LegacyMustNewDecFromStr("0.3")
 	TestLastEthereumNonce            = sdkmath.NewInt(50)
 	TestVestingStartingTime          = time.Now()
@@ -269,6 +270,7 @@ var (
 	TestEventsInvalidAuthorize      = []*sidecartypes.Event{TestEvent13}
 	TestEventsAuthorizeWithBadBytes = []*sidecartypes.Event{TestEvent14}
 	TestEventsAuthorizeWithBadAuth  = []*sidecartypes.Event{TestEvent15}
+	TestEventsDepositOnly           = []*sidecartypes.Event{TestEvent1}
 
 	TestMsgSupplyDelta = &bridgetypes.MsgSupplyDelta{
 		Authority: TestGovernanceAddress,
@@ -431,6 +433,7 @@ var (
 	TestSidecarResponseInvalidAuthorizeWithBadAuth = &sidecartypes.QueryBlockEventsResponse{
 		Events: TestEventsAuthorizeWithBadAuth,
 	}
+	TestSidecarResponseDepositOnly = &sidecartypes.QueryBlockEventsResponse{Events: TestEventsDepositOnly}
 
 	TestMsgSkippedEventTx = &bridgetypes.MsgSkippedEventTx{
 		Authority:      TestGovernanceAddress,

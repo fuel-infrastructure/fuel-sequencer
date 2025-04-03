@@ -565,7 +565,12 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("encountered invalid event with err: %s; event: %s", err.Error(), event)
 		}
 
-		eventTx, err := event.RawTxBytes(h.cdc, h.bridgeKeeper.GetAuthority(), eventTxsSequence)
+		eventTx, err := event.RawTxBytesWithLimitChecks(
+			h.cdc,
+			h.bridgeKeeper.GetAuthority(),
+			params.InjectedEventTxMaxBytes,
+			eventTxsSequence,
+		)
 		if err != nil {
 
 			// Return an error because all events are expected to be successfully encoded as transaction bytes. This

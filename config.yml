@@ -106,6 +106,7 @@ genesis:
         bridge_denom_total_supply: "10000000000000000000"  # 10 bil
         ethereum_proxy_contract_address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"  # just an example
         supply_delta_period: 100
+        injected_event_tx_max_bytes: 20000000
         vesting_start_time: "2024-01-01T00:00:00.000000000Z"
       last_ethereum_nonce: "0"
       last_ethereum_block_synced: "0"

@@ -241,6 +241,42 @@ func TestValidateMaxEthBlockUpdateDelay(t *testing.T) {
 	}
 }
 
+func TestValidateInjectedEventTxMaxBytes(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     interface{}
+		expectErr bool
+	}{
+		{
+			"Valid InjectedEventTxMaxBytes - value greater than MinimumInjectedEventTxMaxBytes",
+			uint64(types.MinimumInjectedEventTxMaxBytes + 1),
+			false,
+		},
+		{
+			"Valid InjectedEventTxMaxBytes - value equal to MinimumInjectedEventTxMaxBytes",
+			uint64(types.MinimumInjectedEventTxMaxBytes),
+			false,
+		},
+		{
+			"Invalid InjectedEventTxMaxBytes - value less than MinimumInjectedEventTxMaxBytes",
+			uint64(types.MinimumInjectedEventTxMaxBytes - 1),
+			true,
+		},
+		{"Non-uint64 type", "not a uint64", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateInjectedEventTxMaxBytes(tc.input)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestValidateSequencerTxsAllocation(t *testing.T) {
 	testCases := []struct {
 		name      string
@@ -294,6 +330,7 @@ func TestParams_Validate(t *testing.T) {
 	validSupplyDeltaPeriod := uint64(10)
 	validVestingStartTime := time.Now()
 	validMaxEthBlockUpdateDelay := time.Hour
+	validInjectedEventTxMaxBytes := uint64(10000000)
 	validSequencerTxsAllocation := sdkmath.LegacyMustNewDecFromStr("0.3")
 	validAdditionalBlockedAddresses := []string(nil)
 
@@ -320,6 +357,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: false,
@@ -333,6 +371,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
@@ -347,6 +386,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
@@ -361,6 +401,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
@@ -375,6 +416,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             time.Time{},
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
@@ -389,6 +431,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   []string{"invalidBech32Address"},
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
@@ -403,6 +446,22 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       time.Duration(-1),
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
+				SequencerTxsAllocation:       validSequencerTxsAllocation,
+			},
+			expectErr: true,
+		},
+		{
+			name: "InjectedEventTxMaxBytes too small",
+			params: types.Params{
+				BridgeDenom:                  validBridgeDenom,
+				BridgeDenomTotalSupply:       validBridgeDenomTotalSupply,
+				EthereumProxyContractAddress: validEthereumProxyContractAddress,
+				SupplyDeltaPeriod:            validSupplyDeltaPeriod,
+				VestingStartTime:             validVestingStartTime,
+				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
+				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      uint64(types.MinimumInjectedEventTxMaxBytes - 1),
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
@@ -417,6 +476,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation: types.MinimumSequencerTxsAllocation.Sub(
 					sdkmath.LegacyMustNewDecFromStr("0.01"),
 				),
@@ -433,6 +493,7 @@ func TestParams_Validate(t *testing.T) {
 				VestingStartTime:             validVestingStartTime,
 				AdditionalBlockedAddresses:   validAdditionalBlockedAddresses,
 				MaxEthBlockUpdateDelay:       validMaxEthBlockUpdateDelay,
+				InjectedEventTxMaxBytes:      validInjectedEventTxMaxBytes,
 				SequencerTxsAllocation:       validSequencerTxsAllocation,
 			},
 			expectErr: true,
