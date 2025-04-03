@@ -177,21 +177,24 @@ message MsgSkippedEventTx {
   // reason_for_skip is the reason for skipping the event tx.
   string reason_for_skip = 2;
 
+  // trimmed indicates whether the reason for skip was trimmed
+  bool trimmed = 3;
+
   // eth_block_number is the Ethereum height corresponding to the skipped event
   // tx.
-  uint64 eth_block_number = 3;
+  uint64 eth_block_number = 4;
 
   // eth_log_index is the index of the Ethereum log corresponding to the skipped
   // event tx.
-  uint64 eth_log_index = 4;
+  uint64 eth_log_index = 5;
 
   // eth_tx_index is the index of the Ethereum tx corresponding to the skipped
   // event tx.
-  uint64 eth_tx_index = 5;
+  uint64 eth_tx_index = 6;
 
   // eth_tx_hash is the hash of the Ethereum tx corresponding to the skipped
   // event tx.
-  string eth_tx_hash = 6;
+  string eth_tx_hash = 7;
 }
 
 message MsgSkippedEventTxResponse {}

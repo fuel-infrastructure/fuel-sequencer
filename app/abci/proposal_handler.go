@@ -697,7 +697,7 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 func (h *FuelSequencerProposalHandler) generateSkipTxBytes(
 	errStr string, event *sidecartypes.Event, blockNumber uint64, eventTxsSequence uint64,
 ) ([]byte, error) {
-	msg, trimmed := bridgetypes.NewMsgSkippedEventTx(
+	msg := bridgetypes.NewMsgSkippedEventTx(
 		h.bridgeKeeper.GetAuthority(),
 		errStr,
 		blockNumber,
@@ -706,7 +706,7 @@ func (h *FuelSequencerProposalHandler) generateSkipTxBytes(
 		event.TxHash,
 	)
 
-	if trimmed {
+	if msg.Trimmed {
 		h.bridgeKeeper.Logger().Warn(
 			"reason_for_skip exceeded maximum length and was trimmed",
 			"original_length", len(errStr),

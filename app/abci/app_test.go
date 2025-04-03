@@ -171,7 +171,7 @@ func (s *AppTestSuite) EncodeMsgSkippedEventTx(
 	txHash string,
 	sequence uint64,
 ) (tx []byte) {
-	msg, trimmed := bridgetypes.NewMsgSkippedEventTx(
+	msg := bridgetypes.NewMsgSkippedEventTx(
 		s.App.BridgeKeeper.GetAuthority(),
 		reasonForSkip,
 		blockNumber,
@@ -181,7 +181,7 @@ func (s *AppTestSuite) EncodeMsgSkippedEventTx(
 	)
 
 	// Log if the reason was trimmed
-	if trimmed {
+	if msg.Trimmed {
 		s.App.Logger().Warn("reason_for_skip exceeded maximum length and was trimmed",
 			"original_length", len(reasonForSkip),
 			"max_length", bridgetypes.MaxReasonLength,
