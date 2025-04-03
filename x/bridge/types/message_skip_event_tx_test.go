@@ -77,6 +77,8 @@ func TestMsgSkippedEventTx_StringLength(t *testing.T) {
 			require.Equal(t, tt.expectedLength, len(msg.ReasonForSkip))
 			if tt.shouldTrim {
 				require.True(t, strings.HasSuffix(msg.ReasonForSkip, "..."))
+			} else {
+				require.Equal(t, tt.reason, msg.ReasonForSkip)
 			}
 		})
 	}
