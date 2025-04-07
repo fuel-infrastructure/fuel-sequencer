@@ -10,6 +10,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	comettypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
@@ -463,6 +464,43 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},
 		{
+			name:                      "skipped event if big authorize found - maxBytes exceeded",
+			expQueryBlockEventsCalled: 1,
+			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
+			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
+				Response: testtypes.TestSidecarResponseAuthorizeOnly, Error: nil,
+			},
+			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
+				MaxTxBytes: math.MaxInt64,
+				Txs:        encodedDummyTxs,
+				Height:     1, // We do not expect MsgSupplyDelta to be injected
+			},
+			maxBlockGas:                  totalTxsGas,
+			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
+			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
+			injectedEventTxMaxBytes:      1, // To ensure authorize event is too big
+			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
+			expRes: &abcitypes.ResponsePrepareProposal{
+				Txs: append(
+					encodedMsgIndexWithSkippedEvent(false),
+					s.EncodeMsgSkippedEventTx(
+						abci.NewFailedToEncodeEventAsRawTxBytesError(
+							sidecartypes.NewGeneratedRawTxBytesExceededMaxBytesError(150, 1),
+							testtypes.TestEventsAuthorizeOnly[0],
+						).Error(),
+						1, // same as height of Ethereum block to query
+						testtypes.TestEventsAuthorizeOnly[0].LogIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxIndex,
+						testtypes.TestEventsAuthorizeOnly[0].TxHash,
+						2, // starting from 1 with msgIndex, then this event
+					),
+					encodedDummyTxs[0],
+					encodedDummyTxs[1],
+					encodedDummyTxs[2],
+				),
+			},
+		},
+		{
 			name:                      "returns error if invalid authorize",
 			expQueryBlockEventsCalled: 1,
 			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
@@ -478,25 +516,6 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
 			injectedEventTxMaxBytes:      testtypes.TestInjectedEventTxMaxBytes,
-			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
-			expErrMsg:                    "failed to generate MsgIndex and event txs",
-		},
-		{
-			name:                      "returns error if authorize cannot be encoded as tx bytes",
-			expQueryBlockEventsCalled: 1,
-			expQueryBlockEventsReq:    &sidecartypes.QueryBlockEventsRequest{BlockNumber: "1"},
-			queryBlockEventsRet: apptesting.MockQueryBlockEventsResponse{
-				Response: testtypes.TestSidecarResponseInvalidAuthorizeWithBadBytes, Error: nil,
-			},
-			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
-				MaxTxBytes: math.MaxInt64,
-				Txs:        encodedDummyTxs,
-				Height:     1, // We do not expect MsgSupplyDelta to be injected
-			},
-			maxBlockGas:                  totalTxsGas,
-			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
-			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
-			injectedEventTxMaxBytes:      1, // To ensure deposit event is too big
 			sequencerTxsAllocation:       testtypes.TestSequencerTxsAllocation,
 			expErrMsg:                    "failed to generate MsgIndex and event txs",
 		},

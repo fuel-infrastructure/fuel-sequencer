@@ -271,6 +271,7 @@ var (
 	TestEventsAuthorizeWithBadBytes = []*sidecartypes.Event{TestEvent14}
 	TestEventsAuthorizeWithBadAuth  = []*sidecartypes.Event{TestEvent15}
 	TestEventsDepositOnly           = []*sidecartypes.Event{TestEvent1}
+	TestEventsAuthorizeOnly         = []*sidecartypes.Event{TestEvent2}
 
 	TestMsgSupplyDelta = &bridgetypes.MsgSupplyDelta{
 		Authority: TestGovernanceAddress,
@@ -426,6 +427,9 @@ var (
 	}
 	TestSidecarResponseInvalidAuthorize = &sidecartypes.QueryBlockEventsResponse{
 		Events: TestEventsInvalidAuthorize,
+	}
+	TestSidecarResponseAuthorizeOnly = &sidecartypes.QueryBlockEventsResponse{
+		Events: TestEventsAuthorizeOnly,
 	}
 	TestSidecarResponseInvalidAuthorizeWithBadBytes = &sidecartypes.QueryBlockEventsResponse{
 		Events: TestEventsAuthorizeWithBadBytes,

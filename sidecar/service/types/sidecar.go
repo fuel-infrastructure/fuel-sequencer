@@ -162,7 +162,7 @@ func (m *Event) RawTxBytesWithMaxBytes(
 
 	txSize := utils.TxSize(bz)
 	if txSize > maxBytes {
-		return nil, fmt.Errorf("generated raw tx bytes exceeded max bytes; %d > %d", txSize, maxBytes)
+		return nil, NewGeneratedRawTxBytesExceededMaxBytesError(txSize, maxBytes)
 	}
 
 	return bz, nil
