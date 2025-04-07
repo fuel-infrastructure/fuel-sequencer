@@ -565,7 +565,7 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("encountered invalid event with err: %s; event: %s", err.Error(), event)
 		}
 
-		eventTx, err := event.RawTxBytesWithLimitChecks(
+		eventTx, err := event.RawTxBytesWithMaxBytes(
 			h.cdc,
 			h.bridgeKeeper.GetAuthority(),
 			params.InjectedEventTxMaxBytes,
