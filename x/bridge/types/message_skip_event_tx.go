@@ -22,7 +22,7 @@ func NewMsgSkippedEventTx(
 	ethLogIndex uint64,
 	ethTxIndex uint64,
 	ethTxHash string,
-) *MsgSkippedEventTx {
+) (*MsgSkippedEventTx, bool) {
 	trimmed := false
 
 	// Trim reason if it exceeds max length
@@ -34,12 +34,11 @@ func NewMsgSkippedEventTx(
 	return &MsgSkippedEventTx{
 		Authority:      authority,
 		ReasonForSkip:  reasonForSkip,
-		Trimmed:        trimmed,
 		EthBlockNumber: ethBlockNumber,
 		EthLogIndex:    ethLogIndex,
 		EthTxIndex:     ethTxIndex,
 		EthTxHash:      ethTxHash,
-	}
+	}, trimmed
 }
 
 // ValidateBasic for this message should be a no-op so that we definitely AnteHandle this message.

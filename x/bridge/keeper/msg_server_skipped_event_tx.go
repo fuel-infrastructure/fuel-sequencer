@@ -26,7 +26,6 @@ func (k msgServer) skippedEventTx(ctx sdk.Context, msg *types.MsgSkippedEventTx)
 
 	err := ctx.EventManager().EmitTypedEvent(&types.EventSkippedEventTx{
 		ReasonForSkip:  msg.ReasonForSkip,
-		Trimmed:        msg.Trimmed,
 		EthBlockNumber: msg.EthBlockNumber,
 		EthLogIndex:    msg.EthLogIndex,
 		EthTxIndex:     msg.EthTxIndex,
