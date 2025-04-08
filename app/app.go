@@ -56,7 +56,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vesting_accounts_staking"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -337,8 +337,8 @@ func NewFuelSequencerApp(
 	}
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		vesting_accounts_staking.UpgradeName,
-		vesting_accounts_staking.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		features_and_optimisations.UpgradeName,
+		features_and_optimisations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS

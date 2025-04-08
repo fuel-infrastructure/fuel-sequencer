@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 
@@ -18,12 +18,12 @@ func TestGenesis(t *testing.T) {
 
 		TopicList: []types.Topic{
 			{
-				Id:    utilstest.MockTopicIDHex(0),
+				Id:    testutil.MockTopicIDHex(0),
 				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
 				Order: math.ZeroInt(),
 			},
 			{
-				Id:    utilstest.MockTopicIDHex(1),
+				Id:    testutil.MockTopicIDHex(1),
 				Owner: "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q",
 				Order: math.ZeroInt(),
 			},

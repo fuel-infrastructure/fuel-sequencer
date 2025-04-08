@@ -149,6 +149,40 @@ func TestEncodeDepositEvent(t *testing.T) {
 	fmt.Println(dataBase64)
 }
 
+func TestDecodeAuthorizeEventData(t *testing.T) {
+
+	// Authorize event data
+	hexData := "0a85010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412650a2a307866333966643665353161616438386636663463653661623838323732373963666666623932323636122a3078643434373036366138626139636231356138363261306636646539363166323762653836666330611a0b0a05756675656c12023130"
+	hexDataBz, err := hex.DecodeString(hexData)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Transaction size (bytes): %d\n", utils.TxSize(hexDataBz))
+
+	var authorizeTx bridgetypes.AuthorizeTx
+	err = authorizeTx.Unmarshal(hexDataBz)
+	if err != nil {
+		panic(err)
+	}
+
+	// Encode as valid transaction
+	rawTxBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeTx.Messages, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	// Decode again to extract SDK messages
+	tx, err := authtx.DefaultTxDecoder(testutiltypes.TestCdc)(rawTxBz)
+	if err != nil {
+		panic(err)
+	}
+
+	for i, msg := range tx.GetMsgs() {
+		fmt.Printf("MSG %d (%s): %s\n", i, sdk.MsgTypeURL(msg), msg)
+	}
+}
+
 func TestDecodeAuthorizeEventDataFromEthereum(t *testing.T) {
 
 	// Authorize event data (e.g. https://sepolia.etherscan.io/tx/0xcf8c887f060d6f6c9b5d80098bac6db2249749bcc25fd96c0e6133b9f84e03be#eventlog)

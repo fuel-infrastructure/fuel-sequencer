@@ -39,6 +39,7 @@ import (
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -234,6 +235,12 @@ func startSidecarServerCmd() *cobra.Command {
 			credentials.UseDefaultTLS,
 		),
 	)
+	cmd.Flags().StringVar(
+		&seqCfg.unsafeBridgeDenom,
+		FlagSequencerUnsafeBridgeDenom,
+		bridgetypes.DefaultBridgeDenom,
+		"denom used when encoding AuthorizeTx messages",
+	)
 
 	// Prometheus
 	cmd.Flags().BoolVar(
@@ -421,7 +428,14 @@ func startSidecar(
 	// Create the sidecar's ethereum RPC client
 	contractAddr := common.HexToAddress(ethCfg.contractAddrHex)
 	scEthRpcClient := scethwrappedclient.NewEthRpcClient(
-		logger, ethRpcClient, contractAddr, contractAbi, ethCfg.minLogsQueryInterval, ethCfg.rpcQueryTimeout, ethclientMetrics,
+		logger,
+		ethRpcClient,
+		contractAddr,
+		contractAbi,
+		seqCfg.unsafeBridgeDenom,
+		ethCfg.minLogsQueryInterval,
+		ethCfg.rpcQueryTimeout,
+		ethclientMetrics,
 	)
 
 	// Create the store

@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/nullify"
-	utilstest "github.com/fuel-infrastructure/fuel-sequencer/testutil/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
@@ -18,12 +18,12 @@ func TestQueryTopicAll(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
 
 	testTopicOne := types.Topic{
-		Id:    utilstest.MockTopicIDHex(1),
+		Id:    testutil.MockTopicIDHex(1),
 		Owner: "ownerAddress",
 		Order: math.ZeroInt(),
 	}
 	testTopicTwo := types.Topic{
-		Id:    utilstest.MockTopicIDHex(2),
+		Id:    testutil.MockTopicIDHex(2),
 		Owner: "ownerAddress",
 		Order: math.ZeroInt(),
 	}
@@ -66,7 +66,7 @@ func TestQueryTopicAll(t *testing.T) {
 func TestQueryTopic(t *testing.T) {
 	keeper, ctx := keepertest.SequencingKeeper(t)
 	testTopic := types.Topic{
-		Id:    utilstest.MockTopicIDHex(1),
+		Id:    testutil.MockTopicIDHex(1),
 		Owner: "ownerAddress",
 		Order: math.ZeroInt(),
 	}
@@ -80,7 +80,7 @@ func TestQueryTopic(t *testing.T) {
 	}{
 		{
 			desc:     "ValidRequest",
-			request:  &types.QueryGetTopicRequest{Id: utilstest.MockTopicIDHex(1)},
+			request:  &types.QueryGetTopicRequest{Id: testutil.MockTopicIDHex(1)},
 			response: &types.QueryGetTopicResponse{Topic: testTopic},
 		},
 		{
@@ -90,7 +90,7 @@ func TestQueryTopic(t *testing.T) {
 		},
 		{
 			desc:    "NotFound",
-			request: &types.QueryGetTopicRequest{Id: utilstest.MockTopicIDHex(9999)},
+			request: &types.QueryGetTopicRequest{Id: testutil.MockTopicIDHex(9999)},
 			err:     status.Error(codes.NotFound, "not found"),
 		},
 	}

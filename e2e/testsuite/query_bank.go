@@ -9,6 +9,24 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
+func (s *E2ETestSuite) QueryBalance(
+	ctx context.Context,
+	address string,
+	denom string,
+) (*banktypes.QueryBalanceResponse, error) {
+	queryClient := s.getGRPCClients().BankQueryClient
+
+	res, err := queryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: address,
+		Denom:   denom,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (s *E2ETestSuite) QueryAllBalances(
 	ctx context.Context,
 	address string,

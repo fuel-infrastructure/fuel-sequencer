@@ -17,95 +17,49 @@ import (
 	sync "sync"
 )
 
-var _ protoreflect.List = (*_Params_4_list)(nil)
+var _ protoreflect.List = (*_Params_6_list)(nil)
 
-type _Params_4_list struct {
+type _Params_6_list struct {
 	list *[]string
 }
 
-func (x *_Params_4_list) Len() int {
+func (x *_Params_6_list) Len() int {
 	if x.list == nil {
 		return 0
 	}
 	return len(*x.list)
 }
 
-func (x *_Params_4_list) Get(i int) protoreflect.Value {
+func (x *_Params_6_list) Get(i int) protoreflect.Value {
 	return protoreflect.ValueOfString((*x.list)[i])
 }
 
-func (x *_Params_4_list) Set(i int, value protoreflect.Value) {
+func (x *_Params_6_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.String()
 	concreteValue := valueUnwrapped
 	(*x.list)[i] = concreteValue
 }
 
-func (x *_Params_4_list) Append(value protoreflect.Value) {
+func (x *_Params_6_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.String()
 	concreteValue := valueUnwrapped
 	*x.list = append(*x.list, concreteValue)
 }
 
-func (x *_Params_4_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message Params at list field AuthorizeMessagesAllowed as it is not of Message kind"))
-}
-
-func (x *_Params_4_list) Truncate(n int) {
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_Params_4_list) NewElement() protoreflect.Value {
-	v := ""
-	return protoreflect.ValueOfString(v)
-}
-
-func (x *_Params_4_list) IsValid() bool {
-	return x.list != nil
-}
-
-var _ protoreflect.List = (*_Params_7_list)(nil)
-
-type _Params_7_list struct {
-	list *[]string
-}
-
-func (x *_Params_7_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_Params_7_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfString((*x.list)[i])
-}
-
-func (x *_Params_7_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_Params_7_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_Params_7_list) AppendMutable() protoreflect.Value {
+func (x *_Params_6_list) AppendMutable() protoreflect.Value {
 	panic(fmt.Errorf("AppendMutable can not be called on message Params at list field AdditionalBlockedAddresses as it is not of Message kind"))
 }
 
-func (x *_Params_7_list) Truncate(n int) {
+func (x *_Params_6_list) Truncate(n int) {
 	*x.list = (*x.list)[:n]
 }
 
-func (x *_Params_7_list) NewElement() protoreflect.Value {
+func (x *_Params_6_list) NewElement() protoreflect.Value {
 	v := ""
 	return protoreflect.ValueOfString(v)
 }
 
-func (x *_Params_7_list) IsValid() bool {
+func (x *_Params_6_list) IsValid() bool {
 	return x.list != nil
 }
 
@@ -114,14 +68,12 @@ var (
 	fd_Params_bridge_denom                    protoreflect.FieldDescriptor
 	fd_Params_bridge_denom_total_supply       protoreflect.FieldDescriptor
 	fd_Params_ethereum_proxy_contract_address protoreflect.FieldDescriptor
-	fd_Params_authorize_messages_allowed      protoreflect.FieldDescriptor
 	fd_Params_supply_delta_period             protoreflect.FieldDescriptor
 	fd_Params_vesting_start_time              protoreflect.FieldDescriptor
 	fd_Params_additional_blocked_addresses    protoreflect.FieldDescriptor
 	fd_Params_max_eth_block_update_delay      protoreflect.FieldDescriptor
 	fd_Params_injected_event_tx_max_bytes     protoreflect.FieldDescriptor
 	fd_Params_sequencer_txs_allocation        protoreflect.FieldDescriptor
-	fd_Params_max_authorize_messages          protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -130,14 +82,12 @@ func init() {
 	fd_Params_bridge_denom = md_Params.Fields().ByName("bridge_denom")
 	fd_Params_bridge_denom_total_supply = md_Params.Fields().ByName("bridge_denom_total_supply")
 	fd_Params_ethereum_proxy_contract_address = md_Params.Fields().ByName("ethereum_proxy_contract_address")
-	fd_Params_authorize_messages_allowed = md_Params.Fields().ByName("authorize_messages_allowed")
 	fd_Params_supply_delta_period = md_Params.Fields().ByName("supply_delta_period")
 	fd_Params_vesting_start_time = md_Params.Fields().ByName("vesting_start_time")
 	fd_Params_additional_blocked_addresses = md_Params.Fields().ByName("additional_blocked_addresses")
 	fd_Params_max_eth_block_update_delay = md_Params.Fields().ByName("max_eth_block_update_delay")
 	fd_Params_injected_event_tx_max_bytes = md_Params.Fields().ByName("injected_event_tx_max_bytes")
 	fd_Params_sequencer_txs_allocation = md_Params.Fields().ByName("sequencer_txs_allocation")
-	fd_Params_max_authorize_messages = md_Params.Fields().ByName("max_authorize_messages")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -223,12 +173,6 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 			return
 		}
 	}
-	if len(x.AuthorizeMessagesAllowed) != 0 {
-		value := protoreflect.ValueOfList(&_Params_4_list{list: &x.AuthorizeMessagesAllowed})
-		if !f(fd_Params_authorize_messages_allowed, value) {
-			return
-		}
-	}
 	if x.SupplyDeltaPeriod != uint64(0) {
 		value := protoreflect.ValueOfUint64(x.SupplyDeltaPeriod)
 		if !f(fd_Params_supply_delta_period, value) {
@@ -242,7 +186,7 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 		}
 	}
 	if len(x.AdditionalBlockedAddresses) != 0 {
-		value := protoreflect.ValueOfList(&_Params_7_list{list: &x.AdditionalBlockedAddresses})
+		value := protoreflect.ValueOfList(&_Params_6_list{list: &x.AdditionalBlockedAddresses})
 		if !f(fd_Params_additional_blocked_addresses, value) {
 			return
 		}
@@ -262,12 +206,6 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 	if x.SequencerTxsAllocation != "" {
 		value := protoreflect.ValueOfString(x.SequencerTxsAllocation)
 		if !f(fd_Params_sequencer_txs_allocation, value) {
-			return
-		}
-	}
-	if x.MaxAuthorizeMessages != uint64(0) {
-		value := protoreflect.ValueOfUint64(x.MaxAuthorizeMessages)
-		if !f(fd_Params_max_authorize_messages, value) {
 			return
 		}
 	}
@@ -292,8 +230,6 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.BridgeDenomTotalSupply != ""
 	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
 		return x.EthereumProxyContractAddress != ""
-	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
-		return len(x.AuthorizeMessagesAllowed) != 0
 	case "fuelsequencer.bridge.Params.supply_delta_period":
 		return x.SupplyDeltaPeriod != uint64(0)
 	case "fuelsequencer.bridge.Params.vesting_start_time":
@@ -306,8 +242,6 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.InjectedEventTxMaxBytes != uint64(0)
 	case "fuelsequencer.bridge.Params.sequencer_txs_allocation":
 		return x.SequencerTxsAllocation != ""
-	case "fuelsequencer.bridge.Params.max_authorize_messages":
-		return x.MaxAuthorizeMessages != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -330,8 +264,6 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 		x.BridgeDenomTotalSupply = ""
 	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
 		x.EthereumProxyContractAddress = ""
-	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
-		x.AuthorizeMessagesAllowed = nil
 	case "fuelsequencer.bridge.Params.supply_delta_period":
 		x.SupplyDeltaPeriod = uint64(0)
 	case "fuelsequencer.bridge.Params.vesting_start_time":
@@ -344,8 +276,6 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 		x.InjectedEventTxMaxBytes = uint64(0)
 	case "fuelsequencer.bridge.Params.sequencer_txs_allocation":
 		x.SequencerTxsAllocation = ""
-	case "fuelsequencer.bridge.Params.max_authorize_messages":
-		x.MaxAuthorizeMessages = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -371,12 +301,6 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
 		value := x.EthereumProxyContractAddress
 		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
-		if len(x.AuthorizeMessagesAllowed) == 0 {
-			return protoreflect.ValueOfList(&_Params_4_list{})
-		}
-		listValue := &_Params_4_list{list: &x.AuthorizeMessagesAllowed}
-		return protoreflect.ValueOfList(listValue)
 	case "fuelsequencer.bridge.Params.supply_delta_period":
 		value := x.SupplyDeltaPeriod
 		return protoreflect.ValueOfUint64(value)
@@ -385,9 +309,9 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	case "fuelsequencer.bridge.Params.additional_blocked_addresses":
 		if len(x.AdditionalBlockedAddresses) == 0 {
-			return protoreflect.ValueOfList(&_Params_7_list{})
+			return protoreflect.ValueOfList(&_Params_6_list{})
 		}
-		listValue := &_Params_7_list{list: &x.AdditionalBlockedAddresses}
+		listValue := &_Params_6_list{list: &x.AdditionalBlockedAddresses}
 		return protoreflect.ValueOfList(listValue)
 	case "fuelsequencer.bridge.Params.max_eth_block_update_delay":
 		value := x.MaxEthBlockUpdateDelay
@@ -398,9 +322,6 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 	case "fuelsequencer.bridge.Params.sequencer_txs_allocation":
 		value := x.SequencerTxsAllocation
 		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bridge.Params.max_authorize_messages":
-		value := x.MaxAuthorizeMessages
-		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -427,17 +348,13 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 		x.BridgeDenomTotalSupply = value.Interface().(string)
 	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
 		x.EthereumProxyContractAddress = value.Interface().(string)
-	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
-		lv := value.List()
-		clv := lv.(*_Params_4_list)
-		x.AuthorizeMessagesAllowed = *clv.list
 	case "fuelsequencer.bridge.Params.supply_delta_period":
 		x.SupplyDeltaPeriod = value.Uint()
 	case "fuelsequencer.bridge.Params.vesting_start_time":
 		x.VestingStartTime = value.Message().Interface().(*timestamppb.Timestamp)
 	case "fuelsequencer.bridge.Params.additional_blocked_addresses":
 		lv := value.List()
-		clv := lv.(*_Params_7_list)
+		clv := lv.(*_Params_6_list)
 		x.AdditionalBlockedAddresses = *clv.list
 	case "fuelsequencer.bridge.Params.max_eth_block_update_delay":
 		x.MaxEthBlockUpdateDelay = value.Message().Interface().(*durationpb.Duration)
@@ -445,8 +362,6 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 		x.InjectedEventTxMaxBytes = value.Uint()
 	case "fuelsequencer.bridge.Params.sequencer_txs_allocation":
 		x.SequencerTxsAllocation = value.Interface().(string)
-	case "fuelsequencer.bridge.Params.max_authorize_messages":
-		x.MaxAuthorizeMessages = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -467,12 +382,6 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
-		if x.AuthorizeMessagesAllowed == nil {
-			x.AuthorizeMessagesAllowed = []string{}
-		}
-		value := &_Params_4_list{list: &x.AuthorizeMessagesAllowed}
-		return protoreflect.ValueOfList(value)
 	case "fuelsequencer.bridge.Params.vesting_start_time":
 		if x.VestingStartTime == nil {
 			x.VestingStartTime = new(timestamppb.Timestamp)
@@ -482,7 +391,7 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 		if x.AdditionalBlockedAddresses == nil {
 			x.AdditionalBlockedAddresses = []string{}
 		}
-		value := &_Params_7_list{list: &x.AdditionalBlockedAddresses}
+		value := &_Params_6_list{list: &x.AdditionalBlockedAddresses}
 		return protoreflect.ValueOfList(value)
 	case "fuelsequencer.bridge.Params.max_eth_block_update_delay":
 		if x.MaxEthBlockUpdateDelay == nil {
@@ -501,8 +410,6 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 		panic(fmt.Errorf("field injected_event_tx_max_bytes of message fuelsequencer.bridge.Params is not mutable"))
 	case "fuelsequencer.bridge.Params.sequencer_txs_allocation":
 		panic(fmt.Errorf("field sequencer_txs_allocation of message fuelsequencer.bridge.Params is not mutable"))
-	case "fuelsequencer.bridge.Params.max_authorize_messages":
-		panic(fmt.Errorf("field max_authorize_messages of message fuelsequencer.bridge.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -522,9 +429,6 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 		return protoreflect.ValueOfString("")
 	case "fuelsequencer.bridge.Params.ethereum_proxy_contract_address":
 		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bridge.Params.authorize_messages_allowed":
-		list := []string{}
-		return protoreflect.ValueOfList(&_Params_4_list{list: &list})
 	case "fuelsequencer.bridge.Params.supply_delta_period":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.bridge.Params.vesting_start_time":
@@ -532,7 +436,7 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "fuelsequencer.bridge.Params.additional_blocked_addresses":
 		list := []string{}
-		return protoreflect.ValueOfList(&_Params_7_list{list: &list})
+		return protoreflect.ValueOfList(&_Params_6_list{list: &list})
 	case "fuelsequencer.bridge.Params.max_eth_block_update_delay":
 		m := new(durationpb.Duration)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -540,8 +444,6 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.bridge.Params.sequencer_txs_allocation":
 		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bridge.Params.max_authorize_messages":
-		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bridge.Params"))
@@ -623,12 +525,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if len(x.AuthorizeMessagesAllowed) > 0 {
-			for _, s := range x.AuthorizeMessagesAllowed {
-				l = len(s)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
 		if x.SupplyDeltaPeriod != 0 {
 			n += 1 + runtime.Sov(uint64(x.SupplyDeltaPeriod))
 		}
@@ -652,9 +548,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		l = len(x.SequencerTxsAllocation)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.MaxAuthorizeMessages != 0 {
-			n += 1 + runtime.Sov(uint64(x.MaxAuthorizeMessages))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -685,22 +578,17 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if x.MaxAuthorizeMessages != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxAuthorizeMessages))
-			i--
-			dAtA[i] = 0x58
-		}
 		if len(x.SequencerTxsAllocation) > 0 {
 			i -= len(x.SequencerTxsAllocation)
 			copy(dAtA[i:], x.SequencerTxsAllocation)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.SequencerTxsAllocation)))
 			i--
-			dAtA[i] = 0x52
+			dAtA[i] = 0x4a
 		}
 		if x.InjectedEventTxMaxBytes != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.InjectedEventTxMaxBytes))
 			i--
-			dAtA[i] = 0x48
+			dAtA[i] = 0x40
 		}
 		if x.MaxEthBlockUpdateDelay != nil {
 			encoded, err := options.Marshal(x.MaxEthBlockUpdateDelay)
@@ -714,7 +602,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x42
+			dAtA[i] = 0x3a
 		}
 		if len(x.AdditionalBlockedAddresses) > 0 {
 			for iNdEx := len(x.AdditionalBlockedAddresses) - 1; iNdEx >= 0; iNdEx-- {
@@ -722,7 +610,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				copy(dAtA[i:], x.AdditionalBlockedAddresses[iNdEx])
 				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.AdditionalBlockedAddresses[iNdEx])))
 				i--
-				dAtA[i] = 0x3a
+				dAtA[i] = 0x32
 			}
 		}
 		if x.VestingStartTime != nil {
@@ -737,21 +625,12 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x32
+			dAtA[i] = 0x2a
 		}
 		if x.SupplyDeltaPeriod != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.SupplyDeltaPeriod))
 			i--
-			dAtA[i] = 0x28
-		}
-		if len(x.AuthorizeMessagesAllowed) > 0 {
-			for iNdEx := len(x.AuthorizeMessagesAllowed) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.AuthorizeMessagesAllowed[iNdEx])
-				copy(dAtA[i:], x.AuthorizeMessagesAllowed[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.AuthorizeMessagesAllowed[iNdEx])))
-				i--
-				dAtA[i] = 0x22
-			}
+			dAtA[i] = 0x20
 		}
 		if len(x.EthereumProxyContractAddress) > 0 {
 			i -= len(x.EthereumProxyContractAddress)
@@ -920,38 +799,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				x.EthereumProxyContractAddress = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			case 4:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field AuthorizeMessagesAllowed", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.AuthorizeMessagesAllowed = append(x.AuthorizeMessagesAllowed, string(dAtA[iNdEx:postIndex]))
-				iNdEx = postIndex
-			case 5:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SupplyDeltaPeriod", wireType)
 				}
@@ -970,7 +817,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 6:
+			case 5:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field VestingStartTime", wireType)
 				}
@@ -1006,7 +853,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 7:
+			case 6:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field AdditionalBlockedAddresses", wireType)
 				}
@@ -1038,7 +885,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				}
 				x.AdditionalBlockedAddresses = append(x.AdditionalBlockedAddresses, string(dAtA[iNdEx:postIndex]))
 				iNdEx = postIndex
-			case 8:
+			case 7:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxEthBlockUpdateDelay", wireType)
 				}
@@ -1074,7 +921,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 9:
+			case 8:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field InjectedEventTxMaxBytes", wireType)
 				}
@@ -1093,7 +940,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 10:
+			case 9:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SequencerTxsAllocation", wireType)
 				}
@@ -1125,25 +972,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				}
 				x.SequencerTxsAllocation = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
-			case 11:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxAuthorizeMessages", wireType)
-				}
-				x.MaxAuthorizeMessages = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.MaxAuthorizeMessages |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1214,42 +1042,36 @@ type Params struct {
 	// ethereum_proxy_contract_address is the contract address we expect to
 	// receive deposit and authorize messages from.
 	EthereumProxyContractAddress string `protobuf:"bytes,3,opt,name=ethereum_proxy_contract_address,json=ethereumProxyContractAddress,proto3" json:"ethereum_proxy_contract_address,omitempty"`
-	// authorize_messages_allowed is a whitelist for authorize messages that we
-	// can receive and process.
-	AuthorizeMessagesAllowed []string `protobuf:"bytes,4,rep,name=authorize_messages_allowed,json=authorizeMessagesAllowed,proto3" json:"authorize_messages_allowed,omitempty"`
 	// supply_delta_period is the frequency in block at which we report supply
 	// delta info to Ethereum.
-	SupplyDeltaPeriod uint64 `protobuf:"varint,5,opt,name=supply_delta_period,json=supplyDeltaPeriod,proto3" json:"supply_delta_period,omitempty"`
+	SupplyDeltaPeriod uint64 `protobuf:"varint,4,opt,name=supply_delta_period,json=supplyDeltaPeriod,proto3" json:"supply_delta_period,omitempty"`
 	// vesting_start_time is the common vesting starting time for vesting accounts
 	// that will be created through deposits from Ethereum.
-	VestingStartTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=vesting_start_time,json=vestingStartTime,proto3" json:"vesting_start_time,omitempty"`
+	VestingStartTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=vesting_start_time,json=vestingStartTime,proto3" json:"vesting_start_time,omitempty"`
 	// additional_blocked_addresses is a list of Cosmos SDK-based bech32 addresses
 	// that are explicitly disallowed from being controlled by authorize messages
 	// within the Sequencer system. This can include addresses of module accounts,
 	// validator operators, or any other addresses deemed necessary to protect
 	// from unauthorized control actions.
-	AdditionalBlockedAddresses []string `protobuf:"bytes,7,rep,name=additional_blocked_addresses,json=additionalBlockedAddresses,proto3" json:"additional_blocked_addresses,omitempty"`
+	AdditionalBlockedAddresses []string `protobuf:"bytes,6,rep,name=additional_blocked_addresses,json=additionalBlockedAddresses,proto3" json:"additional_blocked_addresses,omitempty"`
 	// max_eth_block_update_delay is the maximum amount of time that the Sequencer
 	// allows validators to not sync up with Ethereum. Once
 	// max_eth_block_update_delay is exceeded, the Sequencer's block production
 	// will halt until validators sync up with next Ethereum block.
-	MaxEthBlockUpdateDelay *durationpb.Duration `protobuf:"bytes,8,opt,name=max_eth_block_update_delay,json=maxEthBlockUpdateDelay,proto3" json:"max_eth_block_update_delay,omitempty"`
+	MaxEthBlockUpdateDelay *durationpb.Duration `protobuf:"bytes,7,opt,name=max_eth_block_update_delay,json=maxEthBlockUpdateDelay,proto3" json:"max_eth_block_update_delay,omitempty"`
 	// injected_event_tx_max_bytes is the maximum amount of block space that an
 	// injected event tx can take in terms of bytes. An Authorize event gets
 	// skipped and never included in a block if it can't be converted into a tx
 	// that can respect this limit. On the other hand, if a Deposit event cannot
 	// be converted into a Tx that can respect this limit, the chain halts.
-	InjectedEventTxMaxBytes uint64 `protobuf:"varint,9,opt,name=injected_event_tx_max_bytes,json=injectedEventTxMaxBytes,proto3" json:"injected_event_tx_max_bytes,omitempty"`
+	InjectedEventTxMaxBytes uint64 `protobuf:"varint,8,opt,name=injected_event_tx_max_bytes,json=injectedEventTxMaxBytes,proto3" json:"injected_event_tx_max_bytes,omitempty"`
 	// sequencer_txs_allocation is a percentage that controls the maximum amount
 	// of block space that is allocated to Sequencer-native transactions during
 	// heavy bridge usage. This ensures Sequencer blocks are not solely filled
 	// with event transactions if the Ethereum blocks being synced are large.
 	// NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
 	// can fit more Sequencer-native or event transactions.
-	SequencerTxsAllocation string `protobuf:"bytes,10,opt,name=sequencer_txs_allocation,json=sequencerTxsAllocation,proto3" json:"sequencer_txs_allocation,omitempty"`
-	// max_authorize_messages is the maximum amount of Cosmos SDK messages that an
-	// Authorize transaction can have
-	MaxAuthorizeMessages uint64 `protobuf:"varint,11,opt,name=max_authorize_messages,json=maxAuthorizeMessages,proto3" json:"max_authorize_messages,omitempty"`
+	SequencerTxsAllocation string `protobuf:"bytes,9,opt,name=sequencer_txs_allocation,json=sequencerTxsAllocation,proto3" json:"sequencer_txs_allocation,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -1291,13 +1113,6 @@ func (x *Params) GetEthereumProxyContractAddress() string {
 		return x.EthereumProxyContractAddress
 	}
 	return ""
-}
-
-func (x *Params) GetAuthorizeMessagesAllowed() []string {
-	if x != nil {
-		return x.AuthorizeMessagesAllowed
-	}
-	return nil
 }
 
 func (x *Params) GetSupplyDeltaPeriod() uint64 {
@@ -1342,13 +1157,6 @@ func (x *Params) GetSequencerTxsAllocation() string {
 	return ""
 }
 
-func (x *Params) GetMaxAuthorizeMessages() uint64 {
-	if x != nil {
-		return x.MaxAuthorizeMessages
-	}
-	return 0
-}
-
 var File_fuelsequencer_bridge_params_proto protoreflect.FileDescriptor
 
 var file_fuelsequencer_bridge_params_proto_rawDesc = []byte{
@@ -1363,8 +1171,8 @@ var file_fuelsequencer_bridge_params_proto_rawDesc = []byte{
 	0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x62, 0x75, 0x66, 0x2f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x1a, 0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xc8,
-	0x06, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x62, 0x72, 0x69,
+	0x6f, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xd4,
+	0x05, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x62, 0x72, 0x69,
 	0x64, 0x67, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x0b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x66, 0x0a, 0x19,
 	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x5f, 0x74, 0x6f, 0x74,
@@ -1377,61 +1185,53 @@ var file_fuelsequencer_bridge_params_proto_rawDesc = []byte{
 	0x5f, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x5f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x5f,
 	0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x1c, 0x65,
 	0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x43, 0x6f, 0x6e, 0x74,
-	0x72, 0x61, 0x63, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x3c, 0x0a, 0x1a, 0x61,
-	0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
-	0x73, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x18, 0x04, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x18, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x73, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x12, 0x2e, 0x0a, 0x13, 0x73, 0x75, 0x70,
-	0x70, 0x6c, 0x79, 0x5f, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64,
-	0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x11, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x44, 0x65,
-	0x6c, 0x74, 0x61, 0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x12, 0x52, 0x0a, 0x12, 0x76, 0x65, 0x73,
-	0x74, 0x69, 0x6e, 0x67, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18,
-	0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
-	0x70, 0x42, 0x08, 0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0x52, 0x10, 0x76, 0x65, 0x73,
-	0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x40, 0x0a,
-	0x1c, 0x61, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x5f, 0x62, 0x6c, 0x6f, 0x63,
-	0x6b, 0x65, 0x64, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x18, 0x07, 0x20,
-	0x03, 0x28, 0x09, 0x52, 0x1a, 0x61, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x42,
-	0x6c, 0x6f, 0x63, 0x6b, 0x65, 0x64, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x12,
-	0x5f, 0x0a, 0x1a, 0x6d, 0x61, 0x78, 0x5f, 0x65, 0x74, 0x68, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b,
-	0x5f, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x64, 0x65, 0x6c, 0x61, 0x79, 0x18, 0x08, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x08,
-	0xc8, 0xde, 0x1f, 0x00, 0x98, 0xdf, 0x1f, 0x01, 0x52, 0x16, 0x6d, 0x61, 0x78, 0x45, 0x74, 0x68,
-	0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6c, 0x61, 0x79,
-	0x12, 0x3c, 0x0a, 0x1b, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65, 0x64, 0x5f, 0x65, 0x76, 0x65,
-	0x6e, 0x74, 0x5f, 0x74, 0x78, 0x5f, 0x6d, 0x61, 0x78, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18,
-	0x09, 0x20, 0x01, 0x28, 0x04, 0x52, 0x17, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65, 0x64, 0x45,
-	0x76, 0x65, 0x6e, 0x74, 0x54, 0x78, 0x4d, 0x61, 0x78, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x6b,
-	0x0a, 0x18, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5f, 0x74, 0x78, 0x73, 0x5f,
-	0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09,
-	0x42, 0x31, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x1b, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
-	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x4c, 0x65, 0x67, 0x61,
-	0x63, 0x79, 0x44, 0x65, 0x63, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
-	0x44, 0x65, 0x63, 0x52, 0x16, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x54, 0x78,
-	0x73, 0x41, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x34, 0x0a, 0x16, 0x6d,
-	0x61, 0x78, 0x5f, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65, 0x5f, 0x6d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x73, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x04, 0x52, 0x14, 0x6d, 0x61, 0x78,
-	0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
-	0x73, 0x3a, 0x26, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x1d, 0x66, 0x75, 0x65, 0x6c,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x78, 0x2f, 0x62, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xe0, 0x01, 0x0a, 0x18, 0x63, 0x6f,
-	0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
-	0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x50, 0x72,
-	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
-	0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75,
-	0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03,
-	0x46, 0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65,
-	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67,
-	0x65, 0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61,
-	0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
-	0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x61, 0x63, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x2e, 0x0a, 0x13, 0x73,
+	0x75, 0x70, 0x70, 0x6c, 0x79, 0x5f, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x5f, 0x70, 0x65, 0x72, 0x69,
+	0x6f, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x11, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79,
+	0x44, 0x65, 0x6c, 0x74, 0x61, 0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x12, 0x52, 0x0a, 0x12, 0x76,
+	0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d,
+	0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
+	0x61, 0x6d, 0x70, 0x42, 0x08, 0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0x52, 0x10, 0x76,
+	0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x12,
+	0x40, 0x0a, 0x1c, 0x61, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x5f, 0x62, 0x6c,
+	0x6f, 0x63, 0x6b, 0x65, 0x64, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x18,
+	0x06, 0x20, 0x03, 0x28, 0x09, 0x52, 0x1a, 0x61, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x61,
+	0x6c, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x65, 0x64, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65,
+	0x73, 0x12, 0x5f, 0x0a, 0x1a, 0x6d, 0x61, 0x78, 0x5f, 0x65, 0x74, 0x68, 0x5f, 0x62, 0x6c, 0x6f,
+	0x63, 0x6b, 0x5f, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x64, 0x65, 0x6c, 0x61, 0x79, 0x18,
+	0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x42, 0x08, 0xc8, 0xde, 0x1f, 0x00, 0x98, 0xdf, 0x1f, 0x01, 0x52, 0x16, 0x6d, 0x61, 0x78, 0x45,
+	0x74, 0x68, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6c,
+	0x61, 0x79, 0x12, 0x3c, 0x0a, 0x1b, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65, 0x64, 0x5f, 0x65,
+	0x76, 0x65, 0x6e, 0x74, 0x5f, 0x74, 0x78, 0x5f, 0x6d, 0x61, 0x78, 0x5f, 0x62, 0x79, 0x74, 0x65,
+	0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x04, 0x52, 0x17, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65,
+	0x64, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x54, 0x78, 0x4d, 0x61, 0x78, 0x42, 0x79, 0x74, 0x65, 0x73,
+	0x12, 0x6b, 0x0a, 0x18, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5f, 0x74, 0x78,
+	0x73, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x09, 0x20, 0x01,
+	0x28, 0x09, 0x42, 0x31, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x1b, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x4c, 0x65,
+	0x67, 0x61, 0x63, 0x79, 0x44, 0x65, 0x63, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x2e, 0x44, 0x65, 0x63, 0x52, 0x16, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x54, 0x78, 0x73, 0x41, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x3a, 0x26, 0xe8,
+	0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x1d, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x78, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x50,
+	0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xe0, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64,
+	0x67, 0x65, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
+	0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75,
+	0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72,
+	0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa,
+	0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
+	0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
+	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20,
+	0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61,
+	0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
