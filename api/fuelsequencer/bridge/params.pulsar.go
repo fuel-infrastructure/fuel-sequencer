@@ -583,12 +583,12 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], x.SequencerTxsAllocation)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.SequencerTxsAllocation)))
 			i--
-			dAtA[i] = 0x52
+			dAtA[i] = 0x4a
 		}
 		if x.InjectedEventTxMaxBytes != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.InjectedEventTxMaxBytes))
 			i--
-			dAtA[i] = 0x48
+			dAtA[i] = 0x40
 		}
 		if x.MaxEthBlockUpdateDelay != nil {
 			encoded, err := options.Marshal(x.MaxEthBlockUpdateDelay)
@@ -921,7 +921,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 9:
+			case 8:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field InjectedEventTxMaxBytes", wireType)
 				}
@@ -940,7 +940,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 10:
+			case 9:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SequencerTxsAllocation", wireType)
 				}
@@ -1064,14 +1064,14 @@ type Params struct {
 	// skipped and never included in a block if it can't be converted into a tx
 	// that can respect this limit. On the other hand, if a Deposit event cannot
 	// be converted into a Tx that can respect this limit, the chain halts.
-	InjectedEventTxMaxBytes uint64 `protobuf:"varint,9,opt,name=injected_event_tx_max_bytes,json=injectedEventTxMaxBytes,proto3" json:"injected_event_tx_max_bytes,omitempty"`
+	InjectedEventTxMaxBytes uint64 `protobuf:"varint,8,opt,name=injected_event_tx_max_bytes,json=injectedEventTxMaxBytes,proto3" json:"injected_event_tx_max_bytes,omitempty"`
 	// sequencer_txs_allocation is a percentage that controls the maximum amount
 	// of block space that is allocated to Sequencer-native transactions during
 	// heavy bridge usage. This ensures Sequencer blocks are not solely filled
 	// with event transactions if the Ethereum blocks being synced are large.
 	// NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
 	// can fit more Sequencer-native or event transactions.
-	SequencerTxsAllocation string `protobuf:"bytes,10,opt,name=sequencer_txs_allocation,json=sequencerTxsAllocation,proto3" json:"sequencer_txs_allocation,omitempty"`
+	SequencerTxsAllocation string `protobuf:"bytes,9,opt,name=sequencer_txs_allocation,json=sequencerTxsAllocation,proto3" json:"sequencer_txs_allocation,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -1206,10 +1206,10 @@ var file_fuelsequencer_bridge_params_proto_rawDesc = []byte{
 	0x74, 0x68, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6c,
 	0x61, 0x79, 0x12, 0x3c, 0x0a, 0x1b, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65, 0x64, 0x5f, 0x65,
 	0x76, 0x65, 0x6e, 0x74, 0x5f, 0x74, 0x78, 0x5f, 0x6d, 0x61, 0x78, 0x5f, 0x62, 0x79, 0x74, 0x65,
-	0x73, 0x18, 0x09, 0x20, 0x01, 0x28, 0x04, 0x52, 0x17, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65,
+	0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x04, 0x52, 0x17, 0x69, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x65,
 	0x64, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x54, 0x78, 0x4d, 0x61, 0x78, 0x42, 0x79, 0x74, 0x65, 0x73,
 	0x12, 0x6b, 0x0a, 0x18, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5f, 0x74, 0x78,
-	0x73, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x0a, 0x20, 0x01,
+	0x73, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x09, 0x20, 0x01,
 	0x28, 0x09, 0x42, 0x31, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x1b, 0x63, 0x6f, 0x73, 0x6d,
 	0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x4c, 0x65,
 	0x67, 0x61, 0x63, 0x79, 0x44, 0x65, 0x63, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
