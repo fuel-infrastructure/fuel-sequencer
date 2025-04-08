@@ -44,6 +44,7 @@ func TestMigrateStore(t *testing.T) {
 		VestingStartTime:             defaultParams.VestingStartTime,
 		AdditionalBlockedAddresses:   defaultParams.AdditionalBlockedAddresses,
 		MaxEthBlockUpdateDelay:       defaultParams.MaxEthBlockUpdateDelay,
+		InjectedEventTxMaxBytes:      1024,
 		SequencerTxsAllocation:       defaultParams.SequencerTxsAllocation,
 	}
 

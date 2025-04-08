@@ -37,6 +37,7 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 		time.Now(),
 		[]string{},
 		2*time.Hour,
+		6144,
 		sdkmath.LegacyMustNewDecFromStr("0.3"),
 	)
 

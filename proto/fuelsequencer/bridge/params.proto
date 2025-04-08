@@ -60,13 +60,20 @@ message Params {
   google.protobuf.Duration max_eth_block_update_delay = 7
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
 
+  // injected_event_tx_max_bytes is the maximum amount of block space that an
+  // injected event tx can take in terms of bytes. An Authorize event gets
+  // skipped and never included in a block if it can't be converted into a tx
+  // that can respect this limit. On the other hand, if a Deposit event cannot
+  // be converted into a Tx that can respect this limit, the chain halts.
+  uint64 injected_event_tx_max_bytes = 8;
+
   // sequencer_txs_allocation is a percentage that controls the maximum amount
   // of block space that is allocated to Sequencer-native transactions during
   // heavy bridge usage. This ensures Sequencer blocks are not solely filled
   // with event transactions if the Ethereum blocks being synced are large.
   // NOTE: sequencer_txs_allocation is ignored by the consensus algorithm if it
   // can fit more Sequencer-native or event transactions.
-  string sequencer_txs_allocation = 8 [
+  string sequencer_txs_allocation = 9 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
