@@ -22,6 +22,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		time.Now(),
 		[]string{},
 		2*time.Hour,
+		6144,
 		sdkmath.LegacyMustNewDecFromStr("0.3"),
 	)
 	require.NoError(t, k.SetParams(ctx, defaultParams))

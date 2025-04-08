@@ -35,6 +35,7 @@ func TestValidateGenesisState(t *testing.T) {
 					testutiltypes.TestVestingStartingTime,
 					nil,
 					types.DefaultMaxEthBlockUpdateDelay,
+					types.DefaultInjectedEventTxMaxBytes,
 					types.DefaultSequencerTxsAllocation,
 				),
 				SupplyDeltaInfo: &types.SupplyDeltaInfo{

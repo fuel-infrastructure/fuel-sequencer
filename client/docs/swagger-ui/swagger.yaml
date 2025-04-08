@@ -332,6 +332,24 @@ paths:
 
                       will halt until validators sync up with next Ethereum
                       block.
+                  injected_event_tx_max_bytes:
+                    type: string
+                    format: uint64
+                    description: >-
+                      injected_event_tx_max_bytes is the maximum amount of block
+                      space that an
+
+                      injected event tx can take in terms of bytes. An Authorize
+                      event gets
+
+                      skipped and never included in a block if it can't be
+                      converted into a tx
+
+                      that can respect this limit. On the other hand, if a
+                      Deposit event cannot
+
+                      be converted into a Tx that can respect this limit, the
+                      chain halts.
                   sequencer_txs_allocation:
                     type: string
                     description: >-
@@ -30379,6 +30397,22 @@ definitions:
           production
 
           will halt until validators sync up with next Ethereum block.
+      injected_event_tx_max_bytes:
+        type: string
+        format: uint64
+        description: >-
+          injected_event_tx_max_bytes is the maximum amount of block space that
+          an
+
+          injected event tx can take in terms of bytes. An Authorize event gets
+
+          skipped and never included in a block if it can't be converted into a
+          tx
+
+          that can respect this limit. On the other hand, if a Deposit event
+          cannot
+
+          be converted into a Tx that can respect this limit, the chain halts.
       sequencer_txs_allocation:
         type: string
         description: >-
@@ -30586,6 +30620,24 @@ definitions:
               production
 
               will halt until validators sync up with next Ethereum block.
+          injected_event_tx_max_bytes:
+            type: string
+            format: uint64
+            description: >-
+              injected_event_tx_max_bytes is the maximum amount of block space
+              that an
+
+              injected event tx can take in terms of bytes. An Authorize event
+              gets
+
+              skipped and never included in a block if it can't be converted
+              into a tx
+
+              that can respect this limit. On the other hand, if a Deposit event
+              cannot
+
+              be converted into a Tx that can respect this limit, the chain
+              halts.
           sequencer_txs_allocation:
             type: string
             description: >-
