@@ -81,18 +81,17 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		depositAmount := big.NewInt(200)
 		depositTxReceipt := s.DepositTokenToSequencer(depositAmount)
 
-		// Generate a MsgSend
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		from := s.EthKeys[0].AddressHex
-		to := s.EthKeys[1].AddressHex
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
+		// Generate a Transfer
+		sendAmount := int64(10)
+		from := s.EthKeys[0]
+		to := s.EthKeys[1]
+		transfer := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
+		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(
+			from.AddressHex, to.AddressHex,
+			sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))),
+		)
 
-		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackAuthorize(msgSendBz)
-		authorizeTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		transferTxReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(transfer)
 		s.Require().NoError(err)
 
 		// --------------------------------------- Ensure Sidecar got the new Events
@@ -107,16 +106,16 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		var depositEventData sidecartypes.DepositEvent
 		err = depositEventData.Unmarshal(depositEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(depositEventData.Equal(&sidecartypes.DepositEvent{
+		s.Require().Equal(depositEventData, sidecartypes.DepositEvent{
 			Depositor: s.EthKeys[0].AddressHex,
 			Recipient: s.EthKeys[0].AddressHex, // sender == recipient unless otherwise specified
 			Amount:    depositAmount.String(),
 			Lockup:    "0", // the deposit initiated from Ethereum has no lockup
-		}))
+		})
 
 		// Ensure authorize event is at the expected height.
 		authorizeEvents, err := s.PollForSidecarBlockEvents(
-			s.Ctx(), time.Second*20, int(authorizeTxReceipt.BlockNumber.Int64()),
+			s.Ctx(), time.Second*20, int(transferTxReceipt.BlockNumber.Int64()),
 		)
 		s.Require().NoError(err)
 		s.Require().Len(authorizeEvents, 1)
@@ -126,10 +125,10 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		var authorizeEventData sidecartypes.AuthorizeEvent
 		err = authorizeEventData.Unmarshal(authorizeEvents[0].Data)
 		s.Require().NoError(err)
-		s.Require().True(authorizeEventData.Equal(&sidecartypes.AuthorizeEvent{
-			Sender: s.EthKeys[0].AddressHex,
+		s.Require().Equal(authorizeEventData, sidecartypes.AuthorizeEvent{
+			Sender: from.AddressHex,
 			Data:   msgSendBz,
-		}))
+		})
 	})
 
 	s.Run("Ensure LastEthereumBlockSynced is being updated", func() {

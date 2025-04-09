@@ -86,6 +86,17 @@ func PackDeposit(amount *big.Int) []byte {
 	)
 }
 
+func PackDepositFor(amount *big.Int, recipient common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		DepositForFunctionName,
+		[]interface{}{
+			amount,
+			recipient,
+		},
+	)
+}
+
 func PackDelegate(amount *big.Int, validator common.Address) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
@@ -108,16 +119,110 @@ func PackDepositAndDelegate(amount *big.Int, validator common.Address) []byte {
 	)
 }
 
-func PackAuthorize(data []byte) []byte {
-	return PackBatchAuthorize([][]byte{data})
-}
-
-func PackBatchAuthorize(data [][]byte) []byte {
+func PackRedelegate(amount *big.Int, srcValidator, dstValidator common.Address) []byte {
 	return packCall(
 		SequencerInterfaceContractABI,
-		BatchAuthorizeFunctionName,
+		RedelegateFunctionName,
 		[]interface{}{
-			data,
+			amount,
+			srcValidator,
+			dstValidator,
+		},
+	)
+}
+
+func PackClaimRewards(validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		ClaimRewardsFunctionName,
+		[]interface{}{
+			validator,
+		},
+	)
+}
+
+func PackUnbond(amount *big.Int, validator common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		UnbondFunctionName,
+		[]interface{}{
+			amount,
+			validator,
+		},
+	)
+}
+
+func PackWithdraw(amount *big.Int) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		WithdrawFunctionName,
+		[]interface{}{
+			amount,
+		},
+	)
+}
+
+func PackWithdrawTo(amount *big.Int, recipient common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		WithdrawToFunctionName,
+		[]interface{}{
+			amount,
+			recipient,
+		},
+	)
+}
+
+func PackTransfer(recipient common.Address, amount *big.Int) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		TransferFunctionName,
+		[]interface{}{
+			recipient,
+			amount,
+		},
+	)
+}
+
+func PackVote(proposalId uint64, option uint32, memory string) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		VoteFunctionName,
+		[]interface{}{
+			proposalId,
+			option,
+			memory,
+		},
+	)
+}
+
+func PackSetRewardRecipient(recipient common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		SetRewardRecipientFunctionName,
+		[]interface{}{
+			recipient,
+		},
+	)
+}
+
+func PackGrantClaimRewards(grantee common.Address, expiration uint32) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		GrantClaimRewardsFunctionName,
+		[]interface{}{
+			grantee,
+			expiration,
+		},
+	)
+}
+
+func PackRevokeClaimRewards(grantee common.Address) []byte {
+	return packCall(
+		SequencerInterfaceContractABI,
+		RevokeClaimRewardsFunctionName,
+		[]interface{}{
+			grantee,
 		},
 	)
 }
@@ -156,17 +261,25 @@ func PackUpdateGenesisStateMessage(
 }
 
 func PackUpdateCommitHeaderRangeMessage(
-	targetBlock uint64,
-	targetHeader common.Hash,
-	bridgeCommitment common.Hash,
+	proof []byte,
+	publicValues []byte,
 ) []byte {
 	return packCall(
 		FuelStreamXContractABI,
 		UpdateCommitHeaderRangeFunctionName,
 		[]interface{}{
-			targetBlock,
-			targetHeader,
-			bridgeCommitment,
+			proof,
+			publicValues,
+		},
+	)
+}
+
+func PackBlockHeightToHeaderHash(abi string, height uint64) []byte {
+	return packCall(
+		abi,
+		BlockHeightToHeaderHashQueryName,
+		[]interface{}{
+			height,
 		},
 	)
 }

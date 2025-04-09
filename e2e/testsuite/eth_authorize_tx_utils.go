@@ -21,22 +21,6 @@ func (s *E2ETestSuite) GenerateMsgBz(msg sdk.Msg) []byte {
 	return bz
 }
 
-func (s *E2ETestSuite) GenerateNMsgsBz(msg sdk.Msg, n uint64) []byte {
-	var anyMsgs []*codectypes.Any
-	for i := uint64(0); i < n; i++ {
-		anyMsg, err := codectypes.NewAnyWithValue(msg)
-		s.Require().NoError(err)
-
-		anyMsgs = append(anyMsgs, anyMsg)
-	}
-
-	// Serialize the messages to bytes
-	bz, err := proto.Marshal(&bridgetypes.AuthorizeTx{Messages: anyMsgs})
-	s.Require().NoError(err)
-
-	return bz
-}
-
 func (s *E2ETestSuite) GenerateMsgSendBz(fromAddress, toAddress string, amount []sdk.Coin) []byte {
 	return s.GenerateMsgBz(
 		&banktypes.MsgSend{

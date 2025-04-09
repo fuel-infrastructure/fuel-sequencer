@@ -64,8 +64,8 @@ func (s *E2ETestSuite) executeGovProposal(msg sdk.Msg, expedited bool) {
 	proposalId := s.submitGovProposal(msg, expedited)
 
 	// Vote yes from all validators
-	for _, val := range s.Chain.validators {
-		msgVote := govtypesv1.NewMsgVote(val.address(), proposalId, govtypesv1.VoteOption_VOTE_OPTION_YES, "")
+	for _, val := range s.Chain.Validators {
+		msgVote := govtypesv1.NewMsgVote(val.Address(), proposalId, govtypesv1.VoteOption_VOTE_OPTION_YES, "")
 		resp, err := s.SubmitMsgsFrom(val, msgVote)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(*resp)

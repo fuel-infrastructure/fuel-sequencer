@@ -16,11 +16,13 @@ type SequencerKey struct {
 	ValAddress    sdk.ValAddress
 	AddressHex    string
 	AddressSeq    string // Bech32
+	AddressEth    common.Address
 	ValAddressHex string
 	ValAddressSeq string // Bech32
+	ValAddressEth common.Address
 }
 
-func mustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
+func MustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
 	key, err := newSequencerKeyFromMnemonic(mnemonic)
 	if err != nil {
 		panic(err)
@@ -29,7 +31,7 @@ func mustNewSequencerKeyFromMnemonic(mnemonic string) *SequencerKey {
 }
 
 func newSequencerKeyFromMnemonic(mnemonic string) (*SequencerKey, error) {
-	kb := keyring.NewInMemory(cdc)
+	kb := keyring.NewInMemory(Cdc)
 
 	name := "name"
 	passphrase := ""
@@ -64,7 +66,9 @@ func newSequencerKeyFromMnemonic(mnemonic string) (*SequencerKey, error) {
 		ValAddress:    valAddress,
 		AddressHex:    common.Bytes2Hex(address.Bytes()),
 		AddressSeq:    address.String(),
+		AddressEth:    common.BytesToAddress(address.Bytes()),
 		ValAddressHex: common.Bytes2Hex(valAddress.Bytes()),
 		ValAddressSeq: valAddress.String(),
+		ValAddressEth: common.BytesToAddress(valAddress.Bytes()),
 	}, nil
 }

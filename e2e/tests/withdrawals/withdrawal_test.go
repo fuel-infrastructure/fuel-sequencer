@@ -49,8 +49,8 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Submit bridge commitment to FuelStreamX contract
 		startBlock := uint64(1)
 		endBlock := uint64(lastResultsHashHeight + 1)
-		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
-		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
+		proof, publicValues := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock, true)
+		data := testsuite.PackUpdateCommitHeaderRangeMessage(proof, publicValues)
 		receipt, err := s.SendEthTransactionToFuelStreamXContractAsGuardian(data)
 		s.Require().NoError(err)
 
@@ -141,12 +141,8 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		sequencerHeightBefore, err := s.GetFuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err)
 
-		// Generate Authorize event wrapping a MsgWithdrawToEthereum.
-		msgWithdrawToEthereumBz := s.E2ETestSuite.GenerateMsgWithdrawToEthereumBz(
-			withdrawerAddress, withdrawerAddress, withdrawCoin,
-		)
-		authorizeData := testsuite.PackAuthorize(msgWithdrawToEthereumBz)
-		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		withdrawData := testsuite.PackWithdraw(withdrawCoin.Amount.BigInt())
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(withdrawData)
 		s.Require().NoError(err)
 
 		// The LastResultsHash is generated at the block right after the withdrawal
@@ -177,8 +173,8 @@ func (s *WithdrawalsTestSuite) TestWithdrawalWithCentralisedSolution_WithdrawalF
 		// Submit bridge commitment to FuelStreamX contract
 		startBlock := uint64(1)
 		endBlock := uint64(lastResultsHashHeight + 1)
-		targetHeaderHash, bridgeCommitmentHash := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock)
-		data := testsuite.PackUpdateCommitHeaderRangeMessage(endBlock, targetHeaderHash, bridgeCommitmentHash)
+		proof, publicValues := s.GetDataForUpdateCommitHeaderRange(s.Ctx(), startBlock, endBlock, true)
+		data := testsuite.PackUpdateCommitHeaderRangeMessage(proof, publicValues)
 		receipt, err := s.SendEthTransactionToFuelStreamXContractAsGuardian(data)
 		s.Require().NoError(err)
 

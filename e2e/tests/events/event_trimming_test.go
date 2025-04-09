@@ -2,6 +2,7 @@ package events_test
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -25,7 +26,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		// Calculate size of transaction resulting from MsgIndex.
 		typicalMsgIndex := &bridgetypes.MsgIndex{
 			Authority:           s.GetGovernanceAddress(),
-			NumInjectedEventTxs: 1, // matches the number of events emitted by AuthorizeMulti, per sequencer block
+			NumInjectedEventTxs: 1,
 			NewEthereumBlock:    false,
 			BlockNumber:         1,
 		}
@@ -35,30 +36,47 @@ func (s *EventsTestSuite) TestEventTrimming() {
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
-		// Generate a MsgSend
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		from := s.EthKeys[0].AddressHex
-		to := s.EthKeys[1].AddressHex
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
+		// Generate a Transfer
+		sendAmount := int64(10)
+		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))
+		from := s.EthKeys[0]
+		validator := s.SeqKeys[0]
+
+		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(from.AddressHex, validator.ValAddressHex, sendCoin)
+
+		// Generate a deposit & delegate
+		depositEvent := types.DepositEvent{
+			Depositor: from.AddressHex,
+			Recipient: from.AddressHex,
+			Amount:    sendCoin.Amount.String(),
+			Lockup:    "0",
+		}
+		delegateEvent := types.AuthorizeEvent{
+			Sender: from.AddressHex,
+			Data:   msgDelegateBz,
+		}
 
 		// Calculate size of transaction resulting from AuthorizeEvent.
-		authorizeEvent := types.AuthorizeEvent{
-			Sender: from,
-			Data:   msgSendBz,
-		}
-		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
+		depositEventMsg, err := depositEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
 		s.Require().NoError(err)
-		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, nonZeroSequence)
+		depositEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(depositEventMsg, nonZeroSequence)
 		s.Require().NoError(err)
-		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
+		depositEventMsgSize := utils.TxSize(depositEventMsgBz)
+		s.Logger().Info(fmt.Sprintf("Predicted size of tx from DepositEvent: %d", depositEventMsgSize))
 
-		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
+		delegateEventMsg, err := delegateEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
+		s.Require().NoError(err)
+		delegateEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(delegateEventMsg, nonZeroSequence)
+		s.Require().NoError(err)
+		delegateEventMsgSize := utils.TxSize(delegateEventMsgBz)
+		s.Logger().Info(fmt.Sprintf("Predicted size of tx from DelegateEvent: %d", delegateEventMsgSize))
 
 		// Set a low max bytes for txs so that events are split across multiple blocks, with a buffer of 10 bytes.
-		maxBytesForTransactions := int64(typicalMsgIndexSize + authorizeEventMsgSize + 10)
+		largestEventMsgSize := depositEventMsgSize
+		if delegateEventMsgSize > depositEventMsgSize {
+			largestEventMsgSize = delegateEventMsgSize
+		}
+		maxBytesForTransactions := int64(typicalMsgIndexSize + largestEventMsgSize + 10)
 
 		// Calculate a max block size - this is not just for txs and must consider
 		// the max size of the header and other components that make up a block.
@@ -88,19 +106,10 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		consensusParams = s.QueryConsensusParams(s.Ctx())
 		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
 
-		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
-		s.Require().NoError(err)
-
-		// 1st event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
-		// 2nd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 2)
-		// 3rd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 3)
-		// 4th event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
+		// Send deposit and delegate events,
+		_ = s.DepositAndDelegateTokenToSequencer(sendCoin.Amount.BigInt(), validator.ValAddressEth)
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1) // check for deposit event processed
+		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)  // check for delegate event processed in the next block
 	})
 }
 
@@ -126,62 +135,14 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 
 		s.Logger().Info(fmt.Sprintf("Predicted size of MsgIndex: %d", typicalMsgIndexSize))
 
-		// Generate a MsgSend
-		sendAmount, ok := sdkmath.NewIntFromString("10")
-		s.Require().True(ok)
-		sendCoin := sdk.NewCoin(testsuite.BridgeDenom, sendAmount)
-		sendCoins := sdk.NewCoins(sendCoin)
-		from := s.EthKeys[0].AddressHex
-		to := s.EthKeys[1].AddressHex
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(from, to, sendCoins)
+		// Generate a Transfer
+		sendAmount := int64(10)
+		to := s.EthKeys[1].Address
+		transfer := testsuite.PackTransfer(to, big.NewInt(sendAmount))
 
-		// Calculate size of transaction resulting from AuthorizeEvent.
-		authorizeEvent := types.AuthorizeEvent{
-			Sender: from,
-			Data:   msgSendBz,
-		}
-		authorizeEventMsg, err := authorizeEvent.Messages(testsuite.TestCdc, s.GetGovernanceAddress())
-		s.Require().NoError(err)
-		authorizeEventMsgBz, err := utils.ValidRawTxBytesFromAnyMsgs(authorizeEventMsg, nonZeroSequence)
-		s.Require().NoError(err)
-		authorizeEventMsgSize := utils.TxSize(authorizeEventMsgBz)
+		// -------- Send transactions
 
-		s.Logger().Info(fmt.Sprintf("Predicted size of tx from AuthorizeEvent: %d", authorizeEventMsgSize))
-
-		// Set a low max bytes for txs so that events are split across multiple blocks, with a buffer of 10 bytes.
-		maxBytesForTransactions := int64(typicalMsgIndexSize + authorizeEventMsgSize + 10)
-
-		// Calculate max block size - this is not just for txs and must consider
-		// the max size of the header and other components that make up a block.
-		numberOfValidators := len(testsuite.MNEMONICS)
-		maxBytes := maxBytesForTransactions +
-			cmtypes.MaxOverheadForBlock +
-			cmtypes.MaxHeaderBytes +
-			cmtypes.MaxCommitBytes(numberOfValidators)
-		s.Require().NotPanics(func() {
-			_ = cmtypes.MaxDataBytesNoEvidence(maxBytes, numberOfValidators)
-		})
-
-		consensusParams := s.QueryConsensusParams(s.Ctx())
-		consensusParams.Evidence.MaxBytes = 1
-		consensusParams.Block.MaxBytes = maxBytes
-
-		msgUpdateParams := consensustypes.MsgUpdateParams{
-			Authority: s.GetGovernanceAddress(),
-			Block:     consensusParams.Block,
-			Evidence:  consensusParams.Evidence,
-			Validator: consensusParams.Validator,
-			Abci:      consensusParams.Abci,
-		}
-		s.ExecuteGovProposal(&msgUpdateParams)
-
-		// Check max block size was updated
-		consensusParams = s.QueryConsensusParams(s.Ctx())
-		s.Require().EqualValues(maxBytes, consensusParams.Block.MaxBytes)
-
-		// Try generating some events via a transaction (RPC) - via authorize.
-		authorizeData := testsuite.PackBatchAuthorize([][]byte{msgSendBz, msgSendBz, msgSendBz, msgSendBz})
-		_, err = s.SendEthTransactionToSequencerInterfaceContract(authorizeData)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(transfer)
 		s.Require().NoError(err)
 
 		// -------- Delay sync up
@@ -193,13 +154,6 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 
 		// -------- Check that events are eventually processed
 
-		// 1st event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 20, 1)
-		// 2nd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 2)
-		// 3rd event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 3)
-		// 4th event of 4 processed
-		s.PollForEthereumEventIndexOffset(s.Ctx(), 2, 0)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 20, txReceipt.BlockNumber.Uint64())
 	})
 }

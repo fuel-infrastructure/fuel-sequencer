@@ -4,6 +4,7 @@
 : "${SIDECAR_HOST:="0.0.0.0"}"
 : "${SIDECAR_PORT:="8080"}"
 : "${SEQUENCER_GRPC_URL:="127.0.0.1:9090"}"
+: "${UNSAFE_SEQUENCER_BRIDGE_DENOM:="utest"}"
 : "${ETH_WS_URL:="ws://ethereum-node:8545"}" # set to the same port as RPC because e2e testing uses anvil nodes
 : "${ETH_RPC_URL:="http://ethereum-node:8545"}"
 : "${ETH_CONTRACT_ADDRESS:="0x0165878A594ca255338adfa4d48449f69242Eb8F"}"
@@ -26,6 +27,7 @@ fuelsequencerd start-sidecar \
   --host="$SIDECAR_HOST" \
   --port="$SIDECAR_PORT" \
   --sequencer_grpc_url="$SEQUENCER_GRPC_URL" \
+  --unsafe_sequencer_bridge_denom="$UNSAFE_SEQUENCER_BRIDGE_DENOM" \
   --eth_ws_url="$ETH_WS_URL" \
   --eth_rpc_url="$ETH_RPC_URL" \
   --eth_contract_address="$ETH_CONTRACT_ADDRESS" \
