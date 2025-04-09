@@ -41,7 +41,7 @@ var (
 
 const (
 	// DefaultBridgeDenom is the default token that will be bridged from Ethereum to the sequencer.
-	DefaultBridgeDenom = "ufuel"
+	DefaultBridgeDenom = "fuel"
 
 	// DefaultEthereumProxyContractAddress is the default contract address we expect to
 	// receive deposit and authorize messages from.
