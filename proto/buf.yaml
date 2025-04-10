@@ -7,8 +7,6 @@ deps:
 - buf.build/cosmos/cosmos-proto
 - buf.build/cosmos/gogo-proto
 - buf.build/googleapis/googleapis
-- buf.build/cosmos/ics23
-- buf.build/cosmos/ibc
 lint:
   except:
   - UNARY_RPC
