@@ -358,11 +358,24 @@ format:
 test-all: test-unit test-e2e
 
 test-unit:
-	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
+	@echo "🤖 Running unit tests..."
+	@go test -mod=readonly -v ./...
+
+test-coverage:
+	@echo "🤖 Generating test coverage..."
+	@mkdir -p $(BUILDDIR)/coverage
+	@go test -mod=readonly -coverprofile=$(BUILDDIR)/coverage/coverage.out ./x/... ./app/... ./sidecar/...
+	@go tool cover -html=$(BUILDDIR)/coverage/coverage.out -o $(BUILDDIR)/coverage/coverage.html
+	@go tool cover -func=$(BUILDDIR)/coverage/coverage.out
+	@echo "✅ Coverage report generated at $(BUILDDIR)/coverage/coverage.html"
+
+open-coverage:
+	@echo "🌐 Opening coverage report..."
+	@open $(BUILDDIR)/coverage/coverage.html
 
 test-e2e: \
 	check-docker-image-exists \
-	check-eth-deployment-docker-image-exists \
+	check-eth-deployment-docker-image \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
