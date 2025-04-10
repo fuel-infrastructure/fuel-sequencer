@@ -368,10 +368,7 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.T
 	}
 }
 
-// TrackUndelegation overrides the CointinuousVestingAccount TrackUndelegation (which uses the BaseVestingAccount one)
-// to mirror the overridden TrackDelegation function. The undelegated amount is subtracted from the DelegatedFree entry.
-//
-// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L99
+// TrackUndelegation TODO
 func (a *EthOwnedMultiContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 
 	// Sanity check delegation amount - inspired by overridden TrackUndelegation function

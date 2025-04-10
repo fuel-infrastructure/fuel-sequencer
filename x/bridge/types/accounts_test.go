@@ -207,7 +207,7 @@ func TestEthOwnedContinuousVestingAccount_TrackDelegationAndTrackUndelegation(t 
 	}
 }
 
-func TestTrackDelegation_ZeroDelegationAmountCausesPanic(t *testing.T) {
+func TestEthOwnedContinuousVestingAccount_TrackDelegation_ZeroDelegationAmountCausesPanic(t *testing.T) {
 
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
 	zeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 0)}
@@ -225,7 +225,7 @@ func TestTrackDelegation_ZeroDelegationAmountCausesPanic(t *testing.T) {
 	})
 }
 
-func TestTrackUndelegation_ZeroUndelegationAmountCausesPanic(t *testing.T) {
+func TestEthOwnedContinuousVestingAccount_TrackUndelegation_ZeroUndelegationAmountCausesPanic(t *testing.T) {
 
 	zeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 0)}
 	withZeroTokens := sdk.Coins{sdk.NewInt64Coin("token1", 10), sdk.NewInt64Coin("token2", 0)}
@@ -241,18 +241,14 @@ func TestTrackUndelegation_ZeroUndelegationAmountCausesPanic(t *testing.T) {
 	})
 }
 
-func TestAddVestingCoins(t *testing.T) {
+func TestEthOwnedBaseAccount_AddVestingCoins(t *testing.T) {
 
 	// Helper coins.
-	coinsAlreadyThere := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
 	coinsToAdd := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
-	coins1234 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1234))
-	coins5678 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 5678))
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
 	t1, _ := time.Parse(time.DateOnly, "2025-01-01")
-	t2, _ := time.Parse(time.DateOnly, "2026-01-01")
 
 	// Helper accounts and addresses.
 	seqAddr1BaseAcc := &authtypes.BaseAccount{
@@ -290,6 +286,51 @@ func TestAddVestingCoins(t *testing.T) {
 				owner,
 			),
 		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			acc, err := tc.account.AddVestingCoins(coinsToAdd, tc.vestingStartTime, tc.vestingEndTime)
+			if tc.expErrMsg != "" {
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+			require.True(t, tc.isAccountAsExpected(acc))
+		})
+	}
+}
+
+func TestEthOwnedContinuousVestingAccount_AddVestingCoins(t *testing.T) {
+
+	// Helper coins.
+	coinsAlreadyThere := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
+	coinsToAdd := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	coins1234 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1234))
+	coins5678 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 5678))
+
+	// Helper times.
+	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
+	t1, _ := time.Parse(time.DateOnly, "2025-01-01")
+	t2, _ := time.Parse(time.DateOnly, "2026-01-01")
+
+	// Helper accounts and addresses.
+	seqAddr1BaseAcc := &authtypes.BaseAccount{
+		Address:       testutiltypes.TestSeqAddr1Str,
+		AccountNumber: uint64(1),
+		Sequence:      uint64(2),
+	}
+	owner := testutiltypes.TestEthAddr1Str
+
+	testCases := []struct {
+		name                string
+		account             types.EthOwnedAccountI
+		vestingStartTime    time.Time
+		vestingEndTime      time.Time
+		isAccountAsExpected testutil.AccountValidator
+		expErrMsg           string
+	}{
 		{
 			name: "add to EthOwnedContinuousVestingAccount just adds coins if start and end time match",
 			account: types.NewEthOwnedContinuousVestingAccount(
@@ -407,6 +448,51 @@ func TestAddVestingCoins(t *testing.T) {
 				owner,
 			),
 		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			acc, err := tc.account.AddVestingCoins(coinsToAdd, tc.vestingStartTime, tc.vestingEndTime)
+			if tc.expErrMsg != "" {
+				require.ErrorContains(t, err, tc.expErrMsg)
+				return
+			}
+			require.NoError(t, err)
+			require.True(t, tc.isAccountAsExpected(acc))
+		})
+	}
+}
+
+func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
+
+	// Helper coins.
+	coinsAlreadyThere := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
+	coinsToAdd := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	coins1234 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1234))
+	coins5678 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 5678))
+
+	// Helper times.
+	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
+	t1, _ := time.Parse(time.DateOnly, "2025-01-01")
+	t2, _ := time.Parse(time.DateOnly, "2026-01-01")
+
+	// Helper accounts and addresses.
+	seqAddr1BaseAcc := &authtypes.BaseAccount{
+		Address:       testutiltypes.TestSeqAddr1Str,
+		AccountNumber: uint64(1),
+		Sequence:      uint64(2),
+	}
+	owner := testutiltypes.TestEthAddr1Str
+
+	testCases := []struct {
+		name                string
+		account             types.EthOwnedAccountI
+		vestingStartTime    time.Time
+		vestingEndTime      time.Time
+		isAccountAsExpected testutil.AccountValidator
+		expErrMsg           string
+	}{
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds to existing vesting accounts if at least one " +
 				"has a matching vesting schedule",
