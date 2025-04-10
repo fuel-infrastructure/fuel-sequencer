@@ -4,10 +4,12 @@ package fuelsequencer.bridge;
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types";
 
+import "amino/amino.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/auth/v1beta1/auth.proto";
 import "cosmos/vesting/v1beta1/vesting.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 // An EthOwnedBaseAccount wraps a BaseAccount that is known to be owned and
 // controlled by an Ethereum address.
@@ -33,6 +35,22 @@ message EthOwnedContinuousVestingAccount {
 
   cosmos.vesting.v1beta1.ContinuousVestingAccount vesting_account = 1
       [ (gogoproto.embed) = true ];
+
+  // account_owner is the Ethereum address that owns and controls this account.
+  string account_owner = 2;
+}
+
+// An EthOwnedContinuousVestingAccount wraps a list of ContinuousVestingAccount
+// that is known to be owned and controlled by an Ethereum address.
+message EthOwnedMultiContinuousVestingAccount {
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+  option (cosmos_proto.implements_interface) =
+      "fuelsequencer.bridge.EthOwnedAccountI";
+  option (cosmos_proto.implements_interface) =
+      "cosmos.vesting.v1beta1.VestingAccount";
+
+  repeated cosmos.vesting.v1beta1.ContinuousVestingAccount vesting_accounts = 1;
 
   // account_owner is the Ethereum address that owns and controls this account.
   string account_owner = 2;

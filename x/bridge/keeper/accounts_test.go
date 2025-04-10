@@ -43,19 +43,23 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 	years1 := time.Hour * 24 * 365
 	years2 := years1 * 2
 	years3 := years1 * 3
-	years100 := years1 * 100
+	//years100 := years1 * 100
 	months6 := (time.Hour * 24 * 365) / 2
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
+	t1, _ := time.Parse(time.DateOnly, "2024-07-01")
 	t0Plus1Year := t0.Add(years1)    // used for 1-year vesting duration
 	t0Plus2Years := t0.Add(years2)   // used for 2-year vesting duration
+	t1Plus2Years := t1.Add(years2)   // used for 2-year vesting duration
 	t0Plus6months := t0.Add(months6) // used for 6-month vesting duration
 	someTimeWaaaayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
 
 	// Helper token amounts.
 	token200 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
+	token175 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 175))
 	token150 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 150))
+	token125 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 125))
 	token100 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
 	token50 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 50))
 
@@ -469,7 +473,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
 				ethAddress:      testutiltypes.TestEthAddr1Str,
-				vestingDuration: years100, // NB: this gets ignored if account is EthOwnedContinuousVestingAccount
+				vestingDuration: years2,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
@@ -538,7 +542,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			fundAccount:      token200, // fund with 200 due to precreated account
 			args: fnArgs{
 				ethAddress:      testutiltypes.TestEthAddr1Str,
-				vestingDuration: years100, // NB: this gets ignored if account is EthOwnedContinuousVestingAccount
+				vestingDuration: years2,
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: testutil.MatchesEthOwnedContinuousVestingAccRaw(
@@ -556,6 +560,228 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			),
 			expectSpendableCoins: token200, // equal to the total amount that the account was funded
 			// Note: Vesting is now 0, and DelegatedVesting is not considered if all tokens have vested.
+		},
+		{
+			// blockTime: t0 + 1 years
+			//
+			// Vesting account 1:
+			// - vestingStartTime: t0
+			// - vestingEndTime:   t0 + 2 years
+			// Block time is 1/2 between start and end time, meaning 1/2 of the tokens will be available.
+			//
+			// Vesting account 2:
+			// - vestingStartTime: t1
+			// - vestingEndTime:   t1 + 2 years
+			// Block time is 1/4 between start and end time, meaning 1/4 of the tokens will be available.
+			name: "deposit with different vesting details builds on existing EthOwnedContinuousVestingAccount => " +
+				"EthOwnedMultiContinuousVestingAccount",
+			precreateAccount: types.NewEthOwnedContinuousVestingAccount(
+				&vestingtypes.ContinuousVestingAccount{
+					StartTime: t0.Unix(), // this should be untouched
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:      seqAddr1BaseAcc,
+						OriginalVesting:  token100,            // this should be untouched
+						DelegatedFree:    token50,             // this should be untouched
+						DelegatedVesting: token50,             // this should be untouched
+						EndTime:          t0Plus2Years.Unix(), // 2 year vesting
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			blockTime:        t0Plus1Year, // half-way through vesting duration
+			vestingStartTime: t1,          // start time is different from that of existing vesting acc
+			fundAccount:      token200,    // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: years2,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
+				[]*vestingtypes.ContinuousVestingAccount{
+					{
+						StartTime: t0.Unix(), // this was untouched
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,            // this was untouched
+							DelegatedFree:    token50,             // this was untouched
+							DelegatedVesting: token50,             // this was untouched
+							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+					{
+						StartTime: t1.Unix(),
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,
+							DelegatedFree:    nil,
+							DelegatedVesting: nil,
+							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			expectSpendableCoins: token125, // balance - vesting + delegatedVesting = 200 - 125 + 50 = 125
+			//
+			// Out of the 300 tokens (funding + delegatedFree + delegatedVesting):
+			//
+			// - 125 are vesting (of which 50 staked) -> i.e. 50 from vacc1 and 75 from vacc2
+			// - 75 are vested (of which 50 staked) -> i.e. 50 from vacc1 and 25 from vacc2
+			// - 100 are available [apart from the vesting information]
+			//
+			// The 125 comes from the 100 that are available and the 25 which are vested but not staked.
+		},
+		{
+			// blockTime: t0 + 2 years
+			//
+			// Vesting account 1:
+			// - vestingStartTime: t0
+			// - vestingEndTime:   t0 + 2 years
+			// Block time is at the vesting end time, meaning all the tokens should be available.
+			//
+			// Vesting account 2:
+			// - vestingStartTime: t1
+			// - vestingEndTime:   t1 + 2 years
+			// Block time is 3/4 between start and end time, meaning 3/4 of the tokens will be available.
+			name: "deposit with vesting completed but new vesting details builds on existing " +
+				"EthOwnedContinuousVestingAccount => EthOwnedMultiContinuousVestingAccount",
+			precreateAccount: types.NewEthOwnedContinuousVestingAccount(
+				&vestingtypes.ContinuousVestingAccount{
+					StartTime: t0.Unix(), // this should be untouched
+					BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+						BaseAccount:      seqAddr1BaseAcc,
+						OriginalVesting:  token100,            // this should be untouched
+						DelegatedFree:    token50,             // this should be untouched
+						DelegatedVesting: token50,             // this should be untouched
+						EndTime:          t0Plus2Years.Unix(), // 2 year vesting
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			blockTime:        t0.Add(years2), // vesting complete
+			vestingStartTime: t1,             // start time is different from that of existing vesting acc
+			fundAccount:      token200,       // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: years2,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
+				[]*vestingtypes.ContinuousVestingAccount{
+					{
+						StartTime: t0.Unix(), // this was untouched
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,            // this was untouched
+							DelegatedFree:    token50,             // this was untouched
+							DelegatedVesting: token50,             // this was untouched
+							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+					{
+						StartTime: t1.Unix(),
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,
+							DelegatedFree:    nil,
+							DelegatedVesting: nil,
+							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			expectSpendableCoins: token175, // balance - vesting + delegatedVesting = 200 - 25 + 0 = 175
+			//
+			// Out of the 300 tokens (funding + delegatedFree + delegatedVesting):
+			//
+			// - 25 are vesting (of which 0 staked) -> i.e. 0 from vacc1 and 25 from vacc2
+			// - 175 are vested (of which 100 staked) -> i.e. 100 from vacc1 and 75 from vacc2
+			// - 100 are available [apart from the vesting information]
+			//
+			// The 175 comes from the 100 that are available and the 75 which are vested but not staked.
+		},
+		{
+			// blockTime: t0 + 1 years
+			//
+			// Vesting account 1:
+			// - vestingStartTime: t0
+			// - vestingEndTime:   t0 + 2 years
+			// Block time is 1/2 between start and end time, meaning 1/2 of the tokens will be available.
+			//
+			// Vesting account 2:
+			// - vestingStartTime: t1
+			// - vestingEndTime:   t1 + 2 years
+			// Block time is 1/4 between start and end time, meaning 1/4 of the tokens will be available.
+			name: "deposit into EthOwnedMultiContinuousVestingAccount with vesting details matching first " +
+				"vesting account builds on existing EthOwnedMultiContinuousVestingAccount's first vesting account",
+			precreateAccount: types.NewEthOwnedMultiContinuousVestingAccount(
+				[]*vestingtypes.ContinuousVestingAccount{
+					{
+						StartTime: t0.Unix(), // this should be untouched
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,            // watch out for this!
+							DelegatedFree:    token50,             // this should be untouched
+							DelegatedVesting: token50,             // this should be untouched
+							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+					{
+						StartTime: t1.Unix(), // this should be untouched
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,            // this should be untouched
+							DelegatedFree:    token50,             // this should be untouched
+							DelegatedVesting: token50,             // this should be untouched
+							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			blockTime:        t0Plus1Year, // half-way through vesting duration
+			vestingStartTime: t0,          // should build on first vesting account
+			fundAccount:      token200,    // fund with 200 due to precreated account
+			args: fnArgs{
+				ethAddress:      testutiltypes.TestEthAddr1Str,
+				vestingDuration: years2,
+				totalCoins:      token100,
+			},
+			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
+				[]*vestingtypes.ContinuousVestingAccount{
+					{
+						StartTime: t0.Unix(), // this was untouched
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token200,
+							DelegatedFree:    token50,             // this was untouched
+							DelegatedVesting: token50,             // this was untouched
+							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+					{
+						StartTime: t1.Unix(), // this was untouched
+						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
+							BaseAccount:      seqAddr1BaseAcc,
+							OriginalVesting:  token100,            // this was untouched
+							DelegatedFree:    token50,             // this was untouched
+							DelegatedVesting: token50,             // this was untouched
+							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
+						},
+					},
+				},
+				testutiltypes.TestEthAddr1Str,
+			),
+			expectSpendableCoins: token125, // balance - vesting + delegatedVesting = 200 - 175 + 100 = 125
+			//
+			// Out of the 400 tokens (funding + delegatedFree + delegatedVesting):
+			//
+			// - 175 are vesting (of which 100 staked) -> i.e. 100 from vacc1 and 75 from vacc2
+			// - 125 are vested (of which 100 staked) -> i.e. 100 from vacc1 and 25 from vacc2
+			// - 100 are available [apart from the vesting information]
+			//
+			// The 125 comes from the 100 that are available and the 25 which are vested but not staked.
 		},
 	}
 

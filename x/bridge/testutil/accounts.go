@@ -43,8 +43,37 @@ func MatchesEthOwnedContinuousVestingAcc(expected *types.EthOwnedContinuousVesti
 	}
 }
 
-// MatchesEthOwnedContinuousVestingAccRaw is a wrapper for matchesEthOwnedContinuousVestingAcc that accepts the raw
+// MatchesEthOwnedContinuousVestingAccRaw is a wrapper for MatchesEthOwnedContinuousVestingAcc that accepts the raw
 // values of EthOwnedContinuousVestingAcc instead of EthOwnedContinuousVestingAcc directly.
 func MatchesEthOwnedContinuousVestingAccRaw(cva *vestingtypes.ContinuousVestingAccount, owner string) AccountValidator {
 	return MatchesEthOwnedContinuousVestingAcc(types.NewEthOwnedContinuousVestingAccount(cva, owner))
+}
+
+// MatchesEthOwnedMultiContinuousVestingAcc asserts that the account matches the specified EthOwnedMultiContinuousVestingAccount.
+func MatchesEthOwnedMultiContinuousVestingAcc(expected *types.EthOwnedMultiContinuousVestingAccount) AccountValidator {
+	return func(acc sdk.AccountI) bool {
+		vAcc, ok := acc.(*types.EthOwnedMultiContinuousVestingAccount)
+		if !(ok &&
+			(vAcc.AccountOwner == expected.AccountOwner) &&
+			len(vAcc.VestingAccounts) == len(expected.VestingAccounts) &&
+			MatchesEthOwnedAcc(expected.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount())) {
+			return false
+		}
+		for i := 0; i < len(vAcc.VestingAccounts); i++ {
+			if !((vAcc.VestingAccounts[i].StartTime == expected.VestingAccounts[i].StartTime) &&
+				(vAcc.VestingAccounts[i].OriginalVesting.Equal(expected.VestingAccounts[i].OriginalVesting)) &&
+				(vAcc.VestingAccounts[i].DelegatedFree.Equal(expected.VestingAccounts[i].DelegatedFree)) &&
+				(vAcc.VestingAccounts[i].DelegatedVesting.Equal(expected.VestingAccounts[i].DelegatedVesting)) &&
+				(vAcc.VestingAccounts[i].EndTime == expected.VestingAccounts[i].EndTime)) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+// MatchesEthOwnedMultiContinuousVestingAccRaw is a wrapper for MatchesEthOwnedMultiContinuousVestingAcc that accepts the raw
+// values of EthOwnedMultiContinuousVestingAcc instead of EthOwnedMultiContinuousVestingAcc directly.
+func MatchesEthOwnedMultiContinuousVestingAccRaw(cvas []*vestingtypes.ContinuousVestingAccount, owner string) AccountValidator {
+	return MatchesEthOwnedMultiContinuousVestingAcc(types.NewEthOwnedMultiContinuousVestingAccount(cvas, owner))
 }
