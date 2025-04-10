@@ -359,7 +359,7 @@ test-all: test-unit test-e2e
 
 test-unit:
 	@echo "🤖 Running unit tests..."
-	@go test -mod=readonly -v ./...
+	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
 
 test-coverage:
 	@echo "🤖 Generating test coverage..."
@@ -375,7 +375,7 @@ open-coverage:
 
 test-e2e: \
 	check-docker-image-exists \
-	check-eth-deployment-docker-image \
+	check-eth-deployment-docker-image-exists \
 	test-e2e-basic \
 	test-e2e-withdrawals \
 	test-e2e-events \
