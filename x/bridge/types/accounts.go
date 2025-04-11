@@ -9,6 +9,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"gopkg.in/yaml.v2"
@@ -28,7 +29,7 @@ var (
 
 	_ authtypes.GenesisAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedMultiContinuousVestingAccount)(nil)
-	_ banktypes.VestingAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
+	_ exported.VestingAccount  = (*EthOwnedMultiContinuousVestingAccount)(nil)
 )
 
 // EthOwnedAccountI wraps the sdk.AccountI interface
@@ -579,4 +580,28 @@ func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins 
 		delegatedVesting = delegatedVesting.Add(vacc.DelegatedVesting...)
 	}
 	return delegatedVesting
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
+	vestedCoins := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		vestedCoins = vestedCoins.Add(vacc.GetVestedCoins(blockTime)...)
+	}
+	return vestedCoins
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
+	vestingCoins := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		vestingCoins = vestingCoins.Add(vacc.GetVestingCoins(blockTime)...)
+	}
+	return vestingCoins
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetStartTime() int64 {
+	panic("cannot get start time for eth owned multi continuous vesting account")
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetEndTime() int64 {
+	panic("cannot get end time for eth owned multi continuous vesting account")
 }
