@@ -17,6 +17,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/mock"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
@@ -33,11 +34,15 @@ func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	cdc := codec.NewProtoCodec(registry)
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 
+	// Create a mock bank keeper
+	bankKeeper := mock.NewMockBankKeeper(t)
+
 	k := keeper.NewKeeper(
-	    cdc,
-	    runtime.NewKVStoreService(storeKey),
-        log.NewNopLogger(),
-	    authority.String(), 
+		cdc,
+		runtime.NewKVStoreService(storeKey),
+		log.NewNopLogger(),
+		authority.String(),
+		bankKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())

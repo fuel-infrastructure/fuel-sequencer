@@ -1,64 +1,36 @@
 package bond
 
 import (
-	"math/rand"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/sample"
-	bondsimulation "github.com/fuel-infrastructure/fuel-sequencer/x/bond/simulation"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
-// avoid unused import issue
-var (
-	_ = bondsimulation.FindAccount
-	_ = rand.Rand{}
-	_ = sample.AccAddress
-	_ = sdk.AccAddress{}
-	_ = simulation.MsgEntryKind
-)
-
-const (
-    // this line is used by starport scaffolding # simapp/module/const
-)
-
-// GenerateGenesisState creates a randomized GenState of the module.
+// GenerateGenesisState creates a randomized GenState of the module
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	accs := make([]string, len(simState.Accounts))
 	for i, acc := range simState.Accounts {
 		accs[i] = acc.Address.String()
 	}
 	bondGenesis := types.GenesisState{
-		Params:	types.DefaultParams(),
-		// this line is used by starport scaffolding # simapp/module/genesisState
+		Params: types.DefaultParams(),
 	}
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&bondGenesis)
 }
 
-// RegisterStoreDecoder registers a decoder.
-func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
+// ProposalMsgs returns all the bond proposal msgs that update params
+func (am AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
+	return []simtypes.WeightedProposalMsg{}
 }
 
-// WeightedOperations returns the all the gov module operations with their respective weights.
+// RegisterStoreDecoder registers a decoder
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+}
+
+// WeightedOperations returns the all the bond module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
 
-	// this line is used by starport scaffolding # simapp/module/operation
-
 	return operations
-}
-
-// ProposalMsgs returns msgs used for governance proposals for simulations.
-func (am AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return []simtypes.WeightedProposalMsg{
-	    // this line is used by starport scaffolding # simapp/module/OpMsg
-	}
 }
