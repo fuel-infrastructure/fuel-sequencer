@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -36,10 +36,8 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 ) Keeper {
-	if authority != "" {
-		if _, err := sdk.AccAddressFromBech32(authority); err != nil {
-			panic(err)
-		}
+	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
+		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
 
 	return Keeper{
