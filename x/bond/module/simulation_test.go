@@ -1,18 +1,20 @@
 package bond_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
@@ -23,7 +25,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
-func TestGenesis(t *testing.T) {
+func TestSimulation(t *testing.T) {
 	// Create test dependencies
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	db := dbm.NewMemDB()
@@ -50,21 +52,34 @@ func TestGenesis(t *testing.T) {
 		nil, // Bank keeper will be set in actual app
 	)
 
-	// Test module name
-	require.Equal(t, "bond", appModule.Name())
+	// Create test account
+	addr, err := sdk.AccAddressFromBech32("cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu")
+	require.NoError(t, err)
 
-	// Test module version
-	require.Equal(t, uint64(1), appModule.ConsensusVersion())
+	// Create simulation state
+	simState := module.SimulationState{
+		AppParams: make(simtypes.AppParams),
+		Cdc:       cdc,
+		Rand:      nil,
+		GenState:  make(map[string]json.RawMessage),
+		Accounts:  []simtypes.Account{{Address: addr}},
+	}
 
-	// Test module genesis
-	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
+	// Test genesis simulation
 	require.NotPanics(t, func() {
-		appModule.InitGenesis(ctx, cdc, cdc.MustMarshalJSON(types.DefaultGenesis()))
+		appModule.GenerateGenesisState(&simState)
+		require.NotNil(t, simState.GenState[types.ModuleName])
 	})
 
-	// Test module export
-	exported := appModule.ExportGenesis(ctx, cdc)
-	var exportedState types.GenesisState
-	cdc.MustUnmarshalJSON(exported, &exportedState)
-	require.Equal(t, types.DefaultGenesis().Params, exportedState.Params)
+	// Test random weighted operations
+	require.NotPanics(t, func() {
+		ops := appModule.WeightedOperations(simState)
+		require.Empty(t, ops) // Currently no weighted operations
+	})
+
+	// Test random weighted proposal contents
+	require.NotPanics(t, func() {
+		msgs := appModule.ProposalMsgs(simState)
+		require.Empty(t, msgs) // Currently no proposal messages
+	})
 }

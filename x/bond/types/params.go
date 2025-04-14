@@ -50,12 +50,48 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	if err := validateInflation(p.Inflation); err != nil {
+	if err := ValidateInflation(p.Inflation); err != nil {
 		return err
 	}
-	if err := validateAuthority(p.Authority); err != nil {
+	if err := ValidateAuthority(p.Authority); err != nil {
 		return err
 	}
+	return nil
+}
+
+// ValidateInflation validates the inflation parameter
+func ValidateInflation(i interface{}) error {
+	v, ok := i.(sdkmath.LegacyDec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("inflation cannot be negative: %s", v)
+	}
+	if v.GT(sdkmath.LegacyOneDec()) {
+		return fmt.Errorf("inflation cannot be greater than 1: %s", v)
+	}
+
+	return nil
+}
+
+// ValidateAuthority validates the authority parameter
+func ValidateAuthority(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if strings.TrimSpace(v) == "" {
+		return nil // Empty string is allowed (will be set to governance module account)
+	}
+
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
+	}
+
 	return nil
 }
 
