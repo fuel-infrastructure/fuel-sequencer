@@ -40,12 +40,11 @@ func DefaultParams() Params {
 	)
 }
 
-// ParamSetPairs get the params.ParamSet
+// ParamSetPairs implements params.ParamSet
+//
+// Deprecated.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyInflation, &p.Inflation, validateInflation),
-		paramtypes.NewParamSetPair(KeyAuthority, &p.Authority, validateAuthority),
-	}
+	return paramtypes.ParamSetPairs{}
 }
 
 // Validate validates the set of params
