@@ -189,7 +189,6 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.StoreService,
 		in.Logger,
 		in.BridgeKeeper,
-		nil, // TODO: Add proper paramstore
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	m := NewAppModule(

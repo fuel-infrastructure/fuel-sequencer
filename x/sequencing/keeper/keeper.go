@@ -19,7 +19,6 @@ type (
 
 		// keepers
 		bridgeKeeper types.BridgeKeeper
-		paramstore   types.ParamSubspace
 
 		// the address capable of executing a MsgUpdateParams message. Typically, this
 		// should be the x/gov module account.
@@ -32,7 +31,6 @@ func NewKeeper(
 	storeService store.KVStoreService,
 	logger log.Logger,
 	bridgeKeeper types.BridgeKeeper,
-	paramstore types.ParamSubspace,
 	authority string,
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
@@ -44,7 +42,6 @@ func NewKeeper(
 		storeService: storeService,
 		authority:    authority,
 		bridgeKeeper: bridgeKeeper,
-		paramstore:   paramstore,
 		logger:       logger,
 	}
 }

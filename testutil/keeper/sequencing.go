@@ -38,7 +38,6 @@ func SequencingKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		runtime.NewKVStoreService(storeKey),
 		log.NewNopLogger(),
 		nil, // Mock bridge keeper
-		nil, // Mock paramstore
 		authority.String(),
 	)
 
