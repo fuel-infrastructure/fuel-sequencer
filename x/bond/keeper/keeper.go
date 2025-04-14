@@ -70,6 +70,11 @@ func (k Keeper) GetBankKeeper() types.BankKeeper {
 	return k.bankKeeper
 }
 
+// GetAccountKeeper returns the account keeper
+func (k Keeper) GetAccountKeeper() types.AccountKeeper {
+	return k.accountKeeper
+}
+
 // GetCodec returns the codec
 func (k Keeper) GetCodec() codec.BinaryCodec {
 	return k.cdc

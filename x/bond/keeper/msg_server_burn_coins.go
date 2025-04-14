@@ -5,12 +5,18 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
 // BurnCoins implements the Msg/BurnCoins RPC method.
 func (k msgServer) BurnCoins(goCtx context.Context, msg *types.MsgBurnCoins) (*types.MsgBurnCoinsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.Coins.Empty() {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "coins cannot be empty")
+	}
 
 	sender, err := k.GetAddressCodec().StringToBytes(msg.Sender)
 	if err != nil {
