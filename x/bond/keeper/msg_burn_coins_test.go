@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -65,6 +66,15 @@ func TestMsgBurnCoins(t *testing.T) {
 			expErr:    true,
 			expErrMsg: "invalid coins",
 		},
+		{
+			name: "bank keeper error",
+			msg: types.NewMsgBurnCoins(
+				"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu",
+				sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(100))),
+			),
+			expErr:    true,
+			expErrMsg: "bank error",
+		},
 	}
 
 	for _, tc := range tests {
@@ -75,6 +85,11 @@ func TestMsgBurnCoins(t *testing.T) {
 				require.NoError(t, err)
 				mockBankKeeper.On("SendCoinsFromAccountToModule", testifymock.Anything, sender, types.ModuleName, tc.msg.Coins).Return(nil)
 				mockBankKeeper.On("BurnCoins", testifymock.Anything, types.ModuleName, tc.msg.Coins).Return(nil)
+			} else if tc.name == "bank keeper error" {
+				// Setup mock expectations for bank error case
+				sender, err := sdk.AccAddressFromBech32(tc.msg.Sender)
+				require.NoError(t, err)
+				mockBankKeeper.On("SendCoinsFromAccountToModule", testifymock.Anything, sender, types.ModuleName, tc.msg.Coins).Return(fmt.Errorf("bank error"))
 			}
 
 			_, err := ms.BurnCoins(ctx, tc.msg)

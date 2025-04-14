@@ -67,30 +67,6 @@ func (k Keeper) Logger() log.Logger {
 	return k.logger.With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// BurnCoins burns coins from the sender's account
-func (k Keeper) BurnCoins(ctx context.Context, sender sdk.AccAddress, coins sdk.Coins) error {
-	// Validate coins
-	if !coins.IsValid() {
-		return fmt.Errorf("invalid coins: %s", coins)
-	}
-
-	if coins.IsZero() {
-		return fmt.Errorf("coins cannot be zero")
-	}
-
-	// Send coins from account to module
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
-		return fmt.Errorf("failed to send coins to module: %w", err)
-	}
-
-	// Burn the coins
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
-		return fmt.Errorf("failed to burn coins: %w", err)
-	}
-
-	return nil
-}
-
 // GetBankKeeper returns the bank keeper
 func (k Keeper) GetBankKeeper() types.BankKeeper {
 	return k.bankKeeper
