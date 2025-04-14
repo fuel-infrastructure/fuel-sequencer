@@ -26,9 +26,11 @@ var (
 	_ authtypes.GenesisAccount = (*EthOwnedContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedContinuousVestingAccount)(nil)
 	_ banktypes.VestingAccount = (*EthOwnedContinuousVestingAccount)(nil)
+	_ exported.VestingAccount  = (*EthOwnedContinuousVestingAccount)(nil)
 
 	_ authtypes.GenesisAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedMultiContinuousVestingAccount)(nil)
+	_ banktypes.VestingAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ exported.VestingAccount  = (*EthOwnedMultiContinuousVestingAccount)(nil)
 )
 
