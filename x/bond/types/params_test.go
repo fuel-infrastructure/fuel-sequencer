@@ -65,9 +65,7 @@ func TestDefaultParams(t *testing.T) {
 func TestParamSetPairs(t *testing.T) {
 	params := types.DefaultParams()
 	pairs := params.ParamSetPairs()
-	require.Len(t, pairs, 2)
-	require.Equal(t, types.KeyInflation, pairs[0].Key)
-	require.Equal(t, types.KeyAuthority, pairs[1].Key)
+	require.Empty(t, pairs)
 }
 
 func TestValidateInflation(t *testing.T) {
