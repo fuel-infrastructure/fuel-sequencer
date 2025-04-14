@@ -4,17 +4,29 @@ import (
 	"context"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// AccountKeeper defines the expected interface for the Account module.
+type AccountKeeper interface {
+	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI // only used for simulation
+	// Methods imported from account should be defined here
+}
+
+// BankKeeper defines the expected interface for the Bank module.
+type BankKeeper interface {
+	SpendableCoins(context.Context, sdk.AccAddress) sdk.Coins
+	// Methods imported from bank should be defined here
+}
 
 // ParamSubspace defines the expected Subspace interface for parameters.
 type ParamSubspace interface {
-	Get(ctx context.Context, key []byte, ptr interface{})
-	Set(ctx context.Context, key []byte, param interface{})
-	Has(ctx context.Context, key []byte) bool
+	Get(context.Context, []byte, interface{})
+	Set(context.Context, []byte, interface{})
 }
 
 // BridgeKeeper defines the expected interface for the Bridge module
 type BridgeKeeper interface {
-	SetLastEthereumNonce(ctx context.Context, nonce math.Int)
-	MustGetLastEthereumNonce(ctx context.Context) math.Int
+	SetLastEthereumNonce(context.Context, math.Int)
+	MustGetLastEthereumNonce(context.Context) math.Int
 }
