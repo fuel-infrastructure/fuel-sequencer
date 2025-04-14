@@ -1,10 +1,6 @@
 package keeper
 
 import (
-	"context"
-
-	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
@@ -19,25 +15,3 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 var _ types.MsgServer = msgServer{}
-
-// BurnCoins implements the Msg/BurnCoins RPC method.
-func (k msgServer) BurnCoins(goCtx context.Context, msg *types.MsgBurnCoins) (*types.MsgBurnCoinsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	sender, err := k.GetAddressCodec().StringToBytes(msg.Sender)
-	if err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to decode from address")
-	}
-
-	// Send coins from sender to module account
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, msg.Coins); err != nil {
-		return nil, err
-	}
-
-	// Burn the coins
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, msg.Coins); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgBurnCoinsResponse{}, nil
-}
