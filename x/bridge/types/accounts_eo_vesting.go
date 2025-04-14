@@ -18,6 +18,7 @@ import (
 )
 
 var (
+	_ sdk.AccountI             = (*EthOwnedContinuousVestingAccount)(nil)
 	_ authtypes.GenesisAccount = (*EthOwnedContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedContinuousVestingAccount)(nil)
 	_ banktypes.VestingAccount = (*EthOwnedContinuousVestingAccount)(nil)
@@ -33,6 +34,25 @@ func NewEthOwnedContinuousVestingAccount(
 		AccountOwner:             owner,
 	}
 }
+
+// ------------------------------------ EthOwnedAccountI implementations
+
+// AddVestingCoins TODO
+func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
+
+	if a.StartTime == startTime.Unix() && a.EndTime == endTime.Unix() {
+		a.OriginalVesting = a.OriginalVesting.Add(coins...)
+	} else {
+		multiVestingAcc := &EthOwnedMultiContinuousVestingAccount{
+			VestingAccounts: []*vestingtypes.ContinuousVestingAccount{a.ContinuousVestingAccount},
+			AccountOwner:    a.AccountOwner,
+		}
+		return multiVestingAcc.AddVestingCoins(coins, startTime, endTime)
+	}
+	return a, nil
+}
+
+// ------------------------------------ VestingAccount implementations
 
 // TrackDelegation overrides the ContinuousVestingAccount TrackDelegation (which uses the BaseVestingAccount one) to
 // ensure that the amount being delegated is spendable. The delegated amount is added to the DelegatedFree entry.
@@ -85,20 +105,7 @@ func (a *EthOwnedContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 	a.DelegatedFree = a.DelegatedFree.Sub(amount...)
 }
 
-// AddVestingCoins TODO
-func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
-
-	if a.StartTime == startTime.Unix() && a.EndTime == endTime.Unix() {
-		a.OriginalVesting = a.OriginalVesting.Add(coins...)
-	} else {
-		multiVestingAcc := &EthOwnedMultiContinuousVestingAccount{
-			VestingAccounts: []*vestingtypes.ContinuousVestingAccount{a.ContinuousVestingAccount},
-			AccountOwner:    a.AccountOwner,
-		}
-		return multiVestingAcc.AddVestingCoins(coins, startTime, endTime)
-	}
-	return a, nil
-}
+// ------------------------------------ AccountI implementations
 
 // SetPubKey implements the authtypes.AccountI interface
 func (EthOwnedContinuousVestingAccount) SetPubKey(_ crypto.PubKey) error {
@@ -110,6 +117,8 @@ func (EthOwnedContinuousVestingAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned continuous vesting account")
 }
 
+// ------------------------------------ GenesisAccount implementations
+
 // Validate implements basic validation of the EthOwnedContinuousVestingAccount
 func (a EthOwnedContinuousVestingAccount) Validate() error {
 	if strings.TrimSpace(a.AccountOwner) == "" {
@@ -117,6 +126,8 @@ func (a EthOwnedContinuousVestingAccount) Validate() error {
 	}
 	return a.BaseAccount.Validate()
 }
+
+// ------------------------------------ Miscellaneous implementations
 
 // String returns a string representation of the EthOwnedContinuousVestingAccount
 func (a EthOwnedContinuousVestingAccount) String() string {

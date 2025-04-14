@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	_ sdk.AccountI             = (*EthOwnedBaseAccount)(nil)
 	_ authtypes.GenesisAccount = (*EthOwnedBaseAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedBaseAccount)(nil)
 )
@@ -35,6 +36,8 @@ func NewEthOwnedBaseAccountWithAddress(address sdk.AccAddress, owner string) *Et
 	}
 }
 
+// ------------------------------------ EthOwnedAccountI implementations
+
 // AddVestingCoins converts the EthOwnedBaseAccount into an EthOwnedContinuousVestingAccount with the specified coins
 // as the original vesting amount and the specified start and end times. Any coins that were already in this account
 // will still remain available since we're not considering them when setting the vesting amount.
@@ -48,6 +51,8 @@ func (a EthOwnedBaseAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime
 	return NewEthOwnedContinuousVestingAccount(newVestingAcc, a.AccountOwner), nil
 }
 
+// ------------------------------------ AccountI implementations
+
 // SetPubKey implements the authtypes.AccountI interface
 func (EthOwnedBaseAccount) SetPubKey(_ crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for eth owned account")
@@ -58,6 +63,8 @@ func (EthOwnedBaseAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned account")
 }
 
+// ------------------------------------ GenesisAccount implementations
+
 // Validate implements basic validation of the EthOwnedBaseAccount
 func (a EthOwnedBaseAccount) Validate() error {
 	if strings.TrimSpace(a.AccountOwner) == "" {
@@ -65,6 +72,8 @@ func (a EthOwnedBaseAccount) Validate() error {
 	}
 	return a.BaseAccount.Validate()
 }
+
+// ------------------------------------ Miscellaneous implementations
 
 // String returns a string representation of the EthOwnedBaseAccount
 func (a EthOwnedBaseAccount) String() string {

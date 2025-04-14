@@ -18,6 +18,7 @@ import (
 )
 
 var (
+	_ sdk.AccountI             = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ authtypes.GenesisAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ banktypes.VestingAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
@@ -32,6 +33,41 @@ func NewEthOwnedMultiContinuousVestingAccount(
 		VestingAccounts: cvas,
 		AccountOwner:    owner,
 	}
+}
+
+// ------------------------------------ EthOwnedAccountI implementations
+
+// AddVestingCoins TODO
+func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
+
+	startTimeUnix := startTime.Unix()
+	endTimeUnix := endTime.Unix()
+
+	for _, infos := range a.VestingAccounts {
+		if infos.StartTime == startTimeUnix && infos.EndTime == endTimeUnix {
+			infos.OriginalVesting = infos.OriginalVesting.Add(coins...)
+			return a, nil
+		}
+	}
+
+	baseAcc := a.VestingAccounts[0].BaseAccount
+	newSubAcc, err := vestingtypes.NewContinuousVestingAccount(baseAcc, coins, startTimeUnix, endTimeUnix)
+	if err != nil {
+		return nil, err
+	}
+	a.VestingAccounts = append(a.VestingAccounts, newSubAcc)
+
+	return a, nil
+}
+
+// ------------------------------------ VestingAccount implementations
+
+func (a *EthOwnedMultiContinuousVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
+	lockedCoins := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		lockedCoins = lockedCoins.Add(vacc.LockedCoins(blockTime)...)
+	}
+	return lockedCoins
 }
 
 // TrackDelegation TODO
@@ -76,38 +112,101 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackUndelegation(amount sdk.Coi
 	a.VestingAccounts[0].DelegatedFree = a.VestingAccounts[0].DelegatedFree.Sub(amount...)
 }
 
-// AddVestingCoins TODO
-func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
-
-	startTimeUnix := startTime.Unix()
-	endTimeUnix := endTime.Unix()
-
-	for _, infos := range a.VestingAccounts {
-		if infos.StartTime == startTimeUnix && infos.EndTime == endTimeUnix {
-			infos.OriginalVesting = infos.OriginalVesting.Add(coins...)
-			return a, nil
-		}
+func (a *EthOwnedMultiContinuousVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
+	vestedCoins := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		vestedCoins = vestedCoins.Add(vacc.GetVestedCoins(blockTime)...)
 	}
-
-	baseAcc := a.VestingAccounts[0].BaseAccount
-	newSubAcc, err := vestingtypes.NewContinuousVestingAccount(baseAcc, coins, startTimeUnix, endTimeUnix)
-	if err != nil {
-		return nil, err
-	}
-	a.VestingAccounts = append(a.VestingAccounts, newSubAcc)
-
-	return a, nil
+	return vestedCoins
 }
 
-// SetPubKey implements the authtypes.AccountI interface
+func (a *EthOwnedMultiContinuousVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
+	vestingCoins := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		vestingCoins = vestingCoins.Add(vacc.GetVestingCoins(blockTime)...)
+	}
+	return vestingCoins
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetStartTime() int64 {
+	panic("cannot get start time for eth owned multi continuous vesting account")
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetEndTime() int64 {
+	panic("cannot get end time for eth owned multi continuous vesting account")
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetOriginalVesting() sdk.Coins {
+	originalVesting := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		originalVesting = originalVesting.Add(vacc.OriginalVesting...)
+	}
+	return originalVesting
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedFree() sdk.Coins {
+	delegatedFree := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		delegatedFree = delegatedFree.Add(vacc.DelegatedFree...)
+	}
+	return delegatedFree
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins {
+	delegatedVesting := sdk.NewCoins()
+	for _, vacc := range a.VestingAccounts {
+		delegatedVesting = delegatedVesting.Add(vacc.DelegatedVesting...)
+	}
+	return delegatedVesting
+}
+
+// ------------------------------------ AccountI implementations
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetAddress() sdk.AccAddress {
+	return a.VestingAccounts[0].GetAddress()
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) SetAddress(address sdk.AccAddress) error {
+	for _, vacc := range a.VestingAccounts {
+		err := vacc.SetAddress(address)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetPubKey() crypto.PubKey {
+	return a.VestingAccounts[0].GetPubKey()
+}
+
 func (EthOwnedMultiContinuousVestingAccount) SetPubKey(_ crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for eth owned multi continuous vesting account")
 }
 
-// SetSequence implements the authtypes.AccountI interface
+func (a *EthOwnedMultiContinuousVestingAccount) GetAccountNumber() uint64 {
+	return a.VestingAccounts[0].GetAccountNumber()
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) SetAccountNumber(u uint64) error {
+	for _, vacc := range a.VestingAccounts {
+		err := vacc.SetAccountNumber(u)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) GetSequence() uint64 {
+	return a.VestingAccounts[0].GetSequence()
+}
+
 func (EthOwnedMultiContinuousVestingAccount) SetSequence(_ uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for eth owned multi continuous vesting account")
 }
+
+// ------------------------------------ GenesisAccount implementations
 
 // Validate implements basic validation of the EthOwnedMultiContinuousVestingAccount
 func (a EthOwnedMultiContinuousVestingAccount) Validate() error {
@@ -122,6 +221,8 @@ func (a EthOwnedMultiContinuousVestingAccount) Validate() error {
 	}
 	return nil
 }
+
+// ------------------------------------ Miscellaneous implementations
 
 // String returns a string representation of the EthOwnedMultiContinuousVestingAccount
 func (a EthOwnedMultiContinuousVestingAccount) String() string {
@@ -196,96 +297,4 @@ func (a *EthOwnedMultiContinuousVestingAccount) UnmarshalJSON(bz []byte) error {
 // This is mostly intended for testing where we might want to switch the account type.
 func (a EthOwnedMultiContinuousVestingAccount) ToEthOwnedBaseAccount() *EthOwnedBaseAccount {
 	return NewEthOwnedBaseAccount(a.VestingAccounts[0].BaseAccount, a.AccountOwner)
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetAddress() sdk.AccAddress {
-	return a.VestingAccounts[0].GetAddress()
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) SetAddress(address sdk.AccAddress) error {
-	for _, vacc := range a.VestingAccounts {
-		err := vacc.SetAddress(address)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetPubKey() crypto.PubKey {
-	return a.VestingAccounts[0].GetPubKey()
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetAccountNumber() uint64 {
-	return a.VestingAccounts[0].GetAccountNumber()
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) SetAccountNumber(u uint64) error {
-	for _, vacc := range a.VestingAccounts {
-		err := vacc.SetAccountNumber(u)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetSequence() uint64 {
-	return a.VestingAccounts[0].GetSequence()
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
-	lockedCoins := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		lockedCoins = lockedCoins.Add(vacc.LockedCoins(blockTime)...)
-	}
-	return lockedCoins
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetOriginalVesting() sdk.Coins {
-	originalVesting := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		originalVesting = originalVesting.Add(vacc.OriginalVesting...)
-	}
-	return originalVesting
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedFree() sdk.Coins {
-	delegatedFree := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		delegatedFree = delegatedFree.Add(vacc.DelegatedFree...)
-	}
-	return delegatedFree
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins {
-	delegatedVesting := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		delegatedVesting = delegatedVesting.Add(vacc.DelegatedVesting...)
-	}
-	return delegatedVesting
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
-	vestedCoins := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		vestedCoins = vestedCoins.Add(vacc.GetVestedCoins(blockTime)...)
-	}
-	return vestedCoins
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
-	vestingCoins := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		vestingCoins = vestingCoins.Add(vacc.GetVestingCoins(blockTime)...)
-	}
-	return vestingCoins
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetStartTime() int64 {
-	panic("cannot get start time for eth owned multi continuous vesting account")
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetEndTime() int64 {
-	panic("cannot get end time for eth owned multi continuous vesting account")
 }
