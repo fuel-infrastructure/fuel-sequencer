@@ -21,12 +21,18 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
-			Service: modulev1.Msg_ServiceDesc.ServiceName,
+			Service:              modulev1.Msg_ServiceDesc.ServiceName,
 			EnhanceCustomCommand: true, // only required if you want to use the custom command
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{
 					RpcMethod: "UpdateParams",
-					Skip:       true, // skipped because authority gated
+					Skip:      true, // skipped because authority gated
+				},
+				{
+					RpcMethod: "BurnCoins",
+					Use:       "burn-coins [sender] [amount]",
+					Short:     "Burn coins from the sender's account",
+					Long:      "Burn coins from the sender's account. The sender must be a valid bech32 address and the amount must be a valid coin amount (e.g. 100ufuel).",
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
