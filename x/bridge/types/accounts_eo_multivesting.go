@@ -7,7 +7,9 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"gopkg.in/yaml.v2"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -18,6 +20,8 @@ import (
 var (
 	_ authtypes.GenesisAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
 	_ EthOwnedAccountI         = (*EthOwnedMultiContinuousVestingAccount)(nil)
+	_ banktypes.VestingAccount = (*EthOwnedMultiContinuousVestingAccount)(nil)
+	_ exported.VestingAccount  = (*EthOwnedMultiContinuousVestingAccount)(nil)
 )
 
 // NewEthOwnedMultiContinuousVestingAccount creates and returns a new EthOwnedMultiContinuousVestingAccount type
