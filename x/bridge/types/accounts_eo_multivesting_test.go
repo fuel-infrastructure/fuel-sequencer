@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -82,6 +83,9 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 	t1, _ := time.Parse(time.DateOnly, "2025-01-01")
 	t0Plus6Months := t0.Add(months6)
 
+	// Helper amounts.
+	two := sdkmath.NewInt(2)
+
 	// Helper accounts and addresses.
 	owner := testutiltypes.TestSeqAddr1Str
 	baseAcc := &authtypes.BaseAccount{
@@ -140,7 +144,7 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 		{
 			name:                  "half way through vesting with some tokens already delegated; can delegate less than half; successful",
 			blockTime:             t0Plus6Months,
-			delegatedFreeBefore:   nil,                               // TODO: tenTokens,                         // 10 tokens were delegated before
+			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
 			delegationAmount:      halfVesting.Sub(tenTokens...),     // delegate half of the vesting minus 10 tokens
 			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
@@ -150,7 +154,7 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 		{
 			name:                  "half way through vesting with some tokens already delegated; cannot delegate half original vesting; panic",
 			blockTime:             t0Plus6Months,
-			delegatedFreeBefore:   nil,                               // TODO: tenTokens,                         // 10 tokens were delegated before
+			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
 			delegationAmount:      halfVesting,                       // delegate half of the vesting
 			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
@@ -175,8 +179,8 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 			vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(
 				baseAcc,
 				[]*types.VestingInfo{
-					types.NewVestingInfo(originalVesting, t0.Unix(), t1.Unix()),
-					types.NewVestingInfo(originalVesting, t0.Unix(), t1.Unix()),
+					types.NewVestingInfo(originalVesting.QuoInt(two), t0.Unix(), t1.Unix()),
+					types.NewVestingInfo(originalVesting.QuoInt(two), t0.Unix(), t1.Unix()),
 				},
 				owner,
 			)
@@ -256,6 +260,7 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
 	t1, _ := time.Parse(time.DateOnly, "2025-01-01")
 	t2, _ := time.Parse(time.DateOnly, "2026-01-01")
+	t3, _ := time.Parse(time.DateOnly, "2027-01-01")
 
 	// Helper accounts and addresses.
 	seqAddr1BaseAcc := &authtypes.BaseAccount{
@@ -301,25 +306,52 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 		},
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
-				"does not match any of the vesting accounts",
+				"does not match any of the vesting accounts (mismatch is start time)",
 			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t3.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t3.Unix()),
+				},
+				coins1234,
+				nil,
+				owner,
+			),
+			vestingStartTime: t2, // mismatch
+			vestingEndTime:   t3,
+			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t3.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t3.Unix()),
+					types.NewVestingInfo(coinsToAdd, t2.Unix(), t3.Unix()),
+				},
+				coins1234,
+				nil,
+				owner,
+			),
+		},
+		{
+			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
+				"does not match any of the vesting accounts (mismatch is end time)",
+			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t1.Unix()),
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
-					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
 				},
 				coins1234,
 				nil,
 				owner,
 			),
 			vestingStartTime: t0,
-			vestingEndTime:   t1,
+			vestingEndTime:   t3, // mismatch
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t1.Unix()),
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
-					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
-					types.NewVestingInfo(coinsToAdd, t0.Unix(), t1.Unix()),
+					types.NewVestingInfo(coinsToAdd, t0.Unix(), t3.Unix()),
 				},
 				coins1234,
 				nil,

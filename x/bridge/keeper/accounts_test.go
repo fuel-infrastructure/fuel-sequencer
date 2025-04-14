@@ -597,28 +597,13 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						StartTime: t0.Unix(), // this was untouched
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,            // this was untouched
-							DelegatedFree:    token50,             // this was untouched
-							DelegatedVesting: token50,             // this was untouched
-							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
-						},
-					},
-					{
-						StartTime: t1.Unix(),
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,
-							DelegatedFree:    nil,
-							DelegatedVesting: nil,
-							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
-						},
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(token100, t0.Unix(), t0Plus2Years.Unix()),
+					types.NewVestingInfo(token100, t1.Unix(), t1Plus2Years.Unix()),
 				},
+				token50,
+				token50,
 				testutiltypes.TestEthAddr1Str,
 			),
 			expectSpendableCoins: token125, // balance - vesting + delegatedVesting = 200 - 125 + 50 = 125
@@ -667,28 +652,13 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						StartTime: t0.Unix(), // this was untouched
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,            // this was untouched
-							DelegatedFree:    token50,             // this was untouched
-							DelegatedVesting: token50,             // this was untouched
-							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
-						},
-					},
-					{
-						StartTime: t1.Unix(),
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,
-							DelegatedFree:    nil,
-							DelegatedVesting: nil,
-							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
-						},
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(token100, t0.Unix(), t0Plus2Years.Unix()),
+					types.NewVestingInfo(token100, t1.Unix(), t1Plus2Years.Unix()),
 				},
+				token50,
+				token50,
 				testutiltypes.TestEthAddr1Str,
 			),
 			expectSpendableCoins: token175, // balance - vesting + delegatedVesting = 200 - 25 + 0 = 175
@@ -715,29 +685,14 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			// Block time is 1/4 between start and end time, meaning 1/4 of the tokens will be available.
 			name: "deposit into EthOwnedMultiContinuousVestingAccount with vesting details matching first " +
 				"vesting account builds on existing EthOwnedMultiContinuousVestingAccount's first vesting account",
-			precreateAccount: types.NewEthOwnedMultiContinuousVestingAccount(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						StartTime: t0.Unix(), // this should be untouched
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,            // watch out for this!
-							DelegatedFree:    token50,             // this should be untouched
-							DelegatedVesting: token50,             // this should be untouched
-							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
-						},
-					},
-					{
-						StartTime: t1.Unix(), // this should be untouched
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,            // this should be untouched
-							DelegatedFree:    token50,             // this should be untouched
-							DelegatedVesting: token50,             // this should be untouched
-							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
-						},
-					},
+			precreateAccount: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(token100, t0.Unix(), t0Plus2Years.Unix()),
+					types.NewVestingInfo(token100, t1.Unix(), t1Plus2Years.Unix()),
 				},
+				token50,
+				token50,
 				testutiltypes.TestEthAddr1Str,
 			),
 			blockTime:        t0Plus1Year, // half-way through vesting duration
@@ -749,28 +704,13 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				totalCoins:      token100,
 			},
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						StartTime: t0.Unix(), // this was untouched
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token200,
-							DelegatedFree:    token50,             // this was untouched
-							DelegatedVesting: token50,             // this was untouched
-							EndTime:          t0Plus2Years.Unix(), // 2 year vesting
-						},
-					},
-					{
-						StartTime: t1.Unix(), // this was untouched
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  token100,            // this was untouched
-							DelegatedFree:    token50,             // this was untouched
-							DelegatedVesting: token50,             // this was untouched
-							EndTime:          t1Plus2Years.Unix(), // 2 year vesting
-						},
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(token200, t0.Unix(), t0Plus2Years.Unix()), // OV increased
+					types.NewVestingInfo(token100, t1.Unix(), t1Plus2Years.Unix()),
 				},
+				token50,
+				token50,
 				testutiltypes.TestEthAddr1Str,
 			),
 			expectSpendableCoins: token125, // balance - vesting + delegatedVesting = 200 - 175 + 100 = 125

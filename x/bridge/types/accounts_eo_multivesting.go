@@ -7,7 +7,6 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"gopkg.in/yaml.v2"
@@ -56,14 +55,6 @@ func NewEthOwnedMultiContinuousVestingAccountWithDelegation(
 	}
 }
 
-func NewVestingInfo(originalVesting sdk.Coins, startTime, endTime int64) *VestingInfo {
-	return &VestingInfo{
-		OriginalVesting: originalVesting,
-		StartTime:       startTime,
-		EndTime:         endTime,
-	}
-}
-
 // ------------------------------------ EthOwnedAccountI implementations
 
 // AddVestingCoins TODO
@@ -85,6 +76,8 @@ func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins,
 
 // ------------------------------------ VestingAccount implementations
 
+// LockedCoinsFromVesting is identical to the BaseVestingAccount implementation.
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L45
 func (a *EthOwnedMultiContinuousVestingAccount) LockedCoinsFromVesting(vestingCoins sdk.Coins) sdk.Coins {
 	lockedCoins := vestingCoins.Sub(vestingCoins.Min(a.DelegatedVesting)...)
 	if lockedCoins == nil {
@@ -93,14 +86,29 @@ func (a *EthOwnedMultiContinuousVestingAccount) LockedCoinsFromVesting(vestingCo
 	return lockedCoins
 }
 
+// LockedCoins is identical to the ContinuousVestingAccount implementation.
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L231
 func (a *EthOwnedMultiContinuousVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
 	return a.LockedCoinsFromVesting(a.GetVestingCoins(blockTime))
 }
 
-// TrackDelegation TODO
+// TrackDelegation implements the VestingAccount interface's TrackDelegation function to ensure that the amount being
+// delegated is spendable. The delegated amount is added to the DelegatedFree entry.
+//
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L59
+//
+// A note about the use of DelegatedVesting in LockedCoinsFromVesting: this function is calculating how many of the
+// tokens from the address balance are locked. DelegatedVesting tokens are not in the balance, but vestingCoins are.
+// If the address has (i) 100 tokens in the balance, (ii) 200 tokens vesting, and (iii) 150 tokens DelegatedVesting,
+// then only 50 (200-150) of the vesting tokens are considered "locked", from the 100 tokens that are in the balance.
+//
+// Due to our implementation below, we expect that all the vesting tokens will be considered "locked". If we dry-run
+// LockedCoinsFromVesting, we will find that the result will always be equal to vestingCoins for DelegatedVesting = 0.
+//
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L45
 func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
 
-	// Sanity check delegation amount - inspired by overridden TrackDelegation function
+	// Sanity check delegation amount - inspired by BaseVestingAccount's TrackDelegation function
 	if !amount.IsAllPositive() {
 		panic(fmt.Sprintf("delegation attempt with zero amount in coins %s", amount.String()))
 	}
@@ -121,10 +129,13 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.T
 	a.DelegatedFree = a.DelegatedFree.Add(amount...)
 }
 
-// TrackUndelegation TODO
+// TrackUndelegation implements the VestingAccount interface's TrackUndelegation function to mirror the implemented
+// TrackDelegation function. The undelegated amount is subtracted from the DelegatedFree entry.
+//
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L99
 func (a *EthOwnedMultiContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 
-	// Sanity check delegation amount - inspired by overridden TrackUndelegation function
+	// Sanity check delegation amount - inspired by BaseVestingAccount's TrackUndelegation function
 	if !amount.IsAllPositive() {
 		panic(fmt.Sprintf("undelegation attempt with zero amount in coins %s", amount.String()))
 	}
@@ -132,53 +143,38 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackUndelegation(amount sdk.Coi
 	a.DelegatedFree = a.DelegatedFree.Sub(amount...)
 }
 
-// GetVestedCoins TODO
+// GetVestedCoins calculates the sum of all vested coins reported by the vesting infos.
 func (a *EthOwnedMultiContinuousVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
 	var vestedCoins sdk.Coins
-
 	for _, info := range a.Infos {
-		// We must handle the case where the start time for a vesting account has
-		// been set into the future or when the start of the chain is not exactly
-		// known.
-		if blockTime.Unix() <= info.StartTime {
-			return vestedCoins
-		} else if blockTime.Unix() >= info.EndTime {
-			return info.OriginalVesting
-		}
-
-		// calculate the vesting scalar
-		x := blockTime.Unix() - info.StartTime
-		y := info.EndTime - info.StartTime
-		s := math.LegacyNewDec(x).Quo(math.LegacyNewDec(y))
-
-		for _, ovc := range info.OriginalVesting {
-			vestedAmt := math.LegacyNewDecFromInt(ovc.Amount).Mul(s).RoundInt()
-			vestedCoins = append(vestedCoins, sdk.NewCoin(ovc.Denom, vestedAmt))
-		}
+		vestedCoins = vestedCoins.Add(info.GetVestedCoins(blockTime)...)
 	}
-
 	return vestedCoins
 }
 
+// GetVestingCoins is identical to the ContinuousVestingAccount implementation but gets the aggregate OriginalVesting
+// and aggregate VestedCoins from each vesting info.
+// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L225
 func (a *EthOwnedMultiContinuousVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
 	return a.GetOriginalVesting().Sub(a.GetVestedCoins(blockTime)...)
 }
 
+// GetStartTime is not expected to be used in production. In the Cosmos SDK it is only used in testing.
 func (a *EthOwnedMultiContinuousVestingAccount) GetStartTime() int64 {
 	panic("cannot get start time for eth owned multi continuous vesting account")
 }
 
+// GetEndTime is not expected to be used in production. In the Cosmos SDK it is only used in testing.
 func (a *EthOwnedMultiContinuousVestingAccount) GetEndTime() int64 {
 	panic("cannot get end time for eth owned multi continuous vesting account")
 }
 
+// GetOriginalVesting calculates the sum of all original vesting coins reported by the vesting infos.
 func (a *EthOwnedMultiContinuousVestingAccount) GetOriginalVesting() sdk.Coins {
 	var originalVesting sdk.Coins
-
 	for _, info := range a.Infos {
 		originalVesting = originalVesting.Add(info.OriginalVesting...)
 	}
-
 	return originalVesting
 }
 
