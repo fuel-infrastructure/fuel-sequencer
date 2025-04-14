@@ -57,7 +57,9 @@ func NewEthOwnedMultiContinuousVestingAccountWithDelegation(
 
 // ------------------------------------ EthOwnedAccountI implementations
 
-// AddVestingCoins TODO
+// AddVestingCoins adds new vesting coins to an existing vesting schedule or a new one, depending on whether an existing
+// schedule with the same start and end times exists. If the schedule does not match any existing one, a new vesting
+// schedule is created alongside the existing ones and allocated all the new coins.
 func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
 
 	startTimeUnix := startTime.Unix()

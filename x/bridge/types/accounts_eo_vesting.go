@@ -37,7 +37,9 @@ func NewEthOwnedContinuousVestingAccount(
 
 // ------------------------------------ EthOwnedAccountI implementations
 
-// AddVestingCoins TODO
+// AddVestingCoins adds new vesting coins to an existing vesting schedule or a new one, depending on whether the start
+// and end times match the existing vesting schedule. If the schedule does not match up, the account is converted to
+// an EthOwnedMultiContinuousVestingAccount with the existing vesting schedule alongside a new vesting schedule.
 func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
 
 	if a.StartTime == startTime.Unix() && a.EndTime == endTime.Unix() {
