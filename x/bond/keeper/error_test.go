@@ -48,20 +48,21 @@ func TestKeeperErrors(t *testing.T) {
 		{
 			name:      "empty authority",
 			authority: "",
-			expErr:    false, // Empty authority is allowed (will be set to governance module account)
+			expErr:    true,
+			expErrMsg: "invalid authority address: ",
 		},
 		{
 			name:      "invalid authority",
 			authority: "invalid",
 			expErr:    true,
-			expErrMsg: "decoding bech32 failed: invalid bech32 string length 7",
+			expErrMsg: "invalid authority address: invalid",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.expErr {
-				require.PanicsWithError(t, tc.expErrMsg, func() {
+				require.PanicsWithValue(t, tc.expErrMsg, func() {
 					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper)
 				})
 			} else {
