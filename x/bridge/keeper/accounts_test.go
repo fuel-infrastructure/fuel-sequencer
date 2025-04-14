@@ -56,6 +56,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 	someTimeWaaaayInTheFuture, _ := time.Parse(time.DateOnly, "2030-01-01")
 
 	// Helper token amounts.
+	token300 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 300))
 	token200 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
 	token175 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 175))
 	token150 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 150))
@@ -661,15 +662,15 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				token50,
 				testutiltypes.TestEthAddr1Str,
 			),
-			expectSpendableCoins: token175, // balance - vesting + delegatedVesting = 200 - 25 + 0 = 175
+			expectSpendableCoins: token200, // balance - vesting + delegatedVesting = 200 - 25 + 25 = 200
 			//
 			// Out of the 300 tokens (funding + delegatedFree + delegatedVesting):
 			//
-			// - 25 are vesting (of which 0 staked) -> i.e. 0 from vacc1 and 25 from vacc2
-			// - 175 are vested (of which 100 staked) -> i.e. 100 from vacc1 and 75 from vacc2
+			// - 25 are vesting (of which 25 staked) -> i.e. 0 from vacc1 and 25 from vacc2
+			// - 175 are vested (of which 75 staked) -> i.e. 100 from vacc1 and 75 from vacc2
 			// - 100 are available [apart from the vesting information]
 			//
-			// The 175 comes from the 100 that are available and the 75 which are vested but not staked.
+			// The 200 comes from the 100 that are available and the 100 which are vested but not staked.
 		},
 		{
 			// blockTime: t0 + 1 years
@@ -697,7 +698,7 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 			),
 			blockTime:        t0Plus1Year, // half-way through vesting duration
 			vestingStartTime: t0,          // should build on first vesting account
-			fundAccount:      token200,    // fund with 200 due to precreated account
+			fundAccount:      token300,    // fund with 300 due to precreated account
 			args: fnArgs{
 				ethAddress:      testutiltypes.TestEthAddr1Str,
 				vestingDuration: years2,
@@ -713,15 +714,15 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 				token50,
 				testutiltypes.TestEthAddr1Str,
 			),
-			expectSpendableCoins: token125, // balance - vesting + delegatedVesting = 200 - 175 + 100 = 125
+			expectSpendableCoins: token175, // balance - vesting + delegatedVesting = 300 - 175 + 50 = 175
 			//
-			// Out of the 400 tokens (funding + delegatedFree + delegatedVesting):
+			// Out of the 300 tokens (funding + delegatedFree + delegatedVesting):
 			//
-			// - 175 are vesting (of which 100 staked) -> i.e. 100 from vacc1 and 75 from vacc2
-			// - 125 are vested (of which 100 staked) -> i.e. 100 from vacc1 and 25 from vacc2
+			// - 175 are vesting (of which 50 staked) -> i.e. 100 from vacc1 and 75 from vacc2
+			// - 125 are vested (of which 50 staked) -> i.e. 100 from vacc1 and 25 from vacc2
 			// - 100 are available [apart from the vesting information]
 			//
-			// The 125 comes from the 100 that are available and the 25 which are vested but not staked.
+			// The 175 comes from the 100 that are available and the 75 which are vested but not staked.
 		},
 	}
 
