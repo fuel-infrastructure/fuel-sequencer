@@ -47,8 +47,7 @@ message MsgBurnCoins {
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name) = "fuelsequencer/x/bond/MsgBurnCoins";
 
-  // sender is the address that controls the module (defaults to x/gov unless
-  // overwritten).
+  // sender is the address that will burn the coins
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // coins defines the coins to burn

@@ -1882,8 +1882,7 @@ type MsgBurnCoins struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// sender is the address that controls the module (defaults to x/gov unless
-	// overwritten).
+	// sender is the address that will burn the coins
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	// coins defines the coins to burn
 	Coins []*v1beta1.Coin `protobuf:"bytes,2,rep,name=coins,proto3" json:"coins,omitempty"`

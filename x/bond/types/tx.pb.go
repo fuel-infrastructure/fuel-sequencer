@@ -131,8 +131,7 @@ var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
 // MsgBurnCoins is the Msg/BurnCoins request type.
 type MsgBurnCoins struct {
-	// sender is the address that controls the module (defaults to x/gov unless
-	// overwritten).
+	// sender is the address that will burn the coins
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	// coins defines the coins to burn
 	Coins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=coins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"coins"`
