@@ -17,7 +17,6 @@ type (
 		storeService store.KVStoreService
 		logger       log.Logger
 
-		// keepers
 		bridgeKeeper types.BridgeKeeper
 
 		// the address capable of executing a MsgUpdateParams message. Typically, this
