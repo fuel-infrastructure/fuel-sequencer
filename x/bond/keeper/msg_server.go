@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
@@ -23,9 +24,9 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) BurnCoins(goCtx context.Context, msg *types.MsgBurnCoins) (*types.MsgBurnCoinsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := k.GetAddressCodec().StringToBytes(msg.Sender)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrapf(err, "failed to decode from address")
 	}
 
 	// Send coins from sender to module account
