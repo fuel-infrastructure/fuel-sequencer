@@ -34,6 +34,7 @@ func setupKeeper(t testing.TB) (keeper.Keeper, bondtypes.QueryServer) {
 	cdc := codec.NewProtoCodec(registry)
 	storeService := runtime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
+	accountKeeper := mock.NewMockAccountKeeper(t)
 	bankKeeper := mock.NewMockBankKeeper(t)
 
 	k := keeper.NewKeeper(
@@ -41,6 +42,7 @@ func setupKeeper(t testing.TB) (keeper.Keeper, bondtypes.QueryServer) {
 		storeService,
 		logger,
 		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		accountKeeper,
 		bankKeeper,
 	)
 	return k, k
@@ -57,6 +59,7 @@ func TestNewKeeper(t *testing.T) {
 	cdc := codec.NewProtoCodec(registry)
 	storeService := runtime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
+	accountKeeper := mock.NewMockAccountKeeper(t)
 	bankKeeper := mock.NewMockBankKeeper(t)
 
 	k := keeper.NewKeeper(
@@ -64,6 +67,7 @@ func TestNewKeeper(t *testing.T) {
 		storeService,
 		logger,
 		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		accountKeeper,
 		bankKeeper,
 	)
 
@@ -132,12 +136,14 @@ func TestKeeper_BurnCoins(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Reset mock for each test case
+			mockAccountKeeper := mock.NewMockAccountKeeper(t)
 			mockBankKeeper := mock.NewMockBankKeeper(t)
 			k := keeper.NewKeeper(
 				k.GetCodec(),
 				k.GetStoreService(),
 				k.Logger(),
 				k.GetAuthority(),
+				mockAccountKeeper,
 				mockBankKeeper,
 			)
 

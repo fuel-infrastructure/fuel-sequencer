@@ -30,6 +30,7 @@ func TestKeeperErrors(t *testing.T) {
 	cdc := codec.NewProtoCodec(registry)
 	storeService := runtime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
+	accountKeeper := mock.NewMockAccountKeeper(t)
 	bankKeeper := mock.NewMockBankKeeper(t)
 
 	// Test cases
@@ -61,11 +62,11 @@ func TestKeeperErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.expErr {
 				require.PanicsWithError(t, tc.expErrMsg, func() {
-					keeper.NewKeeper(cdc, storeService, logger, tc.authority, bankKeeper)
+					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper)
 				})
 			} else {
 				require.NotPanics(t, func() {
-					keeper.NewKeeper(cdc, storeService, logger, tc.authority, bankKeeper)
+					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper)
 				})
 			}
 		})

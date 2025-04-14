@@ -31,6 +31,7 @@ func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	cdc := codec.NewProtoCodec(registry)
 	storeService := runtime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
+	accountKeeper := mock.NewMockAccountKeeper(t)
 	bankKeeper := mock.NewMockBankKeeper(t)
 
 	k := keeper.NewKeeper(
@@ -38,6 +39,7 @@ func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		storeService,
 		logger,
 		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		accountKeeper,
 		bankKeeper,
 	)
 

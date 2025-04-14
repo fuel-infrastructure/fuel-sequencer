@@ -34,6 +34,7 @@ func TestGenesis(t *testing.T) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 	logger := log.NewNopLogger()
+	accountKeeper := mock.NewMockAccountKeeper(t)
 	bankKeeper := mock.NewMockBankKeeper(t)
 
 	// Create test module
@@ -44,6 +45,7 @@ func TestGenesis(t *testing.T) {
 			runtime.NewKVStoreService(storeKey),
 			logger,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), // Will be set to governance module account
+			accountKeeper,
 			bankKeeper,
 		),
 		nil, // Account keeper will be set in actual app

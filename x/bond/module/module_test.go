@@ -45,6 +45,7 @@ func setupModule(t testing.TB) (*bond.AppModule, types.AccountKeeper, types.Bank
 		storeService,
 		logger,
 		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		mockAccountKeeper,
 		mockBankKeeper,
 	)
 
@@ -100,6 +101,7 @@ func TestAppModule_InitExportGenesis(t *testing.T) {
 		storeService,
 		logger,
 		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		mockAccountKeeper,
 		mockBankKeeper,
 	)
 
