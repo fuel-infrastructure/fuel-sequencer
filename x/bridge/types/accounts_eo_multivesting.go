@@ -7,8 +7,8 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"gopkg.in/yaml.v2"
 
@@ -27,11 +27,40 @@ var (
 
 // NewEthOwnedMultiContinuousVestingAccount creates and returns a new EthOwnedMultiContinuousVestingAccount type
 func NewEthOwnedMultiContinuousVestingAccount(
-	cvas []*vestingtypes.ContinuousVestingAccount, owner string,
+	baseAccount *authtypes.BaseAccount,
+	infos []*VestingInfo,
+	owner string,
 ) *EthOwnedMultiContinuousVestingAccount {
 	return &EthOwnedMultiContinuousVestingAccount{
-		VestingAccounts: cvas,
-		AccountOwner:    owner,
+		BaseAccount:      baseAccount,
+		Infos:            infos,
+		DelegatedFree:    nil,
+		DelegatedVesting: nil,
+		AccountOwner:     owner,
+	}
+}
+
+func NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+	baseAccount *authtypes.BaseAccount,
+	infos []*VestingInfo,
+	delegatedFree sdk.Coins,
+	delegatedVesting sdk.Coins,
+	owner string,
+) *EthOwnedMultiContinuousVestingAccount {
+	return &EthOwnedMultiContinuousVestingAccount{
+		BaseAccount:      baseAccount,
+		Infos:            infos,
+		DelegatedFree:    delegatedFree,
+		DelegatedVesting: delegatedVesting,
+		AccountOwner:     owner,
+	}
+}
+
+func NewVestingInfo(originalVesting sdk.Coins, startTime, endTime int64) *VestingInfo {
+	return &VestingInfo{
+		OriginalVesting: originalVesting,
+		StartTime:       startTime,
+		EndTime:         endTime,
 	}
 }
 
@@ -43,31 +72,29 @@ func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins,
 	startTimeUnix := startTime.Unix()
 	endTimeUnix := endTime.Unix()
 
-	for _, infos := range a.VestingAccounts {
-		if infos.StartTime == startTimeUnix && infos.EndTime == endTimeUnix {
-			infos.OriginalVesting = infos.OriginalVesting.Add(coins...)
+	for _, info := range a.Infos {
+		if info.StartTime == startTimeUnix && info.EndTime == endTimeUnix {
+			info.OriginalVesting = info.OriginalVesting.Add(coins...)
 			return a, nil
 		}
 	}
 
-	baseAcc := a.VestingAccounts[0].BaseAccount
-	newSubAcc, err := vestingtypes.NewContinuousVestingAccount(baseAcc, coins, startTimeUnix, endTimeUnix)
-	if err != nil {
-		return nil, err
-	}
-	a.VestingAccounts = append(a.VestingAccounts, newSubAcc)
-
+	a.Infos = append(a.Infos, NewVestingInfo(coins, startTimeUnix, endTimeUnix))
 	return a, nil
 }
 
 // ------------------------------------ VestingAccount implementations
 
-func (a *EthOwnedMultiContinuousVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
-	lockedCoins := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		lockedCoins = lockedCoins.Add(vacc.LockedCoins(blockTime)...)
+func (a *EthOwnedMultiContinuousVestingAccount) LockedCoinsFromVesting(vestingCoins sdk.Coins) sdk.Coins {
+	lockedCoins := vestingCoins.Sub(vestingCoins.Min(a.DelegatedVesting)...)
+	if lockedCoins == nil {
+		return sdk.Coins{}
 	}
 	return lockedCoins
+}
+
+func (a *EthOwnedMultiContinuousVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
+	return a.LockedCoinsFromVesting(a.GetVestingCoins(blockTime))
 }
 
 // TrackDelegation TODO
@@ -78,14 +105,9 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.T
 		panic(fmt.Sprintf("delegation attempt with zero amount in coins %s", amount.String()))
 	}
 
-	// Calculate total locked.
-	locked := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		locked = locked.Add(vacc.LockedCoins(blockTime)...)
-	}
-
-	// Calculate spendable coins.
-	// Similar to https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/bank/keeper/view.go#L212
+	// Calculate spendable coins, where balance will only ever be an amount in FUEL.
+	// Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/bank/keeper/view.go#L212
+	locked := a.LockedCoins(blockTime)
 	spendable, hasNeg := balance.SafeSub(locked...)
 	if hasNeg {
 		spendable = sdk.NewCoins()
@@ -96,8 +118,7 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.T
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
 	}
 
-	// Always use the first vesting account to track delegations.
-	a.VestingAccounts[0].DelegatedFree = a.VestingAccounts[0].DelegatedFree.Add(amount...)
+	a.DelegatedFree = a.DelegatedFree.Add(amount...)
 }
 
 // TrackUndelegation TODO
@@ -108,24 +129,39 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackUndelegation(amount sdk.Coi
 		panic(fmt.Sprintf("undelegation attempt with zero amount in coins %s", amount.String()))
 	}
 
-	// Always use the first vesting account to track delegations.
-	a.VestingAccounts[0].DelegatedFree = a.VestingAccounts[0].DelegatedFree.Sub(amount...)
+	a.DelegatedFree = a.DelegatedFree.Sub(amount...)
 }
 
+// GetVestedCoins TODO
 func (a *EthOwnedMultiContinuousVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
-	vestedCoins := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		vestedCoins = vestedCoins.Add(vacc.GetVestedCoins(blockTime)...)
+	var vestedCoins sdk.Coins
+
+	for _, info := range a.Infos {
+		// We must handle the case where the start time for a vesting account has
+		// been set into the future or when the start of the chain is not exactly
+		// known.
+		if blockTime.Unix() <= info.StartTime {
+			return vestedCoins
+		} else if blockTime.Unix() >= info.EndTime {
+			return info.OriginalVesting
+		}
+
+		// calculate the vesting scalar
+		x := blockTime.Unix() - info.StartTime
+		y := info.EndTime - info.StartTime
+		s := math.LegacyNewDec(x).Quo(math.LegacyNewDec(y))
+
+		for _, ovc := range info.OriginalVesting {
+			vestedAmt := math.LegacyNewDecFromInt(ovc.Amount).Mul(s).RoundInt()
+			vestedCoins = append(vestedCoins, sdk.NewCoin(ovc.Denom, vestedAmt))
+		}
 	}
+
 	return vestedCoins
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
-	vestingCoins := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		vestingCoins = vestingCoins.Add(vacc.GetVestingCoins(blockTime)...)
-	}
-	return vestingCoins
+	return a.GetOriginalVesting().Sub(a.GetVestedCoins(blockTime)...)
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetStartTime() int64 {
@@ -137,69 +173,27 @@ func (a *EthOwnedMultiContinuousVestingAccount) GetEndTime() int64 {
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetOriginalVesting() sdk.Coins {
-	originalVesting := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		originalVesting = originalVesting.Add(vacc.OriginalVesting...)
+	var originalVesting sdk.Coins
+
+	for _, info := range a.Infos {
+		originalVesting = originalVesting.Add(info.OriginalVesting...)
 	}
+
 	return originalVesting
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedFree() sdk.Coins {
-	delegatedFree := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		delegatedFree = delegatedFree.Add(vacc.DelegatedFree...)
-	}
-	return delegatedFree
+	return a.DelegatedFree
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins {
-	delegatedVesting := sdk.NewCoins()
-	for _, vacc := range a.VestingAccounts {
-		delegatedVesting = delegatedVesting.Add(vacc.DelegatedVesting...)
-	}
-	return delegatedVesting
+	return a.DelegatedVesting
 }
 
 // ------------------------------------ AccountI implementations
 
-func (a *EthOwnedMultiContinuousVestingAccount) GetAddress() sdk.AccAddress {
-	return a.VestingAccounts[0].GetAddress()
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) SetAddress(address sdk.AccAddress) error {
-	for _, vacc := range a.VestingAccounts {
-		err := vacc.SetAddress(address)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetPubKey() crypto.PubKey {
-	return a.VestingAccounts[0].GetPubKey()
-}
-
 func (EthOwnedMultiContinuousVestingAccount) SetPubKey(_ crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for eth owned multi continuous vesting account")
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetAccountNumber() uint64 {
-	return a.VestingAccounts[0].GetAccountNumber()
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) SetAccountNumber(u uint64) error {
-	for _, vacc := range a.VestingAccounts {
-		err := vacc.SetAccountNumber(u)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (a *EthOwnedMultiContinuousVestingAccount) GetSequence() uint64 {
-	return a.VestingAccounts[0].GetSequence()
 }
 
 func (EthOwnedMultiContinuousVestingAccount) SetSequence(_ uint64) error {
@@ -213,13 +207,7 @@ func (a EthOwnedMultiContinuousVestingAccount) Validate() error {
 	if strings.TrimSpace(a.AccountOwner) == "" {
 		return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
 	}
-	for _, vacc := range a.VestingAccounts {
-		err := vacc.BaseAccount.Validate()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return a.BaseAccount.Validate()
 }
 
 // ------------------------------------ Miscellaneous implementations
@@ -232,8 +220,7 @@ func (a EthOwnedMultiContinuousVestingAccount) String() string {
 
 // MarshalYAML returns the YAML representation of the EthOwnedMultiContinuousVestingAccount
 func (a EthOwnedMultiContinuousVestingAccount) MarshalYAML() ([]byte, error) {
-	baseAcc := a.VestingAccounts[0].BaseAccount
-	accAddr, err := sdk.AccAddressFromBech32(baseAcc.Address)
+	accAddr, err := sdk.AccAddressFromBech32(a.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +228,8 @@ func (a EthOwnedMultiContinuousVestingAccount) MarshalYAML() ([]byte, error) {
 	bz, err := yaml.Marshal(ethOwnedAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
-		AccountNumber: baseAcc.AccountNumber,
-		Sequence:      baseAcc.Sequence,
+		AccountNumber: a.AccountNumber,
+		Sequence:      a.Sequence,
 		AccountOwner:  a.AccountOwner,
 	})
 	if err != nil {
@@ -254,8 +241,7 @@ func (a EthOwnedMultiContinuousVestingAccount) MarshalYAML() ([]byte, error) {
 
 // MarshalJSON returns the JSON representation of the EthOwnedMultiContinuousVestingAccount
 func (a EthOwnedMultiContinuousVestingAccount) MarshalJSON() ([]byte, error) {
-	baseAcc := a.VestingAccounts[0].BaseAccount
-	accAddr, err := sdk.AccAddressFromBech32(baseAcc.Address)
+	accAddr, err := sdk.AccAddressFromBech32(a.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -263,8 +249,8 @@ func (a EthOwnedMultiContinuousVestingAccount) MarshalJSON() ([]byte, error) {
 	bz, err := json.Marshal(ethOwnedAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
-		AccountNumber: baseAcc.AccountNumber,
-		Sequence:      baseAcc.Sequence,
+		AccountNumber: a.AccountNumber,
+		Sequence:      a.Sequence,
 		AccountOwner:  a.AccountOwner,
 	})
 	if err != nil {
@@ -281,13 +267,7 @@ func (a *EthOwnedMultiContinuousVestingAccount) UnmarshalJSON(bz []byte) error {
 		return err
 	}
 
-	a.VestingAccounts = []*vestingtypes.ContinuousVestingAccount{
-		{
-			BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-				BaseAccount: authtypes.NewBaseAccount(alias.Address, nil, alias.AccountNumber, alias.Sequence),
-			},
-		},
-	}
+	a.BaseAccount = authtypes.NewBaseAccount(alias.Address, nil, alias.AccountNumber, alias.Sequence)
 	a.AccountOwner = alias.AccountOwner
 
 	return nil
@@ -296,5 +276,5 @@ func (a *EthOwnedMultiContinuousVestingAccount) UnmarshalJSON(bz []byte) error {
 // ToEthOwnedBaseAccount discards vesting details and converts the account to an EthOwnedBaseAccount
 // This is mostly intended for testing where we might want to switch the account type.
 func (a EthOwnedMultiContinuousVestingAccount) ToEthOwnedBaseAccount() *EthOwnedBaseAccount {
-	return NewEthOwnedBaseAccount(a.VestingAccounts[0].BaseAccount, a.AccountOwner)
+	return NewEthOwnedBaseAccount(a.BaseAccount, a.AccountOwner)
 }

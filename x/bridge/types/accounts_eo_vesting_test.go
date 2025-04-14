@@ -290,28 +290,13 @@ func TestEthOwnedContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 			vestingStartTime: t1, // different start time
 			vestingEndTime:   t2, // same end time
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere, // unchanged
-							DelegatedFree:    coins1234,         // unchanged
-							DelegatedVesting: coins5678,         // unchanged
-							EndTime:          t2.Unix(),         // unchanged
-						},
-						StartTime: t0.Unix(), // unchanged
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsToAdd,
-							DelegatedFree:    nil,       // nothing delegated
-							DelegatedVesting: nil,       // nothing delegated
-							EndTime:          t2.Unix(), // new end time
-						},
-						StartTime: t1.Unix(), // new start time
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsToAdd, t1.Unix(), t2.Unix()),
 				},
+				coins1234,
+				nil,
 				owner,
 			),
 		},
@@ -333,28 +318,13 @@ func TestEthOwnedContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 			vestingStartTime: t0, // same start time
 			vestingEndTime:   t1, // different end time
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere, // unchanged
-							DelegatedFree:    coins1234,         // unchanged
-							DelegatedVesting: coins5678,         // unchanged
-							EndTime:          t2.Unix(),         // unchanged
-						},
-						StartTime: t0.Unix(), // unchanged
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsToAdd,
-							DelegatedFree:    nil,       // nothing delegated
-							DelegatedVesting: nil,       // nothing delegated
-							EndTime:          t1.Unix(), // new end time
-						},
-						StartTime: t0.Unix(), // new start time
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsToAdd, t0.Unix(), t1.Unix()),
 				},
+				coins1234,
+				nil,
 				owner,
 			),
 		},

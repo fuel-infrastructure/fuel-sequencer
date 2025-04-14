@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // ensure bech32 configs are set
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
@@ -17,7 +16,7 @@ import (
 )
 
 func TestEthOwnedMultiContinuousVestingAccountSetSequenceErrors(t *testing.T) {
-	acc := types.NewEthOwnedMultiContinuousVestingAccount([]*vestingtypes.ContinuousVestingAccount{}, "")
+	acc := types.NewEthOwnedMultiContinuousVestingAccount(nil, nil, "")
 	require.ErrorContains(t, acc.SetSequence(1), "cannot set sequence number for eth owned multi continuous vesting account")
 	require.ErrorContains(t, acc.SetSequence(2), "cannot set sequence number for eth owned multi continuous vesting account")
 }
@@ -25,7 +24,7 @@ func TestEthOwnedMultiContinuousVestingAccountSetSequenceErrors(t *testing.T) {
 func TestEthOwnedMultiContinuousVestingAccountSetPubkeyErrors(t *testing.T) {
 	_, pk, _ := testdata.KeyTestPubAddr()
 
-	acc := types.NewEthOwnedMultiContinuousVestingAccount([]*vestingtypes.ContinuousVestingAccount{}, "")
+	acc := types.NewEthOwnedMultiContinuousVestingAccount(nil, nil, "")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned multi continuous vesting account")
 	require.ErrorContains(t, acc.SetPubKey(pk), "cannot set public key for eth owned multi continuous vesting account")
 }
@@ -55,14 +54,11 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 		Sequence:      uint64(2),
 	}
 
-	subVAcc1, err := vestingtypes.NewContinuousVestingAccount(baseAcc, originalVesting, t0.Unix(), t1.Unix())
-	subVAcc2, err := vestingtypes.NewContinuousVestingAccount(baseAcc, originalVesting, t0Plus6Months.Unix(), t1Plus6Months.Unix())
-	require.NoError(t, err)
+	info1 := types.NewVestingInfo(originalVesting, t0.Unix(), t1.Unix())
+	info2 := types.NewVestingInfo(originalVesting, t0Plus6Months.Unix(), t1Plus6Months.Unix())
 	vAcc := types.NewEthOwnedMultiContinuousVestingAccount(
-		[]*vestingtypes.ContinuousVestingAccount{
-			subVAcc1,
-			subVAcc2,
-		},
+		baseAcc,
+		[]*types.VestingInfo{info1, info2},
 		owner,
 	)
 
@@ -177,30 +173,14 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 		t.Run(tc.name, func(t *testing.T) {
 
 			vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      baseAcc,
-							OriginalVesting:  originalVesting,
-							DelegatedFree:    tc.delegatedFreeBefore,
-							DelegatedVesting: nil, // we expect this to never get set
-							EndTime:          t1.Unix(),
-						},
-						StartTime: t0.Unix(),
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      baseAcc,
-							OriginalVesting:  originalVesting,
-							DelegatedFree:    tc.delegatedFreeBefore,
-							DelegatedVesting: nil, // we expect this to never get set
-							EndTime:          t1.Unix(),
-						},
-						StartTime: t0.Unix(),
-					},
+				baseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(originalVesting, t0.Unix(), t1.Unix()),
+					types.NewVestingInfo(originalVesting, t0.Unix(), t1.Unix()),
 				},
 				owner,
 			)
+			vestingAcc.DelegatedFree = tc.delegatedFreeBefore
 
 			// Sanity check locked and vesting coins, which are always expected to be equal
 			require.True(t, vestingAcc.LockedCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
@@ -271,7 +251,6 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 	coinsAlreadyThere := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
 	coinsToAdd := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
 	coins1234 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1234))
-	coins5678 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 5678))
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
@@ -297,122 +276,53 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds to existing vesting accounts if at least one " +
 				"has a matching vesting schedule",
-			account: types.NewEthOwnedMultiContinuousVestingAccount(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere, // will be retained
-							DelegatedFree:    coins1234,         // will be retained
-							DelegatedVesting: coins5678,         // will be retained
-							EndTime:          t2.Unix(),         // will be retained
-						},
-						StartTime: t0.Unix(), // will be retained
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere,
-							DelegatedFree:    nil,       // will be retained
-							DelegatedVesting: nil,       // will be retained
-							EndTime:          t2.Unix(), // will be retained
-						},
-						StartTime: t1.Unix(), // will be retained
-					},
+			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
 				},
+				coins1234, // DelegatedFree - will be retained
+				nil,       // DelegatedVesting - will be retained
 				owner,
 			),
 			vestingStartTime: t1,
 			vestingEndTime:   t2,
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere,
-							DelegatedFree:    coins1234,
-							DelegatedVesting: coins5678,
-							EndTime:          t2.Unix(),
-						},
-						StartTime: t0.Unix(),
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere.Add(coinsToAdd...), // updated
-							DelegatedFree:    nil,
-							DelegatedVesting: nil,
-							EndTime:          t2.Unix(),
-						},
-						StartTime: t1.Unix(),
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere.Add(coinsToAdd...), t1.Unix(), t2.Unix()), // updated
 				},
+				coins1234,
+				nil,
 				owner,
 			),
 		},
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
 				"does not match any of the vesting accounts",
-			account: types.NewEthOwnedMultiContinuousVestingAccount(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere, // will be retained
-							DelegatedFree:    coins1234,         // will be retained
-							DelegatedVesting: coins5678,         // will be retained
-							EndTime:          t2.Unix(),         // will be retained
-						},
-						StartTime: t0.Unix(), // will be retained
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere, // will be retained
-							DelegatedFree:    nil,               // will be retained
-							DelegatedVesting: nil,               // will be retained
-							EndTime:          t2.Unix(),         // will be retained
-						},
-						StartTime: t1.Unix(), // will be retained
-					},
+			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
 				},
+				coins1234,
+				nil,
 				owner,
 			),
 			vestingStartTime: t0,
 			vestingEndTime:   t1,
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
-				[]*vestingtypes.ContinuousVestingAccount{
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere,
-							DelegatedFree:    coins1234,
-							DelegatedVesting: coins5678,
-							EndTime:          t2.Unix(),
-						},
-						StartTime: t0.Unix(),
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsAlreadyThere,
-							DelegatedFree:    nil,
-							DelegatedVesting: nil,
-							EndTime:          t2.Unix(),
-						},
-						StartTime: t1.Unix(), // will be retained
-					},
-					{
-						BaseVestingAccount: &vestingtypes.BaseVestingAccount{
-							BaseAccount:      seqAddr1BaseAcc,
-							OriginalVesting:  coinsToAdd, // new
-							DelegatedFree:    nil,
-							DelegatedVesting: nil,
-							EndTime:          t1.Unix(),
-						},
-						StartTime: t0.Unix(),
-					},
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsToAdd, t0.Unix(), t1.Unix()),
 				},
+				coins1234,
+				nil,
 				owner,
 			),
 		},

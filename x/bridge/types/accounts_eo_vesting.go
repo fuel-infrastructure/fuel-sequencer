@@ -43,10 +43,10 @@ func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, star
 	if a.StartTime == startTime.Unix() && a.EndTime == endTime.Unix() {
 		a.OriginalVesting = a.OriginalVesting.Add(coins...)
 	} else {
-		multiVestingAcc := &EthOwnedMultiContinuousVestingAccount{
-			VestingAccounts: []*vestingtypes.ContinuousVestingAccount{a.ContinuousVestingAccount},
-			AccountOwner:    a.AccountOwner,
-		}
+		vestingInfos := []*VestingInfo{NewVestingInfo(coins, a.StartTime, a.EndTime)}
+		multiVestingAcc := NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+			a.BaseAccount, vestingInfos, a.DelegatedFree, a.DelegatedVesting, a.AccountOwner,
+		)
 		return multiVestingAcc.AddVestingCoins(coins, startTime, endTime)
 	}
 	return a, nil
