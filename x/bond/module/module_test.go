@@ -15,6 +15,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/golang/mock/gomock"
 	grpcgateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
 
@@ -37,8 +38,10 @@ func setupModule(t testing.TB) (*bond.AppModule, types.AccountKeeper, types.Bank
 	storeService := sdkruntime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
 
-	mockAccountKeeper := testutil.NewMockAccountKeeper(t)
-	mockBankKeeper := testutil.NewMockBankKeeper(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockAccountKeeper := testutil.NewMockAccountKeeper(ctrl)
+	mockBankKeeper := testutil.NewMockBankKeeper(ctrl)
 
 	k := keeper.NewKeeper(
 		cdc,
@@ -93,8 +96,10 @@ func TestAppModule_InitExportGenesis(t *testing.T) {
 	storeService := sdkruntime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
 
-	mockAccountKeeper := testutil.NewMockAccountKeeper(t)
-	mockBankKeeper := testutil.NewMockBankKeeper(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockAccountKeeper := testutil.NewMockAccountKeeper(ctrl)
+	mockBankKeeper := testutil.NewMockBankKeeper(ctrl)
 
 	k := keeper.NewKeeper(
 		cdc,
@@ -152,8 +157,10 @@ func TestProvideModule(t *testing.T) {
 	cdc := codec.NewProtoCodec(registry)
 	storeService := sdkruntime.NewKVStoreService(storetypes.NewKVStoreKey(types.StoreKey))
 	logger := log.NewNopLogger()
-	accountKeeper := testutil.NewMockAccountKeeper(t)
-	bankKeeper := testutil.NewMockBankKeeper(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
+	bankKeeper := testutil.NewMockBankKeeper(ctrl)
 
 	inputs := bond.ModuleInputs{
 		StoreService:  storeService,
