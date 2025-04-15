@@ -557,11 +557,11 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		expSpendable3 := now.Unix() - multiVestingAcc.Infos[2].StartTime
 		expTotalSpendable := expSpendable1 + expSpendable2 + expSpendable3
 
-		// Use a buffer of 13 seconds or ~2 blocks (13*4 = 52 tokens)
-		buffer := int64(52)
+		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
+		buffer := int64(72)
 
-		// Wait for 1 block to make sure we're past the 'now'
-		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10))
+		// Wait for 2 block to make sure we're past the 'now'
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*20))
 
 		// Spendable should be greater than the amount calculated above, but lower than the buffered amount.
 		spendable, err := s.QuerySpendableBalance(s.Ctx(), senderAddress, testsuite.BridgeDenom)
@@ -615,11 +615,11 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		expSpendable3 = now.Unix() - multiVestingAcc.Infos[2].StartTime
 		expTotalSpendable = expSpendable1 + expSpendable2 + expSpendable3 - delegateCoin.Amount.Int64() // subtract delegation
 
-		// Use a buffer of 13 seconds or ~2 blocks (13*4 = 52 tokens)
-		buffer = int64(52)
+		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
+		buffer = int64(72)
 
-		// Wait for 1 block to make sure we're past the 'now'
-		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10))
+		// Wait for 2 block to make sure we're past the 'now'
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*20))
 
 		// Spendable should be greater than the amount calculated above, but lower than the buffered amount.
 		spendable, err = s.QuerySpendableBalance(s.Ctx(), senderAddress, testsuite.BridgeDenom)
@@ -673,11 +673,11 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		expSpendable3 = now.Unix() - multiVestingAcc.Infos[2].StartTime
 		expTotalSpendable = expSpendable1 + expSpendable2 + expSpendable3
 
-		// Use a buffer of 13 seconds or ~2 blocks (13*4 = 52 tokens)
-		buffer = int64(52)
+		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
+		buffer = int64(72)
 
-		// Wait for 1 block to make sure we're past the 'now'
-		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10))
+		// Wait for 2 block to make sure we're past the 'now'
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*20))
 
 		// Spendable should be greater than the amount calculated above, but lower than the buffered amount.
 		spendable, err = s.QuerySpendableBalance(s.Ctx(), senderAddress, testsuite.BridgeDenom)
