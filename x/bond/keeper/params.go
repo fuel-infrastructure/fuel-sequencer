@@ -31,7 +31,6 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 
 	// Record metrics for parameter changes
 	metrics.SetInflation(ctx, params.Inflation)
-	metrics.SetAuthority(ctx, params.Authority)
 
 	return nil
 }

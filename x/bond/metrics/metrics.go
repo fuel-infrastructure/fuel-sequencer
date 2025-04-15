@@ -34,16 +34,3 @@ func SetInflation(goCtx context.Context, inflation sdkmath.LegacyDec) {
 		telemetry.SetGauge(float32(inflationFloat), append(utils.KeysStore, "inflation")...)
 	})
 }
-
-// SetAuthority tracks changes to the bond module's authority address
-func SetAuthority(goCtx context.Context, authority string) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		telemetry.IncrCounterWithLabels(
-			append(utils.KeysStore, "authority", "change"),
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel("address", authority),
-			},
-		)
-	})
-}
