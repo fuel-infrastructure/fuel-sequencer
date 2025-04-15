@@ -18,11 +18,6 @@ func NewMsgBurnCoins(sender string, coins sdk.Coins) *MsgBurnCoins {
 
 // ValidateBasic performs basic validation of the message
 func (msg *MsgBurnCoins) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return fmt.Errorf("invalid sender address: %w", err)
-	}
-
 	if !msg.Coins.IsValid() {
 		return fmt.Errorf("invalid coins: %s", msg.Coins)
 	}
