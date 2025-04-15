@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
-
-    "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/metrics"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
-
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx context.Context) (params types.Params) {
@@ -29,6 +28,10 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 		return err
 	}
 	store.Set(types.ParamsKey, bz)
+
+	// Record metrics for parameter changes
+	metrics.SetInflation(ctx, params.Inflation)
+	metrics.SetAuthority(ctx, params.Authority)
 
 	return nil
 }

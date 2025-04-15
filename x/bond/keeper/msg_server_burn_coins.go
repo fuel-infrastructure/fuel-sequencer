@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
@@ -32,6 +33,9 @@ func (k msgServer) BurnCoins(goCtx context.Context, msg *types.MsgBurnCoins) (*t
 	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, msg.Coins); err != nil {
 		return nil, err
 	}
+
+	// Record metrics
+	metrics.ObserveBurnCoins(goCtx, msg.Coins)
 
 	return &types.MsgBurnCoinsResponse{}, nil
 }
