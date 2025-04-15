@@ -31,7 +31,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		sdkmath.LegacyZeroDec(),
-		"", // Will be set to governance module account in InitGenesis
+		"", // Set to governance module account in ProvideModule
 	)
 }
 
