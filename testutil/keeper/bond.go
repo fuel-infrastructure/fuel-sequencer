@@ -22,6 +22,11 @@ import (
 )
 
 func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
+	k, ctx, _ := BondKeeperWithCodec(t)
+	return k, ctx
+}
+
+func BondKeeperWithCodec(t testing.TB) (keeper.Keeper, sdk.Context, codec.Codec) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -54,5 +59,5 @@ func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	//nolint:errcheck
 	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
 
-	return k, ctx
+	return k, ctx, cdc
 }
