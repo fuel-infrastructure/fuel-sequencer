@@ -141,6 +141,7 @@ var (
 
 	VestingStartTimeDelay = time.Duration(0)         // Set to zero because latest requirements indicate no cliffs
 	VestingDuration2Years = time.Hour * 24 * 365 * 2 // 2 years, to be used when migrating V1 tokens to V2
+	VestingDuration4Years = time.Hour * 24 * 365 * 4 // 4 years, to be used when migrating V1 tokens to V2
 
 	// V1 to V2 migration
 
