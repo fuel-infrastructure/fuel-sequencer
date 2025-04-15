@@ -21,7 +21,7 @@ func (k msgServer) BurnCoins(goCtx context.Context, msg *types.MsgBurnCoins) (*t
 
 	sender, err := k.GetAddressCodec().StringToBytes(msg.Sender)
 	if err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to decode from address")
+		return nil, errorsmod.Wrapf(err, "failed to decode sender address")
 	}
 
 	// Send coins from sender to module account

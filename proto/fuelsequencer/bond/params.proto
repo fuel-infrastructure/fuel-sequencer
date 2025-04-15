@@ -18,6 +18,7 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  // Authority defines the address that controls the module
+  // Authority defines the address that receives the inflation
+  // and decides how many of it to distribute or burn
   string authority = 2;
 }

@@ -1,6 +1,8 @@
 package bond
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
@@ -10,7 +12,7 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	if err := k.SetParams(ctx, genState.Params); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("error when setting params: %x", err))
 	}
 }
 
