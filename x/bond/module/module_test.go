@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bond/module"
+	testkeeper "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 	bond "github.com/fuel-infrastructure/fuel-sequencer/x/bond/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/testutil"
@@ -85,30 +86,12 @@ func TestAppModuleBasic(t *testing.T) {
 }
 
 func TestAppModule_InitExportGenesis(t *testing.T) {
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	db := dbm.NewMemDB()
-	stateStore := sdkstore.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	require.NoError(t, stateStore.LoadLatestVersion())
-
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-	storeService := sdkruntime.NewKVStoreService(storeKey)
-	logger := log.NewNopLogger()
+	k, ctx, cdc := testkeeper.BondKeeperWithCodec(t)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockAccountKeeper := testutil.NewMockAccountKeeper(ctrl)
 	mockBankKeeper := testutil.NewMockBankKeeper(ctrl)
-
-	k := keeper.NewKeeper(
-		cdc,
-		storeService,
-		logger,
-		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
-		mockAccountKeeper,
-		mockBankKeeper,
-	)
 
 	appModule := bond.NewAppModule(
 		cdc,
@@ -117,17 +100,15 @@ func TestAppModule_InitExportGenesis(t *testing.T) {
 		mockBankKeeper,
 	)
 
-	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, logger)
-
 	// Test InitGenesis
 	genesisState := types.DefaultGenesis()
 	genJSON, err := json.Marshal(genesisState)
 	require.NoError(t, err)
 
-	appModule.InitGenesis(ctx, codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), genJSON)
+	appModule.InitGenesis(ctx, cdc, genJSON)
 
 	// Test ExportGenesis
-	exported := appModule.ExportGenesis(ctx, codec.NewProtoCodec(codectypes.NewInterfaceRegistry()))
+	exported := appModule.ExportGenesis(ctx, cdc)
 	require.NotNil(t, exported)
 
 	var exportedGenesis types.GenesisState
