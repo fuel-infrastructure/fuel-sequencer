@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: fuelsequencer/bond/tx.proto
+// source: fuelsequencer/bond/v1/tx.proto
 
-package bond
+package bondv1
 
 import (
 	context "context"
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_UpdateParams_FullMethodName = "/fuelsequencer.bond.Msg/UpdateParams"
-	Msg_BurnCoins_FullMethodName    = "/fuelsequencer.bond.Msg/BurnCoins"
+	Msg_UpdateParams_FullMethodName = "/fuelsequencer.bond.v1.Msg/UpdateParams"
+	Msg_BurnCoins_FullMethodName    = "/fuelsequencer.bond.v1.Msg/BurnCoins"
 )
 
 // MsgClient is the client API for Msg service.
@@ -135,7 +135,7 @@ func _Msg_BurnCoins_Handler(srv interface{}, ctx context.Context, dec func(inter
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Msg_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "fuelsequencer.bond.Msg",
+	ServiceName: "fuelsequencer.bond.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -148,5 +148,5 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "fuelsequencer/bond/tx.proto",
+	Metadata: "fuelsequencer/bond/v1/tx.proto",
 }

@@ -1,5 +1,6 @@
 syntax = "proto3";
-package fuelsequencer.bond;
+
+package fuelsequencer.bond.v1;
 
 import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";

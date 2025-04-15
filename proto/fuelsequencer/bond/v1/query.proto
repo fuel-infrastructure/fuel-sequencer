@@ -1,5 +1,6 @@
 syntax = "proto3";
-package fuelsequencer.bond;
+
+package fuelsequencer.bond.v1;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
@@ -13,7 +14,7 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/fuelsequencer/bond/params";
+    option (google.api.http).get = "/fuelsequencer/bond/v1/params";
   }
 }
 
