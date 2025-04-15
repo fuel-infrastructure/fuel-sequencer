@@ -45,6 +45,42 @@ func (s *E2ETestSuite) QueryAllBalances(
 	return res, nil
 }
 
+func (s *E2ETestSuite) QuerySpendableBalance(
+	ctx context.Context,
+	address string,
+	denom string,
+) (*banktypes.QuerySpendableBalanceByDenomResponse, error) {
+	queryClient := s.getGRPCClients().BankQueryClient
+
+	res, err := queryClient.SpendableBalanceByDenom(ctx, &banktypes.QuerySpendableBalanceByDenomRequest{
+		Address: address,
+		Denom:   denom,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (s *E2ETestSuite) QuerySpendableBalances(
+	ctx context.Context,
+	address string,
+	pagination *query.PageRequest,
+) (*banktypes.QuerySpendableBalancesResponse, error) {
+	queryClient := s.getGRPCClients().BankQueryClient
+
+	res, err := queryClient.SpendableBalances(ctx, &banktypes.QuerySpendableBalancesRequest{
+		Address:    address,
+		Pagination: pagination,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (s *E2ETestSuite) QueryBankParams(ctx context.Context) *banktypes.Params {
 	queryClient := s.getGRPCClients().BankQueryClient
 	res, err := queryClient.Params(ctx, &banktypes.QueryParamsRequest{})
