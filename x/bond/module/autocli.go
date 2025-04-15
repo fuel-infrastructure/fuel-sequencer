@@ -29,10 +29,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Skip:      true, // skipped because authority gated
 				},
 				{
-					RpcMethod: "BurnCoins",
-					Use:       "burn-coins [sender] [amount]",
-					Short:     "Burn coins from the sender's account",
-					Long:      "Burn coins from the sender's account. The sender must be a valid bech32 address and the amount must be a valid coin amount (e.g. 100ufuel).",
+					RpcMethod:      "BurnCoins",
+					Use:            "burn-coins [amount]",
+					Short:          "Burn coins from the sender's account",
+					Long:           "Burn coins from the sender's account. The amount must be a valid coin amount (e.g. 100ufuel).",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "amount"}},
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
