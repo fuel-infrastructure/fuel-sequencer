@@ -16,6 +16,9 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil/mock"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 )
 
 func setupKeeper(t testing.TB) (keeper.Keeper, bondtypes.QueryServer) {
@@ -36,7 +39,7 @@ func setupKeeper(t testing.TB) (keeper.Keeper, bondtypes.QueryServer) {
 		cdc,
 		storeService,
 		logger,
-		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		"fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
 		accountKeeper,
 		bankKeeper,
 	)
@@ -61,21 +64,41 @@ func TestNewKeeper(t *testing.T) {
 		cdc,
 		storeService,
 		logger,
-		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		"fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
 		accountKeeper,
 		bankKeeper,
 	)
 
 	require.NotNil(t, k)
-	require.Equal(t, "cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", k.GetAuthority())
+	require.Equal(t, "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4", k.GetAuthority())
 }
 
 func TestKeeper_GetAuthority(t *testing.T) {
 	k, _ := setupKeeper(t)
-	require.Equal(t, "cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", k.GetAuthority())
+	require.Equal(t, "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4", k.GetAuthority())
 }
 
 func TestKeeper_Logger(t *testing.T) {
 	k, _ := setupKeeper(t)
 	require.NotNil(t, k.Logger())
+}
+
+type KeeperTestSuite struct {
+	apptesting.KeeperTestHelper
+
+	queryClient bondtypes.QueryClient
+}
+
+func (s *KeeperTestSuite) SetupTest() {
+	s.Setup()
+
+	s.queryClient = bondtypes.NewQueryClient(s.QueryHelper)
+}
+
+func (s *KeeperTestSuite) GetMsgServer() bondtypes.MsgServer {
+	return keeper.NewMsgServerImpl(s.App.BondKeeper)
+}
+
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
 }

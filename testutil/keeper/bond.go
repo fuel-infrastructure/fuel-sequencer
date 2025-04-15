@@ -38,7 +38,7 @@ func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 		cdc,
 		storeService,
 		logger,
-		"cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", // Test authority
+		"fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
 		accountKeeper,
 		bankKeeper,
 	)

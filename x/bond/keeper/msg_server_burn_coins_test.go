@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	testAuthority = "cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
+	testAuthority = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
 )
 
 func setupMsgBurnCoins(t *testing.T) (keeper.Keeper, context.Context, *testmock.MockAccountKeeper, *testmock.MockBankKeeper) {
@@ -44,7 +44,7 @@ func setupMsgBurnCoins(t *testing.T) (keeper.Keeper, context.Context, *testmock.
 	mockBankKeeper := testmock.NewMockBankKeeper(t)
 
 	// Setup AddressCodec mock
-	mockAccountKeeper.On("AddressCodec").Return(sdkAddressCodec.NewBech32Codec("cosmos"))
+	mockAccountKeeper.On("AddressCodec").Return(sdkAddressCodec.NewBech32Codec("fuelsequencer"))
 
 	k := keeper.NewKeeper(
 		cdc,
@@ -103,7 +103,7 @@ func TestMsgBurnCoins(t *testing.T) {
 		{
 			name: "unauthorized sender",
 			msg: &bondtypes.MsgBurnCoins{
-				Sender: "cosmos1invalid",
+				Sender: "fuelsequencer1invalid",
 				Coins:  testCoins,
 			},
 			expErr: true,

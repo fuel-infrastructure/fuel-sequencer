@@ -42,7 +42,7 @@ func TestKeeperErrors(t *testing.T) {
 	}{
 		{
 			name:      "valid authority",
-			authority: "cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu",
+			authority: "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4",
 			expErr:    false,
 		},
 		{
