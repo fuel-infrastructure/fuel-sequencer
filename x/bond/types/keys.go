@@ -9,16 +9,14 @@ const (
 
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_bond"
-
-    
 )
 
 var (
-	ParamsKey = []byte("p_bond")
+	ParamsKey    = []byte("p_bond")
+	InflationKey = []byte("Inflation")
+	AuthorityKey = []byte("Authority")
 )
 
-
-
 func KeyPrefix(p string) []byte {
-    return []byte(p)
+	return []byte(p)
 }

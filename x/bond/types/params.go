@@ -9,11 +9,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-var (
-	KeyInflation = []byte("Inflation")
-	KeyAuthority = []byte("Authority")
-)
-
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 // ParamKeyTable the param key table for launch module
