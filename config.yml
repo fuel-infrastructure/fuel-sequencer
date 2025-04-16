@@ -100,6 +100,10 @@ genesis:
     staking:
       params:
         bond_denom: "utest"
+    bond:
+      params:
+        inflation: "0.02"
+        authority: "fuelsequencer10d07y265gmmuvt4z0w9aw880jnsr700jdjfvk3"
     bridge:
       params:
         bridge_denom: "utest"
