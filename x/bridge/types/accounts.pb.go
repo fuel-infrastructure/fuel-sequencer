@@ -109,6 +109,8 @@ func (m *EthOwnedContinuousVestingAccount) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EthOwnedContinuousVestingAccount proto.InternalMessageInfo
 
+// VestingInfo signifies the start and end of continuous vesting for an amount
+// of coins.
 type VestingInfo struct {
 	OriginalVesting github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=original_vesting,json=originalVesting,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"original_vesting"`
 	// Vesting start time, as unix timestamp (in seconds).
@@ -175,9 +177,16 @@ func (m *VestingInfo) GetEndTime() int64 {
 // that is known to be owned and controlled by an Ethereum address.
 type EthOwnedMultiContinuousVestingAccount struct {
 	*types.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3,embedded=base_account" json:"base_account,omitempty"`
-	DelegatedFree      github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=delegated_free,json=delegatedFree,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"delegated_free"`
-	DelegatedVesting   github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=delegated_vesting,json=delegatedVesting,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"delegated_vesting"`
-	Infos              []*VestingInfo                           `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	// delegated_free are coins that were free or vested at the point of
+	// delegation from this account. Ref:
+	// https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
+	DelegatedFree github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=delegated_free,json=delegatedFree,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"delegated_free"`
+	// delegated_vesting are coins that were vesting at the point of delegation
+	// from this account. Ref:
+	// https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
+	DelegatedVesting github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=delegated_vesting,json=delegatedVesting,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"delegated_vesting"`
+	// infos is the set of continuous vesting schedules for this account.
+	Infos []*VestingInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
 	// account_owner is the Ethereum address that owns and controls this account.
 	AccountOwner string `protobuf:"bytes,5,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
 }

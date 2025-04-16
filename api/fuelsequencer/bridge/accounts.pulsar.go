@@ -2624,6 +2624,8 @@ func (x *EthOwnedContinuousVestingAccount) GetAccountOwner() string {
 	return ""
 }
 
+// VestingInfo signifies the start and end of continuous vesting for an amount
+// of coins.
 type VestingInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2684,10 +2686,17 @@ type EthOwnedMultiContinuousVestingAccount struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BaseAccount      *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
-	DelegatedFree    []*v1beta12.Coin     `protobuf:"bytes,2,rep,name=delegated_free,json=delegatedFree,proto3" json:"delegated_free,omitempty"`
-	DelegatedVesting []*v1beta12.Coin     `protobuf:"bytes,3,rep,name=delegated_vesting,json=delegatedVesting,proto3" json:"delegated_vesting,omitempty"`
-	Infos            []*VestingInfo       `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	BaseAccount *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
+	// delegated_free are coins that were free or vested at the point of
+	// delegation from this account. Ref:
+	// https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
+	DelegatedFree []*v1beta12.Coin `protobuf:"bytes,2,rep,name=delegated_free,json=delegatedFree,proto3" json:"delegated_free,omitempty"`
+	// delegated_vesting are coins that were vesting at the point of delegation
+	// from this account. Ref:
+	// https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
+	DelegatedVesting []*v1beta12.Coin `protobuf:"bytes,3,rep,name=delegated_vesting,json=delegatedVesting,proto3" json:"delegated_vesting,omitempty"`
+	// infos is the set of continuous vesting schedules for this account.
+	Infos []*VestingInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
 	// account_owner is the Ethereum address that owns and controls this account.
 	AccountOwner string `protobuf:"bytes,5,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
 }

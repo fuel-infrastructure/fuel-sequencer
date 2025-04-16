@@ -40,6 +40,8 @@ message EthOwnedContinuousVestingAccount {
   string account_owner = 2;
 }
 
+// VestingInfo signifies the start and end of continuous vesting for an amount
+// of coins.
 message VestingInfo {
 
   repeated cosmos.base.v1beta1.Coin original_vesting = 1 [
@@ -66,6 +68,9 @@ message EthOwnedMultiContinuousVestingAccount {
 
   cosmos.auth.v1beta1.BaseAccount base_account = 1 [ (gogoproto.embed) = true ];
 
+  // delegated_free are coins that were free or vested at the point of
+  // delegation from this account. Ref:
+  // https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
   repeated cosmos.base.v1beta1.Coin delegated_free = 2 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
@@ -73,6 +78,9 @@ message EthOwnedMultiContinuousVestingAccount {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
+  // delegated_vesting are coins that were vesting at the point of delegation
+  // from this account. Ref:
+  // https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
   repeated cosmos.base.v1beta1.Coin delegated_vesting = 3 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
@@ -80,6 +88,7 @@ message EthOwnedMultiContinuousVestingAccount {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
+  // infos is the set of continuous vesting schedules for this account.
   repeated VestingInfo infos = 4;
 
   // account_owner is the Ethereum address that owns and controls this account.
