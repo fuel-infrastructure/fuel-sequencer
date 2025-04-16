@@ -4,64 +4,23 @@ import (
 	"context"
 	"testing"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	sdkstore "cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/mock"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	testmock "github.com/fuel-infrastructure/fuel-sequencer/testutil/mock"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+
+	testkeeper "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 )
 
 const (
 	testAuthority = "fuelsequencer1w8rk2mk84wytpxx7ld63kaqpkhmd39m05xlgt4"
 )
 
-func setupMsgBurnCoins(t *testing.T) (keeper.Keeper, context.Context, *testmock.MockAccountKeeper, *testmock.MockBankKeeper) {
-	storeKey := storetypes.NewKVStoreKey(bondtypes.StoreKey)
-	db := dbm.NewMemDB()
-	stateStore := sdkstore.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	require.NoError(t, stateStore.LoadLatestVersion())
-
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-	storeService := runtime.NewKVStoreService(storeKey)
-	logger := log.NewNopLogger()
-
-	mockAccountKeeper := testmock.NewMockAccountKeeper(t)
-	mockBankKeeper := testmock.NewMockBankKeeper(t)
-
-	// Setup AddressCodec mock
-	mockAccountKeeper.On("AddressCodec").Return(sdkAddressCodec.NewBech32Codec("fuelsequencer"))
-
-	k := keeper.NewKeeper(
-		cdc,
-		storeService,
-		logger,
-		testAuthority,
-		mockAccountKeeper,
-		mockBankKeeper,
-	)
-
-	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, logger)
-	return k, ctx, mockAccountKeeper, mockBankKeeper
-}
-
 func TestMsgBurnCoins(t *testing.T) {
-	k, ctx, _, mockBankKeeper := setupMsgBurnCoins(t)
-
 	// Test coins
 	testCoins := sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(100)))
 	multiDenomCoins := sdk.NewCoins(
@@ -74,7 +33,7 @@ func TestMsgBurnCoins(t *testing.T) {
 		name   string
 		msg    *bondtypes.MsgBurnCoins
 		expErr bool
-		setup  func()
+		setup  func(*testing.T, *gomock.Controller) (*keeper.Keeper, context.Context)
 	}{
 		{
 			name: "successful burn single denom",
@@ -83,9 +42,12 @@ func TestMsgBurnCoins(t *testing.T) {
 				Coins:  testCoins,
 			},
 			expErr: false,
-			setup: func() {
-				mockBankKeeper.On("SendCoinsFromAccountToModule", mock.Anything, mock.Anything, bondtypes.ModuleName, testCoins).Return(nil)
-				mockBankKeeper.On("BurnCoins", mock.Anything, bondtypes.ModuleName, testCoins).Return(nil)
+			setup: func(t *testing.T, ctrl *gomock.Controller) (*keeper.Keeper, context.Context) {
+				k, ctx, _, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+				mockAccountKeeper.EXPECT().AddressCodec().Return(sdkAddressCodec.NewBech32Codec("fuelsequencer")).Times(1)
+				mockBankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), bondtypes.ModuleName, testCoins).Return(nil)
+				mockBankKeeper.EXPECT().BurnCoins(gomock.Any(), bondtypes.ModuleName, testCoins).Return(nil)
+				return &k, ctx
 			},
 		},
 		{
@@ -95,9 +57,12 @@ func TestMsgBurnCoins(t *testing.T) {
 				Coins:  multiDenomCoins,
 			},
 			expErr: false,
-			setup: func() {
-				mockBankKeeper.On("SendCoinsFromAccountToModule", mock.Anything, mock.Anything, bondtypes.ModuleName, multiDenomCoins).Return(nil)
-				mockBankKeeper.On("BurnCoins", mock.Anything, bondtypes.ModuleName, multiDenomCoins).Return(nil)
+			setup: func(t *testing.T, ctrl *gomock.Controller) (*keeper.Keeper, context.Context) {
+				k, ctx, _, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+				mockAccountKeeper.EXPECT().AddressCodec().Return(sdkAddressCodec.NewBech32Codec("fuelsequencer")).Times(1)
+				mockBankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), bondtypes.ModuleName, multiDenomCoins).Return(nil)
+				mockBankKeeper.EXPECT().BurnCoins(gomock.Any(), bondtypes.ModuleName, multiDenomCoins).Return(nil)
+				return &k, ctx
 			},
 		},
 		{
@@ -107,7 +72,11 @@ func TestMsgBurnCoins(t *testing.T) {
 				Coins:  testCoins,
 			},
 			expErr: true,
-			setup:  func() {},
+			setup: func(t *testing.T, ctrl *gomock.Controller) (*keeper.Keeper, context.Context) {
+				k, ctx, _, mockAccountKeeper, _ := testkeeper.BondKeeperWithDependencies(t)
+				mockAccountKeeper.EXPECT().AddressCodec().Return(sdkAddressCodec.NewBech32Codec("fuelsequencer")).Times(1)
+				return &k, ctx
+			},
 		},
 		{
 			name: "zero coins",
@@ -116,22 +85,26 @@ func TestMsgBurnCoins(t *testing.T) {
 				Coins:  sdk.NewCoins(),
 			},
 			expErr: true,
-			setup:  func() {},
+			setup: func(t *testing.T, ctrl *gomock.Controller) (*keeper.Keeper, context.Context) {
+				k, ctx := testkeeper.BondKeeper(t)
+				return &k, ctx
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockBankKeeper.ExpectedCalls = nil // Reset mock expectations for each test case
-			tc.setup()
-			msgServer := keeper.NewMsgServerImpl(k)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			k, ctx := tc.setup(t, ctrl)
+			msgServer := keeper.NewMsgServerImpl(*k)
 			_, err := msgServer.BurnCoins(ctx, tc.msg)
 
 			if tc.expErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				mockBankKeeper.AssertExpectations(t)
 			}
 		})
 	}

@@ -11,10 +11,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/mock"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
@@ -30,8 +31,10 @@ func TestKeeperErrors(t *testing.T) {
 	cdc := codec.NewProtoCodec(registry)
 	storeService := runtime.NewKVStoreService(storeKey)
 	logger := log.NewNopLogger()
-	accountKeeper := mock.NewMockAccountKeeper(t)
-	bankKeeper := mock.NewMockBankKeeper(t)
+
+	ctrl := gomock.NewController(t)
+	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
+	bankKeeper := testutil.NewMockBankKeeper(ctrl)
 
 	// Test cases
 	tests := []struct {

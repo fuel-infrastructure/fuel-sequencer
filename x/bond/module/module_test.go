@@ -86,7 +86,7 @@ func TestAppModuleBasic(t *testing.T) {
 }
 
 func TestAppModule_InitExportGenesis(t *testing.T) {
-	k, ctx, cdc := testkeeper.BondKeeperWithCodec(t)
+	k, ctx, cdc, _, _ := testkeeper.BondKeeperWithDependencies(t)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

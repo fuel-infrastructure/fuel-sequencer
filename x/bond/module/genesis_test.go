@@ -12,7 +12,7 @@ import (
 
 func TestGenesis(t *testing.T) {
 	// Create test dependencies
-	k, ctx, cdc := keeper.BondKeeperWithCodec(t)
+	k, ctx, cdc, _, _ := keeper.BondKeeperWithDependencies(t)
 
 	// Create test module
 	appModule := bond.NewAppModule(

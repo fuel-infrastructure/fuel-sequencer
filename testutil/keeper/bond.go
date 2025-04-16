@@ -15,18 +15,26 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
 func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
-	k, ctx, _ := BondKeeperWithCodec(t)
+	k, ctx, _, _, _ := BondKeeperWithDependencies(t)
 	return k, ctx
 }
 
-func BondKeeperWithCodec(t testing.TB) (keeper.Keeper, sdk.Context, codec.Codec) {
+func BondKeeperWithDependencies(t testing.TB) (
+	keeper.Keeper,
+	sdk.Context,
+	codec.Codec,
+	*testutil.MockAccountKeeper,
+	*testutil.MockBankKeeper,
+) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -39,10 +47,11 @@ func BondKeeperWithCodec(t testing.TB) (keeper.Keeper, sdk.Context, codec.Codec)
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	logger := log.NewNopLogger()
 
-	var accountKeeper types.AccountKeeper = nil
-	// for mock: mock.NewMockAccountKeeper(t)
-	var bankKeeper types.BankKeeper = nil
-	// for mock: mock.NewMockBankKeeper(t)
+	// var accountKeeper types.AccountKeeper = nil
+	// var bankKeeper types.BankKeeper = nil
+	ctrl := gomock.NewController(t)
+	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
+	bankKeeper := testutil.NewMockBankKeeper(ctrl)
 
 	k := keeper.NewKeeper(
 		cdc,
@@ -59,5 +68,5 @@ func BondKeeperWithCodec(t testing.TB) (keeper.Keeper, sdk.Context, codec.Codec)
 	//nolint:errcheck
 	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
 
-	return k, ctx, cdc
+	return k, ctx, cdc, accountKeeper, bankKeeper
 }
