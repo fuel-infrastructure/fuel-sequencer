@@ -2679,8 +2679,10 @@ func (x *VestingInfo) GetEndTime() int64 {
 	return 0
 }
 
-// An EthOwnedContinuousVestingAccount wraps a list of ContinuousVestingAccount
-// that is known to be owned and controlled by an Ethereum address.
+// An EthOwnedMultiContinuousVestingAccount is an account with multiple
+// continuous vesting schedules. In practice, this account gets created when
+// there is a deposit into an EthOwnedContinuousVestingAccount that has
+// different start and end times.
 type EthOwnedMultiContinuousVestingAccount struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
