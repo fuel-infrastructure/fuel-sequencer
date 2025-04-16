@@ -12,6 +12,9 @@ import (
 type AccountKeeper interface {
 	// AddressCodec returns the account address codec.
 	AddressCodec() address.Codec
+
+	// GetModuleAccount returns the module account for the given module name.
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 }
 
 // BankKeeper defines the expected interface for the Bank module.

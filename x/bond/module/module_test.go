@@ -15,6 +15,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang/mock/gomock"
 	grpcgateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
@@ -85,13 +86,8 @@ func TestAppModuleBasic(t *testing.T) {
 	appModule.RegisterGRPCGatewayRoutes(clientCtx, mux)
 }
 
-func TestAppModule_InitExportGenesis(t *testing.T) {
-	k, ctx, cdc, _, _ := testkeeper.BondKeeperWithDependencies(t)
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockAccountKeeper := testutil.NewMockAccountKeeper(ctrl)
-	mockBankKeeper := testutil.NewMockBankKeeper(ctrl)
+func TestAppModule_InitGenesis_ModuleAccountMissing(t *testing.T) {
+	k, ctx, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
 
 	appModule := bond.NewAppModule(
 		cdc,
@@ -100,12 +96,47 @@ func TestAppModule_InitExportGenesis(t *testing.T) {
 		mockBankKeeper,
 	)
 
+	// Expect module account to be retrieved during genesis
+	mockAccountKeeper.EXPECT().
+		GetModuleAccount(gomock.Any(), types.ModuleName).
+		Return(nil).
+		Times(1)
+
 	// Test InitGenesis
 	genesisState := types.DefaultGenesis()
 	genJSON, err := json.Marshal(genesisState)
 	require.NoError(t, err)
 
-	appModule.InitGenesis(ctx, cdc, genJSON)
+	// This should panic since we returned nil for the module account
+	require.Panics(t, func() {
+		appModule.InitGenesis(ctx, cdc, genJSON)
+	}, "should panic when module account is not found")
+}
+
+func TestAppModule_InitExportGenesis(t *testing.T) {
+	k, ctx, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	// Create a mock module account
+	mockModuleAccount := authtypes.NewEmptyModuleAccount(types.ModuleName)
+	mockAccountKeeper.EXPECT().
+		GetModuleAccount(gomock.Any(), types.ModuleName).
+		Return(mockModuleAccount).
+		Times(1)
+
+	// Test InitGenesis
+	genesisState := types.DefaultGenesis()
+	genJSON, err := json.Marshal(genesisState)
+	require.NoError(t, err)
+
+	// This should not panic
+	require.NotPanics(t, func() { appModule.InitGenesis(ctx, cdc, genJSON) })
 
 	// Test ExportGenesis
 	exported := appModule.ExportGenesis(ctx, cdc)
