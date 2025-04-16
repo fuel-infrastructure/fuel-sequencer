@@ -43,7 +43,6 @@ func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 	years1 := time.Hour * 24 * 365
 	years2 := years1 * 2
 	years3 := years1 * 3
-	//years100 := years1 * 100
 	months6 := (time.Hour * 24 * 365) / 2
 
 	// Helper times.
