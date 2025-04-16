@@ -31,7 +31,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		sdkmath.LegacyZeroDec(),
-		"", // Set to governance module account in ProvideModule
+		"", // intentionally invalid to encourage explicit authority setting
 	)
 }
 
