@@ -66,18 +66,18 @@ func (mr *MockAccountKeeperMockRecorder) GetAccount(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetAccount), arg0, arg1)
 }
 
-// GetModuleAddress mocks base method.
-func (m *MockAccountKeeper) GetModuleAddress(name string) types.AccAddress {
+// GetModuleAccount mocks base method.
+func (m *MockAccountKeeper) GetModuleAccount(ctx context.Context, moduleName string) types.ModuleAccountI {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetModuleAddress", name)
-	ret0, _ := ret[0].(types.AccAddress)
+	ret := m.ctrl.Call(m, "GetModuleAccount", ctx, moduleName)
+	ret0, _ := ret[0].(types.ModuleAccountI)
 	return ret0
 }
 
-// GetModuleAddress indicates an expected call of GetModuleAddress.
-func (mr *MockAccountKeeperMockRecorder) GetModuleAddress(name interface{}) *gomock.Call {
+// GetModuleAccount indicates an expected call of GetModuleAccount.
+func (mr *MockAccountKeeperMockRecorder) GetModuleAccount(ctx, moduleName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetModuleAddress", reflect.TypeOf((*MockAccountKeeper)(nil).GetModuleAddress), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetModuleAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetModuleAccount), ctx, moduleName)
 }
 
 // GetModulePermissions mocks base method.
