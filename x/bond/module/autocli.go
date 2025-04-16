@@ -33,7 +33,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:            "burn-coins [amount]",
 					Short:          "Burn coins from the sender's account",
 					Long:           "Burn coins from the sender's account. The amount must be a valid coin amount (e.g. 100fuel).",
-					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "amount"}},
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "coins"}},
 				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
