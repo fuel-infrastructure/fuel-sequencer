@@ -30,8 +30,8 @@ func (s *KeeperTestSuite) TestGenerateSequencerAddressFromEthereumAddress() {
 
 func (s *KeeperTestSuite) TestGenerateSequencerAccountFromEthereumDeposit() {
 
-	// The first account number depends on the number of module accounts created.
-	firstAccNumber := uint64(len(s.App.AccountKeeper.GetModulePermissions()))
+	// First account number depends on the number of accounts already created.
+	firstAccNumber := uint64(len(s.App.AccountKeeper.GetAllAccounts(s.Ctx())))
 
 	seqAddr1BaseAcc := &authtypes.BaseAccount{
 		Address:       testutiltypes.TestSeqAddr1Str,
