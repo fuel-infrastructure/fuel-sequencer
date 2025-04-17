@@ -1609,7 +1609,7 @@ func (x *fastReflection_VestingInfo) ProtoMethods() *protoiface.Methods {
 var _ protoreflect.List = (*_EthOwnedMultiContinuousVestingAccount_2_list)(nil)
 
 type _EthOwnedMultiContinuousVestingAccount_2_list struct {
-	list *[]*v1beta12.Coin
+	list *[]*VestingInfo
 }
 
 func (x *_EthOwnedMultiContinuousVestingAccount_2_list) Len() int {
@@ -1625,18 +1625,18 @@ func (x *_EthOwnedMultiContinuousVestingAccount_2_list) Get(i int) protoreflect.
 
 func (x *_EthOwnedMultiContinuousVestingAccount_2_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta12.Coin)
+	concreteValue := valueUnwrapped.Interface().(*VestingInfo)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_EthOwnedMultiContinuousVestingAccount_2_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta12.Coin)
+	concreteValue := valueUnwrapped.Interface().(*VestingInfo)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_EthOwnedMultiContinuousVestingAccount_2_list) AppendMutable() protoreflect.Value {
-	v := new(v1beta12.Coin)
+	v := new(VestingInfo)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -1649,7 +1649,7 @@ func (x *_EthOwnedMultiContinuousVestingAccount_2_list) Truncate(n int) {
 }
 
 func (x *_EthOwnedMultiContinuousVestingAccount_2_list) NewElement() protoreflect.Value {
-	v := new(v1beta12.Coin)
+	v := new(VestingInfo)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -1657,123 +1657,17 @@ func (x *_EthOwnedMultiContinuousVestingAccount_2_list) IsValid() bool {
 	return x.list != nil
 }
 
-var _ protoreflect.List = (*_EthOwnedMultiContinuousVestingAccount_3_list)(nil)
-
-type _EthOwnedMultiContinuousVestingAccount_3_list struct {
-	list *[]*v1beta12.Coin
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta12.Coin)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta12.Coin)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) AppendMutable() protoreflect.Value {
-	v := new(v1beta12.Coin)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) NewElement() protoreflect.Value {
-	v := new(v1beta12.Coin)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_3_list) IsValid() bool {
-	return x.list != nil
-}
-
-var _ protoreflect.List = (*_EthOwnedMultiContinuousVestingAccount_4_list)(nil)
-
-type _EthOwnedMultiContinuousVestingAccount_4_list struct {
-	list *[]*VestingInfo
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*VestingInfo)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*VestingInfo)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) AppendMutable() protoreflect.Value {
-	v := new(VestingInfo)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) NewElement() protoreflect.Value {
-	v := new(VestingInfo)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_EthOwnedMultiContinuousVestingAccount_4_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
-	md_EthOwnedMultiContinuousVestingAccount                   protoreflect.MessageDescriptor
-	fd_EthOwnedMultiContinuousVestingAccount_base_account      protoreflect.FieldDescriptor
-	fd_EthOwnedMultiContinuousVestingAccount_delegated_free    protoreflect.FieldDescriptor
-	fd_EthOwnedMultiContinuousVestingAccount_delegated_vesting protoreflect.FieldDescriptor
-	fd_EthOwnedMultiContinuousVestingAccount_infos             protoreflect.FieldDescriptor
-	fd_EthOwnedMultiContinuousVestingAccount_account_owner     protoreflect.FieldDescriptor
+	md_EthOwnedMultiContinuousVestingAccount               protoreflect.MessageDescriptor
+	fd_EthOwnedMultiContinuousVestingAccount_base_account  protoreflect.FieldDescriptor
+	fd_EthOwnedMultiContinuousVestingAccount_infos         protoreflect.FieldDescriptor
+	fd_EthOwnedMultiContinuousVestingAccount_account_owner protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bridge_accounts_proto_init()
 	md_EthOwnedMultiContinuousVestingAccount = File_fuelsequencer_bridge_accounts_proto.Messages().ByName("EthOwnedMultiContinuousVestingAccount")
 	fd_EthOwnedMultiContinuousVestingAccount_base_account = md_EthOwnedMultiContinuousVestingAccount.Fields().ByName("base_account")
-	fd_EthOwnedMultiContinuousVestingAccount_delegated_free = md_EthOwnedMultiContinuousVestingAccount.Fields().ByName("delegated_free")
-	fd_EthOwnedMultiContinuousVestingAccount_delegated_vesting = md_EthOwnedMultiContinuousVestingAccount.Fields().ByName("delegated_vesting")
 	fd_EthOwnedMultiContinuousVestingAccount_infos = md_EthOwnedMultiContinuousVestingAccount.Fields().ByName("infos")
 	fd_EthOwnedMultiContinuousVestingAccount_account_owner = md_EthOwnedMultiContinuousVestingAccount.Fields().ByName("account_owner")
 }
@@ -1849,20 +1743,8 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) Range(f func(prot
 			return
 		}
 	}
-	if len(x.DelegatedFree) != 0 {
-		value := protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_2_list{list: &x.DelegatedFree})
-		if !f(fd_EthOwnedMultiContinuousVestingAccount_delegated_free, value) {
-			return
-		}
-	}
-	if len(x.DelegatedVesting) != 0 {
-		value := protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_3_list{list: &x.DelegatedVesting})
-		if !f(fd_EthOwnedMultiContinuousVestingAccount_delegated_vesting, value) {
-			return
-		}
-	}
 	if len(x.Infos) != 0 {
-		value := protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_4_list{list: &x.Infos})
+		value := protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_2_list{list: &x.Infos})
 		if !f(fd_EthOwnedMultiContinuousVestingAccount_infos, value) {
 			return
 		}
@@ -1890,10 +1772,6 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) Has(fd protorefle
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.base_account":
 		return x.BaseAccount != nil
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free":
-		return len(x.DelegatedFree) != 0
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting":
-		return len(x.DelegatedVesting) != 0
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos":
 		return len(x.Infos) != 0
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.account_owner":
@@ -1916,10 +1794,6 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) Clear(fd protoref
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.base_account":
 		x.BaseAccount = nil
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free":
-		x.DelegatedFree = nil
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting":
-		x.DelegatedVesting = nil
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos":
 		x.Infos = nil
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.account_owner":
@@ -1943,23 +1817,11 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) Get(descriptor pr
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.base_account":
 		value := x.BaseAccount
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free":
-		if len(x.DelegatedFree) == 0 {
-			return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_2_list{})
-		}
-		listValue := &_EthOwnedMultiContinuousVestingAccount_2_list{list: &x.DelegatedFree}
-		return protoreflect.ValueOfList(listValue)
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting":
-		if len(x.DelegatedVesting) == 0 {
-			return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_3_list{})
-		}
-		listValue := &_EthOwnedMultiContinuousVestingAccount_3_list{list: &x.DelegatedVesting}
-		return protoreflect.ValueOfList(listValue)
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos":
 		if len(x.Infos) == 0 {
-			return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_4_list{})
+			return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_2_list{})
 		}
-		listValue := &_EthOwnedMultiContinuousVestingAccount_4_list{list: &x.Infos}
+		listValue := &_EthOwnedMultiContinuousVestingAccount_2_list{list: &x.Infos}
 		return protoreflect.ValueOfList(listValue)
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.account_owner":
 		value := x.AccountOwner
@@ -1986,17 +1848,9 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) Set(fd protorefle
 	switch fd.FullName() {
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.base_account":
 		x.BaseAccount = value.Message().Interface().(*v1beta1.BaseAccount)
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free":
-		lv := value.List()
-		clv := lv.(*_EthOwnedMultiContinuousVestingAccount_2_list)
-		x.DelegatedFree = *clv.list
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting":
-		lv := value.List()
-		clv := lv.(*_EthOwnedMultiContinuousVestingAccount_3_list)
-		x.DelegatedVesting = *clv.list
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos":
 		lv := value.List()
-		clv := lv.(*_EthOwnedMultiContinuousVestingAccount_4_list)
+		clv := lv.(*_EthOwnedMultiContinuousVestingAccount_2_list)
 		x.Infos = *clv.list
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.account_owner":
 		x.AccountOwner = value.Interface().(string)
@@ -2025,23 +1879,11 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) Mutable(fd protor
 			x.BaseAccount = new(v1beta1.BaseAccount)
 		}
 		return protoreflect.ValueOfMessage(x.BaseAccount.ProtoReflect())
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free":
-		if x.DelegatedFree == nil {
-			x.DelegatedFree = []*v1beta12.Coin{}
-		}
-		value := &_EthOwnedMultiContinuousVestingAccount_2_list{list: &x.DelegatedFree}
-		return protoreflect.ValueOfList(value)
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting":
-		if x.DelegatedVesting == nil {
-			x.DelegatedVesting = []*v1beta12.Coin{}
-		}
-		value := &_EthOwnedMultiContinuousVestingAccount_3_list{list: &x.DelegatedVesting}
-		return protoreflect.ValueOfList(value)
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos":
 		if x.Infos == nil {
 			x.Infos = []*VestingInfo{}
 		}
-		value := &_EthOwnedMultiContinuousVestingAccount_4_list{list: &x.Infos}
+		value := &_EthOwnedMultiContinuousVestingAccount_2_list{list: &x.Infos}
 		return protoreflect.ValueOfList(value)
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.account_owner":
 		panic(fmt.Errorf("field account_owner of message fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount is not mutable"))
@@ -2061,15 +1903,9 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) NewField(fd proto
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.base_account":
 		m := new(v1beta1.BaseAccount)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free":
-		list := []*v1beta12.Coin{}
-		return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_2_list{list: &list})
-	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting":
-		list := []*v1beta12.Coin{}
-		return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_3_list{list: &list})
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos":
 		list := []*VestingInfo{}
-		return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_4_list{list: &list})
+		return protoreflect.ValueOfList(&_EthOwnedMultiContinuousVestingAccount_2_list{list: &list})
 	case "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.account_owner":
 		return protoreflect.ValueOfString("")
 	default:
@@ -2145,18 +1981,6 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) ProtoMethods() *p
 			l = options.Size(x.BaseAccount)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if len(x.DelegatedFree) > 0 {
-			for _, e := range x.DelegatedFree {
-				l = options.Size(e)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
-		if len(x.DelegatedVesting) > 0 {
-			for _, e := range x.DelegatedVesting {
-				l = options.Size(e)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
 		if len(x.Infos) > 0 {
 			for _, e := range x.Infos {
 				l = options.Size(e)
@@ -2201,43 +2025,11 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) ProtoMethods() *p
 			copy(dAtA[i:], x.AccountOwner)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.AccountOwner)))
 			i--
-			dAtA[i] = 0x2a
+			dAtA[i] = 0x1a
 		}
 		if len(x.Infos) > 0 {
 			for iNdEx := len(x.Infos) - 1; iNdEx >= 0; iNdEx-- {
 				encoded, err := options.Marshal(x.Infos[iNdEx])
-				if err != nil {
-					return protoiface.MarshalOutput{
-						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-						Buf:               input.Buf,
-					}, err
-				}
-				i -= len(encoded)
-				copy(dAtA[i:], encoded)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-				i--
-				dAtA[i] = 0x22
-			}
-		}
-		if len(x.DelegatedVesting) > 0 {
-			for iNdEx := len(x.DelegatedVesting) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.DelegatedVesting[iNdEx])
-				if err != nil {
-					return protoiface.MarshalOutput{
-						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-						Buf:               input.Buf,
-					}, err
-				}
-				i -= len(encoded)
-				copy(dAtA[i:], encoded)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-				i--
-				dAtA[i] = 0x1a
-			}
-		}
-		if len(x.DelegatedFree) > 0 {
-			for iNdEx := len(x.DelegatedFree) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.DelegatedFree[iNdEx])
 				if err != nil {
 					return protoiface.MarshalOutput{
 						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2352,74 +2144,6 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) ProtoMethods() *p
 				iNdEx = postIndex
 			case 2:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatedFree", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.DelegatedFree = append(x.DelegatedFree, &v1beta12.Coin{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatedFree[len(x.DelegatedFree)-1]); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
-			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DelegatedVesting", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.DelegatedVesting = append(x.DelegatedVesting, &v1beta12.Coin{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.DelegatedVesting[len(x.DelegatedVesting)-1]); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
-			case 4:
-				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Infos", wireType)
 				}
 				var msglen int
@@ -2452,7 +2176,7 @@ func (x *fastReflection_EthOwnedMultiContinuousVestingAccount) ProtoMethods() *p
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 5:
+			case 3:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field AccountOwner", wireType)
 				}
@@ -2689,18 +2413,10 @@ type EthOwnedMultiContinuousVestingAccount struct {
 	unknownFields protoimpl.UnknownFields
 
 	BaseAccount *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
-	// delegated_free are coins that were free or vested at the point of
-	// delegation from this account. Ref:
-	// https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
-	DelegatedFree []*v1beta12.Coin `protobuf:"bytes,2,rep,name=delegated_free,json=delegatedFree,proto3" json:"delegated_free,omitempty"`
-	// delegated_vesting are coins that were vesting at the point of delegation
-	// from this account. Ref:
-	// https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/proto/cosmos/vesting/v1beta1/vesting.proto#L24-L29
-	DelegatedVesting []*v1beta12.Coin `protobuf:"bytes,3,rep,name=delegated_vesting,json=delegatedVesting,proto3" json:"delegated_vesting,omitempty"`
 	// infos is the set of continuous vesting schedules for this account.
-	Infos []*VestingInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	Infos []*VestingInfo `protobuf:"bytes,2,rep,name=infos,proto3" json:"infos,omitempty"`
 	// account_owner is the Ethereum address that owns and controls this account.
-	AccountOwner string `protobuf:"bytes,5,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
+	AccountOwner string `protobuf:"bytes,3,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
 }
 
 func (x *EthOwnedMultiContinuousVestingAccount) Reset() {
@@ -2726,20 +2442,6 @@ func (*EthOwnedMultiContinuousVestingAccount) Descriptor() ([]byte, []int) {
 func (x *EthOwnedMultiContinuousVestingAccount) GetBaseAccount() *v1beta1.BaseAccount {
 	if x != nil {
 		return x.BaseAccount
-	}
-	return nil
-}
-
-func (x *EthOwnedMultiContinuousVestingAccount) GetDelegatedFree() []*v1beta12.Coin {
-	if x != nil {
-		return x.DelegatedFree
-	}
-	return nil
-}
-
-func (x *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() []*v1beta12.Coin {
-	if x != nil {
-		return x.DelegatedVesting
 	}
 	return nil
 }
@@ -2814,58 +2516,41 @@ var file_fuelsequencer_bridge_accounts_proto_rawDesc = []byte{
 	0x0a, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
 	0x03, 0x52, 0x09, 0x73, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x19, 0x0a, 0x08,
 	0x65, 0x6e, 0x64, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07,
-	0x65, 0x6e, 0x64, 0x54, 0x69, 0x6d, 0x65, 0x22, 0xc8, 0x04, 0x0a, 0x25, 0x45, 0x74, 0x68, 0x4f,
+	0x65, 0x6e, 0x64, 0x54, 0x69, 0x6d, 0x65, 0x22, 0xac, 0x02, 0x0a, 0x25, 0x45, 0x74, 0x68, 0x4f,
 	0x77, 0x6e, 0x65, 0x64, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x43, 0x6f, 0x6e, 0x74, 0x69, 0x6e, 0x75,
 	0x6f, 0x75, 0x73, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e,
 	0x74, 0x12, 0x49, 0x0a, 0x0c, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e,
 	0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
 	0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x42, 0x61,
 	0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x04, 0xd0, 0xde, 0x1f, 0x01, 0x52,
-	0x0b, 0x62, 0x61, 0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x88, 0x01, 0x0a,
-	0x0e, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x66, 0x72, 0x65, 0x65, 0x18,
-	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62,
-	0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e,
-	0x42, 0x46, 0xc8, 0xde, 0x1f, 0x00, 0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f, 0x73, 0x6d,
-	0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x69,
-	0x6e, 0x73, 0x9a, 0xe7, 0xb0, 0x2a, 0x0c, 0x6c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x5f, 0x63, 0x6f,
-	0x69, 0x6e, 0x73, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0d, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61,
-	0x74, 0x65, 0x64, 0x46, 0x72, 0x65, 0x65, 0x12, 0x8e, 0x01, 0x0a, 0x11, 0x64, 0x65, 0x6c, 0x65,
-	0x67, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73,
-	0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x46,
-	0xc8, 0xde, 0x1f, 0x00, 0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
-	0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
-	0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x73,
-	0x9a, 0xe7, 0xb0, 0x2a, 0x0c, 0x6c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x5f, 0x63, 0x6f, 0x69, 0x6e,
-	0x73, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x10, 0x64, 0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x65,
-	0x64, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x12, 0x37, 0x0a, 0x05, 0x69, 0x6e, 0x66, 0x6f,
-	0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x56,
-	0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x05, 0x69, 0x6e, 0x66, 0x6f,
-	0x73, 0x12, 0x23, 0x0a, 0x0d, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x6f, 0x77, 0x6e,
-	0x65, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e,
-	0x74, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x3a, 0x5a, 0x88, 0xa0, 0x1f, 0x00, 0x98, 0xa0, 0x1f, 0x00,
-	0xca, 0xb4, 0x2d, 0x25, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x45, 0x74, 0x68, 0x4f, 0x77, 0x6e, 0x65,
-	0x64, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0xca, 0xb4, 0x2d, 0x25, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x2e, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x41, 0x63, 0x63, 0x6f, 0x75,
-	0x6e, 0x74, 0x42, 0xe2, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73,
-	0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x42,
-	0x0d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01,
-	0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65,
-	0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65,
-	0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02,
-	0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xe2, 0x02, 0x20, 0x46,
-	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69,
-	0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
-	0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a,
-	0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x0b, 0x62, 0x61, 0x73, 0x65, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x37, 0x0a, 0x05,
+	0x69, 0x6e, 0x66, 0x6f, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x66, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64,
+	0x67, 0x65, 0x2e, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x05,
+	0x69, 0x6e, 0x66, 0x6f, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74,
+	0x5f, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x61, 0x63,
+	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x3a, 0x5a, 0x88, 0xa0, 0x1f, 0x00,
+	0x98, 0xa0, 0x1f, 0x00, 0xca, 0xb4, 0x2d, 0x25, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2e, 0x45, 0x74, 0x68,
+	0x4f, 0x77, 0x6e, 0x65, 0x64, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0xca, 0xb4, 0x2d,
+	0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x76, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x56, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x41,
+	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0xe2, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x66,
+	0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x72, 0x69,
+	0x64, 0x67, 0x65, 0x42, 0x0d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x73, 0x50, 0x72, 0x6f,
+	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x46, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63,
+	0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0xa2, 0x02, 0x03, 0x46,
+	0x42, 0x58, 0xaa, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0xca, 0x02, 0x14, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0xe2, 0x02, 0x20, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
+	0x5c, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0xea, 0x02, 0x15, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2895,14 +2580,12 @@ var file_fuelsequencer_bridge_accounts_proto_depIdxs = []int32{
 	5, // 1: fuelsequencer.bridge.EthOwnedContinuousVestingAccount.vesting_account:type_name -> cosmos.vesting.v1beta1.ContinuousVestingAccount
 	6, // 2: fuelsequencer.bridge.VestingInfo.original_vesting:type_name -> cosmos.base.v1beta1.Coin
 	4, // 3: fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.base_account:type_name -> cosmos.auth.v1beta1.BaseAccount
-	6, // 4: fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_free:type_name -> cosmos.base.v1beta1.Coin
-	6, // 5: fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.delegated_vesting:type_name -> cosmos.base.v1beta1.Coin
-	2, // 6: fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos:type_name -> fuelsequencer.bridge.VestingInfo
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	2, // 4: fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount.infos:type_name -> fuelsequencer.bridge.VestingInfo
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bridge_accounts_proto_init() }

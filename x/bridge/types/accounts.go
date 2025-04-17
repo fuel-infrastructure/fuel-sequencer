@@ -188,7 +188,8 @@ func NewEthOwnedContinuousVestingAccount(
 // ------------------------------------ VestingAccount implementations
 
 // TrackDelegation overrides the ContinuousVestingAccount TrackDelegation (which uses the BaseVestingAccount one) to
-// ensure that the amount being delegated is spendable. The delegated amount is added to the DelegatedFree entry.
+// ensure that the amount being delegated is spendable. Since only spendable (free) coins will ever be delegated, we do
+// not need to keep DelegatedFree and DelegatedVesting up-to-date.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L59
 //
@@ -220,22 +221,25 @@ func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, 
 	if !spendable.IsAllGTE(amount) {
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
 	}
-
-	a.DelegatedFree = a.DelegatedFree.Add(amount...)
 }
 
 // TrackUndelegation overrides the CointinuousVestingAccount TrackUndelegation (which uses the BaseVestingAccount one)
-// to mirror the overridden TrackDelegation function. The undelegated amount is subtracted from the DelegatedFree entry.
+// to mirror the overridden TrackDelegation function. Since we do keep DelegatedFree and DelegatedVesting up-to-date in
+// TrackDelegation, we do not update them here either, so this function is essentially a no-op.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L99
+//
+// It is very important to not subtract from DelegatedFree in particular, because this flow causes a panic:
+// 1. Create EthOwnedBaseAccount by a non-vesting deposit.
+// 2. Delegate some tokens (not a vesting account, so DelegatedFree is not updated).
+// 3. Convert EthOwnedBaseAccount to EthOwnedContinuousVestingAccount by a vesting deposit.
+// 4. Undelegate tokens -> PANIC since we try to subtract from DelegatedFree without having added anything to it.
 func (a *EthOwnedContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 
 	// Sanity check delegation amount - inspired by overridden TrackUndelegation function
 	if !amount.IsAllPositive() {
 		panic(fmt.Sprintf("undelegation attempt with zero amount in coins %s", amount.String()))
 	}
-
-	a.DelegatedFree = a.DelegatedFree.Sub(amount...)
 }
 
 // ------------------------------------ EthOwnedAccountI implementations
@@ -248,9 +252,12 @@ func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, star
 	if a.StartTime == startTime.Unix() && a.EndTime == endTime.Unix() {
 		a.OriginalVesting = a.OriginalVesting.Add(coins...)
 	} else {
+		// Note: DelegatedFree and DelegatedVesting values are discarded because they are not important.
+		// - DelegatedFree is not used anywhere.
+		// - DelegatedVesting is assumed to be 0 because vesting tokens cannot be delegated.
 		vestingInfos := []*VestingInfo{NewVestingInfo(a.OriginalVesting, a.StartTime, a.EndTime)}
-		multiVestingAcc := NewEthOwnedMultiContinuousVestingAccountWithDelegation(
-			a.BaseAccount, vestingInfos, a.DelegatedFree, a.DelegatedVesting, a.AccountOwner,
+		multiVestingAcc := NewEthOwnedMultiContinuousVestingAccount(
+			a.BaseAccount, vestingInfos, a.AccountOwner,
 		)
 		return multiVestingAcc.AddVestingCoins(coins, startTime, endTime)
 	}
@@ -357,27 +364,9 @@ func NewEthOwnedMultiContinuousVestingAccount(
 	owner string,
 ) *EthOwnedMultiContinuousVestingAccount {
 	return &EthOwnedMultiContinuousVestingAccount{
-		BaseAccount:      baseAccount,
-		Infos:            infos,
-		DelegatedFree:    nil,
-		DelegatedVesting: nil,
-		AccountOwner:     owner,
-	}
-}
-
-func NewEthOwnedMultiContinuousVestingAccountWithDelegation(
-	baseAccount *authtypes.BaseAccount,
-	infos []*VestingInfo,
-	delegatedFree sdk.Coins,
-	delegatedVesting sdk.Coins,
-	owner string,
-) *EthOwnedMultiContinuousVestingAccount {
-	return &EthOwnedMultiContinuousVestingAccount{
-		BaseAccount:      baseAccount,
-		Infos:            infos,
-		DelegatedFree:    delegatedFree,
-		DelegatedVesting: delegatedVesting,
-		AccountOwner:     owner,
+		BaseAccount:  baseAccount,
+		Infos:        infos,
+		AccountOwner: owner,
 	}
 }
 
@@ -386,7 +375,7 @@ func NewEthOwnedMultiContinuousVestingAccountWithDelegation(
 // LockedCoinsFromVesting is identical to the BaseVestingAccount implementation.
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L45
 func (a *EthOwnedMultiContinuousVestingAccount) LockedCoinsFromVesting(vestingCoins sdk.Coins) sdk.Coins {
-	lockedCoins := vestingCoins.Sub(vestingCoins.Min(a.DelegatedVesting)...)
+	lockedCoins := vestingCoins.Sub(vestingCoins.Min(a.GetDelegatedVesting())...)
 	if lockedCoins == nil {
 		return sdk.Coins{}
 	}
@@ -400,7 +389,8 @@ func (a *EthOwnedMultiContinuousVestingAccount) LockedCoins(blockTime time.Time)
 }
 
 // TrackDelegation implements the VestingAccount interface's TrackDelegation function to ensure that the amount being
-// delegated is spendable. The delegated amount is added to the DelegatedFree entry.
+// delegated is spendable. Since only spendable (free) coins will ever be delegated, we do not need to keep
+// DelegatedFree and DelegatedVesting up-to-date.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L59
 //
@@ -432,22 +422,25 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.T
 	if !spendable.IsAllGTE(amount) {
 		panic(fmt.Sprintf("cannot delegate locked coins; max spendable is %s", spendable.String()))
 	}
-
-	a.DelegatedFree = a.DelegatedFree.Add(amount...)
 }
 
 // TrackUndelegation implements the VestingAccount interface's TrackUndelegation function to mirror the implemented
-// TrackDelegation function. The undelegated amount is subtracted from the DelegatedFree entry.
+// TrackDelegation function. Since we do keep DelegatedFree and DelegatedVesting up-to-date in TrackDelegation, we do
+// not update them here either, so this function is essentially a no-op.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L99
+//
+// It is very important to not subtract from DelegatedFree in particular, because this flow causes a panic:
+// 1. Create EthOwnedBaseAccount by a non-vesting deposit.
+// 2. Delegate some tokens (not a vesting account, so DelegatedFree is not updated).
+// 3. Convert EthOwnedBaseAccount to EthOwnedMultiContinuousVestingAccount by vesting deposits.
+// 4. Undelegate tokens -> PANIC since we try to subtract from DelegatedFree without having added anything to it.
 func (a *EthOwnedMultiContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 
 	// Sanity check delegation amount - inspired by BaseVestingAccount's TrackUndelegation function
 	if !amount.IsAllPositive() {
 		panic(fmt.Sprintf("undelegation attempt with zero amount in coins %s", amount.String()))
 	}
-
-	a.DelegatedFree = a.DelegatedFree.Sub(amount...)
 }
 
 // GetVestedCoins calculates the sum of all vested coins reported by the vesting infos.
@@ -486,11 +479,11 @@ func (a *EthOwnedMultiContinuousVestingAccount) GetOriginalVesting() sdk.Coins {
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedFree() sdk.Coins {
-	return a.DelegatedFree
+	return nil
 }
 
 func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins {
-	return a.DelegatedVesting
+	return nil
 }
 
 // ------------------------------------ EthOwnedAccountI implementations

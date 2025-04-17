@@ -54,16 +54,14 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 	}
 
 	testCases := []struct {
-		name                  string
-		delegatedFreeBefore   sdk.Coins
-		blockTime             time.Time
-		vestingInfos          []*types.VestingInfo
-		balanceAtDelegation   sdk.Coins
-		delegationAmount      sdk.Coins
-		expLockedCoinsBefore  sdk.Coins
-		expDelegatedFreeAfter sdk.Coins
-		expPanic              bool
-		expPanicSpendable     sdk.Coins // spendable value that shows up in the panic message
+		name                 string
+		blockTime            time.Time
+		vestingInfos         []*types.VestingInfo
+		balanceAtDelegation  sdk.Coins
+		delegationAmount     sdk.Coins
+		expLockedCoinsBefore sdk.Coins
+		expPanic             bool
+		expPanicSpendable    sdk.Coins // spendable value that shows up in the panic message
 	}{
 		{
 			name:      "start of vesting; cannot even delegate 1 token; panic",
@@ -85,11 +83,10 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 			},
-			balanceAtDelegation:   originalVesting, // no balance apart from original vesting
-			delegationAmount:      halfVesting,     // delegate half of the vesting
-			expLockedCoinsBefore:  halfVesting,     // half are still vesting
-			expDelegatedFreeAfter: halfVesting,     // half get delegated successfully
-			expPanic:              false,
+			balanceAtDelegation:  originalVesting, // no balance apart from original vesting
+			delegationAmount:     halfVesting,     // delegate half of the vesting
+			expLockedCoinsBefore: halfVesting,     // half are still vesting
+			expPanic:             false,
 		},
 		{
 			name:      "half way through vesting with extra tokens available; successful",
@@ -98,11 +95,10 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 			},
-			balanceAtDelegation:   originalVesting.Add(tenTokens...), // balance has 10 extra tokens
-			delegationAmount:      halfVesting.Add(tenTokens...),     // delegate half of the vesting plus 10
-			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
-			expDelegatedFreeAfter: halfVesting.Add(tenTokens...),     // half plus 10 get delegated successfully
-			expPanic:              false,
+			balanceAtDelegation:  originalVesting.Add(tenTokens...), // balance has 10 extra tokens
+			delegationAmount:     halfVesting.Add(tenTokens...),     // delegate half of the vesting plus 10
+			expLockedCoinsBefore: halfVesting,                       // half are still vesting
+			expPanic:             false,
 		},
 		{
 			name:      "half way through vesting; delegate more than half original vesting; panic",
@@ -124,12 +120,10 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 			},
-			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
-			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
-			delegationAmount:      halfVesting.Sub(tenTokens...),     // delegate half of the vesting minus 10 tokens
-			expLockedCoinsBefore:  halfVesting,                       // half are still vesting
-			expDelegatedFreeAfter: halfVesting,                       // (halfVesting - 10) + 10 = halfVesting
-			expPanic:              false,
+			balanceAtDelegation:  originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
+			delegationAmount:     halfVesting.Sub(tenTokens...),     // delegate half of the vesting minus 10 tokens
+			expLockedCoinsBefore: halfVesting,                       // half are still vesting
+			expPanic:             false,
 		},
 		{
 			name:      "half way through vesting with some tokens already delegated; cannot delegate half original vesting; panic",
@@ -138,7 +132,6 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 			},
-			delegatedFreeBefore:  tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:  originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
 			delegationAmount:     halfVesting,                       // delegate half of the vesting
 			expLockedCoinsBefore: halfVesting,                       // half are still vesting
@@ -152,11 +145,10 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
 			},
-			balanceAtDelegation:   originalVesting, // no balance apart from original vesting
-			delegationAmount:      originalVesting, // delegate all the original vesting
-			expLockedCoinsBefore:  nil,             // all tokens vested
-			expDelegatedFreeAfter: originalVesting, // all tokens delegated successfully
-			expPanic:              false,
+			balanceAtDelegation:  originalVesting, // no balance apart from original vesting
+			delegationAmount:     originalVesting, // delegate all the original vesting
+			expLockedCoinsBefore: nil,             // all tokens vested
+			expPanic:             false,
 		},
 	}
 
@@ -164,7 +156,6 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 		t.Run(tc.name, func(t *testing.T) {
 
 			vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(baseAcc, tc.vestingInfos, owner)
-			vestingAcc.DelegatedFree = tc.delegatedFreeBefore
 
 			// Sanity check locked and vesting coins, which are always expected to be equal
 			require.True(t, vestingAcc.LockedCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
@@ -181,16 +172,8 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 			}
 
-			// Check delegation fields after delegation
-			require.True(t, vestingAcc.GetDelegatedFree().Equal(tc.expDelegatedFreeAfter))
-			require.True(t, vestingAcc.GetDelegatedVesting().IsZero()) // we expect this to never get set
-
 			// Undelegate the delegated balance to get to the original values
 			vestingAcc.TrackUndelegation(tc.delegationAmount)
-
-			// Check delegation fields after undelegation
-			require.True(t, vestingAcc.GetDelegatedFree().Equal(tc.delegatedFreeBefore)) // back to original DelegatedFree
-			require.True(t, vestingAcc.GetDelegatedVesting().IsZero())                   // we expect this to never get set
 		})
 	}
 }
@@ -359,7 +342,6 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 		t.Run(tc.name, func(t *testing.T) {
 
 			vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(baseAcc, tc.vestingInfos, owner)
-			vestingAcc.DelegatedFree = tc.delegatedFreeBefore
 
 			// Sanity check locked and vesting coins, which are always expected to be equal
 			require.True(t, vestingAcc.LockedCoins(tc.blockTime).Equal(tc.expLockedCoinsBefore))
@@ -376,16 +358,8 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 				vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 			}
 
-			// Check delegation fields after delegation
-			require.True(t, vestingAcc.GetDelegatedFree().Equal(tc.expDelegatedFreeAfter))
-			require.True(t, vestingAcc.GetDelegatedVesting().IsZero()) // we expect this to never get set
-
 			// Undelegate the delegated balance to get to the original values
 			vestingAcc.TrackUndelegation(tc.delegationAmount)
-
-			// Check delegation fields after undelegation
-			require.True(t, vestingAcc.GetDelegatedFree().Equal(tc.delegatedFreeBefore)) // back to original DelegatedFree
-			require.True(t, vestingAcc.GetDelegatedVesting().IsZero())                   // we expect this to never get set
 		})
 	}
 }
@@ -429,7 +403,6 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 	// Helper coins.
 	coinsAlreadyThere := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 200))
 	coinsToAdd := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
-	coins1234 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 1234))
 
 	// Helper times.
 	t0, _ := time.Parse(time.DateOnly, "2024-01-01")
@@ -456,14 +429,12 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds to existing vesting accounts if at least one " +
 				"has a matching vesting schedule",
-			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+			account: types.NewEthOwnedMultiContinuousVestingAccount(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
 					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
 				},
-				coins1234, // DelegatedFree - will be retained
-				nil,       // DelegatedVesting - will be retained
 				owner,
 			),
 			vestingStartTime: t1,
@@ -474,22 +445,18 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
 					types.NewVestingInfo(coinsAlreadyThere.Add(coinsToAdd...), t1.Unix(), t2.Unix()), // updated
 				},
-				coins1234,
-				nil,
 				owner,
 			),
 		},
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
 				"does not match any of the vesting accounts (mismatch is start time)",
-			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+			account: types.NewEthOwnedMultiContinuousVestingAccount(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t3.Unix()),
 					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t3.Unix()),
 				},
-				coins1234,
-				nil,
 				owner,
 			),
 			vestingStartTime: t2, // mismatch
@@ -501,22 +468,18 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t3.Unix()),
 					types.NewVestingInfo(coinsToAdd, t2.Unix(), t3.Unix()),
 				},
-				coins1234,
-				nil,
 				owner,
 			),
 		},
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
 				"does not match any of the vesting accounts (mismatch is end time)",
-			account: types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
+			account: types.NewEthOwnedMultiContinuousVestingAccount(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t1.Unix()),
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
 				},
-				coins1234,
-				nil,
 				owner,
 			),
 			vestingStartTime: t0,
@@ -528,8 +491,6 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
 					types.NewVestingInfo(coinsToAdd, t0.Unix(), t3.Unix()),
 				},
-				coins1234,
-				nil,
 				owner,
 			),
 		},

@@ -56,8 +56,6 @@ func MatchesEthOwnedMultiContinuousVestingAcc(expected *types.EthOwnedMultiConti
 		if !(ok &&
 			(vAcc.AccountOwner == expected.AccountOwner) &&
 			len(vAcc.Infos) == len(expected.Infos) &&
-			(vAcc.DelegatedFree.Equal(expected.DelegatedFree)) &&
-			(vAcc.DelegatedVesting.Equal(expected.DelegatedVesting)) &&
 			MatchesEthOwnedAcc(expected.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount())) {
 			return false
 		}
@@ -77,13 +75,11 @@ func MatchesEthOwnedMultiContinuousVestingAcc(expected *types.EthOwnedMultiConti
 func MatchesEthOwnedMultiContinuousVestingAccRaw(
 	baseAccount *authtypes.BaseAccount,
 	infos []*types.VestingInfo,
-	delegatedFree sdk.Coins,
-	delegatedVesting sdk.Coins,
 	owner string,
 ) AccountValidator {
 	return MatchesEthOwnedMultiContinuousVestingAcc(
-		types.NewEthOwnedMultiContinuousVestingAccountWithDelegation(
-			baseAccount, infos, delegatedFree, delegatedVesting, owner,
+		types.NewEthOwnedMultiContinuousVestingAccount(
+			baseAccount, infos, owner,
 		),
 	)
 }

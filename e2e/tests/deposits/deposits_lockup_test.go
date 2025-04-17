@@ -94,7 +94,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 
 		// --------------------------------------- Undelegate
@@ -130,7 +130,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // back to zero
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -173,7 +173,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // no delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -226,7 +226,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -281,7 +281,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -502,8 +502,6 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		s.Require().Len(multiVestingAcc.Infos, 2) // two vesting infos now
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
-		s.Require().Nil(multiVestingAcc.DelegatedFree)
-		s.Require().Nil(multiVestingAcc.DelegatedVesting)
 
 		// -----------------------------------------------------------------------------------------------
 		// Deposit 4:
@@ -544,8 +542,6 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
 		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
-		s.Require().Nil(multiVestingAcc.DelegatedFree)
-		s.Require().Nil(multiVestingAcc.DelegatedVesting)
 
 		// -----------------------------------------------------------------------------------------------
 		// Check the resultant vesting account's spendable coins
@@ -603,8 +599,6 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
 		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
-		s.Require().True(multiVestingAcc.DelegatedFree.Equal(sdk.NewCoins(delegateCoin))) // Delegation
-		s.Require().Nil(multiVestingAcc.DelegatedVesting)
 
 		// --------------------------------------- Re-check spendable
 
@@ -661,8 +655,6 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
 		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
-		s.Require().Nil(multiVestingAcc.DelegatedFree) // Back to zero
-		s.Require().Nil(multiVestingAcc.DelegatedVesting)
 
 		// --------------------------------------- Re-check spendable
 

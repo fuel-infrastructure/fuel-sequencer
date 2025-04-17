@@ -164,16 +164,8 @@ func TestEthOwnedContinuousVestingAccount_TrackDelegationAndTrackUndelegation(t 
 				vestingAcc.TrackDelegation(tc.blockTime, tc.balanceAtDelegation, tc.delegationAmount)
 			}
 
-			// Check delegation fields after delegation
-			require.True(t, vestingAcc.DelegatedFree.Equal(tc.expDelegatedFreeAfter))
-			require.True(t, vestingAcc.DelegatedVesting.IsZero()) // we expect this to never get set
-
 			// Undelegate the delegated balance to get to the original values
 			vestingAcc.TrackUndelegation(tc.delegationAmount)
-
-			// Check delegation fields after undelegation
-			require.True(t, vestingAcc.DelegatedFree.Equal(tc.delegatedFreeBefore)) // back to original DelegatedFree
-			require.True(t, vestingAcc.DelegatedVesting.IsZero())                   // we expect this to never get set
 		})
 	}
 }
@@ -295,8 +287,6 @@ func TestEthOwnedContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
 					types.NewVestingInfo(coinsToAdd, t1.Unix(), t2.Unix()), // new vesting info
 				},
-				coins1234,
-				coins5678,
 				owner,
 			),
 		},
@@ -323,8 +313,6 @@ func TestEthOwnedContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
 					types.NewVestingInfo(coinsToAdd, t0.Unix(), t1.Unix()), // new vesting info
 				},
-				coins1234,
-				coins5678,
 				owner,
 			),
 		},
