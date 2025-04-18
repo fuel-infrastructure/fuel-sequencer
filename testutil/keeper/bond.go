@@ -35,6 +35,17 @@ func BondKeeperWithDependencies(t testing.TB) (
 	*testutil.MockAccountKeeper,
 	*testutil.MockBankKeeper,
 ) {
+	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
+	return BondKeeperFromArgsWithDependencies(t, authority.String())
+}
+
+func BondKeeperFromArgsWithDependencies(t testing.TB, authority string) (
+	keeper.Keeper,
+	sdk.Context,
+	codec.Codec,
+	*testutil.MockAccountKeeper,
+	*testutil.MockBankKeeper,
+) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -44,7 +55,6 @@ func BondKeeperWithDependencies(t testing.TB) (
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	logger := log.NewNopLogger()
 
 	ctrl := gomock.NewController(t)
@@ -55,7 +65,7 @@ func BondKeeperWithDependencies(t testing.TB) (
 		cdc,
 		runtime.NewKVStoreService(storeKey),
 		logger,
-		authority.String(),
+		authority,
 		accountKeeper,
 		bankKeeper,
 	)

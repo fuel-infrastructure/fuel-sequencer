@@ -15,7 +15,11 @@ import (
 // BeginBlocker was copied from https://github.com/cosmos/cosmos-sdk/blob/v0.50.6/x/mint/abci.go.
 // It is almost identical to the original, but uses BridgeDenomTotalSupply from the bridge module
 // instead of getting the StakingTokenSupply from the Staking module.
-func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeeper) error {
+func BeginBlocker(ctx context.Context,
+	k mintkeeper.Keeper,
+	bk types.BridgeKeeper,
+	sbk types.BondKeeper,
+) error {
 	defer telemetry.ModuleMeasureSince(minttypes.ModuleName, telemetry.Now(), telemetry.MetricKeyBeginBlocker)
 
 	// fetch stored minter & params
@@ -28,6 +32,9 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 	if err != nil {
 		return err
 	}
+
+	// fetch bond module params
+	bondParams := sbk.GetParams(ctx)
 
 	// Use BridgeDenomTotalSupply as the supply for the NextAnnualProvisions calculation.
 	// This replaces the supply from the StakingTokenSupply call to the staking module.
@@ -54,6 +61,11 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 		minter.Inflation = params.InflationMin
 	}
 
+	// calculate total inflation as sum of mint and bond inflation
+	mintInflation := minter.Inflation
+	totalInflation := mintInflation.Add(bondParams.Inflation)
+	minter.Inflation = totalInflation
+
 	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalSupply)
 	if err = k.Minter.Set(ctx, minter); err != nil {
 		return err
@@ -69,8 +81,28 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 	}
 	metrics.MintCoins(ctx, mintedCoin)
 
+	// Calculate the split between fee collector and bond authority based on inflation rates
+	var mintRatio math.LegacyDec
+	if totalInflation.IsZero() {
+		// If total inflation is zero, all coins would go to fee collector
+		// (though no coins are being minted in this case anyway)
+		mintRatio = math.LegacyOneDec()
+	} else {
+		mintRatio = mintInflation.Quo(totalInflation)
+	}
+
 	// send the minted coins to the fee collector account
-	err = k.AddCollectedFees(ctx, mintedCoins)
+	mintAmount := mintedCoin.Amount.ToLegacyDec().Mul(mintRatio).TruncateInt()
+	mintCoin := sdk.NewCoin(mintedCoin.Denom, mintAmount)
+	mintCoins := sdk.NewCoins(mintCoin)
+	err = k.AddCollectedFees(ctx, mintCoins)
+	if err != nil {
+		return err
+	}
+
+	// send the bond portion to the bond authority account
+	bondCoins := mintedCoins.Sub(mintCoin)
+	err = sbk.AddCollectedBondStake(ctx, bondCoins)
 	if err != nil {
 		return err
 	}
@@ -80,7 +112,7 @@ func BeginBlocker(ctx context.Context, k mintkeeper.Keeper, bk types.BridgeKeepe
 		sdk.NewEvent(
 			minttypes.EventTypeMint,
 			sdk.NewAttribute(minttypes.AttributeKeyBondedRatio, dummyBondedRatio.String()),
-			sdk.NewAttribute(minttypes.AttributeKeyInflation, minter.Inflation.String()),
+			sdk.NewAttribute(minttypes.AttributeKeyInflation, totalInflation.String()),
 			sdk.NewAttribute(minttypes.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, mintedCoin.Amount.String()),
 		),

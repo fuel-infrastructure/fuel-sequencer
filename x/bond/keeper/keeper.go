@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	"cosmossdk.io/core/address"
@@ -8,6 +9,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
@@ -72,4 +74,22 @@ func (k Keeper) GetAccountAsBytes(address string) ([]byte, error) {
 // Logger returns a module-specific logger.
 func (k Keeper) Logger() log.Logger {
 	return k.logger.With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// AddCollectedBondStake implements an alias call to the underlying supply keeper's
+// AddCollectedBondStake to be used in BeginBlocker.
+func (k Keeper) AddCollectedBondStake(ctx context.Context, bond sdk.Coins) error {
+	if bond.IsZero() {
+		return nil
+	}
+
+	// Get the bond authority address
+	bondAuthority, err := k.GetAccountAsBytes(k.authority)
+	if err != nil {
+		return err
+	}
+	// Send coins from mint module to bond authority
+	return k.bankKeeper.SendCoinsFromModuleToAccount(
+		ctx, minttypes.ModuleName, bondAuthority, bond,
+	)
 }

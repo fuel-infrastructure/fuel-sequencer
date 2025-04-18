@@ -1,10 +1,14 @@
 package mint_test
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
 )
 
@@ -45,7 +49,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 
 	// Run BeginBlocker once to ensure that the minter inflation changes based on InflationMin and InflationMax.
 	beginBlockerCtx := s.Ctx()
-	err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper)
+	err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, s.App.BondKeeper)
 	s.Require().NoError(err)
 	// ...check inflation and annual provisions are zero
 	minter, err = s.App.MintKeeper.Minter.Get(s.Ctx())
@@ -57,7 +61,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	for i := int64(1); i <= 10; i++ {
 
 		beginBlockerCtx := s.Ctx()
-		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper)
+		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, s.App.BondKeeper)
 		s.Require().NoError(err)
 
 		// Check events
@@ -86,7 +90,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnBridgeModuleParam
 	for i := int64(1); i <= 10; i++ {
 
 		beginBlockerCtx := s.Ctx()
-		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper)
+		err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, s.App.BondKeeper)
 		s.Require().NoError(err)
 
 		// Inflation = 0.1
@@ -173,7 +177,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_InflationBasedOnInflationMinMax()
 			s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), params))
 
 			// Run BeginBlocker
-			err = mint.BeginBlocker(s.Ctx(), s.App.MintKeeper, s.App.BridgeKeeper)
+			err = mint.BeginBlocker(s.Ctx(), s.App.MintKeeper, s.App.BridgeKeeper, s.App.BondKeeper)
 			s.Require().NoError(err)
 
 			// Check inflation rate
@@ -232,4 +236,127 @@ func (s *MintModuleTestSuite) TestAppConfiguration_AppBeginBlockerRunsCustomMint
 	supplyAfter, err := s.App.StakingKeeper.StakingTokenSupply(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().True(supplyAfter.Equal(supplyBefore.AddRaw(158)))
+}
+
+func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
+	bondDenom := sdk.DefaultBondDenom
+	feeCollector := s.App.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
+	bondAuthority := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+
+	totalSupply := types.TestBridgeDenomTotalSupply
+	blocksPerYear := types.BlocksPerYear
+	blocksPerYearInt := sdkmath.NewIntFromUint64(blocksPerYear)
+	blocksPerYearLegacyInt := sdkmath.LegacyNewDecFromInt(blocksPerYearInt)
+
+	calculateExpectedAmounts := func(mintInflation, bondInflation string) (
+		mintedAmount, feeAmount, bondAmount int64,
+	) {
+		mintInflationDec, err := sdkmath.LegacyNewDecFromStr(mintInflation)
+		s.Require().NoError(err)
+		bondInflationDec, err := sdkmath.LegacyNewDecFromStr(bondInflation)
+		s.Require().NoError(err)
+
+		totalInflation := mintInflationDec.Add(bondInflationDec)
+		if totalInflation.IsZero() {
+			return 0, 0, 0
+		}
+
+		// Calculate total minted amount
+		inflationPerYear := totalSupply.ToLegacyDec().Mul(totalInflation)
+		mintedAmount = inflationPerYear.Quo(blocksPerYearLegacyInt).TruncateInt().Int64()
+
+		// Calculate split between fee collector and bond authority
+		mintRatio := mintInflationDec.Quo(totalInflation)
+		feeAmount = sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(mintedAmount)).Mul(mintRatio).TruncateInt().Int64()
+		bondAmount = mintedAmount - feeAmount
+
+		return mintedAmount, feeAmount, bondAmount
+	}
+
+	testCases := []struct {
+		name          string
+		mintInflation string // as decimal string
+		bondInflation string // as decimal string
+	}{
+		{
+			name:          "zero mint inflation, zero bond inflation",
+			mintInflation: "0.0",
+			bondInflation: "0.0",
+		},
+		{
+			name:          "zero mint inflation, non-zero bond inflation",
+			mintInflation: "0.0",
+			bondInflation: "0.1",
+		},
+		{
+			name:          "non-zero mint inflation, zero bond inflation",
+			mintInflation: "0.1",
+			bondInflation: "0.0",
+		},
+		{
+			name:          "equal mint and bond inflation",
+			mintInflation: "0.1",
+			bondInflation: "0.1",
+		},
+		{
+			name:          "mint inflation double bond inflation",
+			mintInflation: "0.2",
+			bondInflation: "0.1",
+		},
+		{
+			name:          "bond inflation double mint inflation",
+			mintInflation: "0.1",
+			bondInflation: "0.2",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.Setup()
+
+			// Set up bridge params with fixed total supply for predictable calculations
+			bridgeParams := s.App.BridgeKeeper.GetParams(s.Ctx())
+			bridgeParams.BridgeDenom = bondDenom
+			bridgeParams.BridgeDenomTotalSupply = totalSupply
+			s.Require().NoError(s.App.BridgeKeeper.SetParams(s.Ctx(), bridgeParams))
+
+			// Set mint inflation via InflationMin/Max params
+			mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx())
+			s.Require().NoError(err)
+			mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr(tc.mintInflation)
+			mintParams.InflationMax = mintParams.InflationMin
+			mintParams.BlocksPerYear = blocksPerYear
+			mintParams.MintDenom = bondDenom // This matches the bridge denom
+			s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
+
+			// Set bond inflation
+			bondParams := s.App.BondKeeper.GetParams(s.Ctx())
+			bondParams.Inflation = sdkmath.LegacyMustNewDecFromStr(tc.bondInflation)
+			s.Require().NoError(s.App.BondKeeper.SetParams(s.Ctx(), bondParams))
+
+			// Calculate expected values
+			expectMintedAmount, expectFeeAmount, expectBondAmount := calculateExpectedAmounts(tc.mintInflation, tc.bondInflation)
+
+			// Run BeginBlocker
+			beginBlockerCtx := s.Ctx()
+			err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, s.App.BondKeeper)
+			s.Require().NoError(err)
+
+			// Check minted amount in event
+			s.AssertEventEmitted(beginBlockerCtx, minttypes.EventTypeMint, 1)
+			event := s.FindEvent(beginBlockerCtx.EventManager().Events(), minttypes.EventTypeMint)
+			eventAttributes := s.ExtractAttributes(event)
+			s.Require().Equal(fmt.Sprintf("%d", expectMintedAmount), eventAttributes[sdk.AttributeKeyAmount])
+
+			// Check fee collector balance
+			feeCollectorBalance := s.App.BankKeeper.GetBalance(s.Ctx(), feeCollector, bondDenom)
+			s.Require().True(feeCollectorBalance.Amount.Equal(sdkmath.NewInt(expectFeeAmount)),
+				"fee collector balance: expected %d, got %d", expectFeeAmount, feeCollectorBalance.Amount.Int64())
+
+			// Check bond authority balance
+			bondAuthorityBalance := s.App.BankKeeper.GetBalance(s.Ctx(), bondAuthority, bondDenom)
+			s.Require().True(bondAuthorityBalance.Amount.Equal(sdkmath.NewInt(expectBondAmount)),
+				"bond authority balance: expected %d, got %d", expectBondAmount, bondAuthorityBalance.Amount.Int64())
+		})
+	}
 }
