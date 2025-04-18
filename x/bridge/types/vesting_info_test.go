@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
@@ -13,8 +14,8 @@ func TestVestingInfo_GetVestedCoins(t *testing.T) {
 	now := time.Now()
 	endTime := now.Add(24 * time.Hour)
 
-	coins := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 100))
-	halfCoins := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 50))
+	coins := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	halfCoins := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 50))
 
 	info := types.NewVestingInfo(coins, now.Unix(), endTime.Unix())
 

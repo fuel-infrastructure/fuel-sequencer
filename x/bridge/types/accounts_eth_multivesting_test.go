@@ -528,9 +528,9 @@ func TestEthOwnedMultiContinuousVestingAccount_GetVestedCoins(t *testing.T) {
 	t0Plus6Months := t0.Add(months6)
 	blockTime := t0Plus6Months
 
-	amount := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 100))
-	halfAmount := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 50))
-	threeQuarters := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 75))
+	amount := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	halfAmount := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 50))
+	threeQuarters := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 75))
 
 	// Start off with 1 vesting info with 50 vested
 	vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(
@@ -571,11 +571,11 @@ func TestEthOwnedMultiContinuousVestingAccount_GetVestingCoins(t *testing.T) {
 	t0Plus6Months := t0.Add(months6)
 	blockTime := t0Plus6Months
 
-	tokens225 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 225))
-	tokens125 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 125))
-	tokens100 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 100))
-	tokens50 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 50))
-	tokens0 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 0))
+	tokens225 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 225))
+	tokens125 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 125))
+	tokens100 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 100))
+	tokens50 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 50))
+	tokens0 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 0))
 
 	// Start off with 1 vesting info with 0 vesting
 	vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(
@@ -613,9 +613,9 @@ func TestEthOwnedMultiContinuousVestingAccount_GetOriginalVesting(t *testing.T) 
 	}
 	owner := testutiltypes.TestEthAddr1Str
 
-	amount1 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 10))
-	amount2 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 20))
-	amount3 := sdk.NewCoins(sdk.NewInt64Coin(types.DefaultBridgeDenom, 50))
+	amount1 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 10))
+	amount2 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 20))
+	amount3 := sdk.NewCoins(sdk.NewInt64Coin(testutiltypes.TestToken, 50))
 	total := amount1.Add(amount2...).Add(amount3...)
 
 	vestingAcc := types.NewEthOwnedMultiContinuousVestingAccount(
