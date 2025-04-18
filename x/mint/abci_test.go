@@ -8,6 +8,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
 )
 
@@ -249,8 +250,14 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 	totalSupply := sdkmath.NewInt(1000)
 	blocksPerYear := uint64(100)
 
+	// Use testutil types for complex cases
+	complexTotalSupply := types.TestBridgeDenomTotalSupply
+	complexBlocksPerYear := types.BlocksPerYear
+
 	testCases := []struct {
 		name          string
+		totalSupply   sdkmath.Int
+		blocksPerYear uint64
 		mintInflation string // as decimal string
 		bondInflation string // as decimal string
 		expectMinted  int64  // expected total minted amount
@@ -259,6 +266,8 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 	}{
 		{
 			name:          "zero mint inflation, zero bond inflation",
+			totalSupply:   totalSupply,
+			blocksPerYear: blocksPerYear,
 			mintInflation: "0.0",
 			bondInflation: "0.0",
 			expectMinted:  0,
@@ -267,6 +276,8 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 		},
 		{
 			name:          "zero mint inflation, non-zero bond inflation",
+			totalSupply:   totalSupply,
+			blocksPerYear: blocksPerYear,
 			mintInflation: "0.0",
 			bondInflation: "0.1",
 			expectMinted:  1, // 1000 * 0.1 / 100 = 1
@@ -275,6 +286,8 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 		},
 		{
 			name:          "non-zero mint inflation, zero bond inflation",
+			totalSupply:   totalSupply,
+			blocksPerYear: blocksPerYear,
 			mintInflation: "0.1",
 			bondInflation: "0.0",
 			expectMinted:  1, // 1000 * 0.1 / 100 = 1
@@ -283,6 +296,8 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 		},
 		{
 			name:          "equal mint and bond inflation",
+			totalSupply:   totalSupply,
+			blocksPerYear: blocksPerYear,
 			mintInflation: "0.1",
 			bondInflation: "0.1",
 			expectMinted:  2, // 1000 * 0.2 / 100 = 2
@@ -291,6 +306,8 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 		},
 		{
 			name:          "mint inflation double bond inflation",
+			totalSupply:   totalSupply,
+			blocksPerYear: blocksPerYear,
 			mintInflation: "0.2",
 			bondInflation: "0.1",
 			expectMinted:  3, // 1000 * 0.3 / 100 = 3
@@ -299,11 +316,53 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 		},
 		{
 			name:          "bond inflation double mint inflation",
+			totalSupply:   totalSupply,
+			blocksPerYear: blocksPerYear,
 			mintInflation: "0.1",
 			bondInflation: "0.2",
 			expectMinted:  3, // 1000 * 0.3 / 100 = 3
 			expectFee:     1, // 3 * 0.1/0.3 = 0.999... rounds to 1
 			expectBond:    2, // 3 - 1 = 2
+		},
+		{
+			name:          "small mint inflation, large bond inflation",
+			totalSupply:   complexTotalSupply,
+			blocksPerYear: complexBlocksPerYear,
+			mintInflation: "0.01", // 1% mint inflation
+			bondInflation: "0.09", // 9% bond inflation
+			expectMinted:  158,    // 1e9 * 0.1 / 6311520 = 158.44
+			expectFee:     16,     // 158 * 0.01/0.1 = 15.8 rounds to 16
+			expectBond:    142,    // 158 - 16 = 142
+		},
+		{
+			name:          "uneven split favoring bond",
+			totalSupply:   complexTotalSupply,
+			blocksPerYear: complexBlocksPerYear,
+			mintInflation: "0.03", // 3% mint inflation
+			bondInflation: "0.07", // 7% bond inflation
+			expectMinted:  158,    // 1e9 * 0.1 / 6311520 = 158.44
+			expectFee:     47,     // 158 * 0.03/0.1 = 47.4 rounds to 47
+			expectBond:    111,    // 158 - 47 = 111
+		},
+		{
+			name:          "uneven split favoring mint",
+			totalSupply:   complexTotalSupply,
+			blocksPerYear: complexBlocksPerYear,
+			mintInflation: "0.07", // 7% mint inflation
+			bondInflation: "0.03", // 3% bond inflation
+			expectMinted:  158,    // 1e9 * 0.1 / 6311520 = 158.44
+			expectFee:     111,    // 158 * 0.07/0.1 = 110.6 rounds to 111
+			expectBond:    47,     // 158 - 111 = 47
+		},
+		{
+			name:          "very small mint inflation",
+			totalSupply:   complexTotalSupply,
+			blocksPerYear: complexBlocksPerYear,
+			mintInflation: "0.001", // 0.1% mint inflation
+			bondInflation: "0.099", // 9.9% bond inflation
+			expectMinted:  158,     // 1e9 * 0.1 / 6311520 = 158.44
+			expectFee:     2,       // 158 * 0.001/0.1 = 1.58 rounds to 2
+			expectBond:    156,     // 158 - 2 = 156
 		},
 	}
 
@@ -314,7 +373,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 			// Set up bridge params with fixed total supply for predictable calculations
 			bridgeParams := s.App.BridgeKeeper.GetParams(s.Ctx())
 			bridgeParams.BridgeDenom = bondDenom
-			bridgeParams.BridgeDenomTotalSupply = totalSupply
+			bridgeParams.BridgeDenomTotalSupply = tc.totalSupply
 			s.Require().NoError(s.App.BridgeKeeper.SetParams(s.Ctx(), bridgeParams))
 
 			// Set mint inflation via InflationMin/Max params
@@ -322,7 +381,7 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 			s.Require().NoError(err)
 			mintParams.InflationMin = sdkmath.LegacyMustNewDecFromStr(tc.mintInflation)
 			mintParams.InflationMax = mintParams.InflationMin
-			mintParams.BlocksPerYear = blocksPerYear
+			mintParams.BlocksPerYear = tc.blocksPerYear
 			mintParams.MintDenom = bondDenom // This matches the bridge denom
 			s.Require().NoError(s.App.MintKeeper.Params.Set(s.Ctx(), mintParams))
 
