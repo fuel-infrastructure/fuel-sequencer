@@ -65,6 +65,10 @@ func (k Keeper) GetAddressCodec() address.Codec {
 	return k.accountKeeper.AddressCodec()
 }
 
+func (k Keeper) GetAccountAsBytes(address string) ([]byte, error) {
+	return k.GetAddressCodec().StringToBytes(address)
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger() log.Logger {
 	return k.logger.With("module", fmt.Sprintf("x/%s", types.ModuleName))
