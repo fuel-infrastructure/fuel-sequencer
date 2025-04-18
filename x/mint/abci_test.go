@@ -302,8 +302,8 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 			mintInflation: "0.1",
 			bondInflation: "0.2",
 			expectMinted:  3, // 1000 * 0.3 / 100 = 3
-			expectFee:     0, // 3 * 0.1/0.3 = 0.999... truncates to 0
-			expectBond:    3, // 3 - 0 = 3
+			expectFee:     1, // 3 * 0.1/0.3 = 0.999... rounds to 1
+			expectBond:    2, // 3 - 1 = 2
 		},
 	}
 

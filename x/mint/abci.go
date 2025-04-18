@@ -92,7 +92,7 @@ func BeginBlocker(ctx context.Context,
 	}
 
 	// send the minted coins to the fee collector account
-	mintAmount := mintedCoin.Amount.ToLegacyDec().Mul(mintRatio).TruncateInt()
+	mintAmount := mintedCoin.Amount.ToLegacyDec().Mul(mintRatio).RoundInt()
 	mintCoin := sdk.NewCoin(mintedCoin.Denom, mintAmount)
 	mintCoins := sdk.NewCoins(mintCoin)
 	err = k.AddCollectedFees(ctx, mintCoins)
