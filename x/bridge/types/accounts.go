@@ -524,6 +524,13 @@ func (a EthOwnedMultiContinuousVestingAccount) Validate() error {
 	if strings.TrimSpace(a.AccountOwner) == "" {
 		return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
 	}
+
+	for _, info := range a.Infos {
+		if err := info.Validate(); err != nil {
+			return err
+		}
+	}
+
 	return a.BaseAccount.Validate()
 }
 
