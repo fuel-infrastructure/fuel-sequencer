@@ -238,7 +238,7 @@ func (a EthOwnedContinuousVestingAccount) Validate() error {
 	if strings.TrimSpace(a.AccountOwner) == "" {
 		return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
 	}
-	return a.BaseAccount.Validate()
+	return a.ContinuousVestingAccount.Validate()
 }
 
 // String returns a string representation of the EthOwnedContinuousVestingAccount
