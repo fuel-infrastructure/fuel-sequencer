@@ -8,7 +8,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/mint"
 )
 
@@ -243,70 +242,68 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 	feeCollector := s.App.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 	bondAuthority := s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
-	totalSupply := types.TestBridgeDenomTotalSupply
-	blocksPerYear := types.BlocksPerYear
-	blocksPerYearInt := sdkmath.NewIntFromUint64(blocksPerYear)
-	blocksPerYearLegacyInt := sdkmath.LegacyNewDecFromInt(blocksPerYearInt)
-
-	calculateExpectedAmounts := func(mintInflation, bondInflation string) (
-		mintedAmount, feeAmount, bondAmount int64,
-	) {
-		mintInflationDec, err := sdkmath.LegacyNewDecFromStr(mintInflation)
-		s.Require().NoError(err)
-		bondInflationDec, err := sdkmath.LegacyNewDecFromStr(bondInflation)
-		s.Require().NoError(err)
-
-		totalInflation := mintInflationDec.Add(bondInflationDec)
-		if totalInflation.IsZero() {
-			return 0, 0, 0
-		}
-
-		// Calculate total minted amount
-		inflationPerYear := totalSupply.ToLegacyDec().Mul(totalInflation)
-		mintedAmount = inflationPerYear.Quo(blocksPerYearLegacyInt).TruncateInt().Int64()
-
-		// Calculate split between fee collector and bond authority
-		mintRatio := mintInflationDec.Quo(totalInflation)
-		feeAmount = sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(mintedAmount)).Mul(mintRatio).TruncateInt().Int64()
-		bondAmount = mintedAmount - feeAmount
-
-		return mintedAmount, feeAmount, bondAmount
-	}
+	// Use simpler values for testing:
+	// - Total supply: 1000 tokens
+	// - Blocks per year: 100 blocks
+	// This means each block will mint exactly 10 tokens at 100% inflation
+	totalSupply := sdkmath.NewInt(1000)
+	blocksPerYear := uint64(100)
 
 	testCases := []struct {
 		name          string
 		mintInflation string // as decimal string
 		bondInflation string // as decimal string
+		expectMinted  int64  // expected total minted amount
+		expectFee     int64  // expected fee collector amount
+		expectBond    int64  // expected bond authority amount
 	}{
 		{
 			name:          "zero mint inflation, zero bond inflation",
 			mintInflation: "0.0",
 			bondInflation: "0.0",
+			expectMinted:  0,
+			expectFee:     0,
+			expectBond:    0,
 		},
 		{
 			name:          "zero mint inflation, non-zero bond inflation",
 			mintInflation: "0.0",
 			bondInflation: "0.1",
+			expectMinted:  1, // 1000 * 0.1 / 100 = 1
+			expectFee:     0,
+			expectBond:    1,
 		},
 		{
 			name:          "non-zero mint inflation, zero bond inflation",
 			mintInflation: "0.1",
 			bondInflation: "0.0",
+			expectMinted:  1, // 1000 * 0.1 / 100 = 1
+			expectFee:     1,
+			expectBond:    0,
 		},
 		{
 			name:          "equal mint and bond inflation",
 			mintInflation: "0.1",
 			bondInflation: "0.1",
+			expectMinted:  2, // 1000 * 0.2 / 100 = 2
+			expectFee:     1, // 2 * 0.1/0.2 = 1
+			expectBond:    1, // 2 - 1 = 1
 		},
 		{
 			name:          "mint inflation double bond inflation",
 			mintInflation: "0.2",
 			bondInflation: "0.1",
+			expectMinted:  3, // 1000 * 0.3 / 100 = 3
+			expectFee:     2, // 3 * 0.2/0.3 = 2
+			expectBond:    1, // 3 - 2 = 1
 		},
 		{
 			name:          "bond inflation double mint inflation",
 			mintInflation: "0.1",
 			bondInflation: "0.2",
+			expectMinted:  3, // 1000 * 0.3 / 100 = 3
+			expectFee:     0, // 3 * 0.1/0.3 = 0.999... truncates to 0
+			expectBond:    3, // 3 - 0 = 3
 		},
 	}
 
@@ -334,9 +331,6 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 			bondParams.Inflation = sdkmath.LegacyMustNewDecFromStr(tc.bondInflation)
 			s.Require().NoError(s.App.BondKeeper.SetParams(s.Ctx(), bondParams))
 
-			// Calculate expected values
-			expectMintedAmount, expectFeeAmount, expectBondAmount := calculateExpectedAmounts(tc.mintInflation, tc.bondInflation)
-
 			// Run BeginBlocker
 			beginBlockerCtx := s.Ctx()
 			err = mint.BeginBlocker(beginBlockerCtx, s.App.MintKeeper, s.App.BridgeKeeper, s.App.BondKeeper)
@@ -346,17 +340,17 @@ func (s *MintModuleTestSuite) TestBeginBlocker_CoinDistribution() {
 			s.AssertEventEmitted(beginBlockerCtx, minttypes.EventTypeMint, 1)
 			event := s.FindEvent(beginBlockerCtx.EventManager().Events(), minttypes.EventTypeMint)
 			eventAttributes := s.ExtractAttributes(event)
-			s.Require().Equal(fmt.Sprintf("%d", expectMintedAmount), eventAttributes[sdk.AttributeKeyAmount])
+			s.Require().Equal(fmt.Sprintf("%d", tc.expectMinted), eventAttributes[sdk.AttributeKeyAmount])
 
 			// Check fee collector balance
 			feeCollectorBalance := s.App.BankKeeper.GetBalance(s.Ctx(), feeCollector, bondDenom)
-			s.Require().True(feeCollectorBalance.Amount.Equal(sdkmath.NewInt(expectFeeAmount)),
-				"fee collector balance: expected %d, got %d", expectFeeAmount, feeCollectorBalance.Amount.Int64())
+			s.Require().True(feeCollectorBalance.Amount.Equal(sdkmath.NewInt(tc.expectFee)),
+				"fee collector balance: expected %d, got %d", tc.expectFee, feeCollectorBalance.Amount.Int64())
 
 			// Check bond authority balance
 			bondAuthorityBalance := s.App.BankKeeper.GetBalance(s.Ctx(), bondAuthority, bondDenom)
-			s.Require().True(bondAuthorityBalance.Amount.Equal(sdkmath.NewInt(expectBondAmount)),
-				"bond authority balance: expected %d, got %d", expectBondAmount, bondAuthorityBalance.Amount.Int64())
+			s.Require().True(bondAuthorityBalance.Amount.Equal(sdkmath.NewInt(tc.expectBond)),
+				"bond authority balance: expected %d, got %d", tc.expectBond, bondAuthorityBalance.Amount.Int64())
 		})
 	}
 }
