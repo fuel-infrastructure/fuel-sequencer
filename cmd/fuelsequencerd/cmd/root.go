@@ -34,8 +34,6 @@ import (
 
 // NewRootCmd creates a new root command for fuelsequencerd. It is called once in the main function.
 func NewRootCmd() *cobra.Command {
-	app.InitSDKConfig()
-
 	var (
 		txConfigOpts       tx.ConfigOptions
 		autoCliOpts        autocli.AppOptions
