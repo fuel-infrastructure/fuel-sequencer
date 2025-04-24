@@ -15,6 +15,11 @@ import (
 // BeginBlocker was copied from https://github.com/cosmos/cosmos-sdk/blob/v0.50.6/x/mint/abci.go.
 // It is almost identical to the original, but uses BridgeDenomTotalSupply from the bridge module
 // instead of getting the StakingTokenSupply from the Staking module.
+//
+// Of note, inflation is split between the typical mint module's fee collector
+// and the bond module's bond authority.
+// The split is based on the inflation rate of the mint and bond modules,
+// split in a ratio determined by their inflation rates.
 func BeginBlocker(ctx context.Context,
 	k mintkeeper.Keeper,
 	bk types.BridgeKeeper,
