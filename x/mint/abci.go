@@ -102,7 +102,7 @@ func BeginBlocker(ctx context.Context,
 
 	// send the bond portion to the bond authority account
 	bondCoins := mintedCoins.Sub(mintCoin)
-	err = sbk.AddCollectedBondStake(ctx, bondCoins)
+	err = sbk.AddCollectedBondAllocation(ctx, bondCoins)
 	if err != nil {
 		return err
 	}

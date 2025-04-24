@@ -74,18 +74,18 @@ func (m *MockBondKeeper) EXPECT() *MockBondKeeperMockRecorder {
 	return m.recorder
 }
 
-// AddCollectedBondStake mocks base method.
-func (m *MockBondKeeper) AddCollectedBondStake(ctx context.Context, bond types.Coins) error {
+// AddCollectedBondAllocation mocks base method.
+func (m *MockBondKeeper) AddCollectedBondAllocation(ctx context.Context, bond types.Coins) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddCollectedBondStake", ctx, bond)
+	ret := m.ctrl.Call(m, "AddCollectedBondAllocation", ctx, bond)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddCollectedBondStake indicates an expected call of AddCollectedBondStake.
-func (mr *MockBondKeeperMockRecorder) AddCollectedBondStake(ctx, bond interface{}) *gomock.Call {
+// AddCollectedBondAllocation indicates an expected call of AddCollectedBondAllocation.
+func (mr *MockBondKeeperMockRecorder) AddCollectedBondAllocation(ctx, bond interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCollectedBondStake", reflect.TypeOf((*MockBondKeeper)(nil).AddCollectedBondStake), ctx, bond)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCollectedBondAllocation", reflect.TypeOf((*MockBondKeeper)(nil).AddCollectedBondAllocation), ctx, bond)
 }
 
 // GetParams mocks base method.

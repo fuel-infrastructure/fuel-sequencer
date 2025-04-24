@@ -76,10 +76,12 @@ func (k Keeper) Logger() log.Logger {
 	return k.logger.With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// AddCollectedBondStake implements an alias call to the underlying supply keeper's
-// AddCollectedBondStake to be used in BeginBlocker.
-func (k Keeper) AddCollectedBondStake(ctx context.Context, bond sdk.Coins) error {
-	if bond.IsZero() {
+// AddCollectedBondAllocation transfers bond allocation coins from the mint module to the bond authority.
+// This function assumes that the mint module has already minted the specified amount of tokens
+// specifically for this bond allocation.
+// AddCollectedBondAllocation to be used in BeginBlocker.
+func (k Keeper) AddCollectedBondAllocation(ctx context.Context, allocation sdk.Coins) error {
+	if allocation.IsZero() {
 		return nil
 	}
 
@@ -90,6 +92,6 @@ func (k Keeper) AddCollectedBondStake(ctx context.Context, bond sdk.Coins) error
 	}
 	// Send coins from mint module to bond authority
 	return k.bankKeeper.SendCoinsFromModuleToAccount(
-		ctx, minttypes.ModuleName, bondAuthority, bond,
+		ctx, minttypes.ModuleName, bondAuthority, allocation,
 	)
 }

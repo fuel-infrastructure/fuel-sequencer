@@ -14,7 +14,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 )
 
-func TestAddCollectedBondStake(t *testing.T) {
+func TestAddCollectedBondAllocation(t *testing.T) {
 	// Test coins
 	testCoins := sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(100)))
 	multiDenomCoins := sdk.NewCoins(
@@ -82,13 +82,13 @@ func TestAddCollectedBondStake(t *testing.T) {
 			if tc.expPanic {
 				require.Panics(t, func() {
 					k, ctx := tc.setup(t, ctrl)
-					_ = k.AddCollectedBondStake(ctx, tc.coins)
+					_ = k.AddCollectedBondAllocation(ctx, tc.coins)
 				})
 				return
 			}
 
 			k, ctx := tc.setup(t, ctrl)
-			err := k.AddCollectedBondStake(ctx, tc.coins)
+			err := k.AddCollectedBondAllocation(ctx, tc.coins)
 
 			if tc.expErr {
 				require.Error(t, err)

@@ -17,5 +17,5 @@ type BridgeKeeper interface {
 // BondKeeper defines the contract needed to be fulfilled for bond module dependencies.
 type BondKeeper interface {
 	GetParams(ctx context.Context) bondtypes.Params
-	AddCollectedBondStake(ctx context.Context, bond sdk.Coins) error
+	AddCollectedBondAllocation(ctx context.Context, bond sdk.Coins) error
 }
