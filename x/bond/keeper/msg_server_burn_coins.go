@@ -19,7 +19,7 @@ func (k msgServer) BurnCoins(goCtx context.Context, msg *types.MsgBurnCoins) (*t
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "coins cannot be empty")
 	}
 
-	sender, err := k.GetAddressCodec().StringToBytes(msg.Sender)
+	sender, err := k.GetAccountAsBytes(msg.Sender)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to decode sender address")
 	}
