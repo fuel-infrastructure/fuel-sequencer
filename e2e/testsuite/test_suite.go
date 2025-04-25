@@ -22,7 +22,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/suite"
@@ -108,7 +107,7 @@ var (
 	InflationMax        = sdkmath.LegacyMustNewDecFromStr("0.2")  // sets the inflation rate if equal to InflationMin
 	InflationMin        = sdkmath.LegacyMustNewDecFromStr("0.07") // sets the inflation rate if equal to InflationMax
 	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
-	BlocksPerYear       = types.BlocksPerYear
+	BlocksPerYear       = uint64(6311520)
 
 	// NOTE: the below contract address are obtained from the logs of the Ethereum deployment Docker container.
 
