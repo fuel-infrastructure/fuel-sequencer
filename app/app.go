@@ -57,7 +57,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -339,11 +338,6 @@ func NewFuelSequencerApp(
 			app.Logger().Info("started Sidecar client", "sidecar server address", sidecarCfg.Address)
 		}()
 	}
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		features_and_optimisations.UpgradeName,
-		features_and_optimisations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
-	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		bond_module.UpgradeName,
