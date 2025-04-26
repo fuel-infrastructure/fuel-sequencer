@@ -14,7 +14,6 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/stretchr/testify/suite"
@@ -22,11 +21,11 @@ import (
 )
 
 const (
-	// haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
-	// blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
-	upgradeName      = features_and_optimisations.UpgradeName
-	fromImageVersion = "67fac46" // this image needs to exist for this test to run
-	toImageVersion   = "7d60123" // this image needs to exist for this test to run
+	haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
+	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
+	upgradeName        = "my-plan"
+	fromImageVersion   = "67fac46" // this image needs to exist for this test to run
+	toImageVersion     = "7d60123" // this image needs to exist for this test to run
 )
 
 type UpgradesTestSuite struct {
