@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Set up Go environment
+export GVM_ROOT="$HOME/.gvm"
+[[ -s "$GVM_ROOT/scripts/gvm" ]] && source "$GVM_ROOT/scripts/gvm"
+gvm use go1.22.11
+
+# Debug information
+echo "Current directory: $(pwd)"
+echo "PATH: $PATH"
+echo "Go version: $(go version)"
+echo "Which fuelsequencerd: $(which fuelsequencerd)"
+echo "Fuelsequencerd version: $(fuelsequencerd version)"
+
 # Function to get module account address
 get_module_address() {
     local module_name=$1
