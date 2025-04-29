@@ -3,8 +3,6 @@ module github.com/fuel-infrastructure/fuel-sequencer
 go 1.22.11
 
 replace (
-	// point to Fuel's Cosmos SDK fork
-	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.11-sequencer.0
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	// replace broken goleveldb
@@ -26,7 +24,7 @@ require (
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.50.10
+	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/golang/protobuf v1.5.4
 	github.com/golangci/golangci-lint v1.54.2

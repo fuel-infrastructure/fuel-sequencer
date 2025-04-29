@@ -3,8 +3,6 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.22.11
 
 replace (
-	// point to Fuel's Cosmos SDK fork
-	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.11-sequencer.0
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
@@ -21,7 +19,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.0
-	github.com/cosmos/cosmos-sdk v0.50.10
+	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/fuel-infrastructure/fuel-sequencer v0.0.0-00010101000000-000000000000
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.2
