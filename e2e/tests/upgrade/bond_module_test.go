@@ -1,7 +1,6 @@
 package upgrades_test
 
 import (
-	"os/exec"
 	"testing"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
+	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 )
@@ -188,15 +188,17 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			s.Require().NoError(err)
 		}
 
-		// Get governance address for new authority
+		// Construct new bond module parameters
 		newAuthority := s.GetGovernanceAddress()
 		newInflation := sdkmath.LegacyMustNewDecFromStr("0.2")
+		newParams := bondtypes.NewParams(newInflation, newAuthority)
 
-		// Execute the shell script to update bond params
-		cmd := exec.Command("./update_bond_params.sh")
-		cmd.Dir = "." // Use current directory since we're already in e2e/tests/upgrade
-		output, err := cmd.CombinedOutput()
-		s.Require().NoError(err, "Failed to execute update_bond_params.sh: %s", string(output))
+		// Submit governance proposal to update params
+		msgUpdateParams := &bondtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    newParams,
+		}
+		s.ExecuteGovProposal(msgUpdateParams)
 
 		// Wait for 1 block to pass for the BeginBlocker to run
 		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
