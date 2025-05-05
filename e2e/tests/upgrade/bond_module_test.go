@@ -263,9 +263,10 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		finalSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
 		s.Require().NoError(err)
 
-		// Verify sender's balance decreased by burn amount
+		// Verify sender's balance decreased by burn amount plus transaction fee
 		senderDecrease := initialSenderBalance.Balance.Amount.Sub(finalSenderBalance.Balance.Amount)
-		s.Require().Equal(burnAmount[0].Amount, senderDecrease, "sender's balance should decrease by burn amount")
+		expectedDecrease := burnAmount[0].Amount.Add(sdkmath.NewInt(testsuite.DefaultTxFee))
+		s.Require().Equal(expectedDecrease, senderDecrease, "sender's balance should decrease by burn amount plus transaction fee")
 
 		// Verify total supply decreased by burn amount
 		supplyDecrease := initialSupply.Balance.Amount.Sub(finalSupply.Balance.Amount)
