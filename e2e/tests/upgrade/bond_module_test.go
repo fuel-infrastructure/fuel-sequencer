@@ -6,6 +6,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -237,39 +238,39 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().True(newAuthorityIncrease.IsPositive(), "new authority should receive some funds")
 	})
 
-	// s.Run("Check that bond module functionality works", func() {
-	// 	// Get initial supply and sender balance
-	// 	sender := s.SeqKeys[0].AddressSeq
-	// 	initialSupply, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
-	// 	s.Require().NoError(err)
-	// 	initialSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
-	// 	s.Require().NoError(err)
+	s.Run("Check that bond module functionality works", func() {
+		// Get initial supply and sender balance
+		sender := s.SeqKeys[0].AddressSeq
+		initialSupply, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		initialSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
+		s.Require().NoError(err)
 
-	// 	// Amount to burn
-	// 	burnAmount := sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(100)))
+		// Amount to burn
+		burnAmount := sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(100)))
 
-	// 	// Create and submit burn message
-	// 	msgBurnCoins := &bondtypes.MsgBurnCoins{
-	// 		Sender: sender,
-	// 		Coins:  burnAmount,
-	// 	}
-	// 	_, err = s.SubmitMsgs(msgBurnCoins)
-	// 	s.Require().NoError(err)
+		// Create and submit burn message
+		msgBurnCoins := &bondtypes.MsgBurnCoins{
+			Sender: sender,
+			Coins:  burnAmount,
+		}
+		_, err = s.SubmitMsgs(msgBurnCoins)
+		s.Require().NoError(err)
 
-	// 	// Get final balances
-	// 	finalSupply, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
-	// 	s.Require().NoError(err)
-	// 	finalSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
-	// 	s.Require().NoError(err)
+		// Get final balances
+		finalSupply, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		finalSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
+		s.Require().NoError(err)
 
-	// 	// Verify sender's balance decreased by burn amount
-	// 	senderDecrease := initialSenderBalance.Balance.Amount.Sub(finalSenderBalance.Balance.Amount)
-	// 	s.Require().Equal(burnAmount[0].Amount, senderDecrease, "sender's balance should decrease by burn amount")
+		// Verify sender's balance decreased by burn amount
+		senderDecrease := initialSenderBalance.Balance.Amount.Sub(finalSenderBalance.Balance.Amount)
+		s.Require().Equal(burnAmount[0].Amount, senderDecrease, "sender's balance should decrease by burn amount")
 
-	// 	// Verify total supply decreased by burn amount
-	// 	supplyDecrease := initialSupply.Balance.Amount.Sub(finalSupply.Balance.Amount)
-	// 	s.Require().Equal(burnAmount[0].Amount, supplyDecrease, "total supply should decrease by burn amount")
-	// })
+		// Verify total supply decreased by burn amount
+		supplyDecrease := initialSupply.Balance.Amount.Sub(finalSupply.Balance.Amount)
+		s.Require().Equal(burnAmount[0].Amount, supplyDecrease, "total supply should decrease by burn amount")
+	})
 
 	// s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
 	// 	// Get initial balances
