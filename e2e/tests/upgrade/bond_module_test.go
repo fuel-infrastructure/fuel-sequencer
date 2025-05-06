@@ -242,7 +242,6 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		numBlocks := uint64(10)
 		err = s.WaitForSequencerBlocks(s.Ctx(), int(numBlocks), time.Second*20)
 		s.Require().NoError(err)
-				break
 
 		// Get final balances
 		var finalOldAuthorityBalance *banktypes.QueryBalanceResponse
