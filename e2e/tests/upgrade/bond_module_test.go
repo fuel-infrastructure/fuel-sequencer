@@ -323,7 +323,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().NoError(err)
 
 		// Disable inflation by setting both mint and bond module inflation to zero
-		mintParams, bondParams := disableInflation(s, bondAccount, burnAmount)
+		mintParams, bondParams := disableInflation(s)
 
 		// Wait for a block to ensure inflation changes take effect
 		err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
@@ -408,9 +408,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 	// })
 }
 
-func disableInflation(s *BondModuleUpgradeTestSuite, bondAccount sdk.AccAddress, burnAmount sdk.Coins) (
-	*minttypes.Params, *bondtypes.Params,
-) {
+func disableInflation(s *BondModuleUpgradeTestSuite) (*minttypes.Params, *bondtypes.Params) {
 	// First, get current mint params
 	mintParams := s.QueryMintParams(s.Ctx())
 	s.Require().NotNil(mintParams)
