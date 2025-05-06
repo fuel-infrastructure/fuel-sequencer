@@ -167,7 +167,10 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		totalInflation := mintParams.InflationMax.Add(bondParams.Inflation)
 
 		// Calculate expected minted amount
-		expectedMintedAmount := initialSupply.Balance.Amount.ToLegacyDec().Mul(totalInflation).Mul(sdkmath.LegacyNewDec(int64(numBlocks))).RoundInt()
+		expectedMintedAmount := initialSupply.Balance.Amount.ToLegacyDec().
+			Mul(totalInflation).
+			Mul(sdkmath.LegacyNewDec(int64(numBlocks))).
+			RoundInt()
 		actualMintedAmount := finalSupply.Balance.Amount.Sub(initialSupply.Balance.Amount)
 
 		// Verify total minted amount matches expected inflation
