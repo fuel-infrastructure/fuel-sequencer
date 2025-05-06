@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -59,6 +60,19 @@ func (s *E2ETestSuite) QueryBankSendEnabled(ctx context.Context) []*banktypes.Se
 	s.Require().NoError(err)
 
 	return res.SendEnabled
+}
+
+// QuerySupply queries the total supply of a specific denom from the bank module
+func (s *E2ETestSuite) QuerySupply(ctx context.Context, denom string) (sdkmath.Int, error) {
+	queryClient := s.getGRPCClients().BankQueryClient
+	res, err := queryClient.SupplyOf(ctx, &banktypes.QuerySupplyOfRequest{
+		Denom: denom,
+	})
+	if err != nil {
+		return sdkmath.Int{}, err
+	}
+
+	return res.Amount.Amount, nil
 }
 
 // PollForBalance polls until the balance matches
