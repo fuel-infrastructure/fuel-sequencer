@@ -6,7 +6,9 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
@@ -303,17 +305,34 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().True(newAuthorityIncrease.IsPositive(), "new authority should receive some funds")
 	})
 
-				break
 	s.Run("Check that bond module functionality works", func() {
+		// Get the bond module account address, from which module will burn
+		bondAccount, err := s.QueryModuleAccountAddress(s.Ctx(), bondtypes.ModuleName)
+		s.Require().NoError(err)
+		s.T().Logf("Bond module account address: %s", bondAccount.String())
+
+		// Amount to burn - using a smaller amount that's more likely to be reached quickly
+		burnAmount := sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(10)))
+
 		// Get initial supply and sender balance
 		sender := s.SeqKeys[0].AddressSeq
-		initialSupply, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		initialSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
+		s.T().Logf("Initial total supply: %s", initialSupply.String())
 		initialSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
 		s.Require().NoError(err)
 
-		// Amount to burn
-		burnAmount := sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(100)))
+		// Disable inflation by setting both mint and bond module inflation to zero
+		mintParams, bondParams := disableInflation(s, bondAccount, burnAmount)
+
+		// Wait for a block to ensure inflation changes take effect
+		err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+		s.Require().NoError(err)
+
+		// Get supply after disabling inflation
+		initialSupply, err = s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.T().Logf("Supply after disabling inflation: %s", initialSupply.String())
 
 		// Create and submit burn message
 		msgBurnCoins := &bondtypes.MsgBurnCoins{
@@ -324,19 +343,38 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().NoError(err)
 
 		// Get final balances
-		finalSupply, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		finalSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
 		finalSenderBalance, err := s.QueryBalance(s.Ctx(), sender, testsuite.BridgeDenom)
 		s.Require().NoError(err)
 
+		/*
+			The expected decrease in sender's balance is 50010 tokens, calculated as follows:
+			1. Burn operation (2 transactions):
+			   - First tx: Send coins from sender to module (costs burnAmount=10 + DefaultTxFee=10000)
+			   - Second tx: Burn coins from module (costs DefaultTxFee=10000)
+			2. Governance operations to disable/re-enable inflation (3 transactions):
+			   - Disable mint inflation (costs DefaultTxFee=10000)
+			   - Disable bond inflation (costs DefaultTxFee=10000)
+			   - Re-enable both mint and bond inflation (costs DefaultTxFee=10000)
+
+			Total cost = burnAmount + (5 * DefaultTxFee)
+			          = 10 + (5 * 10000)
+			          = 10 + 50000
+			          = 50010 tokens
+		*/
+
 		// Verify sender's balance decreased by burn amount plus transaction fee
 		senderDecrease := initialSenderBalance.Balance.Amount.Sub(finalSenderBalance.Balance.Amount)
-		expectedDecrease := burnAmount[0].Amount.Add(sdkmath.NewInt(testsuite.DefaultTxFee))
-		s.Require().Equal(expectedDecrease, senderDecrease, "sender's balance should decrease by burn amount plus transaction fee")
+		expectedDecrease := burnAmount[0].Amount.Add(sdkmath.NewInt(testsuite.DefaultTxFee * 5))
+		s.Require().Equal(expectedDecrease, senderDecrease, "sender's balance should decrease by burn amount plus transaction fees")
 
 		// Verify total supply decreased by burn amount
-		supplyDecrease := initialSupply.Balance.Amount.Sub(finalSupply.Balance.Amount)
+		supplyDecrease := initialSupply.Sub(finalSupply)
 		s.Require().Equal(burnAmount[0].Amount, supplyDecrease, "total supply should decrease by burn amount")
+
+		// Re-enable inflation by restoring original params
+		reenableInflation(s, mintParams, bondParams)
 	})
 
 	// s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
@@ -368,4 +406,82 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 	// 	sharesIncrease := finalDelegation.Delegation.Shares.Sub(initialDelegation.Delegation.Shares)
 	// 	s.Require().True(sharesIncrease.IsPositive(), "validator shares should increase")
 	// })
+}
+
+func disableInflation(s *BondModuleUpgradeTestSuite, bondAccount sdk.AccAddress, burnAmount sdk.Coins) (
+	*minttypes.Params, *bondtypes.Params,
+) {
+	// First, get current mint params
+	mintParams := s.QueryMintParams(s.Ctx())
+	s.Require().NotNil(mintParams)
+
+	// Create new mint params with zero inflation
+	newMintParams := minttypes.Params{
+		MintDenom:           mintParams.MintDenom,
+		InflationRateChange: sdkmath.LegacyZeroDec(),
+		InflationMax:        sdkmath.LegacyZeroDec(),
+		InflationMin:        sdkmath.LegacyZeroDec(),
+		GoalBonded:          mintParams.GoalBonded,
+		BlocksPerYear:       mintParams.BlocksPerYear,
+	}
+
+	// Submit governance proposal to update mint params
+	msgUpdateMintParams := &minttypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    newMintParams,
+	}
+	s.ExecuteGovProposal(msgUpdateMintParams)
+
+	// Get current bond params
+	bondParams := s.QueryBondParams(s.Ctx())
+	s.Require().NotNil(bondParams)
+
+	// Create new bond params with zero inflation
+	newBondParams := bondtypes.NewParams(sdkmath.LegacyZeroDec(), bondParams.Authority)
+
+	// Submit governance proposal to update bond params
+	msgUpdateBondParams := &bondtypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    newBondParams,
+	}
+	s.ExecuteGovProposal(msgUpdateBondParams)
+
+	// Wait for 1 block to pass for the BeginBlocker to run
+	s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
+	return mintParams, bondParams
+}
+
+func reenableInflation(s *BondModuleUpgradeTestSuite, mintParams *minttypes.Params, bondParams *bondtypes.Params) {
+	// Restore mint params
+	restoredMintParams := minttypes.Params{
+		MintDenom:           mintParams.MintDenom,
+		InflationRateChange: mintParams.InflationRateChange,
+		InflationMax:        mintParams.InflationMax,
+		InflationMin:        mintParams.InflationMin,
+		GoalBonded:          mintParams.GoalBonded,
+		BlocksPerYear:       mintParams.BlocksPerYear,
+	}
+	msgRestoreMintParams := &minttypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    restoredMintParams,
+	}
+	s.ExecuteGovProposal(msgRestoreMintParams)
+
+	// Restore bond params
+	restoredBondParams := bondtypes.NewParams(bondParams.Inflation, bondParams.Authority)
+	msgRestoreBondParams := &bondtypes.MsgUpdateParams{
+		Authority: bondParams.GetAuthority(),
+		Params:    restoredBondParams,
+	}
+	s.ExecuteGovProposal(msgRestoreBondParams)
+
+	// Wait for 1 block to pass for the BeginBlocker to run
+	s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
+	// Verify inflation is restored
+	finalMintParams := s.QueryMintParams(s.Ctx())
+	s.Require().Equal(mintParams.InflationMax, finalMintParams.InflationMax, "mint inflation should be restored")
+	finalBondParams := s.QueryBondParams(s.Ctx())
+	s.Require().Equal(bondParams.Inflation, finalBondParams.Inflation, "bond inflation should be restored")
 }
