@@ -237,6 +237,14 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		// Test passes as long as the upgrade took place and tokens are being minted as expected
 	})
 
+	// Test ensures that modifying params works as expected (vote)
+	// 	- Mint inflates appropriately with inflation value change.
+	// 	- Mint funds the new authority, and stops funding the old one.
+	s.Run("Modify params works as expected", func() {
+		// Get initial bond params and balances before update
+		initialBondParams := s.QueryBondParams(s.Ctx())
+		s.Require().NotNil(initialBondParams)
+
 		// Get initial balances
 		oldAuthorityAddr := initialBondParams.Authority
 		var oldAuthorityBalance *banktypes.QueryBalanceResponse
@@ -248,7 +256,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 
 		// Construct new bond module parameters
 		newAuthority := s.GetGovernanceAddress()
-		newInflation := sdkmath.LegacyMustNewDecFromStr("0.2")
+		newInflation := sdkmath.LegacyMustNewDecFromStr("0.4")
 		newParams := bondtypes.NewParams(newInflation, newAuthority)
 
 		// Submit governance proposal to update params
