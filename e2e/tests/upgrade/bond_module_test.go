@@ -8,6 +8,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
@@ -87,7 +88,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 	// Check that bond module params are now queryable
 	// Upgrade handler should modify inflation param on upgrade
 	// Check that upgrade sets bond authority to governance address
-	s.Run("Params are set as expected", func() {
+	s.Run("Bond and Mint Params are set as expected, even after update", func() {
 		// Get the bond module params
 		bondParams := s.QueryBondParams(s.Ctx())
 		s.Require().NotNil(bondParams)
@@ -103,6 +104,27 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		// Get the mint module params to verify total inflation
 		mintParams := s.QueryMintParams(s.Ctx())
 		s.Require().NotNil(mintParams)
+
+		// Propose a new mint inflation rate via an expedited proposal
+		newInflationRate := sdkmath.LegacyMustNewDecFromStr("0.3")
+		mintParams.InflationMin = newInflationRate
+		mintParams.InflationMax = newInflationRate
+		msgUpdateMint := &minttypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *mintParams,
+		}
+		s.ExecuteExpeditedGovProposal(msgUpdateMint)
+
+		// Propose a new bond inflation rate via an expedited proposal
+		bondParams.Inflation = sdkmath.LegacyMustNewDecFromStr("0.2")
+		msgUpdateBond := &bondtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(), // existing authority is blank; reusing it will fail
+			Params:    *bondParams,
+		}
+		s.ExecuteExpeditedGovProposal(msgUpdateBond)
+
+		// Wait for 1 block to pass for the BeginBlocker to run
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
 
 		// The total inflation should be the sum of mint and bond inflation
 		totalInflation := s.QueryMintInflation(s.Ctx())
@@ -217,6 +239,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		numBlocks := uint64(10)
 		err = s.WaitForSequencerBlocks(s.Ctx(), int(numBlocks), time.Second*20)
 		s.Require().NoError(err)
+				break
 
 		// Get final balances
 		var finalOldAuthorityBalance *banktypes.QueryBalanceResponse
@@ -238,6 +261,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().True(newAuthorityIncrease.IsPositive(), "new authority should receive some funds")
 	})
 
+				break
 	s.Run("Check that bond module functionality works", func() {
 		// Get initial supply and sender balance
 		sender := s.SeqKeys[0].AddressSeq
