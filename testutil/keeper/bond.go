@@ -47,6 +47,8 @@ func BondKeeperWithDependencies(t testing.TB) (
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	logger := log.NewNopLogger()
 
+	// var accountKeeper types.AccountKeeper = nil
+	// var bankKeeper types.BankKeeper = nil
 	ctrl := gomock.NewController(t)
 	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
 	bankKeeper := testutil.NewMockBankKeeper(ctrl)
