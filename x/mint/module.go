@@ -25,7 +25,6 @@ type AppModule struct {
 	// so we have copies of them here that we can set in NewAppModule for usage in BeginBlock.
 	keeper       mintkeeper.Keeper
 	bridgeKeeper types.BridgeKeeper
-	bondKeeper   types.BondKeeper
 }
 
 // NewAppModule creates a new AppModule object. If the InflationCalculationFn
@@ -36,7 +35,6 @@ func NewAppModule(
 	keeper mintkeeper.Keeper,
 	ak minttypes.AccountKeeper,
 	bk types.BridgeKeeper,
-	sbk types.BondKeeper,
 	ss exported.Subspace,
 ) AppModule {
 
@@ -45,13 +43,12 @@ func NewAppModule(
 		AppModule:    mint.NewAppModule(cdc, keeper, ak, ic, ss),
 		keeper:       keeper,
 		bridgeKeeper: bk,
-		bondKeeper:   sbk,
 	}
 }
 
 // BeginBlock overrides the BeginBlock of the mint module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
-	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper, am.bondKeeper)
+	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper)
 }
 
 //
@@ -81,7 +78,6 @@ type ModuleInputs struct {
 	BankKeeper    minttypes.BankKeeper
 	StakingKeeper minttypes.StakingKeeper
 	BridgeKeeper  types.BridgeKeeper
-	BondKeeper    types.BondKeeper
 }
 
 // ProvideModule calls the original mint module ProvideModule but then overrides the AppModule with the custom one.
@@ -104,7 +100,6 @@ func ProvideModule(in ModuleInputs) mint.ModuleOutputs {
 		out.MintKeeper,
 		in.AccountKeeper,
 		in.BridgeKeeper,
-		in.BondKeeper,
 		in.LegacySubspace,
 	)
 
