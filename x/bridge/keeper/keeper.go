@@ -64,11 +64,6 @@ func NewKeeper(
 	}
 }
 
-// GetAccountKeeper returns the account keeper
-func (k Keeper) GetAccountKeeper() types.AccountKeeper {
-	return k.accountKeeper
-}
-
 // GetAuthority returns the module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
