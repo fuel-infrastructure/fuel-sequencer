@@ -3,8 +3,10 @@ package bond_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	sdkstore "cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
@@ -143,14 +145,21 @@ func TestAppModule_InitExportGenesis(t *testing.T) {
 	require.NotNil(t, exported)
 
 	var exportedGenesis types.GenesisState
-	err = json.Unmarshal(exported, &exportedGenesis)
+	err = cdc.UnmarshalJSON(exported, &exportedGenesis)
 	require.NoError(t, err)
 	require.Equal(t, genesisState.Params, exportedGenesis.Params)
+	require.Equal(t, genesisState.State, exportedGenesis.State)
 }
 
 func TestAppModule_BeginBlock(t *testing.T) {
-	appModule, _, _, _ := setupModule(t)
-	ctx := sdk.NewContext(nil, tmproto.Header{}, false, log.NewNopLogger())
+	k, ctx, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
 
 	// BeginBlock should not panic
 	require.NoError(t, appModule.BeginBlock(ctx))
@@ -186,4 +195,50 @@ func TestProvideModule(t *testing.T) {
 	outputs := bond.ProvideModule(inputs)
 	require.NotNil(t, outputs.BondKeeper)
 	require.NotNil(t, outputs.Module)
+}
+
+func TestAppModule_BeginBlock_YieldMinting(t *testing.T) {
+	k, ctx, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	baseTime := time.Now()
+	recipient := k.GetAuthority()
+	yieldAmount := sdkmath.NewInt(1000000)
+
+	// Test case: no yield parameters set
+	require.NoError(t, appModule.BeginBlock(ctx))
+	require.Equal(t, int64(0), k.GetYieldMintHeight(ctx))
+
+	// Test case: yield time not reached
+	future := baseTime.Add(time.Hour)
+	params := types.NewParams(recipient, &future, yieldAmount)
+	require.NoError(t, k.SetParams(ctx, params))
+	ctx = ctx.WithBlockTime(baseTime)
+	require.NoError(t, appModule.BeginBlock(ctx))
+	require.Equal(t, int64(0), k.GetYieldMintHeight(ctx))
+
+	// Test case: yield time reached
+	params = types.NewParams(recipient, &baseTime, yieldAmount)
+	require.Error(t, k.SetParams(ctx, params))
+
+	// Test case: yield already minted
+	ctx = ctx.WithBlockTime(baseTime.Add(time.Second))
+	require.NoError(t, appModule.BeginBlock(ctx))
+	require.Equal(t, ctx.BlockHeight(), k.GetYieldMintHeight(ctx))
+
+	// Test case: invalid recipient
+	params = types.NewParams("invalid", &baseTime, yieldAmount)
+	require.Error(t, k.SetParams(ctx, params))
+
+	// Test case: zero yield amount
+	params = types.NewParams(recipient, &future, sdkmath.ZeroInt())
+	require.NoError(t, k.SetParams(ctx, params))
+	require.NoError(t, appModule.BeginBlock(ctx))
+	require.Equal(t, ctx.BlockHeight(), k.GetYieldMintHeight(ctx))
 }

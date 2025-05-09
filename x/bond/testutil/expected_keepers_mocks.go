@@ -87,32 +87,18 @@ func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 	return m.recorder
 }
 
-// BurnCoins mocks base method.
-func (m *MockBankKeeper) BurnCoins(ctx context.Context, moduleName string, amt types.Coins) error {
+// MintCoins mocks base method.
+func (m *MockBankKeeper) MintCoins(ctx context.Context, moduleName string, amt types.Coins) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BurnCoins", ctx, moduleName, amt)
+	ret := m.ctrl.Call(m, "MintCoins", ctx, moduleName, amt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BurnCoins indicates an expected call of BurnCoins.
-func (mr *MockBankKeeperMockRecorder) BurnCoins(ctx, moduleName, amt interface{}) *gomock.Call {
+// MintCoins indicates an expected call of MintCoins.
+func (mr *MockBankKeeperMockRecorder) MintCoins(ctx, moduleName, amt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BurnCoins", reflect.TypeOf((*MockBankKeeper)(nil).BurnCoins), ctx, moduleName, amt)
-}
-
-// SendCoinsFromAccountToModule mocks base method.
-func (m *MockBankKeeper) SendCoinsFromAccountToModule(ctx context.Context, senderAddr types.AccAddress, recipientModule string, amt types.Coins) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendCoinsFromAccountToModule", ctx, senderAddr, recipientModule, amt)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendCoinsFromAccountToModule indicates an expected call of SendCoinsFromAccountToModule.
-func (mr *MockBankKeeperMockRecorder) SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCoinsFromAccountToModule", reflect.TypeOf((*MockBankKeeper)(nil).SendCoinsFromAccountToModule), ctx, senderAddr, recipientModule, amt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MintCoins", reflect.TypeOf((*MockBankKeeper)(nil).MintCoins), ctx, moduleName, amt)
 }
 
 // SendCoinsFromModuleToAccount mocks base method.
@@ -127,51 +113,4 @@ func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx context.Context, sende
 func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCoinsFromModuleToAccount", reflect.TypeOf((*MockBankKeeper)(nil).SendCoinsFromModuleToAccount), ctx, senderModule, recipientAddr, amt)
-}
-
-// MockParamSubspace is a mock of ParamSubspace interface.
-type MockParamSubspace struct {
-	ctrl     *gomock.Controller
-	recorder *MockParamSubspaceMockRecorder
-}
-
-// MockParamSubspaceMockRecorder is the mock recorder for MockParamSubspace.
-type MockParamSubspaceMockRecorder struct {
-	mock *MockParamSubspace
-}
-
-// NewMockParamSubspace creates a new mock instance.
-func NewMockParamSubspace(ctrl *gomock.Controller) *MockParamSubspace {
-	mock := &MockParamSubspace{ctrl: ctrl}
-	mock.recorder = &MockParamSubspaceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockParamSubspace) EXPECT() *MockParamSubspaceMockRecorder {
-	return m.recorder
-}
-
-// Get mocks base method.
-func (m *MockParamSubspace) Get(ctx context.Context, key []byte, ptr interface{}) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Get", ctx, key, ptr)
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockParamSubspaceMockRecorder) Get(ctx, key, ptr interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockParamSubspace)(nil).Get), ctx, key, ptr)
-}
-
-// Set mocks base method.
-func (m *MockParamSubspace) Set(ctx context.Context, key []byte, param interface{}) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Set", ctx, key, param)
-}
-
-// Set indicates an expected call of Set.
-func (mr *MockParamSubspaceMockRecorder) Set(ctx, key, param interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockParamSubspace)(nil).Set), ctx, key, param)
 }

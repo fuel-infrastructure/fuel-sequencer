@@ -18,14 +18,18 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  inflation:
+                  yield_recipient:
                     type: string
-                    title: Inflation defines the inflation rate for the bond module
-                  authority:
+                    title: >-
+                      Yield recipient defines the address that receives the
+                      yield
+                  yield_time:
                     type: string
-                    title: |-
-                      Authority defines the address that receives the inflation
-                      and decides how many of it to distribute or burn
+                    format: date-time
+                    title: Yield time defines the time at which the yield is received
+                  yield_amount:
+                    type: string
+                    title: Yield amount defines the amount of yield to be received
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -30364,14 +30368,16 @@ definitions:
   fuelsequencer.bond.Params:
     type: object
     properties:
-      inflation:
+      yield_recipient:
         type: string
-        title: Inflation defines the inflation rate for the bond module
-      authority:
+        title: Yield recipient defines the address that receives the yield
+      yield_time:
         type: string
-        title: |-
-          Authority defines the address that receives the inflation
-          and decides how many of it to distribute or burn
+        format: date-time
+        title: Yield time defines the time at which the yield is received
+      yield_amount:
+        type: string
+        title: Yield amount defines the amount of yield to be received
     description: Params defines the parameters for the module.
   fuelsequencer.bond.v1.QueryParamsResponse:
     type: object
@@ -30380,14 +30386,16 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          inflation:
+          yield_recipient:
             type: string
-            title: Inflation defines the inflation rate for the bond module
-          authority:
+            title: Yield recipient defines the address that receives the yield
+          yield_time:
             type: string
-            title: |-
-              Authority defines the address that receives the inflation
-              and decides how many of it to distribute or burn
+            format: date-time
+            title: Yield time defines the time at which the yield is received
+          yield_amount:
+            type: string
+            title: Yield amount defines the amount of yield to be received
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   google.protobuf.Any:
     type: object

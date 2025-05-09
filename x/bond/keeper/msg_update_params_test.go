@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,6 +25,8 @@ func TestMsgUpdateParams(t *testing.T) {
 	authorityErrMsg := func(got string) string {
 		return fmt.Sprintf("invalid authority; expected %s, got %s: invalid signer", expectedAuthority, got)
 	}
+
+	future := time.Now().Add(time.Hour)
 
 	testCases := []struct {
 		name      string
@@ -78,12 +81,13 @@ func TestMsgUpdateParams(t *testing.T) {
 			expErr: false,
 		},
 		{
-			name: "should succeed with custom inflation rate",
+			name: "should succeed with custom yield params",
 			input: &types.MsgUpdateParams{
 				Authority: expectedAuthority,
 				Params: types.NewParams(
-					sdkmath.LegacyNewDecWithPrec(5, 1), // 0.5
 					expectedAuthority,
+					&future,
+					sdkmath.NewInt(1000000),
 				),
 			},
 			expErr: false,

@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"strings"
+	time "time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,21 +19,24 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	inflation sdkmath.LegacyDec,
-	authority string,
+	yieldRecipient string,
+	yieldTime *time.Time,
+	yieldAmount sdkmath.Int,
 ) Params {
 	return Params{
-		Inflation: inflation,
-		Authority: authority,
+		YieldRecipient: yieldRecipient,
+		YieldTime:      yieldTime,
+		YieldAmount:    yieldAmount,
 	}
 }
 
-// DefaultParams returns a default set of parameters
+// DefaultParams returns default bond module parameters.
 func DefaultParams() Params {
-	return NewParams(
-		sdkmath.LegacyZeroDec(),
-		"", // intentionally invalid to encourage explicit authority setting
-	)
+	return Params{
+		YieldRecipient: "",
+		YieldTime:      nil,
+		YieldAmount:    sdkmath.ZeroInt(),
+	}
 }
 
 // ParamSetPairs implements params.ParamSet
@@ -44,46 +48,76 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	if err := ValidateInflation(p.Inflation); err != nil {
+	if err := ValidateYieldRecipient(p.YieldRecipient); err != nil {
 		return err
 	}
-	if err := ValidateAuthority(p.Authority); err != nil {
+	if err := ValidateYieldTime(p.YieldTime); err != nil {
+		return err
+	}
+	if err := ValidateYieldAmount(p.YieldAmount); err != nil {
 		return err
 	}
 	return nil
 }
 
-// ValidateInflation validates the inflation parameter
-func ValidateInflation(i interface{}) error {
-	v, ok := i.(sdkmath.LegacyDec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v.IsNegative() {
-		return fmt.Errorf("inflation cannot be negative: %s", v)
-	}
-	if v.GT(sdkmath.LegacyOneDec()) {
-		return fmt.Errorf("inflation cannot be greater than 1: %s", v)
-	}
-
-	return nil
-}
-
-// ValidateAuthority validates the authority parameter
-func ValidateAuthority(i interface{}) error {
+// ValidateYieldRecipient validates the yield recipient parameter
+func ValidateYieldRecipient(i interface{}) error {
 	v, ok := i.(string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
 	if strings.TrimSpace(v) == "" {
-		return nil // Empty string is allowed (will be set to governance module account)
+		return nil // Empty string is allowed (to be updated later)
 	}
 
 	_, err := sdk.AccAddressFromBech32(v)
 	if err != nil {
-		return fmt.Errorf("invalid authority address: %w", err)
+		return fmt.Errorf("invalid yield recipient address: %w", err)
+	}
+
+	return nil
+}
+
+// ValidateYieldTime validates the yield time parameter
+func ValidateYieldTime(i interface{}) error {
+	if i == nil {
+		return nil // nil is allowed (to be updated later)
+	}
+
+	v, ok := i.(*time.Time)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == nil {
+		return nil // nil pointer is allowed (to be updated later)
+	}
+
+	if v.Before(time.Now()) {
+		return fmt.Errorf("yield time cannot be in the past")
+	}
+
+	return nil
+}
+
+// ValidateYieldAmount validates the yield amount parameter
+func ValidateYieldAmount(i interface{}) error {
+	if i == nil {
+		return nil // nil is allowed (to be updated later)
+	}
+
+	v, ok := i.(sdkmath.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNil() {
+		return nil // nil is allowed (to be updated later)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("yield amount cannot be negative: %s", v)
 	}
 
 	return nil

@@ -76,6 +76,37 @@ func (k Keeper) Logger() log.Logger {
 	return k.logger.With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+// GetState returns the current state of the bond module.
+func (k Keeper) GetState(ctx context.Context) types.State {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.StateKey)
+	if err != nil || bz == nil {
+		return types.DefaultState()
+	}
+	var state types.State
+	k.cdc.MustUnmarshal(bz, &state)
+	return state
+}
+
+// SetState sets the state of the bond module.
+func (k Keeper) SetState(ctx context.Context, state types.State) error {
+	store := k.storeService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(&state)
+	return store.Set(types.StateKey, bz)
+}
+
+// GetYieldMintHeight returns the height at which the yield was minted.
+func (k Keeper) GetYieldMintHeight(ctx context.Context) int64 {
+	return k.GetState(ctx).YieldMintHeight
+}
+
+// SetYieldMintHeight sets the height at which the yield was minted.
+func (k Keeper) SetYieldMintHeight(ctx context.Context, height int64) error {
+	state := k.GetState(ctx)
+	state.YieldMintHeight = height
+	return k.SetState(ctx, state)
+}
+
 // AddCollectedBondAllocation transfers bond allocation coins from the mint module to the bond authority.
 // This function assumes that the mint module has already minted the specified amount of tokens
 // specifically for this bond allocation.

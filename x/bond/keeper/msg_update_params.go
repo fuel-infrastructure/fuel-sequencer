@@ -6,7 +6,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-    "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/metrics"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
 func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
@@ -18,6 +19,9 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	if err := k.SetParams(ctx, req.Params); err != nil {
 		return nil, err
 	}
+
+	// Track parameter update in metrics
+	metrics.SetParamsUpdate(goCtx, req.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil
 }

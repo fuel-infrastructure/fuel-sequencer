@@ -4,8 +4,6 @@ package keeper_test
 func (s *KeeperTestSuite) TestMessagesRegisteredWithCorrectTypeUrl() {
 	handler := s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bond.v1.MsgUpdateParams")
 	s.Require().NotNil(handler)
-	handler = s.App.MsgServiceRouter().HandlerByTypeURL("/fuelsequencer.bond.v1.MsgBurnCoins")
-	s.Require().NotNil(handler)
 }
 
 // This test confirms that the Bond module's queries were registered with the correct path

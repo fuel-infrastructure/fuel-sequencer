@@ -3,34 +3,41 @@ package metrics
 import (
 	"context"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	"github.com/hashicorp/go-metrics"
 )
 
-// ObserveBurnCoins tracks when coins are burned through the bond module
-func ObserveBurnCoins(goCtx context.Context, coins sdk.Coins) {
+// ObserveYieldMinting tracks when yield is minted through the bond module
+func ObserveYieldMinting(goCtx context.Context, amount sdk.Coins, height int64) {
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		for _, coin := range coins {
+		for _, coin := range amount {
 			telemetry.IncrCounterWithLabels(
-				append(utils.KeysTxMsg, "burn", "coins"),
+				append(utils.KeysTxMsg, "yield", "mint"),
 				1,
 				[]metrics.Label{
 					telemetry.NewLabel("denom", coin.Denom),
 					telemetry.NewLabel("amount", coin.Amount.String()),
+					telemetry.NewLabel("height", utils.Int64ToString(height)),
 				},
 			)
 		}
 	})
 }
 
-// SetInflation tracks changes to the bond module's inflation parameter
-func SetInflation(goCtx context.Context, inflation sdkmath.LegacyDec) {
+// SetParamsUpdate tracks when bond module parameters are updated
+func SetParamsUpdate(goCtx context.Context, params types.Params) {
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		// Convert LegacyDec to float32 for telemetry
-		inflationFloat, _ := inflation.Float64()
-		telemetry.SetGauge(float32(inflationFloat), append(utils.KeysStore, "inflation")...)
+		telemetry.IncrCounterWithLabels(
+			append(utils.KeysTxMsg, "params", "update"),
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("yield_recipient", params.YieldRecipient),
+				telemetry.NewLabel("yield_time", params.YieldTime.String()),
+				telemetry.NewLabel("yield_amount", params.YieldAmount.String()),
+			},
+		)
 	})
 }
