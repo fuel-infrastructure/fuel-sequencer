@@ -11,6 +11,10 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
 
+const (
+	testAddr = "fuelsequencer1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5gjkhx7"
+)
+
 func TestSetGetParams(t *testing.T) {
 	k, ctx := keepertest.BondKeeper(t)
 
@@ -21,10 +25,10 @@ func TestSetGetParams(t *testing.T) {
 	require.EqualValues(t, sdkmath.ZeroInt(), defaultParams.YieldAmount)
 
 	// Set non-default values
-	baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	baseTime := time.Now()
 	future := baseTime.Add(time.Hour)
 	params := types.DefaultParams()
-	params.YieldRecipient = "fuelsequencer1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
+	params.YieldRecipient = testAddr
 	params.YieldTime = &future
 	params.YieldAmount = sdkmath.NewInt(1000000)
 
@@ -37,14 +41,12 @@ func TestSetGetParams(t *testing.T) {
 
 	// Verify non-default values were set correctly
 	retrievedParams := k.GetParams(ctx)
-	require.EqualValues(t, "fuelsequencer1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu", retrievedParams.YieldRecipient)
+	require.EqualValues(t, testAddr, retrievedParams.YieldRecipient)
 	require.EqualValues(t, future.Unix(), retrievedParams.YieldTime.Unix())
 	require.EqualValues(t, sdkmath.NewInt(1000000), retrievedParams.YieldAmount)
 }
 
 func (suite *KeeperTestSuite) TestParams() {
-	testAddr := "fuelsequencer1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
-
 	params := types.DefaultParams()
 	params.YieldRecipient = testAddr
 

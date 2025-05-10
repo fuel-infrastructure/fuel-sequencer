@@ -9,7 +9,6 @@ import (
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 )
@@ -105,24 +104,4 @@ func (k Keeper) SetYieldMintHeight(ctx context.Context, height int64) error {
 	state := k.GetState(ctx)
 	state.YieldMintHeight = height
 	return k.SetState(ctx, state)
-}
-
-// AddCollectedBondAllocation transfers bond allocation coins from the mint module to the bond authority.
-// This function assumes that the mint module has already minted the specified amount of tokens
-// specifically for this bond allocation.
-// AddCollectedBondAllocation to be used in custom x/mint module's BeginBlocker.
-func (k Keeper) AddCollectedBondAllocation(ctx context.Context, allocation sdk.Coins) error {
-	if allocation.IsZero() {
-		return nil
-	}
-
-	// Get the bond authority address
-	bondAuthority, err := k.GetAccountAsBytes(k.authority)
-	if err != nil {
-		return err
-	}
-	// Send coins from mint module to bond authority
-	return k.bankKeeper.SendCoinsFromModuleToAccount(
-		ctx, minttypes.ModuleName, bondAuthority, allocation,
-	)
 }

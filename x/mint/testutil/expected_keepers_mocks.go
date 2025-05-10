@@ -8,9 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/cosmos/cosmos-sdk/types"
-	types0 "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
-	types1 "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	types "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	types0 "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -38,10 +37,10 @@ func (m *MockBridgeKeeper) EXPECT() *MockBridgeKeeperMockRecorder {
 }
 
 // GetParams mocks base method.
-func (m *MockBridgeKeeper) GetParams(ctx context.Context) types1.Params {
+func (m *MockBridgeKeeper) GetParams(ctx context.Context) types0.Params {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types1.Params)
+	ret0, _ := ret[0].(types0.Params)
 	return ret0
 }
 
@@ -74,25 +73,11 @@ func (m *MockBondKeeper) EXPECT() *MockBondKeeperMockRecorder {
 	return m.recorder
 }
 
-// AddCollectedBondAllocation mocks base method.
-func (m *MockBondKeeper) AddCollectedBondAllocation(ctx context.Context, bond types.Coins) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddCollectedBondAllocation", ctx, bond)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddCollectedBondAllocation indicates an expected call of AddCollectedBondAllocation.
-func (mr *MockBondKeeperMockRecorder) AddCollectedBondAllocation(ctx, bond interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCollectedBondAllocation", reflect.TypeOf((*MockBondKeeper)(nil).AddCollectedBondAllocation), ctx, bond)
-}
-
 // GetParams mocks base method.
-func (m *MockBondKeeper) GetParams(ctx context.Context) types0.Params {
+func (m *MockBondKeeper) GetParams(ctx context.Context) types.Params {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types0.Params)
+	ret0, _ := ret[0].(types.Params)
 	return ret0
 }
 
