@@ -17,6 +17,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Shows the parameters of the module",
 				},
+				{
+					RpcMethod: "State",
+					Use:       "state",
+					Short:     "Shows the current state of the bond module",
+				},
 				// this line is used by ignite scaffolding # autocli/query
 			},
 		},
