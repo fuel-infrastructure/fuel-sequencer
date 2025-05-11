@@ -198,6 +198,30 @@ func TestMintYield(t *testing.T) {
 			expectedHeight: 0, // will be set after context is created
 			expectedError:  false,
 		},
+		{
+			name: "verify minting state",
+			setupParams: func(keeper keeper.Keeper) types.Params {
+				return types.NewParams(keeper.GetAuthority(), &futureTime, yieldAmount)
+			},
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
+
+				// Expect MintCoins to be called with the correct amount
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+
+				// Expect SendCoinsFromModuleToAccount to be called with the correct amount
+				bankKeeper.EXPECT().
+					SendCoinsFromModuleToAccount(
+						gomock.Any(),
+						minttypes.ModuleName,
+						gomock.Any(),
+						sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
+					).
+					Return(nil)
+			},
+			expectedHeight: 0, // will be set after context is created
+			expectedError:  false,
+		},
 	}
 
 	for _, tc := range testCases {
