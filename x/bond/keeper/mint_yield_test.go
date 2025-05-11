@@ -236,7 +236,7 @@ func TestMintYield(t *testing.T) {
 
 			// For cases that should mint, set expectedHeight to current block height
 			if tc.name == "yield time reached" || tc.name == "yield already minted" ||
-				tc.name == "maximum yield amount" {
+				tc.name == "maximum yield amount" || tc.name == "verify minting state" {
 				tc.expectedHeight = testCtx.BlockHeight()
 			}
 
