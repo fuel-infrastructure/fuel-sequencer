@@ -13,3 +13,11 @@ func (s *E2ETestSuite) QueryBondParams(ctx context.Context) *bondtypes.Params {
 
 	return &res.Params
 }
+
+func (s *E2ETestSuite) QueryBondState(ctx context.Context) bondtypes.State {
+	queryClient := s.getGRPCClients().BondQueryClient
+	res, err := queryClient.State(ctx, &bondtypes.QueryStateRequest{})
+	s.Require().NoError(err)
+
+	return res.State
+}
