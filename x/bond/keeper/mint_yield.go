@@ -22,7 +22,7 @@ func (k Keeper) MintYield(ctx context.Context) error {
 
 	// Check if it's time to mint yield
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if !sdkCtx.BlockTime().Equal(*params.YieldTime) {
+	if sdkCtx.BlockTime().Before(*params.YieldTime) {
 		return nil
 	}
 
