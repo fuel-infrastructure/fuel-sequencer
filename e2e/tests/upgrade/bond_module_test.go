@@ -38,9 +38,12 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 	s.Run("Perform the upgrade", func() {
 		height, err := s.GetFuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err, "error fetching height before submit upgrade proposal")
+		s.Logger().Info("Current height before upgrade proposal", zap.Int64("height", int64(height)))
 
 		haltHeight := height + bondHaltHeightDelta
-		s.Logger().Info("Submitting software upgrade proposal", zap.Uint64("halt_height", haltHeight))
+		s.Logger().Info("Submitting software upgrade proposal",
+			zap.Uint64("halt_height", haltHeight),
+			zap.String("upgrade_name", bond_module.UpgradeName))
 		msgUpgrade := &upgradetypes.MsgSoftwareUpgrade{
 			Authority: s.GetGovernanceAddress(),
 			Plan: upgradetypes.Plan{
@@ -51,7 +54,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		}
 		s.ExecuteGovProposal(msgUpgrade)
 
-		height, err = s.GetFuelSequencerHeight(s.Ctx())
+		_, err = s.GetFuelSequencerHeight(s.Ctx())
 		s.Require().NoError(err, "error fetching height before upgrade")
 
 		// Wait until just before the upgrade
@@ -88,6 +91,10 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		// Get the bond module params
 		bondParams := s.QueryBondParams(s.Ctx())
 		s.Require().NotNil(bondParams)
+		s.Logger().Info("Initial bond params",
+			zap.String("yield_recipient", bondParams.YieldRecipient),
+			zap.Any("yield_time", bondParams.YieldTime),
+			zap.String("yield_amount", bondParams.YieldAmount.String()))
 
 		// Check that the yield recipient is set to default value
 		s.Require().Equal("", bondParams.YieldRecipient)
@@ -96,19 +103,26 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().Nil(bondParams.YieldTime)
 
 		// Check that the yield amount is set to default value
-		s.Require().True(bondParams.YieldAmount.IsNil())
+		s.Require().True(bondParams.YieldAmount.IsZero())
 
 		// Get the bond module state
 		bondState := s.QueryBondState(s.Ctx())
 		s.Require().NotNil(bondState)
+		s.Logger().Info("Initial bond state",
+			zap.Int64("yield_mint_height", bondState.YieldMintHeight))
 
 		// Check that the yield mint height is set to default value
 		s.Require().Equal(int64(0), bondState.YieldMintHeight)
 
 		// Propose a new bond params via an expedited proposal
 		newYieldRecipient := s.GetGovernanceAddress()
-		newYieldTime := time.Now().Add(time.Hour * 24) // 24 hours from now
-		newYieldAmount := sdkmath.NewInt(1000000)      // 1M tokens
+		newYieldTime := time.Now().Add(time.Minute) // 1 minute from now
+		newYieldAmount := sdkmath.NewInt(1000000)   // 1M tokens
+
+		s.Logger().Info("Proposing new bond params",
+			zap.String("new_yield_recipient", newYieldRecipient),
+			zap.Time("new_yield_time", newYieldTime),
+			zap.String("new_yield_amount", newYieldAmount.String()))
 
 		bondParams.YieldRecipient = newYieldRecipient
 		bondParams.YieldTime = &newYieldTime
@@ -125,6 +139,11 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 
 		// Verify params were updated
 		updatedBondParams := s.QueryBondParams(s.Ctx())
+		s.Logger().Info("Updated bond params",
+			zap.String("yield_recipient", updatedBondParams.YieldRecipient),
+			zap.Any("yield_time", updatedBondParams.YieldTime),
+			zap.String("yield_amount", updatedBondParams.YieldAmount.String()))
+
 		s.Require().Equal(newYieldRecipient, updatedBondParams.YieldRecipient)
 		s.Require().Equal(newYieldTime.Unix(), updatedBondParams.YieldTime.Unix())
 		s.Require().Equal(newYieldAmount, updatedBondParams.YieldAmount)
@@ -132,6 +151,8 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		// Verify state is still queryable and unchanged
 		updatedBondState := s.QueryBondState(s.Ctx())
 		s.Require().NotNil(updatedBondState)
+		s.Logger().Info("Updated bond state",
+			zap.Int64("yield_mint_height", updatedBondState.YieldMintHeight))
 		s.Require().Equal(int64(0), updatedBondState.YieldMintHeight, "state should remain unchanged after params update")
 	})
 
@@ -147,31 +168,74 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		initialRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
 
+		s.Logger().Info("Initial state before yield",
+			zap.String("initial_supply", initialSupply.String()),
+			zap.String("initial_recipient_balance", initialRecipientBalance.Balance.Amount.String()))
+
 		// Verify bond params from previous test case
 		bondParams := s.QueryBondParams(s.Ctx())
+		s.Logger().Info("Current bond params before yield",
+			zap.String("yield_recipient", bondParams.YieldRecipient),
+			zap.Any("yield_time", bondParams.YieldTime),
+			zap.String("yield_amount", bondParams.YieldAmount.String()))
+
+		// Verify params are set from previous test case
 		s.Require().Equal(s.GetGovernanceAddress(), bondParams.YieldRecipient)
 		s.Require().NotNil(bondParams.YieldTime)
 		s.Require().Equal(sdkmath.NewInt(1000000), bondParams.YieldAmount)
 
-		// Wait for yield time and a block to ensure yield is minted
+		// Wait until we reach or pass the yield time
+		s.Logger().Info("Waiting for yield time to be reached",
+			zap.Time("yield_time", *bondParams.YieldTime))
+
+		// Wait for blocks until we reach or pass the yield time
+		for {
+			currentTime := time.Now()
+			if currentTime.After(*bondParams.YieldTime) {
+				break
+			}
+			s.Logger().Info("Current time before yield time",
+				zap.Time("current_time", currentTime),
+				zap.Time("yield_time", *bondParams.YieldTime))
+			time.Sleep(time.Second)
+		}
+
+		// Wait for a block to ensure yield is minted
 		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
 
 		// Verify total supply increased by yield amount
 		finalSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
-		s.Require().Equal(initialSupply.Add(bondParams.YieldAmount), finalSupply)
+		s.Logger().Info("Final supply after yield",
+			zap.String("final_supply", finalSupply.String()),
+			zap.String("expected_supply", initialSupply.Add(bondParams.YieldAmount).String()))
+
+		// Now that we've waited for the yield time, the supply should have increased
+		s.Require().Equal(initialSupply.Add(bondParams.YieldAmount), finalSupply, "total supply should increase by yield amount after yield time is reached")
 
 		// Verify recipient balance increased by yield amount
 		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
-		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount)
+		s.Logger().Info("Final recipient balance after yield",
+			zap.String("final_balance", finalRecipientBalance.Balance.Amount.String()),
+			zap.String("expected_balance", initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount).String()))
+
+		// Now that we've waited for the yield time, the recipient balance should have increased
+		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount, "recipient balance should increase by yield amount after yield time is reached")
 
 		// Verify bond module state is updated with yield mint height
 		bondState := s.QueryBondState(s.Ctx())
-		s.Require().NotZero(bondState.YieldMintHeight)
+		s.Logger().Info("Final bond state after yield",
+			zap.Int64("yield_mint_height", bondState.YieldMintHeight))
+		// Now that we've waited for the yield time, the yield mint height should be set
+		s.Require().NotZero(bondState.YieldMintHeight, "yield mint height should be set after yield time is reached")
 	})
 
 	s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
+		s.Logger().Info("Starting deposit and delegate regression check")
+
+		// Run the deposit and delegate test
 		deposits.SequencerAccountsDoNotExist_WithLockup_AndDelegateAndUndelegate(&s.E2ETestSuite)
+		s.Logger().Info("Completed deposit and delegate test")
 	})
 }
