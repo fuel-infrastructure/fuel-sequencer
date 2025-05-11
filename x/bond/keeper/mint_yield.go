@@ -26,13 +26,8 @@ func (k Keeper) MintYield(ctx context.Context) error {
 		return nil
 	}
 
-	// Validate recipient address
-	if _, err := sdk.AccAddressFromBech32(params.YieldRecipient); err != nil {
-		return err
-	}
-
 	// Mint yield to recipient
-	recipient, err := sdk.AccAddressFromBech32(params.YieldRecipient)
+	recipient, err := k.GetAccountAsBytes(params.YieldRecipient)
 	if err != nil {
 		return err
 	}
