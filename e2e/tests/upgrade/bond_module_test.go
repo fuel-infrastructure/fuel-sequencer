@@ -11,6 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
+	deposits "github.com/fuel-infrastructure/fuel-sequencer/e2e/tests/deposits"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	"github.com/stretchr/testify/suite"
@@ -377,35 +378,9 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		reenableInflation(s, mintParams, bondParams)
 	})
 
-	// s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
-	// 	// Get initial balances
-	// 	sender := s.EthKeys[0]
-	// 	validator := s.SeqKeys[0]
-	// 	initialSenderBalance, err := s.QueryBalance(s.Ctx(), sender.AddressSeq, testsuite.BridgeDenom)
-	// 	s.Require().NoError(err)
-	// 	initialDelegation := s.QueryDelegation(s.Ctx(), sender.AddressSeq, validator.ValAddressSeq)
-
-	// 	// Amount to deposit and delegate
-	// 	amount := big.NewInt(1000)
-
-	// 	// Deposit and delegate
-	// 	receipt := s.DepositAndDelegateTokenToSequencer(amount, common.HexToAddress(validator.ValAddressHex))
-	// 	s.Require().NotNil(receipt)
-
-	// 	// Wait for the transaction to be processed
-	// 	s.PollForLastEthereumBlockSynced(s.Ctx(), 10, receipt.BlockNumber.Uint64())
-
-	// 	// Verify deposit
-	// 	finalSenderBalance, err := s.QueryBalance(s.Ctx(), sender.AddressSeq, testsuite.BridgeDenom)
-	// 	s.Require().NoError(err)
-	// 	senderIncrease := finalSenderBalance.Balance.Amount.Sub(initialSenderBalance.Balance.Amount)
-	// 	s.Require().Equal(sdkmath.NewIntFromBigInt(amount), senderIncrease, "sender's balance should increase by deposit amount")
-
-	// 	// Verify delegation
-	// 	finalDelegation := s.QueryDelegation(s.Ctx(), sender.AddressSeq, validator.ValAddressSeq)
-	// 	sharesIncrease := finalDelegation.Delegation.Shares.Sub(initialDelegation.Delegation.Shares)
-	// 	s.Require().True(sharesIncrease.IsPositive(), "validator shares should increase")
-	// })
+	s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
+		deposits.SequencerAccountsDoNotExist_WithLockup_AndDelegateAndUndelegate(&s.E2ETestSuite)
+	})
 }
 
 func disableInflation(s *BondModuleUpgradeTestSuite) (*minttypes.Params, *bondtypes.Params) {
