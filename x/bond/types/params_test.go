@@ -1,10 +1,13 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
@@ -92,80 +95,95 @@ func TestParamSetPairs(t *testing.T) {
 }
 
 func TestValidateYieldRecipient(t *testing.T) {
-	yieldRecipient := "cosmos124maqmcqv8tquy764ktz7cu0gxnzfw54k9cmz5"
+	// Create a test address
+	pk := ed25519.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pk.Address())
+
 	testCases := []struct {
-		name      string
-		recipient string
-		expErr    bool
+		name     string
+		input    interface{}
+		expected error
 	}{
 		{
-			name:      "valid recipient",
-			recipient: yieldRecipient,
-			expErr:    false,
+			name:     "valid address",
+			input:    addr.String(),
+			expected: nil,
 		},
 		{
-			name:      "empty recipient",
-			recipient: "",
-			expErr:    false,
+			name:     "empty string",
+			input:    "",
+			expected: nil,
 		},
 		{
-			name:      "invalid recipient",
-			recipient: "invalid",
-			expErr:    true,
+			name:     "invalid address",
+			input:    "invalid",
+			expected: fmt.Errorf("invalid yield recipient address: decoding bech32 failed: invalid bech32 string length 7"),
 		},
 		{
-			name:      "whitespace recipient",
-			recipient: "  ",
-			expErr:    false,
+			name:     "invalid type",
+			input:    123,
+			expected: fmt.Errorf("invalid parameter type: int"),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := types.ValidateYieldRecipient(tc.recipient)
-			if tc.expErr {
-				require.Error(t, err)
-			} else {
+			err := types.ValidateYieldRecipient(tc.input)
+			if tc.expected == nil {
 				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				require.Equal(t, tc.expected.Error(), err.Error())
 			}
 		})
 	}
 }
 
 func TestValidateYieldTime(t *testing.T) {
-	baseTime := time.Now()
-	past := baseTime.Add(-time.Hour)
-	future := baseTime.Add(time.Hour)
+	now := time.Now()
+	pastTime := now.Add(-time.Hour)
+	futureTime := now.Add(time.Hour)
 
 	testCases := []struct {
-		name   string
-		time   *time.Time
-		expErr bool
+		name     string
+		input    interface{}
+		expected error
 	}{
 		{
-			name:   "valid future time",
-			time:   &future,
-			expErr: false,
+			name:     "nil input",
+			input:    nil,
+			expected: nil,
 		},
 		{
-			name:   "nil time",
-			time:   nil,
-			expErr: false,
+			name:     "nil time pointer",
+			input:    (*time.Time)(nil),
+			expected: nil,
 		},
 		{
-			name:   "past time",
-			time:   &past,
-			expErr: true,
+			name:     "future time",
+			input:    &futureTime,
+			expected: nil,
+		},
+		{
+			name:     "past time",
+			input:    &pastTime,
+			expected: fmt.Errorf("yield time cannot be in the past"),
+		},
+		{
+			name:     "invalid type",
+			input:    "invalid",
+			expected: fmt.Errorf("invalid parameter type: string"),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := types.ValidateYieldTime(tc.time)
-			if tc.expErr {
-				require.Error(t, err)
-			} else {
+			err := types.ValidateYieldTime(tc.input)
+			if tc.expected == nil {
 				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				require.Equal(t, tc.expected.Error(), err.Error())
 			}
 		})
 	}
@@ -173,34 +191,116 @@ func TestValidateYieldTime(t *testing.T) {
 
 func TestValidateYieldAmount(t *testing.T) {
 	testCases := []struct {
-		name   string
-		amount sdkmath.Int
-		expErr bool
+		name     string
+		input    interface{}
+		expected error
 	}{
 		{
-			name:   "valid amount",
-			amount: sdkmath.NewInt(1000000),
-			expErr: false,
+			name:     "nil input",
+			input:    nil,
+			expected: nil,
 		},
 		{
-			name:   "zero amount",
-			amount: sdkmath.ZeroInt(),
-			expErr: false,
+			name:     "zero amount",
+			input:    sdkmath.ZeroInt(),
+			expected: nil,
 		},
 		{
-			name:   "negative amount",
-			amount: sdkmath.NewInt(-1),
-			expErr: true,
+			name:     "positive amount",
+			input:    sdkmath.NewInt(1000),
+			expected: nil,
+		},
+		{
+			name:     "negative amount",
+			input:    sdkmath.NewInt(-1000),
+			expected: fmt.Errorf("yield amount cannot be negative: -1000"),
+		},
+		{
+			name:     "invalid type",
+			input:    "invalid",
+			expected: fmt.Errorf("invalid parameter type: string"),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := types.ValidateYieldAmount(tc.amount)
-			if tc.expErr {
-				require.Error(t, err)
-			} else {
+			err := types.ValidateYieldAmount(tc.input)
+			if tc.expected == nil {
 				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				require.Equal(t, tc.expected.Error(), err.Error())
+			}
+		})
+	}
+}
+
+func TestParams_Validate(t *testing.T) {
+	// Create a test address
+	pk := ed25519.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pk.Address())
+	futureTime := time.Now().Add(time.Hour)
+
+	testCases := []struct {
+		name     string
+		params   types.Params
+		expected error
+	}{
+		{
+			name: "valid params",
+			params: types.Params{
+				YieldRecipient: addr.String(),
+				YieldTime:      &futureTime,
+				YieldAmount:    sdkmath.NewInt(1000),
+			},
+			expected: nil,
+		},
+		{
+			name: "default params",
+			params: types.Params{
+				YieldRecipient: "",
+				YieldTime:      nil,
+				YieldAmount:    sdkmath.ZeroInt(),
+			},
+			expected: nil,
+		},
+		{
+			name: "invalid recipient",
+			params: types.Params{
+				YieldRecipient: "invalid",
+				YieldTime:      &futureTime,
+				YieldAmount:    sdkmath.NewInt(1000),
+			},
+			expected: fmt.Errorf("invalid yield recipient address: decoding bech32 failed: invalid bech32 string length 7"),
+		},
+		{
+			name: "invalid time",
+			params: types.Params{
+				YieldRecipient: addr.String(),
+				YieldTime:      &time.Time{},
+				YieldAmount:    sdkmath.NewInt(1000),
+			},
+			expected: fmt.Errorf("yield time cannot be in the past"),
+		},
+		{
+			name: "invalid amount",
+			params: types.Params{
+				YieldRecipient: addr.String(),
+				YieldTime:      &futureTime,
+				YieldAmount:    sdkmath.NewInt(-1000),
+			},
+			expected: fmt.Errorf("yield amount cannot be negative: -1000"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.params.Validate()
+			if tc.expected == nil {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				require.Equal(t, tc.expected.Error(), err.Error())
 			}
 		})
 	}

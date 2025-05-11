@@ -92,6 +92,45 @@ func TestMsgUpdateParams(t *testing.T) {
 			},
 			expErr: false,
 		},
+		{
+			name: "should fail with invalid recipient address",
+			input: &types.MsgUpdateParams{
+				Authority: expectedAuthority,
+				Params: types.NewParams(
+					"invalid",
+					&future,
+					sdkmath.NewInt(1000000),
+				),
+			},
+			expErr:    true,
+			expErrMsg: "invalid yield recipient address: decoding bech32 failed: invalid bech32 string length 7",
+		},
+		{
+			name: "should fail with negative yield amount",
+			input: &types.MsgUpdateParams{
+				Authority: expectedAuthority,
+				Params: types.NewParams(
+					expectedAuthority,
+					&future,
+					sdkmath.NewInt(-1),
+				),
+			},
+			expErr:    true,
+			expErrMsg: "yield amount cannot be negative: -1",
+		},
+		{
+			name: "should fail with past yield time",
+			input: &types.MsgUpdateParams{
+				Authority: expectedAuthority,
+				Params: types.NewParams(
+					expectedAuthority,
+					&time.Time{}, // zero time is in the past
+					sdkmath.NewInt(1000000),
+				),
+			},
+			expErr:    true,
+			expErrMsg: "yield time cannot be in the past",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -103,6 +142,25 @@ func TestMsgUpdateParams(t *testing.T) {
 				require.Contains(t, err.Error(), tc.expErrMsg)
 			} else {
 				require.NoError(t, err)
+				// Verify params were updated
+				updatedParams := k.GetParams(ctx)
+				// Compare params without considering time zone
+				if tc.input.Params.YieldTime != nil {
+					require.True(t, tc.input.Params.YieldTime.UTC().Equal(updatedParams.YieldTime.UTC()))
+				} else {
+					require.Nil(t, updatedParams.YieldTime)
+				}
+				require.Equal(t, tc.input.Params.YieldRecipient, updatedParams.YieldRecipient)
+				// Compare big.Int values
+				if tc.input.Params.YieldAmount.IsNil() && updatedParams.YieldAmount.IsZero() {
+					// treat nil and zero as equivalent
+					return
+				}
+				if tc.input.Params.YieldAmount.IsNil() {
+					require.True(t, updatedParams.YieldAmount.IsNil())
+				} else {
+					require.Equal(t, tc.input.Params.YieldAmount, updatedParams.YieldAmount)
+				}
 			}
 		})
 	}

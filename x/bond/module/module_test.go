@@ -22,12 +22,14 @@ import (
 	grpcgateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/types/module"
 	modulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bond/module"
 	testkeeper "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 	bond "github.com/fuel-infrastructure/fuel-sequencer/x/bond/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/testutil"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	types "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	"google.golang.org/grpc"
 )
 
 func setupModule(t testing.TB) (*bond.AppModule, types.AccountKeeper, types.BankKeeper, keeper.Keeper) {
@@ -241,4 +243,126 @@ func TestAppModule_BeginBlock_YieldMinting(t *testing.T) {
 	require.NoError(t, k.SetParams(ctx, params))
 	require.NoError(t, appModule.BeginBlock(ctx))
 	require.Equal(t, ctx.BlockHeight(), k.GetYieldMintHeight(ctx))
+}
+
+func TestRegisterLegacyAminoCodec(t *testing.T) {
+	c := codec.NewLegacyAmino()
+	appModuleBasic := bond.NewAppModuleBasic(nil)
+	appModuleBasic.RegisterLegacyAminoCodec(c)
+	// No panic or error expected
+}
+
+func TestRegisterInterfaces(t *testing.T) {
+	registry := codectypes.NewInterfaceRegistry()
+	appModuleBasic := bond.NewAppModuleBasic(nil)
+	appModuleBasic.RegisterInterfaces(registry)
+	// No panic or error expected
+}
+
+func TestDefaultGenesis(t *testing.T) {
+	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	appModuleBasic := bond.NewAppModuleBasic(cdc)
+	defaultGenesis := appModuleBasic.DefaultGenesis(cdc)
+	require.NotNil(t, defaultGenesis)
+}
+
+func TestValidateGenesis(t *testing.T) {
+	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	appModuleBasic := bond.NewAppModuleBasic(cdc)
+	defaultGenesis := types.DefaultGenesis()
+	bz, err := cdc.MarshalJSON(defaultGenesis)
+	require.NoError(t, err)
+	err = appModuleBasic.ValidateGenesis(cdc, nil, json.RawMessage(bz))
+	require.NoError(t, err)
+}
+
+func TestAppModule_RegisterServices(t *testing.T) {
+	k, _, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	// Create a proper configurator with the necessary dependencies
+	registry := codectypes.NewInterfaceRegistry()
+	types.RegisterInterfaces(registry)
+
+	// Create a gRPC server
+	server := grpc.NewServer()
+
+	// Create a configurator with the gRPC server
+	config := module.NewConfigurator(cdc, server, server)
+
+	// Register services
+	require.NotPanics(t, func() {
+		appModule.RegisterServices(config)
+	})
+}
+
+func TestAppModule_RegisterInvariants(t *testing.T) {
+	k, _, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	require.NotPanics(t, func() {
+		appModule.RegisterInvariants(nil)
+	})
+}
+
+func TestAppModule_IsOnePerModuleType(t *testing.T) {
+	k, _, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	require.NotPanics(t, func() {
+		appModule.IsOnePerModuleType()
+	})
+}
+
+func TestAppModule_IsAppModule(t *testing.T) {
+	k, _, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	require.NotPanics(t, func() {
+		appModule.IsAppModule()
+	})
+}
+
+func TestAppModule_RegisterGRPCGatewayRoutes(t *testing.T) {
+	k, _, cdc, mockAccountKeeper, mockBankKeeper := testkeeper.BondKeeperWithDependencies(t)
+
+	appModule := bond.NewAppModule(
+		cdc,
+		k,
+		mockAccountKeeper,
+		mockBankKeeper,
+	)
+
+	clientCtx := client.Context{}.WithCodec(cdc)
+	mux := grpcgateway.NewServeMux()
+	require.NotPanics(t, func() {
+		appModule.RegisterGRPCGatewayRoutes(clientCtx, mux)
+	})
+	require.Panics(t, func() {
+		appModule.RegisterGRPCGatewayRoutes(clientCtx, nil)
+	})
 }
