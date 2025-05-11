@@ -184,24 +184,75 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().NotNil(bondParams.YieldTime)
 		s.Require().Equal(sdkmath.NewInt(1000000), bondParams.YieldAmount)
 
-		// Wait until we reach or pass the yield time
-		s.Logger().Info("Waiting for yield time to be reached",
-			zap.Time("yield_time", *bondParams.YieldTime))
+		// Check if yield has already been minted
+		bondState := s.QueryBondState(s.Ctx())
+		s.Logger().Info("Current bond state",
+			zap.Int64("yield_mint_height", bondState.YieldMintHeight))
 
-		// Wait for blocks until we reach or pass the yield time
-		for {
-			currentTime := time.Now()
-			if currentTime.After(*bondParams.YieldTime) {
-				break
+		if bondState.YieldMintHeight > 0 {
+			s.Logger().Info("Yield has already been minted at height", zap.Int64("height", bondState.YieldMintHeight))
+		} else {
+			// Wait until we reach or pass the yield time and yield occurs
+			for {
+				currentTime := time.Now()
+				bondState = s.QueryBondState(s.Ctx())
+
+				// If minting has occurred, verify it happened at the right time
+				if bondState.YieldMintHeight > 0 {
+					// Get the block time for the mint height
+					block, err := s.GetBlockByHeight(s.Ctx(), bondState.YieldMintHeight)
+					s.Require().NoError(err, "failed to get block at mint height")
+					mintTime := block.Header.Time
+
+					s.Logger().Info("Yield minting occurred",
+						zap.Int64("height", bondState.YieldMintHeight),
+						zap.Time("mint_time", mintTime),
+						zap.Time("yield_time", *bondParams.YieldTime))
+
+					// Verify that minting occurred at or after the intended yield time
+					s.Require().False(bondParams.YieldTime.Before(mintTime),
+						"yield minting occurred before intended yield time")
+					break
+				}
+
+				// If we haven't reached yield time yet, wait and continue
+				if !currentTime.After(*bondParams.YieldTime) {
+					s.Logger().Info("Current time before yield time",
+						zap.Time("current_time", currentTime),
+						zap.Time("yield_time", *bondParams.YieldTime))
+					time.Sleep(time.Second)
+					continue
+				}
+
+				// We've reached yield time, wait for one block and check again
+				s.Logger().Info("Yield time reached, waiting for minting to occur")
+				err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+				s.Require().NoError(err, "failed to wait for block after yield time")
+
+				// After expected yield time, final check after the upcoming block to assert that minting occurred
+				bondState = s.QueryBondState(s.Ctx())
+				if bondState.YieldMintHeight > 0 {
+					// Get the block time for the mint height
+					block, err := s.GetBlockByHeight(s.Ctx(), bondState.YieldMintHeight)
+					s.Require().NoError(err, "failed to get block at mint height")
+					mintTime := block.Header.Time
+
+					s.Logger().Info("Yield minting occurred after waiting",
+						zap.Int64("height", bondState.YieldMintHeight),
+						zap.Time("mint_time", mintTime),
+						zap.Time("yield_time", *bondParams.YieldTime))
+
+					// Verify that minting occurred at or after the intended yield time
+					s.Require().False(bondParams.YieldTime.Before(mintTime),
+						"yield minting occurred before intended yield time")
+					break
+				}
+
+				// If we've waited a block after yield time and still no minting, fail
+				s.Require().Fail("Yield minting did not occur within one block after yield time")
+				return
 			}
-			s.Logger().Info("Current time before yield time",
-				zap.Time("current_time", currentTime),
-				zap.Time("yield_time", *bondParams.YieldTime))
-			time.Sleep(time.Second)
 		}
-
-		// Wait for a block to ensure yield is minted
-		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
 
 		// Verify total supply increased by yield amount
 		finalSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
@@ -210,8 +261,9 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			zap.String("final_supply", finalSupply.String()),
 			zap.String("expected_supply", initialSupply.Add(bondParams.YieldAmount).String()))
 
-		// Now that we've waited for the yield time, the supply should have increased
-		s.Require().Equal(initialSupply.Add(bondParams.YieldAmount), finalSupply, "total supply should increase by yield amount after yield time is reached")
+		// The supply should have increased by the yield amount
+		s.Require().Equal(initialSupply.Add(bondParams.YieldAmount), finalSupply,
+			"total supply should increase by yield amount")
 
 		// Verify recipient balance increased by yield amount
 		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
@@ -220,15 +272,15 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			zap.String("final_balance", finalRecipientBalance.Balance.Amount.String()),
 			zap.String("expected_balance", initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount).String()))
 
-		// Now that we've waited for the yield time, the recipient balance should have increased
-		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount, "recipient balance should increase by yield amount after yield time is reached")
+		// The recipient balance should have increased by the yield amount
+		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount, "recipient balance should increase by yield amount")
 
 		// Verify bond module state is updated with yield mint height
-		bondState := s.QueryBondState(s.Ctx())
+		finalBondState := s.QueryBondState(s.Ctx())
 		s.Logger().Info("Final bond state after yield",
-			zap.Int64("yield_mint_height", bondState.YieldMintHeight))
-		// Now that we've waited for the yield time, the yield mint height should be set
-		s.Require().NotZero(bondState.YieldMintHeight, "yield mint height should be set after yield time is reached")
+			zap.Int64("yield_mint_height", finalBondState.YieldMintHeight))
+		// The yield mint height should be set
+		s.Require().NotZero(finalBondState.YieldMintHeight, "yield mint height should be set")
 	})
 
 	s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
