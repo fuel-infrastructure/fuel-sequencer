@@ -83,7 +83,7 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				// Second report on will not include it   = (31688087814 * 10) where 10 is the SupplyDeltaPeriod
 				//                                        = 316880878140
 				supply := testsuite.BridgeDenomTotalSupply
-				params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
+				params := minttypes.Params{BlocksPerYear: testsuite.BlocksPerYear, MintDenom: testsuite.BridgeDenom}
 				minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
 				minter.AnnualProvisions = minter.NextAnnualProvisions(params, supply)
 				blockProvision := minter.BlockProvision(params).Amount
