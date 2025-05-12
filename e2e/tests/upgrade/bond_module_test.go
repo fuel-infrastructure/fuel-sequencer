@@ -18,7 +18,23 @@ const (
 	bondHaltHeightDelta        = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	bondBlocksAfterUpgrade     = uint64(10) // will wait for this many blocks after the upgrade
 	bondModuleFromImageVersion = "7d60123"  // this image needs to exist for this test to run
-	bondModuleToImageVersion   = "37183fa"  // this will be updated as work progresses
+	bondModuleToImageVersion   = "03f50ca"  // this will be updated as work progresses
+
+)
+
+var (
+	yieldRecipient = func(s *BondModuleUpgradeTestSuite) string {
+		return s.GetGovernanceAddress()
+	}
+	yieldAmount     = sdkmath.NewInt(1000000)
+	sharedYieldTime *time.Time
+	yieldTime       = func() *time.Time {
+		if sharedYieldTime == nil {
+			t := time.Now().Add(1 * time.Minute)
+			sharedYieldTime = &t
+		}
+		return sharedYieldTime
+	}
 )
 
 type BondModuleUpgradeTestSuite struct {
@@ -115,18 +131,14 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		s.Require().Equal(int64(0), bondState.YieldMintHeight)
 
 		// Propose a new bond params via an expedited proposal
-		newYieldRecipient := s.GetGovernanceAddress()
-		newYieldTime := time.Now().Add(time.Minute) // 1 minute from now
-		newYieldAmount := sdkmath.NewInt(1000000)   // 1M tokens
+		bondParams.YieldRecipient = yieldRecipient(s)
+		bondParams.YieldTime = yieldTime()
+		bondParams.YieldAmount = yieldAmount
 
 		s.Logger().Info("Proposing new bond params",
-			zap.String("new_yield_recipient", newYieldRecipient),
-			zap.Time("new_yield_time", newYieldTime),
-			zap.String("new_yield_amount", newYieldAmount.String()))
-
-		bondParams.YieldRecipient = newYieldRecipient
-		bondParams.YieldTime = &newYieldTime
-		bondParams.YieldAmount = newYieldAmount
+			zap.String("new_yield_recipient", bondParams.YieldRecipient),
+			zap.Time("new_yield_time", *bondParams.YieldTime),
+			zap.String("new_yield_amount", bondParams.YieldAmount.String()))
 
 		msgUpdateBond := &bondtypes.MsgUpdateParams{
 			Authority: s.GetGovernanceAddress(),
@@ -144,9 +156,9 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			zap.Any("yield_time", updatedBondParams.YieldTime),
 			zap.String("yield_amount", updatedBondParams.YieldAmount.String()))
 
-		s.Require().Equal(newYieldRecipient, updatedBondParams.YieldRecipient)
-		s.Require().Equal(newYieldTime.Unix(), updatedBondParams.YieldTime.Unix())
-		s.Require().Equal(newYieldAmount, updatedBondParams.YieldAmount)
+		s.Require().Equal(yieldRecipient(s), updatedBondParams.YieldRecipient)
+		s.Require().Equal(yieldTime().Unix(), updatedBondParams.YieldTime.Unix())
+		s.Require().Equal(yieldAmount, updatedBondParams.YieldAmount)
 
 		// Verify state is still queryable and unchanged
 		updatedBondState := s.QueryBondState(s.Ctx())
@@ -180,9 +192,9 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			zap.String("yield_amount", bondParams.YieldAmount.String()))
 
 		// Verify params are set from previous test case
-		s.Require().Equal(s.GetGovernanceAddress(), bondParams.YieldRecipient)
-		s.Require().NotNil(bondParams.YieldTime)
-		s.Require().Equal(sdkmath.NewInt(1000000), bondParams.YieldAmount)
+		s.Require().Equal(yieldRecipient(s), bondParams.YieldRecipient)
+		s.Require().Equal(yieldTime().Unix(), bondParams.YieldTime.Unix())
+		s.Require().Equal(yieldAmount, bondParams.YieldAmount)
 
 		// Check if yield has already been minted
 		bondState := s.QueryBondState(s.Ctx())
@@ -208,8 +220,8 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 					// Log detailed timing information
 					s.Logger().Info("Yield minting occurred",
 						zap.Int64("height", bondState.YieldMintHeight),
-						zap.Time("mint_time", mintTime),
-						zap.Time("yield_time", *bondParams.YieldTime),
+						zap.Time("requested_yield_time", *bondParams.YieldTime),
+						zap.Time("actual_mint_time", mintTime),
 						zap.String("time_difference", mintTime.Sub(*bondParams.YieldTime).String()),
 						zap.Int64("current_block_height", bondState.YieldMintHeight),
 						zap.Int64("yield_mint_height", bondState.YieldMintHeight),
@@ -245,8 +257,8 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 					// Log detailed timing information
 					s.Logger().Info("Yield minting occurred after waiting",
 						zap.Int64("height", bondState.YieldMintHeight),
-						zap.Time("mint_time", mintTime),
-						zap.Time("yield_time", *bondParams.YieldTime),
+						zap.Time("requested_yield_time", *bondParams.YieldTime),
+						zap.Time("actual_mint_time", mintTime),
 						zap.String("time_difference", mintTime.Sub(*bondParams.YieldTime).String()),
 						zap.Int64("current_block_height", bondState.YieldMintHeight),
 						zap.Int64("yield_mint_height", bondState.YieldMintHeight),
