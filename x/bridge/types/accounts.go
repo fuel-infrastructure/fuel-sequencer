@@ -425,8 +425,8 @@ func (a *EthOwnedMultiContinuousVestingAccount) TrackDelegation(blockTime time.T
 }
 
 // TrackUndelegation implements the VestingAccount interface's TrackUndelegation function to mirror the implemented
-// TrackDelegation function. Since we do keep DelegatedFree and DelegatedVesting up-to-date in TrackDelegation, we do
-// not update them here either, so this function is essentially a no-op.
+// TrackDelegation function. Since we do not keep DelegatedFree and DelegatedVesting up-to-date in TrackDelegation, we
+// do not update them here either, so this function is essentially a no-op.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L99
 //
