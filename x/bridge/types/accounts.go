@@ -224,8 +224,8 @@ func (a *EthOwnedContinuousVestingAccount) TrackDelegation(blockTime time.Time, 
 }
 
 // TrackUndelegation overrides the CointinuousVestingAccount TrackUndelegation (which uses the BaseVestingAccount one)
-// to mirror the overridden TrackDelegation function. Since we do keep DelegatedFree and DelegatedVesting up-to-date in
-// TrackDelegation, we do not update them here either, so this function is essentially a no-op.
+// to mirror the overridden TrackDelegation function. Since we do not keep DelegatedFree and DelegatedVesting up-to-date
+// in TrackDelegation, we do not update them here either, so this function is essentially a no-op.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L99
 //
