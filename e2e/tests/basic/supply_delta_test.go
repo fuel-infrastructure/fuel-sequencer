@@ -70,18 +70,18 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 				// 20e18 Initial balance per Validator
 				// 3 Validators
 				// Total Supply = 60e18
-				// BlocksPerYear = 6311520
+				// BlocksPerYear = 31557600
 				//
 				// Inflation = 0.10
 				//
-				// Tokens minted per block = (1e19 / 6311520) * 0.10 where 1e19 is the BridgeDenomTotalSupply
-				//                         = 158440439070.144751185134484244682738865
-				//                         = 158440439070
+				// Tokens minted per block = (1e19 / 31557600) * 0.10 where 1e19 is the BridgeDenomTotalSupply
+				//                         = 31688087814.02895023703
+				//                         = 31688087814
 				//
-				// First report will include total supply = 60e18 + (158440439070 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 60000001584404390700
-				// Second report on will not include it   = (158440439070 * 10) where 10 is the SupplyDeltaPeriod
-				//                                        = 1584404390700
+				// First report will include total supply = 60e18 + (31688087814 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 60000000316880878140
+				// Second report on will not include it   = (31688087814 * 10) where 10 is the SupplyDeltaPeriod
+				//                                        = 316880878140
 				supply := testsuite.BridgeDenomTotalSupply
 				params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
 				minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
@@ -94,11 +94,11 @@ func (s *BasicTestSuite) TestMsgSupplyDeltaIsInjected() {
 					s.Require().True(ok)
 					expectReport := supplyDeltaPeriodProvision.Add(expectInitialSupply)
 					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
-					s.Require().EqualValues(expectReport.String(), "60000001584404390700")
+					s.Require().EqualValues(expectReport.String(), "60000000316880878140")
 				} else {
 					expectReport := supplyDeltaPeriodProvision
 					s.Require().EqualValues(expectReport.String(), supplyDeltaString)
-					s.Require().EqualValues(expectReport.String(), "1584404390700")
+					s.Require().EqualValues(expectReport.String(), "316880878140")
 				}
 				expectedNonce += 1
 			}
