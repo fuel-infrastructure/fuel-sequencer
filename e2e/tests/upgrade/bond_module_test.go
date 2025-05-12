@@ -190,7 +190,8 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			zap.Int64("yield_mint_height", bondState.YieldMintHeight))
 
 		if bondState.YieldMintHeight > 0 {
-			s.Logger().Info("Yield has already been minted at height", zap.Int64("height", bondState.YieldMintHeight))
+			s.Logger().Info("Yield has already been minted at height",
+				zap.Int64("height", bondState.YieldMintHeight))
 		} else {
 			// Wait until we reach or pass the yield time and yield occurs
 			for {
@@ -204,13 +205,18 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 					s.Require().NoError(err, "failed to get block at mint height")
 					mintTime := block.Header.Time
 
+					// Log detailed timing information
 					s.Logger().Info("Yield minting occurred",
 						zap.Int64("height", bondState.YieldMintHeight),
 						zap.Time("mint_time", mintTime),
-						zap.Time("yield_time", *bondParams.YieldTime))
+						zap.Time("yield_time", *bondParams.YieldTime),
+						zap.String("time_difference", mintTime.Sub(*bondParams.YieldTime).String()),
+						zap.Int64("current_block_height", bondState.YieldMintHeight),
+						zap.Int64("yield_mint_height", bondState.YieldMintHeight),
+					)
 
 					// Verify that minting occurred at or after the intended yield time
-					s.Require().False(bondParams.YieldTime.Before(mintTime),
+					s.Require().True(bondParams.YieldTime.Before(mintTime) || bondParams.YieldTime.Equal(mintTime),
 						"yield minting occurred before intended yield time")
 					break
 				}
@@ -224,10 +230,9 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 					continue
 				}
 
-				// We've reached yield time, wait for one block and check again
-				s.Logger().Info("Yield time reached, waiting for minting to occur")
-				err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
-				s.Require().NoError(err, "failed to wait for block after yield time")
+				// We've reached yield time, wait for two blocks to ensure minting occurs in the first block after yield time
+				err = s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*10)
+				s.Require().NoError(err, "failed to wait for blocks after yield time")
 
 				// After expected yield time, final check after the upcoming block to assert that minting occurred
 				bondState = s.QueryBondState(s.Ctx())
@@ -237,13 +242,19 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 					s.Require().NoError(err, "failed to get block at mint height")
 					mintTime := block.Header.Time
 
+					// Log detailed timing information
 					s.Logger().Info("Yield minting occurred after waiting",
 						zap.Int64("height", bondState.YieldMintHeight),
 						zap.Time("mint_time", mintTime),
-						zap.Time("yield_time", *bondParams.YieldTime))
+						zap.Time("yield_time", *bondParams.YieldTime),
+						zap.String("time_difference", mintTime.Sub(*bondParams.YieldTime).String()),
+						zap.Int64("current_block_height", bondState.YieldMintHeight),
+						zap.Int64("yield_mint_height", bondState.YieldMintHeight),
+					)
 
 					// Verify that minting occurred at or after the intended yield time
-					s.Require().False(bondParams.YieldTime.Before(mintTime),
+					s.Require().True(
+						bondParams.YieldTime.Before(mintTime) || bondParams.YieldTime.Equal(mintTime),
 						"yield minting occurred before intended yield time")
 					break
 				}
@@ -254,37 +265,33 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			}
 		}
 
-		// Verify total supply increased by yield amount
+		// Verify total supply increased by yield amount and log all supply data
 		finalSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
-		s.Logger().Info("Final supply after yield",
-			zap.String("final_supply", finalSupply.String()),
-			zap.String("expected_supply", initialSupply.Add(bondParams.YieldAmount).String()))
+		s.Logger().Info("Token supply data w.r.t mint",
+			zap.String("initial_supply", initialSupply.String()),
+			zap.String("yield_amount", bondParams.YieldAmount.String()),
+			zap.String("expected_final_supply", initialSupply.Add(bondParams.YieldAmount).String()),
+			zap.String("actual_final_supply", finalSupply.String()),
+			zap.String("supply_difference", finalSupply.Sub(initialSupply).String()),
+		)
 
-		// The supply should have increased by the yield amount
-		s.Require().Equal(initialSupply.Add(bondParams.YieldAmount), finalSupply,
-			"total supply should increase by yield amount")
-
-		// Verify recipient balance increased by yield amount
+		// Verify recipient balance increased by yield amount and log all balance data
 		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
-		s.Logger().Info("Final recipient balance after yield",
-			zap.String("final_balance", finalRecipientBalance.Balance.Amount.String()),
-			zap.String("expected_balance", initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount).String()))
+		s.Logger().Info("Recipient balance data w.r.t yield",
+			zap.String("initial_recipient_balance", initialRecipientBalance.Balance.Amount.String()),
+			zap.String("expected_final_balance", initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount).String()),
+			zap.String("actual_final_balance", finalRecipientBalance.Balance.Amount.String()),
+			zap.String("balance_difference", finalRecipientBalance.Balance.Amount.Sub(initialRecipientBalance.Balance.Amount).String()),
+		)
 
-		// The recipient balance should have increased by the yield amount
-		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount, "recipient balance should increase by yield amount")
-
-		// Verify bond module state is updated with yield mint height
-		finalBondState := s.QueryBondState(s.Ctx())
-		s.Logger().Info("Final bond state after yield",
-			zap.Int64("yield_mint_height", finalBondState.YieldMintHeight))
-		// The yield mint height should be set
-		s.Require().NotZero(finalBondState.YieldMintHeight, "yield mint height should be set")
+		// Now perform assertions
+		s.Require().Equal(initialSupply.Add(bondParams.YieldAmount), finalSupply,
+			"total supply should increase by yield amount")
+		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount,
+			"recipient balance should increase by yield amount")
 	})
-
-	s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
-		s.Logger().Info("Starting deposit and delegate regression check")
 
 		// Run the deposit and delegate test
 		deposits.SequencerAccountsDoNotExist_WithLockup_AndDelegateAndUndelegate(&s.E2ETestSuite)
