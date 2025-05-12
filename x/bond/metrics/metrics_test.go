@@ -11,6 +11,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestObserveMintCoins(t *testing.T) {
+	// Create a context with a mock SDK context
+	ctx := context.Background()
+	sdkCtx := sdk.Context{}
+	ctx = sdkCtx.WithContext(ctx)
+
+	// Test cases
+	testCases := []struct {
+		name string
+		mint sdk.Coins
+	}{
+		{
+			name: "single coin",
+			mint: sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(100))),
+		},
+		{
+			name: "multiple coins",
+			mint: sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(100)), sdk.NewCoin("stfuel", sdkmath.NewInt(50))),
+		},
+		{
+			name: "zero amount",
+			mint: sdk.NewCoins(),
+		},
+		{
+			name: "large amount",
+			mint: sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewInt(1000000000))),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Call the function and verify it doesn't panic
+			require.NotPanics(t, func() {
+				ObserveMintCoins(ctx, tc.mint)
+			})
+			// Note: Since telemetry is a side effect, we can't directly test the gauge value
+			// We're mainly testing that the function doesn't panic
+		})
+	}
+}
+
 func TestObserveYieldMinting(t *testing.T) {
 	// Create a context with a mock SDK context
 	ctx := context.Background()

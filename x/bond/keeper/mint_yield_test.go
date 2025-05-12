@@ -6,7 +6,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,11 +77,11 @@ func TestMintYield(t *testing.T) {
 			},
 			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
 						gomock.Any(),
-						minttypes.ModuleName,
+						types.ModuleName,
 						gomock.Any(),
 						sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
 					).
@@ -102,11 +101,11 @@ func TestMintYield(t *testing.T) {
 				require.Equal(t, int64(123), testCtx.BlockHeight())
 				// First run: simulate a valid yield mint
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
 						gomock.Any(),
-						minttypes.ModuleName,
+						types.ModuleName,
 						gomock.Any(),
 						sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
 					).
@@ -133,7 +132,7 @@ func TestMintYield(t *testing.T) {
 			},
 			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(types.ErrMintCoins)
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(types.ErrMintCoins)
 			},
 			expectedHeight: 0,
 			expectedError:  true,
@@ -145,11 +144,11 @@ func TestMintYield(t *testing.T) {
 			},
 			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
 						gomock.Any(),
-						minttypes.ModuleName,
+						types.ModuleName,
 						gomock.Any(),
 						sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
 					).
@@ -185,11 +184,11 @@ func TestMintYield(t *testing.T) {
 			},
 			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewIntFromUint64(^uint64(0))))).Return(nil)
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewIntFromUint64(^uint64(0))))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
 						gomock.Any(),
-						minttypes.ModuleName,
+						types.ModuleName,
 						gomock.Any(),
 						sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewIntFromUint64(^uint64(0)))),
 					).
@@ -207,13 +206,13 @@ func TestMintYield(t *testing.T) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
 
 				// Expect MintCoins to be called with the correct amount
-				bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 
 				// Expect SendCoinsFromModuleToAccount to be called with the correct amount
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
 						gomock.Any(),
-						minttypes.ModuleName,
+						types.ModuleName,
 						gomock.Any(),
 						sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
 					).

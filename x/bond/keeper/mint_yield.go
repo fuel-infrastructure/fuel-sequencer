@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/metrics"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -61,23 +63,25 @@ func (k Keeper) MintYield(ctx context.Context) error {
 		"amount", coins.String(),
 		"module", minttypes.ModuleName)
 
-	if err := k.bankKeeper.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
+	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		k.Logger().Error("failed to mint coins",
 			"amount", coins.String(),
 			"error", err)
 		return err
 	}
+	metrics.ObserveMintCoins(ctx, coins)
 
 	k.Logger().Info("successfully minted coins, attempting transfer",
 		"amount", coins.String(),
 		"recipient", params.YieldRecipient)
 
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, recipient, coins); err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, coins); err != nil {
 		k.Logger().Error("failed to send coins to recipient",
 			"amount", coins.String(),
 			"recipient", params.YieldRecipient,
 			"error", err)
 		return err
+		// TODO: Send to governance account if recipient is blocked? Or just burn?
 	}
 
 	// Set yield mint height

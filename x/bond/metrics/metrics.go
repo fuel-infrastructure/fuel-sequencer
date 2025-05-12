@@ -10,6 +10,14 @@ import (
 	"github.com/hashicorp/go-metrics"
 )
 
+func ObserveMintCoins(ctx context.Context, mint sdk.Coins) {
+	utils.SafeSetMetric(ctx, func(ctx sdk.Context) {
+		for _, coin := range mint {
+			telemetry.SetGauge(utils.ScaleCoinAmount(coin.Amount), append(utils.KeysBeginBlock, "minted", "tokens")...)
+		}
+	})
+}
+
 // ObserveYieldMinting tracks when yield is minted through the bond module
 func ObserveYieldMinting(goCtx context.Context, amount sdk.Coins, height int64) {
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {

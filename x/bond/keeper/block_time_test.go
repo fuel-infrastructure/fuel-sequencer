@@ -6,7 +6,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,11 +28,11 @@ func TestBlockTimeAfterYieldTime(t *testing.T) {
 	// Set up test context with block time after yield time
 	testCtx := ctx.WithBlockTime(yieldTime.Add(time.Second))
 	accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-	bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+	bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 	bankKeeper.EXPECT().
 		SendCoinsFromModuleToAccount(
 			gomock.Any(),
-			minttypes.ModuleName,
+			types.ModuleName,
 			gomock.Any(),
 			sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
 		).
@@ -66,11 +65,11 @@ func TestBlockTimeExactlyAtYieldTime(t *testing.T) {
 	// Set up test context with block time exactly at yield time
 	testCtx := ctx.WithBlockTime(yieldTime)
 	accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-	bankKeeper.EXPECT().MintCoins(gomock.Any(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
+	bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 	bankKeeper.EXPECT().
 		SendCoinsFromModuleToAccount(
 			gomock.Any(),
-			minttypes.ModuleName,
+			types.ModuleName,
 			gomock.Any(),
 			sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount)),
 		).
