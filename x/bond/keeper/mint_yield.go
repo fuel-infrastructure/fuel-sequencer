@@ -11,13 +11,13 @@ import (
 // MintYield mints the yield amount to the yield recipient if the current time matches the yield time.
 func (k Keeper) MintYield(ctx context.Context) error {
 	params := k.GetParams(ctx)
-	k.Logger().Debug("Starting MintYield",
+	k.Logger().Debug("starting MintYield",
 		"yield_recipient", params.YieldRecipient,
 		"yield_time", params.YieldTime,
 		"yield_amount", params.YieldAmount.String())
 
 	if params.YieldRecipient == "" || params.YieldTime == nil || params.YieldAmount.IsZero() {
-		k.Logger().Debug("Skipping MintYield - missing required parameters",
+		k.Logger().Debug("skipping MintYield - missing required parameters",
 			"has_recipient", params.YieldRecipient != "",
 			"has_time", params.YieldTime != nil,
 			"has_amount", !params.YieldAmount.IsZero())
@@ -30,50 +30,50 @@ func (k Keeper) MintYield(ctx context.Context) error {
 		"current_mint_height", currentMintHeight)
 
 	if currentMintHeight > 0 {
-		k.Logger().Debug("Skipping MintYield - already minted at height", "mint_height", currentMintHeight)
+		k.Logger().Debug("skipping MintYield - already minted at height", "mint_height", currentMintHeight)
 		return nil
 	}
 
 	// Check if it's time to mint yield
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	currentTime := sdkCtx.BlockTime()
-	k.Logger().Debug("Checking yield time",
+	k.Logger().Debug("checking yield time",
 		"current_time", currentTime,
 		"yield_time", params.YieldTime,
 		"time_difference", currentTime.Sub(*params.YieldTime))
 
 	if currentTime.Before(*params.YieldTime) {
-		k.Logger().Debug("Skipping MintYield - yield time not reached")
+		k.Logger().Debug("skipping MintYield - yield time not reached")
 		return nil
 	}
 
 	// Mint yield to recipient
 	recipient, err := k.GetAccountAsBytes(params.YieldRecipient)
 	if err != nil {
-		k.Logger().Error("Failed to get recipient account",
+		k.Logger().Error("failed to get recipient account",
 			"recipient", params.YieldRecipient,
 			"error", err)
 		return err
 	}
 
 	coins := sdk.NewCoins(sdk.NewCoin(bridgetypes.DefaultBridgeDenom, params.YieldAmount))
-	k.Logger().Info("Attempting to mint coins",
+	k.Logger().Info("attempting to mint coins",
 		"amount", coins.String(),
 		"module", minttypes.ModuleName)
 
 	if err := k.bankKeeper.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
-		k.Logger().Error("Failed to mint coins",
+		k.Logger().Error("failed to mint coins",
 			"amount", coins.String(),
 			"error", err)
 		return err
 	}
 
-	k.Logger().Info("Successfully minted coins, attempting transfer",
+	k.Logger().Info("successfully minted coins, attempting transfer",
 		"amount", coins.String(),
 		"recipient", params.YieldRecipient)
 
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, recipient, coins); err != nil {
-		k.Logger().Error("Failed to send coins to recipient",
+		k.Logger().Error("failed to send coins to recipient",
 			"amount", coins.String(),
 			"recipient", params.YieldRecipient,
 			"error", err)
@@ -82,17 +82,17 @@ func (k Keeper) MintYield(ctx context.Context) error {
 
 	// Set yield mint height
 	blockHeight := sdkCtx.BlockHeight()
-	k.Logger().Info("Setting yield mint height",
+	k.Logger().Info("setting yield mint height",
 		"height", blockHeight)
 
 	if err := k.SetYieldMintHeight(ctx, blockHeight); err != nil {
-		k.Logger().Error("Failed to set yield mint height",
+		k.Logger().Error("failed to set yield mint height",
 			"height", blockHeight,
 			"error", err)
 		return err
 	}
 
-	k.Logger().Info("Successfully completed MintYield",
+	k.Logger().Info("successfully completed MintYield",
 		"mint_height", blockHeight,
 		"amount", coins.String(),
 		"recipient", params.YieldRecipient)
