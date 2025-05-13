@@ -94,7 +94,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(delegateCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 
 		// --------------------------------------- Undelegate
@@ -121,7 +121,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
 
 		// Wait for undelegation to go through (Note: unbonding time is very small)
-		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10))
 
 		// Check account again
 		ethOwnedVestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
@@ -130,7 +130,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // back to zero
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -173,7 +173,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree) // no delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -226,7 +226,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -281,7 +281,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithNoVesting_Wit
 		s.Require().Equal(vestingStartTime.Unix(), ethOwnedVestingAcc.StartTime)
 		s.Require().Equal(vestingEndTime.Unix(), ethOwnedVestingAcc.EndTime)
 		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.OriginalVesting))
-		s.Require().True(sdk.NewCoins(amountCoin).Equal(ethOwnedVestingAcc.DelegatedFree)) // delegation
+		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
 	})
 }
@@ -400,5 +400,281 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsExistWithVesting_WithL
 		s.Require().True(sdk.NewCoins(expOriginalVesting).Equal(ethOwnedVestingAcc.OriginalVesting))
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedFree)
 		s.Require().Nil(ethOwnedVestingAcc.DelegatedVesting)
+	})
+}
+
+func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPeriods() {
+	s.Run("Submit multiple deposits with different vesting details and check results", func() {
+		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
+		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
+
+		// Make sure that the balance of the receiver is as expected.
+		expectedInitBalance := sdk.NewInt64Coin(testsuite.BridgeDenom, 0)
+		balance, err := s.QueryAllBalances(s.Ctx(), ownedReceiverAddressSeq, nil)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
+
+		// -----------------------------------------------------------------------------------------------
+		// Deposit 1:
+		// - VestingStartTime = Genesis time
+		// - VestingDuration = 2 years
+
+		// Deposit, using the vesting seconds as the amount, so that 1 token becomes spendable per second. Note that
+		// we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt := big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		sendAmount := new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration2Years)
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin1 := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin1)
+
+		// Calculate expected values
+		bridgeParams := s.QueryBridgeParams(s.Ctx())
+		vestingStartTime1 := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
+		vestingEndTime1 := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration2Years)
+
+		vestingAcc, err := s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, vestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime1.Unix(), vestingAcc.StartTime)
+		s.Require().Equal(vestingEndTime1.Unix(), vestingAcc.EndTime)
+		s.Require().True(sdk.NewCoins(amountCoin1).Equal(vestingAcc.OriginalVesting))
+		s.Require().Nil(vestingAcc.DelegatedFree)
+		s.Require().Nil(vestingAcc.DelegatedVesting)
+
+		// -----------------------------------------------------------------------------------------------
+		// Deposit 2:
+		// - VestingStartTime = Genesis time
+		// - VestingDuration = 2 years
+		// Note: same as previous
+
+		// Deposit, using the vesting seconds as the amount, so that now 2 tokens becomes spendable per second. Note
+		// that we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt = big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		sendAmount = new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration2Years)
+
+		// Match the expected balance for the receiver on the Sequencer. It's double the amount since it's deposit 2.
+		amountCoin2 := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin1.Add(amountCoin2))
+
+		vestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, vestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime1.Unix(), vestingAcc.StartTime) // same vesting start time
+		s.Require().Equal(vestingEndTime1.Unix(), vestingAcc.EndTime)     // same vesting end time
+		s.Require().True(sdk.NewCoins(amountCoin1.Add(amountCoin2)).Equal(vestingAcc.OriginalVesting))
+		s.Require().Nil(vestingAcc.DelegatedFree)
+		s.Require().Nil(vestingAcc.DelegatedVesting)
+
+		// -----------------------------------------------------------------------------------------------
+		// Deposit 3:
+		// - VestingStartTime = Genesis time
+		// - VestingDuration = 4 years
+		// Note: vesting duration is lower now
+
+		// Deposit, using the vesting seconds as the amount, so that now 3 tokens becomes spendable per second. Note
+		// that we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt = big.NewInt(int64(testsuite.VestingDuration4Years.Seconds()))
+		sendAmount = new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration4Years)
+
+		// Match the expected balance for the receiver on the Sequencer. We take into consideration previous deposits.
+		amountCoin3 := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin1.Add(amountCoin2).Add(amountCoin3))
+
+		// Calculate expected values
+		bridgeParams = s.QueryBridgeParams(s.Ctx())
+		vestingStartTime3 := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
+		vestingEndTime3 := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration4Years)
+
+		expectVestingInfo1 := bridgetypes.NewVestingInfo(
+			sdk.NewCoins(amountCoin1.Add(amountCoin2)), vestingStartTime1.Unix(), vestingEndTime1.Unix(),
+		)
+		expectVestingInfo2 := bridgetypes.NewVestingInfo(
+			sdk.NewCoins(amountCoin3), vestingStartTime3.Unix(), vestingEndTime3.Unix(),
+		)
+
+		multiVestingAcc, err := s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
+		s.Require().Len(multiVestingAcc.Infos, 2) // two vesting infos now
+		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
+		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
+
+		// -----------------------------------------------------------------------------------------------
+		// Deposit 4:
+		// - VestingStartTime = Now()
+		// - VestingDuration = 2 year
+		// Note: vesting start time is different now
+
+		// Update vesting start time to now
+		bridgeParams.VestingStartTime = time.Now()
+		s.ExecuteGovProposal(&bridgetypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *bridgeParams,
+		})
+
+		// Deposit, using the vesting seconds as the amount, so that now 4 tokens becomes spendable per second. Note
+		// that we need to downscale using the v1 to v2 migration ratio.
+		vestingSecondsBigInt = big.NewInt(int64(testsuite.VestingDuration2Years.Seconds()))
+		sendAmount = new(big.Int).Quo(vestingSecondsBigInt, testsuite.MigrationRatio)
+		_ = s.DepositTokenToSequencerFromMigrationNoDelegation(sendAmount, testsuite.VestingDuration2Years)
+
+		// Match the expected balance for the receiver on the Sequencer. We take into consideration previous deposits.
+		amountCoin4 := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(vestingSecondsBigInt))
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin1.Add(amountCoin2).Add(amountCoin3).Add(amountCoin4))
+
+		// Calculate expected values
+		bridgeParams = s.QueryBridgeParams(s.Ctx())
+		vestingStartTime4 := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
+		vestingEndTime4 := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration2Years)
+
+		expectVestingInfo3 := bridgetypes.NewVestingInfo(
+			sdk.NewCoins(amountCoin4), vestingStartTime4.Unix(), vestingEndTime4.Unix(),
+		)
+
+		multiVestingAcc, err = s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
+		s.Require().Len(multiVestingAcc.Infos, 3) // three vesting infos now
+		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
+		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
+		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
+
+		// -----------------------------------------------------------------------------------------------
+		// Check the resultant vesting account's spendable coins
+
+		// We expect 4 tokens to be spendable per second; two from the first vesting info, and one each from the rest.
+		now := time.Now()
+		expSpendable1 := (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 2
+		expSpendable2 := now.Unix() - multiVestingAcc.Infos[1].StartTime
+		expSpendable3 := now.Unix() - multiVestingAcc.Infos[2].StartTime
+		expTotalSpendable := expSpendable1 + expSpendable2 + expSpendable3
+
+		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
+		buffer := int64(72)
+
+		// Wait for 2 block to make sure we're past the 'now'
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*20))
+
+		// Spendable should be greater than the amount calculated above, but lower than the buffered amount.
+		spendable, err := s.QuerySpendableBalance(s.Ctx(), senderAddress, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().GreaterOrEqual(spendable.Balance.Amount.Int64(), expTotalSpendable)
+		s.Require().LessOrEqual(spendable.Balance.Amount.Int64(), expTotalSpendable+buffer)
+
+		// -----------------------------------------------------------------------------------------------
+		// Delegate and undelegate the spendable coins
+
+		// Delegate
+
+		delegateCoin := *spendable.Balance
+		validator1Address := s.SeqKeys[0].ValAddressSeq
+		validator1AddressEth := s.SeqKeys[0].ValAddressEth
+
+		// Make sure that there is no pre-existing delegation between the delegator and validator1.
+		delegationRaw, err := s.QueryDelegationRaw(s.Ctx(), senderAddress, validator1Address)
+		s.Require().Nil(delegationRaw)
+		s.Require().ErrorContains(
+			err,
+			fmt.Sprintf("delegation with delegator %s not found for validator %s", senderAddress, validator1Address),
+		)
+
+		// Generate Authorize event wrapping a MsgDelegate to validator1, with the spendable coins as a delegation.
+		delegateData := testsuite.PackDelegate(delegateCoin.Amount.BigInt(), validator1AddressEth)
+
+		// Confirm that the delegation went through and is as expected.
+		delegation, err := s.SendEthTransactionToSequencerInterfaceContract(delegateData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, delegation.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForDelegationBalance(s.Ctx(), 0, senderAddress, validator1Address, delegateCoin)
+
+		// Check account again
+		multiVestingAcc, err = s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
+		s.Require().Len(multiVestingAcc.Infos, 3)
+		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
+		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
+		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
+
+		// --------------------------------------- Re-check spendable
+
+		// We expect 4 tokens to be spendable per second; two from the first vesting info, and one each from the rest.
+		now = time.Now()
+		expSpendable1 = (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 2
+		expSpendable2 = now.Unix() - multiVestingAcc.Infos[1].StartTime
+		expSpendable3 = now.Unix() - multiVestingAcc.Infos[2].StartTime
+		expTotalSpendable = expSpendable1 + expSpendable2 + expSpendable3 - delegateCoin.Amount.Int64() // subtract delegation
+
+		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
+		buffer = int64(72)
+
+		// Wait for 2 block to make sure we're past the 'now'
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*20))
+
+		// Spendable should be greater than the amount calculated above, but lower than the buffered amount.
+		spendable, err = s.QuerySpendableBalance(s.Ctx(), senderAddress, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().GreaterOrEqual(spendable.Balance.Amount.Int64(), expTotalSpendable)
+		s.Require().LessOrEqual(spendable.Balance.Amount.Int64(), expTotalSpendable+buffer)
+
+		// --------------------------------------- Undelegate
+
+		// Override unbonding time so that undelegation goes through immediately
+		stakingParams := s.QueryStakingParams(s.Ctx())
+		stakingParams.UnbondingTime = time.Second
+		s.ExecuteGovProposal(&stakingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *stakingParams,
+		})
+
+		// Ensure value updated
+		s.Require().Equal(time.Second, s.QueryStakingParams(s.Ctx()).UnbondingTime)
+
+		// Delegate to validator1 with the amount previously delegated.
+		undelegateCoin := delegateCoin
+		unbondData := testsuite.PackUnbond(undelegateCoin.Amount.BigInt(), validator1AddressEth)
+
+		// Confirm that the undelegation went through by checking for no delegation
+		undelegation, err := s.SendEthTransactionToSequencerInterfaceContract(unbondData)
+		s.Require().NoError(err)
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, undelegation.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForNoDelegation(s.Ctx(), 0, senderAddress, validator1Address)
+
+		// Wait for undelegation to go through (Note: unbonding time is very small)
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10))
+
+		// Check account again
+		multiVestingAcc, err = s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
+		s.Require().Len(multiVestingAcc.Infos, 3)
+		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
+		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
+		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
+
+		// --------------------------------------- Re-check spendable
+
+		// We expect 4 tokens to be spendable per second; two from the first vesting info, and one each from the rest.
+		now = time.Now()
+		expSpendable1 = (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 2
+		expSpendable2 = now.Unix() - multiVestingAcc.Infos[1].StartTime
+		expSpendable3 = now.Unix() - multiVestingAcc.Infos[2].StartTime
+		expTotalSpendable = expSpendable1 + expSpendable2 + expSpendable3
+
+		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
+		buffer = int64(72)
+
+		// Wait for 2 block to make sure we're past the 'now'
+		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 2, time.Second*20))
+
+		// Spendable should be greater than the amount calculated above, but lower than the buffered amount.
+		spendable, err = s.QuerySpendableBalance(s.Ctx(), senderAddress, testsuite.BridgeDenom)
+		s.Require().NoError(err)
+		s.Require().GreaterOrEqual(spendable.Balance.Amount.Int64(), expTotalSpendable)
+		s.Require().LessOrEqual(spendable.Balance.Amount.Int64(), expTotalSpendable+buffer)
 	})
 }
