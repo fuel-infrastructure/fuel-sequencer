@@ -22,7 +22,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
-	"github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/suite"
@@ -58,7 +57,7 @@ const (
 	fuelSequencerDockerImageRepo      = "fuel-infrastructure/fuel-sequencer"
 	fuelSequencerDockerImageTag       = "latest"
 	ethereumNodeDockerImageRepo       = "ghcr.io/foundry-rs/foundry"
-	ethereumNodeDockerImageTag        = "nightly-4351742481c98adaa9ca3e8642e619aa986b3cee"
+	ethereumNodeDockerImageTag        = "nightly"
 	ethereumDeploymentDockerImageRepo = "fuel-rollup/ethereum-deployment"
 	ethereumDeploymentDockerImageTag  = "latest"
 
@@ -109,7 +108,7 @@ var (
 	InflationMax        = sdkmath.LegacyMustNewDecFromStr("0.2")  // sets the inflation rate if equal to InflationMin
 	InflationMin        = sdkmath.LegacyMustNewDecFromStr("0.07") // sets the inflation rate if equal to InflationMax
 	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
-	BlocksPerYear       = types.BlocksPerYear
+	BlocksPerYear       = uint64(6311520)
 
 	// NOTE: the below contract address are obtained from the logs of the Ethereum deployment Docker container.
 
@@ -231,7 +230,7 @@ func (s *E2ETestSuite) SetupTest() {
 	var err error
 	s.Chain, err = newChain(len(MNEMONICS))
 	s.Require().NoError(err)
-	s.dockerPool, err = dockertest.NewPool("")
+	s.dockerPool, err = dockertest.NewPool("unix:///Users/miguel/.docker/run/docker.sock")
 	s.Require().NoError(err)
 	s.dockerNetwork, err = s.dockerPool.CreateNetwork(fmt.Sprintf("%s-testnet", s.Chain.id))
 	s.Require().NoError(err)
