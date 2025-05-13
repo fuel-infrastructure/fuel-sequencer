@@ -196,22 +196,20 @@ func (s *BasicTestSuite) TestDowntimeSlashingAffectsSupplyDelta() {
 		// 20e27 Initial balance per Validator
 		// 3 Validators
 		// Total Supply = 60e27
-		// BlocksPerYear = 6311520
+		// BlocksPerYear = 31557600
 		//
 		// Inflation = 0.10
 		//
-		// Tokens minted per block = (1e27 / 6311520) * 0.10 where 1e27 is the BridgeDenomTotalSupply
-		//                         = 158440439070144751185.134484244682738865
-		//                         = 158440439070144751185
+		// Tokens minted per block = (1e19 / 31557600) * 0.10 where 1e19 is the BridgeDenomTotalSupply
+		//                         = 31688087814.02895023703
+		//                         = 31688087814
 		//
-		// First report will include total supply = 60e27 + (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 60000001584404390701447511850
-		// Second report on will not include it   = (158440439070144751185 * 10) where 10 is the SupplyDeltaPeriod
-		//                                        = 1584404390701447511850
-		//
-		// From these reports we subtract the slash amount to get the expected supply delta amount.
+		// First report will include total supply = 60e18 + (31688087814 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 60000000316880878140
+		// Second report on will not include it   = (31688087814 * 10) where 10 is the SupplyDeltaPeriod
+		//                                        = 316880878140
 		supply := testsuite.BridgeDenomTotalSupply
-		params := minttypes.Params{BlocksPerYear: 6311520, MintDenom: testsuite.BridgeDenom}
+		params := minttypes.Params{BlocksPerYear: testsuite.BlocksPerYear, MintDenom: testsuite.BridgeDenom}
 		minter := minttypes.Minter{Inflation: sdkmath.LegacyMustNewDecFromStr("0.1")}
 		minter.AnnualProvisions = minter.NextAnnualProvisions(params, supply)
 		blockProvision := minter.BlockProvision(params).Amount
