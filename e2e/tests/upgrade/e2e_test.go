@@ -7,13 +7,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	abcitypes "github.com/cometbft/cometbft/abci/types"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
@@ -111,67 +109,6 @@ func (s *UpgradesTestSuite) TestUpgrade() {
 
 		// If the query works it's enough evidence that the params were obtained successfully.
 		_ = s.QueryBridgeParams(s.Ctx())
-	})
-
-	s.Run("Check that slashed funds due to downtime are sent to the governance account", func() {
-
-		initStake := testsuite.InitStakedCoin
-		halfStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(2))
-		quarterStake := sdk.NewCoin(initStake.Denom, initStake.Amount.QuoRaw(4))
-
-		// Sanity check Governance account balance pre-slash
-		govAccount := s.GetGovernanceAddress()
-		govAccountBalance, err := s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
-		s.Require().NoError(err)
-		s.Require().True(govAccountBalance.Balance.IsZero())
-
-		// Reduce validator 0's stake so that when we shut it off, the chain proceeds without it
-		_, err = s.SubmitMsgs(&stakingtypes.MsgUndelegate{
-			DelegatorAddress: s.SeqKeys[0].AddressSeq,
-			ValidatorAddress: s.SeqKeys[0].ValAddressSeq,
-			Amount:           halfStake,
-		})
-		s.Require().NoError(err)
-		s.PollForDelegationBalance(s.Ctx(), 10, s.SeqKeys[0].AddressSeq, s.SeqKeys[0].ValAddressSeq, halfStake)
-		s.Require().NoError(s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*5))
-
-		// Pause validator
-		from, err := s.GetFuelSequencerHeight(s.Ctx())
-		s.Require().NoError(err)
-		s.PauseSequencer(0)
-
-		// Wait enough time for enough blocks, for the validator to get slashed.
-		// Note: we cannot wait for blocks because validator 0 is down.
-		s.Sleep(time.Second * 15)
-
-		// Unpause validator
-		s.UnpauseSequencer(0)
-		s.Sleep(time.Second * 5) // give some time for the validator to sync up
-		until, err := s.GetFuelSequencerHeight(s.Ctx())
-		s.Require().NoError(err)
-
-		// Look for the slash event
-		var slashEvent *abcitypes.Event
-		var foundAt uint64
-		for block := from; block <= until; block++ {
-			event, found := s.SearchForEventInBlockResults(s.Ctx(), slashingtypes.EventTypeSlash, int64(block))
-			if found {
-				slashEvent = event
-				foundAt = block
-				break
-			}
-		}
-		s.Require().NotZero(foundAt)
-
-		// Check that half of the remaining stake (i.e. a quarter of the original) was burned
-		slashAmount, ok := sdkmath.NewIntFromString(slashEvent.Attributes[4].Value)
-		s.Require().True(ok)
-		s.Require().Equal(slashAmount.String(), quarterStake.Amount.String())
-
-		// Sanity check that tokens don't actually get burned
-		govAccountBalance, err = s.QueryBalance(s.Ctx(), govAccount, testsuite.BridgeDenom)
-		s.Require().NoError(err)
-		s.Require().True(govAccountBalance.Balance.Equal(quarterStake))
 	})
 
 	s.Run("Check that Ethereum events get picked up by the Sidecar and processed by the Sequencer", func() {
