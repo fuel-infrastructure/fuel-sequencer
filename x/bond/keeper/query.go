@@ -1,7 +1,0 @@
-package keeper
-
-import (
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
-)
-
-var _ types.QueryServer = Keeper{}
