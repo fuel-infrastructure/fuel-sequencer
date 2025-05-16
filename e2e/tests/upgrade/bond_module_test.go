@@ -18,13 +18,13 @@ const (
 	bondHaltHeightDelta        = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	bondBlocksAfterUpgrade     = uint64(10) // will wait for this many blocks after the upgrade
 	bondModuleFromImageVersion = "7d60123"  // this image needs to exist for this test to run
-	bondModuleToImageVersion   = "03f50ca"  // this will be updated as work progresses
+	bondModuleToImageVersion   = "d1fc0d4"  // this will be updated as work progresses
 
 )
 
 var (
 	yieldRecipient = func(s *BondModuleUpgradeTestSuite) string {
-		return s.GetGovernanceAddress()
+		return s.SeqKeys[1].AddressSeq // alice's address
 	}
 	yieldAmount     = sdkmath.NewInt(1000000)
 	sharedYieldTime *time.Time
@@ -174,10 +174,13 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 	// 3. Yields the requested amount of tokens to the yield recipient
 	// 4. The State of the bond module is updated to show the block height of the yield time
 	s.Run("Bond module yields as intended", func() {
+		denom := s.QueryBridgeParams(s.Ctx()).BridgeDenom
+
 		// Get initial state
-		initialSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
+		initialSupply, err := s.QuerySupply(s.Ctx(), denom)
 		s.Require().NoError(err)
-		initialRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		recipient := yieldRecipient(s)
+		initialRecipientBalance, err := s.QueryBalance(s.Ctx(), recipient, denom)
 		s.Require().NoError(err)
 
 		s.Logger().Info("Initial state before yield",
@@ -278,7 +281,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		}
 
 		// Verify total supply increased by yield amount and log all supply data
-		finalSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
+		finalSupply, err := s.QuerySupply(s.Ctx(), denom)
 		s.Require().NoError(err)
 		s.Logger().Info("Token supply data w.r.t mint",
 			zap.String("initial_supply", initialSupply.String()),
@@ -289,7 +292,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		)
 
 		// Verify recipient balance increased by yield amount and log all balance data
-		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
+		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), recipient, denom)
 		s.Require().NoError(err)
 		s.Logger().Info("Recipient balance data w.r.t yield",
 			zap.String("initial_recipient_balance", initialRecipientBalance.Balance.Amount.String()),
