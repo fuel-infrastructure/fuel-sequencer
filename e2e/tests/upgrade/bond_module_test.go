@@ -175,9 +175,9 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 	// 4. The State of the bond module is updated to show the block height of the yield time
 	s.Run("Bond module yields as intended", func() {
 		// Get initial state
-		initialSupply, err := s.QuerySupply(s.Ctx(), "ufuel")
+		initialSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
-		initialRecipientBalance, err := s.QueryBalance(s.Ctx(), yieldRecipient(s), "ufuel")
+		initialRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
 
 		s.Logger().Info("Initial state before yield",
@@ -278,7 +278,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		}
 
 		// Verify total supply increased by yield amount and log all supply data
-		finalSupply, err := s.QuerySupply(s.Ctx(), "ufuel")
+		finalSupply, err := s.QuerySupply(s.Ctx(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
 		s.Logger().Info("Token supply data w.r.t mint",
 			zap.String("initial_supply", initialSupply.String()),
@@ -289,7 +289,7 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 		)
 
 		// Verify recipient balance increased by yield amount and log all balance data
-		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), yieldRecipient(s), "ufuel")
+		finalRecipientBalance, err := s.QueryBalance(s.Ctx(), s.GetGovernanceAddress(), testsuite.BridgeDenom)
 		s.Require().NoError(err)
 		s.Logger().Info("Recipient balance data w.r.t yield",
 			zap.String("initial_recipient_balance", initialRecipientBalance.Balance.Amount.String()),
