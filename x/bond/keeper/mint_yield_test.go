@@ -14,6 +14,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
 	bondtestutil "github.com/fuel-infrastructure/fuel-sequencer/x/bond/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func TestMintYield(t *testing.T) {
@@ -22,18 +23,19 @@ func TestMintYield(t *testing.T) {
 	yieldAmount := sdkmath.NewInt(1000000)
 
 	testCases := []struct {
-		name           string
-		setupParams    func(keeper keeper.Keeper) types.Params
-		setupContext   func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper)
-		expectedHeight int64
-		expectedError  bool
+		name                      string
+		setupParams               func(keeper keeper.Keeper) types.Params
+		setupContext              func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper)
+		expectedHeight            int64
+		expectedError             bool
+		shouldMintAtCurrentHeight bool
 	}{
 		{
 			name: "no yield parameters set",
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.DefaultParams()
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 			},
 			expectedHeight: 0,
 			expectedError:  false,
@@ -43,7 +45,7 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.DefaultParams()
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 			},
 			expectedHeight: 0,
 			expectedError:  false,
@@ -53,7 +55,7 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.DefaultParams()
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				// Simulate SetParams error by not calling SetParams
 			},
 			expectedHeight: 0,
@@ -65,7 +67,7 @@ func TestMintYield(t *testing.T) {
 				future := futureTime.Add(time.Hour)
 				return types.NewParams(keeper.GetAuthority(), &future, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 			},
 			expectedHeight: 0,
 			expectedError:  false,
@@ -75,8 +77,9 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
+				bridgeKeeper.EXPECT().GetParams(gomock.Any()).Return(bridgetypes.Params{BridgeDenom: "ufuel"}).AnyTimes()
 				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
@@ -87,20 +90,22 @@ func TestMintYield(t *testing.T) {
 					).
 					Return(nil)
 			},
-			expectedHeight: 0, // will be set after context is created
-			expectedError:  false,
+			expectedHeight:            0, // will be set after context is created
+			expectedError:             false,
+			shouldMintAtCurrentHeight: true,
 		},
 		{
 			name: "yield already minted",
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				// Set a non-zero block height
 				testCtx = testCtx.WithBlockHeight(123)
 				require.Equal(t, int64(123), testCtx.BlockHeight())
 				// First run: simulate a valid yield mint
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
+				bridgeKeeper.EXPECT().GetParams(gomock.Any()).Return(bridgetypes.Params{BridgeDenom: "ufuel"}).AnyTimes()
 				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
@@ -122,16 +127,18 @@ func TestMintYield(t *testing.T) {
 				// Height should remain unchanged
 				require.Equal(t, height, keeper.GetYieldMintHeight(testCtx))
 			},
-			expectedHeight: 0, // will be set after context is created
-			expectedError:  false,
+			expectedHeight:            0, // will be set after context is created
+			expectedError:             false,
+			shouldMintAtCurrentHeight: true,
 		},
 		{
 			name: "mint coins error",
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
+				bridgeKeeper.EXPECT().GetParams(gomock.Any()).Return(bridgetypes.Params{BridgeDenom: "ufuel"}).AnyTimes()
 				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(types.ErrMintCoins)
 			},
 			expectedHeight: 0,
@@ -142,8 +149,9 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
+				bridgeKeeper.EXPECT().GetParams(gomock.Any()).Return(bridgetypes.Params{BridgeDenom: "ufuel"}).AnyTimes()
 				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
@@ -162,7 +170,7 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, sdkmath.ZeroInt())
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 			},
 			expectedHeight: 0,
 			expectedError:  false,
@@ -172,7 +180,7 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), nil, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 			},
 			expectedHeight: 0,
 			expectedError:  false,
@@ -182,8 +190,9 @@ func TestMintYield(t *testing.T) {
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, sdkmath.NewIntFromUint64(^uint64(0)))
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
+				bridgeKeeper.EXPECT().GetParams(gomock.Any()).Return(bridgetypes.Params{BridgeDenom: "ufuel"}).AnyTimes()
 				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", sdkmath.NewIntFromUint64(^uint64(0))))).Return(nil)
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
@@ -194,21 +203,19 @@ func TestMintYield(t *testing.T) {
 					).
 					Return(nil)
 			},
-			expectedHeight: 0, // will be set after context is created
-			expectedError:  false,
+			expectedHeight:            0, // will be set after context is created
+			expectedError:             false,
+			shouldMintAtCurrentHeight: true,
 		},
 		{
 			name: "verify minting state",
 			setupParams: func(keeper keeper.Keeper) types.Params {
 				return types.NewParams(keeper.GetAuthority(), &futureTime, yieldAmount)
 			},
-			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper) {
+			setupContext: func(testCtx sdk.Context, keeper keeper.Keeper, bankKeeper *bondtestutil.MockBankKeeper, accountKeeper *bondtestutil.MockAccountKeeper, bridgeKeeper *bondtestutil.MockBridgeKeeper) {
 				accountKeeper.EXPECT().AddressCodec().Return(bondtestutil.MockAddressCodec{}).AnyTimes()
-
-				// Expect MintCoins to be called with the correct amount
+				bridgeKeeper.EXPECT().GetParams(gomock.Any()).Return(bridgetypes.Params{BridgeDenom: "ufuel"}).AnyTimes()
 				bankKeeper.EXPECT().MintCoins(gomock.Any(), types.ModuleName, sdk.NewCoins(sdk.NewCoin("ufuel", yieldAmount))).Return(nil)
-
-				// Expect SendCoinsFromModuleToAccount to be called with the correct amount
 				bankKeeper.EXPECT().
 					SendCoinsFromModuleToAccount(
 						gomock.Any(),
@@ -218,24 +225,24 @@ func TestMintYield(t *testing.T) {
 					).
 					Return(nil)
 			},
-			expectedHeight: 0, // will be set after context is created
-			expectedError:  false,
+			expectedHeight:            0, // will be set after context is created
+			expectedError:             false,
+			shouldMintAtCurrentHeight: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keeper, ctx, _, accountKeeper, bankKeeper := keepertest.BondKeeperWithDependencies(t)
+			keeper, ctx, _, accountKeeper, bankKeeper, bridgeKeeper := keepertest.BondKeeperWithDependencies(t)
 			params := tc.setupParams(keeper)
 			require.NoError(t, keeper.SetParams(ctx, params))
 
 			// Set up test context and mocks
 			testCtx := ctx.WithBlockTime(futureTime)
-			tc.setupContext(testCtx, keeper, bankKeeper, accountKeeper)
+			tc.setupContext(testCtx, keeper, bankKeeper, accountKeeper, bridgeKeeper)
 
 			// For cases that should mint, set expectedHeight to current block height
-			if tc.name == "yield time reached" || tc.name == "yield already minted" ||
-				tc.name == "maximum yield amount" || tc.name == "verify minting state" {
+			if tc.shouldMintAtCurrentHeight {
 				tc.expectedHeight = testCtx.BlockHeight()
 			}
 
@@ -266,7 +273,7 @@ func TestMintYield(t *testing.T) {
 }
 
 func TestMintYield_InvalidRecipientAddress(t *testing.T) {
-	keeper, ctx, _, _, _ := keepertest.BondKeeperWithDependencies(t)
+	keeper, ctx, _, _, _, _ := keepertest.BondKeeperWithDependencies(t)
 	futureTime := time.Now().Add(time.Hour)
 	yieldAmount := sdkmath.NewInt(1000000)
 	params := types.NewParams("invalid", &futureTime, yieldAmount)

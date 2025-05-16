@@ -10,6 +10,7 @@ import (
 
 	address "cosmossdk.io/core/address"
 	types "github.com/cosmos/cosmos-sdk/types"
+	types0 "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -127,4 +128,41 @@ func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx context.Context, sende
 func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCoinsFromModuleToAccount", reflect.TypeOf((*MockBankKeeper)(nil).SendCoinsFromModuleToAccount), ctx, senderModule, recipientAddr, amt)
+}
+
+// MockBridgeKeeper is a mock of BridgeKeeper interface.
+type MockBridgeKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockBridgeKeeperMockRecorder
+}
+
+// MockBridgeKeeperMockRecorder is the mock recorder for MockBridgeKeeper.
+type MockBridgeKeeperMockRecorder struct {
+	mock *MockBridgeKeeper
+}
+
+// NewMockBridgeKeeper creates a new mock instance.
+func NewMockBridgeKeeper(ctrl *gomock.Controller) *MockBridgeKeeper {
+	mock := &MockBridgeKeeper{ctrl: ctrl}
+	mock.recorder = &MockBridgeKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockBridgeKeeper) EXPECT() *MockBridgeKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetParams mocks base method.
+func (m *MockBridgeKeeper) GetParams(ctx context.Context) types0.Params {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetParams", ctx)
+	ret0, _ := ret[0].(types0.Params)
+	return ret0
+}
+
+// GetParams indicates an expected call of GetParams.
+func (mr *MockBridgeKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockBridgeKeeper)(nil).GetParams), ctx)
 }

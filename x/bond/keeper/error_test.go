@@ -35,7 +35,7 @@ func TestKeeperErrors(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
 	bankKeeper := testutil.NewMockBankKeeper(ctrl)
-
+	bridgeKeeper := testutil.NewMockBridgeKeeper(ctrl)
 	// Test cases
 	tests := []struct {
 		name      string
@@ -66,11 +66,11 @@ func TestKeeperErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.expErr {
 				require.PanicsWithValue(t, tc.expErrMsg, func() {
-					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper)
+					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper, bridgeKeeper)
 				})
 			} else {
 				require.NotPanics(t, func() {
-					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper)
+					keeper.NewKeeper(cdc, storeService, logger, tc.authority, accountKeeper, bankKeeper, bridgeKeeper)
 				})
 			}
 		})

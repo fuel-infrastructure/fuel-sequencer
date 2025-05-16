@@ -43,7 +43,7 @@ func setupTest(t *testing.T) (Keeper, context.Context) {
 	accountKeeper.EXPECT().AddressCodec().Return(mockAddressCodec{}).AnyTimes()
 
 	bankKeeper := testutil.NewMockBankKeeper(ctrl)
-
+	bridgeKeeper := testutil.NewMockBridgeKeeper(ctrl)
 	// Set up store expectations
 	kvStore := testutil.NewMockKVStore(ctrl)
 	storeService.EXPECT().OpenKVStore(gomock.Any()).Return(kvStore).AnyTimes()
@@ -58,7 +58,7 @@ func setupTest(t *testing.T) (Keeper, context.Context) {
 		return nil
 	}).AnyTimes()
 
-	k := NewKeeper(cdc, storeService, logger, authority, accountKeeper, bankKeeper)
+	k := NewKeeper(cdc, storeService, logger, authority, accountKeeper, bankKeeper, bridgeKeeper)
 	ctx := context.Background()
 	return k, ctx
 }

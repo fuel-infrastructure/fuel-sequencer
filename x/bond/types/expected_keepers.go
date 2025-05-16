@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // AccountKeeper defines the expected interface for the Account module.
@@ -22,4 +23,9 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	MintCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
+}
+
+// BridgeKeeper defines the contract needed to be fulfilled for bridge module dependencies.
+type BridgeKeeper interface {
+	GetParams(ctx context.Context) bridgetypes.Params
 }

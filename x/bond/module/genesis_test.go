@@ -14,7 +14,7 @@ import (
 
 func TestGenesis(t *testing.T) {
 	// Create test dependencies
-	k, ctx, cdc, mockAccountKeeper, mockBankKeeper := keeper.BondKeeperWithDependencies(t)
+	k, ctx, cdc, mockAccountKeeper, mockBankKeeper, _ := keeper.BondKeeperWithDependencies(t)
 
 	// Create test module
 	appModule := bond.NewAppModule(

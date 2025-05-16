@@ -7,7 +7,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
-	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 // MintYield mints the yield amount to the yield recipient if the current time matches the yield time.
@@ -58,7 +57,8 @@ func (k Keeper) MintYield(ctx context.Context) error {
 		return err
 	}
 
-	coins := sdk.NewCoins(sdk.NewCoin(bridgetypes.DefaultBridgeDenom, params.YieldAmount))
+	bridgeDenom := k.bridgeKeeper.GetParams(ctx).BridgeDenom
+	coins := sdk.NewCoins(sdk.NewCoin(bridgeDenom, params.YieldAmount))
 	k.Logger().Info("attempting to mint coins",
 		"amount", coins.String(),
 		"module", minttypes.ModuleName)
