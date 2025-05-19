@@ -8,8 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
-	types0 "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
+	types "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -37,44 +36,7 @@ func (m *MockBridgeKeeper) EXPECT() *MockBridgeKeeperMockRecorder {
 }
 
 // GetParams mocks base method.
-func (m *MockBridgeKeeper) GetParams(ctx context.Context) types0.Params {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types0.Params)
-	return ret0
-}
-
-// GetParams indicates an expected call of GetParams.
-func (mr *MockBridgeKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockBridgeKeeper)(nil).GetParams), ctx)
-}
-
-// MockBondKeeper is a mock of BondKeeper interface.
-type MockBondKeeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockBondKeeperMockRecorder
-}
-
-// MockBondKeeperMockRecorder is the mock recorder for MockBondKeeper.
-type MockBondKeeperMockRecorder struct {
-	mock *MockBondKeeper
-}
-
-// NewMockBondKeeper creates a new mock instance.
-func NewMockBondKeeper(ctrl *gomock.Controller) *MockBondKeeper {
-	mock := &MockBondKeeper{ctrl: ctrl}
-	mock.recorder = &MockBondKeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockBondKeeper) EXPECT() *MockBondKeeperMockRecorder {
-	return m.recorder
-}
-
-// GetParams mocks base method.
-func (m *MockBondKeeper) GetParams(ctx context.Context) types.Params {
+func (m *MockBridgeKeeper) GetParams(ctx context.Context) types.Params {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetParams", ctx)
 	ret0, _ := ret[0].(types.Params)
@@ -82,7 +44,7 @@ func (m *MockBondKeeper) GetParams(ctx context.Context) types.Params {
 }
 
 // GetParams indicates an expected call of GetParams.
-func (mr *MockBondKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
+func (mr *MockBridgeKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockBondKeeper)(nil).GetParams), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockBridgeKeeper)(nil).GetParams), ctx)
 }
