@@ -1,0 +1,15 @@
+syntax = "proto3";
+package fuelsequencer.bond;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "fuelsequencer/bond/params.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types";
+
+// GenesisState defines the bond module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}

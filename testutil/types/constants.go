@@ -20,6 +20,7 @@ var (
 	TestValAddr1Str = "fuelsequencervaloper1w8rk2mk84wytpxx7ld63kaqpkhmd39m0ky2e6a"
 	TestSeqAddr1    = sdk.MustAccAddressFromBech32(TestSeqAddr1Str)
 
+	BlocksPerYear                    = uint64(6311520)
 	FirstAccountSequence             = uint64(0)
 	TestToken                        = "token"
 	TestGovernanceAddress            = authtypes.NewModuleAddress(govtypes.ModuleName).String()
