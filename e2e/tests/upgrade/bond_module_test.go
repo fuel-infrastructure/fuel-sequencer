@@ -22,7 +22,7 @@ const (
 	bondHaltHeightDelta        = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	bondBlocksAfterUpgrade     = uint64(10) // will wait for this many blocks after the upgrade
 	bondModuleFromImageVersion = "7d60123"  // this image needs to exist for this test to run
-	bondModuleToImageVersion   = "d1fc0d4"  // this will be updated as work progresses
+	bondModuleToImageVersion   = "ce519f4"  // this will be updated as work progresses
 
 )
 
