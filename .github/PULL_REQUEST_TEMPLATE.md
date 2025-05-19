@@ -41,6 +41,9 @@ Testing and docs:
    1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. `make build-all-docker-images test-e2e`
    3. `make clean` once you're done.
+- [ ] Run E2E Upgrade tests, if applicable:
+  1. `cd e2e/tests/upgrade`
+  2. `go test -v -run Test<Relevant>UpgradeTestSuite`
 - [ ] Run a local E2E setup to ensure the chain runs:
    1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
