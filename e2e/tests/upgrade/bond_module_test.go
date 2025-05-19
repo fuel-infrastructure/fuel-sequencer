@@ -1,11 +1,16 @@
 package upgrades_test
 
 import (
+	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
@@ -305,5 +310,160 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			"total supply should increase by yield amount")
 		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount,
 			"recipient balance should increase by yield amount")
+	})
+
+	// With the upgraded instance, ensure basic operations are working as usual
+	// This will be tested by executing a deposit, followed by a delegation, and then an undelegation.
+	s.Run("Ensure deposit and delegate working as usual (regression check)", func() {
+		// Get and verify initial account balance
+		senderAddress := s.EthKeys[0].AddressHex           // The depositor on Ethereum
+		ownedReceiverAddressSeq := s.EthKeys[0].AddressSeq // Deposit receiver; owned by the sender
+		validatorAddressHex := s.SeqKeys[0].ValAddressHex  // Address of one of the validators
+
+		s.Logger().Info("starting regression check with addresses",
+			zap.String("sender_address", senderAddress),
+			zap.String("receiver_address", ownedReceiverAddressSeq),
+			zap.String("validator_address", validatorAddressHex))
+
+		// Make sure that the balance of the receiver is as expected.
+		expectedInitBalance := sdk.NewInt64Coin(testsuite.BridgeDenom, 0)
+		balance, err := s.QueryAllBalances(s.Ctx(), ownedReceiverAddressSeq, nil)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedInitBalance.Amount, balance.Balances.AmountOf(testsuite.BridgeDenom))
+		s.Logger().Info("initial balance check passed",
+			zap.String("expected_balance", expectedInitBalance.Amount.String()),
+			zap.String("actual_balance", balance.Balances.AmountOf(testsuite.BridgeDenom).String()))
+
+		// Get account delegation balance(s)
+		delegatorAddress := s.EthKeys[0].AddressHex
+		validatorAddress := s.SeqKeys[0].ValAddressSeq
+
+		// Make sure that there is no pre-existing delegation between the delegator and validator
+		delegationRaw, err := s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validatorAddress)
+		s.Require().Nil(delegationRaw)
+		s.Require().ErrorContains(
+			err,
+			fmt.Sprintf("delegation with delegator %s not found for validator %s", delegatorAddress, validatorAddress),
+		)
+		s.Logger().Info("verified no pre-existing delegation",
+			zap.String("delegator", delegatorAddress),
+			zap.String("validator", validatorAddress))
+
+		// Get and verify initial validator delegations
+		_, err = s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validatorAddress)
+		s.Require().Error(err) // Should error since no delegation exists yet
+		s.Logger().Info("confirmed no initial delegation exists", zap.String("error", err.Error()))
+
+		// Perform and verify account deposit
+		sendAmount := big.NewInt(200)
+		s.Logger().Info("initiating deposit",
+			zap.String("amount", sendAmount.String()),
+			zap.String("from", senderAddress),
+			zap.String("to", ownedReceiverAddressSeq))
+		receipt := s.DepositTokenToSequencer(sendAmount)
+		s.Require().NotNil(receipt, "deposit receipt should not be nil")
+		s.Require().Equal(uint64(1), receipt.Status, "deposit transaction should be successful")
+		s.Logger().Info("deposit transaction receipt",
+			zap.String("tx_hash", receipt.TxHash.Hex()),
+			zap.Uint64("block_number", receipt.BlockNumber.Uint64()),
+			zap.Uint64("status", receipt.Status))
+
+		// Match the expected balance for the receiver on the Sequencer
+		amountCoin := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(sendAmount))
+		s.PollForBalance(s.Ctx(), 10, ownedReceiverAddressSeq, amountCoin)
+		s.Logger().Info("deposit confirmed",
+			zap.String("expected_amount", amountCoin.Amount.String()),
+			zap.String("receiver", ownedReceiverAddressSeq))
+
+		// Verify account ownership
+		ethOwnedBaseAcc, err := s.QueryEthOwnedBaseAccount(s.Ctx(), ownedReceiverAddressSeq)
+		s.Require().NoError(err)
+		s.Require().Equal(senderAddress, ethOwnedBaseAcc.AccountOwner)
+		s.Logger().Info("account ownership verified",
+			zap.String("account", ownedReceiverAddressSeq),
+			zap.String("owner", ethOwnedBaseAcc.AccountOwner))
+
+		// Perform and verify account delegation
+		validatorAddressEth := common.HexToAddress(validatorAddressHex)
+		s.Logger().Info("initiating delegation",
+			zap.String("amount", sendAmount.String()),
+			zap.String("delegator", delegatorAddress),
+			zap.String("validator", validatorAddressHex))
+		delegationReceipt := s.DelegateTokenToSequencer(sendAmount, validatorAddressEth)
+		s.Require().NotNil(delegationReceipt, "delegation receipt should not be nil")
+		s.Require().Equal(uint64(1), delegationReceipt.Status, "delegation transaction should be successful")
+		s.Logger().Info("delegation transaction receipt",
+			zap.String("tx_hash", delegationReceipt.TxHash.Hex()),
+			zap.Uint64("block_number", delegationReceipt.BlockNumber.Uint64()),
+			zap.Uint64("status", delegationReceipt.Status))
+
+		// Verify delegation was successful
+		s.PollForDelegationBalance(s.Ctx(), 10, delegatorAddress, validatorAddressHex, amountCoin)
+		s.Logger().Info("delegation confirmed",
+			zap.String("amount", amountCoin.Amount.String()),
+			zap.String("delegator", delegatorAddress),
+			zap.String("validator", validatorAddressHex))
+
+		// Verify validator delegations were updated
+		delegation, err := s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validatorAddress)
+		s.Require().NoError(err)
+		s.Require().Equal(amountCoin.Amount, delegation.DelegationResponse.Balance.Amount)
+		s.Logger().Info("delegation balance verified",
+			zap.String("expected_amount", amountCoin.Amount.String()),
+			zap.String("actual_amount", delegation.DelegationResponse.Balance.Amount.String()))
+
+		// Perform and verify account undelegation
+		// Override unbonding time so that undelegation goes through immediately
+		stakingParams := s.QueryStakingParams(s.Ctx())
+		originalUnbondingTime := stakingParams.UnbondingTime
+		stakingParams.UnbondingTime = time.Second
+		s.Logger().Info("updating staking params for quick unbonding",
+			zap.Duration("original_unbonding_time", originalUnbondingTime),
+			zap.Duration("new_unbonding_time", stakingParams.UnbondingTime))
+		s.ExecuteGovProposal(&stakingtypes.MsgUpdateParams{
+			Authority: s.GetGovernanceAddress(),
+			Params:    *stakingParams,
+		})
+
+		// Ensure value updated
+		updatedParams := s.QueryStakingParams(s.Ctx())
+		s.Require().Equal(time.Second, updatedParams.UnbondingTime)
+		s.Logger().Info("staking params updated successfully",
+			zap.Duration("current_unbonding_time", updatedParams.UnbondingTime))
+
+		// Undelegate the previously delegated amount
+		s.Logger().Info("initiating undelegation",
+			zap.String("amount", sendAmount.String()),
+			zap.String("delegator", delegatorAddress),
+			zap.String("validator", validatorAddressHex))
+		unbondData := testsuite.PackUnbond(sendAmount, validatorAddressEth)
+		undelegation, err := s.SendEthTransactionToSequencerInterfaceContract(unbondData)
+		s.Require().NoError(err)
+		s.Logger().Info("undelegation transaction submitted",
+			zap.String("tx_hash", undelegation.TxHash.Hex()),
+			zap.Uint64("block_number", undelegation.BlockNumber.Uint64()))
+
+		s.PollForLastEthereumBlockSynced(s.Ctx(), 10, undelegation.BlockNumber.Uint64()) // wait until tx processed
+		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validatorAddress)
+		s.Logger().Info("undelegation confirmed on chain")
+
+		// Wait for undelegation to go through (Note: unbonding time is very small)
+		s.WaitForSequencerBlocks(s.Ctx(), 1, time.Second*10)
+
+		// Verify validator delegations were cleared
+		_, err = s.QueryDelegationRaw(s.Ctx(), delegatorAddress, validatorAddress)
+		s.Require().Error(err) // Should error since delegation was removed
+		s.Logger().Info("verified delegation was removed",
+			zap.String("delegator", delegatorAddress),
+			zap.String("validator", validatorAddress),
+			zap.String("error for no delegation", err.Error()),
+		)
+
+		// Verify final balance
+		finalBalance, err := s.QueryAllBalances(s.Ctx(), ownedReceiverAddressSeq, nil)
+		s.Require().NoError(err)
+		s.Logger().Info("final balance check",
+			zap.String("address", ownedReceiverAddressSeq),
+			zap.String("final_balance", finalBalance.Balances.AmountOf(testsuite.BridgeDenom).String()))
 	})
 }
