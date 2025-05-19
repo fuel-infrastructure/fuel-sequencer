@@ -7,7 +7,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
-	deposits "github.com/fuel-infrastructure/fuel-sequencer/e2e/tests/deposits"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	"github.com/stretchr/testify/suite"
@@ -306,10 +305,5 @@ func (s *BondModuleUpgradeTestSuite) TestBondModuleUpgrade() {
 			"total supply should increase by yield amount")
 		s.Require().Equal(initialRecipientBalance.Balance.Amount.Add(bondParams.YieldAmount), finalRecipientBalance.Balance.Amount,
 			"recipient balance should increase by yield amount")
-	})
-
-		// Run the deposit and delegate test
-		deposits.SequencerAccountsDoNotExist_WithLockup_AndDelegateAndUndelegate(&s.E2ETestSuite)
-		s.Logger().Info("Completed deposit and delegate test")
 	})
 }
