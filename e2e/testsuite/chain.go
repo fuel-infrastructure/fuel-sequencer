@@ -43,6 +43,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	bond "github.com/fuel-infrastructure/fuel-sequencer/x/bond/module"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencing "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
@@ -84,6 +85,7 @@ func init() {
 		evidence.AppModuleBasic{},
 		bridge.AppModuleBasic{},
 		sequencing.AppModuleBasic{},
+		bond.AppModuleBasic{},
 	}
 	encodingConfig = testutil.MakeTestEncodingConfig(modules...)
 

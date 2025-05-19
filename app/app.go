@@ -17,6 +17,7 @@ import (
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	_ "cosmossdk.io/x/upgrade" // import for side-effects
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -56,7 +57,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/bond_module"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -64,6 +65,7 @@ import (
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
 
 	bondmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bond/keeper"
+	bondtypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	bridgemodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	sequencingmodulekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/keeper"
 
@@ -340,9 +342,23 @@ func NewFuelSequencerApp(
 	}
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		features_and_optimisations.UpgradeName,
-		features_and_optimisations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		bond_module.UpgradeName,
+		bond_module.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	if upgradeInfo.Name == bond_module.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{bondtypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(

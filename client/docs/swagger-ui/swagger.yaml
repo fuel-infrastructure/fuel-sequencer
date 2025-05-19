@@ -18,16 +18,69 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  inflation:
+                  yield_recipient:
                     type: string
-                    title: Inflation defines the inflation rate for the bond module
-                  authority:
+                    title: >-
+                      Yield recipient defines the address that receives the
+                      yield
+                  yield_time:
                     type: string
-                    title: |-
-                      Authority defines the address that receives the inflation
-                      and decides how many of it to distribute or burn
+                    format: date-time
+                    title: Yield time defines the time at which the yield is received
+                  yield_amount:
+                    type: string
+                    title: Yield amount defines the amount of yield to be received
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Fuel Sequencer Queries
+  /fuelsequencer/bond/v1/state:
+    get:
+      summary: State queries the state of the module.
+      operationId: State
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              state:
+                description: state holds the state of this module.
+                type: object
+                properties:
+                  yield_mint_height:
+                    type: string
+                    format: int64
+                    title: >-
+                      yield_mint_height defines the height at which the yield
+                      was minted
+
+                      0 indicates that yield has not been minted yet
+            description: >-
+              QueryStateResponse is response type for the Query/State RPC
               method.
         default:
           description: An unexpected error response.
@@ -30364,15 +30417,27 @@ definitions:
   fuelsequencer.bond.Params:
     type: object
     properties:
-      inflation:
+      yield_recipient:
         type: string
-        title: Inflation defines the inflation rate for the bond module
-      authority:
+        title: Yield recipient defines the address that receives the yield
+      yield_time:
         type: string
-        title: |-
-          Authority defines the address that receives the inflation
-          and decides how many of it to distribute or burn
+        format: date-time
+        title: Yield time defines the time at which the yield is received
+      yield_amount:
+        type: string
+        title: Yield amount defines the amount of yield to be received
     description: Params defines the parameters for the module.
+  fuelsequencer.bond.State:
+    type: object
+    properties:
+      yield_mint_height:
+        type: string
+        format: int64
+        title: |-
+          yield_mint_height defines the height at which the yield was minted
+          0 indicates that yield has not been minted yet
+    description: State defines the state for the bond module.
   fuelsequencer.bond.v1.QueryParamsResponse:
     type: object
     properties:
@@ -30380,15 +30445,31 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          inflation:
+          yield_recipient:
             type: string
-            title: Inflation defines the inflation rate for the bond module
-          authority:
+            title: Yield recipient defines the address that receives the yield
+          yield_time:
             type: string
-            title: |-
-              Authority defines the address that receives the inflation
-              and decides how many of it to distribute or burn
+            format: date-time
+            title: Yield time defines the time at which the yield is received
+          yield_amount:
+            type: string
+            title: Yield amount defines the amount of yield to be received
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  fuelsequencer.bond.v1.QueryStateResponse:
+    type: object
+    properties:
+      state:
+        description: state holds the state of this module.
+        type: object
+        properties:
+          yield_mint_height:
+            type: string
+            format: int64
+            title: |-
+              yield_mint_height defines the height at which the yield was minted
+              0 indicates that yield has not been minted yet
+    description: QueryStateResponse is response type for the Query/State RPC method.
   google.protobuf.Any:
     type: object
     properties:

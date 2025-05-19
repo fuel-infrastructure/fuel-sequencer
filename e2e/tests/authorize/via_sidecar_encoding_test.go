@@ -311,7 +311,7 @@ func (s *AuthorizeTestSuite) TestAuthorizeEvents_AuthzClaimRewardsOperations_Via
 		s.PollForBalance(s.Ctx(), 10, granter.AddressSeq, expectedInitGranterBalance.Sub(delegateCoin).Add(denomClaimedCoin))
 
 		// Grantee paid for the failed and successful MsgExec of the ClaimRewards
-		granteeFeesCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*(testsuite.MinGasPricesFloat*testsuite.DefaultTxGas))
+		granteeFeesCoin := sdk.NewInt64Coin(testsuite.BridgeDenom, 2*testsuite.DefaultTxFee)
 		s.PollForBalance(s.Ctx(), 10, grantee.AddressSeq, expectedInitGranteeBalance.Sub(granteeFeesCoin))
 
 		// Revoke the authorisation from Ethereum

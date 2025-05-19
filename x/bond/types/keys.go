@@ -12,9 +12,8 @@ const (
 )
 
 var (
-	ParamsKey    = []byte("p_bond")
-	InflationKey = []byte("Inflation")
-	AuthorityKey = []byte("Authority")
+	ParamsKey = []byte("p_bond")
+	StateKey  = []byte("s_bond")
 )
 
 func KeyPrefix(p string) []byte {

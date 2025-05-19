@@ -1,4 +1,4 @@
-package features_and_optimisations
+package bond_module
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "features-and-optimisations"
+const UpgradeName = "bond-module"
 
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		// returns a VersionMap with the updated module ConsensusVersions
+		// Run migrations
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }

@@ -24,7 +24,7 @@ import (
 )
 
 func BondKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
-	k, ctx, _, _, _ := BondKeeperWithDependencies(t)
+	k, ctx, _, _, _, _ := BondKeeperWithDependencies(t)
 	return k, ctx
 }
 
@@ -34,6 +34,7 @@ func BondKeeperWithDependencies(t testing.TB) (
 	codec.Codec,
 	*testutil.MockAccountKeeper,
 	*testutil.MockBankKeeper,
+	*testutil.MockBridgeKeeper,
 ) {
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	return BondKeeperFromArgsWithDependencies(t, authority.String())
@@ -45,6 +46,7 @@ func BondKeeperFromArgsWithDependencies(t testing.TB, authority string) (
 	codec.Codec,
 	*testutil.MockAccountKeeper,
 	*testutil.MockBankKeeper,
+	*testutil.MockBridgeKeeper,
 ) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
@@ -60,7 +62,7 @@ func BondKeeperFromArgsWithDependencies(t testing.TB, authority string) (
 	ctrl := gomock.NewController(t)
 	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
 	bankKeeper := testutil.NewMockBankKeeper(ctrl)
-
+	bridgeKeeper := testutil.NewMockBridgeKeeper(ctrl)
 	k := keeper.NewKeeper(
 		cdc,
 		runtime.NewKVStoreService(storeKey),
@@ -68,6 +70,7 @@ func BondKeeperFromArgsWithDependencies(t testing.TB, authority string) (
 		authority,
 		accountKeeper,
 		bankKeeper,
+		bridgeKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, logger)
@@ -76,5 +79,5 @@ func BondKeeperFromArgsWithDependencies(t testing.TB, authority string) (
 	//nolint:errcheck
 	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
 
-	return k, ctx, cdc, accountKeeper, bankKeeper
+	return k, ctx, cdc, accountKeeper, bankKeeper, bridgeKeeper
 }

@@ -3,29 +3,32 @@ package bond
 
 import (
 	_ "cosmossdk.io/api/amino"
-	_ "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
 )
 
 var (
-	md_Params           protoreflect.MessageDescriptor
-	fd_Params_inflation protoreflect.FieldDescriptor
-	fd_Params_authority protoreflect.FieldDescriptor
+	md_Params                 protoreflect.MessageDescriptor
+	fd_Params_yield_recipient protoreflect.FieldDescriptor
+	fd_Params_yield_time      protoreflect.FieldDescriptor
+	fd_Params_yield_amount    protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fuelsequencer_bond_params_proto_init()
 	md_Params = File_fuelsequencer_bond_params_proto.Messages().ByName("Params")
-	fd_Params_inflation = md_Params.Fields().ByName("inflation")
-	fd_Params_authority = md_Params.Fields().ByName("authority")
+	fd_Params_yield_recipient = md_Params.Fields().ByName("yield_recipient")
+	fd_Params_yield_time = md_Params.Fields().ByName("yield_time")
+	fd_Params_yield_amount = md_Params.Fields().ByName("yield_amount")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -93,15 +96,21 @@ func (x *fastReflection_Params) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Inflation != "" {
-		value := protoreflect.ValueOfString(x.Inflation)
-		if !f(fd_Params_inflation, value) {
+	if x.YieldRecipient != "" {
+		value := protoreflect.ValueOfString(x.YieldRecipient)
+		if !f(fd_Params_yield_recipient, value) {
 			return
 		}
 	}
-	if x.Authority != "" {
-		value := protoreflect.ValueOfString(x.Authority)
-		if !f(fd_Params_authority, value) {
+	if x.YieldTime != nil {
+		value := protoreflect.ValueOfMessage(x.YieldTime.ProtoReflect())
+		if !f(fd_Params_yield_time, value) {
+			return
+		}
+	}
+	if x.YieldAmount != "" {
+		value := protoreflect.ValueOfString(x.YieldAmount)
+		if !f(fd_Params_yield_amount, value) {
 			return
 		}
 	}
@@ -120,10 +129,12 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fuelsequencer.bond.Params.inflation":
-		return x.Inflation != ""
-	case "fuelsequencer.bond.Params.authority":
-		return x.Authority != ""
+	case "fuelsequencer.bond.Params.yield_recipient":
+		return x.YieldRecipient != ""
+	case "fuelsequencer.bond.Params.yield_time":
+		return x.YieldTime != nil
+	case "fuelsequencer.bond.Params.yield_amount":
+		return x.YieldAmount != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bond.Params"))
@@ -140,10 +151,12 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fuelsequencer.bond.Params.inflation":
-		x.Inflation = ""
-	case "fuelsequencer.bond.Params.authority":
-		x.Authority = ""
+	case "fuelsequencer.bond.Params.yield_recipient":
+		x.YieldRecipient = ""
+	case "fuelsequencer.bond.Params.yield_time":
+		x.YieldTime = nil
+	case "fuelsequencer.bond.Params.yield_amount":
+		x.YieldAmount = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bond.Params"))
@@ -160,11 +173,14 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fuelsequencer.bond.Params.inflation":
-		value := x.Inflation
+	case "fuelsequencer.bond.Params.yield_recipient":
+		value := x.YieldRecipient
 		return protoreflect.ValueOfString(value)
-	case "fuelsequencer.bond.Params.authority":
-		value := x.Authority
+	case "fuelsequencer.bond.Params.yield_time":
+		value := x.YieldTime
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "fuelsequencer.bond.Params.yield_amount":
+		value := x.YieldAmount
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
@@ -186,10 +202,12 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fuelsequencer.bond.Params.inflation":
-		x.Inflation = value.Interface().(string)
-	case "fuelsequencer.bond.Params.authority":
-		x.Authority = value.Interface().(string)
+	case "fuelsequencer.bond.Params.yield_recipient":
+		x.YieldRecipient = value.Interface().(string)
+	case "fuelsequencer.bond.Params.yield_time":
+		x.YieldTime = value.Message().Interface().(*timestamppb.Timestamp)
+	case "fuelsequencer.bond.Params.yield_amount":
+		x.YieldAmount = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bond.Params"))
@@ -210,10 +228,15 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bond.Params.inflation":
-		panic(fmt.Errorf("field inflation of message fuelsequencer.bond.Params is not mutable"))
-	case "fuelsequencer.bond.Params.authority":
-		panic(fmt.Errorf("field authority of message fuelsequencer.bond.Params is not mutable"))
+	case "fuelsequencer.bond.Params.yield_time":
+		if x.YieldTime == nil {
+			x.YieldTime = new(timestamppb.Timestamp)
+		}
+		return protoreflect.ValueOfMessage(x.YieldTime.ProtoReflect())
+	case "fuelsequencer.bond.Params.yield_recipient":
+		panic(fmt.Errorf("field yield_recipient of message fuelsequencer.bond.Params is not mutable"))
+	case "fuelsequencer.bond.Params.yield_amount":
+		panic(fmt.Errorf("field yield_amount of message fuelsequencer.bond.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fuelsequencer.bond.Params"))
@@ -227,9 +250,12 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fuelsequencer.bond.Params.inflation":
+	case "fuelsequencer.bond.Params.yield_recipient":
 		return protoreflect.ValueOfString("")
-	case "fuelsequencer.bond.Params.authority":
+	case "fuelsequencer.bond.Params.yield_time":
+		m := new(timestamppb.Timestamp)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "fuelsequencer.bond.Params.yield_amount":
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
@@ -300,11 +326,15 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		l = len(x.Inflation)
+		l = len(x.YieldRecipient)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		l = len(x.Authority)
+		if x.YieldTime != nil {
+			l = options.Size(x.YieldTime)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.YieldAmount)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
@@ -337,17 +367,31 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Authority) > 0 {
-			i -= len(x.Authority)
-			copy(dAtA[i:], x.Authority)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Authority)))
+		if len(x.YieldAmount) > 0 {
+			i -= len(x.YieldAmount)
+			copy(dAtA[i:], x.YieldAmount)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.YieldAmount)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if x.YieldTime != nil {
+			encoded, err := options.Marshal(x.YieldTime)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
 			dAtA[i] = 0x12
 		}
-		if len(x.Inflation) > 0 {
-			i -= len(x.Inflation)
-			copy(dAtA[i:], x.Inflation)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Inflation)))
+		if len(x.YieldRecipient) > 0 {
+			i -= len(x.YieldRecipient)
+			copy(dAtA[i:], x.YieldRecipient)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.YieldRecipient)))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -402,7 +446,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			switch fieldNum {
 			case 1:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Inflation", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field YieldRecipient", wireType)
 				}
 				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
@@ -430,11 +474,47 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Inflation = string(dAtA[iNdEx:postIndex])
+				x.YieldRecipient = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			case 2:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field YieldTime", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.YieldTime == nil {
+					x.YieldTime = &timestamppb.Timestamp{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.YieldTime); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field YieldAmount", wireType)
 				}
 				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
@@ -462,7 +542,7 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Authority = string(dAtA[iNdEx:postIndex])
+				x.YieldAmount = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -518,11 +598,12 @@ type Params struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Inflation defines the inflation rate for the bond module
-	Inflation string `protobuf:"bytes,1,opt,name=inflation,proto3" json:"inflation,omitempty"`
-	// Authority defines the address that receives the inflation
-	// and decides how many of it to distribute or burn
-	Authority string `protobuf:"bytes,2,opt,name=authority,proto3" json:"authority,omitempty"`
+	// Yield recipient defines the address that receives the yield
+	YieldRecipient string `protobuf:"bytes,1,opt,name=yield_recipient,json=yieldRecipient,proto3" json:"yield_recipient,omitempty"`
+	// Yield time defines the time at which the yield is received
+	YieldTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=yield_time,json=yieldTime,proto3" json:"yield_time,omitempty"`
+	// Yield amount defines the amount of yield to be received
+	YieldAmount string `protobuf:"bytes,3,opt,name=yield_amount,json=yieldAmount,proto3" json:"yield_amount,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -545,16 +626,23 @@ func (*Params) Descriptor() ([]byte, []int) {
 	return file_fuelsequencer_bond_params_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Params) GetInflation() string {
+func (x *Params) GetYieldRecipient() string {
 	if x != nil {
-		return x.Inflation
+		return x.YieldRecipient
 	}
 	return ""
 }
 
-func (x *Params) GetAuthority() string {
+func (x *Params) GetYieldTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.Authority
+		return x.YieldTime
+	}
+	return nil
+}
+
+func (x *Params) GetYieldAmount() string {
+	if x != nil {
+		return x.YieldAmount
 	}
 	return ""
 }
@@ -567,32 +655,40 @@ var file_fuelsequencer_bond_params_proto_rawDesc = []byte{
 	0x6f, 0x12, 0x12, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
 	0x2e, 0x62, 0x6f, 0x6e, 0x64, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2f, 0x61, 0x6d, 0x69,
 	0x6e, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e,
-	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2f, 0x63, 0x6f, 0x69, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x8f,
-	0x01, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x41, 0x0a, 0x09, 0x69, 0x6e, 0x66,
-	0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x23, 0xc8, 0xde,
-	0x1f, 0x00, 0xda, 0xde, 0x1f, 0x1b, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e,
-	0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x4c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x44, 0x65,
-	0x63, 0x52, 0x09, 0x69, 0x6e, 0x66, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1c, 0x0a, 0x09,
-	0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x3a, 0x24, 0xe8, 0xa0, 0x1f, 0x01,
-	0x8a, 0xe7, 0xb0, 0x2a, 0x1b, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x72, 0x2f, 0x78, 0x2f, 0x62, 0x6f, 0x6e, 0x64, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x42, 0xd4, 0x01, 0x0a, 0x16, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x62, 0x6f, 0x6e, 0x64, 0x42, 0x0b, 0x50, 0x61, 0x72,
-	0x61, 0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x44, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72,
-	0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d,
-	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x6f, 0x6e, 0x64,
-	0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa, 0x02, 0x12, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e, 0x42, 0x6f, 0x6e, 0x64, 0xca, 0x02, 0x12, 0x46, 0x75,
-	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x6f, 0x6e, 0x64,
-	0xe2, 0x02, 0x1e, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72,
-	0x5c, 0x42, 0x6f, 0x6e, 0x64, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
-	0x61, 0xea, 0x02, 0x13, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x72, 0x3a, 0x3a, 0x42, 0x6f, 0x6e, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1f,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f,
+	0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a,
+	0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x6f,
+	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xec, 0x01, 0x0a, 0x06, 0x50,
+	0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x27, 0x0a, 0x0f, 0x79, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x72,
+	0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e,
+	0x79, 0x69, 0x65, 0x6c, 0x64, 0x52, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x43,
+	0x0a, 0x0a, 0x79, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x08,
+	0xc8, 0xde, 0x1f, 0x01, 0x90, 0xdf, 0x1f, 0x01, 0x52, 0x09, 0x79, 0x69, 0x65, 0x6c, 0x64, 0x54,
+	0x69, 0x6d, 0x65, 0x12, 0x4e, 0x0a, 0x0c, 0x79, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x61, 0x6d, 0x6f,
+	0x75, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42, 0x2b, 0xc8, 0xde, 0x1f, 0x00, 0xda,
+	0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f,
+	0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0x52, 0x0b, 0x79, 0x69, 0x65, 0x6c, 0x64, 0x41, 0x6d, 0x6f,
+	0x75, 0x6e, 0x74, 0x3a, 0x24, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x1b, 0x66, 0x75,
+	0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2f, 0x78, 0x2f, 0x62, 0x6f,
+	0x6e, 0x64, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xd4, 0x01, 0x0a, 0x16, 0x63, 0x6f,
+	0x6d, 0x2e, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
+	0x62, 0x6f, 0x6e, 0x64, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0x50, 0x01, 0x5a, 0x44, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x66, 0x75, 0x65, 0x6c, 0x2d, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74,
+	0x75, 0x72, 0x65, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x2d, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
+	0x6e, 0x63, 0x65, 0x72, 0x2f, 0x62, 0x6f, 0x6e, 0x64, 0xa2, 0x02, 0x03, 0x46, 0x42, 0x58, 0xaa,
+	0x02, 0x12, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x2e,
+	0x42, 0x6f, 0x6e, 0x64, 0xca, 0x02, 0x12, 0x46, 0x75, 0x65, 0x6c, 0x73, 0x65, 0x71, 0x75, 0x65,
+	0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x6f, 0x6e, 0x64, 0xe2, 0x02, 0x1e, 0x46, 0x75, 0x65, 0x6c,
+	0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x5c, 0x42, 0x6f, 0x6e, 0x64, 0x5c, 0x47,
+	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x13, 0x46, 0x75, 0x65,
+	0x6c, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x72, 0x3a, 0x3a, 0x42, 0x6f, 0x6e, 0x64,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -609,14 +705,16 @@ func file_fuelsequencer_bond_params_proto_rawDescGZIP() []byte {
 
 var file_fuelsequencer_bond_params_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_fuelsequencer_bond_params_proto_goTypes = []interface{}{
-	(*Params)(nil), // 0: fuelsequencer.bond.Params
+	(*Params)(nil),                // 0: fuelsequencer.bond.Params
+	(*timestamppb.Timestamp)(nil), // 1: google.protobuf.Timestamp
 }
 var file_fuelsequencer_bond_params_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: fuelsequencer.bond.Params.yield_time:type_name -> google.protobuf.Timestamp
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_fuelsequencer_bond_params_proto_init() }

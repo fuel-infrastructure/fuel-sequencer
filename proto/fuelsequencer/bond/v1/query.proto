@@ -7,6 +7,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "fuelsequencer/bond/params.proto";
+import "fuelsequencer/bond/state.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types";
 
@@ -15,6 +16,11 @@ service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fuelsequencer/bond/v1/params";
+  }
+
+  // State queries the state of the module.
+  rpc State(QueryStateRequest) returns (QueryStateResponse) {
+    option (google.api.http).get = "/fuelsequencer/bond/v1/state";
   }
 }
 
@@ -25,5 +31,15 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+// QueryStateRequest is request type for the Query/State RPC method.
+message QueryStateRequest {}
+
+// QueryStateResponse is response type for the Query/State RPC method.
+message QueryStateResponse {
+  // state holds the state of this module.
+  State state = 1
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 }

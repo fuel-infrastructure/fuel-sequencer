@@ -144,8 +144,8 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock contains the logic that is automatically triggered at the beginning of each block.
 // The begin block implementation is optional.
-func (am AppModule) BeginBlock(_ context.Context) error {
-	return nil
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	return am.keeper.MintYield(ctx)
 }
 
 // EndBlock contains the logic that is automatically triggered at the end of each block.
@@ -181,6 +181,7 @@ type ModuleInputs struct {
 
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
+	BridgeKeeper  types.BridgeKeeper
 }
 
 type ModuleOutputs struct {
@@ -203,6 +204,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority.String(),
 		in.AccountKeeper,
 		in.BankKeeper,
+		in.BridgeKeeper,
 	)
 	m := NewAppModule(
 		in.Cdc,

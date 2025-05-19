@@ -51,7 +51,7 @@ func NewAppModule(
 
 // BeginBlock overrides the BeginBlock of the mint module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
-	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper, am.bondKeeper)
+	return BeginBlocker(ctx, am.keeper, am.bridgeKeeper)
 }
 
 //

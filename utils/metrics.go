@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"math/big"
+	"strconv"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -44,4 +45,9 @@ func ScaleCoinAmount(amount sdkmath.Int) float32 {
 	amountFloat := new(big.Float).SetInt(amount.BigInt())
 	amountScaled, _ := new(big.Float).Quo(amountFloat, scale).Float32()
 	return amountScaled
+}
+
+// Int64ToString converts an int64 to a string
+func Int64ToString(i int64) string {
+	return strconv.FormatInt(i, 10)
 }
