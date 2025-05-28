@@ -40,6 +40,9 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	blobmodulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/blob/module"
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/blob/module" // import for side-effects
+	blobmoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -68,6 +71,7 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
+		blobmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -88,6 +92,7 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName, // Must be after modules that can change supply, since it tracks supply changes.
 		sequencingmoduletypes.ModuleName,
+		blobmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -99,6 +104,7 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
+		blobmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -231,6 +237,10 @@ var (
 			{
 				Name:   sequencingmoduletypes.ModuleName,
 				Config: appconfig.WrapAny(&sequencingmodulev1.Module{}),
+			},
+			{
+				Name:   blobmoduletypes.ModuleName,
+				Config: appconfig.WrapAny(&blobmodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},
