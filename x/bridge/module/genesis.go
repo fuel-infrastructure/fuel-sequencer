@@ -11,6 +11,11 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+	// Initialize module account
+	if acc := k.GetAccountKeeper().GetModuleAccount(ctx, types.ModuleName); acc == nil {
+		panic(fmt.Sprintf("failed to get %s module account", types.ModuleName))
+	}
+
 	defaults := types.DefaultGenesis()
 
 	if err := k.SetParams(ctx, genState.Params); err != nil {

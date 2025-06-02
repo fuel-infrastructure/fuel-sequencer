@@ -108,7 +108,7 @@ var (
 	InflationMax        = sdkmath.LegacyMustNewDecFromStr("0.2")  // sets the inflation rate if equal to InflationMin
 	InflationMin        = sdkmath.LegacyMustNewDecFromStr("0.07") // sets the inflation rate if equal to InflationMax
 	GoalBonded          = sdkmath.LegacyMustNewDecFromStr("0.67")
-	BlocksPerYear       = uint64(6311520)
+	BlocksPerYear       = uint64(31557600) // block time is 1 second
 
 	// NOTE: the below contract address are obtained from the logs of the Ethereum deployment Docker container.
 
@@ -141,6 +141,7 @@ var (
 
 	VestingStartTimeDelay = time.Duration(0)         // Set to zero because latest requirements indicate no cliffs
 	VestingDuration2Years = time.Hour * 24 * 365 * 2 // 2 years, to be used when migrating V1 tokens to V2
+	VestingDuration4Years = time.Hour * 24 * 365 * 4 // 4 years, to be used when migrating V1 tokens to V2
 
 	// V1 to V2 migration
 

@@ -15,6 +15,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
@@ -22,6 +24,17 @@ import (
 )
 
 func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
+	bk, ctx, _, _, _ := BridgeKeeperWithDependencies(t)
+	return bk, ctx
+}
+
+func BridgeKeeperWithDependencies(t testing.TB) (
+	keeper.Keeper,
+	sdk.Context,
+	*testutil.MockBankKeeper,
+	*testutil.MockAccountKeeper,
+	*testutil.MockStakingKeeper,
+) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -34,13 +47,18 @@ func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	blockedAddresses := make(map[string]bool)
 
+	ctrl := gomock.NewController(t)
+	bankKeeper := testutil.NewMockBankKeeper(ctrl)
+	accountKeeper := testutil.NewMockAccountKeeper(ctrl)
+	stakingKeeper := testutil.NewMockStakingKeeper(ctrl)
+
 	k := keeper.NewKeeper(
 		cdc,
 		runtime.NewKVStoreService(storeKey),
 		log.NewNopLogger(),
-		nil,
-		nil,
-		nil,
+		bankKeeper,
+		accountKeeper,
+		stakingKeeper,
 		authority.String(),
 		blockedAddresses,
 		nil,
@@ -52,5 +70,5 @@ func BridgeKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	//nolint:errcheck
 	k.SetParams(ctx, types.DefaultParams())
 
-	return k, ctx
+	return k, ctx, bankKeeper, accountKeeper, stakingKeeper
 }
