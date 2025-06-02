@@ -15,12 +15,10 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.AccountI)(nil),
 		&EthOwnedBaseAccount{},
 		&EthOwnedContinuousVestingAccount{},
-		&EthOwnedMultiContinuousVestingAccount{},
 	)
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil),
 		&EthOwnedBaseAccount{},
 		&EthOwnedContinuousVestingAccount{},
-		&EthOwnedMultiContinuousVestingAccount{},
 	)
 
 	registry.RegisterImplementations((*sdk.Msg)(nil),
