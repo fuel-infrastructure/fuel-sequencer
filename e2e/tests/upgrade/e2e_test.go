@@ -23,8 +23,8 @@ const (
 	haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
 	upgradeName        = features_and_optimisations.UpgradeName
-	fromImageVersion   = "b543d8db736f8715982d0975e4a65e2d4133c7ef" // this image needs to exist for this test to run
-	toImageVersion     = "d25152c041602c16aced7fbdd207bede18ae1918" // this image needs to exist for this test to run
+	fromImageVersion   = "b543d8d" // this image needs to exist for this test to run
+	toImageVersion     = "d25152c" // this image needs to exist for this test to run
 )
 
 type UpgradesTestSuite struct {
