@@ -100,22 +100,20 @@ func (cfg *sequencerConfig) Validate() error {
 		return fmt.Errorf("gRPC URL cannot be empty")
 	}
 
-	host, port := "", ""
+	port := ""
 	if strings.Contains(cfg.grpcUrl, "://") {
 		// If it's a URL with protocol, parse it
 		parsedURL, err := url.Parse(cfg.grpcUrl)
 		if err != nil {
 			return fmt.Errorf("invalid gRPC URL format: must be a valid URL or host:port format")
 		}
-		host = parsedURL.Hostname()
 		port = parsedURL.Port()
 	} else {
 		// If it's a host:port format, split it
-		h, p, err := net.SplitHostPort(cfg.grpcUrl)
+		_, p, err := net.SplitHostPort(cfg.grpcUrl)
 		if err != nil {
 			return fmt.Errorf("invalid gRPC URL format: must be a valid URL or host:port format")
 		}
-		host = h
 		port = p
 	}
 
@@ -123,11 +121,12 @@ func (cfg *sequencerConfig) Validate() error {
 		return err
 	}
 
-	// Try parsing as IP (handles both IPv4 and IPv6)
-	if ip := net.ParseIP(host); ip == nil && host != "localhost" {
-		// Not an IP and not localhost, validate as hostname
-		return fmt.Errorf("invalid hostname in gRPC URL")
-	}
+	// TODO: Uncomment this when we have a way to validate the hostname correctly
+	// // Try parsing as IP (handles both IPv4 and IPv6)
+	// if ip := net.ParseIP(host); ip == nil && host != "localhost" {
+	// 	// Not an IP and not localhost, validate as hostname
+	// 	return fmt.Errorf("invalid hostname in gRPC URL")
+	// }
 
 	// Validate certificate file if provided
 	if cfg.pathToCertFile != "" {
