@@ -7,19 +7,29 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	"github.com/hashicorp/go-metrics"
 )
 
 func ObserveTotalBlobsPosted(goCtx context.Context, topic []byte) {
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		telemetry.IncrCounter(1, append(utils.KeysTxMsg, "total", "blobs", "posted", hex.EncodeToString(topic))...)
+		telemetry.IncrCounterWithLabels(
+			append(utils.KeysTxMsg, "total", "blobs", "posted"),
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("topic", hex.EncodeToString(topic)),
+			},
+		)
 	})
 }
 
 func ObserveTotalBlobsPostedSize(goCtx context.Context, topic []byte, size int) {
 	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		telemetry.IncrCounter(
+		telemetry.IncrCounterWithLabels(
+			append(utils.KeysTxMsg, "total", "blobs", "posted", "size"),
 			float32(size),
-			append(utils.KeysTxMsg, "total", "blobs", "posted", "size", hex.EncodeToString(topic))...,
+			[]metrics.Label{
+				telemetry.NewLabel("topic", hex.EncodeToString(topic)),
+			},
 		)
 	})
 }
