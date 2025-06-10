@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types/legacy"
 	// this line is used by starport scaffolding # 1
 )
 
@@ -29,6 +30,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgWithdrawToEthereum{},
 		&MsgDepositFromEthereum{},
 		&MsgIndex{},
+		// Register legacy message types for backward compatibility with old governance proposals
+		&legacy.MsgUpdateParams{},
 	)
 	// this line is used by starport scaffolding # 3
 
