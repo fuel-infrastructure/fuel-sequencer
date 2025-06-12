@@ -1,6 +1,8 @@
 package vesting_demo_test
 
 import (
+	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"os/signal"
@@ -34,6 +36,19 @@ type VestingDemoTestSuite struct {
 	MinimumEthereumBalance *big.Int
 }
 
+// vestingDetails holds information about created vesting policies
+type vestingDetails struct {
+	TotalTokens     *big.Int
+	VestingPolicies []vestingPolicy
+}
+
+type vestingPolicy struct {
+	Amount         *big.Int
+	DurationYears  int
+	StartOffset    string // e.g., "1 year ago", "2 years from now"
+	ExpectedStatus string // e.g., "50% progress", "complete", "not started"
+}
+
 func TestVestingDemoTestSuite(t *testing.T) {
 	suite.Run(t, new(VestingDemoTestSuite))
 }
@@ -65,22 +80,20 @@ func (s *VestingDemoTestSuite) TestSetupVestingDemoAccounts() {
 			s.NormalAccount, s.SingleVestingAccount, s.MultiVestingAccount)
 		s.Require().NoError(err)
 
-		// 1. Setup normal account (no vesting)
-		s.setupNormalAccount(s.NormalAccount)
+		// Setup accounts and collect details
+		normalDetails := s.setupNormalAccount(s.NormalAccount)
 
-		// Wait a bit to ensure different timestamps for vesting policies
-		s.T().Log("⏳ Waiting 3 seconds before next setup for distinct vesting start times...")
+		// Wait for different timestamps
+		s.T().Log("⏳ Waiting for distinct vesting start times...")
 		time.Sleep(3 * time.Second)
 
-		// 2. Setup single vesting account (2 years)
-		s.setupSingleVestingAccount(s.SingleVestingAccount)
+		singleDetails := s.setupSingleVestingAccount(s.SingleVestingAccount)
 
-		// Wait a bit more to ensure different timestamps for vesting policies
-		s.T().Log("⏳ Waiting 3 seconds before next setup for distinct vesting start times...")
+		// Wait for different timestamps
+		s.T().Log("⏳ Waiting for distinct vesting start times...")
 		time.Sleep(3 * time.Second)
 
-		// 3. Setup multi-vesting account (multiple 2-year vestings)
-		s.setupMultiVestingAccount(s.MultiVestingAccount)
+		multiDetails := s.setupMultiVestingAccount(s.MultiVestingAccount)
 
 		s.T().Log("🎉 All vesting demo accounts have been set up successfully!")
 		s.T().Log("")
@@ -93,15 +106,30 @@ func (s *VestingDemoTestSuite) TestSetupVestingDemoAccounts() {
 		s.T().Logf("📊 Intended Explorer Service: %s", explorerURL)
 		s.T().Log("")
 		s.T().Log("👥 Test Account Summary:")
+
+		// Normal Account
 		s.T().Logf("1. Normal Account (%s):", s.NormalAccount.AddressSeq)
-		s.T().Log("   - 1000 tokens, no vesting")
+		s.T().Logf("   - %s tokens, no vesting", normalDetails.TotalTokens.String())
 		s.T().Logf("   - %s/%s/account/%s", explorerURL, chainName, s.NormalAccount.AddressSeq)
+
+		// Single Vesting Account
 		s.T().Logf("2. Single Vesting Account (%s):", s.SingleVestingAccount.AddressSeq)
-		s.T().Log("   - 3000 tokens (1000 normal + 2000 vested)")
+		s.T().Logf("   - %s tokens total", singleDetails.TotalTokens.String())
+		for _, policy := range singleDetails.VestingPolicies {
+			s.T().Logf("   - %s tokens, %d-year vesting (%s) - %s",
+				policy.Amount.String(), policy.DurationYears, policy.StartOffset, policy.ExpectedStatus)
+		}
 		s.T().Logf("   - %s/%s/account/%s", explorerURL, chainName, s.SingleVestingAccount.AddressSeq)
+
+		// Multi Vesting Account
 		s.T().Logf("3. Multi Vesting Account (%s):", s.MultiVestingAccount.AddressSeq)
-		s.T().Log("   - 7000 tokens (1000 normal + 2000 two-year vesting + 1500 four-year vesting + 2500 different-start two-year vesting)")
+		s.T().Logf("   - %s tokens total", multiDetails.TotalTokens.String())
+		for _, policy := range multiDetails.VestingPolicies {
+			s.T().Logf("   - %s tokens, %d-year vesting (%s) - %s",
+				policy.Amount.String(), policy.DurationYears, policy.StartOffset, policy.ExpectedStatus)
+		}
 		s.T().Logf("   - %s/%s/account/%s", explorerURL, chainName, s.MultiVestingAccount.AddressSeq)
+
 		s.T().Log("")
 		s.T().Log("⏰ The test environment will keep running...")
 		s.T().Log("   Press Ctrl+C to stop when done testing")
@@ -111,8 +139,8 @@ func (s *VestingDemoTestSuite) TestSetupVestingDemoAccounts() {
 	})
 }
 
-func (s *VestingDemoTestSuite) setupNormalAccount(ethKey *testsuite.EthereumKey) {
-	s.T().Log("1️⃣ Setting up Normal Account (No Vesting)")
+func (s *VestingDemoTestSuite) setupNormalAccount(ethKey *testsuite.EthereumKey) vestingDetails {
+	s.T().Log("1️⃣ Setting up Normal Account")
 
 	// Use 1000 tokens for easier demo
 	depositAmount := big.NewInt(1000)
@@ -127,31 +155,64 @@ func (s *VestingDemoTestSuite) setupNormalAccount(ethKey *testsuite.EthereumKey)
 	expectedBalance := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(depositAmount))
 	s.PollForBalance(s.Ctx(), 10, ethKey.AddressSeq, expectedBalance)
 
-	s.T().Logf("✅ Normal account created with %s tokens (no vesting)", depositAmount.String())
+	s.T().Logf("✅ Normal account created with %s tokens", depositAmount.String())
 	s.T().Logf("   Account: %s", ethKey.AddressSeq)
 
 	s.verifyAccountSetup(ethKey)
+
+	return vestingDetails{
+		TotalTokens:     depositAmount,
+		VestingPolicies: []vestingPolicy{}, // No vesting policies
+	}
 }
 
-func (s *VestingDemoTestSuite) setupSingleVestingAccount(ethKey *testsuite.EthereumKey) {
-	s.T().Log("2️⃣ Setting up Single Vesting Policy (2 Years)")
+func (s *VestingDemoTestSuite) setupSingleVestingAccount(ethKey *testsuite.EthereumKey) vestingDetails {
+	s.T().Log("2️⃣ Setting up Single Vesting Policy")
 
 	// First setup the normal account part
-	s.setupNormalAccount(ethKey)
+	normalDetails := s.setupNormalAccount(ethKey)
 
-	// Then add vesting with 2000 tokens vested over 2 years
-	finalAmount := big.NewInt(2000)                                       // 2000 tokens final result
-	sendAmount := new(big.Int).Quo(finalAmount, testsuite.MigrationRatio) // 2000 / 100 = 20
+	// Save original bridge params
+	bridgeParams := s.QueryBridgeParams(s.Ctx())
+	originalStartTime := bridgeParams.VestingStartTime
+
+	// Set vesting start time for desired progress state
+	oneYearAgo := time.Now().AddDate(-1, 0, 0)
+	bridgeParams.VestingStartTime = oneYearAgo
+
+	// Submit and wait for governance proposal to pass
+	s.ExecuteGovProposal(&bridgetypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    *bridgeParams,
+	})
+
+	// Wait for the latest block to be synced after governance proposal
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	// Add vesting tokens
+	vestingAmount := big.NewInt(2000)
+	sendAmount := new(big.Int).Quo(vestingAmount, testsuite.MigrationRatio)
 	vestingDuration := testsuite.VestingDuration2Years
 
-	// Create deposit with 2-year vesting using testsuite method
-	tx := s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount, vestingDuration)
+	// Create deposit with vesting using testsuite method
+	s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount, vestingDuration)
 
-	// Wait for the transaction to be processed
-	s.PollForLastEthereumBlockSynced(s.Ctx(), 10, tx.BlockNumber.Uint64())
+	// Wait for the latest block to be synced after deposit
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
 
-	// Account should now have 1000 (from normal) + 2000 (from this vesting) = 3000 tokens total
-	expectedTotalBalance := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(3000))
+	// Restore original start time
+	bridgeParams.VestingStartTime = originalStartTime
+	s.ExecuteGovProposal(&bridgetypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    *bridgeParams,
+	})
+
+	// Wait for the latest block to be synced after restoring original params
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	// Calculate total balance
+	totalBalance := new(big.Int).Add(normalDetails.TotalTokens, vestingAmount)
+	expectedTotalBalance := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(totalBalance))
 	s.PollForBalance(s.Ctx(), 10, ethKey.AddressSeq, expectedTotalBalance)
 
 	// Verify vesting account was created correctly
@@ -159,62 +220,120 @@ func (s *VestingDemoTestSuite) setupSingleVestingAccount(ethKey *testsuite.Ether
 	s.Require().NoError(err)
 	s.Require().NotNil(vestingAcc)
 
-	s.T().Logf("✅ Single vesting policy added with %s tokens (2-year vesting)", finalAmount.String())
+	s.T().Logf("✅ Single vesting policy added with %s tokens", vestingAmount.String())
 	s.T().Logf("   Account: %s", ethKey.AddressSeq)
 
 	s.verifyAccountSetup(ethKey)
+
+	return vestingDetails{
+		TotalTokens: totalBalance,
+		VestingPolicies: []vestingPolicy{
+			{
+				Amount:         vestingAmount,
+				DurationYears:  2,
+				StartOffset:    "started 1 year ago",
+				ExpectedStatus: "~50% progress",
+			},
+		},
+	}
 }
 
-func (s *VestingDemoTestSuite) setupMultiVestingAccount(ethKey *testsuite.EthereumKey) {
+func (s *VestingDemoTestSuite) setupMultiVestingAccount(ethKey *testsuite.EthereumKey) vestingDetails {
 	s.T().Log("3️⃣ Setting up Multiple Vesting Policies")
 
 	// First setup the normal account
-	s.setupNormalAccount(ethKey)
+	normalDetails := s.setupNormalAccount(ethKey)
 
-	// Add first vesting policy: 2000 tokens with 2-year vesting
-	finalAmount1 := big.NewInt(2000)
-	sendAmount1 := new(big.Int).Quo(finalAmount1, testsuite.MigrationRatio)
-	vestingDuration1 := testsuite.VestingDuration2Years
-
-	s.T().Logf("Adding first vesting policy: %s tokens with 2-year vesting", finalAmount1.String())
-
-	tx1 := s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount1, vestingDuration1)
-	s.PollForLastEthereumBlockSynced(s.Ctx(), 10, tx1.BlockNumber.Uint64())
-
-	// Wait to ensure different timestamps
-	time.Sleep(3 * time.Second)
-
-	// Add second vesting policy: 1500 tokens with 4-year vesting (different duration)
-	finalAmount2 := big.NewInt(1500)
-	sendAmount2 := new(big.Int).Quo(finalAmount2, testsuite.MigrationRatio)
-	vestingDuration2 := testsuite.VestingDuration4Years
-
-	s.T().Logf("Adding second vesting policy: %s tokens with 4-year vesting", finalAmount2.String())
-
-	tx2 := s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount2, vestingDuration2)
-	s.PollForLastEthereumBlockSynced(s.Ctx(), 10, tx2.BlockNumber.Uint64())
-
-	// Wait to ensure different timestamps
-	time.Sleep(3 * time.Second)
-
-	// Add third vesting policy: 2500 tokens with different start time (same 2-year duration)
-	finalAmount3 := big.NewInt(2500)
-	sendAmount3 := new(big.Int).Quo(finalAmount3, testsuite.MigrationRatio)
-	vestingDuration3 := testsuite.VestingDuration2Years
-
-	// Change the vesting start time to create a distinct vesting policy
+	// Save original bridge params
 	bridgeParams := s.QueryBridgeParams(s.Ctx())
 	originalStartTime := bridgeParams.VestingStartTime
-	bridgeParams.VestingStartTime = time.Now() // Set to current time
+
+	var policies []vestingPolicy
+	totalVesting := big.NewInt(0)
+
+	// First vesting policy: Complete vesting
+	amount1 := big.NewInt(2000)
+	sendAmount1 := new(big.Int).Quo(amount1, testsuite.MigrationRatio)
+
+	fiveYearsAgo := time.Now().AddDate(-5, 0, 0)
+	bridgeParams.VestingStartTime = fiveYearsAgo
 	s.ExecuteGovProposal(&bridgetypes.MsgUpdateParams{
 		Authority: s.GetGovernanceAddress(),
 		Params:    *bridgeParams,
 	})
 
-	s.T().Logf("Adding third vesting policy: %s tokens with 2-year vesting but different start time", finalAmount3.String())
+	// Wait for the latest block to be synced after governance proposal
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
 
-	tx3 := s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount3, vestingDuration3)
-	s.PollForLastEthereumBlockSynced(s.Ctx(), 10, tx3.BlockNumber.Uint64())
+	s.T().Logf("Adding first vesting policy: %s tokens", amount1.String())
+	s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount1, testsuite.VestingDuration4Years)
+
+	// Wait for the latest block to be synced after deposit
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	policies = append(policies, vestingPolicy{
+		Amount:         amount1,
+		DurationYears:  4,
+		StartOffset:    "started 5 years ago",
+		ExpectedStatus: "complete",
+	})
+	totalVesting.Add(totalVesting, amount1)
+
+	// Second vesting policy: Active vesting
+	amount2 := big.NewInt(1500)
+	sendAmount2 := new(big.Int).Quo(amount2, testsuite.MigrationRatio)
+
+	twoYearsAgo := time.Now().AddDate(-2, 0, 0)
+	bridgeParams.VestingStartTime = twoYearsAgo
+	s.ExecuteGovProposal(&bridgetypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    *bridgeParams,
+	})
+
+	// Wait for the latest block to be synced after governance proposal
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	s.T().Logf("Adding second vesting policy: %s tokens", amount2.String())
+	s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount2, testsuite.VestingDuration4Years)
+
+	// Wait for the latest block to be synced after deposit
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	policies = append(policies, vestingPolicy{
+		Amount:         amount2,
+		DurationYears:  4,
+		StartOffset:    "started 2 years ago",
+		ExpectedStatus: "~50% progress",
+	})
+	totalVesting.Add(totalVesting, amount2)
+
+	// Third vesting policy: Future vesting
+	amount3 := big.NewInt(2500)
+	sendAmount3 := new(big.Int).Quo(amount3, testsuite.MigrationRatio)
+
+	oneYearFromNow := time.Now().AddDate(1, 0, 0)
+	bridgeParams.VestingStartTime = oneYearFromNow
+	s.ExecuteGovProposal(&bridgetypes.MsgUpdateParams{
+		Authority: s.GetGovernanceAddress(),
+		Params:    *bridgeParams,
+	})
+
+	// Wait for the latest block to be synced after governance proposal
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	s.T().Logf("Adding third vesting policy: %s tokens", amount3.String())
+	s.DepositTokenToSequencerFromMigrationNoDelegationFromEthereumKey(ethKey, sendAmount3, testsuite.VestingDuration4Years)
+
+	// Wait for the latest block to be synced after deposit
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	policies = append(policies, vestingPolicy{
+		Amount:         amount3,
+		DurationYears:  4,
+		StartOffset:    "starts 1 year from now",
+		ExpectedStatus: "not started",
+	})
+	totalVesting.Add(totalVesting, amount3)
 
 	// Restore original start time for consistency with other tests
 	bridgeParams.VestingStartTime = originalStartTime
@@ -223,8 +342,12 @@ func (s *VestingDemoTestSuite) setupMultiVestingAccount(ethKey *testsuite.Ethere
 		Params:    *bridgeParams,
 	})
 
-	// Verify total balance: 1000 (normal) + 2000 + 1500 + 2500 = 7000 tokens total
-	expectedTotalBalance := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(7000))
+	// Wait for the latest block to be synced after restoring original params
+	s.PollForLatestEthereumBlockSynced(s.Ctx(), 10)
+
+	// Calculate total balance
+	totalBalance := new(big.Int).Add(normalDetails.TotalTokens, totalVesting)
+	expectedTotalBalance := sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewIntFromBigInt(totalBalance))
 	s.PollForBalance(s.Ctx(), 10, ethKey.AddressSeq, expectedTotalBalance)
 
 	// Verify multi-vesting account was created
@@ -232,9 +355,23 @@ func (s *VestingDemoTestSuite) setupMultiVestingAccount(ethKey *testsuite.Ethere
 	if err == nil && multiVestingAcc != nil {
 		s.T().Logf("✅ Multi vesting account created with %d vesting policies", len(multiVestingAcc.Infos))
 		for i, info := range multiVestingAcc.Infos {
-			s.T().Logf("   Policy %d: %s tokens, Start: %v, End: %v",
-				i+1, info.OriginalVesting.String(),
-				time.Unix(info.StartTime, 0), time.Unix(info.EndTime, 0))
+			startTime := time.Unix(info.StartTime, 0)
+			endTime := time.Unix(info.EndTime, 0)
+			now := time.Now()
+
+			var status string
+			if now.Before(startTime) {
+				status = "Not Started"
+			} else if now.After(endTime) {
+				status = "Complete"
+			} else {
+				progress := float64(now.Unix()-info.StartTime) / float64(info.EndTime-info.StartTime) * 100
+				status = fmt.Sprintf("%.1f%% Progress", progress)
+			}
+
+			s.T().Logf("   Policy %d: %s tokens, %s, Start: %v, End: %v",
+				i+1, info.OriginalVesting.String(), status,
+				startTime.Format("2006-01-02"), endTime.Format("2006-01-02"))
 		}
 	} else {
 		// If multi-vesting query fails, check single vesting account
@@ -247,10 +384,15 @@ func (s *VestingDemoTestSuite) setupMultiVestingAccount(ethKey *testsuite.Ethere
 		}
 	}
 
-	s.T().Logf("✅ Multi vesting account setup completed (total: 7000 tokens)")
+	s.T().Logf("✅ Multi vesting account setup completed (total: %s tokens)", totalBalance.String())
 	s.T().Logf("   Account: %s", ethKey.AddressSeq)
 
 	s.verifyAccountSetup(ethKey)
+
+	return vestingDetails{
+		TotalTokens:     totalBalance,
+		VestingPolicies: policies,
+	}
 }
 
 func (s *VestingDemoTestSuite) verifyAccountSetup(ethKey *testsuite.EthereumKey) {
@@ -351,4 +493,13 @@ func (s *VestingDemoTestSuite) DepositTokenToSequencerFromMigrationNoDelegationF
 	s.Require().NoError(err)
 
 	return receipt
+}
+
+// PollForLatestEthereumBlockSynced waits for the latest Ethereum block to be synced
+func (s *VestingDemoTestSuite) PollForLatestEthereumBlockSynced(ctx context.Context, maxAttempts uint64) {
+	// Get the current latest block number
+	latestBlockNum := s.QueryLastEthereumBlockSynced(ctx)
+
+	// Wait for that block to be synced
+	s.PollForLastEthereumBlockSynced(ctx, maxAttempts, latestBlockNum)
 }
