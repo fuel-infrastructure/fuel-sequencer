@@ -47,12 +47,12 @@ func (vi *VestingInfo) GetVestedCoins(blockTime time.Time) sdk.Coins {
 // Validate somewhat replicates the ContinuousVestingAccount's Validate function.
 // https://github.com/cosmos/cosmos-sdk/blob/v0.50.10/x/auth/vesting/types/vesting_account.go#L249
 func (vi *VestingInfo) Validate() error {
-	if vi.GetStartTime() >= vi.GetEndTime() {
-		return errors.New("vesting start-time cannot be before end-time")
+	if vi.StartTime < 0 {
+		return errors.New("start time cannot be negative")
 	}
 
-	if vi.EndTime < 0 {
-		return errors.New("end time cannot be negative")
+	if vi.GetStartTime() >= vi.GetEndTime() {
+		return errors.New("vesting start-time cannot be before end-time")
 	}
 
 	if !vi.OriginalVesting.IsValid() || !vi.OriginalVesting.IsAllPositive() {
