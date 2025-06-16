@@ -183,6 +183,9 @@ type E2ETestSuite struct {
 	proxyResource         *dockertest.Resource
 	valResources          []*dockertest.Resource
 
+	// proxyEnabled controls whether the proxy container should be started during setup
+	proxyEnabled bool
+
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
 
@@ -294,8 +297,10 @@ func (s *E2ETestSuite) SetupTest() {
 	// s.runOtterscanContainer() // disabled by default as intended for debugging e2e tests
 	s.RunSequencerValidators()
 
-	// Start proxy after sequencer is running
-	s.runProxyContainer()
+	// Start proxy if enabled
+	if s.proxyEnabled {
+		s.runProxyContainer()
+	}
 
 	s.initGRPCClients()
 	s.initRPCClient()
@@ -355,6 +360,7 @@ func (s *E2ETestSuite) TearDownTest() {
 	}
 	if s.proxyResource != nil { // purge proxy container if it was started
 		s.Require().NoError(s.dockerPool.Purge(s.proxyResource))
+		s.proxyResource = nil // Reset the resource pointer
 	}
 
 	for _, vc := range s.valResources {
@@ -369,6 +375,7 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.govProposalIdCounter = 1
 	s.GenesisOverrides = nil
+	s.proxyEnabled = false // Reset proxy enabled state
 
 	s.SeqKeys = nil
 	s.EthKeys = nil
@@ -929,4 +936,31 @@ func (s *E2ETestSuite) UnpauseProxy() {
 func (s *E2ETestSuite) GetProxyEndpoints() (apiEndpoint, rpcEndpoint string) {
 	return fmt.Sprintf("https://localhost:%s", ProxyAPIPort),
 		fmt.Sprintf("https://localhost:%s", ProxyRPCPort)
+}
+
+// EnableProxy enables the proxy for the test suite. This should be called before SetupTest().
+func (s *E2ETestSuite) EnableProxy() {
+	s.proxyEnabled = true
+}
+
+// DisableProxy disables the proxy for the test suite. This should be called before SetupTest().
+func (s *E2ETestSuite) DisableProxy() {
+	s.proxyEnabled = false
+}
+
+// IsProxyEnabled returns whether the proxy is enabled for this test suite.
+func (s *E2ETestSuite) IsProxyEnabled() bool {
+	return s.proxyEnabled
+}
+
+// EnsureProxyRunning ensures the proxy is running. If it's not enabled, it will be started.
+// This can be called by individual tests that need the proxy.
+func (s *E2ETestSuite) EnsureProxyRunning() {
+	if !s.proxyEnabled {
+		s.proxyEnabled = true
+		s.runProxyContainer()
+	} else if s.proxyResource == nil {
+		// Proxy was enabled but not started (e.g. after a TearDownTest)
+		s.runProxyContainer()
+	}
 }
