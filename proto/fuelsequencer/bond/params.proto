@@ -1,0 +1,29 @@
+syntax = "proto3";
+package fuelsequencer.bond;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "fuelsequencer/x/bond/Params";
+  option (gogoproto.equal) = true;
+
+  // Yield recipient defines the address that receives the yield
+  string yield_recipient = 1;
+
+  // Yield time defines the time at which the yield is received
+  google.protobuf.Timestamp yield_time = 2
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = true ];
+
+  // Yield amount defines the amount of yield to be received
+  string yield_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}

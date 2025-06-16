@@ -41,6 +41,9 @@ Testing and docs:
    1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. `make build-all-docker-images test-e2e`
    3. `make clean` once you're done.
+- [ ] Run E2E Upgrade tests, if applicable:
+  1. `cd e2e/tests/upgrade`
+  2. `go test -v -run Test<Relevant>UpgradeTestSuite`
 - [ ] Run a local E2E setup to ensure the chain runs:
    1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. Terminal 1: `make install run-eth-e2e-containers run-sequencer`
@@ -55,8 +58,13 @@ Testing and docs:
         ```
       - Sanity checks:
         ```
-        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a # expect +10
-        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # expect +90 (+100-10)
-        fuelsequencerd q block-results 100 # expect supply delta event to be reported
+        fuelsequencerd q bank balances 0xd447066a8ba9cb15a862a0f6de961f27be86fc0a
+        fuelsequencerd q bank balances 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+        fuelsequencerd q block-results 100
         ```
+        - And respectively:
+          - expect `+10`
+          - expect `+90 (+100-10)`
+          - expect supply delta event to be reported
+
    5. `make clean` once you're done.

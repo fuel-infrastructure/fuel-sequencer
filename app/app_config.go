@@ -40,6 +40,9 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	bondmodulev1 "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/bond/module"
+	_ "github.com/fuel-infrastructure/fuel-sequencer/x/bond/module" // import for side-effects
+	bondmoduletypes "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -68,6 +71,7 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
+		bondmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -88,6 +92,7 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName, // Must be after modules that can change supply, since it tracks supply changes.
 		sequencingmoduletypes.ModuleName,
+		bondmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -99,6 +104,7 @@ var (
 		// chain modules
 		bridgemoduletypes.ModuleName,
 		sequencingmoduletypes.ModuleName,
+		bondmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -116,6 +122,7 @@ var (
 		{Account: stakingtypes.NotBondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
 		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner, authtypes.Minter}},
 		{Account: bridgemoduletypes.ModuleName, Permissions: []string{authtypes.Burner, authtypes.Minter}},
+		{Account: bondmoduletypes.ModuleName, Permissions: []string{authtypes.Minter}},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 
@@ -127,6 +134,7 @@ var (
 		stakingtypes.BondedPoolName,
 		stakingtypes.NotBondedPoolName,
 		bridgemoduletypes.ModuleName,
+		bondmoduletypes.ModuleName,
 		// We allow the following module accounts to receive funds:
 		// govtypes.ModuleName
 	}
@@ -231,6 +239,10 @@ var (
 			{
 				Name:   sequencingmoduletypes.ModuleName,
 				Config: appconfig.WrapAny(&sequencingmodulev1.Module{}),
+			},
+			{
+				Name:   bondmoduletypes.ModuleName,
+				Config: appconfig.WrapAny(&bondmodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},

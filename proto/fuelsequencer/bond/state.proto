@@ -1,0 +1,17 @@
+syntax = "proto3";
+package fuelsequencer.bond;
+
+import "gogoproto/gogo.proto";
+import "amino/amino.proto";
+
+option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/bond/types";
+
+// State defines the state for the bond module.
+message State {
+  option (amino.name) = "fuelsequencer/x/bond/State";
+  option (gogoproto.equal) = true;
+
+  // yield_mint_height defines the height at which the yield was minted
+  // 0 indicates that yield has not been minted yet
+  int64 yield_mint_height = 1;
+}
