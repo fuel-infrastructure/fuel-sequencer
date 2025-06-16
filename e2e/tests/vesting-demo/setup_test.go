@@ -55,6 +55,9 @@ func TestVestingDemoTestSuite(t *testing.T) {
 
 // SetupSuite overrides Docker image settings to use working versions
 func (s *VestingDemoTestSuite) SetupSuite() {
+	// Enable proxy for this test suite, as it's required for the explorer service
+	s.EnableProxy()
+
 	// Call parent SetupSuite first
 	s.E2ETestSuite.SetupSuite()
 
