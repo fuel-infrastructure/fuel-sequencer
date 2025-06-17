@@ -428,7 +428,7 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 	}{
 		{
 			name: "add to EthOwnedMultiContinuousVestingAccount adds to existing vesting accounts if at least one " +
-				"has a matching vesting schedule",
+				"has a matching vesting schedule with the same start time",
 			account: types.NewEthOwnedMultiContinuousVestingAccount(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
@@ -449,8 +449,8 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 			),
 		},
 		{
-			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
-				"does not match any of the vesting accounts (mismatch is start time)",
+			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if start time " +
+				"does not match any of the existing vesting accounts",
 			account: types.NewEthOwnedMultiContinuousVestingAccount(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
@@ -472,24 +472,42 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 			),
 		},
 		{
-			name: "add to EthOwnedMultiContinuousVestingAccount adds another vesting account if vesting schedule " +
-				"does not match any of the vesting accounts (mismatch is end time)",
+			name: "add to EthOwnedMultiContinuousVestingAccount accumulates to existing schedule with same start time " +
+				"regardless of end time difference",
 			account: types.NewEthOwnedMultiContinuousVestingAccount(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t1.Unix()),
-					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
 				},
 				owner,
 			),
-			vestingStartTime: t0,
-			vestingEndTime:   t3, // mismatch
+			vestingStartTime: t0, // same start time as first existing schedule
+			vestingEndTime:   t3, // different end time
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere.Add(coinsToAdd...), t0.Unix(), t1.Unix()), // accumulated to first schedule
+					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
+				},
+				owner,
+			),
+		},
+		{
+			name: "DoS prevention: multiple additions with same start time only create one schedule per unique start time",
+			account: types.NewEthOwnedMultiContinuousVestingAccount(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
 					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t1.Unix()),
-					types.NewVestingInfo(coinsAlreadyThere, t0.Unix(), t2.Unix()),
-					types.NewVestingInfo(coinsToAdd, t0.Unix(), t3.Unix()),
+				},
+				owner,
+			),
+			vestingStartTime: t0, // same start time as existing schedule
+			vestingEndTime:   t2, // different end time
+			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
+				seqAddr1BaseAcc,
+				[]*types.VestingInfo{
+					types.NewVestingInfo(coinsAlreadyThere.Add(coinsToAdd...), t0.Unix(), t1.Unix()), // accumulated to existing schedule
 				},
 				owner,
 			),

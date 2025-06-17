@@ -245,11 +245,11 @@ func (a *EthOwnedContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 // ------------------------------------ EthOwnedAccountI implementations
 
 // AddVestingCoins adds new vesting coins to an existing vesting schedule or a new one, depending on whether the start
-// and end times match the existing vesting schedule. If the schedule does not match up, the account is converted to
+// time matches the existing vesting schedule. If the schedule does not match up, the account is converted to
 // an EthOwnedMultiContinuousVestingAccount with the existing vesting schedule alongside a new vesting schedule.
 func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
 
-	if a.StartTime == startTime.Unix() && a.EndTime == endTime.Unix() {
+	if a.StartTime == startTime.Unix() {
 		a.OriginalVesting = a.OriginalVesting.Add(coins...)
 	} else {
 		// Note: DelegatedFree and DelegatedVesting values are discarded because they are not important.
@@ -489,21 +489,24 @@ func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins 
 // ------------------------------------ EthOwnedAccountI implementations
 
 // AddVestingCoins adds new vesting coins to an existing vesting schedule or a new one, depending on whether an existing
-// schedule with the same start and end times exists. If the schedule does not match any existing one, a new vesting
-// schedule is created alongside the existing ones and allocated all the new coins.
+// schedule with the same start time exists. If no schedule with the same start time exists, a new vesting
+// schedule is created. This prevents DoS attacks by limiting the number of unique vesting schedules per account
+// to at most one per unique start date, regardless of end dates.
 func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
 
 	startTimeUnix := startTime.Unix()
-	endTimeUnix := endTime.Unix()
 
+	// Look for an existing vesting schedule with the same start time
 	for _, info := range a.Infos {
-		if info.StartTime == startTimeUnix && info.EndTime == endTimeUnix {
+		if info.StartTime == startTimeUnix {
+			// Accumulate coins to the existing schedule, ignoring the end time
 			info.OriginalVesting = info.OriginalVesting.Add(coins...)
 			return a, nil
 		}
 	}
 
-	a.Infos = append(a.Infos, NewVestingInfo(coins, startTimeUnix, endTimeUnix))
+	// If no schedule with the same start time exists, create a new one
+	a.Infos = append(a.Infos, NewVestingInfo(coins, startTimeUnix, endTime.Unix()))
 	return a, nil
 }
 
