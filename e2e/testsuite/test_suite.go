@@ -900,6 +900,7 @@ func (s *E2ETestSuite) runProxyContainer() {
 			// Test if nginx is responding on the port (simple TCP connection)
 			proxyClient := &http.Client{
 				Transport: &http.Transport{
+					//nolint:gosec // G402: InsecureSkipVerify is acceptable for local test environment
 					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 				},
 				Timeout: 2 * time.Second,
