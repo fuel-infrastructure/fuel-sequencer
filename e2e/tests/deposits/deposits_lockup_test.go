@@ -79,7 +79,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
 
 		// Sleep the remaining time so that enough tokens will be spendable
-		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
+		s.Sleep(time.Until(vestingStartTime.Add(timeForUnlock)))
 
 		// Confirm that the delegation went through and is as expected.
 		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(delegateData)
