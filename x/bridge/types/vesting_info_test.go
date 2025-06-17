@@ -56,6 +56,7 @@ func TestVestingInfo_Validate(t *testing.T) {
 		{"valid", coins, t0.Unix(), t1.Unix(), false},
 		{"end time right after start time", coins, t0.Unix(), t0.Unix() + 1, false},
 		{"start time == end time", coins, t0.Unix(), t0.Unix(), true},
+		{"negative start time", coins, -1, t1.Unix(), true},
 		{"negative end time", coins, t0.Unix(), -1, true},
 		{"invalid denom coins", invalidCoins, t0.Unix(), t1.Unix(), true},
 		{"invalid negative coins", negativeCoins, t0.Unix(), t1.Unix(), true},
