@@ -183,8 +183,8 @@ type E2ETestSuite struct {
 	proxyResource         *dockertest.Resource
 	valResources          []*dockertest.Resource
 
-	// proxyEnabled controls whether the proxy container should be started during setup
-	proxyEnabled bool
+	// enabled controls which components should be enabled during test setup
+	enabled *EnableFlags
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -225,6 +225,9 @@ func (s *E2ETestSuite) SetupSuite() {
 	gitRoot, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	s.Require().NoError(err)
 	s.ProjectRoot = strings.TrimSpace(string(gitRoot))
+
+	// Initialize component flags
+	s.enabled = newEnableFlags()
 
 	// Set Docker images, which can be overridden
 	s.FuelSequencerDockerImageRepo = fuelSequencerDockerImageRepo
@@ -283,48 +286,58 @@ func (s *E2ETestSuite) SetupTest() {
 	// Initialization
 	s.initFuelSequencerNodes(MNEMONICS)
 
-	// Run Ethereum node and deploy contracts
-	s.runEthereumNodeContainer()
-	s.runEthereumDeploymentContainer()
-	s.initEthereumRPCClient()
+	// Run Ethereum node and deploy contracts (if enabled)
+	if s.enabled.Ethereum {
+		s.runEthereumNodeContainer()
+		s.runEthereumDeploymentContainer()
+		s.initEthereumRPCClient()
 
-	// Deployment is done so we can get the contract addresses
-	s.setContractAddresses()
+		// Deployment is done so we can get the contract addresses
+		s.setContractAddresses()
+	}
 
-	// Run FuelSequencer nodes and sidecars
-	s.initFuelSequencerGenesis()
-	s.initFuelSequencerValidatorConfigs()
-	// s.runOtterscanContainer() // disabled by default as intended for debugging e2e tests
-	s.RunSequencerValidators()
+	// Run FuelSequencer nodes and sidecars (if enabled)
+	if s.enabled.Sequencer {
+		s.initFuelSequencerGenesis()
+		s.initFuelSequencerValidatorConfigs()
+		// s.runOtterscanContainer() // disabled by default as intended for debugging e2e tests
+		s.RunSequencerValidators()
+	}
 
 	// Start proxy if enabled
-	if s.proxyEnabled {
+	if s.enabled.Proxy {
 		s.runProxyContainer()
 	}
 
-	s.initGRPCClients()
-	s.initRPCClient()
-	s.initSidecarClient()
+	// Initialize clients based on enabled components
+	if s.enabled.Sequencer {
+		s.initGRPCClients()
+		s.initRPCClient()
+		s.initSidecarClient()
+	}
 
-	// We need the genesis header for solidity smart contracts
-	err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
-	s.Require().NoError(err)
+	// Initialize cross-component integration if both are enabled
+	if s.enabled.Ethereum && s.enabled.Sequencer {
+		// We need the genesis header for solidity smart contracts
+		err = s.WaitForSequencerBlocks(s.Ctx(), 1, time.Minute)
+		s.Require().NoError(err)
 
-	// Get genesis header
-	genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
-	s.Require().NoError(err)
+		// Get genesis header
+		genesisBlockHeaderHash, err := s.Chain.GetBlockHeaderHash(s.Ctx(), 1)
+		s.Require().NoError(err)
 
-	// Check that the deployer has the DEFAULT_ADMIN_ROLE, allowing them to set the genesis header
-	hasRole, err := s.QueryEthereumAddressHasRole_FuelStreamXContract(
-		s.Ctx(), s.EthDeployer.Address, common.HexToHash(DefaultAdminRoleHash),
-	)
-	s.Require().NoError(err)
-	s.Require().True(hasRole)
+		// Check that the deployer has the DEFAULT_ADMIN_ROLE, allowing them to set the genesis header
+		hasRole, err := s.QueryEthereumAddressHasRole_FuelStreamXContract(
+			s.Ctx(), s.EthDeployer.Address, common.HexToHash(DefaultAdminRoleHash),
+		)
+		s.Require().NoError(err)
+		s.Require().True(hasRole)
 
-	// Set the genesis header
-	data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
-	_, err = s.SendEthTransactionToFuelStreamXContractAsDeployer(data)
-	s.Require().NoError(err)
+		// Set the genesis header
+		data := PackUpdateGenesisStateMessage(1, common.BytesToHash(genesisBlockHeaderHash))
+		_, err = s.SendEthTransactionToFuelStreamXContractAsDeployer(data)
+		s.Require().NoError(err)
+	}
 
 	// Reset the proposal counter since we're starting a new chain.
 	s.govProposalIdCounter = 1
@@ -375,7 +388,7 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.govProposalIdCounter = 1
 	s.GenesisOverrides = nil
-	s.proxyEnabled = false // Reset proxy enabled state
+	s.enabled.Reset() // Reset all component flags to disabled state
 
 	s.SeqKeys = nil
 	s.EthKeys = nil
@@ -937,31 +950,4 @@ func (s *E2ETestSuite) UnpauseProxy() {
 func (s *E2ETestSuite) GetProxyEndpoints() (apiEndpoint, rpcEndpoint string) {
 	return fmt.Sprintf("https://localhost:%s", ProxyAPIPort),
 		fmt.Sprintf("https://localhost:%s", ProxyRPCPort)
-}
-
-// EnableProxy enables the proxy for the test suite. This should be called before SetupTest().
-func (s *E2ETestSuite) EnableProxy() {
-	s.proxyEnabled = true
-}
-
-// DisableProxy disables the proxy for the test suite. This should be called before SetupTest().
-func (s *E2ETestSuite) DisableProxy() {
-	s.proxyEnabled = false
-}
-
-// IsProxyEnabled returns whether the proxy is enabled for this test suite.
-func (s *E2ETestSuite) IsProxyEnabled() bool {
-	return s.proxyEnabled
-}
-
-// EnsureProxyRunning ensures the proxy is running. If it's not enabled, it will be started.
-// This can be called by individual tests that need the proxy.
-func (s *E2ETestSuite) EnsureProxyRunning() {
-	if !s.proxyEnabled {
-		s.proxyEnabled = true
-		s.runProxyContainer()
-	} else if s.proxyResource == nil {
-		// Proxy was enabled but not started (e.g. after a TearDownTest)
-		s.runProxyContainer()
-	}
 }
