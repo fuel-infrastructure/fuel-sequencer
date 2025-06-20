@@ -169,7 +169,8 @@ func TestMetricsFunctionsWithMockContext(t *testing.T) {
 		},
 		{
 			name: "context with value",
-			ctx:  context.WithValue(context.Background(), "test", "value"),
+			//nolint:staticcheck // SA1029: using string key in test context is acceptable
+			ctx: context.WithValue(context.Background(), "test", "value"),
 		},
 		{
 			name: "cancelled context",
