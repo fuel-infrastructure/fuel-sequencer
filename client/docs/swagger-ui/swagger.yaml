@@ -30312,7 +30312,35 @@ paths:
       tags:
         - Cosmos SDK Queries
 definitions:
-  fuelsequencer.bridge.Params:
+  fuelsequencer.bridge.SupplyDeltaInfo:
+    type: object
+    properties:
+      last_supply:
+        type: string
+        description: |-
+          last_supply is the supply of the bridge token that was recorded
+          when the most recent report to Ethereum was constructed.
+      offset:
+        type: string
+        description: >-
+          offset is used to account for changes in supply that we do not want to
+
+          report to Ethereum, including deposits and withdrawals, because
+          Ethereum
+
+          will know about these anyways. Note that offset can be positive (to
+          account
+
+          for unreported burn) or negative (to account for unreported mint).
+      to_report:
+        type: string
+        description: >-
+          to_report is the amount of bridge tokens that should be minted
+          (positive)
+
+          or burned (negative) on Ethereum. Reset after being relayed to
+          Ethereum.
+  fuelsequencer.bridge.v1.Params:
     type: object
     properties:
       bridge_denom:
@@ -30432,34 +30460,6 @@ definitions:
 
           can fit more Sequencer-native or event transactions.
     description: Params defines the parameters for the module.
-  fuelsequencer.bridge.SupplyDeltaInfo:
-    type: object
-    properties:
-      last_supply:
-        type: string
-        description: |-
-          last_supply is the supply of the bridge token that was recorded
-          when the most recent report to Ethereum was constructed.
-      offset:
-        type: string
-        description: >-
-          offset is used to account for changes in supply that we do not want to
-
-          report to Ethereum, including deposits and withdrawals, because
-          Ethereum
-
-          will know about these anyways. Note that offset can be positive (to
-          account
-
-          for unreported burn) or negative (to account for unreported mint).
-      to_report:
-        type: string
-        description: >-
-          to_report is the amount of bridge tokens that should be minted
-          (positive)
-
-          or burned (negative) on Ethereum. Reset after being relayed to
-          Ethereum.
   fuelsequencer.bridge.v1.QueryEthereumAddressFromSequencerAddressResponse:
     type: object
     properties:
