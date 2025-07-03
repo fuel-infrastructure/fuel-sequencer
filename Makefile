@@ -9,6 +9,11 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 # Fuel Rollup local repository.
 ROLLUP_DIR = $(CURDIR)/e2e/fuel-rollup
 
+# Proxy configuration
+PROXY_API_PORT := 8443
+PROXY_RPC_PORT := 8658
+PROXY_CONTAINER_NAME := fuel-sequencer-proxy
+
 # Name of the Ethereum contract deployment image.
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
 
@@ -375,7 +380,20 @@ format:
 test-all: test-unit test-e2e
 
 test-unit:
+	@echo "🤖 Running unit tests..."
 	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
+
+test-coverage:
+	@echo "🤖 Generating test coverage..."
+	@mkdir -p $(BUILDDIR)/coverage
+	@go test -mod=readonly -coverprofile=$(BUILDDIR)/coverage/coverage.out ./x/... ./app/... ./sidecar/...
+	@go tool cover -html=$(BUILDDIR)/coverage/coverage.out -o $(BUILDDIR)/coverage/coverage.html
+	@go tool cover -func=$(BUILDDIR)/coverage/coverage.out
+	@echo "✅ Coverage report generated at $(BUILDDIR)/coverage/coverage.html"
+
+open-coverage:
+	@echo "🌐 Opening coverage report..."
+	@open $(BUILDDIR)/coverage/coverage.html
 
 test-e2e: \
 	check-docker-image-exists \
@@ -535,6 +553,15 @@ test-e2e-deposits:
 test-e2e-special-messages:
 	@cd e2e/tests && go test -mod=readonly -race -v ./special-messages/... --test.timeout 0
 
+# Run e2e tests with HTTPS proxy for fuel-explorer integration
+test-e2e-with-proxy: check-docker-image-exists
+	@echo "🔐 Running E2E tests with integrated HTTPS proxy"
+	@echo "📊 Endpoints available during tests:"
+	@echo "  • API (HTTPS):  https://localhost:$(PROXY_API_PORT)"
+	@echo "  • RPC (HTTPS):  https://localhost:$(PROXY_RPC_PORT)"
+	@echo "🔒 Note: Self-signed certificates will be used"
+	@cd e2e/tests && go test -mod=readonly -race -v ./proxy/... --test.timeout 0
+
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) stop
@@ -542,6 +569,7 @@ clean-e2e:
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) stop
 	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
 	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=$(PROXY_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
 	@$(DOCKER) compose -f $(ROLLUP_DIR)/docker/docker-compose.yml down
 
 	@echo "🧹 Removing Docker containers..."
@@ -550,6 +578,7 @@ clean-e2e:
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(PROXY_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(OTTERSCAN_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 
 	@echo "🧹 Pruning Docker networks..."

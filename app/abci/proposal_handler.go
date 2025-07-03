@@ -566,11 +566,30 @@ func (h *FuelSequencerProposalHandler) generateMsgIndexAndEventTxs(
 			return nil, nil, fmt.Errorf("encountered invalid event with err: %s; event: %s", err.Error(), event)
 		}
 
-		eventTx, err := event.RawTxBytes(h.cdc, h.bridgeKeeper.GetAuthority(), eventTxsSequence)
+		eventTx, err := event.RawTxBytesWithMaxBytes(
+			h.cdc,
+			h.bridgeKeeper.GetAuthority(),
+			params.InjectedEventTxMaxBytes,
+			eventTxsSequence,
+		)
 		if err != nil {
 
-			// Return an error because all events are expected to be successfully encoded as transaction bytes. This
-			// will halt block production.
+			// If an event is an authorization it should be skipped.
+			if event.EventType == sidecartypes.AuthorizeEventName {
+				wrappedErr := NewFailedToEncodeEventAsRawTxBytesError(err, event)
+				ctx.Logger().Warn("skipping event", wrappedErr.LoggableKVs()...)
+
+				skipTxBytes, err := h.generateSkipTxBytes(wrappedErr.Error(), event, blockNumber, eventTxsSequence)
+				if err != nil {
+					return nil, nil, fmt.Errorf("failed to generate skip tx bytes: %w", err)
+				}
+				eventTxs = append(eventTxs, skipTxBytes)
+				eventTxsSequence += 1
+				continue
+			}
+
+			// Otherwise, return an error as it means that we have an event that should always be expected to be encoded
+			// successfully as a bytes tx. This will halt block production.
 			return nil, nil, fmt.Errorf(
 				"failed to encode event as raw tx bytes with err: %s; event: %s",
 				err.Error(), event,
@@ -698,12 +717,22 @@ func (h *FuelSequencerProposalHandler) verifyInjectedMsgSupplyDeltaTx(
 func (h *FuelSequencerProposalHandler) generateSkipTxBytes(
 	errStr string, event *sidecartypes.Event, blockNumber uint64, eventTxsSequence uint64,
 ) ([]byte, error) {
-	return bridgetypes.NewMsgSkippedEventTx(
+	msg, trimmed := bridgetypes.NewMsgSkippedEventTx(
 		h.bridgeKeeper.GetAuthority(),
 		errStr,
 		blockNumber,
 		event.LogIndex,
 		event.TxIndex,
 		event.TxHash,
-	).RawTxBytes(eventTxsSequence)
+	)
+
+	if trimmed {
+		h.bridgeKeeper.Logger().Warn(
+			"reason_for_skip exceeded maximum length and was trimmed",
+			"original_length", len(errStr),
+			"max_length", bridgetypes.MaxReasonLength,
+		)
+	}
+
+	return msg.RawTxBytes(eventTxsSequence)
 }

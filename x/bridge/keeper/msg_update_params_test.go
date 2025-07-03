@@ -15,13 +15,14 @@ func TestMsgUpdateParams(t *testing.T) {
 	k, ms, ctx := setupMsgServer(t)
 	defaultParams := types.DefaultParams()
 	nonDefaultParams := types.NewParams(
-		"ufuel",
+		types.DefaultBridgeDenom,
 		sdkmath.NewInt(10_000_000_000),
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
 		100,
 		time.Now(),
 		[]string{},
 		2*time.Hour,
+		6144,
 		sdkmath.LegacyMustNewDecFromStr("0.3"),
 	)
 	require.NoError(t, k.SetParams(ctx, defaultParams))

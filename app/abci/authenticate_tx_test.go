@@ -14,7 +14,7 @@ import (
 func (s *AppTestSuite) TestAuthenticateTx() {
 	// Some amounts to populate bank.MsgSend messages
 	amt := sdkmath.NewInt(1000000)
-	coinAmt := sdk.NewCoin("ufuel", amt)
+	coinAmt := sdk.NewCoin(types.DefaultBridgeDenom, amt)
 	coinsAmt := sdk.NewCoins(coinAmt)
 
 	testCases := []struct {

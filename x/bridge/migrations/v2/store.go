@@ -31,6 +31,7 @@ func migrateParams(store corestoretypes.KVStore, cdc codec.BinaryCodec) error {
 		params.VestingStartTime,
 		params.AdditionalBlockedAddresses,
 		params.MaxEthBlockUpdateDelay,
+		params.InjectedEventTxMaxBytes,
 		params.SequencerTxsAllocation,
 	)
 

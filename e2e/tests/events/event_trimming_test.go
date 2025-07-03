@@ -139,11 +139,11 @@ func (s *EventsTestSuite) TestMaxEthBlockUpdateDelay() {
 		// Generate a Transfer
 		sendAmount := int64(10)
 		to := s.EthKeys[1].Address
-		msgSend := testsuite.PackTransfer(to, big.NewInt(sendAmount))
+		transfer := testsuite.PackTransfer(to, big.NewInt(sendAmount))
 
 		// -------- Send transactions
 
-		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(msgSend)
+		txReceipt, err := s.SendEthTransactionToSequencerInterfaceContract(transfer)
 		s.Require().NoError(err)
 
 		// -------- Delay sync up

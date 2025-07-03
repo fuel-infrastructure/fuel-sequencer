@@ -21,6 +21,11 @@ var NullEthereumAddress = new(common.Address).String()
 // If the existing account was a non-'EthOwned' vesting account, any vesting details are discarded.
 func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwnedAccountI {
 
+	// Try to parse into EthOwnedMultiContinuousVestingAccount.
+	if vAcc, ok := acc.(*types.EthOwnedMultiContinuousVestingAccount); ok {
+		return vAcc
+	}
+
 	// Try to parse into EthOwnedContinuousVestingAccount.
 	if vAcc, ok := acc.(*types.EthOwnedContinuousVestingAccount); ok {
 		return vAcc

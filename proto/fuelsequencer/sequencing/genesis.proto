@@ -18,5 +18,6 @@ message GenesisState {
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 
   // topic_list hold all the list of topics.
-  repeated Topic topic_list = 2 [ (gogoproto.nullable) = false ];
+  // TODO: should be snake_case but not worth changing because it breaks stuff.
+  repeated Topic topicList = 2 [ (gogoproto.nullable) = false ];
 }

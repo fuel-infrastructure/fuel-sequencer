@@ -77,23 +77,16 @@ func SetupTestingApp(isCheckTx bool) *fuelsequencerapp.FuelSequencerApp {
 
 var defaultGenesisBz []byte
 
-func newValidator() *cmtypes.Validator {
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	if err != nil {
-		panic(err)
-	}
-
-	return cmtypes.NewValidator(pubKey, 1)
-}
-
 func GetDefaultGenesisStateBytes(app *fuelsequencerapp.FuelSequencerApp) []byte {
 	if len(defaultGenesisBz) == 0 {
-
-		// create validator set with two validators
-		validator0 := newValidator()
-		validator1 := newValidator()
-		valSet := cmtypes.NewValidatorSet([]*cmtypes.Validator{validator0, validator1})
+		privVal := mock.NewPV()
+		pubKey, err := privVal.GetPubKey()
+		if err != nil {
+			panic(err)
+		}
+		// create validator set with single validator
+		validator := cmtypes.NewValidator(pubKey, 1)
+		valSet := cmtypes.NewValidatorSet([]*cmtypes.Validator{validator})
 
 		// generate genesis account
 		senderPrivKey := secp256k1.GenPrivKey()
@@ -106,7 +99,7 @@ func GetDefaultGenesisStateBytes(app *fuelsequencerapp.FuelSequencerApp) []byte 
 		}
 
 		genesisState := app.DefaultGenesis()
-		genesisState, err := simtestutil.GenesisStateWithValSet(
+		genesisState, err = simtestutil.GenesisStateWithValSet(
 			app.AppCodec(),
 			genesisState,
 			valSet,

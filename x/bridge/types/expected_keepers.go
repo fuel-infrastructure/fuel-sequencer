@@ -15,7 +15,7 @@ type AccountKeeper interface {
 	AddressCodec() address.Codec
 
 	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
-	GetModuleAddress(name string) sdk.AccAddress
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 	NewAccount(context.Context, sdk.AccountI) sdk.AccountI
 	SetAccount(context.Context, sdk.AccountI)
 
