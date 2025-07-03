@@ -1,4 +1,4 @@
-package upgrades_test
+package features_and_optimisations_test
 
 import (
 	"math/big"
