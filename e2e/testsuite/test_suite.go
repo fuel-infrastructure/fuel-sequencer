@@ -664,7 +664,7 @@ func (s *E2ETestSuite) runSequencerValidatorsWithOverrides(
 	s.T().Log("starting validator containers...")
 
 	// Ensure the Docker image exists, building it if necessary
-	s.Require().NoError(s.ensureDockerImageExists())
+	s.Require().NoError(s.ensureDockerImageExists(s.FuelSequencerDockerImageTag))
 
 	// Get user from OS to ensure permissions match up when the container writes files.
 	user, err := osuser.Current()
