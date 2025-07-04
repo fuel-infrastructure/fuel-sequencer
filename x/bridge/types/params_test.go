@@ -5,8 +5,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
 func TestVestingTimesFromVestingDuration(t *testing.T) {
@@ -105,7 +106,7 @@ func TestValidateBridgeDenom(t *testing.T) {
 		input     interface{}
 		expectErr bool
 	}{
-		{"Valid denom", "ufuel", false},
+		{"Valid denom", types.DefaultBridgeDenom, false},
 		{"Empty denom", "", true},
 		{"Non-string denom", 123, true},
 	}
@@ -324,7 +325,7 @@ func TestValidateSequencerTxsAllocation(t *testing.T) {
 }
 
 func TestParams_Validate(t *testing.T) {
-	validBridgeDenom := "ufuel"
+	validBridgeDenom := types.DefaultBridgeDenom
 	validBridgeDenomTotalSupply := sdkmath.NewInt(10_000_000_000)
 	validEthereumProxyContractAddress := "0x0165878A594ca255338adfa4d48449f69242Eb8F"
 	validSupplyDeltaPeriod := uint64(10)

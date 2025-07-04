@@ -4,10 +4,14 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
-func (k msgServer) SkippedEventTx(goCtx context.Context, msg *types.MsgSkippedEventTx) (resp *types.MsgSkippedEventTxResponse, err error) {
+func (k msgServer) SkippedEventTx(
+	goCtx context.Context,
+	msg *types.MsgSkippedEventTx,
+) (resp *types.MsgSkippedEventTxResponse, err error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	err = k.TryExecSpecialMessage(ctx, msg.Authority, func(ctx sdk.Context) error {
@@ -22,7 +26,10 @@ func (k msgServer) SkippedEventTx(goCtx context.Context, msg *types.MsgSkippedEv
 	return resp, err
 }
 
-func (k msgServer) skippedEventTx(ctx sdk.Context, msg *types.MsgSkippedEventTx) (*types.MsgSkippedEventTxResponse, error) {
+func (k msgServer) skippedEventTx(
+	ctx sdk.Context,
+	msg *types.MsgSkippedEventTx,
+) (*types.MsgSkippedEventTxResponse, error) {
 	err := ctx.EventManager().EmitTypedEvent(&types.EventSkippedEventTx{
 		ReasonForSkip:  msg.ReasonForSkip,
 		EthBlockNumber: msg.EthBlockNumber,

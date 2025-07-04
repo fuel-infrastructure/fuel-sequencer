@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"

@@ -6,6 +6,9 @@ package types
 import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types2 "github.com/cosmos/cosmos-sdk/types"
+	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	types "github.com/cosmos/cosmos-sdk/x/auth/types"
 	types1 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -106,9 +109,119 @@ func (m *EthOwnedContinuousVestingAccount) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EthOwnedContinuousVestingAccount proto.InternalMessageInfo
 
+// VestingInfo signifies the start and end of continuous vesting for an amount
+// of coins.
+type VestingInfo struct {
+	OriginalVesting github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=original_vesting,json=originalVesting,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"original_vesting"`
+	// Vesting start time, as unix timestamp (in seconds).
+	StartTime int64 `protobuf:"varint,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// Vesting end time, as unix timestamp (in seconds).
+	EndTime int64 `protobuf:"varint,3,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+}
+
+func (m *VestingInfo) Reset()         { *m = VestingInfo{} }
+func (m *VestingInfo) String() string { return proto.CompactTextString(m) }
+func (*VestingInfo) ProtoMessage()    {}
+func (*VestingInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_956e563709de3d42, []int{2}
+}
+func (m *VestingInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VestingInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VestingInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VestingInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VestingInfo.Merge(m, src)
+}
+func (m *VestingInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *VestingInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_VestingInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VestingInfo proto.InternalMessageInfo
+
+func (m *VestingInfo) GetOriginalVesting() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.OriginalVesting
+	}
+	return nil
+}
+
+func (m *VestingInfo) GetStartTime() int64 {
+	if m != nil {
+		return m.StartTime
+	}
+	return 0
+}
+
+func (m *VestingInfo) GetEndTime() int64 {
+	if m != nil {
+		return m.EndTime
+	}
+	return 0
+}
+
+// An EthOwnedMultiContinuousVestingAccount is an account with multiple
+// continuous vesting schedules. In practice, this account gets created when
+// there is a deposit into an EthOwnedContinuousVestingAccount that has
+// different start and end times.
+type EthOwnedMultiContinuousVestingAccount struct {
+	*types.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3,embedded=base_account" json:"base_account,omitempty"`
+	// infos is the set of continuous vesting schedules for this account.
+	Infos []*VestingInfo `protobuf:"bytes,2,rep,name=infos,proto3" json:"infos,omitempty"`
+	// account_owner is the Ethereum address that owns and controls this account.
+	AccountOwner string `protobuf:"bytes,3,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
+}
+
+func (m *EthOwnedMultiContinuousVestingAccount) Reset()      { *m = EthOwnedMultiContinuousVestingAccount{} }
+func (*EthOwnedMultiContinuousVestingAccount) ProtoMessage() {}
+func (*EthOwnedMultiContinuousVestingAccount) Descriptor() ([]byte, []int) {
+	return fileDescriptor_956e563709de3d42, []int{3}
+}
+func (m *EthOwnedMultiContinuousVestingAccount) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EthOwnedMultiContinuousVestingAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EthOwnedMultiContinuousVestingAccount.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EthOwnedMultiContinuousVestingAccount) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EthOwnedMultiContinuousVestingAccount.Merge(m, src)
+}
+func (m *EthOwnedMultiContinuousVestingAccount) XXX_Size() int {
+	return m.Size()
+}
+func (m *EthOwnedMultiContinuousVestingAccount) XXX_DiscardUnknown() {
+	xxx_messageInfo_EthOwnedMultiContinuousVestingAccount.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EthOwnedMultiContinuousVestingAccount proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*EthOwnedBaseAccount)(nil), "fuelsequencer.bridge.EthOwnedBaseAccount")
 	proto.RegisterType((*EthOwnedContinuousVestingAccount)(nil), "fuelsequencer.bridge.EthOwnedContinuousVestingAccount")
+	proto.RegisterType((*VestingInfo)(nil), "fuelsequencer.bridge.VestingInfo")
+	proto.RegisterType((*EthOwnedMultiContinuousVestingAccount)(nil), "fuelsequencer.bridge.EthOwnedMultiContinuousVestingAccount")
 }
 
 func init() {
@@ -116,30 +229,43 @@ func init() {
 }
 
 var fileDescriptor_956e563709de3d42 = []byte{
-	// 365 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x52, 0x3f, 0x4f, 0xfa, 0x40,
-	0x18, 0xee, 0xfd, 0xf2, 0x8b, 0x89, 0x05, 0x35, 0x41, 0x06, 0x64, 0x38, 0x1a, 0xd0, 0x84, 0x85,
-	0x56, 0x74, 0x33, 0x2e, 0x62, 0x1c, 0x98, 0x4c, 0x18, 0x18, 0x5c, 0x9a, 0xb6, 0xbc, 0x94, 0x26,
-	0x72, 0x87, 0xf7, 0x07, 0xf4, 0x1b, 0x38, 0x3a, 0x3a, 0xf2, 0x21, 0x1c, 0xfc, 0x08, 0xc6, 0x89,
-	0xd1, 0xc4, 0xc4, 0x18, 0xf8, 0x22, 0xa6, 0xbd, 0x3b, 0x05, 0xa3, 0xa3, 0x5b, 0xdf, 0xe7, 0x9e,
-	0x7b, 0xfe, 0x5c, 0x5f, 0xbb, 0xd6, 0x97, 0x70, 0xc9, 0xe1, 0x4a, 0x02, 0x89, 0x80, 0x79, 0x21,
-	0x4b, 0x7a, 0x31, 0x78, 0x41, 0x14, 0x51, 0x49, 0x04, 0x77, 0x47, 0x8c, 0x0a, 0x5a, 0x28, 0xae,
-	0x90, 0x5c, 0x45, 0x2a, 0xef, 0x44, 0x94, 0x0f, 0x29, 0xf7, 0x33, 0x8e, 0xa7, 0x06, 0x75, 0xa1,
-	0x5c, 0x8c, 0x69, 0x4c, 0x15, 0x9e, 0x7e, 0x69, 0x14, 0x2b, 0x8e, 0x17, 0x48, 0x31, 0xf0, 0xc6,
-	0xcd, 0x10, 0x44, 0xd0, 0xcc, 0x06, 0x7d, 0xbe, 0xab, 0xcf, 0xc7, 0xc0, 0x45, 0x42, 0xe2, 0x4f,
-	0x8a, 0x9e, 0x15, 0xab, 0xfa, 0x88, 0xec, 0xed, 0x33, 0x31, 0x38, 0x9f, 0x10, 0xe8, 0xb5, 0x02,
-	0x0e, 0x27, 0x2a, 0x6b, 0xa1, 0x6d, 0xe7, 0xc3, 0x80, 0x83, 0xaf, 0xb3, 0x97, 0x90, 0x83, 0xea,
-	0xb9, 0x03, 0xc7, 0xd5, 0xc1, 0x32, 0x1f, 0xad, 0xe8, 0x2e, 0xdd, 0x6b, 0xfd, 0x9f, 0xbd, 0x55,
-	0x50, 0x27, 0x17, 0x2e, 0x49, 0xd5, 0xec, 0x0d, 0xad, 0xe2, 0xd3, 0x09, 0x01, 0x56, 0xfa, 0xe7,
-	0xa0, 0xfa, 0x7a, 0x27, 0xaf, 0xc1, 0xd4, 0x9a, 0x1d, 0x35, 0x6f, 0xa7, 0x15, 0xeb, 0x7e, 0x5a,
-	0xb1, 0x9e, 0x1f, 0x1a, 0x7b, 0x3f, 0x3d, 0x90, 0x6b, 0x52, 0x6a, 0xd9, 0x76, 0xf5, 0x15, 0xd9,
-	0x8e, 0x01, 0x4f, 0x29, 0x11, 0x09, 0x91, 0x54, 0xf2, 0xae, 0xaa, 0x67, 0xcc, 0x7d, 0x7b, 0x4b,
-	0x17, 0xfe, 0x56, 0x65, 0xdf, 0x54, 0x31, 0xef, 0x61, 0xda, 0xfc, 0x26, 0xa5, 0xab, 0x6d, 0x8e,
-	0x57, 0x0d, 0xfe, 0xa8, 0x5d, 0xab, 0xfb, 0x34, 0xc7, 0x68, 0x36, 0xc7, 0xe8, 0x7d, 0x8e, 0xd1,
-	0xdd, 0x02, 0x5b, 0xb3, 0x05, 0xb6, 0x5e, 0x16, 0xd8, 0xba, 0x38, 0x8e, 0x13, 0x31, 0x90, 0xa1,
-	0x1b, 0xd1, 0xa1, 0x97, 0x6a, 0x35, 0x12, 0xd2, 0x67, 0x01, 0x17, 0x4c, 0x46, 0x42, 0x32, 0x50,
-	0xd8, 0xd7, 0x12, 0x5e, 0x9b, 0x35, 0x14, 0x37, 0x23, 0xe0, 0xe1, 0x5a, 0xf6, 0xdf, 0x0f, 0x3f,
-	0x02, 0x00, 0x00, 0xff, 0xff, 0xbf, 0xcc, 0x37, 0xe1, 0xab, 0x02, 0x00, 0x00,
+	// 571 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0xbd, 0x6e, 0x13, 0x41,
+	0x10, 0xbe, 0x8d, 0xf9, 0xcb, 0xda, 0x10, 0x30, 0x29, 0xec, 0x48, 0x9c, 0x8d, 0x43, 0x24, 0x2b,
+	0x92, 0xef, 0x70, 0x28, 0x90, 0x10, 0x0d, 0x46, 0x20, 0xb9, 0x40, 0x48, 0x16, 0x4a, 0x91, 0xe6,
+	0x74, 0x77, 0x5e, 0x9f, 0x57, 0xd8, 0xbb, 0x61, 0x7f, 0x1c, 0xf2, 0x06, 0x14, 0x14, 0x94, 0x88,
+	0x2a, 0x25, 0x42, 0x14, 0x29, 0x28, 0x78, 0x84, 0x88, 0xca, 0x15, 0x42, 0x42, 0x0a, 0xc8, 0x2e,
+	0xf2, 0x1a, 0xe8, 0xf6, 0x27, 0x5c, 0x8c, 0x5d, 0x20, 0x41, 0x73, 0x77, 0x33, 0xf3, 0xed, 0xcc,
+	0x7c, 0xf3, 0xcd, 0x2d, 0x5c, 0xef, 0x49, 0x34, 0xe0, 0xe8, 0x85, 0x44, 0x24, 0x46, 0xcc, 0x8f,
+	0x18, 0xee, 0x26, 0xc8, 0x0f, 0xe3, 0x98, 0x4a, 0x22, 0xb8, 0xb7, 0xcb, 0xa8, 0xa0, 0xc5, 0xd5,
+	0x33, 0x20, 0x4f, 0x83, 0xd6, 0xae, 0x85, 0x43, 0x4c, 0xa8, 0xaf, 0x9e, 0x1a, 0xb8, 0x56, 0x8e,
+	0x29, 0x1f, 0x52, 0x1e, 0x28, 0xcb, 0xd7, 0x86, 0x09, 0xad, 0x26, 0x34, 0xa1, 0xda, 0x9f, 0x7e,
+	0x19, 0xaf, 0xab, 0x31, 0x7e, 0x28, 0x45, 0xdf, 0x1f, 0x35, 0x23, 0x24, 0xc2, 0xa6, 0x32, 0x4c,
+	0xfc, 0x96, 0x89, 0x8f, 0x10, 0x17, 0x98, 0x24, 0xa7, 0x10, 0x63, 0xcf, 0x64, 0x89, 0x42, 0x8e,
+	0x4e, 0x21, 0x31, 0xc5, 0x44, 0xc7, 0x6b, 0x9f, 0x01, 0xbc, 0xfe, 0x48, 0xf4, 0x9f, 0xee, 0x11,
+	0xd4, 0x6d, 0x85, 0x1c, 0x3d, 0xd0, 0xf4, 0x8a, 0x6d, 0x58, 0x48, 0x8f, 0x04, 0x86, 0x6e, 0x09,
+	0x54, 0x41, 0x3d, 0xbf, 0x55, 0xf5, 0x4c, 0xe3, 0xaa, 0x0f, 0x93, 0xce, 0xcb, 0x9c, 0x6b, 0x9d,
+	0x1b, 0x1f, 0x57, 0x40, 0x27, 0x1f, 0x65, 0x52, 0xad, 0xc3, 0xcb, 0x26, 0x4b, 0x40, 0xf7, 0x08,
+	0x62, 0xa5, 0xa5, 0x2a, 0xa8, 0x2f, 0x77, 0x0a, 0xc6, 0x99, 0x96, 0x66, 0xf7, 0x9a, 0xaf, 0x0e,
+	0x2a, 0xce, 0xdb, 0x83, 0x8a, 0xf3, 0xe5, 0x53, 0x63, 0x63, 0xde, 0x4c, 0x3d, 0xdb, 0xa5, 0x49,
+	0xdb, 0xae, 0x7d, 0x07, 0xb0, 0x6a, 0x9d, 0x0f, 0x29, 0x11, 0x98, 0x48, 0x2a, 0xf9, 0xb6, 0xa6,
+	0x6f, 0x8b, 0x07, 0x70, 0xc5, 0x0c, 0x64, 0x86, 0xca, 0x6d, 0x4b, 0xc5, 0xce, 0xcb, 0xb2, 0x59,
+	0x94, 0xca, 0x50, 0xbb, 0x32, 0x3a, 0x5b, 0xe0, 0x7f, 0xb1, 0xfb, 0x0a, 0x60, 0xde, 0x34, 0xd0,
+	0x26, 0x3d, 0x5a, 0x7c, 0x0d, 0xe0, 0x55, 0xca, 0x70, 0x82, 0x49, 0x38, 0x08, 0x4c, 0x0f, 0x25,
+	0x50, 0xcd, 0xd5, 0xf3, 0x5b, 0x65, 0x4b, 0x25, 0x9d, 0x7a, 0x86, 0x07, 0x26, 0xad, 0xc7, 0x47,
+	0xc7, 0x15, 0xe7, 0xc3, 0x8f, 0x4a, 0x3d, 0xc1, 0xa2, 0x2f, 0x23, 0x2f, 0xa6, 0x43, 0xb3, 0x7b,
+	0xe6, 0xd5, 0xe0, 0xdd, 0xe7, 0xbe, 0xd8, 0xdf, 0x45, 0x5c, 0x1d, 0xe0, 0xef, 0x4e, 0x0e, 0x37,
+	0x0b, 0x03, 0x94, 0x84, 0xf1, 0x7e, 0x90, 0xae, 0x09, 0x7f, 0x7f, 0x72, 0xb8, 0x09, 0x3a, 0x2b,
+	0xb6, 0xb4, 0x69, 0xa9, 0x78, 0x03, 0x42, 0x2e, 0x42, 0x26, 0x02, 0x81, 0x87, 0x48, 0x71, 0xce,
+	0x75, 0x96, 0x95, 0xe7, 0x19, 0x1e, 0xa2, 0x62, 0x19, 0x5e, 0x42, 0xa4, 0xab, 0x83, 0x39, 0x15,
+	0xbc, 0x88, 0x48, 0x37, 0x0d, 0xd5, 0x3e, 0x2e, 0xc1, 0x0d, 0xcb, 0xf6, 0x89, 0x1c, 0x08, 0xbc,
+	0x50, 0xbb, 0x7f, 0xb8, 0x83, 0x77, 0xe1, 0x79, 0x4c, 0x7a, 0x94, 0x97, 0x96, 0xd4, 0xc4, 0x6e,
+	0x7a, 0x73, 0x45, 0xc8, 0xcc, 0xbb, 0xa3, 0xf1, 0x7f, 0xca, 0x9b, 0x9b, 0x23, 0xef, 0xce, 0x5f,
+	0xcb, 0x9b, 0x02, 0x17, 0xec, 0xdf, 0xcc, 0xd6, 0x6d, 0x1f, 0x4d, 0x5c, 0x30, 0x9e, 0xb8, 0xe0,
+	0xe7, 0xc4, 0x05, 0x6f, 0xa6, 0xae, 0x33, 0x9e, 0xba, 0xce, 0xb7, 0xa9, 0xeb, 0xec, 0xdc, 0xcf,
+	0x68, 0x9a, 0x16, 0x6d, 0x60, 0xd2, 0x63, 0x21, 0x17, 0x4c, 0xc6, 0x42, 0x32, 0xa4, 0x7d, 0xbf,
+	0xef, 0xaf, 0x97, 0xf6, 0x06, 0x53, 0x6a, 0x47, 0x17, 0xd4, 0xff, 0x7f, 0xe7, 0x57, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0xc5, 0x16, 0x92, 0x76, 0xe6, 0x04, 0x00, 0x00,
 }
 
 func (m *EthOwnedBaseAccount) Marshal() (dAtA []byte, err error) {
@@ -226,6 +352,109 @@ func (m *EthOwnedContinuousVestingAccount) MarshalToSizedBuffer(dAtA []byte) (in
 	return len(dAtA) - i, nil
 }
 
+func (m *VestingInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VestingInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VestingInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.EndTime != 0 {
+		i = encodeVarintAccounts(dAtA, i, uint64(m.EndTime))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.StartTime != 0 {
+		i = encodeVarintAccounts(dAtA, i, uint64(m.StartTime))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.OriginalVesting) > 0 {
+		for iNdEx := len(m.OriginalVesting) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.OriginalVesting[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAccounts(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EthOwnedMultiContinuousVestingAccount) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EthOwnedMultiContinuousVestingAccount) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EthOwnedMultiContinuousVestingAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AccountOwner) > 0 {
+		i -= len(m.AccountOwner)
+		copy(dAtA[i:], m.AccountOwner)
+		i = encodeVarintAccounts(dAtA, i, uint64(len(m.AccountOwner)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Infos) > 0 {
+		for iNdEx := len(m.Infos) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Infos[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAccounts(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.BaseAccount != nil {
+		{
+			size, err := m.BaseAccount.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccounts(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintAccounts(dAtA []byte, offset int, v uint64) int {
 	offset -= sovAccounts(v)
 	base := offset
@@ -263,6 +492,50 @@ func (m *EthOwnedContinuousVestingAccount) Size() (n int) {
 	if m.ContinuousVestingAccount != nil {
 		l = m.ContinuousVestingAccount.Size()
 		n += 1 + l + sovAccounts(uint64(l))
+	}
+	l = len(m.AccountOwner)
+	if l > 0 {
+		n += 1 + l + sovAccounts(uint64(l))
+	}
+	return n
+}
+
+func (m *VestingInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.OriginalVesting) > 0 {
+		for _, e := range m.OriginalVesting {
+			l = e.Size()
+			n += 1 + l + sovAccounts(uint64(l))
+		}
+	}
+	if m.StartTime != 0 {
+		n += 1 + sovAccounts(uint64(m.StartTime))
+	}
+	if m.EndTime != 0 {
+		n += 1 + sovAccounts(uint64(m.EndTime))
+	}
+	return n
+}
+
+func (m *EthOwnedMultiContinuousVestingAccount) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.BaseAccount != nil {
+		l = m.BaseAccount.Size()
+		n += 1 + l + sovAccounts(uint64(l))
+	}
+	if len(m.Infos) > 0 {
+		for _, e := range m.Infos {
+			l = e.Size()
+			n += 1 + l + sovAccounts(uint64(l))
+		}
 	}
 	l = len(m.AccountOwner)
 	if l > 0 {
@@ -461,6 +734,280 @@ func (m *EthOwnedContinuousVestingAccount) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountOwner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccounts
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AccountOwner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAccounts(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VestingInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAccounts
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VestingInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VestingInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OriginalVesting", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccounts
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OriginalVesting = append(m.OriginalVesting, types2.Coin{})
+			if err := m.OriginalVesting[len(m.OriginalVesting)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartTime", wireType)
+			}
+			m.StartTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccounts
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartTime |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EndTime", wireType)
+			}
+			m.EndTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccounts
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.EndTime |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAccounts(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EthOwnedMultiContinuousVestingAccount) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAccounts
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EthOwnedMultiContinuousVestingAccount: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EthOwnedMultiContinuousVestingAccount: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BaseAccount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccounts
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.BaseAccount == nil {
+				m.BaseAccount = &types.BaseAccount{}
+			}
+			if err := m.BaseAccount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Infos", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccounts
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAccounts
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Infos = append(m.Infos, &VestingInfo{})
+			if err := m.Infos[len(m.Infos)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AccountOwner", wireType)
 			}

@@ -12,10 +12,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
+
+	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
+	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/utils"
 )
 
 // EthRpcClient extends the EthWrappedClient with RPC calls.
@@ -29,7 +30,8 @@ type EthRpcClient struct {
 	contractABI abi.ABI
 
 	// seqBridgeDenom is the denom used when encoding AuthorizeTx messages.
-	// For example, if we observe a DelegateEvent with amount 100, this is translated to a MsgDelegate of 100seqBridgeDenom.
+	// For example, if we observe a DelegateEvent with amount 100,
+	// this is translated to a MsgDelegate of 100seqBridgeDenom.
 	seqBridgeDenom string
 
 	// logsQueryLimiter limits how many queries for logs we can perform in a time interval.

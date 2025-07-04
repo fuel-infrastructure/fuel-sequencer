@@ -6,6 +6,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )

@@ -17,12 +17,13 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.

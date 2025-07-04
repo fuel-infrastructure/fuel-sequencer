@@ -8,10 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/require"
+
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidRawTxBytesFromAnyMsgs_CorrectEncoding(t *testing.T) {
