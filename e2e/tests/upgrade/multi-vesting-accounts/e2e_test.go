@@ -20,8 +20,8 @@ const (
 	haltHeightDelta    = uint64(25) // will propose upgrade this many blocks in the future; must be > voting period
 	blocksAfterUpgrade = uint64(10) // will wait for this many blocks after the upgrade
 	upgradeName        = multi_vesting_accounts.UpgradeName
-	fromImageVersion   = "67fac46" // seq-testnet-2.2
-	toImageVersion     = "c0032e4" // sequencer with multi-vesting accounts upgrade (test:2.3.0-rc.1, main:1.4.0-rc.1)
+	fromImageVersion   = "e482e00" // seq-testnet-2.2
+	toImageVersion     = "da6a4b9" // sequencer with multi-vesting accounts upgrade (test:2.3.0-rc.2)
 )
 
 type UpgradesTestSuite struct {
