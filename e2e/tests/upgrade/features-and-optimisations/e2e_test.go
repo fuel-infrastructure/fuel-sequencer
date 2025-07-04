@@ -12,11 +12,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
-	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
 )
 
 const (

@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
+
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )

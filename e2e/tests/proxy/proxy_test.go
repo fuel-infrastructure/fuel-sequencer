@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
 type ProxyTestSuite struct {

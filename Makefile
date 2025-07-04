@@ -341,19 +341,36 @@ keys:
 ###                                   CI                                    ###
 ###############################################################################
 
-ci: proto-routine lint test-unit gosec
+ci: proto-routine mocks format lint test-unit gosec
 
+# Multiple go.mod files can confuse gosec; first run for sequencer, then for its e2e
 gosec:
-	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
-
+	@echo "🔎 Running gosec for sequencer..."
+	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=e2e -severity=high ./...
+	@echo "🔎 Running gosec for e2e..."
+	@cd e2e && go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=fuel-rollup -severity=high ./... && cd ..
+	@echo "✅ Finished running gosec!"
 lint:
 	@echo "🔎 Running linter..."
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
 	@echo "✅ Finished running linter!"
+
+# Extract and convert excluded paths from .golangci.yml to find-compatible patterns
+# 1. Extract lines with 'path:' that end in '$'
+# 2. Remove 'path:' and whitespace
+# 3. Remove regex end marker '$'
+# 4. Convert '.ext.go$' pattern to '-not -name "*.ext.go"'
+EXCLUDED_PATTERNS := $(shell awk '/path:.*\.go\$$/ { \
+		gsub(/.*path: /, ""); \
+		gsub(/\$$/, ""); \
+		gsub(/\\\./, "."); \
+		printf "-not -name \"*%s\" ", $$0 \
+	}' .golangci.yml)
 
 format:
 	@echo "🔎 Running formatter..."
-	@gofmt -s -w .
+	@find . -type f -name "*.go" $(EXCLUDED_PATTERNS) \
+		| xargs goimports -w -local $(shell go list -m)
 	@echo "✅ Finished running formatter!"
 
 ###############################################################################

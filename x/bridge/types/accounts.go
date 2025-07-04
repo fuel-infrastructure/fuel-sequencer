@@ -247,7 +247,9 @@ func (a *EthOwnedContinuousVestingAccount) TrackUndelegation(amount sdk.Coins) {
 // AddVestingCoins adds new vesting coins to an existing vesting schedule or a new one, depending on whether the start
 // time matches the existing vesting schedule. If the schedule does not match up, the account is converted to
 // an EthOwnedMultiContinuousVestingAccount with the existing vesting schedule alongside a new vesting schedule.
-func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
+func (a *EthOwnedContinuousVestingAccount) AddVestingCoins(
+	coins sdk.Coins, startTime, endTime time.Time,
+) (EthOwnedAccountI, error) {
 
 	if a.StartTime == startTime.Unix() {
 		a.OriginalVesting = a.OriginalVesting.Add(coins...)
@@ -492,7 +494,9 @@ func (a *EthOwnedMultiContinuousVestingAccount) GetDelegatedVesting() sdk.Coins 
 // schedule with the same start time exists. If no schedule with the same start time exists, a new vesting
 // schedule is created. This prevents DoS attacks by limiting the number of unique vesting schedules per account
 // to at most one per unique start date, regardless of end dates.
-func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(coins sdk.Coins, startTime, endTime time.Time) (EthOwnedAccountI, error) {
+func (a *EthOwnedMultiContinuousVestingAccount) AddVestingCoins(
+	coins sdk.Coins, startTime, endTime time.Time,
+) (EthOwnedAccountI, error) {
 
 	startTimeUnix := startTime.Unix()
 

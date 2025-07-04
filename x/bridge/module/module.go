@@ -18,8 +18,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 
 	// this line is used by starport scaffolding # 1
 
@@ -127,7 +128,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-// RegisterInvariants registers the invariants of the module. If an invariant deviates from its predicted value, the InvariantRegistry triggers appropriate logic (most often the chain will be halted)
+// RegisterInvariants registers the invariants of the module.
+// If an invariant deviates from its predicted value, the InvariantRegistry triggers appropriate logic
+// (most often the chain will be halted)
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // InitGenesis performs the module's genesis initialization. It returns no validator updates.

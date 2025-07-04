@@ -8,17 +8,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // ensure bech32 configs are set
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestEthOwnedMultiContinuousVestingAccountSetSequenceErrors(t *testing.T) {
 	acc := types.NewEthOwnedMultiContinuousVestingAccount(nil, nil, "")
-	require.ErrorContains(t, acc.SetSequence(1), "cannot set sequence number for eth owned multi continuous vesting account")
-	require.ErrorContains(t, acc.SetSequence(2), "cannot set sequence number for eth owned multi continuous vesting account")
+	require.ErrorContains(t, acc.SetSequence(1),
+		"cannot set sequence number for eth owned multi continuous vesting account")
+	require.ErrorContains(t, acc.SetSequence(2),
+		"cannot set sequence number for eth owned multi continuous vesting account")
 }
 
 func TestEthOwnedMultiContinuousVestingAccountSetPubkeyErrors(t *testing.T) {
@@ -126,7 +129,8 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 			expPanic:             false,
 		},
 		{
-			name:      "half way through vesting with some tokens already delegated; cannot delegate half original vesting; panic",
+			name: "half way through vesting with some tokens already delegated; " +
+				"cannot delegate half original vesting; panic",
 			blockTime: t0Plus6Months,
 			vestingInfos: []*types.VestingInfo{
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
@@ -283,7 +287,8 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 			expPanicSpendable:    vesting1Quarter, // quarter are vested
 		},
 		{
-			name:      "half way through vesting with some tokens already delegated; can delegate less than a quarter; successful",
+			name: "half way through vesting with some tokens already delegated; " +
+				"can delegate less than a quarter; successful",
 			blockTime: t0Plus6Months,
 			vestingInfos: []*types.VestingInfo{
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
@@ -297,7 +302,8 @@ func TestEthOwnedMultiContinuousVestingAccount_TrackDelegationAndTrackUndelegati
 			expPanic:              false,
 		},
 		{
-			name:      "half way through vesting with some tokens already delegated; cannot delegate quarter original vesting; panic",
+			name: "half way through vesting with some tokens already delegated; " +
+				"cannot delegate quarter original vesting; panic",
 			blockTime: t0Plus6Months,
 			vestingInfos: []*types.VestingInfo{
 				types.NewVestingInfo(halfVesting, t0.Unix(), t1.Unix()),
@@ -487,7 +493,9 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
-					types.NewVestingInfo(coinsAlreadyThere.Add(coinsToAdd...), t0.Unix(), t1.Unix()), // accumulated to first schedule
+					types.NewVestingInfo(
+						coinsAlreadyThere.Add(coinsToAdd...), t0.Unix(), t1.Unix(),
+					), // accumulated to first schedule
 					types.NewVestingInfo(coinsAlreadyThere, t1.Unix(), t2.Unix()),
 				},
 				owner,
@@ -507,7 +515,9 @@ func TestEthOwnedMultiContinuousVestingAccount_AddVestingCoins(t *testing.T) {
 			isAccountAsExpected: testutil.MatchesEthOwnedMultiContinuousVestingAccRaw(
 				seqAddr1BaseAcc,
 				[]*types.VestingInfo{
-					types.NewVestingInfo(coinsAlreadyThere.Add(coinsToAdd...), t0.Unix(), t1.Unix()), // accumulated to existing schedule
+					types.NewVestingInfo(
+						coinsAlreadyThere.Add(coinsToAdd...), t0.Unix(), t1.Unix(),
+					), // accumulated to existing schedule
 				},
 				owner,
 			),

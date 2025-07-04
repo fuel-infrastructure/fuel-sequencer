@@ -9,11 +9,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/fuel-infrastructure/fuel-sequencer/app/apptesting" // ensure bech32 configs are set
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestEthOwnedContinuousVestingAccountSetSequenceErrors(t *testing.T) {
@@ -101,7 +102,8 @@ func TestEthOwnedContinuousVestingAccount_TrackDelegationAndTrackUndelegation(t 
 			expPanicSpendable:    halfVesting, // half are vested
 		},
 		{
-			name:                  "half way through vesting with some tokens already delegated; can delegate less than half; successful",
+			name: ("half way through vesting with some tokens already delegated; " +
+				"can delegate less than half; successful"),
 			blockTime:             t0Plus6Months,
 			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens
@@ -111,7 +113,8 @@ func TestEthOwnedContinuousVestingAccount_TrackDelegationAndTrackUndelegation(t 
 			expPanic:              false,
 		},
 		{
-			name:                  "half way through vesting with some tokens already delegated; cannot delegate half original vesting; panic",
+			name: ("half way through vesting with some tokens already delegated; " +
+				"cannot delegate half original vesting; panic"),
 			blockTime:             t0Plus6Months,
 			delegatedFreeBefore:   tenTokens,                         // 10 tokens were delegated before
 			balanceAtDelegation:   originalVesting.Sub(tenTokens...), // balance is missing 10 tokens

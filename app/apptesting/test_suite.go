@@ -101,7 +101,8 @@ func (s *KeeperTestHelper) EndBlock() (sdk.EndBlock, error) {
 	return s.App.EndBlocker(s.Ctx())
 }
 
-// AllocateRewardsToValidator allocates reward tokens to a distribution module then allocates rewards to the validator address.
+// AllocateRewardsToValidator allocates reward tokens to a distribution module
+// then allocates rewards to the validator address.
 func (s *KeeperTestHelper) AllocateRewardsToValidator(valAddr sdk.ValAddress, rewardAmt math.Int) {
 	validator, err := s.App.StakingKeeper.GetValidator(s.Ctx(), valAddr)
 	s.Require().NoError(err)

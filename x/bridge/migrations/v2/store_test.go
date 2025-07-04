@@ -3,10 +3,11 @@ package v2_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	v2 "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/migrations/v2"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types/legacy"
-	"github.com/stretchr/testify/require"
 
 	storetypes "cosmossdk.io/store/types"
 

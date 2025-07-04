@@ -34,9 +34,7 @@ Metrics:
 
 Testing and docs:
 
-- [ ] `make proto-routine` for formatting and APIs.
-- [ ] `make lint` to ensure linting rules satisfied.
-- [ ] `make mocks test-unit` to ensure tests pass with updated mocks.
+- [ ] `make ci` for protos and APIs, mocks, formatting, linting, security checks, etc.
 - [ ] Run E2E tests:
    1. Ensure `.npmrc` file is set up in `e2e/fuel-rollup/` with `//registry.npmjs.org/:_authToken=<NPM_TOKEN>`. `<NPM_TOKEN>` is an access token to be obtained from your NPM account.
    2. `make build-all-docker-images test-e2e`

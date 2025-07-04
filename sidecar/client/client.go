@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"google.golang.org/grpc"
+
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
-	"google.golang.org/grpc"
 )
 
 var _ AppSidecarClient = (*GRPCClient)(nil)

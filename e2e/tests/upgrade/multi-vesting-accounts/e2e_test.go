@@ -8,11 +8,12 @@ import (
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/multi_vesting_accounts"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
 )
 
 const (
