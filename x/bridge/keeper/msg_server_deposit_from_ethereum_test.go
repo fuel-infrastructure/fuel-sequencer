@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -239,7 +240,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			// Confirm that the balances were changed as specified. This indicates that the AuthorizedEvents were
 			// executed successfully
 			if tc.fromAcc != nil {
-				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), *tc.fromAcc, "ufuel")
+				actualFromBalance := s.App.BankKeeper.GetBalance(s.Ctx(), *tc.fromAcc, types.DefaultBridgeDenom)
 				s.Require().Equal(tc.expFromBalance, actualFromBalance.Amount)
 
 				// Verify if the account is ETH owned
@@ -248,7 +249,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 				s.Require().Equal(tc.isFromEthOwned, ok)
 			}
 			if tc.toAcc != nil {
-				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), *tc.toAcc, "ufuel")
+				actualToBalance := s.App.BankKeeper.GetBalance(s.Ctx(), *tc.toAcc, types.DefaultBridgeDenom)
 				s.Require().Equal(tc.expToBalance, actualToBalance.Amount)
 
 				// Verify if the account is ETH owned
@@ -264,7 +265,7 @@ func (s *KeeperTestSuite) TestDepositFromEthereum() {
 			}
 
 			// Verify the governance address balance is as expected
-			actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, "ufuel")
+			actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, types.DefaultBridgeDenom)
 			s.Require().Equal(tc.expGovBal, actualGovBal.Amount)
 		})
 	}
@@ -290,6 +291,6 @@ func (s *KeeperTestSuite) TestDepositFromEthereum_AmountParseFailure() {
 	s.Require().EqualValues(allBalancesBefore, allBalancesAfter)
 
 	// Verify the governance address balance is still zero
-	actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, "ufuel")
+	actualGovBal := s.App.BankKeeper.GetBalance(s.Ctx(), govAddr, types.DefaultBridgeDenom)
 	s.Require().True(actualGovBal.Amount.IsZero())
 }

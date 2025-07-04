@@ -15,7 +15,7 @@ type AccountKeeper interface {
 	AddressCodec() address.Codec
 
 	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
-	GetModuleAddress(name string) sdk.AccAddress
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 	NewAccount(context.Context, sdk.AccountI) sdk.AccountI
 	SetAccount(context.Context, sdk.AccountI)
 
@@ -27,9 +27,13 @@ type AccountKeeper interface {
 type BankKeeper interface {
 	SpendableCoins(context.Context, sdk.AccAddress) sdk.Coins
 	GetSupply(ctx context.Context, denom string) sdk.Coin
-	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(
+		ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins,
+	) error
 	SendCoinsFromModuleToModule(ctx context.Context, senderModule, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(
+		ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins,
+	) error
 	MintCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
 	BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins

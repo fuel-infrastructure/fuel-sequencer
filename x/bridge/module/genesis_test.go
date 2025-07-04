@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/golang/mock/gomock"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
@@ -29,7 +32,15 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	k, ctx := keepertest.BridgeKeeper(t)
+	k, ctx, _, mockAccountKeeper, _ := keepertest.BridgeKeeperWithDependencies(t)
+
+	// Set up mock expectations
+	mockModuleAccount := authtypes.NewEmptyModuleAccount(types.ModuleName)
+	mockAccountKeeper.EXPECT().
+		GetModuleAccount(gomock.Any(), types.ModuleName).
+		Return(mockModuleAccount).
+		Times(1)
+
 	bridge.InitGenesis(ctx, k, genesisState)
 	got := bridge.ExportGenesis(ctx, k)
 	require.NotNil(t, got)

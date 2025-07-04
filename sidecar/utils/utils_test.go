@@ -6,6 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -14,13 +18,11 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
+
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil/fixtures"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
@@ -178,7 +180,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: nil,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
+				err := msgGrant.SetAuthorization(
+					authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"),
+				)
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}
@@ -202,7 +206,9 @@ func TestExtractLogDataToEvent_AuthorizeTxFromEvent(t *testing.T) {
 						Expiration: &expiration,
 					},
 				}
-				err := msgGrant.SetAuthorization(authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"))
+				err := msgGrant.SetAuthorization(
+					authz.NewGenericAuthorization("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"),
+				)
 				if err != nil {
 					t.Fatalf("error when setting authorization: %x", err)
 				}

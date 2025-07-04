@@ -8,7 +8,8 @@ import (
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
-// MockTopicIDHex generates a mock 32-byte hash for testing, represented as a hexadecimal string, based on an input number.
+// MockTopicIDHex generates a mock 32-byte hash for testing,
+// represented as a hexadecimal string, based on an input number.
 func MockTopicIDHex(num int) []byte {
 	// Convert the input number to a hexadecimal string, ensuring it's 64 characters long for a 32-byte hash.
 	hexStr := hex.EncodeToString([]byte{byte(num)})

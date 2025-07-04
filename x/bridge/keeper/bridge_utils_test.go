@@ -32,7 +32,10 @@ func (s *KeeperTestSuite) TestBurnCoinsFromAddress() {
 		{
 			"error sending coins from account to module",
 			false,
-			fmt.Sprintf("cannot send tokens from %s to bridge module: spendable balance 0fuel is smaller than 200fuel", withdrawer),
+			fmt.Sprintf(
+				"cannot send tokens from %s to bridge module: spendable balance 0fuel is smaller than 200fuel",
+				withdrawer,
+			),
 		},
 	}
 

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )

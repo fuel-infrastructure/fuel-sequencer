@@ -6,9 +6,10 @@ import (
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
 )
 
 func (k Keeper) TopicAll(

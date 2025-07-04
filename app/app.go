@@ -54,9 +54,10 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/staking" // import for side-effects
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/features_and_optimisations"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/multi_vesting_accounts"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -337,8 +338,8 @@ func NewFuelSequencerApp(
 	}
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		features_and_optimisations.UpgradeName,
-		features_and_optimisations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		multi_vesting_accounts.UpgradeName,
+		multi_vesting_accounts.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
@@ -384,15 +385,21 @@ func NewFuelSequencerApp(
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
 	// NOTE: this is not required for apps that don't use the simulator for fuzz testing transactions
-	//overrideModules := map[string]module.AppModuleSimulation{
-	//	authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
-	//}
-	//app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
-	//app.sm.RegisterStoreDecoders()
+	// overrideModules := map[string]module.AppModuleSimulation{
+	// 	authtypes.ModuleName: auth.NewAppModule(
+	// 		app.appCodec,
+	// 		app.AccountKeeper,
+	// 		authsims.RandomGenesisAccounts,
+	// 		app.GetSubspace(authtypes.ModuleName),
+	// 	),
+	// }
+	// app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
+	// app.sm.RegisterStoreDecoders()
 
 	// A custom InitChainer can be set if extra pre-init-genesis logic is required.
 	// By default, when using app wiring enabled module, this is not required.
-	// For instance, the upgrade module will set automatically the module version map in its init genesis thanks to app wiring.
+	// For instance, the upgrade module will set automatically the module version map
+	// in its init genesis thanks to app wiring.
 	// However, when registering a module manually (i.e. that does not support app wiring), the module version map
 	// must be set manually as follow. The upgrade module will de-duplicate the module version map.
 	//
@@ -479,7 +486,12 @@ func (app *FuelSequencerApp) RegisterTendermintService(clientCtx client.Context)
 	app.App.RegisterTendermintService(clientCtx)
 
 	if app.commitmentsConfig.ApiEnabled {
-		commitmentsservice.RegisterCommitmentsService(clientCtx, app.GRPCQueryRouter(), app.interfaceRegistry, app.commitmentsConfig.MaxQueryRange)
+		commitmentsservice.RegisterCommitmentsService(
+			clientCtx,
+			app.GRPCQueryRouter(),
+			app.interfaceRegistry,
+			app.commitmentsConfig.MaxQueryRange,
+		)
 	}
 }
 

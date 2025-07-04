@@ -5,10 +5,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
@@ -30,7 +31,7 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 	paramsDefaultVestingStartTime.VestingStartTime = defaultParams.VestingStartTime
 
 	nonDefaultParams := types.NewParams(
-		"ufuel",
+		types.DefaultBridgeDenom,
 		sdkmath.NewInt(10_000_000_000),
 		"0x0Ac72d9E87B39DAAa81e4F3F29Ce8c45B2bE5fA9",
 		100,

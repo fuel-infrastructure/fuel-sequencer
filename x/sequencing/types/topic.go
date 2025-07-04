@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
 )
 
