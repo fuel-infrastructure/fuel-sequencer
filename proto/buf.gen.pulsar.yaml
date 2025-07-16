@@ -28,6 +28,10 @@ managed:
       fuelsequencer/sequencing/params.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing"
       fuelsequencer/sequencing/topic.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/sequencing"
       fuelsequencer/commitments/types.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/commitments"
+      fuelsequencer/blob/genesis.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/blob"
+      fuelsequencer/blob/params.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/blob"
+      fuelsequencer/blob/query.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/blob"
+      fuelsequencer/blob/tx.proto: "github.com/fuel-infrastructure/fuel-sequencer/api/fuelsequencer/blob"
       # All protos which are imported by protos in different modules need to be added here, otherwise, they are
       # prefixed by cosmossdk.io/api. This also requires all protos in the same package to be added here to avoid
       # generating files with a different package name inside the same folder.

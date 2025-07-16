@@ -15,6 +15,7 @@ import (
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
+	blobkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/blob/keeper"
 	bridgekeeper "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -25,6 +26,7 @@ type FuelSequencerProposalHandler struct {
 	txVerifier             baseapp.ProposalTxVerifier      // a utility for transaction verification
 	sidecar                sidecarclient.AppSidecarClient  // a client to query the Sidecar service
 	bridgeKeeper           bridgekeeper.Keeper             // Bridge keeper
+	blobKeeper             blobkeeper.Keeper               // Blob keeper for blob validation
 	defaultProposalHandler *baseapp.DefaultProposalHandler // gives us access to default proposal handling behaviour
 }
 
@@ -35,6 +37,7 @@ func NewFuelSequencerProposalHandler(
 	txVerifier baseapp.ProposalTxVerifier,
 	sidecar sidecarclient.AppSidecarClient,
 	bridgeKeeper bridgekeeper.Keeper,
+	blobKeeper blobkeeper.Keeper,
 ) *FuelSequencerProposalHandler {
 	proposalHandler := &FuelSequencerProposalHandler{
 		cdc:                    cdc,
@@ -42,6 +45,7 @@ func NewFuelSequencerProposalHandler(
 		txVerifier:             txVerifier,
 		sidecar:                sidecar,
 		bridgeKeeper:           bridgeKeeper,
+		blobKeeper:             blobKeeper,
 		defaultProposalHandler: baseapp.NewDefaultProposalHandler(nil, txVerifier),
 	}
 
@@ -145,6 +149,12 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		eventTxs, err = msgIndex.TrimEventsFromHead(eventTxs, ethereumEventIndexOffset)
 		if err != nil {
 			return nil, fmt.Errorf("failed to trim event txs from head: %w", err)
+		}
+
+		// Filter blob transactions early and separate them from other transactions
+		req.Txs, err = h.filterBlobTransactions(ctx, req.Txs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to filter blob transactions: %w", err)
 		}
 
 		// Calculate the block space that should be reserved for event transactions.
@@ -422,6 +432,12 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
 				"failed to verify injected event txs: %w", err,
 			)
+		}
+
+		// Validate blob transactions
+		err = h.validateBlobTransactions(ctx, req.Txs)
+		if err != nil {
+			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf("blob validation failed: %w", err)
 		}
 
 		// Check that MsgSupplyDelta was injected correctly if expected

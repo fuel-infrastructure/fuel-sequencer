@@ -10,6 +10,4 @@ option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 message Params {
   option (amino.name) = "fuelsequencer/x/blob/Params";
   option (gogoproto.equal) = true;
-
-  
 }

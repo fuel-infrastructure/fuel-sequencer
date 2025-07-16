@@ -11,7 +11,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
 
-func setupMsgServer(t testing.TB) (keeper.Keeper, types.MsgServer, context.Context) {
+func setupMsgServer(t testing.TB) (*keeper.Keeper, types.MsgServer, context.Context) {
 	k, ctx := keepertest.BlobKeeper(t)
 	return k, keeper.NewMsgServerImpl(k), ctx
 }
