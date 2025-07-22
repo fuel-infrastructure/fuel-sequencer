@@ -9,6 +9,7 @@ Dependencies:
     - Preferred version: `1.28.1`
 - ignite-cli
     - https://github.com/ignite/cli
+    - `curl https://get.ignite.com/cli@v28.2.0! | bash`
     - Preferred version: `v28.2.0`
 - proto-builder
     - https://ghcr.io/cosmos/proto-builder
