@@ -1,10 +1,12 @@
 module github.com/fuel-infrastructure/fuel-sequencer
 
-go 1.22.11
+go 1.23.11
 
 replace (
 	// use custom cosmos-sdk with the targeted fixes
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.13-custom
+	// use custom blob-storage with the targeted fixes (branch: feature/server)
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20250721233246-2e746273e90c
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	// replace broken goleveldb
@@ -32,11 +34,13 @@ require (
 	github.com/cosmos/gogogateway v1.2.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/ethereum/go-ethereum v1.14.9
+	github.com/fuel-infrastructure/blob-storage v0.0.0-00010101000000-000000000000
 	github.com/go-kit/kit v0.13.0
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
 	github.com/golangci/golangci-lint v1.54.2
 	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/websocket v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.0
 	github.com/hashicorp/go-metrics v0.5.3
@@ -49,10 +53,10 @@ require (
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/net v0.34.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/net v0.42.0
+	golang.org/x/sync v0.16.0
 	golang.org/x/time v0.5.0
-	golang.org/x/tools v0.23.0
+	golang.org/x/tools v0.35.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241202173237-19429a94021a
 	google.golang.org/grpc v1.70.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
@@ -217,7 +221,6 @@ require (
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20230610083614-0e73809eb601 // indirect
 	github.com/gorilla/handlers v1.5.2 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.1.0 // indirect
@@ -382,13 +385,15 @@ require (
 	go.tmz.dev/musttag v0.7.2 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
-	golang.org/x/mod v0.19.0 // indirect
+	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/term v0.33.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
+	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
