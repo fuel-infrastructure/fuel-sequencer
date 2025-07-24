@@ -352,7 +352,7 @@ gosec:
 	@echo "✅ Finished running gosec!"
 lint:
 	@echo "🔎 Running linter..."
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
+	@golangci-lint run --timeout=10m --fix
 	@echo "✅ Finished running linter!"
 
 # Extract and convert excluded paths from .golangci.yml to find-compatible patterns

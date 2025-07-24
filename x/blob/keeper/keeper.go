@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	"cosmossdk.io/core/store"
@@ -20,6 +21,9 @@ type (
 		// the address capable of executing a MsgUpdateParams message. Typically, this
 		// should be the x/gov module account.
 		authority string
+
+		blobpool *blobpool      // node storage for unconfirmed blob transactions
+		blobhub  *blobhubClient // client for syncing with blobhub
 	}
 )
 
@@ -34,11 +38,21 @@ func NewKeeper(
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
 
+	blobpool := newBlobpool(logger)
+
+	blobhubClient, err := newBlobhubClient(context.Background(), logger, blobpool)
+	if err != nil {
+		panic(err)
+	}
+
 	return Keeper{
 		cdc:          cdc,
 		storeService: storeService,
 		authority:    authority,
 		logger:       logger,
+
+		blobpool: blobpool,
+		blobhub:  blobhubClient,
 	}
 }
 
