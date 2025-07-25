@@ -14,17 +14,17 @@ import (
 type blobpool struct {
 	logger log.Logger
 
-	blobs sync.Map // hash -> blob data without metadata
-	// metadata sync.Map // hash -> metadata without blob data
+	blobs    sync.Map // hash -> blob data without metadata
+	metadata sync.Map // hash -> metadata without blob data
 	// complete sync.Map // hash -> blobs ready to be processed
 }
 
 // newBlobpool creates a new blob pool
 func newBlobpool(logger log.Logger) *blobpool {
 	p := &blobpool{
-		logger: logger.With("module", "blobpool"),
-		blobs:  sync.Map{},
-		// metadata: sync.Map{},
+		logger:   logger.With("module", "blobpool"),
+		blobs:    sync.Map{},
+		metadata: sync.Map{},
 		// complete: sync.Map{},
 	}
 
@@ -40,7 +40,7 @@ func (p *blobpool) hasBlob(hash store.Key) bool {
 }
 
 // getBlob retrieves a blob from the pool
-func (p *blobpool) getBlob(hash store.Key) ([]byte, error) {
+func (p *blobpool) getBlob(hash store.Key) (*store.StoredBlob, error) {
 	aBlob, exists := p.blobs.Load(hash)
 	if !exists {
 		p.logger.Debug("blob not found", "hash", hash.String())
@@ -53,7 +53,7 @@ func (p *blobpool) getBlob(hash store.Key) ([]byte, error) {
 		return nil, types.ErrBlobNotFound
 	}
 	p.logger.Debug("retrieved blob", "hash", hash.String(), "size", len(blob.Data))
-	return blob.Data, nil
+	return blob, nil
 }
 
 // storeBlob stores a blob in the pool
@@ -67,3 +67,8 @@ func (p *blobpool) storeBlob(blob *store.StoredBlob) {
 }
 
 // TODO: Repeat Has, Get, Store for metadata
+
+func (p *blobpool) storeMetadata(msg *types.MsgBlobMetadataTx) {
+	hash := store.Key(msg.Hash)
+	p.metadata.Store(hash, msg)
+}
