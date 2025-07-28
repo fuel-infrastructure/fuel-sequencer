@@ -46,7 +46,7 @@ BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
 GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
-REQUIRE_GO_VERSION = 1.22.11
+REQUIRE_GO_VERSION = $(shell grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' go.mod | cut -d' ' -f2)
 
 export GO111MODULE = on
 
