@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
 
@@ -54,9 +55,6 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 	// 	panic("not implemented yet - blob metadata should be stored in blobpool")
 	// 	return errors.Wrap(types.ErrBlobNotFound, "blob data source available")
 	// }
-
-	// Store metadata persistently
-	k.blobpool.storeMetadata(msg)
 
 	return nil
 }

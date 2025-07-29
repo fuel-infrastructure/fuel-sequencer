@@ -14,18 +14,14 @@ import (
 type blobpool struct {
 	logger log.Logger
 
-	blobs    sync.Map // hash -> blob data without metadata
-	metadata sync.Map // hash -> metadata without blob data
-	// complete sync.Map // hash -> blobs ready to be processed
+	blobs sync.Map // hash -> blob data
 }
 
 // newBlobpool creates a new blob pool
 func newBlobpool(logger log.Logger) *blobpool {
 	p := &blobpool{
-		logger:   logger.With("module", "blobpool"),
-		blobs:    sync.Map{},
-		metadata: sync.Map{},
-		// complete: sync.Map{},
+		logger: logger.With("module", "blobpool"),
+		blobs:  sync.Map{},
 	}
 
 	p.logger.Info("initialized new blobpool")
@@ -64,11 +60,4 @@ func (p *blobpool) storeBlob(blob *store.StoredBlob) {
 	}
 	p.blobs.Store(blob.Key, blob)
 	p.logger.Debug("stored blob", "hash", blob.Key.String(), "size", len(blob.Data))
-}
-
-// TODO: Repeat Has, Get, Store for metadata
-
-func (p *blobpool) storeMetadata(msg *types.MsgBlobMetadataTx) {
-	hash := store.Key(msg.Hash)
-	p.metadata.Store(hash, msg)
 }
