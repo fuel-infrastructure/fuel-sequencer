@@ -964,8 +964,8 @@ func (x *fastReflection_MsgBlobMetadataTx) Range(f func(protoreflect.FieldDescri
 			return
 		}
 	}
-	if len(x.Hash) != 0 {
-		value := protoreflect.ValueOfBytes(x.Hash)
+	if x.Hash != "" {
+		value := protoreflect.ValueOfString(x.Hash)
 		if !f(fd_MsgBlobMetadataTx_hash, value) {
 			return
 		}
@@ -1012,7 +1012,7 @@ func (x *fastReflection_MsgBlobMetadataTx) Has(fd protoreflect.FieldDescriptor) 
 	case "fuelsequencer.blob.MsgBlobMetadataTx.sender":
 		return x.Sender != ""
 	case "fuelsequencer.blob.MsgBlobMetadataTx.hash":
-		return len(x.Hash) != 0
+		return x.Hash != ""
 	case "fuelsequencer.blob.MsgBlobMetadataTx.size":
 		return x.Size != uint64(0)
 	case "fuelsequencer.blob.MsgBlobMetadataTx.topic":
@@ -1040,7 +1040,7 @@ func (x *fastReflection_MsgBlobMetadataTx) Clear(fd protoreflect.FieldDescriptor
 	case "fuelsequencer.blob.MsgBlobMetadataTx.sender":
 		x.Sender = ""
 	case "fuelsequencer.blob.MsgBlobMetadataTx.hash":
-		x.Hash = nil
+		x.Hash = ""
 	case "fuelsequencer.blob.MsgBlobMetadataTx.size":
 		x.Size = uint64(0)
 	case "fuelsequencer.blob.MsgBlobMetadataTx.topic":
@@ -1070,7 +1070,7 @@ func (x *fastReflection_MsgBlobMetadataTx) Get(descriptor protoreflect.FieldDesc
 		return protoreflect.ValueOfString(value)
 	case "fuelsequencer.blob.MsgBlobMetadataTx.hash":
 		value := x.Hash
-		return protoreflect.ValueOfBytes(value)
+		return protoreflect.ValueOfString(value)
 	case "fuelsequencer.blob.MsgBlobMetadataTx.size":
 		value := x.Size
 		return protoreflect.ValueOfUint64(value)
@@ -1106,7 +1106,7 @@ func (x *fastReflection_MsgBlobMetadataTx) Set(fd protoreflect.FieldDescriptor, 
 	case "fuelsequencer.blob.MsgBlobMetadataTx.sender":
 		x.Sender = value.Interface().(string)
 	case "fuelsequencer.blob.MsgBlobMetadataTx.hash":
-		x.Hash = value.Bytes()
+		x.Hash = value.Interface().(string)
 	case "fuelsequencer.blob.MsgBlobMetadataTx.size":
 		x.Size = value.Uint()
 	case "fuelsequencer.blob.MsgBlobMetadataTx.topic":
@@ -1166,7 +1166,7 @@ func (x *fastReflection_MsgBlobMetadataTx) NewField(fd protoreflect.FieldDescrip
 	case "fuelsequencer.blob.MsgBlobMetadataTx.sender":
 		return protoreflect.ValueOfString("")
 	case "fuelsequencer.blob.MsgBlobMetadataTx.hash":
-		return protoreflect.ValueOfBytes(nil)
+		return protoreflect.ValueOfString("")
 	case "fuelsequencer.blob.MsgBlobMetadataTx.size":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "fuelsequencer.blob.MsgBlobMetadataTx.topic":
@@ -1426,7 +1426,7 @@ func (x *fastReflection_MsgBlobMetadataTx) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Hash", wireType)
 				}
-				var byteLen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -1436,25 +1436,23 @@ func (x *fastReflection_MsgBlobMetadataTx) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					byteLen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if byteLen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + byteLen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Hash = append(x.Hash[:0], dAtA[iNdEx:postIndex]...)
-				if x.Hash == nil {
-					x.Hash = []byte{}
-				}
+				x.Hash = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			case 3:
 				if wireType != 0 {
@@ -2050,7 +2048,7 @@ type MsgBlobMetadataTx struct {
 	unknownFields protoimpl.UnknownFields
 
 	Sender    string                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Hash      []byte                 `protobuf:"bytes,2,opt,name=hash,proto3" json:"hash,omitempty"`
+	Hash      string                 `protobuf:"bytes,2,opt,name=hash,proto3" json:"hash,omitempty"`
 	Size      uint64                 `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
 	Topic     string                 `protobuf:"bytes,4,opt,name=topic,proto3" json:"topic,omitempty"`
 	Nonce     uint64                 `protobuf:"varint,5,opt,name=nonce,proto3" json:"nonce,omitempty"`
@@ -2084,11 +2082,11 @@ func (x *MsgBlobMetadataTx) GetSender() string {
 	return ""
 }
 
-func (x *MsgBlobMetadataTx) GetHash() []byte {
+func (x *MsgBlobMetadataTx) GetHash() string {
 	if x != nil {
 		return x.Hash
 	}
-	return nil
+	return ""
 }
 
 func (x *MsgBlobMetadataTx) GetSize() uint64 {
@@ -2179,7 +2177,7 @@ var file_fuelsequencer_blob_tx_proto_rawDesc = []byte{
 	0xd0, 0x01, 0x0a, 0x11, 0x4d, 0x73, 0x67, 0x42, 0x6c, 0x6f, 0x62, 0x4d, 0x65, 0x74, 0x61, 0x64,
 	0x61, 0x74, 0x61, 0x54, 0x78, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x12, 0x12, 0x0a,
-	0x04, 0x68, 0x61, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x68, 0x61, 0x73,
+	0x04, 0x68, 0x61, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x61, 0x73,
 	0x68, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52,
 	0x04, 0x73, 0x69, 0x7a, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x04,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x12, 0x14, 0x0a, 0x05, 0x6e,

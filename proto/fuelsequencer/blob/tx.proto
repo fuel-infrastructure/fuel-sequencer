@@ -47,7 +47,7 @@ message MsgBlobMetadataTx {
   option (cosmos.msg.v1.signer) = "sender";
 
   string sender = 1;
-  bytes hash = 2;
+  string hash = 2;
   uint64 size = 3;
   string topic = 4;
   uint64 nonce = 5;

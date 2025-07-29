@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,11 +21,10 @@ func (k msgServer) PostBlobMetadata(goCtx context.Context, msg *types.MsgBlobMet
 	}
 
 	// Emit events
-	hashStr := hex.EncodeToString(msg.Hash)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeBlobMetadataReceived,
-			sdk.NewAttribute(types.AttributeKeyBlobHash, hashStr),
+			sdk.NewAttribute(types.AttributeKeyBlobHash, msg.Hash),
 			sdk.NewAttribute(types.AttributeKeyBlobSize, fmt.Sprintf("%d", msg.GetSize_())),
 			sdk.NewAttribute(types.AttributeKeyTopic, msg.Topic),
 			sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprintf("%d", msg.Nonce)),
@@ -41,8 +39,8 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 	// Verify blob data is available (either in blobpool or blobhub)
 	// var blob *store.StoredBlob
 
-	// First check the blobpool
-	hash := store.Key(msg.Hash)
+	// First check the blobpool - ValidateBasic handled the error, can skip the check
+	hash, _ := store.ParseKey(msg.Hash)
 	if k.blobpool.hasBlob(hash) {
 		// blob, err = k.blobpool.getBlob(hash)
 		// if err != nil {
