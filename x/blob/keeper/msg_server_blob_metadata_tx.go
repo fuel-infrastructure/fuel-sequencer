@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
@@ -54,5 +55,7 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 	// 	return errors.Wrap(types.ErrBlobNotFound, "blob data source available")
 	// }
 
-	return nil
+	err := errors.Wrap(types.ErrBlobNotFound, "node has not retrieved the respective blob yet; make sure blob was submitted in the first place; hash: "+msg.Hash)
+	ctx.Logger().Error(err.Error())
+	return err
 }
