@@ -26,7 +26,7 @@ func TestBlobpool_HasBlob(t *testing.T) {
 
 	// Test non-existent blob
 	key := store.Key{0x1, 0x2, 0x3}
-	assert.False(t, pool.hasBlob(key))
+	assert.False(t, pool.Has(key))
 
 	// Test existing blob
 	blob := &store.StoredBlob{
@@ -35,8 +35,8 @@ func TestBlobpool_HasBlob(t *testing.T) {
 		},
 		Data: []byte("test data"),
 	}
-	pool.storeBlob(blob)
-	assert.True(t, pool.hasBlob(key))
+	pool.Insert(blob)
+	assert.True(t, pool.Has(key))
 }
 
 func TestBlobpool_GetBlob(t *testing.T) {
@@ -45,7 +45,7 @@ func TestBlobpool_GetBlob(t *testing.T) {
 
 	// Test getting non-existent blob
 	key := store.Key{0x1, 0x2, 0x3}
-	data, err := pool.getBlob(key)
+	data, err := pool.Get(key)
 	assert.Error(t, err)
 	assert.Nil(t, data)
 
@@ -57,9 +57,9 @@ func TestBlobpool_GetBlob(t *testing.T) {
 		},
 		Data: testData,
 	}
-	pool.storeBlob(blob)
+	pool.Insert(blob)
 
-	data, err = pool.getBlob(key)
+	data, err = pool.Get(key)
 	require.NoError(t, err)
 	assert.Equal(t, testData, data)
 }
@@ -78,10 +78,10 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 	}
 
 	// Store blob
-	pool.storeBlob(blob)
+	pool.Insert(blob)
 
 	// Verify blob was stored correctly
-	storedData, err := pool.getBlob(key)
+	storedData, err := pool.Get(key)
 	require.NoError(t, err)
 	assert.Equal(t, testData, storedData)
 
@@ -93,10 +93,10 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 		},
 		Data: newData,
 	}
-	pool.storeBlob(newBlob)
+	pool.Insert(newBlob)
 
 	// Verify blob was overwritten
-	storedData, err = pool.getBlob(key)
+	storedData, err = pool.Get(key)
 	require.NoError(t, err)
 	assert.Equal(t, newData, storedData)
 }

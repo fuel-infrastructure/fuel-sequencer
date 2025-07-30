@@ -127,8 +127,8 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob was stored in pool
-	assert.True(t, pool.hasBlob(testKey))
-	storedData, err := pool.getBlob(testKey)
+	assert.True(t, pool.Has(testKey))
+	storedData, err := pool.Get(testKey)
 	require.NoError(t, err)
 	assert.Equal(t, testData, storedData)
 
@@ -137,7 +137,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob is still stored correctly
-	storedData, err = pool.getBlob(testKey)
+	storedData, err = pool.Get(testKey)
 	require.NoError(t, err)
 	assert.Equal(t, testData, storedData)
 
