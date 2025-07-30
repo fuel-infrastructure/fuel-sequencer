@@ -5,6 +5,7 @@ import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "fuelsequencer/blob/params.proto";
 
 option go_package = "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types";
@@ -16,6 +17,9 @@ service Msg {
   // UpdateParams defines a (governance) operation for updating the module
   // parameters. The authority defaults to the x/gov module account.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // PostBlobMetadata posts metadata for a blob
+  rpc PostBlobMetadata(MsgBlobMetadataTx) returns (MsgBlobMetadataTxResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -37,3 +41,19 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
+
+// MsgBlobMetadataTx represents a transaction that posts blob metadata
+message MsgBlobMetadataTx {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  string sender = 1;
+  string hash = 2;
+  uint64 size = 3;
+  string topic = 4;
+  uint64 nonce = 5;
+  google.protobuf.Timestamp timestamp = 6
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+}
+
+// MsgBlobMetadataTxResponse defines the Msg/BlobMetadataTx response type.
+message MsgBlobMetadataTxResponse {}
