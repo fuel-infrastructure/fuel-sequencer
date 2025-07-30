@@ -2,10 +2,7 @@ version: "2"
 linters:
   enable:
     - lll
-    - gofmt
-    - goimports
     - govet
-    - gosimple
     - staticcheck
     - ineffassign
     - unused
