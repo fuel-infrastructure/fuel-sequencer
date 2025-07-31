@@ -110,36 +110,37 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	require.NotNil(t, client)
 
 	// Test receiving a blob
-	testKey := store.Key{0x1, 0x2, 0x3}
-	testData := []byte("test data")
-	testBlob := store.StoredBlob{
+	data := []byte("test data")
+	key := store.NewKey(data)
+	blob := store.StoredBlob{
 		Receipt: store.Receipt{
-			Key:      testKey,
+			Key:      key,
 			StoredAt: time.Now(),
 		},
-		Data: testData,
+		Data: data,
 	}
 
 	// Send blob through mock server
-	blobChan <- testBlob
+	blobChan <- blob
 
 	// Wait for blob to be processed
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob was stored in pool
-	assert.True(t, pool.Has(testKey))
-	storedData, err := pool.Get(testKey)
+	assert.True(t, pool.Has(key))
+	retrieved, err := pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, testData, storedData)
+	assert.Equal(t, blob.Receipt.Key, retrieved.Receipt.Key)
+	assert.Equal(t, blob.Data, retrieved.Data)
 
 	// Test duplicate blob
-	blobChan <- testBlob
+	blobChan <- blob
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob is still stored correctly
-	storedData, err = pool.Get(testKey)
+	retrieved, err = pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, testData, storedData)
+	assert.Equal(t, blob.Data, retrieved.Data)
 
 	// Test invalid blob data
 	invalidMsg := blobMessage{
