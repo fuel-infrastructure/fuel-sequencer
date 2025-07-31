@@ -28,7 +28,7 @@ func (s *AppTestSuite) GetTestProposalHandler(
 	sidecarClientMock *sidecartestutil.MockAppSidecarClient,
 ) *abci.FuelSequencerProposalHandler {
 	return abci.NewFuelSequencerProposalHandler(
-		s.App.AppCodec(), s.App.StakingKeeper, s.App, sidecarClientMock, s.App.BridgeKeeper,
+		s.App.AppCodec(), s.App.StakingKeeper, s.App, sidecarClientMock, s.App.BridgeKeeper, s.App.BlobKeeper,
 	)
 }
 
