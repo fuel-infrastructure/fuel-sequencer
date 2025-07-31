@@ -1,9 +1,10 @@
 package types
 
 import (
+	"fmt"
+
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"fmt"
 )
 
 func (t *SupplyDeltaInfo) ValidateBasic() error {

@@ -11,6 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -79,7 +80,7 @@ func (s *DepositsTestSuite) TestDeposits_SequencerAccountsDoNotExist_WithLockup_
 		s.PollForNoDelegation(s.Ctx(), 0, delegatorAddress, validator1Address)
 
 		// Sleep the remaining time so that enough tokens will be spendable
-		s.Sleep(vestingStartTime.Add(timeForUnlock).Sub(time.Now()))
+		s.Sleep(time.Until(vestingStartTime.Add(timeForUnlock)))
 
 		// Confirm that the delegation went through and is as expected.
 		delegation2, err := s.SendEthTransactionToSequencerInterfaceContract(delegateData)
@@ -486,22 +487,19 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 
 		// Calculate expected values
 		bridgeParams = s.QueryBridgeParams(s.Ctx())
-		vestingStartTime3 := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
-		vestingEndTime3 := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration4Years)
 
 		expectVestingInfo1 := bridgetypes.NewVestingInfo(
-			sdk.NewCoins(amountCoin1.Add(amountCoin2)), vestingStartTime1.Unix(), vestingEndTime1.Unix(),
-		)
-		expectVestingInfo2 := bridgetypes.NewVestingInfo(
-			sdk.NewCoins(amountCoin3), vestingStartTime3.Unix(), vestingEndTime3.Unix(),
+			sdk.NewCoins(amountCoin1.Add(amountCoin2).Add(amountCoin3)), vestingStartTime1.Unix(), vestingEndTime1.Unix(),
 		)
 
-		multiVestingAcc, err := s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		vestingAcc, err = s.QueryEthOwnedContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
-		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
-		s.Require().Len(multiVestingAcc.Infos, 2) // two vesting infos now
-		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
-		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
+		s.Require().Equal(senderAddress, vestingAcc.AccountOwner)
+		s.Require().Equal(vestingStartTime1.Unix(), vestingAcc.StartTime) // same vesting start time
+		s.Require().Equal(vestingEndTime1.Unix(), vestingAcc.EndTime)     // same vesting end time
+		s.Require().True((vestingAcc.OriginalVesting).Equal(expectVestingInfo1.OriginalVesting))
+		s.Require().Nil(vestingAcc.DelegatedFree)
+		s.Require().Nil(vestingAcc.DelegatedVesting)
 
 		// -----------------------------------------------------------------------------------------------
 		// Deposit 4:
@@ -531,27 +529,25 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		vestingStartTime4 := bridgeParams.VestingStartTime.Add(testsuite.VestingStartTimeDelay)
 		vestingEndTime4 := bridgeParams.VestingStartTime.Add(testsuite.VestingDuration2Years)
 
-		expectVestingInfo3 := bridgetypes.NewVestingInfo(
+		expectVestingInfo2 := bridgetypes.NewVestingInfo(
 			sdk.NewCoins(amountCoin4), vestingStartTime4.Unix(), vestingEndTime4.Unix(),
 		)
 
-		multiVestingAcc, err = s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
+		multiVestingAcc, err := s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
 		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
-		s.Require().Len(multiVestingAcc.Infos, 3) // three vesting infos now
+		s.Require().Len(multiVestingAcc.Infos, 2) // two vesting infos now
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
-		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
 
 		// -----------------------------------------------------------------------------------------------
 		// Check the resultant vesting account's spendable coins
 
-		// We expect 4 tokens to be spendable per second; two from the first vesting info, and one each from the rest.
+		// We expect 4 tokens to be spendable per second; four (1, 1, 2) from the first vesting info, and one each from the other.
 		now := time.Now()
-		expSpendable1 := (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 2
+		expSpendable1 := (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 4
 		expSpendable2 := now.Unix() - multiVestingAcc.Infos[1].StartTime
-		expSpendable3 := now.Unix() - multiVestingAcc.Infos[2].StartTime
-		expTotalSpendable := expSpendable1 + expSpendable2 + expSpendable3
+		expTotalSpendable := expSpendable1 + expSpendable2
 
 		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
 		buffer := int64(72)
@@ -595,19 +591,17 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		multiVestingAcc, err = s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
 		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
-		s.Require().Len(multiVestingAcc.Infos, 3)
+		s.Require().Len(multiVestingAcc.Infos, 2)
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
-		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
 
 		// --------------------------------------- Re-check spendable
 
-		// We expect 4 tokens to be spendable per second; two from the first vesting info, and one each from the rest.
+		// We expect 4 tokens to be spendable per second; four (1, 1, 2) from the first vesting info, and one each from the other.
 		now = time.Now()
-		expSpendable1 = (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 2
+		expSpendable1 = (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 4
 		expSpendable2 = now.Unix() - multiVestingAcc.Infos[1].StartTime
-		expSpendable3 = now.Unix() - multiVestingAcc.Infos[2].StartTime
-		expTotalSpendable = expSpendable1 + expSpendable2 + expSpendable3 - delegateCoin.Amount.Int64() // subtract delegation
+		expTotalSpendable = expSpendable1 + expSpendable2 - delegateCoin.Amount.Int64() // subtract delegation
 
 		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
 		buffer = int64(72)
@@ -651,19 +645,17 @@ func (s *DepositsTestSuite) TestDeposits_WithChangingVestingStartTimeAndLockupPe
 		multiVestingAcc, err = s.QueryEthOwnedMultiContinuousVestingAccount(s.Ctx(), ownedReceiverAddressSeq)
 		s.Require().NoError(err)
 		s.Require().Equal(senderAddress, multiVestingAcc.AccountOwner)
-		s.Require().Len(multiVestingAcc.Infos, 3)
+		s.Require().Len(multiVestingAcc.Infos, 2)
 		s.Require().Equal(multiVestingAcc.Infos[0], expectVestingInfo1)
 		s.Require().Equal(multiVestingAcc.Infos[1], expectVestingInfo2)
-		s.Require().Equal(multiVestingAcc.Infos[2], expectVestingInfo3)
 
 		// --------------------------------------- Re-check spendable
 
-		// We expect 4 tokens to be spendable per second; two from the first vesting info, and one each from the rest.
+		// We expect 4 tokens to be spendable per second; four (1, 1, 2) from the first vesting info, and one each from the other.
 		now = time.Now()
-		expSpendable1 = (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 2
+		expSpendable1 = (now.Unix() - multiVestingAcc.Infos[0].StartTime) * 4
 		expSpendable2 = now.Unix() - multiVestingAcc.Infos[1].StartTime
-		expSpendable3 = now.Unix() - multiVestingAcc.Infos[2].StartTime
-		expTotalSpendable = expSpendable1 + expSpendable2 + expSpendable3
+		expTotalSpendable = expSpendable1 + expSpendable2
 
 		// Use a buffer of 18 seconds or ~3 blocks (18*4 = 72 tokens)
 		buffer = int64(72)

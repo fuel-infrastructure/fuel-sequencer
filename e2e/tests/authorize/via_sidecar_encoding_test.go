@@ -11,6 +11,7 @@ import (
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 

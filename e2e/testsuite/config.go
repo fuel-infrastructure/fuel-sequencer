@@ -8,8 +8,9 @@ import (
 
 	cmconfig "github.com/cometbft/cometbft/config"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/spf13/viper"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )
 
 func (s *E2ETestSuite) initFuelSequencerValidatorConfigs() {

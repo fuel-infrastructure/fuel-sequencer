@@ -6,9 +6,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestVestingInfo_GetVestedCoins(t *testing.T) {
@@ -56,6 +57,7 @@ func TestVestingInfo_Validate(t *testing.T) {
 		{"valid", coins, t0.Unix(), t1.Unix(), false},
 		{"end time right after start time", coins, t0.Unix(), t0.Unix() + 1, false},
 		{"start time == end time", coins, t0.Unix(), t0.Unix(), true},
+		{"negative start time", coins, -1, t1.Unix(), true},
 		{"negative end time", coins, t0.Unix(), -1, true},
 		{"invalid denom coins", invalidCoins, t0.Unix(), t1.Unix(), true},
 		{"invalid negative coins", negativeCoins, t0.Unix(), t1.Unix(), true},

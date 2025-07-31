@@ -5,14 +5,17 @@ package testsuite
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"math/big"
 	"net/http"
 	"os"
+	"os/exec"
 	osuser "os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,12 +24,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/app"
 )
 
 func init() {
@@ -57,9 +61,17 @@ const (
 	fuelSequencerDockerImageRepo      = "fuel-infrastructure/fuel-sequencer"
 	fuelSequencerDockerImageTag       = "latest"
 	ethereumNodeDockerImageRepo       = "ghcr.io/foundry-rs/foundry"
-	ethereumNodeDockerImageTag        = "nightly"
+	ethereumNodeDockerImageTag        = "latest"
 	ethereumDeploymentDockerImageRepo = "fuel-rollup/ethereum-deployment"
 	ethereumDeploymentDockerImageTag  = "latest"
+
+	// Proxy configs
+	ProxyAPIPort     = "8443"  // HTTPS port for API proxy
+	ProxyRPCPort     = "8658"  // HTTPS port for RPC proxy
+	SequencerAPIPort = "1317"  // Sequencer API port
+	SequencerRPCPort = "26657" // Sequencer RPC port
+	SSLCertFile      = "localhost.crt"
+	SSLKeyFile       = "localhost.key"
 
 	// TestSuite configs
 	blocksToWaitForGovProposalToPass = uint64(25)
@@ -161,6 +173,7 @@ type E2ETestSuite struct {
 
 	log *zap.Logger
 
+	ProjectRoot   string
 	Chain         *Chain
 	dockerPool    *dockertest.Pool
 	dockerNetwork *dockertest.Network
@@ -168,7 +181,11 @@ type E2ETestSuite struct {
 	ethNodeResource       *dockertest.Resource
 	ethDeploymentResource *dockertest.Resource
 	otterscanResource     *dockertest.Resource
+	proxyResource         *dockertest.Resource
 	valResources          []*dockertest.Resource
+
+	// proxyEnabled controls whether the proxy container should be started during setup
+	proxyEnabled bool
 
 	// govProposalIdCounter keeps track of the latest governance proposal ID, so we can vote using the ID.
 	govProposalIdCounter int
@@ -204,6 +221,11 @@ type E2ETestSuite struct {
 }
 
 func (s *E2ETestSuite) SetupSuite() {
+
+	// Set project root
+	gitRoot, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	s.Require().NoError(err)
+	s.ProjectRoot = strings.TrimSpace(string(gitRoot))
 
 	// Set Docker images, which can be overridden
 	s.FuelSequencerDockerImageRepo = fuelSequencerDockerImageRepo
@@ -275,6 +297,12 @@ func (s *E2ETestSuite) SetupTest() {
 	s.initFuelSequencerValidatorConfigs()
 	// s.runOtterscanContainer() // disabled by default as intended for debugging e2e tests
 	s.RunSequencerValidators()
+
+	// Start proxy if enabled
+	if s.proxyEnabled {
+		s.runProxyContainer()
+	}
+
 	s.initGRPCClients()
 	s.initRPCClient()
 	s.initSidecarClient()
@@ -316,22 +344,39 @@ func (s *E2ETestSuite) TearDownTest() {
 
 	s.T().Log("tearing down e2e integration test suite...")
 
-	s.Require().NoError(s.Chain.rpcClient.Stop())
-	s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
-	s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
-	s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
+	if s.Chain != nil && s.Chain.rpcClient != nil {
+		s.Require().NoError(s.Chain.rpcClient.Stop())
+	}
+	if s.Chain != nil {
+		s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
+	}
+	if s.ethNodeResource != nil {
+		s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
+	}
+	if s.ethDeploymentResource != nil {
+		s.Require().NoError(s.dockerPool.Purge(s.ethDeploymentResource))
+	}
 	if s.otterscanResource != nil { // purge otterscan container if it was started
 		s.Require().NoError(s.dockerPool.Purge(s.otterscanResource))
 	}
-
-	for _, vc := range s.valResources {
-		s.Require().NoError(s.dockerPool.Purge(vc))
+	if s.proxyResource != nil { // purge proxy container if it was started
+		s.Require().NoError(s.dockerPool.Purge(s.proxyResource))
+		s.proxyResource = nil // Reset the resource pointer
 	}
 
-	s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
+	for _, vc := range s.valResources {
+		if vc != nil {
+			s.Require().NoError(s.dockerPool.Purge(vc))
+		}
+	}
+
+	if s.dockerNetwork != nil && s.dockerPool != nil {
+		s.Require().NoError(s.dockerPool.RemoveNetwork(s.dockerNetwork))
+	}
 
 	s.govProposalIdCounter = 1
 	s.GenesisOverrides = nil
+	s.proxyEnabled = false // Reset proxy enabled state
 
 	s.SeqKeys = nil
 	s.EthKeys = nil
@@ -419,7 +464,7 @@ func (s *E2ETestSuite) runEthereumNodeContainer() {
 
 			return true
 		},
-		1*time.Minute,
+		15*time.Second,
 		1*time.Second,
 		"ethereum node failed to respond",
 	)
@@ -488,7 +533,7 @@ func (s *E2ETestSuite) runOtterscanContainer() {
 			defer resp.Body.Close()
 			return resp.StatusCode == http.StatusOK
 		},
-		1*time.Minute,
+		15*time.Second,
 		1*time.Second,
 		"otterscan failed to respond",
 	)
@@ -618,6 +663,9 @@ func (s *E2ETestSuite) runSequencerValidatorsWithOverrides(
 	waitForChainToStart bool, // if this is false, the assumption is that we should wait for the container to stop
 ) {
 	s.T().Log("starting validator containers...")
+
+	// Ensure the Docker image exists, building it if necessary
+	s.Require().NoError(s.ensureDockerImageExists(s.FuelSequencerDockerImageTag))
 
 	// Get user from OS to ensure permissions match up when the container writes files.
 	user, err := osuser.Current()
@@ -753,4 +801,171 @@ func (s *E2ETestSuite) Logger() *zap.Logger {
 	return s.log.With(
 		zap.String("test", s.T().Name()),
 	)
+}
+
+func (s *E2ETestSuite) runProxyContainer() {
+	s.T().Log("starting nginx proxy container...")
+
+	// First, generate SSL certificates
+	certGenOpts := dockertest.RunOptions{
+		Name:       fmt.Sprintf("ssl-cert-generator-%s", s.Chain.id),
+		Repository: "alpine",
+		Tag:        "latest",
+		NetworkID:  s.dockerNetwork.Network.ID,
+		Cmd: []string{
+			"sh", "-c", `
+				apk add --no-cache openssl &&
+				mkdir -p /certs &&
+				openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+					-keyout /certs/localhost.key \
+					-out /certs/localhost.crt \
+					-subj '/C=US/ST=Local/L=Local/O=FuelDev/CN=localhost' \
+					-addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' &&
+				echo 'SSL certificates generated successfully'
+			`,
+		},
+		Mounts: []string{
+			fmt.Sprintf("%s/ssl:/certs", s.Chain.DataDir),
+		},
+	}
+
+	certResource, err := s.dockerPool.RunWithOptions(&certGenOpts, noRestart)
+	s.Require().NoError(err)
+
+	// Wait for certificate generation to complete
+	waitContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	_, err = s.dockerPool.Client.WaitContainerWithContext(certResource.Container.ID, waitContext)
+	s.Require().NoError(err)
+	s.Require().NoError(s.dockerPool.Purge(certResource))
+
+	// Load nginx configuration from file
+	nginxConfigSourcePath := filepath.Join(s.ProjectRoot, "e2e", "proxy", "nginx.conf")
+	if _, err := os.Stat(nginxConfigSourcePath); os.IsNotExist(err) {
+		s.T().Fatalf("nginx.conf not found at %s", nginxConfigSourcePath)
+	}
+	nginxConfigBytes, err := os.ReadFile(nginxConfigSourcePath)
+	s.Require().NoError(err, "failed to read nginx.conf from %s", nginxConfigSourcePath)
+
+	// Replace template variables with actual values
+	nginxConfigStr := string(nginxConfigBytes)
+	firstValidatorName := s.Chain.Validators[0].InstanceName()
+
+	// Replace all template variables
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{SEQUENCER_HOST}}", firstValidatorName)
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{SEQUENCER_API_PORT}}", SequencerAPIPort)
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{SEQUENCER_RPC_PORT}}", SequencerRPCPort)
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{PROXY_API_PORT}}", ProxyAPIPort)
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{PROXY_RPC_PORT}}", ProxyRPCPort)
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{SSL_CERT_FILE}}", SSLCertFile)
+	nginxConfigStr = strings.ReplaceAll(nginxConfigStr, "{{SSL_KEY_FILE}}", SSLKeyFile)
+
+	nginxConfigBytes = []byte(nginxConfigStr)
+
+	s.T().Logf("Using validator container name for nginx upstream: %s", firstValidatorName)
+
+	// Write nginx config to test data directory
+	nginxConfigPath := filepath.Join(s.Chain.DataDir, "nginx.conf")
+	err = os.WriteFile(nginxConfigPath, nginxConfigBytes, 0644)
+	s.Require().NoError(err)
+
+	// Start nginx proxy
+	proxyOpts := dockertest.RunOptions{
+		Name:       fmt.Sprintf("fuel-sequencer-proxy-%s", s.Chain.id),
+		Repository: "nginx",
+		Tag:        "alpine",
+		NetworkID:  s.dockerNetwork.Network.ID,
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			docker.Port(fmt.Sprintf("%s/tcp", ProxyAPIPort)): {{HostIP: "", HostPort: ProxyAPIPort}},
+			docker.Port(fmt.Sprintf("%s/tcp", ProxyRPCPort)): {{HostIP: "", HostPort: ProxyRPCPort}},
+		},
+		ExposedPorts: []string{
+			fmt.Sprintf("%s/tcp", ProxyAPIPort),
+			fmt.Sprintf("%s/tcp", ProxyRPCPort),
+		},
+		Mounts: []string{
+			fmt.Sprintf("%s/nginx.conf:/etc/nginx/nginx.conf:ro", s.Chain.DataDir),
+			fmt.Sprintf("%s/ssl:/etc/nginx/ssl:ro", s.Chain.DataDir),
+		},
+	}
+
+	s.proxyResource, err = s.dockerPool.RunWithOptions(&proxyOpts, noRestart)
+	s.Require().NoError(err)
+
+	// Wait for proxy to be ready
+	s.Require().Eventually(
+		func() bool {
+			// First check if the container is running
+			if s.proxyResource.Container.State.Status != "running" {
+				s.T().Logf("proxy container not running yet, status: %s", s.proxyResource.Container.State.Status)
+				return false
+			}
+
+			// Test if nginx is responding on the port (simple TCP connection)
+			proxyClient := &http.Client{
+				Transport: &http.Transport{
+					//nolint:gosec // G402: InsecureSkipVerify is acceptable for local test environment
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				},
+				Timeout: 2 * time.Second,
+			}
+
+			// Try a simple request to see if nginx is responding
+			resp, err := proxyClient.Get(fmt.Sprintf("https://127.0.0.1:%s", ProxyAPIPort))
+			if err != nil {
+				s.T().Logf("proxy not ready yet: %v", err)
+				return false
+			}
+			resp.Body.Close()
+			s.T().Logf("proxy responding with status: %d", resp.StatusCode)
+			return true
+		},
+		60*time.Second,
+		2*time.Second,
+		"nginx proxy failed to start",
+	)
+}
+
+func (s *E2ETestSuite) PauseProxy() {
+	if s.proxyResource != nil {
+		s.Require().NoError(s.dockerPool.Client.PauseContainer(s.proxyResource.Container.ID))
+	}
+}
+
+func (s *E2ETestSuite) UnpauseProxy() {
+	if s.proxyResource != nil {
+		s.Require().NoError(s.dockerPool.Client.UnpauseContainer(s.proxyResource.Container.ID))
+	}
+}
+
+func (s *E2ETestSuite) GetProxyEndpoints() (apiEndpoint, rpcEndpoint string) {
+	return fmt.Sprintf("https://localhost:%s", ProxyAPIPort),
+		fmt.Sprintf("https://localhost:%s", ProxyRPCPort)
+}
+
+// EnableProxy enables the proxy for the test suite. This should be called before SetupTest().
+func (s *E2ETestSuite) EnableProxy() {
+	s.proxyEnabled = true
+}
+
+// DisableProxy disables the proxy for the test suite. This should be called before SetupTest().
+func (s *E2ETestSuite) DisableProxy() {
+	s.proxyEnabled = false
+}
+
+// IsProxyEnabled returns whether the proxy is enabled for this test suite.
+func (s *E2ETestSuite) IsProxyEnabled() bool {
+	return s.proxyEnabled
+}
+
+// EnsureProxyRunning ensures the proxy is running. If it's not enabled, it will be started.
+// This can be called by individual tests that need the proxy.
+func (s *E2ETestSuite) EnsureProxyRunning() {
+	if !s.proxyEnabled {
+		s.proxyEnabled = true
+		s.runProxyContainer()
+	} else if s.proxyResource == nil {
+		// Proxy was enabled but not started (e.g. after a TearDownTest)
+		s.runProxyContainer()
+	}
 }

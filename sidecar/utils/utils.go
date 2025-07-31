@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	"go.uber.org/zap"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
@@ -16,9 +18,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
+
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"go.uber.org/zap"
 )
 
 func PopulateEventTxMapping(event *sidecartypes.Event, logIndex, txIndex uint, txHash common.Hash) {
@@ -467,7 +469,10 @@ func ExtractLogDataToEvent(
 			return nil, fmt.Errorf("failed to marshal authorize event: %w", err)
 		}
 	default:
-		logger.Debug("skipping unhandled event", zap.String("event_type", eventType), zap.String("contract_address", vLog.Address.Hex()))
+		logger.Debug("skipping unhandled event",
+			zap.String("event_type", eventType),
+			zap.String("contract_address", vLog.Address.Hex()),
+		)
 		return nil, nil
 	}
 
@@ -480,7 +485,8 @@ func ValidateIsLogSequential(vLog ethereumtypes.Log, lastBlockNumber *uint64, la
 	currentTxIndex := int(vLog.TxIndex)
 	currentLogIndex := int(vLog.Index)
 
-	// Initial verification to ascertain that the current block's number sequentially follows the last processed block's number.
+	// Initial verification to ascertain that the current block's number
+	// sequentially follows the last processed block's number.
 	if currentBlockNumber != *lastBlockNumber {
 		if currentBlockNumber < *lastBlockNumber {
 			return fmt.Errorf(
@@ -494,10 +500,12 @@ func ValidateIsLogSequential(vLog ethereumtypes.Log, lastBlockNumber *uint64, la
 		*lastLogIndex = -1
 	}
 
-	// Ensuring within-block log sequentiality by comparing the current log's indices against the last processed log's indices.
+	// Ensuring within-block log sequentiality by comparing the current log's indices
+	// against the last processed log's indices.
 	if currentTxIndex < *lastTxIndex || currentLogIndex <= *lastLogIndex {
 		return fmt.Errorf(
-			"log sequentiality violation within block %d: currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d",
+			("log sequentiality violation within block %d: " +
+				"currentTxIndex=%d, lastTxIndex=%d, currentLogIndex=%d, lastLogIndex=%d"),
 			currentBlockNumber, currentTxIndex, *lastTxIndex, currentLogIndex, *lastLogIndex,
 		)
 	}

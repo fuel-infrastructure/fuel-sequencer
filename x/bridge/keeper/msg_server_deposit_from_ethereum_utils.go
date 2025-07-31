@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
@@ -84,8 +85,18 @@ func (k Keeper) processDepositEvent(
 	potentialSequencerAddr, seqErr := k.GenerateSequencerAddressFromEthereumAddress(depositEvent.Depositor)
 
 	// If Recipient is owned by Depositor, send tokens to the address mapped 1-to-1 fom the Depositor Ethereum address.
-	if isRecipientOwnedByDepositor(depositEvent.Depositor, depositEvent.Recipient, potentialSequencerAddr.String(), seqErr) {
-		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(ctx, depositEvent.Depositor, vesting, tokensToMint)
+	if isRecipientOwnedByDepositor(
+		depositEvent.Depositor,
+		depositEvent.Recipient,
+		potentialSequencerAddr.String(),
+		seqErr,
+	) {
+		sequencerAddr, err = k.generateSequencerAccountFromEthereumDeposit(
+			ctx,
+			depositEvent.Depositor,
+			vesting,
+			tokensToMint,
+		)
 		if err != nil {
 			k.Logger().Error(
 				"failed to generate sequencer account from ethereum address - minting to gov address",

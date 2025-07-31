@@ -5,10 +5,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	testutiltypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
