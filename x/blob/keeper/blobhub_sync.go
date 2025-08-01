@@ -25,14 +25,14 @@ type blobMessage struct {
 
 type blobhubClient struct {
 	logger   log.Logger
-	blobpool *blobpool // reference to the blobpool, where blobs are stored
+	blobpool *Blobpool // reference to the blobpool, where blobs are stored
 
 	conn *websocket.Conn
 
 	blobs chan store.StoredBlob
 }
 
-func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *blobpool) (*blobhubClient, error) {
+func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool) (*blobhubClient, error) {
 	client := &blobhubClient{
 		logger:   logger.With("module", "blobhub_sync"),
 		blobpool: blobpool,
@@ -112,7 +112,7 @@ func (c *blobhubClient) sync(ctx context.Context) {
 			}
 
 			// Skip if we already have this blob
-			if c.blobpool.hasBlob(key) {
+			if c.blobpool.Has(key) {
 				c.logger.Debug("skipping existing blob", "id", msg.ID)
 				continue
 			}
@@ -126,7 +126,7 @@ func (c *blobhubClient) sync(ctx context.Context) {
 				Data: data,
 			}
 			c.logger.Info("storing new blob", "id", msg.ID, "size", msg.Size)
-			c.blobpool.storeBlob(blob)
+			c.blobpool.Insert(blob)
 		}
 	}
 }

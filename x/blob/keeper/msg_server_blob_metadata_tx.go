@@ -42,7 +42,7 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 
 	// First check the blobpool - ValidateBasic handled the error, can skip the check
 	hash, _ := store.ParseKey(msg.Hash)
-	if k.blobpool.hasBlob(hash) {
+	if k.Blobpool.Has(hash) {
 		// blob, err = k.blobpool.getBlob(hash)
 		// if err != nil {
 		// 	return errors.Wrap(err, "failed to get blob data from blobpool")

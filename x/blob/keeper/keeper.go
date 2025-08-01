@@ -22,8 +22,8 @@ type (
 		// should be the x/gov module account.
 		authority string
 
-		blobpool *blobpool      // node storage for unconfirmed blob transactions
-		blobhub  *blobhubClient // client for syncing with blobhub
+		*Blobpool                // node storage for unconfirmed blob transactions
+		blobhub   *blobhubClient // client for syncing with blobhub
 	}
 )
 
@@ -51,7 +51,7 @@ func NewKeeper(
 		authority:    authority,
 		logger:       logger,
 
-		blobpool: blobpool,
+		Blobpool: blobpool,
 		blobhub:  blobhubClient,
 	}
 }

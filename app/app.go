@@ -347,7 +347,7 @@ func NewFuelSequencerApp(
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
 	proposalHandler := abci.NewFuelSequencerProposalHandler(
-		app.appCodec, app.StakingKeeper, app, app.sidecar, app.BridgeKeeper,
+		app.appCodec, app.StakingKeeper, app, app.sidecar, app.BridgeKeeper, app.BlobKeeper,
 	)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())

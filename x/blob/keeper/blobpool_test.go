@@ -26,7 +26,7 @@ func TestBlobpool_HasBlob(t *testing.T) {
 
 	// Test non-existent blob
 	key := store.Key{0x1, 0x2, 0x3}
-	assert.False(t, pool.hasBlob(key))
+	assert.False(t, pool.Has(key))
 
 	// Test existing blob
 	blob := &store.StoredBlob{
@@ -35,8 +35,8 @@ func TestBlobpool_HasBlob(t *testing.T) {
 		},
 		Data: []byte("test data"),
 	}
-	pool.storeBlob(blob)
-	assert.True(t, pool.hasBlob(key))
+	pool.Insert(blob)
+	assert.True(t, pool.Has(key))
 }
 
 func TestBlobpool_GetBlob(t *testing.T) {
@@ -45,23 +45,24 @@ func TestBlobpool_GetBlob(t *testing.T) {
 
 	// Test getting non-existent blob
 	key := store.Key{0x1, 0x2, 0x3}
-	data, err := pool.getBlob(key)
+	blob, err := pool.Get(key)
 	assert.Error(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, blob)
 
 	// Test getting existing blob
 	testData := []byte("test data")
-	blob := &store.StoredBlob{
+	expected := &store.StoredBlob{
 		Receipt: store.Receipt{
 			Key: key,
 		},
 		Data: testData,
 	}
-	pool.storeBlob(blob)
+	pool.Insert(expected)
 
-	data, err = pool.getBlob(key)
+	blob, err = pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, testData, data)
+	assert.Equal(t, expected.Receipt.Key, blob.Receipt.Key)
+	assert.Equal(t, expected.Data, blob.Data)
 }
 
 func TestBlobpool_StoreBlob(t *testing.T) {
@@ -70,7 +71,7 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 
 	key := store.Key{0x1, 0x2, 0x3}
 	testData := []byte("test data")
-	blob := &store.StoredBlob{
+	expected := &store.StoredBlob{
 		Receipt: store.Receipt{
 			Key: key,
 		},
@@ -78,12 +79,13 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 	}
 
 	// Store blob
-	pool.storeBlob(blob)
+	pool.Insert(expected)
 
 	// Verify blob was stored correctly
-	storedData, err := pool.getBlob(key)
+	storedData, err := pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, testData, storedData)
+	assert.Equal(t, expected.Receipt.Key, storedData.Receipt.Key)
+	assert.Equal(t, expected.Data, storedData.Data)
 
 	// Store another blob with same key (should overwrite)
 	newData := []byte("new test data")
@@ -93,10 +95,11 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 		},
 		Data: newData,
 	}
-	pool.storeBlob(newBlob)
+	pool.Insert(newBlob)
 
 	// Verify blob was overwritten
-	storedData, err = pool.getBlob(key)
+	storedData, err = pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, newData, storedData)
+	assert.Equal(t, newBlob.Receipt.Key, storedData.Receipt.Key)
+	assert.Equal(t, newBlob.Data, storedData.Data)
 }
