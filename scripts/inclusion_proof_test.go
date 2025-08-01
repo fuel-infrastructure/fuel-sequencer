@@ -8,10 +8,11 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	"github.com/ethereum/go-ethereum/common"
-	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	commitmentstypes "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/types"
 )
 
 type BridgeCommitmentLeafForEthereum struct {

@@ -31,6 +31,12 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	scethwrappedclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/ethwrappedclient"
@@ -41,11 +47,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
 
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/sidecar/sidecar"
@@ -253,10 +254,16 @@ func startSidecarServerCmd() *cobra.Command {
 		&prmCfg.MaxOpenConnections, FlagPrometheusMaxOpenConnections, 3, "max number of simultaneous connections",
 	)
 	cmd.Flags().DurationVar(
-		&prmCfg.ReadHeaderTimeout, FlagPrometheusReadHeaderTimeout, time.Second*10, "amount of time allowed to read request headers",
+		&prmCfg.ReadHeaderTimeout,
+		FlagPrometheusReadHeaderTimeout,
+		time.Second*10,
+		"amount of time allowed to read request headers",
 	)
 	cmd.Flags().DurationVar(
-		&prmCfg.WriteTimeout, FlagPrometheusWriteTimeout, time.Second*10, "maximum duration before timing out writes of the response",
+		&prmCfg.WriteTimeout,
+		FlagPrometheusWriteTimeout,
+		time.Second*10,
+		"maximum duration before timing out writes of the response",
 	)
 	cmd.Flags().StringVar(
 		&prmCfg.Namespace, FlagPrometheusNamespace, "sidecar", "instrumentation namespace",

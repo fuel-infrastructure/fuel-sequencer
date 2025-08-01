@@ -2,6 +2,7 @@ package v2
 
 import (
 	corestoretypes "cosmossdk.io/core/store"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types/legacy"
 

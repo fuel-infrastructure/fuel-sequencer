@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 )
 
@@ -19,6 +20,11 @@ var NullEthereumAddress = new(common.Address).String()
 // the account info is extracted untouched. Otherwise, we use the base account and wrap it as a EthOwnedBaseAccount.
 // If the existing account was a non-'EthOwned' vesting account, any vesting details are discarded.
 func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwnedAccountI {
+
+	// Try to parse into EthOwnedMultiContinuousVestingAccount.
+	if vAcc, ok := acc.(*types.EthOwnedMultiContinuousVestingAccount); ok {
+		return vAcc
+	}
 
 	// Try to parse into EthOwnedContinuousVestingAccount.
 	if vAcc, ok := acc.(*types.EthOwnedContinuousVestingAccount); ok {
@@ -40,7 +46,9 @@ func normaliseExistingAccount(acc sdk.AccountI, ethAddress string) types.EthOwne
 // Sequencer. An account is owned by the Depositor iff Recipient is a null address, or Recipient is equivalent to
 // Depositor (both Ethereum addresses), or Recipient is equivalent to the mapping of Depositor as a Sequencer address.
 func isRecipientOwnedByDepositor(depositor, recipient, depositorSeq string, seqMappingErr error) bool {
-	return recipient == NullEthereumAddress || recipient == depositor || (seqMappingErr == nil && recipient == depositorSeq)
+	return recipient == NullEthereumAddress ||
+		recipient == depositor ||
+		(seqMappingErr == nil && recipient == depositorSeq)
 }
 
 // GenerateSequencerAddressFromEthereumAddress uses the App address codec to generate a Sequencer address from an

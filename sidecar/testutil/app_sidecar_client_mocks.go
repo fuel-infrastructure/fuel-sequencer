@@ -8,9 +8,10 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	gomock "github.com/golang/mock/gomock"
 	grpc "google.golang.org/grpc"
+
+	types "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 )
 
 // MockAppSidecarClient is a mock of AppSidecarClient interface.

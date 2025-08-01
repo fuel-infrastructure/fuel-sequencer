@@ -9,6 +9,11 @@ DOCKER_CONTAINER_NAME := "fuel-sequencer-container"
 # Fuel Rollup local repository.
 ROLLUP_DIR = $(CURDIR)/e2e/fuel-rollup
 
+# Proxy configuration
+PROXY_API_PORT := 8443
+PROXY_RPC_PORT := 8658
+PROXY_CONTAINER_NAME := fuel-sequencer-proxy
+
 # Name of the Ethereum contract deployment image.
 ETH_DEPLOYMENT_DOCKER_IMAGE_NAME := "fuel-rollup/ethereum-deployment:latest"
 
@@ -336,19 +341,36 @@ keys:
 ###                                   CI                                    ###
 ###############################################################################
 
-ci: proto-routine lint test-unit gosec
+ci: proto-routine mocks format lint test-unit gosec
 
+# Multiple go.mod files can confuse gosec; first run for sequencer, then for its e2e
 gosec:
-	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -severity=high ./...
-
+	@echo "🔎 Running gosec for sequencer..."
+	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=e2e -severity=high ./...
+	@echo "🔎 Running gosec for e2e..."
+	@cd e2e && go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=fuel-rollup -severity=high ./... && cd ..
+	@echo "✅ Finished running gosec!"
 lint:
 	@echo "🔎 Running linter..."
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
 	@echo "✅ Finished running linter!"
+
+# Extract and convert excluded paths from .golangci.yml to find-compatible patterns
+# 1. Extract lines with 'path:' that end in '$'
+# 2. Remove 'path:' and whitespace
+# 3. Remove regex end marker '$'
+# 4. Convert '.ext.go$' pattern to '-not -name "*.ext.go"'
+EXCLUDED_PATTERNS := $(shell awk '/path:.*\.go\$$/ { \
+		gsub(/.*path: /, ""); \
+		gsub(/\$$/, ""); \
+		gsub(/\\\./, "."); \
+		printf "-not -name \"*%s\" ", $$0 \
+	}' .golangci.yml)
 
 format:
 	@echo "🔎 Running formatter..."
-	@gofmt -s -w .
+	@find . -type f -name "*.go" $(EXCLUDED_PATTERNS) \
+		| xargs goimports -w -local $(shell go list -m)
 	@echo "✅ Finished running formatter!"
 
 ###############################################################################
@@ -531,6 +553,15 @@ test-e2e-deposits:
 test-e2e-special-messages:
 	@cd e2e/tests && go test -mod=readonly -race -v ./special-messages/... --test.timeout 0
 
+# Run e2e tests with HTTPS proxy for fuel-explorer integration
+test-e2e-with-proxy: check-docker-image-exists
+	@echo "🔐 Running E2E tests with integrated HTTPS proxy"
+	@echo "📊 Endpoints available during tests:"
+	@echo "  • API (HTTPS):  https://localhost:$(PROXY_API_PORT)"
+	@echo "  • RPC (HTTPS):  https://localhost:$(PROXY_RPC_PORT)"
+	@echo "🔒 Note: Self-signed certificates will be used"
+	@cd e2e/tests && go test -mod=readonly -race -v ./proxy/... --test.timeout 0
+
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) stop
@@ -538,6 +569,7 @@ clean-e2e:
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) stop
 	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
 	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
+	@$(DOCKER) ps -aq --filter "name=$(PROXY_CONTAINER_NAME)" | xargs -r $(DOCKER) stop
 	@$(DOCKER) compose -f $(ROLLUP_DIR)/docker/docker-compose.yml down
 
 	@echo "🧹 Removing Docker containers..."
@@ -546,6 +578,7 @@ clean-e2e:
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer2" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(ETH_NODE_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(ETH_DEPLOYMENT_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
+	@$(DOCKER) ps -aq --filter "name=$(PROXY_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 	@$(DOCKER) ps -aq --filter "name=$(OTTERSCAN_DOCKER_CONTAINER_NAME)" | xargs -r $(DOCKER) rm
 
 	@echo "🧹 Pruning Docker networks..."

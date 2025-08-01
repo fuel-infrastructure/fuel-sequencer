@@ -3,8 +3,9 @@ package authorize_fixtures_test
 import (
 	"testing"
 
-	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	"github.com/stretchr/testify/suite"
+
+	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
 type AuthorizeFixturesTestSuite struct {

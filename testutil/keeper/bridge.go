@@ -15,9 +15,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/testutil"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/keeper"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"

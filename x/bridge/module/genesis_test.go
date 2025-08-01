@@ -6,10 +6,11 @@ import (
 
 	"cosmossdk.io/math"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/golang/mock/gomock"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	bridge "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/module"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
 )

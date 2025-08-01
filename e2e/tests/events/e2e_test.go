@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/stretchr/testify/suite"
+
 	e2etestsuite "github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type EventsTestSuite struct {

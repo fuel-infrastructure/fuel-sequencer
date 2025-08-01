@@ -46,7 +46,8 @@ func NewServerTransportCredentialsFromCertFile(
 
 	// Sanity check: if one is insecure, the other must be as well
 	if isInsecure(pathToCertFile) != isInsecure(pathToKeyFile) {
-		return nil, nil, false, fmt.Errorf("inconsistent TLS certificate and key files - one is insecure and the other is not")
+		return nil, nil, false,
+			fmt.Errorf("inconsistent TLS certificate and key files - one is insecure and the other is not")
 	}
 
 	// If both are insecure, return insecure credentials with no certificates
