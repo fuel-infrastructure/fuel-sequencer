@@ -1,12 +1,14 @@
 package abci_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	blobtypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
@@ -28,15 +30,17 @@ func TestBlobValidationIntegration(t *testing.T) {
 
 	invalidKey := store.NewKey([]byte("invalid-hash"))
 
+	ctx := context.Background()
+
 	// Store blob in keeper
-	k.Insert(blob)
+	k.Insert(ctx, blob)
 
 	// Test that blob is available
-	require.True(t, k.Has(key))
-	require.False(t, k.Has(invalidKey))
+	require.True(t, k.Has(ctx, key))
+	require.False(t, k.Has(ctx, invalidKey))
 
 	// Test blob data retrieval
-	retrieved, err := k.Get(key)
+	retrieved, err := k.Get(ctx, key)
 	require.NoError(t, err)
 	require.Equal(t, data, retrieved.Data)
 
@@ -65,8 +69,10 @@ func TestBlobHashVerification(t *testing.T) {
 		Data: data,
 	}
 
+	ctx := context.Background()
+
 	// Store blob in keeper
-	k.Insert(blob)
+	k.Insert(ctx, blob)
 
 	// Test hash verification
 	keyAgain := store.NewKey(data)
@@ -92,22 +98,24 @@ func TestBlobPoolOperations(t *testing.T) {
 		Data: data,
 	}
 
+	ctx := context.Background()
+
 	// Initially, blob should not be available
-	require.False(t, k.Has(key))
+	require.False(t, k.Has(ctx, key))
 
 	// Store blob in keeper
-	k.Insert(blob)
+	k.Insert(ctx, blob)
 
 	// Now blob should be available
-	require.True(t, k.Has(key))
+	require.True(t, k.Has(ctx, key))
 
 	// Test retrieval
-	retrieved, err := k.Get(key)
+	retrieved, err := k.Get(ctx, key)
 	require.NoError(t, err)
 	require.Equal(t, data, retrieved.Data)
 
 	// Test retrieval of non-existent blob
-	_, err = k.Get(store.NewKey([]byte("non-existent")))
+	_, err = k.Get(ctx, store.NewKey([]byte("non-existent")))
 	require.Error(t, err)
 }
 
@@ -153,17 +161,19 @@ func TestBlobValidationLogic(t *testing.T) {
 		Data: data,
 	}
 
+	ctx := context.Background()
+
 	// Initially, blob should not be available for validation
-	require.False(t, k.Has(key))
+	require.False(t, k.Has(ctx, key))
 
 	// Store blob
-	k.Insert(blob)
+	k.Insert(ctx, blob)
 
 	// Now it should be available
-	require.True(t, k.Has(key))
+	require.True(t, k.Has(ctx, key))
 
 	// Test hash verification logic
-	retrieved, err := k.Get(key)
+	retrieved, err := k.Get(ctx, key)
 	require.NoError(t, err)
 
 	retrievedHash := store.NewKey(retrieved.Data)

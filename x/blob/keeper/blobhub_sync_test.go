@@ -127,10 +127,10 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob was stored in pool
-	assert.True(t, pool.Has(key))
-	retrieved, err := pool.Get(key)
+	assert.True(t, pool.Has(ctx, key))
+	retrieved, err := pool.Get(ctx, key)
 	require.NoError(t, err)
-	assert.Equal(t, blob.Receipt.Key, retrieved.Receipt.Key)
+	assert.Equal(t, blob.Key, retrieved.Key)
 	assert.Equal(t, blob.Data, retrieved.Data)
 
 	// Test duplicate blob
@@ -138,7 +138,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob is still stored correctly
-	retrieved, err = pool.Get(key)
+	retrieved, err = pool.Get(ctx, key)
 	require.NoError(t, err)
 	assert.Equal(t, blob.Data, retrieved.Data)
 

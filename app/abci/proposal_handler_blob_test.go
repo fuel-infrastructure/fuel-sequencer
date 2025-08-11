@@ -1,6 +1,7 @@
 package abci_test
 
 import (
+	"context"
 	"math"
 	"time"
 
@@ -11,16 +12,19 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+	"github.com/golang/mock/gomock"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	blobtypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/golang/mock/gomock"
 )
 
 func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
+	ctx := context.Background()
+
 	// Create test blob data and transactions
 	data1 := []byte("test blob data 1")
 	data2 := []byte("test blob data 2")
@@ -46,8 +50,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 	}
 
 	// Store blobs 1 and 2 in the keeper (available)
-	s.App.BlobKeeper.Insert(blob1)
-	s.App.BlobKeeper.Insert(blob2)
+	s.App.BlobKeeper.Insert(ctx, blob1)
+	s.App.BlobKeeper.Insert(ctx, blob2)
 	// Blob 3 is not stored (unavailable)
 
 	// Create blob transactions
@@ -192,8 +196,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 			s.SetupTest()
 
 			// Re-store blobs for each test
-			s.App.BlobKeeper.Insert(blob1)
-			s.App.BlobKeeper.Insert(blob2)
+			s.App.BlobKeeper.Insert(ctx, blob1)
+			s.App.BlobKeeper.Insert(ctx, blob2)
 
 			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(
@@ -250,6 +254,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 }
 
 func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
+	ctx := context.Background()
+
 	// Create test blob data
 	data := []byte("test blob data for validation")
 	key := store.NewKey(data)
@@ -262,7 +268,7 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 	}
 
 	// Store blob in keeper
-	s.App.BlobKeeper.Insert(blob)
+	s.App.BlobKeeper.Insert(ctx, blob)
 
 	// Create valid blob transaction
 	validBlobTx := s.CreateEncodedBlobTx(key, 100, "test-topic", 1, "test-sender")
@@ -358,7 +364,7 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 			s.SetupTest()
 
 			// Re-store blob for each test
-			s.App.BlobKeeper.Insert(blob)
+			s.App.BlobKeeper.Insert(ctx, blob)
 
 			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(
@@ -413,7 +419,9 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 }
 
 // CreateEncodedBlobTx creates an encoded blob transaction for testing
-func (s *AppTestSuite) CreateEncodedBlobTx(key store.Key, size uint64, topic string, nonce uint64, sender string) []byte {
+func (s *AppTestSuite) CreateEncodedBlobTx(
+	key store.Key, size uint64, topic string, nonce uint64, sender string,
+) []byte {
 	// Create blob message
 	blobMsg := &blobtypes.MsgBlobMetadataTx{
 		Hash:   key.String(),
