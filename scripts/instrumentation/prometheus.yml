@@ -4,10 +4,16 @@ global:
   evaluation_interval: 5s  # How often to evaluate rules
 
 scrape_configs:
-  - job_name: 'fuel sequencer node and sidecar'
+  - job_name: 'Fuel Sequencer Node'
+    scrape_interval: 1s  # Scrape interval for this job
+    metrics_path: ''  # Path to the metrics endpoint (default is blank)
+    static_configs:
+      - targets:
+        - 'host.docker.internal:26660' # The endpoint where the sequencer metrics server is running
+
+  - job_name: 'Fuel Sidecar'
     scrape_interval: 1s  # Scrape interval for this job
     metrics_path: ''  # Path to the metrics endpoint (default is blank)
     static_configs:
       - targets:
         - 'host.docker.internal:8081' # The endpoint where the sidecar metrics server is running
-        - 'host.docker.internal:26660' # The endpoint where the sequencer metrics server is running

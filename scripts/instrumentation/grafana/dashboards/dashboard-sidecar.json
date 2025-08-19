@@ -56,10 +56,7 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -105,10 +102,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_store_last_synced_block{job=\"$job\"}",
@@ -122,10 +116,7 @@
           "useBackend": false
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_core_max_syncable_block{job=\"$job\"}",
@@ -138,10 +129,7 @@
           "useBackend": false
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_core_last_header_seen{job=\"$job\"}",
@@ -159,10 +147,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -216,10 +201,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
@@ -238,10 +220,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -295,10 +274,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_eth_logs_query_delay_seconds_bucket{job=\"$job\"}",
@@ -316,10 +292,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -373,10 +346,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_seq_lebs_query_delay_seconds_bucket{job=\"$job\"}",
@@ -394,10 +364,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -445,10 +412,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "code",
           "expr": "time() - sidecar_core_start_time{job=\"$job\"}",
@@ -466,10 +430,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -516,10 +477,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_store_events_processed{job=\"$job\"}",
@@ -537,10 +495,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -619,10 +574,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sum(sidecar_service_block_events_requests_total{job=\"$job\"})",
@@ -635,10 +587,7 @@
           "useBackend": false
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_service_block_events_requests_total{success=\"true\", job=\"$job\"}",
@@ -656,10 +605,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -705,10 +651,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_store_blocks_pruned{job=\"$job\"}",
@@ -722,10 +665,7 @@
           "useBackend": false
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_store_start_query_block{job=\"$job\"}",
@@ -742,10 +682,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -807,10 +744,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_core_catching_up{job=\"$job\"}",
@@ -828,10 +762,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "sequencer-prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -910,10 +841,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_seq_lebs_query_error_count{job=\"$job\"}",
@@ -926,10 +854,7 @@
           "useBackend": false
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "sequencer-prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sidecar_eth_logs_query_error_count{job=\"$job\"}",
@@ -965,10 +890,7 @@
       },
       {
         "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "sequencer-prometheus",
         "definition": "label_values(job)",
         "includeAll": false,
         "label": "Job",
@@ -980,7 +902,7 @@
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
-        "regex": "/((.*fuel.*validator.*)|(.*fuel.*node.*)|(.*fuel.*archive.*)|(.*fuel.*sentry.*))/",
+        "regex": "/((.*sidecar.*)|(.*fuel.*sequencer.*)|(.*fuel.*node.*)|(.*fuel.*archive.*)|(.*fuel.*sentry.*))/i",
         "type": "query"
       }
     ]
@@ -992,7 +914,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Sidecar",
-  "uid": "edwalm41nsnb4i",
+  "uid": "fuel-sidecar-dashboard",
   "version": 13,
   "weekStart": ""
 }
