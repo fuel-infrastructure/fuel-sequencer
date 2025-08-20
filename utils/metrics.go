@@ -15,6 +15,7 @@ var (
 	KeysBeginBlock  = append(KeysSequencer, "begin", "block")
 	KeysEndBlock    = append(KeysSequencer, "end", "block")
 	KeysTxMsg       = append(KeysSequencer, "tx", "msg")
+	KeysBlobpool    = append(KeysSequencer, "blobpool")
 	KeysStore       = append(KeysSequencer, "store")
 
 	// Coin amounts are divided by this value to get the decimal representation, assuming 9 decimal places

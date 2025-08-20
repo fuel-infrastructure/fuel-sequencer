@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"sync"
 	"time"
 
@@ -30,19 +29,19 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(ctx context.Context, logger log.Logger) *Blobpool {
+func newBlobpool(logger log.Logger) *Blobpool {
 	p := &Blobpool{
 		logger: logger.With("module", "blobpool"),
 		blobs:  sync.Map{},
 		stats:  stats{},
 	}
 
-	metrics.SetBlobpoolCount(ctx, p.count)
+	metrics.SetBlobpoolCount(p.count)
 	p.logger.Info("initialized new blobpool")
 	return p
 }
 
-func (s *stats) update(ctx context.Context, hit bool) {
+func (s *stats) update(hit bool) {
 	if hit {
 		s.hits++
 	} else {
@@ -51,21 +50,21 @@ func (s *stats) update(ctx context.Context, hit bool) {
 
 	// Update metrics
 	// TODO: limit this to avoid excessive updates?
-	metrics.UpdateBlobpoolHitMissRatios(ctx, s.hits, s.misses)
+	metrics.UpdateBlobpoolHitMissRatios(s.hits, s.misses)
 }
 
 // Has checks if a blob is available in the pool
-func (p *Blobpool) Has(ctx context.Context, hash store.Key) bool {
+func (p *Blobpool) Has(hash store.Key) bool {
 	_, exists := p.blobs.Load(hash)
 
-	p.update(ctx, exists) // Update hit/miss statistics
+	p.update(exists) // Update hit/miss statistics
 
 	p.logger.Debug("checked blob existence", "hash", hash.String(), "exists", exists)
 	return exists
 }
 
 // Get retrieves a blob from the pool
-func (p *Blobpool) Get(ctx context.Context, hash store.Key) (*store.StoredBlob, error) {
+func (p *Blobpool) Get(hash store.Key) (*store.StoredBlob, error) {
 	start := time.Now()
 	aBlob, exists := p.blobs.Load(hash)
 	if !exists {
@@ -81,15 +80,15 @@ func (p *Blobpool) Get(ctx context.Context, hash store.Key) (*store.StoredBlob, 
 
 	// Record metrics
 	retrievalTime := time.Since(start)
-	metrics.ObserveBlobRetrievalTime(ctx, retrievalTime)
-	metrics.ObserveBlobSize(ctx, len(blob.Data))
+	metrics.ObserveBlobRetrievalTime(retrievalTime)
+	metrics.ObserveBlobSize(len(blob.Data))
 
 	p.logger.Debug("retrieved blob", "hash", hash.String(), "size", len(blob.Data))
 	return blob, nil
 }
 
 // Insert stores a blob in the pool
-func (p *Blobpool) Insert(ctx context.Context, blob *store.StoredBlob) {
+func (p *Blobpool) Insert(blob *store.StoredBlob) {
 	if blob == nil {
 		p.logger.Error("attempted to store nil blob")
 		return
@@ -101,14 +100,14 @@ func (p *Blobpool) Insert(ctx context.Context, blob *store.StoredBlob) {
 
 	// Record metrics
 	blobSize := len(blob.Data)
-	metrics.ObserveBlobStorageLatency(ctx, storageLatency)
-	metrics.ObserveBlobSize(ctx, blobSize)
-	metrics.IncrementBlobThroughput(ctx, blobSize)
-	metrics.IncrementBlobLifecycleEvents(ctx, "insert", blob.Key.String())
+	metrics.ObserveBlobStorageLatency(storageLatency)
+	metrics.ObserveBlobSize(blobSize)
+	metrics.IncrementBlobThroughput(blobSize)
+	metrics.IncrementBlobLifecycleEvents("insert", blob.Key.String())
 
 	// Update pool size metric
 	p.count++
-	metrics.SetBlobpoolCount(ctx, p.count)
+	metrics.SetBlobpoolCount(p.count)
 
 	p.logger.Debug("stored blob", "hash", blob.Key.String(), "size", len(blob.Data))
 }

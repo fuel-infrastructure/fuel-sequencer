@@ -60,7 +60,7 @@ func (c *blobhubClient) connect(ctx context.Context) error {
 	conn, _, err := websocket.DefaultDialer.DialContext(ctx, u.String(), nil)
 	if err != nil {
 		c.logger.Error("failed to connect to blobhub", "error", err, "url", u.String())
-		metrics.IncrementBlobhubErrors(ctx)
+		metrics.IncrementBlobhubErrors()
 		return fmt.Errorf("failed to connect to blobhub: %w", err)
 	}
 
@@ -68,8 +68,8 @@ func (c *blobhubClient) connect(ctx context.Context) error {
 
 	// Record metrics
 	connectionTime := time.Since(start)
-	metrics.SetBlobhubConnectionStatus(ctx, true)
-	metrics.ObserveBlobSyncLatency(ctx, connectionTime)
+	metrics.SetBlobhubConnectionStatus(true)
+	metrics.ObserveBlobSyncLatency(connectionTime)
 
 	c.logger.Info("connected to blobhub successfully")
 	return nil
@@ -78,7 +78,7 @@ func (c *blobhubClient) connect(ctx context.Context) error {
 func (c *blobhubClient) sync(ctx context.Context) {
 	defer func() {
 		c.logger.Info("closing blobhub connection")
-		metrics.SetBlobhubConnectionStatus(ctx, false)
+		metrics.SetBlobhubConnectionStatus(false)
 		c.conn.Close()
 	}()
 
@@ -96,14 +96,14 @@ func (c *blobhubClient) sync(ctx context.Context) {
 				// Handle connection errors
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					c.logger.Error("unexpected websocket close", "error", err)
-					metrics.SetBlobhubConnectionStatus(ctx, false)
+					metrics.SetBlobhubConnectionStatus(false)
 					// Try to reconnect
 					if err := c.connect(ctx); err != nil {
 						c.logger.Error("failed to reconnect", "error", err)
-						metrics.IncrementBlobhubErrors(ctx)
+						metrics.IncrementBlobhubErrors()
 						continue
 					}
-					metrics.IncrementBlobhubReconnections(ctx)
+					metrics.IncrementBlobhubReconnections()
 					c.logger.Info("reconnected successfully")
 				} else {
 					c.logger.Debug("websocket read error", "error", err)
@@ -126,7 +126,7 @@ func (c *blobhubClient) sync(ctx context.Context) {
 			}
 
 			// Skip if we already have this blob
-			if c.blobpool.Has(ctx, key) {
+			if c.blobpool.Has(key) {
 				c.logger.Debug("skipping existing blob", "id", msg.ID)
 				continue
 			}
@@ -140,7 +140,7 @@ func (c *blobhubClient) sync(ctx context.Context) {
 				Data: data,
 			}
 			c.logger.Info("storing new blob", "id", msg.ID, "size", msg.Size)
-			c.blobpool.Insert(ctx, blob)
+			c.blobpool.Insert(blob)
 		}
 	}
 }

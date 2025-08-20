@@ -40,8 +40,7 @@ func NewKeeper(
 
 	ctx := context.Background()
 
-	blobpool := newBlobpool(ctx, logger)
-
+	blobpool := newBlobpool(logger)
 	blobhubClient, err := newBlobhubClient(ctx, logger, blobpool)
 	if err != nil {
 		panic(err)

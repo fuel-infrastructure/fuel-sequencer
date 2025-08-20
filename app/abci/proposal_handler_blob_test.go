@@ -1,7 +1,6 @@
 package abci_test
 
 import (
-	"context"
 	"math"
 	"time"
 
@@ -23,8 +22,6 @@ import (
 )
 
 func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
-	ctx := context.Background()
-
 	// Create test blob data and transactions
 	data1 := []byte("test blob data 1")
 	data2 := []byte("test blob data 2")
@@ -50,8 +47,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 	}
 
 	// Store blobs 1 and 2 in the keeper (available)
-	s.App.BlobKeeper.Insert(ctx, blob1)
-	s.App.BlobKeeper.Insert(ctx, blob2)
+	s.App.BlobKeeper.Insert(blob1)
+	s.App.BlobKeeper.Insert(blob2)
 	// Blob 3 is not stored (unavailable)
 
 	// Create blob transactions
@@ -196,8 +193,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 			s.SetupTest()
 
 			// Re-store blobs for each test
-			s.App.BlobKeeper.Insert(ctx, blob1)
-			s.App.BlobKeeper.Insert(ctx, blob2)
+			s.App.BlobKeeper.Insert(blob1)
+			s.App.BlobKeeper.Insert(blob2)
 
 			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(
@@ -254,8 +251,6 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 }
 
 func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
-	ctx := context.Background()
-
 	// Create test blob data
 	data := []byte("test blob data for validation")
 	key := store.NewKey(data)
@@ -268,7 +263,7 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 	}
 
 	// Store blob in keeper
-	s.App.BlobKeeper.Insert(ctx, blob)
+	s.App.BlobKeeper.Insert(blob)
 
 	// Create valid blob transaction
 	validBlobTx := s.CreateEncodedBlobTx(key, 100, "test-topic", 1, "test-sender")
@@ -364,7 +359,7 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 			s.SetupTest()
 
 			// Re-store blob for each test
-			s.App.BlobKeeper.Insert(ctx, blob)
+			s.App.BlobKeeper.Insert(blob)
 
 			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(

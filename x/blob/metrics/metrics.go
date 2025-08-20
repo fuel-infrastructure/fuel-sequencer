@@ -17,8 +17,8 @@ import (
 // ============================================================================
 
 // ObserveBlobSyncLatency records the time taken to sync blobs from blobhub
-func ObserveBlobSyncLatency(goCtx context.Context, duration time.Duration) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func ObserveBlobSyncLatency(duration time.Duration) {
+	utils.SafeSetFinalizedMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(duration.Milliseconds()),
 			append(utils.KeysBeginBlock, "blob", "sync", "latency", "ms")...,
@@ -27,8 +27,8 @@ func ObserveBlobSyncLatency(goCtx context.Context, duration time.Duration) {
 }
 
 // SetBlobhubConnectionStatus updates the connection status metric
-func SetBlobhubConnectionStatus(goCtx context.Context, connected bool) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func SetBlobhubConnectionStatus(connected bool) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		status := 0
 		if connected {
 			status = 1
@@ -41,15 +41,15 @@ func SetBlobhubConnectionStatus(goCtx context.Context, connected bool) {
 }
 
 // IncrementBlobhubReconnections increments the reconnection counter
-func IncrementBlobhubReconnections(goCtx context.Context) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func IncrementBlobhubReconnections() {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.IncrCounter(1, append(utils.KeysStore, "blob", "blobhub", "reconnections")...)
 	})
 }
 
 // IncrementBlobhubErrors increments the error counter
-func IncrementBlobhubErrors(goCtx context.Context) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func IncrementBlobhubErrors() {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.IncrCounter(1, append(utils.KeysStore, "blob", "blobhub", "errors")...)
 	})
 }
@@ -59,39 +59,39 @@ func IncrementBlobhubErrors(goCtx context.Context) {
 // ============================================================================
 
 // SetBlobpoolCount updates the current blobpool size
-func SetBlobpoolCount(goCtx context.Context, count uint) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func SetBlobpoolCount(count uint) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(count),
-			append(utils.KeysBeginBlock, "blob", "pool", "count")...,
+			append(utils.KeysBlobpool, "count")...,
 		)
 	})
 }
 
 // SetBlobpoolHitRatio updates the hit ratio metric
-func SetBlobpoolHitRatio(goCtx context.Context, ratio float64) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func SetBlobpoolHitRatio(ratio float64) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(ratio),
-			append(utils.KeysBeginBlock, "blob", "pool", "hit", "ratio")...,
+			append(utils.KeysBlobpool, "hit", "ratio")...,
 		)
 	})
 }
 
 // SetBlobpoolMissRatio updates the miss ratio metric
-func SetBlobpoolMissRatio(goCtx context.Context, ratio float64) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func SetBlobpoolMissRatio(ratio float64) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(ratio),
-			append(utils.KeysBeginBlock, "blob", "pool", "miss", "ratio")...,
+			append(utils.KeysBlobpool, "miss", "ratio")...,
 		)
 	})
 }
 
 // IncrementBlobpoolEvictions increments the eviction counter
-func IncrementBlobpoolEvictions(goCtx context.Context) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
-		telemetry.IncrCounter(1, append(utils.KeysBeginBlock, "blob", "pool", "evictions")...)
+func IncrementBlobpoolEvictions() {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
+		telemetry.IncrCounter(1, append(utils.KeysBlobpool, "evictions")...)
 	})
 }
 
@@ -100,8 +100,8 @@ func IncrementBlobpoolEvictions(goCtx context.Context) {
 // ============================================================================
 
 // ObserveBlobRetrievalTime records the time taken to retrieve a blob
-func ObserveBlobRetrievalTime(goCtx context.Context, duration time.Duration) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func ObserveBlobRetrievalTime(duration time.Duration) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(duration.Milliseconds()),
 			append(utils.KeysTxMsg, "blob", "retrieval", "time", "ms")...,
@@ -110,8 +110,8 @@ func ObserveBlobRetrievalTime(goCtx context.Context, duration time.Duration) {
 }
 
 // ObserveBlobStorageLatency records the time taken to store a blob
-func ObserveBlobStorageLatency(goCtx context.Context, duration time.Duration) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func ObserveBlobStorageLatency(duration time.Duration) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(duration.Milliseconds()),
 			append(utils.KeysTxMsg, "blob", "storage", "latency", "ms")...,
@@ -120,8 +120,8 @@ func ObserveBlobStorageLatency(goCtx context.Context, duration time.Duration) {
 }
 
 // ObserveBlobSize records the size of a blob for distribution analysis
-func ObserveBlobSize(goCtx context.Context, size int) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func ObserveBlobSize(size int) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.SetGauge(
 			float32(size),
 			append(utils.KeysTxMsg, "blob", "size", "bytes")...,
@@ -134,15 +134,15 @@ func ObserveBlobSize(goCtx context.Context, size int) {
 // ============================================================================
 
 // IncrementBlobProposalSuccess increments the successful proposal counter
-func IncrementBlobProposalSuccess(goCtx context.Context) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func IncrementBlobProposalSuccess() {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.IncrCounter(1, append(utils.KeysTxMsg, "blob", "proposal", "success")...)
 	})
 }
 
 // IncrementBlobValidationFailures increments the validation failure counter
-func IncrementBlobValidationFailures(goCtx context.Context, reason string) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func IncrementBlobValidationFailures(reason string) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.IncrCounterWithLabels(
 			append(utils.KeysTxMsg, "blob", "validation", "failure"),
 			1,
@@ -158,8 +158,8 @@ func IncrementBlobValidationFailures(goCtx context.Context, reason string) {
 // ============================================================================
 
 // IncrementBlobThroughput increments the throughput counter
-func IncrementBlobThroughput(goCtx context.Context, blobSize int) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func IncrementBlobThroughput(blobSize int) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.IncrCounterWithLabels(
 			append(utils.KeysTxMsg, "blob", "throughput"),
 			float32(blobSize),
@@ -171,8 +171,8 @@ func IncrementBlobThroughput(goCtx context.Context, blobSize int) {
 }
 
 // IncrementBlobLifecycleEvents increments the lifecycle events counter
-func IncrementBlobLifecycleEvents(goCtx context.Context, eventType string, blobHash string) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func IncrementBlobLifecycleEvents(eventType string, blobHash string) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		telemetry.IncrCounterWithLabels(
 			append(utils.KeysTxMsg, "blob", "lifecycle", "event"),
 			1,
@@ -189,8 +189,8 @@ func IncrementBlobLifecycleEvents(goCtx context.Context, eventType string, blobH
 // ============================================================================
 
 // UpdateBlobpoolHitMissRatios updates hit/miss ratios based on recent operations
-func UpdateBlobpoolHitMissRatios(goCtx context.Context, hits, misses uint) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+func UpdateBlobpoolHitMissRatios(hits, misses uint) {
+	utils.SafeSetMetric(context.Background(), func(_ sdk.Context) {
 		total := hits + misses
 		if total > 0 {
 			hitRatio := float64(hits) / float64(total)
