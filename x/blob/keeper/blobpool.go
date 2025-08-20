@@ -30,13 +30,14 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(logger log.Logger) *Blobpool {
+func newBlobpool(ctx context.Context, logger log.Logger) *Blobpool {
 	p := &Blobpool{
 		logger: logger.With("module", "blobpool"),
 		blobs:  sync.Map{},
 		stats:  stats{},
 	}
 
+	metrics.SetBlobpoolCount(ctx, p.count)
 	p.logger.Info("initialized new blobpool")
 	return p
 }

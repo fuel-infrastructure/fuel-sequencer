@@ -64,7 +64,8 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
-	pool := newBlobpool(logger)
+	ctx := context.Background()
+	pool := newBlobpool(ctx, logger)
 
 	// Start mock server
 	server, _ := mockBlobhubServer(t)
@@ -76,7 +77,6 @@ func TestBlobhubClient_Connect(t *testing.T) {
 	defer func() { BlobhubAddress = origAddr }()
 
 	// Test successful connection
-	ctx := context.Background()
 	client, err := newBlobhubClient(ctx, logger, pool)
 	require.NoError(t, err)
 	require.NotNil(t, client)
@@ -90,7 +90,8 @@ func TestBlobhubClient_Connect(t *testing.T) {
 
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
-	pool := newBlobpool(logger)
+	ctx := context.Background()
+	pool := newBlobpool(ctx, logger)
 
 	// Start mock server
 	server, blobChan := mockBlobhubServer(t)
@@ -102,7 +103,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	defer func() { BlobhubAddress = origAddr }()
 
 	// Create client
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	client, err := newBlobhubClient(ctx, logger, pool)
