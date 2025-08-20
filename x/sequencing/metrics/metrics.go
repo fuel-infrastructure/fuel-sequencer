@@ -13,7 +13,7 @@ import (
 )
 
 func ObserveTotalBlobsPosted(goCtx context.Context, topic []byte) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+	utils.SafeSetFinalizedMetric(goCtx, func(ctx sdk.Context) {
 		telemetry.IncrCounterWithLabels(
 			append(utils.KeysTxMsg, "total", "blobs", "posted"),
 			1,
@@ -25,7 +25,7 @@ func ObserveTotalBlobsPosted(goCtx context.Context, topic []byte) {
 }
 
 func ObserveTotalBlobsPostedSize(goCtx context.Context, topic []byte, size int) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+	utils.SafeSetFinalizedMetric(goCtx, func(ctx sdk.Context) {
 		telemetry.IncrCounterWithLabels(
 			append(utils.KeysTxMsg, "total", "blobs", "posted", "size"),
 			float32(size),

@@ -11,7 +11,7 @@ import (
 )
 
 func ObserveInjectedTransactionAtAnteHandler(goCtx context.Context, tx sdk.Tx) {
-	utils.SafeSetMetric(goCtx, func(ctx sdk.Context) {
+	utils.SafeSetFinalizedMetric(goCtx, func(ctx sdk.Context) {
 		for _, msg := range tx.GetMsgs() {
 			telemetry.IncrCounterWithLabels(
 				append(utils.KeysAnteHandler, "injected", "msg"),

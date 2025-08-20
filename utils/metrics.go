@@ -22,21 +22,32 @@ var (
 	scale = new(big.Float).SetFloat64(1e9)
 )
 
-// safeSetMetric helps us use the telemetry package in a safer and more effective way by protecting against panics and
-// checking that we only set metrics at the Finalize mode, to reflect actual changes to state, as much as possible.
-func safeSetMetric(goCtx context.Context, setMetric func(ctx sdk.Context)) {
-	defer func() {
-		_ = recover() // recover from panics without running any other logic
+// SafeSetMetric helps us use the telemetry package in a safer and more effective way by protecting against panics.
+func SafeSetMetric(setMetric func()) {
+	go func() {
+		defer func() {
+			_ = recover() // recover from panics without running any other logic
+		}()
+		if !telemetry.IsTelemetryEnabled() {
+			return
+		}
+		setMetric()
 	}()
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	if !telemetry.IsTelemetryEnabled() || ctx.ExecMode() != sdk.ExecModeFinalize {
-		return
-	}
-	setMetric(ctx)
 }
 
-func SafeSetMetric(goCtx context.Context, setMetric func(ctx sdk.Context)) {
-	go safeSetMetric(goCtx, setMetric)
+// SafeSetFinalizedMetric helps us use the telemetry package in a safer and more effective way by protecting against panics and
+// checking that we only set metrics at the Finalize mode, to reflect actual changes to state, as much as possible.
+func SafeSetFinalizedMetric(goCtx context.Context, setMetric func(ctx sdk.Context)) {
+	go func() {
+		defer func() {
+			_ = recover() // recover from panics without running any other logic
+		}()
+		ctx := sdk.UnwrapSDKContext(goCtx)
+		if !telemetry.IsTelemetryEnabled() || ctx.ExecMode() != sdk.ExecModeFinalize {
+			return
+		}
+		setMetric(ctx)
+	}()
 }
 
 // ScaleCoinAmount converts a coin amount to a float32 by converting the

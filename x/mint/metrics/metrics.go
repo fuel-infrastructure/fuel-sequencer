@@ -10,7 +10,7 @@ import (
 )
 
 func MintCoins(ctx context.Context, mint sdk.Coin) {
-	utils.SafeSetMetric(ctx, func(ctx sdk.Context) {
+	utils.SafeSetFinalizedMetric(ctx, func(ctx sdk.Context) {
 		telemetry.SetGauge(utils.ScaleCoinAmount(mint.Amount), append(utils.KeysBeginBlock, "minted", "tokens")...)
 	})
 }
