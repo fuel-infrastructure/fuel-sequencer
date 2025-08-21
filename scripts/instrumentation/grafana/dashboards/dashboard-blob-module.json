@@ -129,7 +129,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_begin_block_blob_pool_count{job=\"$job\"}",
+          "expr": "sequencer_blobpool_count{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Pool Size",
           "range": true,
@@ -198,7 +198,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_begin_block_blob_pool_hit_ratio{job=\"$job\"}",
+          "expr": "sequencer_blobpool_hit_ratio{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Hit Ratio",
           "range": true,
@@ -262,7 +262,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_store_blob_blobhub_connection_status{job=\"$job\"}",
+          "expr": "sequencer_blobhub_connection_status{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Connected",
           "range": true,
@@ -327,7 +327,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_store_blob_blobhub_errors{job=\"$job\"}",
+          "expr": "sequencer_blobhub_errors{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Errors",
           "range": true,
@@ -392,7 +392,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_store_blob_blobhub_reconnections{job=\"$job\"}",
+          "expr": "sequencer_blobhub_reconnections{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Reconnections",
           "range": true,
@@ -457,7 +457,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_begin_block_blob_pool_evictions{job=\"$job\"}",
+          "expr": "sequencer_blobpool_evictions{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Evictions",
           "range": true,
@@ -559,7 +559,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_begin_block_blob_sync_latency_ms{job=\"$job\"}",
+          "expr": "sequencer_blobhub_sync_latency_ms{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Sync Latency",
           "range": true,
@@ -568,7 +568,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_tx_msg_blob_retrieval_time_ms{job=\"$job\"}",
+          "expr": "sequencer_blobpool_retrieval_time_ms{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Retrieval Time",
           "range": true,
@@ -577,7 +577,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_tx_msg_blob_storage_latency_ms{job=\"$job\"}",
+          "expr": "sequencer_blobpool_storage_latency_ms{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Storage Latency",
           "range": true,
@@ -666,7 +666,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_tx_msg_blob_size_bytes{job=\"$job\"}",
+          "expr": "sequencer_blobpool_size_bytes{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Blob Size",
           "range": true,
@@ -755,7 +755,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "rate(sequencer_tx_msg_blob_throughput{job=\"$job\"}[5m])",
+          "expr": "rate(sequencer_blobpool_throughput{job=\"$job\"}[5m])",
           "instant": false,
           "legendFormat": "Throughput",
           "range": true,
@@ -856,7 +856,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_tx_msg_blob_proposal_success{job=\"$job\"}",
+          "expr": "sequencer_tx_msg_blob_proposal_validation_success{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Proposal Success",
           "range": true,
@@ -865,7 +865,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_tx_msg_blob_validation_failure{job=\"$job\"}",
+          "expr": "sequencer_tx_msg_blob_proposal_validation_failure{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Validation Failures",
           "range": true,
@@ -953,7 +953,7 @@
         {
           "datasource": "sequencer-prometheus",
           "editorMode": "code",
-          "expr": "sequencer_tx_msg_blob_lifecycle_event{job=\"$job\"}",
+          "expr": "sequencer_blobpool_lifecycle_event{job=\"$job\"}",
           "instant": false,
           "legendFormat": "Lifecycle Events",
           "range": true,
@@ -961,6 +961,197 @@
         }
       ],
       "title": "Blob Lifecycle Events",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 15,
+      "panels": [],
+      "title": "Additional Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": "sequencer-prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": "sequencer-prometheus",
+          "editorMode": "code",
+          "expr": "sequencer_blobpool_miss_ratio{job=\"$job\"}",
+          "instant": false,
+          "legendFormat": "Miss Ratio",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Blobpool Miss Ratio",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "sequencer-prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": "sequencer-prometheus",
+          "editorMode": "code",
+          "expr": "sequencer_blobpool_throughput{job=\"$job\"}",
+          "instant": false,
+          "legendFormat": "Total Throughput",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Blob Throughput",
       "type": "timeseries"
     }
   ],
