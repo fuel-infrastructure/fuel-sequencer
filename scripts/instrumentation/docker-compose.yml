@@ -5,6 +5,9 @@ services:
       - "./prometheus.yml:/etc/prometheus/prometheus.yml"
     ports:
       - "9000:9090"
+    restart: unless-stopped
+    networks:
+      - monitoring
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -19,3 +22,11 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - "./grafana:/etc/grafana/provisioning/datasources"
+    networks:
+      - monitoring
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  monitoring:
+    driver: bridge

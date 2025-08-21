@@ -64,6 +64,7 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
+	ctx := context.Background()
 	pool := newBlobpool(logger)
 
 	// Start mock server
@@ -76,7 +77,6 @@ func TestBlobhubClient_Connect(t *testing.T) {
 	defer func() { BlobhubAddress = origAddr }()
 
 	// Test successful connection
-	ctx := context.Background()
 	client, err := newBlobhubClient(ctx, logger, pool)
 	require.NoError(t, err)
 	require.NotNil(t, client)
@@ -90,6 +90,7 @@ func TestBlobhubClient_Connect(t *testing.T) {
 
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
+	ctx := context.Background()
 	pool := newBlobpool(logger)
 
 	// Start mock server
@@ -102,7 +103,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	defer func() { BlobhubAddress = origAddr }()
 
 	// Create client
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	client, err := newBlobhubClient(ctx, logger, pool)
@@ -130,7 +131,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	assert.True(t, pool.Has(key))
 	retrieved, err := pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, blob.Receipt.Key, retrieved.Receipt.Key)
+	assert.Equal(t, blob.Key, retrieved.Key)
 	assert.Equal(t, blob.Data, retrieved.Data)
 
 	// Test duplicate blob

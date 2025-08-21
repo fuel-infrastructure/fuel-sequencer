@@ -61,7 +61,7 @@ func TestBlobpool_GetBlob(t *testing.T) {
 
 	blob, err = pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, expected.Receipt.Key, blob.Receipt.Key)
+	assert.Equal(t, expected.Key, blob.Key)
 	assert.Equal(t, expected.Data, blob.Data)
 }
 
@@ -84,7 +84,7 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 	// Verify blob was stored correctly
 	storedData, err := pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, expected.Receipt.Key, storedData.Receipt.Key)
+	assert.Equal(t, expected.Key, storedData.Key)
 	assert.Equal(t, expected.Data, storedData.Data)
 
 	// Store another blob with same key (should overwrite)
@@ -100,6 +100,6 @@ func TestBlobpool_StoreBlob(t *testing.T) {
 	// Verify blob was overwritten
 	storedData, err = pool.Get(key)
 	require.NoError(t, err)
-	assert.Equal(t, newBlob.Receipt.Key, storedData.Receipt.Key)
+	assert.Equal(t, newBlob.Key, storedData.Key)
 	assert.Equal(t, newBlob.Data, storedData.Data)
 }

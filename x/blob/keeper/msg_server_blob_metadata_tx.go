@@ -13,11 +13,13 @@ import (
 )
 
 // PostBlobMetadata handles MsgBlobMetadataTx
-func (k msgServer) PostBlobMetadata(goCtx context.Context, msg *types.MsgBlobMetadataTx) (*types.MsgBlobMetadataTxResponse, error) {
+func (k msgServer) PostBlobMetadata(
+	goCtx context.Context, msg *types.MsgBlobMetadataTx,
+) (*types.MsgBlobMetadataTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Process the blob metadata using the keeper
-	if err := k.Keeper.ProcessBlobMetadata(ctx, msg); err != nil {
+	if err := k.ProcessBlobMetadata(ctx, msg); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +44,7 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 
 	// First check the blobpool - ValidateBasic handled the error, can skip the check
 	hash, _ := store.ParseKey(msg.Hash)
-	if k.Blobpool.Has(hash) {
+	if k.Has(hash) {
 		// blob, err = k.blobpool.getBlob(hash)
 		// if err != nil {
 		// 	return errors.Wrap(err, "failed to get blob data from blobpool")
@@ -55,7 +57,10 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 	// 	return errors.Wrap(types.ErrBlobNotFound, "blob data source available")
 	// }
 
-	err := errors.Wrap(types.ErrBlobNotFound, "node has not retrieved the respective blob yet; make sure blob was submitted in the first place; hash: "+msg.Hash)
+	err := errors.Wrap(
+		types.ErrBlobNotFound,
+		"node has not retrieved the respective blob yet; make sure blob was submitted in the first place; hash: "+msg.Hash,
+	)
 	ctx.Logger().Error(err.Error())
 	return err
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils"
@@ -437,7 +438,9 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		// Validate blob transactions
 		err = h.validateBlobTransactions(req.Txs)
 		if err != nil {
-			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf("blob validation failed: %w", err)
+			return &abci.ResponseProcessProposal{
+				Status: abci.ResponseProcessProposal_REJECT,
+			}, fmt.Errorf("blob validation failed: %w", err)
 		}
 
 		// Check that MsgSupplyDelta was injected correctly if expected

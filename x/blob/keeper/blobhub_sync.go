@@ -10,6 +10,8 @@ import (
 	"cosmossdk.io/log"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/gorilla/websocket"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 )
 
 // Default blobhub address - can be overridden for testing
@@ -54,13 +56,21 @@ func (c *blobhubClient) connect(ctx context.Context) error {
 	u := url.URL{Scheme: "ws", Host: BlobhubAddress, Path: "/stream"}
 	c.logger.Info("connecting to blobhub", "url", u.String())
 
+	start := time.Now()
 	conn, _, err := websocket.DefaultDialer.DialContext(ctx, u.String(), nil)
 	if err != nil {
 		c.logger.Error("failed to connect to blobhub", "error", err, "url", u.String())
+		metrics.IncrementBlobhubErrors()
 		return fmt.Errorf("failed to connect to blobhub: %w", err)
 	}
 
 	c.conn = conn
+
+	// Record metrics
+	connectionTime := time.Since(start)
+	metrics.SetBlobhubConnectionStatus(true)
+	metrics.ObserveBlobSyncLatency(connectionTime)
+
 	c.logger.Info("connected to blobhub successfully")
 	return nil
 }
@@ -68,6 +78,7 @@ func (c *blobhubClient) connect(ctx context.Context) error {
 func (c *blobhubClient) sync(ctx context.Context) {
 	defer func() {
 		c.logger.Info("closing blobhub connection")
+		metrics.SetBlobhubConnectionStatus(false)
 		c.conn.Close()
 	}()
 
@@ -85,11 +96,14 @@ func (c *blobhubClient) sync(ctx context.Context) {
 				// Handle connection errors
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					c.logger.Error("unexpected websocket close", "error", err)
+					metrics.SetBlobhubConnectionStatus(false)
 					// Try to reconnect
 					if err := c.connect(ctx); err != nil {
 						c.logger.Error("failed to reconnect", "error", err)
+						metrics.IncrementBlobhubErrors()
 						continue
 					}
+					metrics.IncrementBlobhubReconnections()
 					c.logger.Info("reconnected successfully")
 				} else {
 					c.logger.Debug("websocket read error", "error", err)

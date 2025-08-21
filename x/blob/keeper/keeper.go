@@ -38,9 +38,10 @@ func NewKeeper(
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
 
-	blobpool := newBlobpool(logger)
+	ctx := context.Background()
 
-	blobhubClient, err := newBlobhubClient(context.Background(), logger, blobpool)
+	blobpool := newBlobpool(logger)
+	blobhubClient, err := newBlobhubClient(ctx, logger, blobpool)
 	if err != nil {
 		panic(err)
 	}

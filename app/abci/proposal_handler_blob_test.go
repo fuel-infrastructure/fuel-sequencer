@@ -11,13 +11,14 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+	"github.com/golang/mock/gomock"
+
 	"github.com/fuel-infrastructure/fuel-sequencer/app/apptesting"
 	sidecartypes "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service/types"
 	sidecartestutil "github.com/fuel-infrastructure/fuel-sequencer/sidecar/testutil"
 	testtypes "github.com/fuel-infrastructure/fuel-sequencer/testutil/types"
 	blobtypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
-	"github.com/golang/mock/gomock"
 )
 
 func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
@@ -413,7 +414,9 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 }
 
 // CreateEncodedBlobTx creates an encoded blob transaction for testing
-func (s *AppTestSuite) CreateEncodedBlobTx(key store.Key, size uint64, topic string, nonce uint64, sender string) []byte {
+func (s *AppTestSuite) CreateEncodedBlobTx(
+	key store.Key, size uint64, topic string, nonce uint64, sender string,
+) []byte {
 	// Create blob message
 	blobMsg := &blobtypes.MsgBlobMetadataTx{
 		Hash:   key.String(),

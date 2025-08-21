@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+
 	keepertest "github.com/fuel-infrastructure/fuel-sequencer/testutil/keeper"
 	blobtypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
