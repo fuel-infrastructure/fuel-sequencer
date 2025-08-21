@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 	blobtypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
 
@@ -56,36 +57,49 @@ func (h *FuelSequencerProposalHandler) filterBlobTransactions(ctx sdk.Context, t
 }
 
 // validateBlobTransactions validates that all blob transactions have available blobs and correct hashes
-func (h *FuelSequencerProposalHandler) validateBlobTransactions(txs [][]byte) error {
+func (h *FuelSequencerProposalHandler) validateBlobTransactions(txs [][]byte) (validateError error) {
+	defer func() {
+		if validateError != nil {
+			metrics.IncrementBlobProposalValidationFailures(validateError)
+		}
+	}()
+
 	for _, txBytes := range txs {
 		tx, err := h.txVerifier.TxDecode(txBytes)
 		if err != nil {
-			return fmt.Errorf("failed to decode transaction: %w", err)
+			validateError = fmt.Errorf("failed to decode transaction: %w", err)
+			return
 		}
 
 		for _, msg := range tx.GetMsgs() {
 			if blobMsg, ok := msg.(*blobtypes.MsgBlobMetadataTx); ok {
 				metadataKey, err := store.ParseKey(blobMsg.Hash)
 				if err != nil {
-					return fmt.Errorf("failed to parse blob hash: %w", err)
+					validateError = fmt.Errorf("failed to parse blob hash: %w", err)
+					return
 				}
 
 				// Only check local blob pool - no external downloads
 				if !h.blobKeeper.Has(metadataKey) {
-					return fmt.Errorf("blob not available in local pool: %s", metadataKey)
+					validateError = fmt.Errorf("blob not available in local pool: %s", metadataKey)
+					return
 				}
 
 				// Get blob data from local pool and verify hash
 				blob, err := h.blobKeeper.Get(metadataKey)
 				if err != nil {
-					return fmt.Errorf("failed to get blob data from local pool: %s", metadataKey)
+					validateError = fmt.Errorf("failed to get blob data from local pool: %s", metadataKey)
+					return
 				}
 
 				// Verify hash matches
 				recomputedKey := store.NewKey(blob.Data)
 				if recomputedKey.String() != metadataKey.String() {
-					return fmt.Errorf("blob hash mismatch: %s", metadataKey)
+					validateError = fmt.Errorf("blob hash mismatch: %s", metadataKey)
+					return
 				}
+
+				metrics.IncrementBlobProposalValidationSuccess()
 			}
 		}
 	}

@@ -19,7 +19,7 @@ func ObserveBlobSyncLatency(duration time.Duration) {
 	utils.SafeSetMetric(func() {
 		telemetry.SetGauge(
 			float32(duration.Milliseconds()),
-			append(utils.KeysBeginBlock, "blob", "sync", "latency", "ms")...,
+			append(utils.KeysBlobhub, "sync", "latency", "ms")...,
 		)
 	})
 }
@@ -33,7 +33,7 @@ func SetBlobhubConnectionStatus(connected bool) {
 		}
 		telemetry.SetGauge(
 			float32(status),
-			append(utils.KeysStore, "blob", "blobhub", "connection", "status")...,
+			append(utils.KeysBlobhub, "connection", "status")...,
 		)
 	})
 }
@@ -41,14 +41,14 @@ func SetBlobhubConnectionStatus(connected bool) {
 // IncrementBlobhubReconnections increments the reconnection counter
 func IncrementBlobhubReconnections() {
 	utils.SafeSetMetric(func() {
-		telemetry.IncrCounter(1, append(utils.KeysStore, "blob", "blobhub", "reconnections")...)
+		telemetry.IncrCounter(1, append(utils.KeysBlobhub, "reconnections")...)
 	})
 }
 
 // IncrementBlobhubErrors increments the error counter
 func IncrementBlobhubErrors() {
 	utils.SafeSetMetric(func() {
-		telemetry.IncrCounter(1, append(utils.KeysStore, "blob", "blobhub", "errors")...)
+		telemetry.IncrCounter(1, append(utils.KeysBlobhub, "errors")...)
 	})
 }
 
@@ -102,7 +102,7 @@ func ObserveBlobRetrievalTime(duration time.Duration) {
 	utils.SafeSetMetric(func() {
 		telemetry.SetGauge(
 			float32(duration.Milliseconds()),
-			append(utils.KeysTxMsg, "blob", "retrieval", "time", "ms")...,
+			append(utils.KeysBlobpool, "retrieval", "time", "ms")...,
 		)
 	})
 }
@@ -112,7 +112,7 @@ func ObserveBlobStorageLatency(duration time.Duration) {
 	utils.SafeSetMetric(func() {
 		telemetry.SetGauge(
 			float32(duration.Milliseconds()),
-			append(utils.KeysTxMsg, "blob", "storage", "latency", "ms")...,
+			append(utils.KeysBlobpool, "storage", "latency", "ms")...,
 		)
 	})
 }
@@ -122,7 +122,7 @@ func ObserveBlobSize(size int) {
 	utils.SafeSetMetric(func() {
 		telemetry.SetGauge(
 			float32(size),
-			append(utils.KeysTxMsg, "blob", "size", "bytes")...,
+			append(utils.KeysBlobpool, "size", "bytes")...,
 		)
 	})
 }
@@ -131,21 +131,21 @@ func ObserveBlobSize(size int) {
 // Consensus Integration Metrics
 // ============================================================================
 
-// IncrementBlobProposalSuccess increments the successful proposal counter
-func IncrementBlobProposalSuccess() {
+// IncrementBlobProposalValidationSuccess increments the successful proposal counter
+func IncrementBlobProposalValidationSuccess() {
 	utils.SafeSetMetric(func() {
-		telemetry.IncrCounter(1, append(utils.KeysTxMsg, "blob", "proposal", "success")...)
+		telemetry.IncrCounter(1, append(utils.KeysTxMsg, "blob", "proposal", "validation", "success")...)
 	})
 }
 
-// IncrementBlobValidationFailures increments the validation failure counter
-func IncrementBlobValidationFailures(reason string) {
+// IncrementBlobProposalValidationFailures increments the validation failure counter
+func IncrementBlobProposalValidationFailures(reason error) {
 	utils.SafeSetMetric(func() {
 		telemetry.IncrCounterWithLabels(
-			append(utils.KeysTxMsg, "blob", "validation", "failure"),
+			append(utils.KeysTxMsg, "blob", "proposal", "validation", "failure"),
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("reason", reason),
+				telemetry.NewLabel("reason", reason.Error()),
 			},
 		)
 	})
@@ -159,7 +159,7 @@ func IncrementBlobValidationFailures(reason string) {
 func IncrementBlobThroughput(blobSize int) {
 	utils.SafeSetMetric(func() {
 		telemetry.IncrCounterWithLabels(
-			append(utils.KeysTxMsg, "blob", "throughput"),
+			append(utils.KeysBlobpool, "throughput"),
 			float32(blobSize),
 			[]metrics.Label{
 				telemetry.NewLabel("size_bytes", strconv.Itoa(blobSize)),
@@ -172,7 +172,7 @@ func IncrementBlobThroughput(blobSize int) {
 func IncrementBlobLifecycleEvents(eventType string, blobHash string) {
 	utils.SafeSetMetric(func() {
 		telemetry.IncrCounterWithLabels(
-			append(utils.KeysTxMsg, "blob", "lifecycle", "event"),
+			append(utils.KeysBlobpool, "lifecycle", "event"),
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel("event_type", eventType),
@@ -196,11 +196,11 @@ func UpdateBlobpoolHitMissRatios(hits, misses uint) {
 
 			telemetry.SetGauge(
 				float32(hitRatio),
-				append(utils.KeysBeginBlock, "blob", "pool", "hit", "ratio")...,
+				append(utils.KeysBlobpool, "hit", "ratio")...,
 			)
 			telemetry.SetGauge(
 				float32(missRatio),
-				append(utils.KeysBeginBlock, "blob", "pool", "miss", "ratio")...,
+				append(utils.KeysBlobpool, "miss", "ratio")...,
 			)
 		}
 	})

@@ -15,6 +15,7 @@ var (
 	KeysBeginBlock  = append(KeysSequencer, "begin", "block")
 	KeysEndBlock    = append(KeysSequencer, "end", "block")
 	KeysTxMsg       = append(KeysSequencer, "tx", "msg")
+	KeysBlobhub     = append(KeysSequencer, "blobhub")
 	KeysBlobpool    = append(KeysSequencer, "blobpool")
 	KeysStore       = append(KeysSequencer, "store")
 

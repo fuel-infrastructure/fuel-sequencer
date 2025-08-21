@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -36,8 +37,8 @@ func TestBlobMetricsFunctions(t *testing.T) {
 
 	// Test consensus integration metrics
 	assert.NotPanics(t, func() {
-		IncrementBlobProposalSuccess()
-		IncrementBlobValidationFailures("test_reason")
+		IncrementBlobProposalValidationSuccess()
+		IncrementBlobProposalValidationFailures(errors.New("test_reason"))
 	})
 
 	// Test throughput and lifecycle metrics
@@ -141,9 +142,9 @@ func TestBlobMetricsLargeValues(t *testing.T) {
 func TestBlobMetricsStringValues(t *testing.T) {
 	// Test with various string values for labels
 	assert.NotPanics(t, func() {
-		IncrementBlobValidationFailures("")
-		IncrementBlobValidationFailures("very_long_reason_string_that_might_cause_issues")
-		IncrementBlobValidationFailures("special_chars_!@#$%^&*()")
+		IncrementBlobProposalValidationFailures(errors.New(""))
+		IncrementBlobProposalValidationFailures(errors.New("very_long_reason_string_that_might_cause_issues"))
+		IncrementBlobProposalValidationFailures(errors.New("special_chars_!@#$%^&*()"))
 		IncrementBlobLifecycleEvents("event_type", "")
 		IncrementBlobLifecycleEvents("event_type", "very_long_hash_string_that_might_cause_issues")
 		IncrementBlobLifecycleEvents("event_type", "special_chars_!@#$%^&*()")
