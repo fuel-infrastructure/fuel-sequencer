@@ -69,14 +69,7 @@ func (c *Client) SubmitBlobMetadataTx(
 		return &submissionResponse, fmt.Errorf("transaction failed: %s", submissionResponse.RawLog)
 	}
 
-	// Wait for transaction to be included in a block and get full details
-	fullResponse, err := c.waitForTransactionConfirmation(ctx, submissionResponse.TxHash, 30*time.Second)
-	if err != nil {
-		// If we can't get full details, return the initial response
-		return &submissionResponse, fmt.Errorf("transaction broadcast but confirmation failed: %w", err)
-	}
-
-	return fullResponse, nil
+	return &submissionResponse, nil
 }
 
 func (c *Client) setupTxFactory(msg sdk.Msg) (tx.Factory, error) {
