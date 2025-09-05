@@ -38,12 +38,12 @@ func defaultSetup(
 	distribution blobgen.BlobSizeDistribution) *Config {
 	cfg := &Config{
 		BlobhubURL:       "http://localhost:31035",
-		SequencerGRPC:    "localhost:9090",
+		SequencerRPC:     "http://localhost:26657",
 		ProfileRate:      profileRate,
 		BlobDistribution: distribution,
 		MaxLatency:       25 * time.Second,
 		Topic:            "test-topic",
-		Sender:           "test-sender",
+		Sender:           "eve",
 	}
 
 	if err := cfg.Validate(); err != nil {

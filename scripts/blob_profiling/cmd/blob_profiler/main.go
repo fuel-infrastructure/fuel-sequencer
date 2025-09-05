@@ -14,7 +14,8 @@ import (
 func main() {
 	// Command line flags
 	var (
-		blobhubURL = flag.String("blobhub", "", "Override blobhub URL")
+		blobhubURL   = flag.String("blobhub", "", "Override blobhub URL")
+		sequencerRPC = flag.String("sequencer", "", "Override sequencer RPC URL")
 	)
 	flag.Parse()
 
@@ -30,6 +31,9 @@ func main() {
 	if *blobhubURL != "" {
 		cfg.BlobhubURL = *blobhubURL
 	}
+	if *sequencerRPC != "" {
+		cfg.SequencerRPC = *sequencerRPC
+	}
 
 	// Validate configuration
 	if err := cfg.Validate(); err != nil {
@@ -38,18 +42,19 @@ func main() {
 	}
 
 	logger.Info("Blobhub URL", "url", cfg.BlobhubURL)
+	logger.Info("Sequencer RPC URL", "url", cfg.SequencerRPC)
 	logger.Info("Start Rate", "rate_KiB", cfg.Rate(0)/size.KiB)
 	logger.Info("Max Rate", "rate_MiB", cfg.MaxRate/size.MiB)
 
+	ctx := context.Background()
+
 	// Create profiler
-	profiler, err := profiler.NewBlobProfiler(cfg, logger)
+	profiler, err := profiler.NewBlobProfiler(ctx, cfg, logger)
 	if err != nil {
 		logger.Error("Failed to create blob profiler - will exit", "error", err)
 		os.Exit(1)
 	}
 	defer profiler.Close()
-
-	ctx := context.Background()
 
 	// Run profiling
 	blobs, err := profiler.RunProfile(ctx)

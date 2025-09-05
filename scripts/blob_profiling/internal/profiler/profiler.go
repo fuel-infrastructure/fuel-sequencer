@@ -2,14 +2,16 @@ package profiler
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math"
 	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
-	"github.com/fuel-infrastructure/blob-storage/pkg/client"
+	blobhub "github.com/fuel-infrastructure/blob-storage/pkg/client"
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
 
@@ -19,24 +21,34 @@ const (
 
 // BlobProfiler is the main profiling engine
 type BlobProfiler struct {
-	logger        *slog.Logger
-	blobhubClient *client.Client
-	generator     *blobgen.BlobGenerator
-	config        *config.Config
+	logger    *slog.Logger
+	blobhub   *blobhub.Client
+	sequencer *sequencer.Client
+	generator *blobgen.BlobGenerator
+	config    *config.Config
 }
 
 // NewBlobProfiler creates a new blob profiler instance
-func NewBlobProfiler(cfg *config.Config, logger *slog.Logger) (*BlobProfiler, error) {
+func NewBlobProfiler(
+	ctx context.Context, cfg *config.Config, logger *slog.Logger,
+) (*BlobProfiler, error) {
 	// Initialize blobhub client
-	blobhubClient := client.NewClient(&client.ClientConfig{
+	blobhubClient := blobhub.NewClient(&blobhub.ClientConfig{
 		BaseURL: cfg.BlobhubURL,
 	})
 
+	// Initialize sequencer client
+	sequencerClient, err := sequencer.NewClient(ctx, cfg.SequencerRPC, cfg.Topic, cfg.Sender)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create sequencer client: %w", err)
+	}
+
 	return &BlobProfiler{
-		logger:        logger,
-		blobhubClient: blobhubClient,
-		generator:     blobgen.NewBlobGenerator(42, cfg.BlobDistribution),
-		config:        cfg,
+		logger:    logger,
+		blobhub:   blobhubClient,
+		sequencer: sequencerClient,
+		generator: blobgen.NewBlobGenerator(42, cfg.BlobDistribution),
+		config:    cfg,
 	}, nil
 }
 
@@ -51,7 +63,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	defer cancel()
 
 	var currentThroughput, dataSubmitted int64
-	var blobCount int
+	var blobCount uint64
 	nextBlob := p.generateBlob()
 	blobs := make([]*types.TrackedBlob, 0)
 
@@ -81,7 +93,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		}
 
 		dataSubmitted += nextBlob.Size
-		go p.submitBlob(pctx, cancel, nextBlob)
+		p.castBlob(pctx, cancel, nextBlob, blobCount)
 		blobs = append(blobs, nextBlob)
 		blobCount++
 
@@ -92,5 +104,5 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 }
 
 func (p *BlobProfiler) Close() {
-	p.blobhubClient.Close()
+	p.blobhub.Close()
 }

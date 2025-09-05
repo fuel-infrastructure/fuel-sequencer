@@ -15,7 +15,7 @@ type ProfileRate struct {
 // Config holds the profiler configuration
 type Config struct {
 	BlobhubURL       string `json:"blobhub_url"`
-	SequencerGRPC    string `json:"sequencer_grpc"`
+	SequencerRPC     string `json:"sequencer_rpc"`
 	ProfileRate      `json:"profile_rate"`
 	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"`
 	MaxLatency       time.Duration                `json:"max_latency"`
@@ -25,11 +25,11 @@ type Config struct {
 
 // Configuration validation errors
 var (
-	ErrEmptyBlobhubURL    = errors.New("blobhub URL cannot be empty")
-	ErrEmptySequencerGRPC = errors.New("sequencer gRPC address cannot be empty")
-	ErrNilRateFunction    = errors.New("invalid rate function: must be non-nil")
-	ErrInvalidMaxRate     = errors.New("invalid max rate: must be positive")
-	ErrInvalidMaxLatency  = errors.New("invalid max latency: must be positive")
+	ErrEmptyBlobhubURL   = errors.New("blobhub URL cannot be empty")
+	ErrEmptySequencerRPC = errors.New("sequencer RPC address cannot be empty")
+	ErrNilRateFunction   = errors.New("invalid rate function: must be non-nil")
+	ErrInvalidMaxRate    = errors.New("invalid max rate: must be positive")
+	ErrInvalidMaxLatency = errors.New("invalid max latency: must be positive")
 )
 
 // Validate checks if the configuration is valid
@@ -37,8 +37,8 @@ func (c *Config) Validate() error {
 	if c.BlobhubURL == "" {
 		return ErrEmptyBlobhubURL
 	}
-	if c.SequencerGRPC == "" {
-		return ErrEmptySequencerGRPC
+	if c.SequencerRPC == "" {
+		return ErrEmptySequencerRPC
 	}
 	if c.Rate == nil {
 		return ErrNilRateFunction

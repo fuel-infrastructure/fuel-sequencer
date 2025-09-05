@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 )
 
@@ -43,6 +44,7 @@ func (s Status) String() string {
 // TrackedBlob represents a blob with its metadata
 type TrackedBlob struct {
 	store.StoredBlob
+	*sdk.TxResponse
 	Size       int64
 	Submission *Submission
 }
