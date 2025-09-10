@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
@@ -39,28 +38,20 @@ func (k msgServer) PostBlobMetadata(
 
 // ProcessBlobMetadata processes a blob metadata transaction
 func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataTx) error {
-	// Verify blob data is available (either in blobpool or blobhub)
+	// Notify if blob data is available (either in blobpool or blobhub)
 	// var blob *store.StoredBlob
 
 	// First check the blobpool - ValidateBasic handled the error, can skip the check
 	hash, _ := store.ParseKey(msg.Hash)
-	if k.Has(hash) {
-		// blob, err = k.blobpool.getBlob(hash)
-		// if err != nil {
-		// 	return errors.Wrap(err, "failed to get blob data from blobpool")
-		// }
-
-		return nil
+	if !k.Has(hash) {
+		ctx.Logger().Debug(
+			"blob metadata tx received, without blob in blobpool",
+			"blob_hash", hash.String())
+	} else {
+		ctx.Logger().Debug(
+			"blob metadata tx received, blob already in blobpool",
+			"blob_hash", hash.String())
 	}
-	// else if k.blobhubClient.has(hash) {
-	// 	panic("not implemented yet - blob metadata should be stored in blobpool")
-	// 	return errors.Wrap(types.ErrBlobNotFound, "blob data source available")
-	// }
 
-	err := errors.Wrap(
-		types.ErrBlobNotFound,
-		"node has not retrieved the respective blob yet; make sure blob was submitted in the first place; hash: "+msg.Hash,
-	)
-	ctx.Logger().Error(err.Error())
-	return err
+	return nil
 }
