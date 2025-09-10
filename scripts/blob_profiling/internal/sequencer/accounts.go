@@ -4,6 +4,8 @@ type Account struct {
 	Name     string
 	Address  string
 	Mnemonic string
+
+	Sequence uint64
 }
 
 var Accounts = map[string]Account{

@@ -9,23 +9,43 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 )
 
+const (
+	nanosPerSecond = int(time.Second)
+)
+
 var (
 	// constant intends to keep a fixed throughput rate
-	constant = ProfileRate{
-		Rate:    func(_ time.Duration) int64 { return 100 * size.KiB }, // same as StartRate
+	constant = Profile{
 		MaxRate: size.MiB,
+		Rate:    func(_ time.Duration) int { return 100 * size.KiB }, // constant rate
+		Size: func(x time.Duration) int {
+			seconds := int(x / time.Second)
+			return 100 * size.KiB * seconds
+		},
 	}
 
 	// linear intends a monotonic but fixed increase in the throughput
-	_linear = ProfileRate{
-		Rate: func(duration time.Duration) int64 {
-			// every second, the rate increases by 100 KiB
-			ns := float32(duration.Nanoseconds())
-			s := ns / float32(time.Second)
-			rate := (1 + s) * 100 * size.KiB
-			return int64(rate)
-		},
+	_linear = Profile{
 		MaxRate: 200 * size.MiB,
+		Rate: func(duration time.Duration) int {
+			// 100*KiB + (100*KiB * nanos / nanosPerSecond)
+			// 100*KiB + (100*KiB * x)
+			nanos := int(duration)
+			baseRate := 100 * size.KiB
+			variableRate := (baseRate * nanos) / nanosPerSecond
+			return baseRate + variableRate
+		},
+		Size: func(x time.Duration) int {
+			// integral(100*KiB + (100*KiB * x)):
+			// 100*KiB * x + 100*KiB * 0.5 * x^2
+			// 100*KiB * (x + 0.5 * x^2)
+			seconds := x.Seconds()
+			baseRate := float64(100 * size.KiB)
+
+			// Do calculation in float64, then convert once at the end
+			total := baseRate * (seconds + 0.5*seconds*seconds)
+			return int(total)
+		},
 	}
 
 	// todo: exponential
@@ -34,14 +54,16 @@ var (
 // defaultSetup returns a linear rate configuration
 func defaultSetup(
 	logger *slog.Logger,
-	profileRate ProfileRate,
+	profile Profile,
 	distribution blobgen.BlobSizeDistribution) *Config {
 	cfg := &Config{
 		BlobhubURL:       "http://localhost:31035",
 		SequencerRPC:     "http://localhost:26657",
-		ProfileRate:      profileRate,
+		Profile:          profile,
 		BlobDistribution: distribution,
 		MaxLatency:       25 * time.Second,
+		BufferDuration:   5 * time.Second,
+		BlobTimeout:      (2 * 6) * time.Second, // 2 blocks
 		Topic:            "test-topic",
 		Sender:           "eve",
 	}

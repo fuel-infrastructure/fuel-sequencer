@@ -3,6 +3,7 @@ package sequencer
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"cosmossdk.io/x/evidence"
 	"cosmossdk.io/x/upgrade"
@@ -37,9 +38,10 @@ const (
 )
 
 type Client struct {
-	rpcURL string
-	sender Account
-	topic  string
+	rpcURL  string
+	Sender  Account
+	topic   string
+	timeout time.Duration // Timeout till blob metadata is finalised
 
 	keyName   string
 	clientCtx client.Context
@@ -70,7 +72,10 @@ func makeEncodingConfig() EncodingConfig {
 	return testutil.MakeTestEncodingConfig(modules...)
 }
 
-func NewClient(ctx context.Context, rpcURL, topic, sender string) (*Client, error) {
+func NewClient(
+	ctx context.Context, rpcURL, topic, sender string, blobTimeout time.Duration) (
+	*Client, error,
+) {
 	// Initialize RPC client
 	rpcClient, err := rpchttp.New(rpcURL, "/websocket")
 	if err != nil {
@@ -133,12 +138,19 @@ func NewClient(ctx context.Context, rpcURL, topic, sender string) (*Client, erro
 		Mnemonic: acc.Mnemonic,
 	}
 
-	return &Client{
-		rpcURL:  rpcURL,
-		sender:  senderAccount,
-		topic:   topic,
-		keyName: keyName,
+	// Query account to get existing sequence
+	account, err := clientCtx.AccountRetriever.GetAccount(clientCtx, addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account: %w", err)
+	}
+	senderAccount.Sequence = account.GetSequence()
 
+	return &Client{
+		rpcURL:    rpcURL,
+		Sender:    senderAccount,
+		topic:     topic,
+		keyName:   keyName,
+		timeout:   blobTimeout,
 		clientCtx: clientCtx,
 		txFactory: tx.Factory{},
 		keyring:   kr,

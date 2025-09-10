@@ -16,17 +16,21 @@ import (
 
 // SubmitBlobMetadataTx posts blob data directly to the sequencer using x/blob module
 func (c *Client) SubmitBlobMetadataTx(
-	ctx context.Context, blob *types.TrackedBlob, order uint64) (*sdk.TxResponse, error) {
-	// Create MsgBlobMetadataTx
-	msgPostBlobMetadata := &blobtypes.MsgBlobMetadataTx{
-		Sender: c.sender.Address,
-		Hash:   blob.Receipt.Key.String(),
-		Size_:  uint64(len(blob.StoredBlob.Data)),
-		Topic:  c.topic,
-		Nonce:  order,
+	ctx context.Context, blobs []*types.TrackedBlob, txSequence uint64, blobNonce int) (*sdk.TxResponse, error) {
+	// Create MsgsBlobMetadataTxs
+	msgsPostBlobMetadata := make([]sdk.Msg, len(blobs))
+
+	for i, blob := range blobs {
+		msgsPostBlobMetadata[i] = &blobtypes.MsgBlobMetadataTx{
+			Sender: c.Sender.Address,
+			Hash:   blob.Receipt.Key.String(),
+			Size_:  uint64(len(blob.StoredBlob.Data)),
+			Topic:  c.topic,
+			Nonce:  uint64(blobNonce + i),
+		}
 	}
 
-	txFactory, err := c.setupTxFactory(msgPostBlobMetadata)
+	txFactory, err := c.setupTxFactory(msgsPostBlobMetadata, txSequence)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup transaction factory: %w", err)
 	}
@@ -36,7 +40,7 @@ func (c *Client) SubmitBlobMetadataTx(
 	clientCtxWithOutput := c.clientCtx.WithOutput(outputBuffer)
 
 	// Broadcast transaction
-	err = tx.GenerateOrBroadcastTxWithFactory(clientCtxWithOutput, txFactory, msgPostBlobMetadata)
+	err = tx.GenerateOrBroadcastTxWithFactory(clientCtxWithOutput, txFactory, msgsPostBlobMetadata...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to broadcast transaction: %w", err)
 	}
@@ -72,7 +76,7 @@ func (c *Client) SubmitBlobMetadataTx(
 	return &submissionResponse, nil
 }
 
-func (c *Client) setupTxFactory(msg sdk.Msg) (tx.Factory, error) {
+func (c *Client) setupTxFactory(msgs []sdk.Msg, txSequence uint64) (tx.Factory, error) {
 	// Get the from address from client context (this is the actual derived address)
 	fromAddr := c.clientCtx.GetFromAddress()
 
@@ -89,7 +93,7 @@ func (c *Client) setupTxFactory(msg sdk.Msg) (tx.Factory, error) {
 		WithTxConfig(c.clientCtx.TxConfig).
 		WithKeybase(c.clientCtx.Keyring).
 		WithAccountNumber(acc.GetAccountNumber()).
-		WithSequence(acc.GetSequence()).
+		WithSequence(txSequence).
 		WithGasAdjustment(1.2).
 		WithSignMode(signing.SignMode_SIGN_MODE_DIRECT)
 
@@ -98,7 +102,7 @@ func (c *Client) setupTxFactory(msg sdk.Msg) (tx.Factory, error) {
 		return txFactory, fmt.Errorf("failed to ensure account exists: %w", err)
 	}
 
-	_, gasEstimate, err := tx.CalculateGas(c.clientCtx, txFactory, msg)
+	_, gasEstimate, err := tx.CalculateGas(c.clientCtx, txFactory, msgs...)
 	if err != nil {
 		return txFactory, fmt.Errorf("failed to calculate gas: %w", err)
 	}

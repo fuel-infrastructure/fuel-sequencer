@@ -8,53 +8,51 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
 
-// castBlob is a fire-and-forget function that handles the blob submission.
-// All while keeping track of the status along the blob lifetime.
+// castBlobs handles the blob submission.
+// Intended to be run sequentially.
 //
 // This process includes:
 //   - T0: Start of blob being submitted (pre-requisites done)
 //   - T1: Submit to blobhub first
 //   - T2: Submit to sequencer
-//   - T3: Check if blob is in blobpool
-//   - T4: Check if blob is in proposal
-//   - T5: Check if blob is in validated block
-//   - T6: Check if blob is in finalized block
-func (p *BlobProfiler) castBlob(
-	ctx context.Context, cancel context.CancelFunc, blob *types.TrackedBlob,
-	order uint64,
-) {
+func (p *BlobProfiler) castBlobs(
+	ctx context.Context, cancel context.CancelFunc, blobs []*types.TrackedBlob,
+	txSequence uint64, blobNonce int,
+) (string, error) {
 	var err error
-	defer func() {
+
+	for _, blob := range blobs {
+		blob.Submission.StartTime = time.Now() // T0: Start of blob being submitted
+
+		// T1: Submit to blobhub first
+		receipt, err := p.blobhub.PutBlob(ctx, blob.StoredBlob.Data)
 		if err != nil {
+			log.Printf("failed to submit blob to blobhub: %v", err)
 			blob.Submission.Status = types.Failed
 			cancel()
 		}
-	}()
-
-	blob.Submission.StartTime = time.Now() // T0: Start of blob being submitted
-
-	// T1: Submit to blobhub first
-	receipt, err := p.blobhub.PutBlob(ctx, blob.StoredBlob.Data)
-	if err != nil {
-		log.Printf("failed to submit blob to blobhub: %v", err)
-		return
+		blob.Submission.Status = types.Stored
+		blob.Submission.StoreTime = receipt.StoredAt
+		blob.Receipt = *receipt
 	}
-	blob.Submission.Status = types.Stored
-	blob.Submission.StoreTime = receipt.StoredAt
-	blob.Receipt = *receipt
 
 	// T2: Submit to sequencer
-	resp, err := p.sequencer.SubmitBlobMetadataTx(ctx, blob, order)
+	resp, err := p.sequencer.SubmitBlobMetadataTx(ctx, blobs, txSequence, blobNonce)
 	if err != nil {
 		log.Printf("failed to submit blob metadata to sequencer: %v", err)
-		return
+		for _, blob := range blobs {
+			blob.Submission.Status = types.Failed
+		}
+		cancel()
+		return "", err
 	}
-	blob.Submission.Status = types.Submitted
-	blob.TxResponse = resp // Only has tx hash since not finalised yet
-	blob.Submission.MetadataTime = time.Now()
+	txHash := resp.TxHash
+	metadataTime := time.Now()
+	for _, blob := range blobs {
+		blob.Submission.Status = types.Submitted
+		blob.MetadataHash = txHash // Only has tx hash since not finalised yet
+		blob.Submission.MetadataTime = metadataTime
+	}
 
-	// TODO: T3: Check if blob is in blobpool
-	// TODO: T4: Check if blob is in proposal
-	// TODO: T5: Check if blob is in validated block
-	// TODO: T6: Check if blob is in finalized block
+	return txHash, nil
 }

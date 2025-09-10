@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 )
 
@@ -43,10 +43,11 @@ func (s Status) String() string {
 
 // TrackedBlob represents a blob with its metadata
 type TrackedBlob struct {
+	Submission   *Submission
+	Size         int
+	MetadataTx   *coretypes.ResultTx
+	MetadataHash string
 	store.StoredBlob
-	*sdk.TxResponse
-	Size       int64
-	Submission *Submission
 }
 
 // Submission tracks the lifecycle of a single blob submission
