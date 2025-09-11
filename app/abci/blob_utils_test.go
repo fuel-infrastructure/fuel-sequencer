@@ -1,8 +1,8 @@
 package abci_test
 
 import (
+	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -15,29 +15,23 @@ import (
 func TestBlobValidationIntegration(t *testing.T) {
 	// Create test keeper directly
 	k, _ := keepertest.BlobKeeper(t)
+	ctx := context.TODO()
 
 	// Create test blob data
 	data := []byte("test blob data")
 	key := store.NewKey(data)
-	blob := &store.StoredBlob{
-		Receipt: store.Receipt{
-			StoredAt: time.Now(),
-			Key:      key,
-		},
-		Data: data,
-	}
 
 	invalidKey := store.NewKey([]byte("invalid-hash"))
 
 	// Store blob in keeper
-	k.Insert(blob)
+	k.Insert(ctx, data)
 
 	// Test that blob is available
-	require.True(t, k.Has(key))
-	require.False(t, k.Has(invalidKey))
+	require.True(t, k.Has(ctx, key))
+	require.False(t, k.Has(ctx, invalidKey))
 
 	// Test blob data retrieval
-	retrieved, err := k.Get(key)
+	retrieved, err := k.Get(ctx, key)
 	require.NoError(t, err)
 	require.Equal(t, data, retrieved.Data)
 
@@ -54,20 +48,14 @@ func TestBlobValidationIntegration(t *testing.T) {
 
 func TestBlobHashVerification(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
+	ctx := context.TODO()
 
 	// Create test blob data
 	data := []byte("test blob data")
 	key := store.NewKey(data)
-	blob := &store.StoredBlob{
-		Receipt: store.Receipt{
-			StoredAt: time.Now(),
-			Key:      key,
-		},
-		Data: data,
-	}
 
 	// Store blob in keeper
-	k.Insert(blob)
+	k.Insert(ctx, data)
 
 	// Test hash verification
 	keyAgain := store.NewKey(data)
@@ -81,34 +69,28 @@ func TestBlobHashVerification(t *testing.T) {
 
 func TestBlobPoolOperations(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
+	ctx := context.TODO()
 
 	// Create test blob data
 	data := []byte("test blob data")
 	key := store.NewKey(data)
-	blob := &store.StoredBlob{
-		Receipt: store.Receipt{
-			StoredAt: time.Now(),
-			Key:      key,
-		},
-		Data: data,
-	}
 
 	// Initially, blob should not be available
-	require.False(t, k.Has(key))
+	require.False(t, k.Has(ctx, key))
 
 	// Store blob in keeper
-	k.Insert(blob)
+	k.Insert(ctx, data)
 
 	// Now blob should be available
-	require.True(t, k.Has(key))
+	require.True(t, k.Has(ctx, key))
 
 	// Test retrieval
-	retrieved, err := k.Get(key)
+	retrieved, err := k.Get(ctx, key)
 	require.NoError(t, err)
 	require.Equal(t, data, retrieved.Data)
 
 	// Test retrieval of non-existent blob
-	_, err = k.Get(store.NewKey([]byte("non-existent")))
+	_, err = k.Get(ctx, store.NewKey([]byte("non-existent")))
 	require.Error(t, err)
 }
 
@@ -142,29 +124,23 @@ func TestBlobKeeperAuthority(t *testing.T) {
 
 func TestBlobValidationLogic(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
+	ctx := context.TODO()
 
 	// Test the validation logic that would be used in ABCI handlers
 	data := []byte("test blob data")
 	key := store.NewKey(data)
-	blob := &store.StoredBlob{
-		Receipt: store.Receipt{
-			StoredAt: time.Now(),
-			Key:      key,
-		},
-		Data: data,
-	}
 
 	// Initially, blob should not be available for validation
-	require.False(t, k.Has(key))
+	require.False(t, k.Has(ctx, key))
 
 	// Store blob
-	k.Insert(blob)
+	k.Insert(ctx, data)
 
 	// Now it should be available
-	require.True(t, k.Has(key))
+	require.True(t, k.Has(ctx, key))
 
 	// Test hash verification logic
-	retrieved, err := k.Get(key)
+	retrieved, err := k.Get(ctx, key)
 	require.NoError(t, err)
 
 	retrievedHash := store.NewKey(retrieved.Data)

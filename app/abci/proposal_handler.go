@@ -436,7 +436,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		// Validate blob transactions
-		err = h.validateBlobTransactions(req.Txs)
+		err = h.validateBlobTransactions(ctx, req.Txs)
 		if err != nil {
 			return &abci.ResponseProcessProposal{
 				Status: abci.ResponseProcessProposal_REJECT,

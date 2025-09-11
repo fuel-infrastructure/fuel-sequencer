@@ -126,21 +126,14 @@ func (c *blobhubClient) sync(ctx context.Context) {
 			}
 
 			// Skip if we already have this blob
-			if c.blobpool.Has(key) {
+			if c.blobpool.Has(ctx, key) {
 				c.logger.Debug("skipping existing blob", "id", msg.ID)
 				continue
 			}
 
 			// Store the blob
-			blob := &store.StoredBlob{
-				Receipt: store.Receipt{
-					Key:      key,
-					StoredAt: time.Unix(msg.Timestamp, 0),
-				},
-				Data: data,
-			}
 			c.logger.Info("storing new blob", "id", msg.ID, "size", msg.Size)
-			c.blobpool.Insert(blob)
+			c.blobpool.Insert(ctx, data)
 		}
 	}
 }

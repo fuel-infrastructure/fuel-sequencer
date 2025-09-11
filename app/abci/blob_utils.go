@@ -1,6 +1,7 @@
 package abci
 
 import (
+	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,7 +36,7 @@ func (h *FuelSequencerProposalHandler) filterBlobTransactions(ctx sdk.Context, t
 				}
 
 				// Only check local blob pool - no external downloads
-				if !h.blobKeeper.Has(hash) {
+				if !h.blobKeeper.Has(ctx, hash) {
 					canInclude = false
 					ctx.Logger().Debug("skipping blob transaction with unavailable blob in local pool", "hash", hash)
 					break
@@ -57,7 +58,7 @@ func (h *FuelSequencerProposalHandler) filterBlobTransactions(ctx sdk.Context, t
 }
 
 // validateBlobTransactions validates that all blob transactions have available blobs and correct hashes
-func (h *FuelSequencerProposalHandler) validateBlobTransactions(txs [][]byte) (validateError error) {
+func (h *FuelSequencerProposalHandler) validateBlobTransactions(ctx context.Context, txs [][]byte) (validateError error) {
 	defer func() {
 		if validateError != nil {
 			metrics.IncrementBlobProposalValidationFailures(validateError)
@@ -80,13 +81,13 @@ func (h *FuelSequencerProposalHandler) validateBlobTransactions(txs [][]byte) (v
 				}
 
 				// Only check local blob pool - no external downloads
-				if !h.blobKeeper.Has(metadataKey) {
+				if !h.blobKeeper.Has(ctx, metadataKey) {
 					validateError = fmt.Errorf("blob not available in local pool: %s", metadataKey)
 					return
 				}
 
 				// Get blob data from local pool and verify hash
-				blob, err := h.blobKeeper.Get(metadataKey)
+				blob, err := h.blobKeeper.Get(ctx, metadataKey)
 				if err != nil {
 					validateError = fmt.Errorf("failed to get blob data from local pool: %s", metadataKey)
 					return
