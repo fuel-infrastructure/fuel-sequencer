@@ -13,7 +13,7 @@ import (
 func TestNewBlobpool(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	require.NotNil(t, pool)
 	require.NotNil(t, pool.logger)
@@ -26,7 +26,7 @@ func TestNewBlobpool(t *testing.T) {
 func TestBlobpool_HasBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	data := []byte("test data")
 	key := store.NewKey(data)
@@ -42,7 +42,7 @@ func TestBlobpool_HasBlob(t *testing.T) {
 func TestBlobpool_GetBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	// Test getting non-existent blob
 	key := store.Key{0x1, 0x2, 0x3}
@@ -64,7 +64,7 @@ func TestBlobpool_GetBlob(t *testing.T) {
 func TestBlobpool_StoreBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	data := []byte("test data")
 	key := store.NewKey(data)

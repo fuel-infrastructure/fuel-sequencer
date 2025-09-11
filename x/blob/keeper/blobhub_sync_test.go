@@ -65,7 +65,7 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	// Start mock server
 	server, _ := mockBlobhubServer(t)
@@ -91,7 +91,7 @@ func TestBlobhubClient_Connect(t *testing.T) {
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	// Start mock server
 	server, blobChan := mockBlobhubServer(t)

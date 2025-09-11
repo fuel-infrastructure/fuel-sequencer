@@ -7,6 +7,7 @@ import (
 
 	"cosmossdk.io/log"
 
+	blobserver "github.com/fuel-infrastructure/blob-storage/pkg/server"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store/syncmap"
 
@@ -14,11 +15,15 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
 
+const BlobpoolAddress = ":21025"
+
 // Blobpool manages blob storage at the application level
 type Blobpool struct {
 	logger log.Logger
 
-	store store.Store
+	store  store.Store
+	server *blobserver.Server
+
 	stats
 }
 
@@ -31,10 +36,16 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(logger log.Logger) *Blobpool {
+func newBlobpool(ctx context.Context, logger log.Logger) *Blobpool {
+
+	l := logger.With("module", "blobpool")
+	store := syncmap.Store(nil, false)
+	server := blobserver.NewProductionServer(ctx, store, false)
+
 	p := &Blobpool{
-		logger: logger.With("module", "blobpool"),
-		store:  syncmap.Store(nil, false),
+		logger: l,
+		store:  store,
+		server: server,
 		stats:  stats{},
 	}
 
