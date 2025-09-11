@@ -1,12 +1,14 @@
 package keeper
 
 import (
-	"sync"
+	"context"
+	"fmt"
 	"time"
 
 	"cosmossdk.io/log"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+	"github.com/fuel-infrastructure/blob-storage/pkg/store/syncmap"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
@@ -16,7 +18,7 @@ import (
 type Blobpool struct {
 	logger log.Logger
 
-	blobs sync.Map // hash -> blob data
+	store store.Store
 	stats
 }
 
@@ -32,7 +34,7 @@ type stats struct {
 func newBlobpool(logger log.Logger) *Blobpool {
 	p := &Blobpool{
 		logger: logger.With("module", "blobpool"),
-		blobs:  sync.Map{},
+		store:  syncmap.Store(nil, false),
 		stats:  stats{},
 	}
 
@@ -54,8 +56,12 @@ func (s *stats) update(hit bool) {
 }
 
 // Has checks if a blob is available in the pool
-func (p *Blobpool) Has(hash store.Key) bool {
-	_, exists := p.blobs.Load(hash)
+func (p *Blobpool) Has(ctx context.Context, hash store.Key) bool {
+	exists, err := p.store.Has(ctx, hash)
+	if err != nil {
+		p.logger.Error("failed to check blob existence", "hash", hash.String(), "error", err)
+		return false
+	}
 
 	p.update(exists) // Update hit/miss statistics
 
@@ -64,18 +70,16 @@ func (p *Blobpool) Has(hash store.Key) bool {
 }
 
 // Get retrieves a blob from the pool
-func (p *Blobpool) Get(hash store.Key) (*store.StoredBlob, error) {
+func (p *Blobpool) Get(ctx context.Context, hash store.Key) (*store.StoredBlob, error) {
 	start := time.Now()
-	aBlob, exists := p.blobs.Load(hash)
-	if !exists {
-		p.logger.Debug("blob not found", "hash", hash.String())
-		return nil, types.ErrBlobNotFound
-	}
-
-	blob, ok := aBlob.(*store.StoredBlob)
-	if !ok {
-		p.logger.Error("invalid blob type in pool", "hash", hash.String(), "type", aBlob)
-		return nil, types.ErrBlobNotFound
+	blob, err := p.store.Get(ctx, hash)
+	if err != nil {
+		if err == store.ErrNotFound {
+			p.logger.Debug("blob not found", "hash", hash.String())
+		} else {
+			p.logger.Error("failed to get blob", "hash", hash.String(), "error", err)
+		}
+		return nil, fmt.Errorf("%w: %w", types.ErrBlobNotFound, err)
 	}
 
 	// Record metrics
@@ -88,26 +92,30 @@ func (p *Blobpool) Get(hash store.Key) (*store.StoredBlob, error) {
 }
 
 // Insert stores a blob in the pool
-func (p *Blobpool) Insert(blob *store.StoredBlob) {
-	if blob == nil {
+func (p *Blobpool) Insert(ctx context.Context, data []byte) {
+	if data == nil {
 		p.logger.Error("attempted to store nil blob")
 		return
 	}
 
 	start := time.Now()
-	p.blobs.Store(blob.Key, blob)
+	receipt, err := p.store.Put(ctx, data)
+	if err != nil {
+		p.logger.Error("failed to store blob", "error", err)
+		return
+	}
 	storageLatency := time.Since(start)
 
 	// Record metrics
-	blobSize := len(blob.Data)
+	blobSize := len(data)
 	metrics.ObserveBlobStorageLatency(storageLatency)
 	metrics.ObserveBlobSize(blobSize)
 	metrics.IncrementBlobThroughput(blobSize)
-	metrics.IncrementBlobLifecycleEvents("insert", blob.Key.String())
+	metrics.IncrementBlobLifecycleEvents("insert", receipt.Key.String())
 
 	// Update pool size metric
 	p.count++
 	metrics.SetBlobpoolCount(p.count)
 
-	p.logger.Debug("stored blob", "hash", blob.Key.String(), "size", len(blob.Data))
+	p.logger.Debug("stored blob", "hash", receipt.Key.String(), "size", len(data))
 }
