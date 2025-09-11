@@ -313,6 +313,11 @@ func NewFuelSequencerApp(
 	}
 	app.commitmentsConfig = commitmentsCfg
 
+	// BLOB :: Initialize blobhub and blobpool connections
+	if err := app.BlobKeeper.Initialize(context.Background()); err != nil {
+		return nil, fmt.Errorf("failed to initialize blob keeper: %w", err)
+	}
+
 	// SIDECAR :: Configure
 	sidecarCfg, err := sidecarconfig.NewConfigFromAppOptions(appOpts)
 	if err != nil {

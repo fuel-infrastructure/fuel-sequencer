@@ -22,8 +22,9 @@ type (
 		// should be the x/gov module account.
 		authority string
 
-		*Blobpool                // node storage for unconfirmed blob transactions
-		blobhub   *blobhubClient // client for syncing with blobhub
+		initialised bool           // initialise blobhub and blobpool connections
+		*Blobpool                  // node storage for unconfirmed blob transactions
+		blobhub     *blobhubClient // client for syncing with blobhub
 	}
 )
 
@@ -32,18 +33,9 @@ func NewKeeper(
 	storeService store.KVStoreService,
 	logger log.Logger,
 	authority string,
-
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
-	}
-
-	ctx := context.Background()
-
-	blobpool := newBlobpool(logger)
-	blobhubClient, err := newBlobhubClient(ctx, logger, blobpool)
-	if err != nil {
-		panic(err)
 	}
 
 	return Keeper{
@@ -51,10 +43,39 @@ func NewKeeper(
 		storeService: storeService,
 		authority:    authority,
 		logger:       logger,
-
-		Blobpool: blobpool,
-		blobhub:  blobhubClient,
+		initialised:  false, // Don't initialize yet
 	}
+}
+
+// Initialize initializes the keeper's connections and services
+// This should be called only when the app is actually running
+func (k *Keeper) Initialize(ctx context.Context) error {
+	if k.initialised {
+		return nil // Already initialized
+	}
+
+	blobpool := newBlobpool(ctx, k.logger)
+	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		sl := k.logger.With("server")
+		sl.Info("starting blobpool server", "address", BlobpoolAddress)
+		err := k.server.StartServer(BlobpoolAddress)
+		if err != nil {
+			sl.Error("blobpool server failed", "error", err)
+			panic(err)
+		}
+	}()
+
+	k.Blobpool = blobpool
+	k.blobhub = blobhubClient
+	k.initialised = true
+
+	k.logger.Info("blob keeper initialized")
+	return nil
 }
 
 // GetAuthority returns the module's authority.

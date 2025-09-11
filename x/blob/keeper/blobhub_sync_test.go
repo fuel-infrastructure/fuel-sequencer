@@ -65,7 +65,7 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	// Start mock server
 	server, _ := mockBlobhubServer(t)
@@ -91,7 +91,7 @@ func TestBlobhubClient_Connect(t *testing.T) {
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool := newBlobpool(logger)
+	pool := newBlobpool(ctx, logger)
 
 	// Start mock server
 	server, blobChan := mockBlobhubServer(t)
@@ -128,8 +128,8 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob was stored in pool
-	assert.True(t, pool.Has(key))
-	retrieved, err := pool.Get(key)
+	assert.True(t, pool.Has(ctx, key))
+	retrieved, err := pool.Get(ctx, key)
 	require.NoError(t, err)
 	assert.Equal(t, blob.Key, retrieved.Key)
 	assert.Equal(t, blob.Data, retrieved.Data)
@@ -139,7 +139,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob is still stored correctly
-	retrieved, err = pool.Get(key)
+	retrieved, err = pool.Get(ctx, key)
 	require.NoError(t, err)
 	assert.Equal(t, blob.Data, retrieved.Data)
 

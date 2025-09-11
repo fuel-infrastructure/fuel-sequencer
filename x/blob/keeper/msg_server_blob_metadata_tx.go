@@ -43,7 +43,7 @@ func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataT
 
 	// First check the blobpool - ValidateBasic handled the error, can skip the check
 	hash, _ := store.ParseKey(msg.Hash)
-	if !k.Has(hash) {
+	if !k.Has(ctx, hash) {
 		ctx.Logger().Debug(
 			"blob metadata tx received, without blob in blobpool",
 			"blob_hash", hash.String())
