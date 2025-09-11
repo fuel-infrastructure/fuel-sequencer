@@ -40,6 +40,10 @@ func (k msgServer) PostBlobMetadata(
 func (k Keeper) ProcessBlobMetadata(ctx sdk.Context, msg *types.MsgBlobMetadataTx) error {
 	// Notify if blob data is available (either in blobpool or blobhub)
 	// var blob *store.StoredBlob
+	if k.Blobpool == nil {
+		ctx.Logger().Debug("blobpool not initialised - expected for simulation. Not critical, not returning error.")
+		return nil
+	}
 
 	// First check the blobpool - ValidateBasic handled the error, can skip the check
 	hash, _ := store.ParseKey(msg.Hash)
