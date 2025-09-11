@@ -6,7 +6,7 @@ replace (
 	// use custom cosmos-sdk with the targeted fixes
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.13-custom
 	// use custom blob-storage with the targeted fixes (branch: feature/reuseable-server)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20250911135535-7a1979248138
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20250911213036-ee82024eec23
 	// github.com/fuel-infrastructure/blob-storage => ../blob-storage
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7

@@ -7,6 +7,7 @@ import (
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
+	blobkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/blob/keeper"
 )
 
 const (
@@ -59,6 +60,7 @@ func defaultSetup(
 	cfg := &Config{
 		BlobhubURL:       "http://localhost:31035",
 		SequencerRPC:     "http://localhost:26657",
+		BlobpoolURL:      "http://localhost" + blobkeeper.BlobpoolAddress,
 		Profile:          profile,
 		BlobDistribution: distribution,
 		MaxLatency:       25 * time.Second,

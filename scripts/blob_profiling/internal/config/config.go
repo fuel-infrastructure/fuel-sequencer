@@ -22,6 +22,7 @@ type Profile struct {
 type Config struct {
 	BlobhubURL       string `json:"blobhub_url"`
 	SequencerRPC     string `json:"sequencer_rpc"`
+	BlobpoolURL      string `json:"blobpool_url"`
 	Profile          `json:"profile"`
 	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"`
 	MaxLatency       time.Duration                `json:"max_latency"`
@@ -35,6 +36,7 @@ type Config struct {
 var (
 	ErrEmptyBlobhubURL       = errors.New("blobhub URL cannot be empty")
 	ErrEmptySequencerRPC     = errors.New("sequencer RPC address cannot be empty")
+	ErrEmptyBlobpoolURL      = errors.New("blobpool URL cannot be empty")
 	ErrNilRateFunction       = errors.New("invalid profile rate function: must be non-nil")
 	ErrNilSizeFunction       = errors.New("invalid profile size function: must be non-nil")
 	ErrInvalidMaxRate        = errors.New("invalid profile max rate: must be positive")
@@ -50,6 +52,9 @@ func (c *Config) Validate() error {
 	}
 	if c.SequencerRPC == "" {
 		return ErrEmptySequencerRPC
+	}
+	if c.BlobpoolURL == "" {
+		return ErrEmptyBlobpoolURL
 	}
 	if c.Rate == nil {
 		return ErrNilRateFunction

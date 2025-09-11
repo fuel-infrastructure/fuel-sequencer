@@ -3,6 +3,7 @@ package profiler
 import (
 	"time"
 
+	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
@@ -48,4 +49,33 @@ func (p *BlobProfiler) supplementBuffer(runtime time.Duration) {
 	newBlobs, newBlobsSize := p.generateBlobs(requireBlobsSize)
 	p.buffer = append(p.buffer, newBlobs...)
 	p.bufferSize += newBlobsSize
+}
+
+func (p *BlobProfiler) collectBlobs(duration time.Duration, currentSize int) (
+	[]*types.TrackedBlob, int,
+) {
+	// plannedRate < currentThroughput is already handled
+
+	// Figure out how many blobs to send
+	expectedSize := p.config.Size(duration)
+	needSize := expectedSize - currentSize
+
+	// Yoink from upcomingBlobs into nextBlobs until expectedSize is reached
+	nextBlobs := make([]*types.TrackedBlob, 0)
+	nextBlobsSize := 0
+	for _, blob := range p.buffer {
+		nextBlobs = append(nextBlobs, blob)
+		nextBlobsSize += blob.Size
+		p.buffer, p.bufferSize = p.buffer[1:], p.bufferSize-blob.Size
+
+		if nextBlobsSize > needSize {
+			return nextBlobs, nextBlobsSize
+		}
+	}
+
+	p.logger.Error("didn't get enough blobs",
+		"need_size_KiB", needSize/size.KiB,
+		"have_size_KiB", nextBlobsSize/size.KiB,
+	)
+	return nextBlobs, nextBlobsSize
 }

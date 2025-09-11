@@ -11,6 +11,7 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 	blobhub "github.com/fuel-infrastructure/blob-storage/pkg/client"
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
+	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
@@ -25,14 +26,16 @@ type BlobProfiler struct {
 	logger    *slog.Logger
 	blobhub   *blobhub.Client
 	sequencer *sequencer.Client
+	blobpool  *blobhub.Client
 	generator *blobgen.BlobGenerator
 	config    *config.Config
 
 	buffer     []*types.TrackedBlob
 	bufferSize int
 
-	addTime    sync.Mutex          // protects blocktimes
-	blockTimes map[int64]time.Time // block height -> timestamp
+	addTime     sync.Mutex          // protects blocktimes
+	blockTimes  map[int64]time.Time // block height -> timestamp
+	*poolStatus                     // status for blobs in blobpool
 }
 
 // NewBlobProfiler creates a new blob profiler instance
@@ -52,14 +55,26 @@ func NewBlobProfiler(
 		return nil, fmt.Errorf("failed to create sequencer client: %w", err)
 	}
 
+	// Initialize blobpool client
+	blobpoolClient := blobhub.NewClient(&blobhub.ClientConfig{
+		BaseURL: cfg.BlobpoolURL,
+	})
+
 	return &BlobProfiler{
-		logger:     logger,
-		blobhub:    blobhubClient,
-		sequencer:  sequencerClient,
+		logger:    logger,
+		blobhub:   blobhubClient,
+		sequencer: sequencerClient,
+		blobpool:  blobpoolClient,
+
 		generator:  blobgen.NewBlobGenerator(42, cfg.BlobDistribution),
 		config:     cfg,
 		addTime:    sync.Mutex{},
 		blockTimes: make(map[int64]time.Time),
+		poolStatus: &poolStatus{
+			pending:  0,
+			refs:     make(map[store.Key]*types.TrackedBlob),
+			expected: make(map[store.Key]bool),
+		},
 	}, nil
 }
 
@@ -73,12 +88,23 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	pctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	// Setup blob buffer and counting
 	var currentThroughput, dataSubmitted int
 	txCount := p.sequencer.Sender.Sequence // start by considering existing transactions
 	var blobCount int
 	p.supplementBuffer(0)
 	blobs := make([]*types.TrackedBlob, 0)
 
+	// Handle blobpool tracking and messaging
+	stream, err := p.blobpool.StreamBlobs(pctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create blobpool stream: %w", err)
+	}
+	expect := make(chan *types.TrackedBlob, p.bufferSize)
+	consume := make(chan store.Key, p.bufferSize)
+	go p.catchBlobpool(pctx, cancel, expect, stream, consume)
+
+	// Setup timing and rate tracking
 	var duration time.Duration
 	start := time.Now()
 	plannedRate := p.config.Rate(0)
@@ -99,6 +125,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 				"submitted_KiB", dataSubmitted/size.KiB,
 				"upcoming_count", len(p.buffer),
 				"upcoming_KiB", p.bufferSize/size.KiB,
+				"pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
 				"duration_s", seconds,
 			)
 			lastlog = time.Now()
@@ -123,7 +150,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 			cancel()
 			return nil, err
 		}
-		go p.catchBlobs(pctx, cancel, txHash, nextBlobs)
+		go p.catchBlobs(pctx, cancel, expect, consume, txHash, nextBlobs)
 		blobs = append(blobs, nextBlobs...)
 		blobCount += len(nextBlobs)
 		txCount++
@@ -135,34 +162,12 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 }
 
 func (p *BlobProfiler) Close() {
-	p.blobhub.Close()
-}
-
-func (p *BlobProfiler) collectBlobs(duration time.Duration, currentSize int) (
-	[]*types.TrackedBlob, int,
-) {
-	// plannedRate < currentThroughput is already handled
-
-	// Figure out how many blobs to send
-	expectedSize := p.config.Size(duration)
-	needSize := expectedSize - currentSize
-
-	// Yoink from upcomingBlobs into nextBlobs until expectedSize is reached
-	nextBlobs := make([]*types.TrackedBlob, 0)
-	nextBlobsSize := 0
-	for _, blob := range p.buffer {
-		nextBlobs = append(nextBlobs, blob)
-		nextBlobsSize += blob.Size
-		p.buffer, p.bufferSize = p.buffer[1:], p.bufferSize-blob.Size
-
-		if nextBlobsSize > needSize {
-			return nextBlobs, nextBlobsSize
-		}
+	err := p.blobhub.Close()
+	if err != nil {
+		p.logger.Error("failed to close blobhub connection", "error", err)
 	}
-
-	p.logger.Error("didn't get enough blobs",
-		"need_size_KiB", needSize/size.KiB,
-		"have_size_KiB", nextBlobsSize/size.KiB,
-	)
-	return nextBlobs, nextBlobsSize
+	err = p.blobpool.Close()
+	if err != nil {
+		p.logger.Error("failed to close blobpool server connection", "error", err)
+	}
 }

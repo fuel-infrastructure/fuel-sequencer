@@ -16,6 +16,7 @@ func main() {
 	var (
 		blobhubURL   = flag.String("blobhub", "", "Override blobhub URL")
 		sequencerRPC = flag.String("sequencer", "", "Override sequencer RPC URL")
+		blobpoolURL  = flag.String("blobpool", "", "Override blobpool URL")
 	)
 	flag.Parse()
 
@@ -33,6 +34,9 @@ func main() {
 	}
 	if *sequencerRPC != "" {
 		cfg.SequencerRPC = *sequencerRPC
+	}
+	if *blobpoolURL != "" {
+		cfg.BlobpoolURL = *blobpoolURL
 	}
 
 	// Validate configuration
