@@ -16,7 +16,6 @@ type poolStatus struct {
 
 func (p *BlobProfiler) catchBlobpool(
 	ctx context.Context,
-	cancel context.CancelFunc,
 	expect <-chan *types.TrackedBlob,
 	stream <-chan *store.StoredBlob,
 	consume <-chan store.Key,

@@ -102,7 +102,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	}
 	expect := make(chan *types.TrackedBlob, p.bufferSize)
 	consume := make(chan store.Key, p.bufferSize)
-	go p.catchBlobpool(pctx, cancel, expect, stream, consume)
+	go p.catchBlobpool(pctx, expect, stream, consume)
 
 	// Setup timing and rate tracking
 	var duration time.Duration
