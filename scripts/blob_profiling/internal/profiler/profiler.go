@@ -108,9 +108,58 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	var duration time.Duration
 	start := time.Now()
 	plannedRate := p.config.Rate(0)
+	proceed := func() func() bool {
+		noDuration := p.config.Duration == 0
+		noMaxRate := p.config.MaxRate == 0
+		if noDuration && noMaxRate {
+			p.logger.Info("no duration or rate limit set, will run indefinitely")
+			return func() bool { return true }
+		}
+
+		durationCheck := func() bool {
+			d := time.Since(start)
+			c := p.config.Duration
+			resume := d < p.config.Duration
+			if !resume {
+				p.logger.Info("duration reached", "current_duration", d, "limit_duration", c)
+			}
+			return resume
+		}
+		rateCheck := func() bool {
+			resume := plannedRate <= p.config.MaxRate
+			if !resume {
+				p.logger.Info("max planned rate reached",
+					"limit_rate", p.config.MaxRate/size.KiB,
+					"planned_rate", plannedRate/size.KiB,
+					"current_rate", currentThroughput/size.KiB,
+				)
+			}
+			return resume
+		}
+
+		if noDuration {
+			p.logger.Info(
+				"duration not set, only rate limit - will stop when rate limit is reached",
+				"rate_KiB/s", plannedRate/size.KiB,
+			)
+			return rateCheck
+		}
+		if noMaxRate {
+			p.logger.Info(
+				"rate limit not set, only duration - will stop when duration is reached",
+				"duration", p.config.Duration,
+			)
+			return durationCheck
+		}
+		p.logger.Info(
+			"both duration and rate limit set, will stop when either is reached",
+			"duration", p.config.Duration, "rate_KiB/s", plannedRate/size.KiB,
+		)
+		return func() bool { return durationCheck() && rateCheck() }
+	}()
 
 	lastlog := start
-	for pctx.Err() == nil && plannedRate <= p.config.MaxRate {
+	for pctx.Err() == nil && proceed() {
 		duration = time.Since(start)
 		seconds := duration.Seconds()
 		currentThroughput = int(math.Round(float64(dataSubmitted) / seconds))

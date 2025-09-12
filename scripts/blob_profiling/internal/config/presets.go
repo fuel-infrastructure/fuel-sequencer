@@ -11,14 +11,17 @@ import (
 )
 
 const (
-	nanosPerSecond = int(time.Second)
+	nanosPerSecond  = int(time.Second)
+	defaultDuration = 1 * time.Minute
+	targetRate      = 170 * size.MiB
 )
 
 var (
 	// constant intends to keep a fixed throughput rate
 	constant = Profile{
-		MaxRate: size.MiB,
-		Rate:    func(_ time.Duration) int { return 100 * size.KiB }, // constant rate
+		Duration: defaultDuration,
+		MaxRate:  targetRate,
+		Rate:     func(_ time.Duration) int { return 100 * size.KiB }, // constant rate
 		Size: func(x time.Duration) int {
 			seconds := int(x / time.Second)
 			return 100 * size.KiB * seconds
@@ -27,7 +30,8 @@ var (
 
 	// linear intends a monotonic but fixed increase in the throughput
 	_linear = Profile{
-		MaxRate: 200 * size.MiB,
+		Duration: defaultDuration,
+		MaxRate:  targetRate,
 		Rate: func(duration time.Duration) int {
 			// 100*KiB + (100*KiB * nanos / nanosPerSecond)
 			// 100*KiB + (100*KiB * x)

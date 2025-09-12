@@ -7,7 +7,14 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 )
 
+// Profile defines the approach of the profiler for the generation of blobs
+// - If both Duration and MaxRate are defined, the profile until any condition is reached
+// - If Duration is not set, the profile will run until the MaxRate is reached
+// -If MaxRate is not set, the profile will run for the duration set by Duration
+// - If neither is set, it will run indefinitely
 type Profile struct {
+	// Duration is the duration the profile is allowed to run for
+	time.Duration `json:"duration"`
 	// MaxRate is the maximum rate of bytes/sec that the profiler will try to reach before stopping
 	MaxRate int `json:"max_rate"` // bytes/sec
 	// Rate is the bytes/sec rate at which of that the profiler will try to match ongoing throughput
@@ -37,6 +44,7 @@ var (
 	ErrEmptyBlobhubURL       = errors.New("blobhub URL cannot be empty")
 	ErrEmptySequencerRPC     = errors.New("sequencer RPC address cannot be empty")
 	ErrEmptyBlobpoolURL      = errors.New("blobpool URL cannot be empty")
+	ErrInvalidDuration       = errors.New("invalid duration: must be positive")
 	ErrNilRateFunction       = errors.New("invalid profile rate function: must be non-nil")
 	ErrNilSizeFunction       = errors.New("invalid profile size function: must be non-nil")
 	ErrInvalidMaxRate        = errors.New("invalid profile max rate: must be positive")
@@ -55,6 +63,12 @@ func (c *Config) Validate() error {
 	}
 	if c.BlobpoolURL == "" {
 		return ErrEmptyBlobpoolURL
+	}
+	if c.Duration < 0 {
+		return ErrInvalidDuration
+	}
+	if c.MaxRate < 0 {
+		return ErrInvalidMaxRate
 	}
 	if c.Rate == nil {
 		return ErrNilRateFunction
