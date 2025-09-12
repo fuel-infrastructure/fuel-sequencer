@@ -35,7 +35,6 @@ type Config struct {
 	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"`
 	MaxLatency       time.Duration                `json:"max_latency"`
 	BufferDuration   time.Duration                `json:"buffer_duration"` // Duration as buffer to keep generated blobs before submitting
-	BlobTimeout      time.Duration                `json:"blob_timeout"`
 	Topic            string                       `json:"topic"`
 	Sender           string                       `json:"sender"`
 }
@@ -51,7 +50,6 @@ var (
 	ErrInvalidMaxRate        = errors.New("invalid profile max rate: must be positive")
 	ErrInvalidMaxLatency     = errors.New("invalid max latency: must be positive")
 	ErrInvalidBufferDuration = errors.New("invalid buffer duration: must be positive")
-	ErrInvalidBlobTimeout    = errors.New("invalid blob timeout: must be positive")
 )
 
 // Validate checks if the configuration is valid
@@ -88,9 +86,6 @@ func (c *Config) Validate() error {
 	}
 	if c.BufferDuration <= 0 {
 		return ErrInvalidBufferDuration
-	}
-	if c.BlobTimeout <= 0 {
-		return ErrInvalidBlobTimeout
 	}
 	return nil
 }

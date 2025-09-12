@@ -3,10 +3,12 @@ package profiler
 import (
 	"context"
 	"time"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 )
 
 const (
-	blockTimeTimeout = 10 * time.Second
+	queryTimeout = 10 * time.Second
 )
 
 func (p *BlobProfiler) blocktime(ctx context.Context, height int64) time.Time {
@@ -14,7 +16,7 @@ func (p *BlobProfiler) blocktime(ctx context.Context, height int64) time.Time {
 		return t
 	}
 
-	timeout := time.NewTimer(blockTimeTimeout)
+	timeout := time.NewTimer(queryTimeout)
 	p.addTime.Lock()
 	defer p.addTime.Unlock()
 
@@ -34,7 +36,7 @@ func (p *BlobProfiler) blocktime(ctx context.Context, height int64) time.Time {
 
 			// Remove block times that are older than the blob timeout
 			for h, t := range p.blockTimes {
-				if t.Before(blocktime.Add(-p.config.BlobTimeout)) {
+				if t.Before(blocktime.Add(-sequencer.BlockRetention)) {
 					delete(p.blockTimes, h)
 				}
 			}

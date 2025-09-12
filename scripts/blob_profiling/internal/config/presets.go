@@ -70,7 +70,6 @@ func defaultSetup(
 		BlobDistribution: distribution,
 		MaxLatency:       25 * time.Second,
 		BufferDuration:   5 * time.Second,
-		BlobTimeout:      (2 * 6) * time.Second, // 2 blocks
 		Topic:            "test-topic",
 		Sender:           "eve",
 	}

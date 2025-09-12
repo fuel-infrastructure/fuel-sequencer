@@ -3,7 +3,6 @@ package sequencer
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"cosmossdk.io/x/evidence"
 	"cosmossdk.io/x/upgrade"
@@ -38,10 +37,9 @@ const (
 )
 
 type Client struct {
-	rpcURL  string
-	Sender  Account
-	topic   string
-	timeout time.Duration // Timeout till blob metadata is finalised
+	rpcURL string
+	Sender Account
+	topic  string
 
 	keyName   string
 	clientCtx client.Context
@@ -72,10 +70,7 @@ func makeEncodingConfig() EncodingConfig {
 	return testutil.MakeTestEncodingConfig(modules...)
 }
 
-func NewClient(
-	ctx context.Context, rpcURL, topic, sender string, blobTimeout time.Duration) (
-	*Client, error,
-) {
+func NewClient(ctx context.Context, rpcURL, topic, sender string) (*Client, error) {
 	// Initialize RPC client
 	rpcClient, err := rpchttp.New(rpcURL, "/websocket")
 	if err != nil {
@@ -150,7 +145,6 @@ func NewClient(
 		Sender:    senderAccount,
 		topic:     topic,
 		keyName:   keyName,
-		timeout:   blobTimeout,
 		clientCtx: clientCtx,
 		txFactory: tx.Factory{},
 		keyring:   kr,

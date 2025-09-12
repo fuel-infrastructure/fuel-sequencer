@@ -10,9 +10,13 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/testutil"
 )
 
+const (
+	BlockRetention = 2 * 6 * time.Second // 2 blocks
+)
+
 // waitForTransactionConfirmation waits for a transaction to be included in a block and returns the full response
 func (c *Client) WaitForMetadataTxFinalisation(ctx context.Context, txHash string) (*coretypes.ResultTx, error) {
-	timer := time.NewTimer(c.timeout)
+	timer := time.NewTimer(BlockRetention)
 	defer timer.Stop()
 
 	pendingErrorString := fmt.Sprintf("tx (%s) not found", txHash)

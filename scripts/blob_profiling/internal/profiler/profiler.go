@@ -52,9 +52,7 @@ func NewBlobProfiler(
 	})
 
 	// Initialize sequencer client
-	sequencerClient, err := sequencer.NewClient(
-		ctx, cfg.SequencerRPC, cfg.Topic, cfg.Sender, cfg.BlobTimeout,
-	)
+	sequencerClient, err := sequencer.NewClient(ctx, cfg.SequencerRPC, cfg.Topic, cfg.Sender)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create sequencer client: %w", err)
 	}
