@@ -95,7 +95,7 @@ func TestParquetWriterBatch(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	// Create writer with small batch size
-	writer, err := newWriter(tmpFile.Name(), logger, 3)
+	writer, err := newBlobWriter(tmpFile.Name(), logger, 3)
 	if err != nil {
 		t.Fatalf("Failed to create writer: %v", err)
 	}

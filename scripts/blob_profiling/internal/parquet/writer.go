@@ -21,8 +21,8 @@ type Writer struct {
 	profileStartTime time.Time
 }
 
-// newWriter creates a new parquet writer for blob profiling data
-func newWriter(filePath string, logger *slog.Logger, batchSize int) (*Writer, error) {
+// newBlobWriter creates a new parquet writer for blob profiling data
+func newBlobWriter(filePath string, logger *slog.Logger, batchSize int) (*Writer, error) {
 	// Create the output file
 	file, err := os.Create(filePath)
 	if err != nil {

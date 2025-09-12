@@ -171,17 +171,8 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		plannedRate = p.config.Rate(duration)
 
 		if time.Since(lastlog) > logFrequency {
-			p.logger.Info("throughput",
-				"expected_KiB/s", plannedRate/size.KiB,
-				"actual_KiB/s", currentThroughput/size.KiB,
-				"submitted_txs", txCount-p.sequencer.Sender.Sequence,
-				"submitted_count", blobCount,
-				"submitted_KiB", dataSubmitted/size.KiB,
-				"upcoming_count", len(p.buffer),
-				"upcoming_KiB", p.bufferSize/size.KiB,
-				"pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
-				"duration_s", seconds,
-			)
+			p.logThroughput(plannedRate, currentThroughput, txCount, dataSubmitted, blobCount, p.bufferSize, p.pending, seconds)
+
 			lastlog = time.Now()
 		}
 		if plannedRate < currentThroughput {
@@ -229,5 +220,45 @@ func (p *BlobProfiler) Close() {
 	err = p.blobpool.Close()
 	if err != nil {
 		p.logger.Error("failed to close blobpool server connection", "error", err)
+	}
+}
+
+func (p *BlobProfiler) logThroughput(
+	plannedRate int,
+	currentThroughput int,
+	txCount uint64,
+	dataSubmitted int,
+	blobCount int,
+	bufferSize int,
+	pending int,
+	seconds float64,
+) {
+	expectedKiBPerSec := plannedRate / size.KiB
+	actualKiBPerSec := currentThroughput / size.KiB
+	submittedTxs := txCount - p.sequencer.Sender.Sequence
+	submittedKiB := dataSubmitted / size.KiB
+	upcomingKiB := p.bufferSize / size.KiB
+
+	p.logger.Info("throughput",
+		"expected_KiB/s", expectedKiBPerSec,
+		"actual_KiB/s", actualKiBPerSec,
+		"submitted_txs", submittedTxs,
+		"submitted_count", blobCount,
+		"submitted_KiB", submittedKiB,
+		"upcoming_count", len(p.buffer),
+		"upcoming_KiB", upcomingKiB,
+		"pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
+		"duration_s", seconds,
+	)
+
+	// Write throughput data to parquet
+	throughputRecord := parquet.NewThroughputRecord(
+		int64(expectedKiBPerSec), int64(actualKiBPerSec),
+		int64(submittedTxs), int64(blobCount), int64(submittedKiB),
+		int64(len(p.buffer)), int64(upcomingKiB),
+		int64(p.pending), seconds,
+	)
+	if err := p.handler.WriteThroughput(throughputRecord); err != nil {
+		p.logger.Error("failed to write throughput data", "error", err)
 	}
 }
