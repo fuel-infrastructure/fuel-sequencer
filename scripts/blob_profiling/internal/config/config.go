@@ -27,14 +27,15 @@ type Profile struct {
 
 // Config holds the profiler configuration
 type Config struct {
-	BlobhubURL       string `json:"blobhub_url"`
-	SequencerRPC     string `json:"sequencer_rpc"`
-	BlobpoolURL      string `json:"blobpool_url"`
-	ParquetDir       string `json:"parquet_dir"`
-	Profile          `json:"profile"`
-	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"`
-	MaxLatency       time.Duration                `json:"max_latency"`
-	BufferDuration   time.Duration                `json:"buffer_duration"` // Duration as buffer to keep generated blobs before submitting
+	BlobhubURL       string                       `json:"blobhub_url"`   // Blobhub URL, the main shared instance for blob storage
+	SequencerRPC     string                       `json:"sequencer_rpc"` // Sequencer RPC URL, an instance of the sequencer
+	BlobpoolURL      string                       `json:"blobpool_url"`  // Blobpool URL, an instance of the blob-storage server, coupled to the sequencer's blobpool
+	ParquetDir       string                       `json:"parquet_dir"`   // Directory to output measurement data as parquet files
+	Profile          `json:"profile"`             // Profile configuration, including duration, max rate, rate function, and size function
+	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"` // Blob size distribution, used to generate blobs
+	MaxLagRatio      float32                      `json:"max_lag_ratio"`     // When to consider actual throughput as lagging the planned throughput rate
+	LagTolerance     time.Duration                `json:"lag_tolerance"`     // How long to tolerate throughput lagging before considering it as a failure
+	BufferDuration   time.Duration                `json:"buffer_duration"`   // Duration as buffer to keep generated blobs before submitting
 	Topic            string                       `json:"topic"`
 	Sender           string                       `json:"sender"`
 }
@@ -48,7 +49,8 @@ var (
 	ErrNilRateFunction       = errors.New("invalid profile rate function: must be non-nil")
 	ErrNilSizeFunction       = errors.New("invalid profile size function: must be non-nil")
 	ErrInvalidMaxRate        = errors.New("invalid profile max rate: must be positive")
-	ErrInvalidMaxLatency     = errors.New("invalid max latency: must be positive")
+	ErrInvalidMaxLagRatio    = errors.New("invalid max lag ratio: must be positive")
+	ErrInvalidLagTolerance   = errors.New("invalid lag tolerance: must be positive")
 	ErrInvalidBufferDuration = errors.New("invalid buffer duration: must be positive")
 )
 
@@ -81,8 +83,11 @@ func (c *Config) Validate() error {
 	if err := blobgen.ValidateDistribution(c.BlobDistribution); err != nil {
 		return err
 	}
-	if c.MaxLatency <= 0 {
-		return ErrInvalidMaxLatency
+	if c.MaxLagRatio <= 0.0 {
+		return ErrInvalidMaxLagRatio
+	}
+	if c.LagTolerance <= 0 {
+		return ErrInvalidLagTolerance
 	}
 	if c.BufferDuration <= 0 {
 		return ErrInvalidBufferDuration

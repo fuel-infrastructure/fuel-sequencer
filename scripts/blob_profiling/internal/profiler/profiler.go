@@ -86,7 +86,8 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	p.logger.Info("Starting blob throughput profiling")
 	p.logger.Info("Initial rate", "rate_KiB", p.config.Rate(0)/size.KiB)
 	p.logger.Info("Maximum rate", "rate_MiB", p.config.MaxRate/size.MiB)
-	p.logger.Info("Max latency threshold", "latency", p.config.MaxLatency)
+	p.logger.Info("Max lag ratio threshold", "ratio", p.config.MaxLagRatio)
+	p.logger.Info("Lag tolerance", "time_s", p.config.LagTolerance.Seconds())
 
 	pctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -109,14 +110,53 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 
 	// Setup timing and rate tracking
 	var duration time.Duration
+	var lagging *time.Time
 	start := time.Now()
 	plannedRate := p.config.Rate(0)
-	proceed := func() func() bool {
+	lagRatio := func() float32 {
+		if currentThroughput == 0 {
+			return 0
+		}
+		return float32(plannedRate) / float32(currentThroughput)
+	}
+	proceed := func() (condition func() bool) {
+		// By default, always check for lag
+		lagCondition := func() bool {
+			if lagging == nil {
+				if lagRatio() >= p.config.MaxLagRatio { // lag detected - start timing
+					lt := time.Now()
+					lagging = &lt
+				}
+				return true
+			} else {
+				if lr := lagRatio(); lr < p.config.MaxLagRatio { // lag recovered within tolerance
+					lagging = nil
+					return true
+				} else {
+					if tolerating := time.Since(*lagging); tolerating > p.config.LagTolerance {
+						p.logger.Info("lag exceeded tolerance - halting...",
+							"current_throughput_KiB/s", currentThroughput/size.KiB, "planned_rate_KiB/s", plannedRate/size.KiB,
+							"lag_tolerated", tolerating, "max_lag_tolerance", p.config.LagTolerance,
+							"lag_ratio", lr, "max_lag_ratio", p.config.MaxLagRatio)
+						return false // lag exceeded tolerance - stop
+					}
+				}
+			}
+			return true
+		}
+		defer func() func() bool {
+			if condition != nil {
+				condition = func() bool { return lagCondition() && condition() }
+			}
+			return condition
+		}()
+
 		noDuration := p.config.Duration == 0
 		noMaxRate := p.config.MaxRate == 0
 		if noDuration && noMaxRate {
 			p.logger.Info("no duration or rate limit set, will run indefinitely")
-			return func() bool { return true }
+			condition = func() bool { return true }
+			return
 		}
 
 		durationCheck := func() bool {
@@ -145,20 +185,23 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 				"duration not set, only rate limit - will stop when rate limit is reached",
 				"rate_KiB/s", plannedRate/size.KiB,
 			)
-			return rateCheck
+			condition = rateCheck
+			return
 		}
 		if noMaxRate {
 			p.logger.Info(
 				"rate limit not set, only duration - will stop when duration is reached",
 				"duration", p.config.Duration,
 			)
-			return durationCheck
+			condition = durationCheck
+			return
 		}
 		p.logger.Info(
 			"both duration and rate limit set, will stop when either is reached",
 			"duration", p.config.Duration, "rate_KiB/s", plannedRate/size.KiB,
 		)
-		return func() bool { return durationCheck() && rateCheck() }
+		condition = func() bool { return durationCheck() && rateCheck() }
+		return
 	}()
 
 	lastlog := start
@@ -169,7 +212,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		plannedRate = p.config.Rate(duration)
 
 		if time.Since(lastlog) > logFrequency {
-			p.logThroughput(plannedRate, currentThroughput, txCount, dataSubmitted, blobCount, p.bufferSize, p.pending, seconds)
+			p.logThroughput(plannedRate, currentThroughput, txCount, dataSubmitted, blobCount, seconds)
 
 			lastlog = time.Now()
 		}
