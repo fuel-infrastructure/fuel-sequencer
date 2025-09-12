@@ -13,7 +13,9 @@ func (p *BlobProfiler) generateBlob() *types.TrackedBlob {
 	data := p.generator.GenerateBlob(true)
 
 	key := store.NewKey(data)
+	p.genBlobCount++
 	return &types.TrackedBlob{
+		Nonce: p.genBlobCount,
 		StoredBlob: store.StoredBlob{
 			Receipt: store.Receipt{
 				Key: key,

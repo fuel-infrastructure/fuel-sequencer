@@ -8,6 +8,7 @@ import (
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/parquet"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/profiler"
 )
 
@@ -17,6 +18,7 @@ func main() {
 		blobhubURL   = flag.String("blobhub", "", "Override blobhub URL")
 		sequencerRPC = flag.String("sequencer", "", "Override sequencer RPC URL")
 		blobpoolURL  = flag.String("blobpool", "", "Override blobpool URL")
+		parquetDir   = flag.String("parquet", "", "Output parquet dir path for profiling data")
 	)
 	flag.Parse()
 
@@ -38,6 +40,9 @@ func main() {
 	if *blobpoolURL != "" {
 		cfg.BlobpoolURL = *blobpoolURL
 	}
+	if *parquetDir != "" {
+		cfg.ParquetDir = *parquetDir
+	}
 
 	// Validate configuration
 	if err := cfg.Validate(); err != nil {
@@ -52,8 +57,16 @@ func main() {
 
 	ctx := context.Background()
 
+	// Create parquet writer if output file is specified
+	parquetHandler, err := parquet.New(cfg.ParquetDir, logger)
+	if err != nil {
+		logger.Error("failed to create parquet writer - will exit", "error", err)
+		os.Exit(1)
+	}
+	defer parquetHandler.Close()
+
 	// Create profiler
-	profiler, err := profiler.NewBlobProfiler(ctx, cfg, logger)
+	profiler, err := profiler.NewBlobProfiler(ctx, cfg, logger, parquetHandler)
 	if err != nil {
 		logger.Error("Failed to create blob profiler - will exit", "error", err)
 		os.Exit(1)
@@ -67,6 +80,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Analyze the results
-	_ = blobs
+	// Log final statistics
+	logger.Info("Profiling completed", "total_blobs", len(blobs))
+	if parquetHandler != nil {
+		stats := parquetHandler.GetStats()
+		logger.Info("Parquet writer stats",
+			"buffered_records", stats.BufferedRecords,
+			"batch_size", stats.BatchSize,
+			"profile_duration", stats.ProfileDuration)
+	}
 }

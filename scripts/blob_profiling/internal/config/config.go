@@ -30,6 +30,7 @@ type Config struct {
 	BlobhubURL       string `json:"blobhub_url"`
 	SequencerRPC     string `json:"sequencer_rpc"`
 	BlobpoolURL      string `json:"blobpool_url"`
+	ParquetDir       string `json:"parquet_dir"`
 	Profile          `json:"profile"`
 	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"`
 	MaxLatency       time.Duration                `json:"max_latency"`

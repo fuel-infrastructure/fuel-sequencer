@@ -43,6 +43,7 @@ func (s Status) String() string {
 
 // TrackedBlob represents a blob with its metadata
 type TrackedBlob struct {
+	Nonce        int
 	Submission   *Submission
 	Size         int
 	MetadataTx   *coretypes.ResultTx

@@ -65,6 +65,7 @@ func defaultSetup(
 		BlobhubURL:       "http://localhost:31035",
 		SequencerRPC:     "http://localhost:26657",
 		BlobpoolURL:      "http://localhost" + blobkeeper.BlobpoolAddress,
+		ParquetDir:       "./",
 		Profile:          profile,
 		BlobDistribution: distribution,
 		MaxLatency:       25 * time.Second,

@@ -13,6 +13,7 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/parquet"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
@@ -29,9 +30,11 @@ type BlobProfiler struct {
 	blobpool  *blobhub.Client
 	generator *blobgen.BlobGenerator
 	config    *config.Config
+	handler   *parquet.Handler
 
-	buffer     []*types.TrackedBlob
-	bufferSize int
+	genBlobCount int
+	buffer       []*types.TrackedBlob
+	bufferSize   int
 
 	addTime     sync.Mutex          // protects blocktimes
 	blockTimes  map[int64]time.Time // block height -> timestamp
@@ -41,6 +44,7 @@ type BlobProfiler struct {
 // NewBlobProfiler creates a new blob profiler instance
 func NewBlobProfiler(
 	ctx context.Context, cfg *config.Config, logger *slog.Logger,
+	handler *parquet.Handler,
 ) (*BlobProfiler, error) {
 	// Initialize blobhub client
 	blobhubClient := blobhub.NewClient(&blobhub.ClientConfig{
@@ -68,6 +72,7 @@ func NewBlobProfiler(
 
 		generator:  blobgen.NewBlobGenerator(42, cfg.BlobDistribution),
 		config:     cfg,
+		handler:    handler,
 		addTime:    sync.Mutex{},
 		blockTimes: make(map[int64]time.Time),
 		poolStatus: &poolStatus{
@@ -201,10 +206,16 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		}
 		go p.catchBlobs(pctx, cancel, expect, consume, txHash, nextBlobs)
 		blobs = append(blobs, nextBlobs...)
+
 		blobCount += len(nextBlobs)
 		txCount++
 
 		p.supplementBuffer(duration)
+	}
+
+	// Final flush of any remaining parquet data
+	if err := p.handler.Flush(); err != nil {
+		p.logger.Error("Failed to flush final parquet data", "error", err)
 	}
 
 	return blobs, nil

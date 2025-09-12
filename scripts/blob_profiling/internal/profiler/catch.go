@@ -48,4 +48,10 @@ func (p *BlobProfiler) catchBlobs(
 		blob.Submission.FinalizedTime = finalizedTime
 		consume <- blob.Key
 	}
+
+	// Write to parquet file
+	if err := p.handler.WriteBlobs(blobs); err != nil {
+		p.logger.Error("Failed to write blobs to parquet", "error", err)
+		// Don't fail the entire profiling, just log the error
+	}
 }
