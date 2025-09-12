@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	BlockRetention = 2 * 6 * time.Second // 2 blocks
+	BlockTime      = 6 * time.Second
+	BlockRetention = 2 * BlockTime // 2 blocks
 )
 
 // waitForTransactionConfirmation waits for a transaction to be included in a block and returns the full response
