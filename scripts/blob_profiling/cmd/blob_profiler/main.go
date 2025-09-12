@@ -58,7 +58,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create parquet writer if output file is specified
-	parquetHandler, err := parquet.New(cfg.ParquetDir, logger)
+	parquetHandler, err := parquet.New(cfg.ParquetDir, logger, cfg.Profile.Description)
 	if err != nil {
 		logger.Error("failed to create parquet writer - will exit", "error", err)
 		os.Exit(1)

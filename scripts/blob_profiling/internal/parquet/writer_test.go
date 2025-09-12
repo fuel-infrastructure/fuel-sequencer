@@ -22,7 +22,7 @@ func TestParquetHandler(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	// Create handler
-	handler, err := New(tmpDir, logger)
+	handler, err := New(tmpDir, logger, "test")
 	if err != nil {
 		t.Fatalf("Failed to create handler: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestParquetHandler(t *testing.T) {
 	}
 
 	// Verify file was created and has content
-	blobFile := tmpDir + "/blobs.parquet"
+	blobFile := tmpDir + "/test_blobs.parquet"
 	stat, err := os.Stat(blobFile)
 	if err != nil {
 		t.Fatalf("Failed to stat file: %v", err)

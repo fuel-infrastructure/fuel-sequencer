@@ -20,12 +20,12 @@ type Handler struct {
 }
 
 // New creates a new parquet handler with default settings
-func New(parquetDir string, logger *slog.Logger) (*Handler, error) {
-	return NewWithOptions(parquetDir, logger, defaultBatchSize)
+func New(parquetDir string, logger *slog.Logger, description string) (*Handler, error) {
+	return NewWithOptions(parquetDir, logger, defaultBatchSize, description)
 }
 
 // NewWithOptions creates a new parquet handler with custom batch size
-func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int) (*Handler, error) {
+func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, description string) (*Handler, error) {
 	l := logger.With("component", "parquet")
 
 	// Validate parquet directory
@@ -39,13 +39,13 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int) (*Han
 		return nil, err
 	}
 
-	blobPath, err := filepath.Abs(filepath.Join(parquetDir, "blobs.parquet"))
+	blobPath, err := filepath.Abs(filepath.Join(parquetDir, fmt.Sprintf("%s_blobs.parquet", description)))
 	if err != nil {
 		l.Error("failed to get absolute path for blob parquet directory", "error", err)
 		return nil, err
 	}
 
-	throughputPath, err := filepath.Abs(filepath.Join(parquetDir, "throughput.parquet"))
+	throughputPath, err := filepath.Abs(filepath.Join(parquetDir, fmt.Sprintf("%s_throughput.parquet", description)))
 	if err != nil {
 		l.Error("failed to get absolute path for throughput parquet directory", "error", err)
 		return nil, err

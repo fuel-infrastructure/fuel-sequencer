@@ -13,6 +13,7 @@ import (
 // -If MaxRate is not set, the profile will run for the duration set by Duration
 // - If neither is set, it will run indefinitely
 type Profile struct {
+	Description string `json:"description"` // Description of the profile, to be used for the output data
 	// Duration is the duration the profile is allowed to run for
 	time.Duration `json:"duration"`
 	// MaxRate is the maximum rate of bytes/sec that the profiler will try to reach before stopping
