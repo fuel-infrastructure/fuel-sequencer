@@ -212,9 +212,9 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		plannedRate = p.config.Rate(duration)
 
 		if time.Since(lastlog) > logFrequency {
-			p.logThroughput(plannedRate, currentThroughput, txCount, dataSubmitted, blobCount, seconds)
-
 			lastlog = time.Now()
+			p.logThroughput(plannedRate, currentThroughput, txCount, dataSubmitted, blobCount, seconds, lastlog)
+
 		}
 		if plannedRate < currentThroughput {
 			continue // ahead of planned throughput, slow down till back on track
@@ -270,15 +270,15 @@ func (p *BlobProfiler) logThroughput(
 	txCount uint64,
 	dataSubmitted int,
 	blobCount int,
-	bufferSize int,
-	pending int,
 	seconds float64,
+	timestamp time.Time,
 ) {
 	expectedKiBPerSec := plannedRate / size.KiB
 	actualKiBPerSec := currentThroughput / size.KiB
 	submittedTxs := txCount - p.sequencer.Sender.Sequence
 	submittedKiB := dataSubmitted / size.KiB
 	upcomingKiB := p.bufferSize / size.KiB
+	upcomingCount := len(p.buffer)
 
 	p.logger.Info("throughput",
 		"expected_KiB/s", expectedKiBPerSec,
@@ -286,7 +286,7 @@ func (p *BlobProfiler) logThroughput(
 		"submitted_txs", submittedTxs,
 		"submitted_count", blobCount,
 		"submitted_KiB", submittedKiB,
-		"upcoming_count", len(p.buffer),
+		"upcoming_count", upcomingCount,
 		"upcoming_KiB", upcomingKiB,
 		"pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
 		"duration_s", seconds,
@@ -296,8 +296,8 @@ func (p *BlobProfiler) logThroughput(
 	throughputRecord := parquet.NewThroughputRecord(
 		int64(expectedKiBPerSec), int64(actualKiBPerSec),
 		int64(submittedTxs), int64(blobCount), int64(submittedKiB),
-		int64(len(p.buffer)), int64(upcomingKiB),
-		int64(p.pending), seconds,
+		int64(upcomingCount), int64(upcomingKiB),
+		int64(p.pending), seconds, timestamp,
 	)
 	if err := p.handler.WriteThroughput(throughputRecord); err != nil {
 		p.logger.Error("failed to write throughput data", "error", err)

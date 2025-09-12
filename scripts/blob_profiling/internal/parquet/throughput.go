@@ -1,8 +1,6 @@
 package parquet
 
-import (
-	"time"
-)
+import "time"
 
 // ThroughputRecord represents throughput metrics for parquet storage
 type ThroughputRecord struct {
@@ -36,9 +34,10 @@ func NewThroughputRecord(
 	upcomingCount, upcomingKiB int64,
 	pendingBlobpoolCount int64,
 	durationSeconds float64,
+	timestamp time.Time,
 ) *ThroughputRecord {
 	return &ThroughputRecord{
-		Timestamp:            time.Now().UnixNano(),
+		Timestamp:            timestamp.UnixNano(),
 		ExpectedKiBPerSec:    expectedKiBPerSec,
 		ActualKiBPerSec:      actualKiBPerSec,
 		SubmittedTxs:         submittedTxs,
