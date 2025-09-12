@@ -30,6 +30,7 @@ func (p *BlobProfiler) castBlobs(
 			log.Printf("failed to submit blob to blobhub: %v", err)
 			blob.Submission.Status = types.Failed
 			cancel()
+			continue
 		}
 		blob.Submission.Status = types.Stored
 		blob.Submission.StoreTime = receipt.StoredAt
