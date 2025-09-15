@@ -1,113 +1,107 @@
-# Blob Profiling System Makefile
+# Blob Profiling Makefile
 
-.PHONY: build test clean run help
-
-# Build configuration
-BINARY_NAME=blob_profiler
-BUILD_DIR=build
-MAIN_PATH=./cmd/blob_profiler
-
-# Go build flags
-LDFLAGS=-ldflags "-s -w"
-GOOS?=$(shell go env GOOS)
-GOARCH?=$(shell go env GOARCH)
+# Configuration
+PROFILER_DIR := cmd/blob_profiler
+DATA_DIR := cmd/blob_profiler
+OUTPUT_DIR := output
+IMAGES_DIR := output/images
+DATA_OUTPUT_DIR := output/data
 
 # Default target
-all: build
+.PHONY: all
+all: build-profiler
 
-# Build the binary
-build:
-	@echo "Building $(BINARY_NAME)..."
-	@mkdir -p $(BUILD_DIR)
-	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
-	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME)"
+# Build the profiler (now includes visualization functionality)
+.PHONY: build-profiler
+build-profiler:
+	@echo "Building blob profiler..."
+	@go build -o $(PROFILER_DIR)/blob_profiler ./$(PROFILER_DIR)
+	@echo "✓ Blob profiler built successfully"
 
-# Build for specific platform
-build-linux:
-	@echo "Building for Linux..."
-	@mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
+# Generate all graphs (standalone)
+.PHONY: generate-graphs
+generate-graphs: build-profiler
+	@echo "Generating blob profiling graphs..."
+	@mkdir -p $(IMAGES_DIR) $(DATA_OUTPUT_DIR)
+	@cd $(DATA_DIR) && ../blob_profiler/blob_profiler -graphs -parquet .
+	@echo "✓ All graphs generated in $(IMAGES_DIR)/"
 
-build-darwin:
-	@echo "Building for macOS..."
-	@mkdir -p $(BUILD_DIR)
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
+# Generate graphs with cleanup (standalone)
+.PHONY: generate-clean
+generate-clean: build-profiler
+	@echo "Generating blob profiling graphs with cleanup..."
+	@mkdir -p $(IMAGES_DIR) $(DATA_OUTPUT_DIR)
+	@cd $(DATA_DIR) && ../blob_profiler/blob_profiler -graphs -cleanup -parquet .
+	@echo "✓ All graphs generated in $(IMAGES_DIR)/ (data files cleaned up)"
 
-# Cross-compile for all platforms
-build-all: build-linux build-darwin
-	@echo "Cross-compilation complete"
-
-# Run tests
-test:
-	@echo "Running tests..."
-	go test -v ./...
-
-# Run tests with coverage
-test-coverage:
-	@echo "Running tests with coverage..."
-	go test -v -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-
-# Run tests for specific package
-test-profiler:
-	go test -v ./internal/profiler
-
-test-analysis:
-	go test -v ./internal/analysis
-
-test-config:
-	go test -v ./internal/config
-
-# Run the profiler
-run: build
-	@echo "Running $(BINARY_NAME)..."
-	./$(BUILD_DIR)/$(BINARY_NAME)
-
-# Run with custom config
-run-custom: build
-	@echo "Running with custom config..."
-	./$(BUILD_DIR)/$(BINARY_NAME) -config config.json
-
-# Install dependencies
-deps:
-	@echo "Installing dependencies..."
-	go mod download
-	go mod tidy
-
-# Format code
-fmt:
-	@echo "Formatting code..."
-	go fmt ./...
-
-# Lint code
-lint:
-	@echo "Linting code..."
-	golangci-lint run
-
-# Clean build artifacts
+# Clean up generated files
+.PHONY: clean
 clean:
-	@echo "Cleaning build artifacts..."
-	rm -rf $(BUILD_DIR)
-	rm -f coverage.out coverage.html
-	@echo "Clean complete"
+	@echo "Cleaning up generated files..."
+	@rm -rf $(OUTPUT_DIR)
+	@rm -f $(PROFILER_DIR)/blob_profiler
+	@echo "✓ Cleanup completed"
 
-# Show help
+# Check dependencies
+.PHONY: check-deps
+check-deps:
+	@echo "Checking dependencies..."
+	@command -v duckdb >/dev/null 2>&1 || { echo "❌ DuckDB not found. Please install DuckDB."; exit 1; }
+	@command -v gnuplot >/dev/null 2>&1 || { echo "❌ gnuplot not found. Please install gnuplot."; exit 1; }
+	@command -v go >/dev/null 2>&1 || { echo "❌ Go not found. Please install Go."; exit 1; }
+	@echo "✓ All dependencies found"
+
+# Check if parquet files exist
+.PHONY: check-data
+check-data:
+	@echo "Checking for parquet data files..."
+	@test -f $(DATA_DIR)/linear_5_kib_per_s_blobs.parquet || { echo "❌ Blobs parquet file not found: $(DATA_DIR)/linear_5_kib_per_s_blobs.parquet"; exit 1; }
+	@test -f $(DATA_DIR)/linear_5_kib_per_s_throughput.parquet || { echo "❌ Throughput parquet file not found: $(DATA_DIR)/linear_5_kib_per_s_throughput.parquet"; exit 1; }
+	@echo "✓ Parquet data files found"
+
+# Install dependencies (macOS)
+.PHONY: install-deps-macos
+install-deps-macos:
+	@echo "Installing dependencies on macOS..."
+	@brew install duckdb gnuplot
+	@echo "✓ Dependencies installed"
+
+# Install dependencies (Ubuntu/Debian)
+.PHONY: install-deps-ubuntu
+install-deps-ubuntu:
+	@echo "Installing dependencies on Ubuntu/Debian..."
+	@sudo apt-get update
+	@sudo apt-get install -y duckdb gnuplot
+	@echo "✓ Dependencies installed"
+
+# Help
+.PHONY: help
 help:
+	@echo "Blob Profiling Visualization Makefile"
+	@echo ""
 	@echo "Available targets:"
-	@echo "  build          - Build the binary"
-	@echo "  build-linux    - Build for Linux (amd64)"
-	@echo "  build-darwin   - Build for macOS (arm64)"
-	@echo "  build-all      - Build for all platforms"
-	@echo "  test           - Run all tests"
-	@echo "  test-coverage  - Run tests with coverage report"
-	@echo "  test-profiler  - Run profiler tests only"
-	@echo "  test-analysis  - Run analysis tests only"
-	@echo "  test-config    - Run config tests only"
-	@echo "  run            - Build and run the profiler"
-	@echo "  run-custom     - Run with custom config"
-	@echo "  deps           - Install dependencies"
-	@echo "  fmt            - Format code"
-	@echo "  lint           - Lint code"
-	@echo "  clean          - Clean build artifacts"
-	@echo "  help           - Show this help message"
+	@echo "  all              - Build profiler (default)"
+	@echo "  build-profiler   - Build the Go profiler binary (includes visualization)"
+	@echo "  generate-graphs  - Generate all performance graphs (standalone)"
+	@echo "  generate-clean  - Generate graphs and cleanup data files (standalone)"
+	@echo "  clean            - Remove generated files"
+	@echo "  check-deps       - Check if required dependencies are installed"
+	@echo "  check-data       - Check if parquet data files exist"
+	@echo "  install-deps-macos   - Install dependencies on macOS (requires Homebrew)"
+	@echo "  install-deps-ubuntu  - Install dependencies on Ubuntu/Debian"
+	@echo "  help             - Show this help message"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make                    # Build profiler"
+	@echo "  make generate-graphs    # Generate graphs from existing parquet data"
+	@echo "  make generate-clean     # Generate graphs and cleanup data files"
+	@echo "  make clean              # Clean up generated files"
+	@echo "  make check-deps         # Check dependencies"
+	@echo "  make check-data         # Check data files"
+	@echo ""
+	@echo "Generated plots:"
+	@echo "  - throughput_analysis.png    - Expected vs Actual Throughput"
+	@echo "  - blob_size_distribution.png - Blob Size Distribution"
+	@echo "  - blob_timeline.png          - Blob Event Timeline"
+	@echo "  - store_to_blobpool.png      - Time from Store to Blobpool"
+	@echo "  - store_to_finalized.png     - Time from Store to Finalized"

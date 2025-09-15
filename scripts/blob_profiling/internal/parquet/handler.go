@@ -18,6 +18,7 @@ type Handler struct {
 	logger           *slog.Logger
 	blobWriter       *Writer[BlobProfileRecord]
 	throughputWriter *Writer[ThroughputRecord]
+	dir              string // The actual directory where parquet files are created
 }
 
 // New creates a new parquet handler with default settings
@@ -34,19 +35,23 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, descr
 		return nil, fmt.Errorf("parquet directory cannot be empty")
 	}
 
+	// Add timestamp to parquet directory
+	parquetDir = filepath.Join(parquetDir, description, time.Now().Format("20060102T150405"))
+
 	// Ensure directory exists
 	if err := os.MkdirAll(parquetDir, 0755); err != nil {
 		l.Error("failed to create parquet directory", "error", err)
 		return nil, err
 	}
 
-	blobPath, err := filepath.Abs(filepath.Join(parquetDir, fmt.Sprintf("%s_blobs.parquet", description)))
+	// Setup parquet paths
+	blobPath, err := filepath.Abs(filepath.Join(parquetDir, "blobs.parquet"))
 	if err != nil {
 		l.Error("failed to get absolute path for blob parquet directory", "error", err)
 		return nil, err
 	}
 
-	throughputPath, err := filepath.Abs(filepath.Join(parquetDir, fmt.Sprintf("%s_throughput.parquet", description)))
+	throughputPath, err := filepath.Abs(filepath.Join(parquetDir, "throughput.parquet"))
 	if err != nil {
 		l.Error("failed to get absolute path for throughput parquet directory", "error", err)
 		return nil, err
@@ -71,6 +76,7 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, descr
 		logger:           l,
 		blobWriter:       blobWriter,
 		throughputWriter: throughputWriter,
+		dir:              parquetDir,
 	}, nil
 }
 
@@ -86,6 +92,10 @@ func (h *Handler) WriteThroughput(record *ThroughputRecord) error {
 
 func (h *Handler) GetStats() Stats {
 	return h.blobWriter.GetStats()
+}
+
+func (h *Handler) Dir() string {
+	return h.dir
 }
 
 func (h *Handler) Flush() error {

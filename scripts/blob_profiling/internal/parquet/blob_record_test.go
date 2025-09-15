@@ -3,6 +3,8 @@ package parquet
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -69,7 +71,25 @@ func TestParquetHandler(t *testing.T) {
 	}
 
 	// Verify file was created and has content
-	blobFile := tmpDir + "/test_blobs.parquet"
+	// The handler creates a timestamped directory, so we need to find it
+	entries, err := os.ReadDir(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to read temp directory: %v", err)
+	}
+
+	var blobFile string
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasSuffix(entry.Name(), "-test") {
+			// Found the timestamped test directory, now look for the parquet file
+			blobFile = filepath.Join(tmpDir, entry.Name(), "blobs.parquet")
+			break
+		}
+	}
+
+	if blobFile == "" {
+		t.Fatalf("Could not find timestamped test directory with blobs.parquet file")
+	}
+
 	stat, err := os.Stat(blobFile)
 	if err != nil {
 		t.Fatalf("Failed to stat file: %v", err)
