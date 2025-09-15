@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
@@ -15,8 +16,8 @@ const (
 
 type Handler struct {
 	logger           *slog.Logger
-	blobWriter       *Writer
-	throughputWriter *ThroughputWriter
+	blobWriter       *Writer[BlobProfileRecord]
+	throughputWriter *Writer[ThroughputRecord]
 }
 
 // New creates a new parquet handler with default settings
@@ -53,14 +54,14 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, descr
 
 	// Create parquet writers
 	l.Info("Creating blob parquet writer", "dir", parquetDir, "file", blobPath)
-	blobWriter, err := newBlobWriter(blobPath, logger, batchSize)
+	blobWriter, err := newWriter[BlobProfileRecord](blobPath, logger, batchSize)
 	if err != nil {
 		l.Error("failed to create blob parquet writer", "error", err, "file", blobPath)
 		return nil, err
 	}
 
 	l.Info("Creating throughput parquet writer", "dir", parquetDir, "file", throughputPath)
-	throughputWriter, err := newThroughputWriter(throughputPath, logger, batchSize)
+	throughputWriter, err := newWriter[ThroughputRecord](throughputPath, logger, batchSize)
 	if err != nil {
 		l.Error("failed to create throughput parquet writer", "error", err, "file", throughputPath)
 		return nil, err
@@ -74,11 +75,13 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, descr
 }
 
 func (h *Handler) WriteBlobs(blobs []*types.TrackedBlob) error {
-	return h.blobWriter.writeBlobs(blobs)
+	bufferWriter := writeBlobs(blobs)
+	return h.blobWriter.write(bufferWriter)
 }
 
 func (h *Handler) WriteThroughput(record *ThroughputRecord) error {
-	return h.throughputWriter.WriteThroughput(record)
+	bufferWriter := writeThroughput(record)
+	return h.throughputWriter.write(bufferWriter)
 }
 
 func (h *Handler) GetStats() Stats {

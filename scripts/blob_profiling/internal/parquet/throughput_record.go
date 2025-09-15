@@ -1,6 +1,8 @@
 package parquet
 
-import "time"
+import (
+	"time"
+)
 
 // ThroughputRecord represents throughput metrics for parquet storage
 type ThroughputRecord struct {
@@ -47,5 +49,13 @@ func NewThroughputRecord(
 		UpcomingKiB:          upcomingKiB,
 		PendingBlobpoolCount: pendingBlobpoolCount,
 		DurationSeconds:      durationSeconds,
+	}
+}
+
+func writeThroughput(record *ThroughputRecord) func(
+	buffer []*ThroughputRecord, profileStartTime time.Time) []*ThroughputRecord {
+	return func(buffer []*ThroughputRecord, profileStartTime time.Time) []*ThroughputRecord {
+		buffer = append(buffer, record)
+		return buffer
 	}
 }

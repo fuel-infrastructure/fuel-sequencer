@@ -11,18 +11,25 @@ import (
 )
 
 // Writer handles incremental writing of blob profiling data to parquet files
-type Writer struct {
+type Writer[T any] struct {
 	file             *os.File
-	writer           *parquet.GenericWriter[*BlobProfileRecord]
+	writer           *parquet.GenericWriter[*T]
 	logger           *slog.Logger
 	mutex            sync.Mutex
-	buffer           []*BlobProfileRecord
+	buffer           []*T
 	batchSize        int
 	profileStartTime time.Time
 }
 
-// newBlobWriter creates a new parquet writer for blob profiling data
-func newBlobWriter(filePath string, logger *slog.Logger, batchSize int) (*Writer, error) {
+// Stats contains statistics about the parquet handler, writer(s)
+type Stats struct {
+	BufferedRecords int
+	BatchSize       int
+	ProfileDuration time.Duration
+}
+
+// newWriter creates a new parquet writer for blob profiling data
+func newWriter[T any](filePath string, logger *slog.Logger, batchSize int) (*Writer[T], error) {
 	// Create the output file
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -30,30 +37,45 @@ func newBlobWriter(filePath string, logger *slog.Logger, batchSize int) (*Writer
 	}
 
 	// Create parquet writer with optimized settings
-	writer := parquet.NewGenericWriter[*BlobProfileRecord](file,
+	writer := parquet.NewGenericWriter[*T](file,
 		parquet.Compression(&parquet.Snappy),
 		parquet.PageBufferSize(64*1024), // 64KB page buffer
 	)
 
-	return &Writer{
+	return &Writer[T]{
 		file:             file,
 		writer:           writer,
 		logger:           logger,
-		buffer:           make([]*BlobProfileRecord, 0, batchSize),
+		buffer:           make([]*T, 0, batchSize),
 		batchSize:        batchSize,
 		profileStartTime: time.Now(),
 	}, nil
 }
 
+// WriteBlobs adds multiple blobs to the write buffer and flushes if batch size is reached
+func (w *Writer[T]) write(writeToBuffer func(buffer []*T, profileStartTime time.Time) []*T) error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	w.buffer = writeToBuffer(w.buffer, w.profileStartTime)
+
+	// Flush if buffer is full
+	if len(w.buffer) >= w.batchSize {
+		return w.flushUnsafe()
+	}
+
+	return nil
+}
+
 // Flush writes any pending records to the parquet file
-func (w *Writer) Flush() error {
+func (w *Writer[T]) Flush() error {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 	return w.flushUnsafe()
 }
 
 // flushUnsafe performs the actual flush operation (must be called with mutex held)
-func (w *Writer) flushUnsafe() error {
+func (w *Writer[T]) flushUnsafe() error {
 	if len(w.buffer) == 0 {
 		return nil
 	}
@@ -72,8 +94,20 @@ func (w *Writer) flushUnsafe() error {
 	return nil
 }
 
+// GetStats returns statistics about the writer
+func (w *Writer[T]) GetStats() Stats {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	return Stats{
+		BufferedRecords: len(w.buffer),
+		BatchSize:       w.batchSize,
+		ProfileDuration: time.Since(w.profileStartTime),
+	}
+}
+
 // Close flushes any remaining data and closes the parquet file
-func (w *Writer) Close() error {
+func (w *Writer[T]) Close() error {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 

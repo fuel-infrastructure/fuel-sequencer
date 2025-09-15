@@ -59,3 +59,15 @@ func FromTrackedBlob(blob *types.TrackedBlob, profileStartTime time.Time) *BlobP
 
 	return record
 }
+
+func writeBlobs(blobs []*types.TrackedBlob) func(
+	buffer []*BlobProfileRecord, profileStartTime time.Time) []*BlobProfileRecord {
+	return func(buffer []*BlobProfileRecord, profileStartTime time.Time) []*BlobProfileRecord {
+		for _, blob := range blobs {
+			record := FromTrackedBlob(blob, profileStartTime)
+			buffer = append(buffer, record)
+		}
+
+		return buffer
+	}
+}

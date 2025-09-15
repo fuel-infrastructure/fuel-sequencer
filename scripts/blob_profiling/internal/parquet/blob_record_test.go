@@ -95,7 +95,7 @@ func TestParquetWriterBatch(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	// Create writer with small batch size
-	writer, err := newBlobWriter(tmpFile.Name(), logger, 3)
+	blobWriter, err := newWriter[BlobProfileRecord](tmpFile.Name(), logger, 3)
 	if err != nil {
 		t.Fatalf("Failed to create writer: %v", err)
 	}
@@ -123,19 +123,19 @@ func TestParquetWriterBatch(t *testing.T) {
 	}
 
 	// Write blobs in batches (using private method)
-	err = writer.writeBlobs(blobs)
+	err = blobWriter.write(writeBlobs(blobs))
 	if err != nil {
 		t.Fatalf("Failed to write blobs: %v", err)
 	}
 
 	// Flush and close
-	err = writer.Flush()
+	err = blobWriter.Flush()
 	if err != nil {
 		t.Fatalf("Failed to flush: %v", err)
 	}
 
 	// Close writer to ensure data is written
-	err = writer.Close()
+	err = blobWriter.Close()
 	if err != nil {
 		t.Fatalf("Failed to close writer: %v", err)
 	}
