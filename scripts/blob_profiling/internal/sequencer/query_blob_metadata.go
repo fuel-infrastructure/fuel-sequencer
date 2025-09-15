@@ -54,6 +54,9 @@ func (c *Client) queryTransaction(ctx context.Context, txHash string) (*coretype
 	if err != nil {
 		return nil, err
 	}
+	if txResult.TxResult.Code != 0 {
+		return nil, fmt.Errorf("transaction failed with code %d", txResult.TxResult.Code)
+	}
 
 	return txResult, nil
 }
