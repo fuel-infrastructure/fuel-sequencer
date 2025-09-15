@@ -27,8 +27,8 @@
 //	make generate-clean     # Generate graphs and cleanup data files
 //
 // Generated Files:
-//   - Parquet data: {profile_description}_blobs.parquet, {profile_description}_throughput.parquet
-//   - Visualization: output/images/*.png (5 graphs: throughput, blob sizes, timeline, store-to-blobpool, store-to-finalized)
+//   - Parquet data: {parquet_dir}/{profile_description}/{timestamp}/blobs.parquet, throughput.parquet
+//   - Visualization: {parquet_dir}/{profile_description}/{timestamp}/graphs/images/*.png (5 graphs: throughput, blob sizes, timeline, store-to-blobpool, store-to-finalized)
 //
 // Prerequisites:
 //   - DuckDB: For querying parquet files (brew install duckdb / apt install duckdb)

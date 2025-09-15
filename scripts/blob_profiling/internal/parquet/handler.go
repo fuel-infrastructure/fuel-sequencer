@@ -36,7 +36,7 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, descr
 	}
 
 	// Add timestamp to parquet directory
-	parquetDir = filepath.Join(parquetDir, description, time.Now().Format("20060102T150405"))
+	parquetDir = filepath.Join(parquetDir, description, time.Now().Format("2006-01-02_T_15_04_05"))
 
 	// Ensure directory exists
 	if err := os.MkdirAll(parquetDir, 0755); err != nil {

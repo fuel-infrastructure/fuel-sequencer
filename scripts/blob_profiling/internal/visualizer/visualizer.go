@@ -16,7 +16,7 @@
 //   - With cleanup: ./blob_profiler -graphs -cleanup -parquet <data_dir>
 //   - Makefile: make generate-graphs or make generate-clean
 //
-// Generated outputs are saved to output/images/ as high-resolution PNG files.
+// Generated outputs are saved to {parquet_dir}/graphs/images/ as high-resolution PNG files.
 package visualizer
 
 import (
@@ -27,27 +27,31 @@ import (
 	"path/filepath"
 )
 
-const (
-	outputDir = "output"
-	imagesDir = "output/images"
-	dataDir   = "output/data"
-)
-
 // Visualizer handles the generation of performance graphs from parquet data.
 // It uses DuckDB to query parquet files and gnuplot to generate high-resolution PNG images.
 type Visualizer struct {
 	parquetDir  string // Directory containing parquet files
 	description string // Profile description used for file naming (e.g., "linear_5_kib_per_s")
 	cleanup     bool   // Whether to delete intermediate CSV files after graph generation
+	outputDir   string // Output directory for graphs and data (under parquet directory)
+	imagesDir   string // Images directory (under output directory)
+	dataDir     string // Data directory (under output directory)
 }
 
 // New creates a new visualizer instance with the specified parquet directory,
 // profile description, and cleanup preference.
 func New(parquetDir string, description string, cleanup bool) *Visualizer {
+	outputDir := filepath.Join(parquetDir, "graphs")
+	imagesDir := filepath.Join(outputDir, "images")
+	dataDir := filepath.Join(outputDir, "data")
+
 	return &Visualizer{
 		parquetDir:  parquetDir,
 		description: description,
 		cleanup:     cleanup,
+		outputDir:   outputDir,
+		imagesDir:   imagesDir,
+		dataDir:     dataDir,
 	}
 }
 
@@ -68,13 +72,13 @@ func (v *Visualizer) GenerateGraphs() error {
 	}
 
 	// Create output directories
-	if err := os.MkdirAll(imagesDir, 0755); err != nil {
+	if err := os.MkdirAll(v.imagesDir, 0755); err != nil {
 		return fmt.Errorf("failed to create images directory: %v", err)
 	}
 
 	fmt.Printf("Generating blob profiling visualizations...\n")
 	fmt.Printf("Data directory: %s\n", v.parquetDir)
-	fmt.Printf("Output directory: %s\n", outputDir)
+	fmt.Printf("Output directory: %s\n", v.outputDir)
 	if v.cleanup {
 		fmt.Printf("Cleanup mode: Visualisation data files will be deleted after image generation\n")
 	}
@@ -104,14 +108,14 @@ func (v *Visualizer) GenerateGraphs() error {
 	// Clean up data files if requested
 	if v.cleanup {
 		fmt.Printf("Cleaning up data files...\n")
-		if err := os.RemoveAll(dataDir); err != nil {
+		if err := os.RemoveAll(v.dataDir); err != nil {
 			log.Printf("Warning: Failed to clean up data files: %v", err)
 		} else {
 			fmt.Printf("✓ Data files cleaned up\n")
 		}
 	}
 
-	fmt.Printf("\nAll visualizations completed! Check the '%s' directory for generated graphs.\n", imagesDir)
+	fmt.Printf("\nAll visualizations completed! Check the '%s' directory for generated graphs.\n", v.imagesDir)
 	return nil
 }
 
@@ -137,14 +141,14 @@ func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
 				expected_kib_per_sec,
 				actual_kib_per_sec
 			FROM throughput_data, min_timestamp
-		) TO '`+dataDir+`/throughput_data.csv' (HEADER, DELIMITER ',');
+		) TO '`+v.dataDir+`/throughput_data.csv' (HEADER, DELIMITER ',');
 	`); err != nil {
 		return err
 	}
 
 	return v.generateGnuplotScript("throughput", `
 		set terminal pngcairo size 1200,800 enhanced font 'Arial,12'
-		set output '`+imagesDir+`/throughput_analysis.png'
+		set output '`+v.imagesDir+`/throughput_analysis.png'
 		set datafile separator ","
 		set grid
 		set style line 1 lc rgb '#1f77b4' lw 2
@@ -158,8 +162,8 @@ func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
 		set autoscale x
 		set autoscale y
 		
-		plot '`+dataDir+`/throughput_data.csv' using 1:2 with lines ls 1 title "Expected Throughput", \
-		     '`+dataDir+`/throughput_data.csv' using 1:3 with lines ls 2 title "Actual Throughput"
+		plot '`+v.dataDir+`/throughput_data.csv' using 1:2 with lines ls 1 title "Expected Throughput", \
+		     '`+v.dataDir+`/throughput_data.csv' using 1:3 with lines ls 2 title "Actual Throughput"
 	`)
 }
 
@@ -175,14 +179,14 @@ func (v *Visualizer) generateBlobSizeDistribution(blobsPath string) error {
 			WHERE "name=size" > 0
 			GROUP BY "name=size"
 			ORDER BY "name=size"
-		) TO '`+dataDir+`/blob_sizes_data.csv' (HEADER, DELIMITER ',');
+		) TO '`+v.dataDir+`/blob_sizes_data.csv' (HEADER, DELIMITER ',');
 	`); err != nil {
 		return err
 	}
 
 	return v.generateGnuplotScript("blob_sizes", `
 		set terminal pngcairo size 1200,800 enhanced font 'Arial,12'
-		set output '`+imagesDir+`/blob_size_distribution.png'
+		set output '`+v.imagesDir+`/blob_size_distribution.png'
 		set datafile separator ","
 		set grid
 		set style line 1 lc rgb '#2ca02c' lw 2 pt 7 ps 0.5
@@ -195,7 +199,7 @@ func (v *Visualizer) generateBlobSizeDistribution(blobsPath string) error {
 		set autoscale x
 		set autoscale y
 		
-		plot '`+dataDir+`/blob_sizes_data.csv' using 1:2 with points ls 1 title "Blob Count"
+		plot '`+v.dataDir+`/blob_sizes_data.csv' using 1:2 with points ls 1 title "Blob Count"
 	`)
 }
 
@@ -228,14 +232,14 @@ func (v *Visualizer) generateBlobTimeline(blobsPath string) error {
 				("name=blobpool_time" - min_start) / 1000000000.0 as blobpool_time_sec,
 				("name=finalized_time" - min_start) / 1000000000.0 as finalized_time_sec
 			FROM timeline_data, min_start_time
-		) TO '`+dataDir+`/blob_timeline_data.csv' (HEADER, DELIMITER ',');
+		) TO '`+v.dataDir+`/blob_timeline_data.csv' (HEADER, DELIMITER ',');
 	`); err != nil {
 		return err
 	}
 
 	return v.generateGnuplotScript("blob_timeline", `
 		set terminal pngcairo size 1200,800 enhanced font 'Arial,12'
-		set output '`+imagesDir+`/blob_timeline.png'
+		set output '`+v.imagesDir+`/blob_timeline.png'
 		set datafile separator ","
 		set grid
 		set key top left
@@ -256,11 +260,11 @@ func (v *Visualizer) generateBlobTimeline(blobsPath string) error {
 		# Format y-axis to show seconds with appropriate precision
 		set format y "%.1f"
 		
-		plot '`+dataDir+`/blob_timeline_data.csv' using 1:2 with lines ls 1 title "Start Time", \
-		     '`+dataDir+`/blob_timeline_data.csv' using 1:3 with lines ls 2 title "Store Time", \
-		     '`+dataDir+`/blob_timeline_data.csv' using 1:4 with lines ls 3 title "Metadata Time", \
-		     '`+dataDir+`/blob_timeline_data.csv' using 1:5 with lines ls 4 title "Blobpool Time", \
-		     '`+dataDir+`/blob_timeline_data.csv' using 1:6 with lines ls 5 title "Finalized Time"
+		plot '`+v.dataDir+`/blob_timeline_data.csv' using 1:2 with lines ls 1 title "Start Time", \
+		     '`+v.dataDir+`/blob_timeline_data.csv' using 1:3 with lines ls 2 title "Store Time", \
+		     '`+v.dataDir+`/blob_timeline_data.csv' using 1:4 with lines ls 3 title "Metadata Time", \
+		     '`+v.dataDir+`/blob_timeline_data.csv' using 1:5 with lines ls 4 title "Blobpool Time", \
+		     '`+v.dataDir+`/blob_timeline_data.csv' using 1:6 with lines ls 5 title "Finalized Time"
 	`)
 }
 
@@ -286,14 +290,14 @@ func (v *Visualizer) generateStoreToBlobpoolPlot(blobsPath string) error {
 				("name=store_time" - min_start) / 1000000000.0 as store_time_sec,
 				("name=blobpool_time" - "name=store_time") / 1000000000.0 as duration_sec
 			FROM timing_data, min_start_time
-		) TO '`+dataDir+`/store_to_blobpool_data.csv' (HEADER, DELIMITER ',');
+		) TO '`+v.dataDir+`/store_to_blobpool_data.csv' (HEADER, DELIMITER ',');
 	`); err != nil {
 		return err
 	}
 
 	return v.generateGnuplotScript("store_to_blobpool", `
 		set terminal pngcairo size 1200,800 enhanced font 'Arial,12'
-		set output '`+imagesDir+`/store_to_blobpool.png'
+		set output '`+v.imagesDir+`/store_to_blobpool.png'
 		set datafile separator ","
 		set grid
 		set style line 1 lc rgb '#ff7f0e' lw 2 pt 7 ps 0.5
@@ -309,7 +313,7 @@ func (v *Visualizer) generateStoreToBlobpoolPlot(blobsPath string) error {
 		# Format y-axis to show seconds with appropriate precision
 		set format y "%.3f"
 		
-		plot '`+dataDir+`/store_to_blobpool_data.csv' using 1:3 with points ls 1 title "Store to Blobpool Duration"
+		plot '`+v.dataDir+`/store_to_blobpool_data.csv' using 1:3 with points ls 1 title "Store to Blobpool Duration"
 	`)
 }
 
@@ -335,14 +339,14 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 				("name=store_time" - min_start) / 1000000000.0 as store_time_sec,
 				("name=finalized_time" - "name=store_time") / 1000000000.0 as duration_sec
 			FROM timing_data, min_start_time
-		) TO '`+dataDir+`/store_to_finalized_data.csv' (HEADER, DELIMITER ',');
+		) TO '`+v.dataDir+`/store_to_finalized_data.csv' (HEADER, DELIMITER ',');
 	`); err != nil {
 		return err
 	}
 
 	return v.generateGnuplotScript("store_to_finalized", `
 		set terminal pngcairo size 1200,800 enhanced font 'Arial,12'
-		set output '`+imagesDir+`/store_to_finalized.png'
+		set output '`+v.imagesDir+`/store_to_finalized.png'
 		set datafile separator ","
 		set grid
 		set style line 1 lc rgb '#d62728' lw 2 pt 7 ps 0.5
@@ -358,7 +362,7 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 		# Format y-axis to show seconds with appropriate precision
 		set format y "%.3f"
 		
-		plot '`+dataDir+`/store_to_finalized_data.csv' using 1:3 with points ls 1 title "Store to Finalized Duration"
+		plot '`+v.dataDir+`/store_to_finalized_data.csv' using 1:3 with points ls 1 title "Store to Finalized Duration"
 	`)
 }
 
@@ -366,12 +370,12 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 // It creates a temporary SQL file, runs DuckDB, and cleans up the temporary file.
 func (v *Visualizer) runDuckDBQuery(inputFile, query string) error {
 	// Ensure data directory exists
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
+	if err := os.MkdirAll(v.dataDir, 0755); err != nil {
 		return fmt.Errorf("failed to create data directory: %v", err)
 	}
 
 	// Write query to temporary file
-	tempQueryFile := filepath.Join(dataDir, "temp_query.sql")
+	tempQueryFile := filepath.Join(v.dataDir, "temp_query.sql")
 	if err := os.WriteFile(tempQueryFile, []byte(query), 0644); err != nil {
 		return fmt.Errorf("failed to write query file: %v", err)
 	}
@@ -391,7 +395,7 @@ func (v *Visualizer) runDuckDBQuery(inputFile, query string) error {
 // It creates a temporary script file, runs gnuplot, and cleans up the temporary file.
 func (v *Visualizer) generateGnuplotScript(name, script string) error {
 	// Write gnuplot script to temporary file
-	tempScriptFile := filepath.Join(dataDir, name+".gp")
+	tempScriptFile := filepath.Join(v.dataDir, name+".gp")
 	if err := os.WriteFile(tempScriptFile, []byte(script), 0644); err != nil {
 		return fmt.Errorf("failed to write gnuplot script: %v", err)
 	}
