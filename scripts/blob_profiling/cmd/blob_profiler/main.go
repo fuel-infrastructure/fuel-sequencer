@@ -101,6 +101,18 @@ func main() {
 		logger.Error("failed to create parquet writer - will exit", "error", err)
 		os.Exit(1)
 	}
+	// Generate visualization graphs if requested - defer now to ensure parquet handler is closed
+	if *generateGraphs {
+		defer func() {
+			logger.Info("Generating visualization graphs...")
+			viz := visualizer.New(parquetHandler.Dir(), cfg.Profile.Description, *cleanupData)
+			if err := viz.GenerateGraphs(); err != nil {
+				logger.Error("Failed to generate graphs", "error", err)
+				os.Exit(1)
+			}
+			logger.Info("Visualization graphs generated successfully")
+		}()
+	}
 	defer parquetHandler.Close()
 
 	// Create profiler
@@ -126,16 +138,5 @@ func main() {
 			"buffered_records", stats.BufferedRecords,
 			"batch_size", stats.BatchSize,
 			"profile_duration", stats.ProfileDuration)
-	}
-
-	// Generate visualization graphs if requested
-	if *generateGraphs {
-		logger.Info("Generating visualization graphs...")
-		viz := visualizer.New(parquetHandler.Dir(), cfg.Profile.Description, *cleanupData)
-		if err := viz.GenerateGraphs(); err != nil {
-			logger.Error("Failed to generate graphs", "error", err)
-			os.Exit(1)
-		}
-		logger.Info("Visualization graphs generated successfully")
 	}
 }
