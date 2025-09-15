@@ -31,10 +31,12 @@ const (
 var (
 	// constant intends to keep a fixed throughput rate
 	constant = Profile{
-		Description: fmt.Sprintf("constant_%d_kib_s", constantRate/size.KiB),
-		Duration:    defaultDuration,
-		MaxRate:     targetRate,
-		Rate:        func(_ time.Duration) int { return constantRate }, // constant rate
+		Description: fmt.Sprintf("constant_%d_kib_s_for_%d_mins",
+			constantRate/size.KiB,
+			defaultDuration/time.Minute),
+		Duration: defaultDuration,
+		MaxRate:  targetRate,
+		Rate:     func(_ time.Duration) int { return constantRate }, // constant rate
 		Size: func(x time.Duration) int {
 			seconds := int(x / time.Second)
 			return constantRate * seconds
@@ -43,9 +45,11 @@ var (
 
 	// linear intends a monotonic but fixed increase in the throughput
 	linear = Profile{
-		Description: fmt.Sprintf("linear_%d_kib_per_s", linearIncrementRate/size.KiB),
-		Duration:    defaultDuration,
-		MaxRate:     targetRate,
+		Description: fmt.Sprintf("linear_%d_kib_per_s_for_%d_mins",
+			linearIncrementRate/size.KiB,
+			defaultDuration/time.Minute),
+		Duration: defaultDuration,
+		MaxRate:  targetRate,
 		Rate: func(duration time.Duration) int {
 			return int((1 + duration.Seconds()) * linearIncrementRate)
 		},
