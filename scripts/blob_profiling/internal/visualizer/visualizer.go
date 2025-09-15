@@ -169,11 +169,11 @@ func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
 
 // generateBlobSizeDistribution creates a scatter plot showing the distribution of blob sizes.
 func (v *Visualizer) generateBlobSizeDistribution(blobsPath string) error {
-	// Generate blob size distribution data
+	// Generate blob size distribution data with size converted to KiB
 	if err := v.runDuckDBQuery(blobsPath, `
 		COPY (
 			SELECT 
-				"name=size" as size_bytes,
+				"name=size" / 1024.0 as size_kib,
 				COUNT(*) as count
 			FROM read_parquet('`+blobsPath+`')
 			WHERE "name=size" > 0
@@ -192,12 +192,15 @@ func (v *Visualizer) generateBlobSizeDistribution(blobsPath string) error {
 		set style line 1 lc rgb '#2ca02c' lw 2 pt 7 ps 0.5
 		
 		set title "Blob Size Distribution" font "Arial,16"
-		set xlabel "Blob Size (bytes)" font "Arial,14"
+		set xlabel "Blob Size (KiB)" font "Arial,14"
 		set ylabel "Count" font "Arial,14"
 		
 		# Auto-scale to fit data
 		set autoscale x
 		set autoscale y
+		
+		# Format y-axis to show integers
+		set format y "%.0f"
 		
 		plot '`+v.dataDir+`/blob_sizes_data.csv' using 1:2 with points ls 1 title "Blob Count"
 	`)
@@ -211,7 +214,7 @@ func (v *Visualizer) generateBlobTimeline(blobsPath string) error {
 		COPY (
 			WITH timeline_data AS (
 				SELECT 
-					ROW_NUMBER() OVER (ORDER BY "name=start_time") as blob_index,
+					"name=count" as blob_index,
 					"name=start_time",
 					"name=store_time",
 					"name=metadata_time",
@@ -257,6 +260,9 @@ func (v *Visualizer) generateBlobTimeline(blobsPath string) error {
 		set autoscale x
 		set autoscale y
 		
+		# Force x-axis to show only integer ticks
+		set xtics 1
+		set format x "%.0f"
 		# Format y-axis to show seconds with appropriate precision
 		set format y "%.1f"
 		
@@ -275,7 +281,7 @@ func (v *Visualizer) generateStoreToBlobpoolPlot(blobsPath string) error {
 		COPY (
 			WITH timing_data AS (
 				SELECT 
-					ROW_NUMBER() OVER (ORDER BY "name=start_time") as blob_index,
+					"name=count" as blob_index,
 					"name=store_time",
 					"name=blobpool_time"
 				FROM read_parquet('`+blobsPath+`')
@@ -310,6 +316,9 @@ func (v *Visualizer) generateStoreToBlobpoolPlot(blobsPath string) error {
 		set autoscale x
 		set autoscale y
 		
+		# Force x-axis to show only integer ticks
+		set xtics 1
+		set format x "%.0f"
 		# Format y-axis to show seconds with appropriate precision
 		set format y "%.3f"
 		
@@ -324,7 +333,7 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 		COPY (
 			WITH timing_data AS (
 				SELECT 
-					ROW_NUMBER() OVER (ORDER BY "name=start_time") as blob_index,
+					"name=count" as blob_index,
 					"name=store_time",
 					"name=finalized_time"
 				FROM read_parquet('`+blobsPath+`')
@@ -359,6 +368,9 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 		set autoscale x
 		set autoscale y
 		
+		# Force x-axis to show only integer ticks
+		set xtics 1
+		set format x "%.0f"
 		# Format y-axis to show seconds with appropriate precision
 		set format y "%.3f"
 		
