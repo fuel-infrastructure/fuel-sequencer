@@ -98,6 +98,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	var blobCount int
 	p.supplementBuffer(0)
 	blobs := make([]*types.TrackedBlob, 0)
+	catching := sync.WaitGroup{} // Ensure txs are caught before final flushing of parquet data
 
 	// Handle blobpool tracking and messaging
 	stream, err := p.blobpool.StreamBlobs(pctx)
@@ -147,7 +148,11 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 			cancel()
 			return nil, err
 		}
-		go p.catchBlobs(pctx, cancel, expect, consume, txHash, nextBlobs)
+		catching.Add(1)
+		go func() {
+			p.catchBlobs(pctx, cancel, expect, consume, txHash, nextBlobs)
+			catching.Done()
+		}()
 		blobs = append(blobs, nextBlobs...)
 
 		blobCount += len(nextBlobs)
@@ -155,6 +160,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 
 		p.supplementBuffer(duration)
 	}
+	catching.Wait()
 
 	// Final flush of any remaining parquet data
 	if err := p.handler.Flush(); err != nil {
