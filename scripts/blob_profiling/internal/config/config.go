@@ -131,7 +131,7 @@ func GenerateBlobSizeInfo(distribution blobgen.BlobSizeDistribution) string {
 	case distribution == blobgen.Fixed10MiB:
 		return "10 MiB blobs"
 	case distribution == blobgen.RealisticDistribution:
-		return "Normally distributed blobs"
+		return "Distributed blobs"
 	default:
 		// Fail fast for undefined distributions
 		panic(fmt.Sprintf("unsupported blob size distribution: %T", distribution))
