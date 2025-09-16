@@ -93,7 +93,7 @@ func defaultSetup(
 		BlobhubURL:     "http://localhost:31035",
 		SequencerRPC:   "http://localhost:26657",
 		BlobpoolURL:    "http://localhost" + blobkeeper.BlobpoolAddress,
-		ParquetDir:     "./",
+		ParquetDir:     "../../output", // root of ./cmd/blob_profiler
 		Profile:        profile,
 		MaxLagRatio:    1.2,
 		LagTolerance:   10 * time.Second,
