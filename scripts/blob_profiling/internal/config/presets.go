@@ -35,7 +35,7 @@ func GetAvailableProfiles() []string {
 
 const (
 	nanosPerSecond  = int(time.Second)
-	defaultDuration = 5 * time.Second
+	defaultDuration = 10 * time.Minute
 	targetRate      = 1 * size.GB / 6
 
 	// constant configurable presets
