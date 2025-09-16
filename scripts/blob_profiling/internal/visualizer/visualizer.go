@@ -25,33 +25,34 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
 )
 
 // Visualizer handles the generation of performance graphs from parquet data.
 // It uses DuckDB to query parquet files and gnuplot to generate high-resolution PNG images.
 type Visualizer struct {
-	parquetDir  string // Directory containing parquet files
-	description string // Profile description used for file naming (e.g., "linear_5_kib_per_s")
-	cleanup     bool   // Whether to delete intermediate CSV files after graph generation
-	outputDir   string // Output directory for graphs and data (under parquet directory)
-	imagesDir   string // Images directory (under output directory)
-	dataDir     string // Data directory (under output directory)
+	parquetDir string         // Directory containing parquet files
+	profile    config.Profile // Complete profile information including metadata
+	cleanup    bool           // Whether to delete intermediate CSV files after graph generation
+	outputDir  string         // Output directory for graphs and data (under parquet directory)
+	imagesDir  string         // Images directory (under output directory)
+	dataDir    string         // Data directory (under output directory)
 }
 
-// New creates a new visualizer instance with the specified parquet directory,
-// profile description, and cleanup preference.
-func New(parquetDir string, description string, cleanup bool) *Visualizer {
+// New creates a new visualizer instance with complete profile information.
+func New(parquetDir string, profile config.Profile, cleanup bool) *Visualizer {
 	outputDir := filepath.Join(parquetDir, "graphs")
 	imagesDir := filepath.Join(outputDir, "images")
 	dataDir := filepath.Join(outputDir, "data")
 
 	return &Visualizer{
-		parquetDir:  parquetDir,
-		description: description,
-		cleanup:     cleanup,
-		outputDir:   outputDir,
-		imagesDir:   imagesDir,
-		dataDir:     dataDir,
+		parquetDir: parquetDir,
+		profile:    profile,
+		cleanup:    cleanup,
+		outputDir:  outputDir,
+		imagesDir:  imagesDir,
+		dataDir:    dataDir,
 	}
 }
 
@@ -158,6 +159,9 @@ func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
 		set xlabel "Time (seconds)" font "Arial,14"
 		set ylabel "Throughput (KiB/s)" font "Arial,14"
 		
+		# Add profile information outside graph area with text wrapping
+		`+v.generateProfileLabels()+`
+		
 		# Auto-scale to fit data
 		set autoscale x
 		set autoscale y
@@ -194,6 +198,9 @@ func (v *Visualizer) generateBlobSizeDistribution(blobsPath string) error {
 		set title "Blob Size Distribution" font "Arial,16"
 		set xlabel "Blob Size (KiB)" font "Arial,14"
 		set ylabel "Count" font "Arial,14"
+		
+		# Add profile information outside graph area with text wrapping
+		`+v.generateProfileLabels()+`
 		
 		# Auto-scale to fit data
 		set autoscale x
@@ -256,6 +263,9 @@ func (v *Visualizer) generateBlobTimeline(blobsPath string) error {
 		set xlabel "Blob Index (Submission Order)" font "Arial,14"
 		set ylabel "Time (seconds)" font "Arial,14"
 		
+		# Add profile information outside graph area with text wrapping
+		`+v.generateProfileLabels()+`
+		
 		# Auto-scale to fit data
 		set autoscale x
 		set autoscale y
@@ -312,6 +322,9 @@ func (v *Visualizer) generateStoreToBlobpoolPlot(blobsPath string) error {
 		set xlabel "Blob Index (Submission Order)" font "Arial,14"
 		set ylabel "Duration (seconds)" font "Arial,14"
 		
+		# Add profile information outside graph area with text wrapping
+		`+v.generateProfileLabels()+`
+		
 		# Auto-scale to fit data
 		set autoscale x
 		set autoscale y
@@ -363,6 +376,9 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 		set title "Time from Store to Finalized" font "Arial,16"
 		set xlabel "Blob Index (Submission Order)" font "Arial,14"
 		set ylabel "Duration (seconds)" font "Arial,14"
+		
+		# Add profile information outside graph area with text wrapping
+		`+v.generateProfileLabels()+`
 		
 		# Auto-scale to fit data
 		set autoscale x
@@ -421,4 +437,15 @@ func (v *Visualizer) generateGnuplotScript(name, script string) error {
 	// Clean up temporary script file
 	os.Remove(tempScriptFile)
 	return nil
+}
+
+// getProfileTitle returns a formatted title for the profile
+func (v *Visualizer) getProfileTitle() string {
+	return fmt.Sprintf("Profile: %s (%s)", v.profile.Type, v.profile.Purpose)
+}
+
+// generateProfileLabels creates gnuplot label commands for profile information
+func (v *Visualizer) generateProfileLabels() string {
+	// Profile title with spacing
+	return fmt.Sprintf(`set label "` + v.getProfileTitle() + `" at screen 0.5, screen 0.9375 center font "Arial,12"`)
 }

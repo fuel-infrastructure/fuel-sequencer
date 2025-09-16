@@ -11,13 +11,20 @@
 //	-sequencer: Override sequencer RPC URL (default: http://localhost:26657)
 //	-blobpool: Override blobpool URL (default: http://localhost:31036)
 //	-parquet: Output directory for parquet files (default: ./)
+//	-profile: Profile type: constant, linear, or exponential (default: linear)
 //	-graphs: Generate visualization graphs (default: true)
 //	-cleanup: Delete intermediate data files after graph generation (default: true)
 //
 // Usage Examples:
 //
-//	# Full profiling with visualization
+//	# Full profiling with visualization (default linear profile)
 //	./blob_profiler -graphs -cleanup
+//
+//	# Constant load testing
+//	./blob_profiler -profile constant -graphs -cleanup
+//
+//	# Exponential stress testing
+//	./blob_profiler -profile exponential -graphs -cleanup
 //
 //	# Visualization only from existing data
 //	./blob_profiler -graphs -parquet cmd/blob_profiler
@@ -55,6 +62,7 @@ func main() {
 		sequencerRPC   = flag.String("sequencer", "", "Override sequencer RPC URL")
 		blobpoolURL    = flag.String("blobpool", "", "Override blobpool URL")
 		parquetDir     = flag.String("parquet", "", "Output parquet dir path for profiling data")
+		profileType    = flag.String("profile", "", "Profile type: constant, linear, or exponential (default: linear)")
 		generateGraphs = flag.Bool("graphs", true, "Generate visualization graphs after profiling")
 		cleanupData    = flag.Bool("cleanup", true, "Delete generated data files after creating images")
 	)
@@ -81,6 +89,10 @@ func main() {
 	if *parquetDir != "" {
 		cfg.ParquetDir = *parquetDir
 	}
+	if *profileType != "" {
+		cfg.Profile = config.GetProfile(*profileType)
+		logger.Info("Using profile", "type", cfg.Profile.Type, "purpose", cfg.Profile.Purpose)
+	}
 
 	// Validate configuration
 	if err := cfg.Validate(); err != nil {
@@ -105,7 +117,7 @@ func main() {
 	if *generateGraphs {
 		defer func() {
 			logger.Info("Generating visualization graphs...")
-			viz := visualizer.New(parquetHandler.Dir(), cfg.Profile.Description, *cleanupData)
+			viz := visualizer.New(parquetHandler.Dir(), cfg.Profile, *cleanupData)
 			if err := viz.GenerateGraphs(); err != nil {
 				logger.Error("Failed to generate graphs", "error", err)
 				os.Exit(1)

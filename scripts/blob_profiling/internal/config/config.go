@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
@@ -24,6 +25,11 @@ type Profile struct {
 	// This is the integral of the Rate function (area under the curve)
 	Size func(since time.Duration) int `json:"size"` // bytes
 
+	// Enhanced metadata for visualization context
+	Type         string `json:"profile_type"`        // Type of profile (e.g., "constant", "linear", "exponential")
+	Purpose      string `json:"profile_purpose"`     // Purpose/intent of this profile
+	Explanation  string `json:"profile_explanation"` // Detailed explanation of what this profile tests
+	BlobSizeInfo string `json:"blob_size_info"`      // Information about blob size distribution
 }
 
 // Config holds the profiler configuration
@@ -39,6 +45,13 @@ type Config struct {
 	BufferDuration   time.Duration                `json:"buffer_duration"`   // Duration as buffer to keep generated blobs before submitting
 	Topic            string                       `json:"topic"`
 	Sender           string                       `json:"sender"`
+}
+
+// SetBlobDistribution sets the blob distribution and appends blob size info to the purpose
+func (c *Config) SetBlobDistribution(distribution blobgen.BlobSizeDistribution) {
+	c.BlobDistribution = distribution
+	blobInfo := GenerateBlobSizeInfo(distribution)
+	c.Purpose = c.Purpose + " | " + blobInfo
 }
 
 // Configuration validation errors
@@ -94,4 +107,22 @@ func (c *Config) Validate() error {
 		return ErrInvalidBufferDuration
 	}
 	return nil
+}
+
+// GenerateBlobSizeInfo creates a concise description of the blob size distribution
+func GenerateBlobSizeInfo(distribution blobgen.BlobSizeDistribution) string {
+	// Simple approach - only handle known distributions, fail fast for others
+	switch {
+	case distribution == blobgen.Fixed100KiB:
+		return "100 KiB blobs"
+	case distribution == blobgen.Fixed1MiB:
+		return "1 MiB blobs"
+	case distribution == blobgen.Fixed10MiB:
+		return "10 MiB blobs"
+	case distribution == blobgen.RealisticDistribution:
+		return "Realistically distributed blobs"
+	default:
+		// Fail fast for undefined distributions
+		panic(fmt.Sprintf("unsupported blob size distribution: %T", distribution))
+	}
 }

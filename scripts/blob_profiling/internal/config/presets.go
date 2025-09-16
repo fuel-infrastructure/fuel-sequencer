@@ -16,9 +16,26 @@ func DefaultConfig(logger *slog.Logger) *Config {
 	return defaultSetup(logger, linear, blobgen.Fixed100KiB)
 }
 
+// GetProfile returns a specific profile by type
+func GetProfile(profileType string) Profile {
+	switch profileType {
+	case "constant":
+		return constant
+	case "linear":
+		return linear
+	default:
+		return linear // default fallback
+	}
+}
+
+// GetAvailableProfiles returns a list of available profile types
+func GetAvailableProfiles() []string {
+	return []string{"constant", "linear"}
+}
+
 const (
 	nanosPerSecond  = int(time.Second)
-	defaultDuration = 10 * time.Minute
+	defaultDuration = 5 * time.Second
 	targetRate      = 1 * size.GB / 6
 
 	// constant configurable presets
@@ -41,6 +58,8 @@ var (
 			seconds := int(x / time.Second)
 			return constantRate * seconds
 		},
+		Type:    "constant",
+		Purpose: fmt.Sprintf("Constant demand of %d KiB/s", constantRate/size.KiB),
 	}
 
 	// linear intends a monotonic but fixed increase in the throughput
@@ -60,9 +79,9 @@ var (
 			total := float64(linearIncrementRate) * (seconds + 0.5*seconds*seconds)
 			return int(total)
 		},
+		Type:    "linear",
+		Purpose: fmt.Sprintf("Demanding an extra +%d KiB/s, per second", linearIncrementRate/size.KiB),
 	}
-
-	// todo: exponential
 )
 
 // defaultSetup returns a linear rate configuration
@@ -71,18 +90,20 @@ func defaultSetup(
 	profile Profile,
 	distribution blobgen.BlobSizeDistribution) *Config {
 	cfg := &Config{
-		BlobhubURL:       "http://localhost:31035",
-		SequencerRPC:     "http://localhost:26657",
-		BlobpoolURL:      "http://localhost" + blobkeeper.BlobpoolAddress,
-		ParquetDir:       "./",
-		Profile:          profile,
-		BlobDistribution: distribution,
-		MaxLagRatio:      1.2,
-		LagTolerance:     10 * time.Second,
-		BufferDuration:   5 * time.Second,
-		Topic:            "test-topic",
-		Sender:           "eve",
+		BlobhubURL:     "http://localhost:31035",
+		SequencerRPC:   "http://localhost:26657",
+		BlobpoolURL:    "http://localhost" + blobkeeper.BlobpoolAddress,
+		ParquetDir:     "./",
+		Profile:        profile,
+		MaxLagRatio:    1.2,
+		LagTolerance:   10 * time.Second,
+		BufferDuration: 5 * time.Second,
+		Topic:          "test-topic",
+		Sender:         "eve",
 	}
+
+	// Set blob distribution and generate BlobSizeInfo dynamically
+	cfg.SetBlobDistribution(distribution)
 
 	if err := cfg.Validate(); err != nil {
 		logger.Error("Invalid configuration - will exit", "error", err)
