@@ -145,8 +145,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		txHash, err := p.castBlobs(pctx, cancel, nextBlobs, txCount, blobCount)
 		if err != nil {
 			p.logger.Error("failed to cast blobs", "error", err)
-			cancel()
-			return nil, err
+			break
 		}
 		catching.Add(1)
 		go func() {
