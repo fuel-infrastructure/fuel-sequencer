@@ -8,6 +8,7 @@ import (
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 	blobkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/blob/keeper"
 )
 
@@ -96,8 +97,8 @@ func defaultSetup(
 		ParquetDir:     "../../output", // root of ./cmd/blob_profiler
 		Profile:        profile,
 		MaxLagRatio:    1.2,
-		LagTolerance:   10 * time.Second,
-		BufferDuration: 5 * time.Second,
+		LagTolerance:   2 * sequencer.BlockTime,
+		BufferDuration: 1 * sequencer.BlockTime,
 		Topic:          "test-topic",
 		Sender:         "eve",
 	}
