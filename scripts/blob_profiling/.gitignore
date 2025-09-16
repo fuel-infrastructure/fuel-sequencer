@@ -5,11 +5,8 @@ graphs/
 *.gp
 *.dat
 
-# Build artifacts
-cmd/visualizer/visualizer
-cmd/blob_profiler/blob_profiler
-cmd/*/visualizer
-cmd/*/blob_profiler
+# Output artifacts
+output/
 
 # OS generated files
 .DS_Store

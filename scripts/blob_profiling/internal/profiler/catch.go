@@ -34,6 +34,7 @@ func (p *BlobProfiler) catchBlobs(
 	// T6: Lookup blob metadata in finalized block
 	txResult, err := p.sequencer.WaitForMetadataTxFinalisation(ctx, txHash)
 	if err != nil {
+		p.report.RecordSequencerEvent("wait_for_metadata_tx_finalisation", err)
 		log.Printf("failed to wait for transaction confirmation: %v", err)
 		for _, blob := range blobs {
 			blob.Submission.Status = types.Failed
@@ -51,6 +52,7 @@ func (p *BlobProfiler) catchBlobs(
 
 	// Write to parquet file
 	if err := p.handler.WriteBlobs(blobs); err != nil {
+		p.report.RecordParquetEvent("write_blobs", err)
 		p.logger.Error("Failed to write blobs to parquet", "error", err)
 		// Don't fail the entire profiling, just log the error
 	}

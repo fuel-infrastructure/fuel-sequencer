@@ -47,11 +47,13 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/parquet"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/profiler"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/report"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/visualizer"
 )
 
@@ -100,19 +102,33 @@ func main() {
 		os.Exit(1)
 	}
 
+	runTimestamp := time.Now()
+	runDirName := config.RunOutputDir(runTimestamp)
+
 	logger.Info("Blobhub URL", "url", cfg.BlobhubURL)
 	logger.Info("Sequencer RPC URL", "url", cfg.SequencerRPC)
 	logger.Info("Start Rate", "rate_KiB", cfg.Rate(0)/size.KiB)
 	logger.Info("Max Rate", "rate_MiB", cfg.MaxRate/size.MiB)
+	logger.Info("Profile Run Timestamp", "timestamp", runTimestamp)
 
 	ctx := context.Background()
 
 	// Create parquet writer if output file is specified
-	parquetHandler, err := parquet.New(cfg.ParquetDir, logger, cfg.Profile.Description)
+	parquetHandler, err := parquet.New(cfg.ParquetDir, runDirName, logger, cfg.Profile.Description)
 	if err != nil {
 		logger.Error("failed to create parquet writer - will exit", "error", err)
 		os.Exit(1)
 	}
+
+	// Create profiler report
+	profilerReport, err := report.New(cfg.ParquetDir, runDirName, cfg.Profile.Description, runTimestamp)
+	if err != nil {
+		logger.Error("failed to create profiler report - will exit", "error", err)
+		os.Exit(1)
+	}
+	// Initialize profiler report with environment information
+	profilerReport.InitialiseEnvironment(cfg)
+
 	// Generate visualization graphs if requested - defer now to ensure parquet handler is closed
 	if *generateGraphs {
 		defer func() {
@@ -128,7 +144,7 @@ func main() {
 	defer parquetHandler.Close()
 
 	// Create profiler
-	profiler, err := profiler.NewBlobProfiler(ctx, cfg, logger, parquetHandler)
+	profiler, err := profiler.NewBlobProfiler(ctx, cfg, logger, parquetHandler, profilerReport)
 	if err != nil {
 		logger.Error("Failed to create blob profiler - will exit", "error", err)
 		os.Exit(1)
@@ -140,6 +156,13 @@ func main() {
 	if err != nil {
 		logger.Error("Profiling failed - will exit", "error", err)
 		os.Exit(1)
+	}
+
+	// Write profiler report
+	if err := profiler.WriteReport(); err != nil {
+		logger.Error("Failed to write profiler report", "error", err)
+	} else {
+		logger.Info("Profiler report written", "path", profiler.ReportPath())
 	}
 
 	// Log final statistics

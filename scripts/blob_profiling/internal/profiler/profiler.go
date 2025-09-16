@@ -14,6 +14,7 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/parquet"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/report"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
@@ -25,6 +26,7 @@ const (
 // BlobProfiler is the main profiling engine
 type BlobProfiler struct {
 	logger    *slog.Logger
+	report    *report.ProfilerReport
 	blobhub   *blobhub.Client
 	sequencer *sequencer.Client
 	blobpool  *blobhub.Client
@@ -44,7 +46,7 @@ type BlobProfiler struct {
 // NewBlobProfiler creates a new blob profiler instance
 func NewBlobProfiler(
 	ctx context.Context, cfg *config.Config, logger *slog.Logger,
-	handler *parquet.Handler,
+	handler *parquet.Handler, profilerReport *report.ProfilerReport,
 ) (*BlobProfiler, error) {
 	// Initialize blobhub client
 	blobhubClient := blobhub.NewClient(&blobhub.ClientConfig{
@@ -54,6 +56,7 @@ func NewBlobProfiler(
 	// Initialize sequencer client
 	sequencerClient, err := sequencer.NewClient(ctx, cfg.SequencerRPC, cfg.Topic, cfg.Sender)
 	if err != nil {
+		profilerReport.RecordConnectionEvent("sequencer", cfg.SequencerRPC, err)
 		return nil, fmt.Errorf("failed to create sequencer client: %w", err)
 	}
 
@@ -64,6 +67,7 @@ func NewBlobProfiler(
 
 	return &BlobProfiler{
 		logger:    logger,
+		report:    profilerReport,
 		blobhub:   blobhubClient,
 		sequencer: sequencerClient,
 		blobpool:  blobpoolClient,
@@ -103,6 +107,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	// Handle blobpool tracking and messaging
 	stream, err := p.blobpool.StreamBlobs(pctx)
 	if err != nil {
+		p.report.RecordConnectionEvent("blobpool", p.config.BlobpoolURL, err)
 		return nil, fmt.Errorf("failed to create blobpool stream: %w", err)
 	}
 	expect := make(chan *types.TrackedBlob, p.bufferSize)
@@ -144,6 +149,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		dataSubmitted += nextBlobsSize
 		txHash, err := p.castBlobs(pctx, cancel, nextBlobs, txCount, blobCount)
 		if err != nil {
+			p.report.RecordCastingEventWithBlobs(txHash, nextBlobs, err)
 			p.logger.Error("failed to cast blobs", "error", err)
 			break
 		}
@@ -163,8 +169,12 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 
 	// Final flush of any remaining parquet data
 	if err := p.handler.Flush(); err != nil {
+		p.report.RecordParquetEvent("flush", err)
 		p.logger.Error("Failed to flush final parquet data", "error", err)
 	}
+
+	// Update profiler report summary
+	p.updateReportSummary(blobs, dataSubmitted)
 
 	return blobs, nil
 }
@@ -172,10 +182,12 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 func (p *BlobProfiler) Close() {
 	err := p.blobhub.Close()
 	if err != nil {
+		p.report.RecordConnectionEvent("blobhub", "close", err)
 		p.logger.Error("failed to close blobhub connection", "error", err)
 	}
 	err = p.blobpool.Close()
 	if err != nil {
+		p.report.RecordConnectionEvent("blobpool", "close", err)
 		p.logger.Error("failed to close blobpool server connection", "error", err)
 	}
 }
@@ -216,6 +228,7 @@ func (p *BlobProfiler) logThroughput(
 		int64(p.pending), seconds, timestamp,
 	)
 	if err := p.handler.WriteThroughput(throughputRecord); err != nil {
+		p.report.RecordParquetEvent("write_throughput", err)
 		p.logger.Error("failed to write throughput data", "error", err)
 	}
 }

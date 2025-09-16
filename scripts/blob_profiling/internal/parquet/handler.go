@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
@@ -22,12 +21,12 @@ type Handler struct {
 }
 
 // New creates a new parquet handler with default settings
-func New(parquetDir string, logger *slog.Logger, description string) (*Handler, error) {
-	return NewWithOptions(parquetDir, logger, defaultBatchSize, description)
+func New(parquetDir, runDirName string, logger *slog.Logger, description string) (*Handler, error) {
+	return NewWithOptions(parquetDir, runDirName, logger, defaultBatchSize, description)
 }
 
 // NewWithOptions creates a new parquet handler with custom batch size
-func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, description string) (*Handler, error) {
+func NewWithOptions(parquetDir, runDirName string, logger *slog.Logger, batchSize int, description string) (*Handler, error) {
 	l := logger.With("component", "parquet")
 
 	// Validate parquet directory
@@ -36,7 +35,7 @@ func NewWithOptions(parquetDir string, logger *slog.Logger, batchSize int, descr
 	}
 
 	// Add timestamp to parquet directory
-	parquetDir = filepath.Join(parquetDir, description, time.Now().Format("2006-01-02_T_15_04_05"))
+	parquetDir = filepath.Join(parquetDir, description, runDirName)
 
 	// Ensure directory exists
 	if err := os.MkdirAll(parquetDir, 0755); err != nil {

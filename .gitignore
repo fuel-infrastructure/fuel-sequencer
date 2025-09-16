@@ -28,9 +28,6 @@ release/
 # Blockchain data
 **/data/
 
-# Parquet files
-**.parquet
-
 # Build directories
 build/
 tmp-swagger-gen/

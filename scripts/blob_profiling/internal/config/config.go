@@ -9,6 +9,10 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 )
 
+func RunOutputDir(timestamp time.Time) string {
+	return timestamp.Format("2006-01-02_T_15_04_05")
+}
+
 // Profile defines the approach of the profiler for the generation of blobs
 // - If both Duration and MaxRate are defined, the profile until any condition is reached
 // - If Duration is not set, the profile will run until the MaxRate is reached

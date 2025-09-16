@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
+	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
 
@@ -24,11 +24,11 @@ func TestParquetHandler(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	// Create handler
-	handler, err := New(tmpDir, logger, "test")
+	runDirName := config.RunOutputDir(time.Now())
+	handler, err := New(tmpDir, runDirName, logger, "test")
 	if err != nil {
 		t.Fatalf("Failed to create handler: %v", err)
 	}
-	defer handler.Close()
 
 	// Create multiple test blobs
 	var blobs []*types.TrackedBlob
@@ -79,9 +79,20 @@ func TestParquetHandler(t *testing.T) {
 
 	var blobFile string
 	for _, entry := range entries {
-		if entry.IsDir() && strings.HasSuffix(entry.Name(), "-test") {
-			// Found the timestamped test directory, now look for the parquet file
-			blobFile = filepath.Join(tmpDir, entry.Name(), "blobs.parquet")
+		if entry.IsDir() && entry.Name() == "test" {
+			// Found the test directory, now look for the timestamped subdirectory
+			testDir := filepath.Join(tmpDir, entry.Name())
+			subEntries, err := os.ReadDir(testDir)
+			if err != nil {
+				t.Fatalf("Failed to read test directory: %v", err)
+			}
+			for _, subEntry := range subEntries {
+				if subEntry.IsDir() {
+					// Found the timestamped directory, now look for the parquet file
+					blobFile = filepath.Join(testDir, subEntry.Name(), "blobs.parquet")
+					break
+				}
+			}
 			break
 		}
 	}
