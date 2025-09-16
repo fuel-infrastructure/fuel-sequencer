@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
@@ -52,6 +53,10 @@ func (c *Config) SetBlobDistribution(distribution blobgen.BlobSizeDistribution) 
 	c.BlobDistribution = distribution
 	blobInfo := GenerateBlobSizeInfo(distribution)
 	c.Purpose = c.Purpose + " | " + blobInfo
+
+	// Update the profile description to include the blob size info
+	c.Profile.Description = c.Profile.Description + "_with_" +
+		strings.ReplaceAll(strings.ToLower(blobInfo), " ", "_")
 }
 
 // Configuration validation errors
@@ -113,6 +118,8 @@ func (c *Config) Validate() error {
 func GenerateBlobSizeInfo(distribution blobgen.BlobSizeDistribution) string {
 	// Simple approach - only handle known distributions, fail fast for others
 	switch {
+	case distribution == blobgen.Fixed10KiB:
+		return "10 KiB blobs"
 	case distribution == blobgen.Fixed100KiB:
 		return "100 KiB blobs"
 	case distribution == blobgen.Fixed1MiB:
@@ -120,7 +127,7 @@ func GenerateBlobSizeInfo(distribution blobgen.BlobSizeDistribution) string {
 	case distribution == blobgen.Fixed10MiB:
 		return "10 MiB blobs"
 	case distribution == blobgen.RealisticDistribution:
-		return "Realistically distributed blobs"
+		return "Normally distributed blobs"
 	default:
 		// Fail fast for undefined distributions
 		panic(fmt.Sprintf("unsupported blob size distribution: %T", distribution))
