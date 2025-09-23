@@ -9,7 +9,7 @@ import (
 
 	blobserver "github.com/fuel-infrastructure/blob-storage/pkg/server"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
-	"github.com/fuel-infrastructure/blob-storage/pkg/store/syncmap"
+	"github.com/fuel-infrastructure/blob-storage/pkg/store/redis"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
@@ -36,10 +36,13 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(ctx context.Context, logger log.Logger) *Blobpool {
+func newBlobpool(ctx context.Context, logger log.Logger) (*Blobpool, error) {
 
 	l := logger.With("module", "blobpool")
-	store := syncmap.Store(nil, false)
+	store, err := redis.Store(ctx, "localhost:6380", "", 0, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to blobpool redis store: %w", err)
+	}
 	server := blobserver.NewProductionServer(ctx, store, false)
 
 	p := &Blobpool{
@@ -51,7 +54,7 @@ func newBlobpool(ctx context.Context, logger log.Logger) *Blobpool {
 
 	metrics.SetBlobpoolCount(p.count)
 	p.logger.Info("initialized new blobpool")
-	return p
+	return p, nil
 }
 
 func (s *stats) update(hit bool) {
