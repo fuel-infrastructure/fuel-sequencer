@@ -44,9 +44,9 @@ func (p *BlobProfiler) generateBlobs(size int) ([]*types.TrackedBlob, int) {
 	return blobs, size
 }
 
-func (p *BlobProfiler) supplementBuffer(runtime time.Duration) {
-	upcomingSize := p.config.Size(runtime + p.config.BufferDuration) // Appropriate buffer size at the current runtime
-	requireBlobsSize := upcomingSize - p.bufferSize                  // Additional size that needs to be generated given the current buffer
+func (p *BlobProfiler) supplementBuffer(runtime time.Duration, dataSubmitted int) {
+	upcomingSize := p.config.Size(runtime + p.config.BufferDuration)  // Appropriate buffer size at the current runtime
+	requireBlobsSize := (upcomingSize - dataSubmitted) - p.bufferSize // Additional size that needs to be generated given current submissions and buffer
 
 	newBlobs, newBlobsSize := p.generateBlobs(requireBlobsSize)
 	p.buffer = append(p.buffer, newBlobs...)

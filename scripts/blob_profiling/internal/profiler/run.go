@@ -27,7 +27,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	var currentThroughput, dataSubmitted int
 	txCount := p.sequencer.Sender.Sequence // start by considering existing transactions
 	var blobCount int
-	p.supplementBuffer(0)
+	p.supplementBuffer(0, 0)
 	blobs := make([]*types.TrackedBlob, 0)
 	catching := sync.WaitGroup{} // Ensure txs are caught before final flushing of parquet data
 
@@ -90,7 +90,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		blobCount += len(nextBlobs)
 		txCount++
 
-		p.supplementBuffer(duration)
+		p.supplementBuffer(duration, dataSubmitted)
 	}
 	catching.Wait()
 
