@@ -74,6 +74,34 @@ install-deps-ubuntu:
 	@sudo apt-get install -y duckdb gnuplot
 	@echo "✓ Dependencies installed"
 
+# Compare profiling results
+.PHONY: compare
+compare:
+	@echo "Generating profiling comparison..."
+	@go run cmd/profile_comparison/main.go $(OUTPUT_DIR)
+	@echo "✓ Comparison completed"
+
+# Compare profiling results (CSV format)
+.PHONY: compare-csv
+# @echo "Generating profiling comparison (CSV)..."
+# @echo "✓ CSV comparison completed"
+compare-csv:
+	@go run cmd/profile_comparison/main.go $(OUTPUT_DIR) --csv
+
+# Show individual profiling runs
+.PHONY: compare-individual
+compare-individual:
+	@echo "Generating individual profiling runs..."
+	@go run cmd/profile_comparison/main.go $(OUTPUT_DIR) --individual
+	@echo "✓ Individual runs completed"
+
+# Show individual profiling runs (CSV format)
+.PHONY: compare-individual-csv
+compare-individual-csv:
+	@echo "Generating individual profiling runs (CSV)..."
+	@go run cmd/profile_comparison/main.go $(OUTPUT_DIR) --individual --csv
+	@echo "✓ Individual CSV runs completed"
+
 # Help
 .PHONY: help
 help:
@@ -84,6 +112,10 @@ help:
 	@echo "  build-profiler   - Build the Go profiler binary (includes visualization)"
 	@echo "  generate-graphs  - Generate all performance graphs (standalone)"
 	@echo "  generate-clean  - Generate graphs and cleanup data files (standalone)"
+	@echo "  compare          - Generate profiling comparison table"
+	@echo "  compare-csv      - Generate profiling comparison in CSV format"
+	@echo "  compare-individual - Show individual profiling runs"
+	@echo "  compare-individual-csv - Show individual runs in CSV format"
 	@echo "  clean            - Remove generated files"
 	@echo "  check-deps       - Check if required dependencies are installed"
 	@echo "  check-data       - Check if parquet data files exist"
@@ -95,6 +127,10 @@ help:
 	@echo "  make                    # Build profiler"
 	@echo "  make generate-graphs    # Generate graphs from existing parquet data"
 	@echo "  make generate-clean     # Generate graphs and cleanup data files"
+	@echo "  make compare            # Generate profiling comparison table"
+	@echo "  make compare-csv         # Generate profiling comparison in CSV format"
+	@echo "  make compare-individual  # Show individual profiling runs"
+	@echo "  make compare-individual-csv # Show individual runs in CSV format"
 	@echo "  make clean              # Clean up generated files"
 	@echo "  make check-deps         # Check dependencies"
 	@echo "  make check-data         # Check data files"

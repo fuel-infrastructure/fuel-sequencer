@@ -11,6 +11,9 @@ import (
 func (pr *ProfilerReport) InitialiseEnvironment(cfg *config.Config) {
 	pr.data.Environment.CommitHash = CommitHash()
 	pr.data.Environment.CommitHashShort = CommitHashShort()
+	pr.data.Environment.BlobStorageVersion = BlobStorageVersion()
+	pr.data.Environment.BlobStorageCommitHash = BlobStorageCommitHash()
+	pr.data.Environment.BlobStorageCommitHashShort = BlobStorageCommitHashShort()
 	pr.data.Environment.GitBranch = Branch()
 	pr.data.Environment.GitStatus = Status()
 	pr.data.Environment.GoVersion = runtime.Version()

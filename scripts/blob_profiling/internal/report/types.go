@@ -66,17 +66,20 @@ type SerializableConfig struct {
 
 // ProfilerEnvironment contains all environment and setup information
 type ProfilerEnvironment struct {
-	Timestamp       time.Time              `json:"timestamp"`
-	CommitHash      string                 `json:"commit_hash"`
-	CommitHashShort string                 `json:"commit_hash_short"`
-	GitBranch       string                 `json:"git_branch"`
-	GitStatus       string                 `json:"git_status"`
-	GoVersion       string                 `json:"go_version"`
-	OS              string                 `json:"os"`
-	Architecture    string                 `json:"architecture"`
-	Config          SerializableConfig     `json:"config"`
-	RuntimeInfo     map[string]interface{} `json:"runtime_info"`
-	EnvironmentVars map[string]string      `json:"environment_vars,omitempty"`
+	Timestamp                  time.Time              `json:"timestamp"`
+	CommitHash                 string                 `json:"commit_hash"`
+	CommitHashShort            string                 `json:"commit_hash_short"`
+	BlobStorageVersion         string                 `json:"blob_storage_version"`
+	BlobStorageCommitHash      string                 `json:"blob_storage_commit_hash"`
+	BlobStorageCommitHashShort string                 `json:"blob_storage_commit_hash_short"`
+	GitBranch                  string                 `json:"git_branch"`
+	GitStatus                  string                 `json:"git_status"`
+	GoVersion                  string                 `json:"go_version"`
+	OS                         string                 `json:"os"`
+	Architecture               string                 `json:"architecture"`
+	Config                     SerializableConfig     `json:"config"`
+	RuntimeInfo                map[string]interface{} `json:"runtime_info"`
+	EnvironmentVars            map[string]string      `json:"environment_vars,omitempty"`
 }
 
 // ProfilerSummary contains summary statistics
