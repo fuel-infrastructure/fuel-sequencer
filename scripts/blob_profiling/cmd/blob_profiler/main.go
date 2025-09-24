@@ -67,6 +67,7 @@ func main() {
 		profileType    = flag.String("profile", "", "Profile type: constant, linear, or exponential (default: linear)")
 		generateGraphs = flag.Bool("graphs", true, "Generate visualization graphs after profiling")
 		cleanupData    = flag.Bool("cleanup", true, "Delete generated data files after creating images")
+		visualizeOnly  = flag.Bool("visualize-only", false, "Only generate graphs from existing parquet data, skip profiling")
 	)
 	flag.Parse()
 
@@ -94,6 +95,33 @@ func main() {
 	if *profileType != "" {
 		cfg.Profile = config.GetProfile(*profileType)
 		logger.Info("Using profile", "type", cfg.Profile.Type, "purpose", cfg.Profile.Purpose)
+	}
+
+	// Handle visualization-only mode
+	if *visualizeOnly {
+		if *parquetDir == "" {
+			logger.Error("Visualization-only mode requires -parquet flag to specify data directory")
+			os.Exit(1)
+		}
+
+		logger.Info("Running in visualization-only mode", "parquet_dir", *parquetDir)
+
+		// Load profile from existing data directory
+		profile := config.GetProfileFromDir(*parquetDir)
+		if profile.Type == "" {
+			logger.Error("Could not determine profile type from directory name")
+			os.Exit(1)
+		}
+
+		// Generate visualization graphs
+		logger.Info("Generating visualization graphs...")
+		viz := visualizer.New(*parquetDir, profile, *cleanupData)
+		if err := viz.GenerateGraphs(); err != nil {
+			logger.Error("Failed to generate graphs", "error", err)
+			os.Exit(1)
+		}
+		logger.Info("Visualization graphs generated successfully")
+		return
 	}
 
 	// Validate configuration

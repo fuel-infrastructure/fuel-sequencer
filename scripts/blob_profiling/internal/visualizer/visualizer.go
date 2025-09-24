@@ -434,8 +434,12 @@ func (v *Visualizer) runDuckDBQuery(inputFile, query string) error {
 		return fmt.Errorf("failed to write query file: %v", err)
 	}
 
-	// Run DuckDB query
-	cmd := exec.Command("duckdb", "-c", fmt.Sprintf(".read %s", tempQueryFile))
+	// Run DuckDB query - try full path first, then fallback to PATH
+	duckdbPath := "/opt/homebrew/bin/duckdb"
+	if _, err := exec.LookPath("duckdb"); err == nil {
+		duckdbPath = "duckdb"
+	}
+	cmd := exec.Command(duckdbPath, "-c", fmt.Sprintf(".read %s", tempQueryFile))
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("duckdb query failed: %v", err)
 	}
@@ -454,8 +458,12 @@ func (v *Visualizer) generateGnuplotScript(name, script string) error {
 		return fmt.Errorf("failed to write gnuplot script: %v", err)
 	}
 
-	// Run gnuplot
-	cmd := exec.Command("gnuplot", tempScriptFile)
+	// Run gnuplot - try full path first, then fallback to PATH
+	gnuplotPath := "/opt/homebrew/bin/gnuplot"
+	if _, err := exec.LookPath("gnuplot"); err == nil {
+		gnuplotPath = "gnuplot"
+	}
+	cmd := exec.Command(gnuplotPath, tempScriptFile)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("gnuplot failed: %v", err)
 	}

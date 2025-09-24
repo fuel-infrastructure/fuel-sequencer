@@ -1,8 +1,11 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -135,5 +138,131 @@ func GenerateBlobSizeInfo(distribution blobgen.BlobSizeDistribution) string {
 	default:
 		// Fail fast for undefined distributions
 		panic(fmt.Sprintf("unsupported blob size distribution: %T", distribution))
+	}
+}
+
+// ProfilerReport represents the structure of the profiler_report.json file
+type ProfilerReport struct {
+	Environment struct {
+		Config struct {
+			Profile struct {
+				Description        string `json:"description"`
+				Duration           int64  `json:"duration"`
+				MaxRate            int64  `json:"max_rate"`
+				ProfileType        string `json:"profile_type"`
+				ProfilePurpose     string `json:"profile_purpose"`
+				ProfileExplanation string `json:"profile_explanation"`
+				BlobSizeInfo       string `json:"blob_size_info"`
+			} `json:"profile"`
+			BlobDistribution int `json:"blob_distribution"`
+		} `json:"config"`
+	} `json:"environment"`
+}
+
+// GetProfileFromDir extracts profile information from a directory path
+// This is used for visualization-only mode to determine the profile type from existing data
+func GetProfileFromDir(dirPath string) Profile {
+	// Try to read from profiler_report.json first
+	reportPath := filepath.Join(dirPath, "profiler_report.json")
+	if data, err := os.ReadFile(reportPath); err == nil {
+		var report ProfilerReport
+		if err := json.Unmarshal(data, &report); err == nil {
+			profile := report.Environment.Config.Profile
+
+			// Determine explanation based on profile type
+			var explanation string
+			switch profile.ProfileType {
+			case "constant":
+				explanation = "Maintains a steady, constant throughput rate throughout the test duration"
+			case "linear":
+				explanation = "Gradually increases throughput rate linearly over time to test system scalability"
+			case "exponential":
+				explanation = "Exponentially increases throughput rate to find system breaking points"
+			default:
+				explanation = profile.ProfileExplanation
+			}
+
+			// Get blob size info from blob distribution
+			var blobSizeInfo string
+			switch report.Environment.Config.BlobDistribution {
+			case 0: // Fixed10KiB
+				blobSizeInfo = "10 KiB blobs"
+			case 1: // Fixed100KiB
+				blobSizeInfo = "100 KiB blobs"
+			case 2: // Fixed1MiB
+				blobSizeInfo = "1 MiB blobs"
+			case 3: // Fixed10MiB
+				blobSizeInfo = "10 MiB blobs"
+			case 4: // RealisticDistribution
+				blobSizeInfo = "Distributed blobs"
+			default:
+				blobSizeInfo = profile.BlobSizeInfo
+			}
+
+			return Profile{
+				Description:  profile.Description,
+				Type:         profile.ProfileType,
+				Purpose:      profile.ProfilePurpose,
+				Explanation:  explanation,
+				BlobSizeInfo: blobSizeInfo,
+			}
+		}
+	}
+
+	// Fallback to directory name parsing if profiler_report.json is not available
+	// Extract the directory name from the path
+	dirName := filepath.Base(dirPath)
+
+	// Parse the directory name to extract profile information
+	// Expected format: "linear_10_kib_per_s_for_600_secs_with_1_mib_blobs"
+	parts := strings.Split(dirName, "_")
+
+	if len(parts) < 2 {
+		return Profile{}
+	}
+
+	// Determine profile type from the first part
+	var profileType, purpose, explanation string
+	switch parts[0] {
+	case "constant":
+		profileType = "constant"
+		purpose = "Constant Load Testing"
+		explanation = "Maintains a steady, constant throughput rate throughout the test duration"
+	case "linear":
+		profileType = "linear"
+		purpose = "Linear Load Testing"
+		explanation = "Gradually increases throughput rate linearly over time to test system scalability"
+	case "exponential":
+		profileType = "exponential"
+		purpose = "Exponential Stress Testing"
+		explanation = "Exponentially increases throughput rate to find system breaking points"
+	default:
+		profileType = "unknown"
+		purpose = "Unknown Profile"
+		explanation = "Profile type could not be determined from directory name"
+	}
+
+	// Extract blob size information
+	var blobSizeInfo string
+	if strings.Contains(dirName, "10_kib_blobs") {
+		blobSizeInfo = "10 KiB blobs"
+	} else if strings.Contains(dirName, "100_kib_blobs") {
+		blobSizeInfo = "100 KiB blobs"
+	} else if strings.Contains(dirName, "1_mib_blobs") {
+		blobSizeInfo = "1 MiB blobs"
+	} else if strings.Contains(dirName, "10_mib_blobs") {
+		blobSizeInfo = "10 MiB blobs"
+	} else if strings.Contains(dirName, "distributed_blobs") {
+		blobSizeInfo = "Distributed blobs"
+	} else {
+		blobSizeInfo = "Unknown blob sizes"
+	}
+
+	return Profile{
+		Description:  dirName,
+		Type:         profileType,
+		Purpose:      purpose,
+		Explanation:  explanation,
+		BlobSizeInfo: blobSizeInfo,
 	}
 }
