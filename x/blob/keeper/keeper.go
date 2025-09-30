@@ -54,7 +54,10 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 		return nil // Already initialized
 	}
 
-	blobpool := newBlobpool(ctx, k.logger)
+	blobpool, err := newBlobpool(ctx, k.logger)
+	if err != nil {
+		return err
+	}
 	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool)
 	if err != nil {
 		return err

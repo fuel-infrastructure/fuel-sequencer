@@ -1,0 +1,26 @@
+# Generated visualization files
+graphs/
+*.png
+*.csv
+*.gp
+*.dat
+
+# Output artifacts
+output/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Log files
+*.log
