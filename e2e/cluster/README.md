@@ -70,6 +70,11 @@ cd e2e
 go run ./cmd/cluster
 ```
 
+Monitor the node logs from the systemd service
+```sh
+sudo journalctl -xefu fuelsequencerd.service
+```
+
 ## Directory Structure
 
 ```
