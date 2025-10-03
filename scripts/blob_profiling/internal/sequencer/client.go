@@ -32,8 +32,7 @@ import (
 )
 
 const (
-	chainID = "fuelsequencer-1" // Change to your chain ID
-	denom   = "ufuel"           // Token denomination
+	chainID = "seq-benchnet-1" // Change to your chain ID
 )
 
 type Client struct {
