@@ -65,6 +65,9 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		}
 
 		nextBlobs, nextBlobsSize := p.collectBlobs(duration, dataSubmitted)
+		if nextBlobsSize == 0 {
+			continue
+		}
 
 		sizeKiB := nextBlobsSize / size.KiB
 		p.logger.Debug("posting new blobs",

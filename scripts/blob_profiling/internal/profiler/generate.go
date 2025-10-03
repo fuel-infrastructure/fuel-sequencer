@@ -62,8 +62,13 @@ func (p *BlobProfiler) collectBlobs(duration time.Duration, currentSize int) (
 	expectedSize := p.config.Size(duration)
 	needSize := expectedSize - currentSize
 
-	// Yoink from upcomingBlobs into nextBlobs until expectedSize is reached
+	// return early if no blobs are needed
 	nextBlobs := make([]*types.TrackedBlob, 0)
+	if 0 >= needSize {
+		return nil, 0
+	}
+
+	// Yoink from upcomingBlobs into nextBlobs until expectedSize is reached
 	nextBlobsSize := 0
 	for _, blob := range p.buffer {
 		nextBlobs = append(nextBlobs, blob)
