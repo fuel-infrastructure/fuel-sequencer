@@ -3,8 +3,9 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.23.11
 
 replace (
-	// use custom blob-storage with the targeted fixes (branch: feature/blobgen)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20250829063901-8707cc44b8bd
+	// use custom blob-storage with the targeted fixes (branch: feature/improve-throughput)
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20250925154126-c8d59c4b8bb7
+	// github.com/fuel-infrastructure/blob-storage => ../blob-storage
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
