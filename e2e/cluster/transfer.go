@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
@@ -43,9 +44,34 @@ func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) erro
 }
 
 // transferPath handles the actual SCP transfer of files or directories.
-// Implements the SCP protocol for secure file transfer.
-// Returns an error if the transfer fails.
+// Implements the SCP protocol for secure file transfer with retry mechanism.
+// Returns an error if the transfer fails after all retry attempts.
 func transferPath(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePath string) error {
+	const maxRetries = 3
+	const retryDelay = 2 * time.Second
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		l.Debugf("transferring to %s (attempt %d/%d)", remotePath, attempt, maxRetries)
+
+		err := attemptTransfer(client, localPath, remotePath)
+		if err == nil {
+			l.Debugf("successfully transferred to %s", remotePath)
+			return nil
+		}
+
+		l.Warnw("transfer attempt failed", "localPath", localPath, "remotePath", remotePath, "attempt", attempt, "error", err)
+
+		if attempt < maxRetries {
+			l.Infof("retrying transfer in %v...", retryDelay)
+			time.Sleep(retryDelay)
+		}
+	}
+
+	return fmt.Errorf("transfer failed after %d attempts", maxRetries)
+}
+
+// attemptTransfer performs a single transfer attempt using SCP.
+func attemptTransfer(client *ssh.Client, localPath, remotePath string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
@@ -86,7 +112,6 @@ func transferPath(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePat
 
 	// Start scp command on remote
 	if err := session.Run("scp " + flags + " " + filepath.Dir(remotePath)); err != nil {
-		l.Errorw("transfer failed", "localPath", localPath, "remotePath", remotePath, "error", err)
 		return fmt.Errorf("scp command failed: %w", err)
 	}
 
@@ -95,7 +120,6 @@ func transferPath(l *zap.SugaredLogger, client *ssh.Client, localPath, remotePat
 		return err
 	}
 
-	l.Debugf("successfully transferred to %s", remotePath)
 	return nil
 }
 
