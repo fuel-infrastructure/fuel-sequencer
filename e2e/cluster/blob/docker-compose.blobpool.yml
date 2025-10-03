@@ -1,0 +1,50 @@
+name: blobpool-storage
+
+services:
+  redis:
+    image: redis:7.2.4 # Last version compatible with valkey
+    restart: unless-stopped
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Resource limits for production safety
+    deploy:
+      resources:
+        limits:
+          memory: 2.5g
+        reservations:
+          memory: 1g
+    # Environment variables for Redis
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    # Security and performance optimizations
+    sysctls:
+      - net.core.somaxconn=1024
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    networks:
+      - blobpool-storage-network
+    ports:
+      - "6380:6379" # 6379 used by blobhub
+    container_name: blobpool-redis
+
+networks:
+  blobpool-storage-network:
+    driver: bridge
+    name: blobpool-storage-network
+
+volumes:
+  redis-data:
+    driver: local

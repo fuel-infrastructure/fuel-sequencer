@@ -35,6 +35,10 @@ var (
 	systemdPath = "/etc/systemd/system/fuelsequencerd.service"                // Path to the systemd service file on the remote machine
 	binaryName  = "fuelsequencerd"                                            // Name of the binary
 
+	// Blob Parameters
+	blobComposePath = makefileDir + "/e2e/cluster/blob/docker-compose.blobpool.yml" // Path to the docker compose file
+	blobRedisPath   = makefileDir + "/e2e/cluster/blob/redis.conf"                  // Path to the Redis configuration file
+
 	// Sequencer Parameters
 	chainName = "seq-benchnet-1"
 
@@ -87,6 +91,21 @@ func chainHomeDir(d destination) string {
 // remoteBinaryPath returns the path where the binary should be installed on the remote host
 func remoteBinaryPath(d destination) string {
 	return filepath.Join(d.dir, binaryName)
+}
+
+// remoteBlobDir returns the path where blob files should be stored on the remote host
+func remoteBlobDir(d destination) string {
+	return filepath.Join(d.dir, "blob")
+}
+
+// remoteBlobComposePath returns the path where the docker compose file should be stored on the remote host
+func remoteBlobComposePath(d destination) string {
+	return filepath.Join(remoteBlobDir(d), "docker-compose.blobpool.yml")
+}
+
+// remoteBlobRedisPath returns the path where the Redis config file should be stored on the remote host
+func remoteBlobRedisPath(d destination) string {
+	return filepath.Join(remoteBlobDir(d), "redis.conf")
 }
 
 // init validates the initialization parameters
