@@ -583,7 +583,7 @@ func newApp(
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
 	fuelSequencerApp, err := app.NewFuelSequencerApp(
-		logger, db, traceStore, true,
+		logger, db, traceStore, true, true,
 		appOpts,
 		baseappOptions...,
 	)
@@ -630,7 +630,7 @@ func appExport(
 	appOpts = viperAppOpts
 
 	if height != -1 {
-		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, false, appOpts)
+		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, false, false, appOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}
@@ -639,7 +639,7 @@ func appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, true, appOpts)
+		bApp, err = app.NewFuelSequencerApp(logger, db, traceStore, true, false, appOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}
