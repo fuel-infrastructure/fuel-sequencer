@@ -85,25 +85,38 @@ var (
 	}
 )
 
+func localSetup() *Config {
+	return &Config{
+		BlobhubURL:   "http://" + blobkeeper.LocalIP + blobkeeper.BlobhubPort,
+		SequencerRPC: "http://" + blobkeeper.LocalIP + ":26657",
+		BlobpoolURL:  "http://" + blobkeeper.LocalIP + blobkeeper.BlobpoolAddress,
+	}
+}
+
+func benchnetSetup() *Config {
+	return &Config{
+		BlobhubURL:   "http://" + blobkeeper.BenchnetEUIP + blobkeeper.BlobhubPort,
+		SequencerRPC: "http://" + blobkeeper.BenchnetEUIP + ":26657",
+		BlobpoolURL:  "http://" + blobkeeper.BenchnetEUIP + blobkeeper.BlobpoolAddress,
+	}
+}
+
 // defaultSetup returns a linear rate configuration
 func defaultSetup(
 	logger *slog.Logger,
 	profile Profile,
 	distribution blobgen.BlobSizeDistribution) *Config {
-	cfg := &Config{
-		BlobhubURL:     "http://localhost:31035",
-		SequencerRPC:   "http://localhost:26657",
-		BlobpoolURL:    "http://localhost" + blobkeeper.BlobpoolAddress,
-		ParquetDir:     "../../output", // root of ./cmd/blob_profiler
-		Profile:        profile,
-		MaxLagRatio:    1.2,
-		LagTolerance:   2 * sequencer.BlockTime,
-		BufferDuration: 1 * sequencer.BlockTime,
-		Topic:          "test-topic",
-		Sender:         "eve",
-	}
 
-	// Set blob distribution and generate BlobSizeInfo dynamically
+	cfg := localSetup()
+	// cfg := benchnetSetup()
+
+	cfg.Profile = profile
+	cfg.ParquetDir = "../../output" // root of ./cmd/blob_profiler
+	cfg.MaxLagRatio = 1.2
+	cfg.LagTolerance = 2 * sequencer.BlockTime
+	cfg.BufferDuration = 1 * sequencer.BlockTime
+	cfg.Topic = "test-topic"
+	cfg.Sender = "alice"
 	cfg.SetBlobDistribution(distribution)
 
 	if err := cfg.Validate(); err != nil {
