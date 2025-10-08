@@ -41,6 +41,7 @@ type Profile struct {
 type Config struct {
 	BlobhubURL       string                       `json:"blobhub_url"`   // Blobhub URL, the main shared instance for blob storage
 	SequencerRPC     string                       `json:"sequencer_rpc"` // Sequencer RPC URL, an instance of the sequencer
+	ChainID          string                       `json:"chain_id"`      // Sequencer Chain ID, respective of the connected instance
 	BlobpoolURL      string                       `json:"blobpool_url"`  // Blobpool URL, an instance of the blob-storage server, coupled to the sequencer's blobpool
 	ParquetDir       string                       `json:"parquet_dir"`   // Directory to output measurement data as parquet files
 	Profile          `json:"profile"`             // Profile configuration, including duration, max rate, rate function, and size function

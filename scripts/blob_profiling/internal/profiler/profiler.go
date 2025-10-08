@@ -44,7 +44,7 @@ func NewBlobProfiler(
 	})
 
 	// Initialize sequencer client
-	sequencerClient, err := sequencer.NewClient(ctx, cfg.SequencerRPC, cfg.Topic, cfg.Sender)
+	sequencerClient, err := sequencer.NewClient(ctx, cfg.SequencerRPC, cfg.ChainID, cfg.Topic, cfg.Sender)
 	if err != nil {
 		profilerReport.RecordConnectionEvent("sequencer", cfg.SequencerRPC, err)
 		return nil, fmt.Errorf("failed to create sequencer client: %w", err)

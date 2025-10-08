@@ -31,14 +31,11 @@ import (
 	sequencingmodule "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/module"
 )
 
-const (
-	chainID = "seq-benchnet-1" // Change to your chain ID
-)
-
 type Client struct {
-	rpcURL string
-	Sender Account
-	topic  string
+	rpcURL  string
+	chainID string
+	Sender  Account
+	topic   string
 
 	keyName   string
 	clientCtx client.Context
@@ -69,7 +66,7 @@ func makeEncodingConfig() EncodingConfig {
 	return testutil.MakeTestEncodingConfig(modules...)
 }
 
-func NewClient(ctx context.Context, rpcURL, topic, sender string) (*Client, error) {
+func NewClient(ctx context.Context, rpcURL, chainID, topic, sender string) (*Client, error) {
 	// Initialize RPC client
 	rpcClient, err := rpchttp.New(rpcURL, "/websocket")
 	if err != nil {
@@ -141,6 +138,7 @@ func NewClient(ctx context.Context, rpcURL, topic, sender string) (*Client, erro
 
 	return &Client{
 		rpcURL:    rpcURL,
+		chainID:   chainID,
 		Sender:    senderAccount,
 		topic:     topic,
 		keyName:   keyName,

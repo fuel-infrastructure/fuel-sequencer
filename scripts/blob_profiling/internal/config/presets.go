@@ -75,6 +75,8 @@ var (
 
 func localSetup() *Config {
 	return &Config{
+		ParquetDir:   "../../localhost_output", // root of ./cmd/blob_profiler
+		ChainID:      "fuelsequencer-1",
 		BlobhubURL:   "http://" + blobkeeper.LocalIP + blobkeeper.BlobhubPort,
 		SequencerRPC: "http://" + blobkeeper.LocalIP + ":26657",
 		BlobpoolURL:  "http://" + blobkeeper.LocalIP + blobkeeper.BlobpoolAddress,
@@ -83,6 +85,8 @@ func localSetup() *Config {
 
 func benchnetSetup() *Config {
 	return &Config{
+		ParquetDir:   "../../benchnet_eu_output", // root of ./cmd/blob_profiler
+		ChainID:      "seq-benchnet-1",
 		BlobhubURL:   "http://" + blobkeeper.BenchnetEUIP + blobkeeper.BlobhubPort,
 		SequencerRPC: "http://" + blobkeeper.BenchnetEUIP + ":26657",
 		BlobpoolURL:  "http://" + blobkeeper.BenchnetEUIP + blobkeeper.BlobpoolAddress,
@@ -99,7 +103,6 @@ func defaultSetup(
 	// cfg := benchnetSetup()
 
 	cfg.Profile = profile
-	cfg.ParquetDir = "../../output" // root of ./cmd/blob_profiler
 	cfg.MaxLagRatio = 1.2
 	cfg.LagTolerance = 2 * sequencer.BlockTime
 	cfg.BufferDuration = 1 * sequencer.BlockTime
