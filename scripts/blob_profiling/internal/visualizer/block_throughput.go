@@ -182,7 +182,7 @@ func (v *Visualizer) generateBlockThroughputPlot(blobsPath string) error {
 		# Plot only top boundaries of each blob
 		plot '%s/block_throughput_data.csv' using 1:5 with impulses ls 1 title "Cumulative Blob Data (MiB)", \
 		     '' using 1:5 with points ls 2 title "Blob Boundaries"
-	`, imageWidth*3, v.imagesDir, v.generateProfileLabels(), v.dataDir)
+	`, imageWidth*3, v.imagesDir, v.generateProfileLabels(36), v.dataDir)
 
 	return v.generateGnuplotScript("block_throughput", script)
 }

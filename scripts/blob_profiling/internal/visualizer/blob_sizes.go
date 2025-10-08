@@ -51,7 +51,7 @@ func (v *Visualizer) generateBlobSizeDistribution(blobsPath string) error {
 		set ylabel "Count" font "Arial,14"
 		
 		# Add profile information outside graph area with text wrapping
-		`+v.generateProfileLabels()+`
+		`+v.generateProfileLabels(12)+`
 		
 		# Auto-scale to fit data
 		set autoscale y

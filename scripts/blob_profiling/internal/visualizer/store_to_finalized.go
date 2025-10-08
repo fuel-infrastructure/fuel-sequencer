@@ -39,7 +39,7 @@ func (v *Visualizer) generateStoreToFinalizedPlot(blobsPath string) error {
 		set ylabel "Duration (seconds)" font "Arial,14"
 		
 		# Add profile information outside graph area with text wrapping
-		`+v.generateProfileLabels()+`
+		`+v.generateProfileLabels(12)+`
 		
 		# Auto-scale to fit data
 		set autoscale x

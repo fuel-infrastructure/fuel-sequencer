@@ -181,7 +181,7 @@ func (v *Visualizer) getProfileTitle() string {
 }
 
 // generateProfileLabels creates gnuplot label commands for profile information
-func (v *Visualizer) generateProfileLabels() string {
-	// Profile title with spacing and larger font
-	return fmt.Sprintf(`set label "` + v.getProfileTitle() + `" at screen 0.5, screen 0.9375 center font "Arial,36"`)
+func (v *Visualizer) generateProfileLabels(fontSize int) string {
+	// Profile title with spacing and configurable font size
+	return fmt.Sprintf(`set label "`+v.getProfileTitle()+`" at screen 0.5, screen 0.9375 center font "Arial,%d"`, fontSize)
 }

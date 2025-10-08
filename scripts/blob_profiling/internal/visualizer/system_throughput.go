@@ -40,7 +40,7 @@ func (v *Visualizer) generateSystemThroughputPlot(throughputPath string) error {
 		set ylabel "Throughput (KiB/s)" font "Arial,14"
 		
 		# Add profile information outside graph area with text wrapping
-		`+v.generateProfileLabels()+`
+		`+v.generateProfileLabels(12)+`
 		
 		# Auto-scale to fit data
 		set autoscale x
