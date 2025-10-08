@@ -29,8 +29,6 @@ type BlobProfiler struct {
 	handler   *parquet.Handler
 
 	genBlobCount int
-	buffer       []*types.TrackedBlob
-	bufferSize   int
 
 	addTime     sync.Mutex          // protects blocktimes
 	blockTimes  map[int64]time.Time // block height -> timestamp

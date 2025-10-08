@@ -35,12 +35,11 @@ func GetAvailableProfiles() []string {
 }
 
 const (
-	nanosPerSecond  = int(time.Second)
 	defaultDuration = 10 * time.Minute
 	targetRate      = 1 * size.GB / 6
 
 	// constant configurable presets
-	constantRate = int(0.5 * size.MiB) // Stay fixed at this rate
+	constantRate = 0.5 * size.MiB // Stay fixed at this rate
 
 	// linear configurable presets
 	linearIncrementRate = 5 * size.KiB // At every second, add this amount of throughput
@@ -49,18 +48,14 @@ const (
 var (
 	// constant intends to keep a fixed throughput rate
 	constant = Profile{
-		Description: fmt.Sprintf("constant_%d_kib_s_for_%.0f_secs",
+		Description: fmt.Sprintf("constant_%.0f_kib_s_for_%.0f_secs",
 			constantRate/size.KiB,
 			defaultDuration.Seconds()),
 		Duration: defaultDuration,
 		MaxRate:  targetRate,
-		Rate:     func(_ time.Duration) int { return constantRate }, // constant rate
-		Size: func(x time.Duration) int {
-			seconds := int(x / time.Second)
-			return constantRate * seconds
-		},
-		Type:    "constant",
-		Purpose: fmt.Sprintf("Constant demand of %d KiB/s", constantRate/size.KiB),
+		Rate:     func(_ time.Duration) float64 { return constantRate }, // constant rate
+		Type:     "constant",
+		Purpose:  fmt.Sprintf("Constant demand of %.1f KiB/s", constantRate/size.KiB),
 	}
 
 	// linear intends a monotonic but fixed increase in the throughput
@@ -70,15 +65,8 @@ var (
 			defaultDuration.Seconds()),
 		Duration: defaultDuration,
 		MaxRate:  targetRate,
-		Rate: func(duration time.Duration) int {
-			return int((1 + duration.Seconds()) * linearIncrementRate)
-		},
-		Size: func(x time.Duration) int {
-			seconds := x.Seconds()
-			// integral of (1 + t) * linearIncrementRate
-			// = linearIncrementRate * (t + 0.5*t²)
-			total := float64(linearIncrementRate) * (seconds + 0.5*seconds*seconds)
-			return int(total)
+		Rate: func(duration time.Duration) float64 {
+			return (1 + duration.Seconds()) * linearIncrementRate
 		},
 		Type:    "linear",
 		Purpose: fmt.Sprintf("Demanding an extra +%d KiB/s, per second", linearIncrementRate/size.KiB),

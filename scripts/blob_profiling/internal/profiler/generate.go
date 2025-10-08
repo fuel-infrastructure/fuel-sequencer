@@ -1,9 +1,9 @@
 package profiler
 
 import (
+	"math"
 	"time"
 
-	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
@@ -44,45 +44,27 @@ func (p *BlobProfiler) generateBlobs(size int) ([]*types.TrackedBlob, int) {
 	return blobs, size
 }
 
-func (p *BlobProfiler) supplementBuffer(runtime time.Duration, dataSubmitted int) {
-	upcomingSize := p.config.Size(runtime + p.config.BufferDuration)  // Appropriate buffer size at the current runtime
-	requireBlobsSize := (upcomingSize - dataSubmitted) - p.bufferSize // Additional size that needs to be generated given current submissions and buffer
-
-	newBlobs, newBlobsSize := p.generateBlobs(requireBlobsSize)
-	p.buffer = append(p.buffer, newBlobs...)
-	p.bufferSize += newBlobsSize
+func throughputDiscrepancy(
+	intendedThroughput, dataSubmitted float64, profileRuntime time.Duration,
+) (float64, int) {
+	currentThroughput := dataSubmitted / profileRuntime.Seconds()
+	lackingThroughput := intendedThroughput - currentThroughput
+	requireData := 0.0
+	if lackingThroughput > 0 {
+		requireData = math.Ceil(lackingThroughput * profileRuntime.Seconds())
+	}
+	return lackingThroughput, int(requireData)
 }
 
-func (p *BlobProfiler) collectBlobs(duration time.Duration, currentSize int) (
-	[]*types.TrackedBlob, int,
-) {
-	// plannedRate < currentThroughput is already handled
-
+func (p *BlobProfiler) collectBlobs(
+	intendedThroughput float64, duration time.Duration, currentSize float64,
+) ([]*types.TrackedBlob, int) {
 	// Figure out how many blobs to send
-	expectedSize := p.config.Size(duration)
-	needSize := expectedSize - currentSize
+	_, needSize := throughputDiscrepancy(intendedThroughput, currentSize, duration)
 
 	// return early if no blobs are needed
-	nextBlobs := make([]*types.TrackedBlob, 0)
-	if 0 >= needSize {
+	if needSize <= 0 {
 		return nil, 0
 	}
-
-	// Yoink from upcomingBlobs into nextBlobs until expectedSize is reached
-	nextBlobsSize := 0
-	for _, blob := range p.buffer {
-		nextBlobs = append(nextBlobs, blob)
-		nextBlobsSize += blob.Size
-		p.buffer, p.bufferSize = p.buffer[1:], p.bufferSize-blob.Size
-
-		if nextBlobsSize > needSize {
-			return nextBlobs, nextBlobsSize
-		}
-	}
-
-	p.logger.Error("didn't get enough blobs",
-		"need_size_KiB", needSize/size.KiB,
-		"have_size_KiB", nextBlobsSize/size.KiB,
-	)
-	return nextBlobs, nextBlobsSize
+	return p.generateBlobs(needSize)
 }

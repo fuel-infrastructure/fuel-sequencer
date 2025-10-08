@@ -3,7 +3,6 @@ package profiler
 import (
 	"context"
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
@@ -24,10 +23,9 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	defer cancel()
 
 	// Setup blob buffer and counting
-	var currentThroughput, dataSubmitted int
+	var currentThroughput, dataSubmitted float64
 	txCount := p.sequencer.Sender.Sequence // start by considering existing transactions
 	var blobCount int
-	p.supplementBuffer(0, 0)
 	blobs := make([]*types.TrackedBlob, 0)
 	catching := sync.WaitGroup{} // Ensure txs are caught before final flushing of parquet data
 
@@ -52,7 +50,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	for pctx.Err() == nil && proceed() {
 		duration = time.Since(start)
 		seconds := duration.Seconds()
-		currentThroughput = int(math.Round(float64(dataSubmitted) / seconds))
+		currentThroughput = dataSubmitted / seconds
 		plannedRate = p.config.Rate(duration)
 
 		if time.Since(lastlog) > logFrequency {
@@ -64,7 +62,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 			continue // ahead of planned throughput, slow down till back on track
 		}
 
-		nextBlobs, nextBlobsSize := p.collectBlobs(duration, dataSubmitted)
+		nextBlobs, nextBlobsSize := p.collectBlobs(plannedRate, duration, dataSubmitted)
 		if nextBlobsSize == 0 {
 			continue
 		}
@@ -76,7 +74,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 			"avg_size_KiB", sizeKiB/len(nextBlobs),
 		)
 
-		dataSubmitted += nextBlobsSize
+		dataSubmitted += float64(nextBlobsSize)
 		txHash, err := p.castBlobs(pctx, cancel, nextBlobs, txCount, blobCount)
 		if err != nil {
 			p.report.RecordCastingEventWithBlobs(txHash, nextBlobs, err)
@@ -92,8 +90,6 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 
 		blobCount += len(nextBlobs)
 		txCount++
-
-		p.supplementBuffer(duration, dataSubmitted)
 	}
 	catching.Wait()
 

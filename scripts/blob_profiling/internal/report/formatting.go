@@ -21,9 +21,9 @@ func formatDuration(d time.Duration) string {
 }
 
 // formatBytesPerSecond returns a human-readable bytes per second string
-func formatBytesPerSecond(bytesPerSec int) string {
+func formatBytesPerSecond(bytesPerSec float64) string {
 	if bytesPerSec < size.KiB {
-		return fmt.Sprintf("%d B/s", bytesPerSec)
+		return fmt.Sprintf("%.0f B/s", bytesPerSec)
 	} else if bytesPerSec < size.MiB {
 		return fmt.Sprintf("%.1f KiB/s", float64(bytesPerSec)/1024)
 	} else if bytesPerSec < size.GiB {
