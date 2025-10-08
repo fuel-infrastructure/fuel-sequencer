@@ -29,19 +29,19 @@ type ThroughputRecord struct {
 func NewThroughputRecord(
 	expectedKiBPerSec, actualKiBPerSec int64,
 	submittedTxs, submittedCount, submittedKiB int64,
-	pendingBlobpoolCount int64,
+	// pendingBlobpoolCount int64,
 	durationSeconds float64,
 	timestamp time.Time,
 ) *ThroughputRecord {
 	return &ThroughputRecord{
-		Timestamp:            timestamp.UnixNano(),
-		ExpectedKiBPerSec:    expectedKiBPerSec,
-		ActualKiBPerSec:      actualKiBPerSec,
-		SubmittedTxs:         submittedTxs,
-		SubmittedCount:       submittedCount,
-		SubmittedKiB:         submittedKiB,
-		PendingBlobpoolCount: pendingBlobpoolCount,
-		DurationSeconds:      durationSeconds,
+		Timestamp:         timestamp.UnixNano(),
+		ExpectedKiBPerSec: expectedKiBPerSec,
+		ActualKiBPerSec:   actualKiBPerSec,
+		SubmittedTxs:      submittedTxs,
+		SubmittedCount:    submittedCount,
+		SubmittedKiB:      submittedKiB,
+		// PendingBlobpoolCount: pendingBlobpoolCount,
+		DurationSeconds: durationSeconds,
 	}
 }
 

@@ -2,12 +2,10 @@ package profiler
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
-	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
 
@@ -30,14 +28,14 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	catching := sync.WaitGroup{} // Ensure txs are caught before final flushing of parquet data
 
 	// Handle blobpool tracking and messaging
-	stream, err := p.blobpool.StreamBlobs(pctx)
-	if err != nil {
-		p.report.RecordConnectionEvent("blobpool", p.config.BlobpoolURL, err)
-		return nil, fmt.Errorf("failed to create blobpool stream: %w", err)
-	}
-	expect := make(chan *types.TrackedBlob, p.bufferSize)
-	consume := make(chan store.Key, p.bufferSize)
-	go p.catchBlobpool(pctx, expect, stream, consume)
+	// stream, err := p.blobpool.StreamBlobs(pctx)
+	// if err != nil {
+	// 	p.report.RecordConnectionEvent("blobpool", p.config.BlobpoolURL, err)
+	// 	return nil, fmt.Errorf("failed to create blobpool stream: %w", err)
+	// }
+	// expect := make(chan *types.TrackedBlob, p.bufferSize)
+	// consume := make(chan store.Key, p.bufferSize)
+	// go p.catchBlobpool(pctx, expect, stream, consume)
 
 	// Setup timing and rate tracking
 	var duration time.Duration
@@ -83,7 +81,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		}
 		catching.Add(1)
 		go func() {
-			p.catchBlobs(pctx, cancel, expect, consume, txHash, nextBlobs)
+			p.catchBlobs(pctx, cancel /* expect, consume, */, txHash, nextBlobs)
 			catching.Done()
 		}()
 		blobs = append(blobs, nextBlobs...)

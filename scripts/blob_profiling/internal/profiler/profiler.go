@@ -9,12 +9,10 @@ import (
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 	blobhub "github.com/fuel-infrastructure/blob-storage/pkg/client"
-	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/config"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/parquet"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/report"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
-	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
 
 // BlobProfiler is the main profiling engine
@@ -30,9 +28,9 @@ type BlobProfiler struct {
 
 	genBlobCount int
 
-	addTime     sync.Mutex          // protects blocktimes
-	blockTimes  map[int64]time.Time // block height -> timestamp
-	*poolStatus                     // status for blobs in blobpool
+	addTime    sync.Mutex          // protects blocktimes
+	blockTimes map[int64]time.Time // block height -> timestamp
+	// *poolStatus                     // status for blobs in blobpool
 }
 
 // NewBlobProfiler creates a new blob profiler instance
@@ -69,11 +67,11 @@ func NewBlobProfiler(
 		handler:    handler,
 		addTime:    sync.Mutex{},
 		blockTimes: make(map[int64]time.Time),
-		poolStatus: &poolStatus{
-			pending:  0,
-			refs:     make(map[store.Key]*types.TrackedBlob),
-			expected: make(map[store.Key]bool),
-		},
+		// poolStatus: &poolStatus{
+		// 	pending:  0,
+		// 	refs:     make(map[store.Key]*types.TrackedBlob),
+		// 	expected: make(map[store.Key]bool),
+		// },
 	}, nil
 }
 

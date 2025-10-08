@@ -30,7 +30,7 @@ func (p *BlobProfiler) logThroughput(
 		"submitted_txs", submittedTxs,
 		"submitted_count", blobCount,
 		"submitted_KiB", submittedKiB,
-		"pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
+		// "pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
 		"duration_s", seconds,
 	)
 
@@ -38,7 +38,8 @@ func (p *BlobProfiler) logThroughput(
 	throughputRecord := parquet.NewThroughputRecord(
 		int64(expectedKiBPerSec), int64(actualKiBPerSec),
 		int64(submittedTxs), int64(blobCount), int64(submittedKiB),
-		int64(p.pending), seconds, timestamp,
+		// int64(p.pending),
+		seconds, timestamp,
 	)
 	if err := p.handler.WriteThroughput(throughputRecord); err != nil {
 		p.report.RecordParquetEvent("write_throughput", err)
