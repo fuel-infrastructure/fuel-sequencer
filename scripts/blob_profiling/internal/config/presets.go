@@ -70,7 +70,7 @@ var (
 	// tldr: sugared constant preset
 	perblock = func(blobCount, fixedBlobSize int) Profile {
 		return Profile{
-			Description: fmt.Sprintf("%d_x_%0.2f_MiB_blobs_per_block", blobCount, float64(fixedBlobSize/size.MiB)),
+			Description: fmt.Sprintf("%d_x_%.0f_KiB_blobs_per_block", blobCount, float64(fixedBlobSize/size.KiB)),
 			Duration:    defaultDuration,
 			BlobSize:    fixedBlobSize,
 			MaxRate:     targetRate,
@@ -78,7 +78,7 @@ var (
 				return float64(blobCount*fixedBlobSize) / sequencer.BlockTime.Seconds()
 			},
 			Type:    "perblock",
-			Purpose: fmt.Sprintf("Posting %dx%0.2fMiB Blobs at each Block", blobCount, float64(fixedBlobSize/size.MiB)),
+			Purpose: fmt.Sprintf("Posting %dx%.0fKiB Blobs at each Block", blobCount, float64(fixedBlobSize/size.KiB)),
 		}
 	}
 
