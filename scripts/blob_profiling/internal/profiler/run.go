@@ -73,6 +73,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		)
 
 		dataSubmitted += float64(nextBlobsSize)
+		// only_metadata ? p.castBlobs : p.postBlobs
 		txHash, err := p.castBlobs(pctx, cancel, nextBlobs, txCount, blobCount)
 		if err != nil {
 			p.report.RecordCastingEventWithBlobs(txHash, nextBlobs, err)
