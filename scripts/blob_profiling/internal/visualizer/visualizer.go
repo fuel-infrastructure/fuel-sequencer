@@ -92,9 +92,9 @@ func (v *Visualizer) GenerateGraphs() error {
 	}{
 		{"throughput", "Expected vs Actual Throughput", func() error { return v.generateThroughputPlot(throughputPath) }},
 		{"blob_sizes", "Blob Size Distribution", func() error { return v.generateBlobSizeDistribution(blobsPath) }},
-		{"blob_timeline", "Blob Event Timeline", func() error { return v.generateBlobTimeline(blobsPath) }},
-		{"store_to_blobpool", "Time from Store to Blobpool", func() error { return v.generateStoreToBlobpoolPlot(blobsPath) }},
-		{"store_to_finalized", "Time from Store to Finalized", func() error { return v.generateStoreToFinalizedPlot(blobsPath) }},
+		// {"blob_timeline", "Blob Event Timeline", func() error { return v.generateBlobTimeline(blobsPath) }},
+		// {"store_to_blobpool", "Time from Store to Blobpool", func() error { return v.generateStoreToBlobpoolPlot(blobsPath) }},
+		// {"store_to_finalized", "Time from Store to Finalized", func() error { return v.generateStoreToFinalizedPlot(blobsPath) }},
 	}
 
 	for _, viz := range visualizations {
