@@ -1,9 +1,9 @@
 package visualizer
 
-// generateThroughputPlot creates a graph showing expected vs actual throughput over time.
+// generateSystemThroughputPlot creates a graph showing data submitted over time.
 // Timestamps are converted to human-readable format starting from 0.
-func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
-	// Generate throughput data with human-readable timestamps starting from 0
+func (v *Visualizer) generateSystemThroughputPlot(throughputPath string) error {
+	// Generate system throughput data with human-readable timestamps starting from 0
 	if err := v.runDuckDBQuery(throughputPath, `
 		COPY (
 			WITH throughput_data AS (
@@ -22,20 +22,20 @@ func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
 				expected_kib_per_sec,
 				actual_kib_per_sec
 			FROM throughput_data, min_timestamp
-		) TO '`+v.dataDir+`/throughput_data.csv' (HEADER, DELIMITER ',');
+		) TO '`+v.dataDir+`/system_throughput_data.csv' (HEADER, DELIMITER ',');
 	`); err != nil {
 		return err
 	}
 
-	return v.generateGnuplotScript("throughput", `
+	return v.generateGnuplotScript("system_throughput", `
 		set terminal pngcairo size 1200,800 enhanced font 'Arial,12'
-		set output '`+v.imagesDir+`/throughput_analysis.png'
+		set output '`+v.imagesDir+`/system_throughput.png'
 		set datafile separator ","
 		set grid
 		set style line 1 lc rgb '#1f77b4' lw 2
 		set style line 2 lc rgb '#ff7f0e' lw 2
 		
-		set title "Expected vs Actual Throughput" font "Arial,16"
+		set title "Data Submitted over Time" font "Arial,16"
 		set xlabel "Time (seconds)" font "Arial,14"
 		set ylabel "Throughput (KiB/s)" font "Arial,14"
 		
@@ -46,7 +46,7 @@ func (v *Visualizer) generateThroughputPlot(throughputPath string) error {
 		set autoscale x
 		set autoscale y
 		
-		plot '`+v.dataDir+`/throughput_data.csv' using 1:2 with lines ls 1 title "Expected Throughput", \
-		     '`+v.dataDir+`/throughput_data.csv' using 1:3 with lines ls 2 title "Actual Throughput"
+		plot '`+v.dataDir+`/system_throughput_data.csv' using 1:2 with lines ls 1 title "Expected Throughput", \
+		     '`+v.dataDir+`/system_throughput_data.csv' using 1:3 with lines ls 2 title "Actual Throughput"
 	`)
 }

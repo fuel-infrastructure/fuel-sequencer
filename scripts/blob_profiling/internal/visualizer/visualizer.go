@@ -91,7 +91,7 @@ func (v *Visualizer) GenerateGraphs() error {
 		description string
 		generate    func() error
 	}{
-		{"throughput", "Expected vs Actual Throughput", func() error { return v.generateThroughputPlot(throughputPath) }},
+		{"system_throughput", "Data Submitted over Time", func() error { return v.generateSystemThroughputPlot(throughputPath) }},
 		{"blob_sizes", "Blob Size Distribution", func() error { return v.generateBlobSizeDistribution(blobsPath) }},
 		{"block_throughput", "Blob Submissions per block", func() error { return v.generateBlockThroughputPlot(blobsPath) }},
 		// {"blob_timeline", "Blob Event Timeline", func() error { return v.generateBlobTimeline(blobsPath) }},
