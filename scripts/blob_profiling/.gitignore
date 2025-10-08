@@ -1,9 +1,5 @@
 # Generated visualization files
-graphs/
-*.png
-*.csv
-*.gp
-*.dat
+*_output/
 
 # Output artifacts
 output/
