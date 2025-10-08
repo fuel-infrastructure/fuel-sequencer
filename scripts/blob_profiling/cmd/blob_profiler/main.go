@@ -77,7 +77,11 @@ func main() {
 	}))
 
 	// Load configuration
-	cfg := config.DefaultConfig(logger)
+	if *profileType == "" {
+		logger.Info("no profile type specified - using default: perblock")
+		*profileType = "perblock"
+	}
+	cfg := config.DefaultConfig(logger, *profileType)
 
 	// Override with command line flags if provided
 	if *blobhubURL != "" {
@@ -91,10 +95,6 @@ func main() {
 	}
 	if *parquetDir != "" {
 		cfg.ParquetDir = *parquetDir
-	}
-	if *profileType != "" {
-		cfg.Profile = config.GetProfile(*profileType)
-		logger.Info("Using profile", "type", cfg.Profile.Type, "purpose", cfg.Profile.Purpose)
 	}
 
 	// Handle visualization-only mode

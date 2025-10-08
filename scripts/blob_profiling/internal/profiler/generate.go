@@ -10,7 +10,7 @@ import (
 
 // generateBlob creates a new blob with random data following the configured distribution
 func (p *BlobProfiler) generateBlob() *types.TrackedBlob {
-	data := p.generator.GenerateBlob(true)
+	data := p.generator.GenerateBlob(p.blobsize(), true)
 
 	key := store.NewKey(data)
 	p.genBlobCount++
@@ -41,19 +41,19 @@ func (p *BlobProfiler) generateBlobs(size int) ([]*types.TrackedBlob, int) {
 		blobs = append(blobs, blob)
 	}
 
-	return blobs, size
+	return blobs, blobsSize
 }
 
 func throughputDiscrepancy(
 	intendedThroughput, dataSubmitted float64, profileRuntime time.Duration,
-) (float64, int) {
+) (float64, float64) {
 	currentThroughput := dataSubmitted / profileRuntime.Seconds()
 	lackingThroughput := intendedThroughput - currentThroughput
 	requireData := 0.0
 	if lackingThroughput > 0 {
-		requireData = math.Ceil(lackingThroughput * profileRuntime.Seconds())
+		requireData = lackingThroughput * profileRuntime.Seconds()
 	}
-	return lackingThroughput, int(requireData)
+	return lackingThroughput, requireData
 }
 
 func (p *BlobProfiler) collectBlobs(
@@ -66,5 +66,5 @@ func (p *BlobProfiler) collectBlobs(
 	if needSize <= 0 {
 		return nil, 0
 	}
-	return p.generateBlobs(needSize)
+	return p.generateBlobs(int(math.Ceil(needSize)))
 }

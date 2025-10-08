@@ -22,6 +22,7 @@ type BlobProfiler struct {
 	blobhub   *blobhub.Client
 	sequencer *sequencer.Client
 	blobpool  *blobhub.Client
+	blobsize  func() int
 	generator *blobgen.BlobGenerator
 	config    *config.Config
 	handler   *parquet.Handler
@@ -55,14 +56,23 @@ func NewBlobProfiler(
 		BaseURL: cfg.BlobpoolURL,
 	})
 
-	return &BlobProfiler{
-		logger:    logger,
-		report:    profilerReport,
-		blobhub:   blobhubClient,
-		sequencer: sequencerClient,
-		blobpool:  blobpoolClient,
+	// Setup blob generator - use preset if blobs are non fixed
+	gen := blobgen.NewBlobGenerator(42, cfg.BlobDistribution)
+	var blobsize func() int
+	if cfg.BlobDistribution == blobgen.RealisticDistribution {
+		blobsize = func() int { return gen.PresetBlobSize() }
+	} else {
+		blobsize = func() int { return cfg.BlobSize }
+	}
 
-		generator:  blobgen.NewBlobGenerator(42, cfg.BlobDistribution),
+	return &BlobProfiler{
+		logger:     logger,
+		report:     profilerReport,
+		blobhub:    blobhubClient,
+		sequencer:  sequencerClient,
+		blobpool:   blobpoolClient,
+		generator:  gen,
+		blobsize:   blobsize,
 		config:     cfg,
 		handler:    handler,
 		addTime:    sync.Mutex{},

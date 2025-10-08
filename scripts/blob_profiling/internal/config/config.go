@@ -31,26 +31,27 @@ type Profile struct {
 	Rate func(since time.Duration) float64 `json:"rate"` // bytes/sec
 
 	// Enhanced metadata for visualization context
-	Type         string `json:"profile_type"`        // Type of profile (e.g., "constant", "linear", "exponential")
-	Purpose      string `json:"profile_purpose"`     // Purpose/intent of this profile
-	Explanation  string `json:"profile_explanation"` // Detailed explanation of what this profile tests
-	BlobSizeInfo string `json:"blob_size_info"`      // Information about blob size distribution
+	Type             string                       `json:"profile_type"`        // Type of profile (e.g., "constant", "linear", "exponential")
+	Purpose          string                       `json:"profile_purpose"`     // Purpose/intent of this profile
+	Explanation      string                       `json:"profile_explanation"` // Detailed explanation of what this profile tests
+	BlobSize         int                          `json:"blob_size"`           // Fixed Blob Size, if not distributed
+	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"`   // Blob size distribution, used to generate blobs - fixed size is defined by BlobSize
+	BlobSizeInfo     string                       `json:"blob_size_info"`      // Information about blob size distribution
 }
 
 // Config holds the profiler configuration
 type Config struct {
-	BlobhubURL       string                       `json:"blobhub_url"`   // Blobhub URL, the main shared instance for blob storage
-	SequencerRPC     string                       `json:"sequencer_rpc"` // Sequencer RPC URL, an instance of the sequencer
-	ChainID          string                       `json:"chain_id"`      // Sequencer Chain ID, respective of the connected instance
-	BlobpoolURL      string                       `json:"blobpool_url"`  // Blobpool URL, an instance of the blob-storage server, coupled to the sequencer's blobpool
-	ParquetDir       string                       `json:"parquet_dir"`   // Directory to output measurement data as parquet files
-	Profile          `json:"profile"`             // Profile configuration, including duration, max rate, rate function, and size function
-	BlobDistribution blobgen.BlobSizeDistribution `json:"blob_distribution"` // Blob size distribution, used to generate blobs
-	MaxLagRatio      float32                      `json:"max_lag_ratio"`     // When to consider actual throughput as lagging the planned throughput rate
-	LagTolerance     time.Duration                `json:"lag_tolerance"`     // How long to tolerate throughput lagging before considering it as a failure
-	BufferDuration   time.Duration                `json:"buffer_duration"`   // Duration as buffer to keep generated blobs before submitting
-	Topic            string                       `json:"topic"`
-	Sender           string                       `json:"sender"`
+	BlobhubURL     string           `json:"blobhub_url"`   // Blobhub URL, the main shared instance for blob storage
+	SequencerRPC   string           `json:"sequencer_rpc"` // Sequencer RPC URL, an instance of the sequencer
+	ChainID        string           `json:"chain_id"`      // Sequencer Chain ID, respective of the connected instance
+	BlobpoolURL    string           `json:"blobpool_url"`  // Blobpool URL, an instance of the blob-storage server, coupled to the sequencer's blobpool
+	ParquetDir     string           `json:"parquet_dir"`   // Directory to output measurement data as parquet files
+	Profile        `json:"profile"` // Profile configuration, including duration, max rate, rate function, and size function
+	MaxLagRatio    float32          `json:"max_lag_ratio"`   // When to consider actual throughput as lagging the planned throughput rate
+	LagTolerance   time.Duration    `json:"lag_tolerance"`   // How long to tolerate throughput lagging before considering it as a failure
+	BufferDuration time.Duration    `json:"buffer_duration"` // Duration as buffer to keep generated blobs before submitting
+	Topic          string           `json:"topic"`
+	Sender         string           `json:"sender"`
 }
 
 // SetBlobDistribution sets the blob distribution and appends blob size info to the purpose
