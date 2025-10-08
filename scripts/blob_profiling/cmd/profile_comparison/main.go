@@ -395,10 +395,6 @@ func generateCSVOutput(comparisons map[string]*ProfileComparison) {
 	}
 }
 
-func generateJSONOutput(comparisons map[string]*ProfileComparison) {
-	// JSON output removed - use table or CSV format instead
-	fmt.Println("JSON output not available - please use table or CSV format")
-}
 func generateIndividualTableOutput(runs []ProfileRun) {
 	// Sort runs by max throughput (descending)
 	sort.Slice(runs, func(i, j int) bool {
@@ -516,11 +512,6 @@ func generateIndividualCSVOutput(runs []ProfileRun) {
 			run.Timestamp.Format("2006-01-02 15:04:05"),
 		)
 	}
-}
-
-func generateIndividualJSONOutput(runs []ProfileRun) {
-	// JSON output removed - use table or CSV format instead
-	fmt.Println("JSON output not available - please use table or CSV format")
 }
 
 func getKeys(m map[string]bool) []string {
