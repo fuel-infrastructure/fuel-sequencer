@@ -213,6 +213,7 @@ func (s *sequencer) initGenesis() error {
 	}
 	sequencingGenState.Params.MaxBlobSizeBytes = blobMaxBytes
 	sequencingGenState.Params.SequencerTxMaxBytes = blockMaxGas
+	loadTestSequencerConfigs(&sequencingGenState)
 	bz, err = cdc.MarshalJSON(&sequencingGenState)
 	if err != nil {
 		return fmt.Errorf("failed to marshal sequencing genesis state: %w", err)
@@ -318,6 +319,9 @@ func (s *sequencer) initValidatorConfigs() error {
 		// speed up blocks
 		valConfig.Consensus.TimeoutCommit = 5 * time.Second
 		valConfig.Consensus.TimeoutPropose = 3 * time.Second
+
+		// overwrite using CometBFT configs
+		loadTestCometBFTConfigs(valConfig)
 
 		var peers []string
 
