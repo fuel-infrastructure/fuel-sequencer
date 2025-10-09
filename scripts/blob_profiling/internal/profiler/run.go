@@ -2,13 +2,10 @@ package profiler
 
 import (
 	"context"
-	"fmt"
-	"math"
 	"sync"
 	"time"
 
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
-	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/types"
 )
 
@@ -24,22 +21,21 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	defer cancel()
 
 	// Setup blob buffer and counting
-	var currentThroughput, dataSubmitted int
+	var currentThroughput, dataSubmitted float64
 	txCount := p.sequencer.Sender.Sequence // start by considering existing transactions
 	var blobCount int
-	p.supplementBuffer(0, 0)
 	blobs := make([]*types.TrackedBlob, 0)
 	catching := sync.WaitGroup{} // Ensure txs are caught before final flushing of parquet data
 
 	// Handle blobpool tracking and messaging
-	stream, err := p.blobpool.StreamBlobs(pctx)
-	if err != nil {
-		p.report.RecordConnectionEvent("blobpool", p.config.BlobpoolURL, err)
-		return nil, fmt.Errorf("failed to create blobpool stream: %w", err)
-	}
-	expect := make(chan *types.TrackedBlob, p.bufferSize)
-	consume := make(chan store.Key, p.bufferSize)
-	go p.catchBlobpool(pctx, expect, stream, consume)
+	// stream, err := p.blobpool.StreamBlobs(pctx)
+	// if err != nil {
+	// 	p.report.RecordConnectionEvent("blobpool", p.config.BlobpoolURL, err)
+	// 	return nil, fmt.Errorf("failed to create blobpool stream: %w", err)
+	// }
+	// expect := make(chan *types.TrackedBlob, p.bufferSize)
+	// consume := make(chan store.Key, p.bufferSize)
+	// go p.catchBlobpool(pctx, expect, stream, consume)
 
 	// Setup timing and rate tracking
 	var duration time.Duration
@@ -52,7 +48,7 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 	for pctx.Err() == nil && proceed() {
 		duration = time.Since(start)
 		seconds := duration.Seconds()
-		currentThroughput = int(math.Round(float64(dataSubmitted) / seconds))
+		currentThroughput = dataSubmitted / seconds
 		plannedRate = p.config.Rate(duration)
 
 		if time.Since(lastlog) > logFrequency {
@@ -64,7 +60,10 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 			continue // ahead of planned throughput, slow down till back on track
 		}
 
-		nextBlobs, nextBlobsSize := p.collectBlobs(duration, dataSubmitted)
+		nextBlobs, nextBlobsSize := p.collectBlobs(plannedRate, duration, dataSubmitted)
+		if nextBlobsSize == 0 {
+			continue
+		}
 
 		sizeKiB := nextBlobsSize / size.KiB
 		p.logger.Debug("posting new blobs",
@@ -73,7 +72,8 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 			"avg_size_KiB", sizeKiB/len(nextBlobs),
 		)
 
-		dataSubmitted += nextBlobsSize
+		dataSubmitted += float64(nextBlobsSize)
+		// only_metadata ? p.castBlobs : p.postBlobs
 		txHash, err := p.castBlobs(pctx, cancel, nextBlobs, txCount, blobCount)
 		if err != nil {
 			p.report.RecordCastingEventWithBlobs(txHash, nextBlobs, err)
@@ -82,15 +82,13 @@ func (p *BlobProfiler) RunProfile(ctx context.Context) ([]*types.TrackedBlob, er
 		}
 		catching.Add(1)
 		go func() {
-			p.catchBlobs(pctx, cancel, expect, consume, txHash, nextBlobs)
+			p.catchBlobs(pctx, cancel /* expect, consume, */, txHash, nextBlobs)
 			catching.Done()
 		}()
 		blobs = append(blobs, nextBlobs...)
 
 		blobCount += len(nextBlobs)
 		txCount++
-
-		p.supplementBuffer(duration, dataSubmitted)
 	}
 	catching.Wait()
 

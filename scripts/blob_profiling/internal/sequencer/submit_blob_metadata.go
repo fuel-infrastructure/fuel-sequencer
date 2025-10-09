@@ -89,7 +89,7 @@ func (c *Client) setupTxFactory(msgs []sdk.Msg, txSequence uint64) (tx.Factory, 
 	// Create transaction factory
 	txFactory := tx.Factory{}.
 		WithAccountRetriever(c.clientCtx.AccountRetriever).
-		WithChainID(chainID).
+		WithChainID(c.chainID).
 		WithTxConfig(c.clientCtx.TxConfig).
 		WithKeybase(c.clientCtx.Keyring).
 		WithAccountNumber(acc.GetAccountNumber()).

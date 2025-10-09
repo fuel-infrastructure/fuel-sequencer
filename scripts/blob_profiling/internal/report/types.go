@@ -37,7 +37,7 @@ type SerializableProfile struct {
 	Description   string        `json:"description"`
 	Duration      time.Duration `json:"duration"`
 	DurationHuman string        `json:"duration_human"`
-	MaxRate       int           `json:"max_rate"`
+	MaxRate       float64       `json:"max_rate"`
 	MaxRateHuman  string        `json:"max_rate_human"`
 	Type          string        `json:"profile_type"`
 	Purpose       string        `json:"profile_purpose"`
@@ -94,8 +94,8 @@ type ProfilerSummary struct {
 	ProfileDurationHuman       string        `json:"profile_duration_human"`
 	StartTime                  time.Time     `json:"start_time"`
 	EndTime                    time.Time     `json:"end_time"`
-	DataSubmittedBytes         int           `json:"data_submitted_bytes"`
-	DataSubmittedKiB           int           `json:"data_submitted_kib"`
+	DataSubmittedBytes         float64       `json:"data_submitted_bytes"`
+	DataSubmittedKiB           float64       `json:"data_submitted_kib"`
 	AverageThroughput          float64       `json:"average_throughput_bytes_per_sec"`
 	AverageThroughputKiBPerSec float64       `json:"average_throughput_kib_per_sec"`
 }

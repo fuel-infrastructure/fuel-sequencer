@@ -6,105 +6,130 @@ import (
 	"os"
 	"time"
 
-	"github.com/fuel-infrastructure/blob-storage/pkg/blobgen"
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 	"github.com/fuel-infrastructure/fuel-sequencer/scripts/blob_profiling/internal/sequencer"
 	blobkeeper "github.com/fuel-infrastructure/fuel-sequencer/x/blob/keeper"
 )
 
-func DefaultConfig(logger *slog.Logger) *Config {
-	// return defaultSetup(logger, constant, blobgen.Fixed100KiB)
-	return defaultSetup(logger, linear, blobgen.Fixed100KiB)
-}
+const (
+	defaultDuration = 1 * time.Minute
+	targetRate      = 1 * size.GB / 6
+)
 
 // GetProfile returns a specific profile by type
-func GetProfile(profileType string) Profile {
+func GetProfile(logger *slog.Logger, profileType string) Profile {
+	var p Profile
+
 	switch profileType {
 	case "constant":
-		return constant
+		p = constant(0.5 * size.MiB)
+	case "perblock":
+		p = perblock(1, 1*size.MiB)
 	case "linear":
-		return linear
+		p = linear(5 * size.KiB)
 	default:
-		return linear // default fallback
+		panic("no profile defined")
 	}
+
+	// if NoBlobSize == -1 {
+	// 	logger.Info("no blob size specified - using realistic distribution")
+	// 	p.BlobDistribution = blobgen.RealisticDistribution
+	// }
+
+	return p
 }
 
 // GetAvailableProfiles returns a list of available profile types
 func GetAvailableProfiles() []string {
-	return []string{"constant", "linear"}
+	return []string{"constant", "perblock", "linear"}
 }
 
-const (
-	nanosPerSecond  = int(time.Second)
-	defaultDuration = 10 * time.Minute
-	targetRate      = 1 * size.GB / 6
-
-	// constant configurable presets
-	constantRate = int(0.5 * size.MiB) // Stay fixed at this rate
-
-	// linear configurable presets
-	linearIncrementRate = 5 * size.KiB // At every second, add this amount of throughput
-)
+func DefaultConfig(logger *slog.Logger, profileType string) *Config {
+	profile := GetProfile(logger, profileType)
+	logger.Info("Using profile", "type", profile.Type, "purpose", profile.Purpose)
+	return defaultSetup(logger, profile)
+}
 
 var (
 	// constant intends to keep a fixed throughput rate
-	constant = Profile{
-		Description: fmt.Sprintf("constant_%d_kib_s_for_%.0f_secs",
-			constantRate/size.KiB,
-			defaultDuration.Seconds()),
-		Duration: defaultDuration,
-		MaxRate:  targetRate,
-		Rate:     func(_ time.Duration) int { return constantRate }, // constant rate
-		Size: func(x time.Duration) int {
-			seconds := int(x / time.Second)
-			return constantRate * seconds
-		},
-		Type:    "constant",
-		Purpose: fmt.Sprintf("Constant demand of %d KiB/s", constantRate/size.KiB),
+	constant = func(fixedRate float64) Profile {
+		return Profile{
+			Description: fmt.Sprintf("constant_%.0f_kib_s_for_%.0f_secs",
+				fixedRate/size.KiB,
+				defaultDuration.Seconds()),
+			Duration: defaultDuration,
+			MaxRate:  targetRate,
+			Rate:     func(_ time.Duration) float64 { return fixedRate }, // constant rate
+			Type:     "constant",
+			Purpose:  fmt.Sprintf("Constant demand of %.1f KiB/s", fixedRate/size.KiB),
+		}
+	}
+
+	// per block intends to keep a fixed throughput rate
+	// the same as constant, but defined per <blocktime> seconds, instead of just 1.
+	// tldr: sugared constant preset
+	perblock = func(blobCount, fixedBlobSize int) Profile {
+		return Profile{
+			Description: fmt.Sprintf("%d_x_%.0f_KiB_blobs_per_block", blobCount, float64(fixedBlobSize/size.KiB)),
+			Duration:    defaultDuration,
+			BlobSize:    fixedBlobSize,
+			MaxRate:     targetRate,
+			Rate: func(_ time.Duration) float64 {
+				return float64(blobCount*fixedBlobSize) / sequencer.BlockTime.Seconds()
+			},
+			Type:    "perblock",
+			Purpose: fmt.Sprintf("Posting %dx%.0fKiB Blobs at each Block", blobCount, float64(fixedBlobSize/size.KiB)),
+		}
 	}
 
 	// linear intends a monotonic but fixed increase in the throughput
-	linear = Profile{
-		Description: fmt.Sprintf("linear_%d_kib_per_s_for_%.0f_secs",
-			linearIncrementRate/size.KiB,
-			defaultDuration.Seconds()),
-		Duration: defaultDuration,
-		MaxRate:  targetRate,
-		Rate: func(duration time.Duration) int {
-			return int((1 + duration.Seconds()) * linearIncrementRate)
-		},
-		Size: func(x time.Duration) int {
-			seconds := x.Seconds()
-			// integral of (1 + t) * linearIncrementRate
-			// = linearIncrementRate * (t + 0.5*t²)
-			total := float64(linearIncrementRate) * (seconds + 0.5*seconds*seconds)
-			return int(total)
-		},
-		Type:    "linear",
-		Purpose: fmt.Sprintf("Demanding an extra +%d KiB/s, per second", linearIncrementRate/size.KiB),
+	linear = func(incrementRate float64) Profile {
+		return Profile{
+			Description: fmt.Sprintf("linear_%d_kib_per_s_for_%.0f_secs",
+				int(incrementRate/size.KiB),
+				defaultDuration.Seconds()),
+			Duration: defaultDuration,
+			MaxRate:  targetRate,
+			Rate: func(duration time.Duration) float64 {
+				return (1 + duration.Seconds()) * incrementRate
+			},
+			Type:    "linear",
+			Purpose: fmt.Sprintf("Demanding an extra +%0.0f KiB/s, per second", incrementRate/size.KiB),
+		}
 	}
 )
 
-// defaultSetup returns a linear rate configuration
-func defaultSetup(
-	logger *slog.Logger,
-	profile Profile,
-	distribution blobgen.BlobSizeDistribution) *Config {
-	cfg := &Config{
-		BlobhubURL:     "http://localhost:31035",
-		SequencerRPC:   "http://localhost:26657",
-		BlobpoolURL:    "http://localhost" + blobkeeper.BlobpoolAddress,
-		ParquetDir:     "../../output", // root of ./cmd/blob_profiler
-		Profile:        profile,
-		MaxLagRatio:    1.2,
-		LagTolerance:   2 * sequencer.BlockTime,
-		BufferDuration: 1 * sequencer.BlockTime,
-		Topic:          "test-topic",
-		Sender:         "eve",
+func localSetup() *Config {
+	return &Config{
+		ParquetDir:   "../../localhost_output", // root of ./cmd/blob_profiler
+		ChainID:      "fuelsequencer-1",
+		BlobhubURL:   "http://" + blobkeeper.LocalIP + blobkeeper.BlobhubPort,
+		SequencerRPC: "http://" + blobkeeper.LocalIP + ":26657",
+		BlobpoolURL:  "http://" + blobkeeper.LocalIP + blobkeeper.BlobpoolAddress,
 	}
+}
 
-	// Set blob distribution and generate BlobSizeInfo dynamically
-	cfg.SetBlobDistribution(distribution)
+func benchnetSetup() *Config {
+	return &Config{
+		ParquetDir:   "../../benchnet_eu_output", // root of ./cmd/blob_profiler
+		ChainID:      "seq-benchnet-1",
+		BlobhubURL:   "http://" + blobkeeper.BenchnetEUIP + blobkeeper.BlobhubPort,
+		SequencerRPC: "http://" + blobkeeper.BenchnetEUIP + ":26657",
+		BlobpoolURL:  "http://" + blobkeeper.BenchnetEUIP + blobkeeper.BlobpoolAddress,
+	}
+}
+
+// defaultSetup returns a linear rate configuration
+func defaultSetup(logger *slog.Logger, profile Profile) *Config {
+	cfg := localSetup()
+	// cfg := benchnetSetup()
+
+	cfg.Profile = profile
+	cfg.MaxLagRatio = 1.2
+	cfg.LagTolerance = 2 * sequencer.BlockTime
+	cfg.BufferDuration = 1 * sequencer.BlockTime
+	cfg.Topic = "test-topic"
+	cfg.Sender = "alice"
 
 	if err := cfg.Validate(); err != nil {
 		logger.Error("Invalid configuration - will exit", "error", err)

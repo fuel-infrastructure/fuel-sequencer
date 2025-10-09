@@ -57,6 +57,7 @@ func SetupTestingApp(isCheckTx bool) *fuelsequencerapp.FuelSequencerApp {
 		db,
 		nil,
 		true,
+		true,
 		appOpts,
 	)
 	if err != nil {

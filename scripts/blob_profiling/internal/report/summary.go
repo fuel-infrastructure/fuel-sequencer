@@ -7,7 +7,9 @@ import (
 )
 
 // UpdateSummary updates the summary statistics
-func (pr *ProfilerReport) UpdateSummary(totalBlobs, successfulBlobs, failedBlobs, dataSubmittedBytes int) {
+func (pr *ProfilerReport) UpdateSummary(
+	totalBlobs, successfulBlobs, failedBlobs int, dataSubmittedBytes float64,
+) {
 	pr.data.Summary.TotalBlobs = totalBlobs
 	pr.data.Summary.SuccessfulBlobs = successfulBlobs
 	pr.data.Summary.FailedBlobs = failedBlobs

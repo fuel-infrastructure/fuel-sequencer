@@ -82,7 +82,7 @@ func (v *validator) init() error {
 
 	db := dbm.NewMemDB()
 	appOpts := simtestutil.AppOptionsMap{sidecarconfig.FlagSidecarEnabled: false}
-	app, err := fuelsequencerapp.NewFuelSequencerApp(log.NewNopLogger(), db, nil, true, appOpts)
+	app, err := fuelsequencerapp.NewFuelSequencerApp(log.NewNopLogger(), db, nil, true, false, appOpts)
 	if err != nil {
 		panic(err)
 	}

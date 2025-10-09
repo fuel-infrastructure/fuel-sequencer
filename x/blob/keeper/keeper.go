@@ -63,15 +63,19 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 		return err
 	}
 
-	go func() {
-		sl := k.logger.With("server")
-		sl.Info("starting blobpool server", "address", BlobpoolAddress)
-		err := k.server.StartServer(BlobpoolAddress)
-		if err != nil {
-			sl.Error("blobpool server failed", "error", err)
-			panic(err)
-		}
-	}()
+	// Blobpool Server exists to query blobpool, mainly used by the profiler
+	// Server performance characteristics have not yet been identified.
+	// To avoid unnecessary bottlenecks:
+	// opting to disable blobpool server, and corresponding profiler measures.
+	// go func() {
+	// 	sl := k.logger.With("server")
+	// 	sl.Info("starting blobpool server", "address", BlobpoolAddress)
+	// 	err := k.server.StartServer(BlobpoolAddress)
+	// 	if err != nil {
+	// 		sl.Error("blobpool server failed", "error", err)
+	// 		panic(err)
+	// 	}
+	// }()
 
 	k.Blobpool = blobpool
 	k.blobhub = blobhubClient

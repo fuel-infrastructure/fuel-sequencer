@@ -5,7 +5,7 @@ import (
 )
 
 // updateReportSummary updates the profiler report with final statistics
-func (p *BlobProfiler) updateReportSummary(blobs []*types.TrackedBlob, dataSubmittedBytes int) {
+func (p *BlobProfiler) updateReportSummary(blobs []*types.TrackedBlob, dataSubmittedBytes float64) {
 	totalBlobs := len(blobs)
 	successfulBlobs := 0
 	failedBlobs := 0

@@ -12,10 +12,9 @@ const (
 )
 
 func (p *BlobProfiler) logThroughput(
-	plannedRate int,
-	currentThroughput int,
+	plannedRate, currentThroughput float64,
 	txCount uint64,
-	dataSubmitted int,
+	dataSubmitted float64,
 	blobCount int,
 	seconds float64,
 	timestamp time.Time,
@@ -24,8 +23,6 @@ func (p *BlobProfiler) logThroughput(
 	actualKiBPerSec := currentThroughput / size.KiB
 	submittedTxs := txCount - p.sequencer.Sender.Sequence
 	submittedKiB := dataSubmitted / size.KiB
-	upcomingKiB := p.bufferSize / size.KiB
-	upcomingCount := len(p.buffer)
 
 	p.logger.Info("throughput",
 		"expected_KiB/s", expectedKiBPerSec,
@@ -33,9 +30,7 @@ func (p *BlobProfiler) logThroughput(
 		"submitted_txs", submittedTxs,
 		"submitted_count", blobCount,
 		"submitted_KiB", submittedKiB,
-		"upcoming_count", upcomingCount,
-		"upcoming_KiB", upcomingKiB,
-		"pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
+		// "pending_blobpool_count", p.pending, // concurrent access, but should be safe enough
 		"duration_s", seconds,
 	)
 
@@ -43,8 +38,8 @@ func (p *BlobProfiler) logThroughput(
 	throughputRecord := parquet.NewThroughputRecord(
 		int64(expectedKiBPerSec), int64(actualKiBPerSec),
 		int64(submittedTxs), int64(blobCount), int64(submittedKiB),
-		int64(upcomingCount), int64(upcomingKiB),
-		int64(p.pending), seconds, timestamp,
+		// int64(p.pending),
+		seconds, timestamp,
 	)
 	if err := p.handler.WriteThroughput(throughputRecord); err != nil {
 		p.report.RecordParquetEvent("write_throughput", err)

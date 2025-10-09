@@ -14,8 +14,17 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 )
 
+const (
+	BlobhubPort = ":31035"
+
+	LocalIP      = "localhost"
+	BenchnetEUIP = "5.189.150.214"
+)
+
 // Default blobhub address - can be overridden for testing
-var BlobhubAddress = "localhost:31035"
+var BlobhubAddress = LocalIP + BlobhubPort
+
+// var BlobhubAddress = BenchnetEUIP + BlobhubPort
 
 type blobMessage struct {
 	Type      string `json:"type"`

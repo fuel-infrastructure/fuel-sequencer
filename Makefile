@@ -155,6 +155,10 @@ clean: clean-e2e
 	@rm -rf $(BUILDDIR)/*
 	@echo "✅ Finished cleaning!"
 
+build-fuelsequencerd-linux-amd64:
+	@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
+	@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 ./cmd/fuelsequencerd/main.go
+
 build-fuelsequencerd:
 	@$(eval UNAME_S := $(shell uname -s))
     ifeq ($(UNAME_S),Darwin)

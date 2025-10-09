@@ -5,8 +5,8 @@ go 1.23.11
 replace (
 	// use custom cosmos-sdk with the targeted fixes
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.13-custom
-	// use custom blob-storage with the targeted fixes (branch: feature/improve-throughput)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20250925111405-8e94369300f5
+	// use custom blob-storage with the targeted fixes (branch: feature/blob-storage-for-profiling)
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20251008101352-8969f1455088
 	// github.com/fuel-infrastructure/blob-storage => ../blob-storage
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7

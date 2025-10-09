@@ -6,7 +6,9 @@ import (
 	"github.com/fuel-infrastructure/blob-storage/pkg/size"
 )
 
-func (p *BlobProfiler) setupProceed(lagging *time.Time, start time.Time, plannedRate *int, currentThroughput *int) (condition func() bool) {
+func (p *BlobProfiler) setupProceed(
+	lagging *time.Time, start time.Time, plannedRate, currentThroughput *float64,
+) (condition func() bool) {
 	// By default, always check for lag
 	lagRatio := func() float32 {
 		if *currentThroughput == 0 {

@@ -175,6 +175,7 @@ func NewFuelSequencerApp(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
+	initialiseBlobhub bool,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) (*FuelSequencerApp, error) {
@@ -313,9 +314,11 @@ func NewFuelSequencerApp(
 	}
 	app.commitmentsConfig = commitmentsCfg
 
-	// BLOB :: Initialize blobhub and blobpool connections
-	if err := app.BlobKeeper.Initialize(context.Background()); err != nil {
-		return nil, fmt.Errorf("failed to initialize blob keeper: %w", err)
+	if initialiseBlobhub {
+		// BLOB :: Initialize blobhub and blobpool connections
+		if err := app.BlobKeeper.Initialize(context.Background()); err != nil {
+			return nil, fmt.Errorf("failed to initialize blob keeper: %w", err)
+		}
 	}
 
 	// SIDECAR :: Configure

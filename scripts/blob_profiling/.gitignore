@@ -1,9 +1,6 @@
 # Generated visualization files
-graphs/
-*.png
-*.csv
-*.gp
-*.dat
+*_output/
+comparison/
 
 # Output artifacts
 output/

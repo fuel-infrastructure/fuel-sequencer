@@ -11,7 +11,7 @@ import (
 )
 
 // manageDestinations handles the management of all destination nodes including
-// service configuration, binary deployment and data management.
+// service configuration, binary deployment, data management and blob file deployment.
 // Returns an error if management of any destination fails.
 func manageDestinations(connections []connection, localBinaryPath string) error {
 	l := logging.Named("Manage")
@@ -26,8 +26,18 @@ func manageDestinations(connections []connection, localBinaryPath string) error 
 		return fmt.Errorf("failed to get local binary hash: %w", err)
 	}
 
+	localBlobComposeHash, err := calculateFileHash(blobComposePath, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get local blob compose hash: %w", err)
+	}
+
+	localBlobRedisHash, err := calculateFileHash(blobRedisPath, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get local blob redis hash: %w", err)
+	}
+
 	for i, conn := range connections {
-		if err := manage(l, conn, i, localBinaryPath, localServiceHash, localBinaryHash); err != nil {
+		if err := manage(l, conn, i, localBinaryPath, localServiceHash, localBinaryHash, localBlobComposeHash, localBlobRedisHash); err != nil {
 			return fmt.Errorf("failed to manage destination %s: %w", conn.destination.host, err)
 		}
 	}
@@ -35,9 +45,9 @@ func manageDestinations(connections []connection, localBinaryPath string) error 
 }
 
 // manage handles the management of a single destination including service,
-// binary and data management.
+// binary, data and blob file management.
 // Returns an error if any management step fails.
-func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath string, localServiceHash, localBinaryHash []byte) error {
+func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath string, localServiceHash, localBinaryHash, localBlobComposeHash, localBlobRedisHash []byte) error {
 	if err := manageService(l, conn, localServiceHash); err != nil {
 		return fmt.Errorf("failed to manage service: %w", err)
 	}
@@ -48,6 +58,10 @@ func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath s
 
 	if err := manageData(l, conn, nodeId); err != nil {
 		return fmt.Errorf("failed to manage data: %w", err)
+	}
+
+	if err := manageBlob(l, conn, localBlobComposeHash, localBlobRedisHash); err != nil {
+		return fmt.Errorf("failed to manage blob files: %w", err)
 	}
 
 	return nil
@@ -214,6 +228,141 @@ func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
 	l.Infow("chowning chain home directory to benchmarks user and group...", "host", conn.destination.host, "cmd", chownCmd)
 	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.destination.pass)); err != nil {
 		return fmt.Errorf("failed to chown chain home directory on %s: %w", conn.destination.host, err)
+	}
+	return nil
+}
+
+// manageBlob handles the blob file deployment for a destination.
+// Checks if blob files exist, compares hashes and transfers updated files if needed.
+// Returns an error if blob management fails.
+func manageBlob(l *zap.SugaredLogger, conn connection, localBlobComposeHash, localBlobRedisHash []byte) error {
+	if err := manageBlobCompose(l, conn, localBlobComposeHash); err != nil {
+		return fmt.Errorf("failed to manage blob compose file: %w", err)
+	}
+
+	if err := manageBlobRedis(l, conn, localBlobRedisHash); err != nil {
+		return fmt.Errorf("failed to manage blob redis file: %w", err)
+	}
+
+	return nil
+}
+
+// manageBlobCompose handles the docker-compose.blobpool.yml file deployment for a destination.
+// Checks if file exists, compares hashes and transfers updated file if needed.
+// Returns an error if blob compose management fails.
+func manageBlobCompose(l *zap.SugaredLogger, conn connection, localHash []byte) error {
+	remotePath := remoteBlobComposePath(conn.destination)
+	checkCmd := "test -f " + remotePath
+
+	if err := remotely(l, conn.SSH, checkCmd); err != nil {
+		l.Infof("no blob compose file found on %s - will transfer...", conn.destination.host)
+		if err := transferBlobCompose(l, conn); err != nil {
+			return fmt.Errorf("failed to transfer blob compose file: %w", err)
+		}
+	} else {
+		// File exists, compare local and remote file hashes
+		l.Debugw("comparing blob compose file hashes...", "host", conn.destination.host)
+
+		// Get remote blob compose file hash
+		remoteHash, err := calculateFileHash(remotePath, conn.SSH)
+		if err != nil {
+			return fmt.Errorf("failed to get remote blob compose file hash: %w", err)
+		}
+
+		l.Debugw("blob compose hashes", "connection", conn.destination.host, "local", localHash, "remote", remoteHash)
+
+		// Compare and replace if different
+		if string(localHash) != string(remoteHash) {
+			l.Infow("blob compose file differs! replacing...", "host", conn.destination.host)
+			if err := transferBlobCompose(l, conn); err != nil {
+				return fmt.Errorf("failed to transfer blob compose file: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+// transferBlobCompose transfers the docker-compose.blobpool.yml file to a destination.
+// Returns an error if transfer fails.
+func transferBlobCompose(l *zap.SugaredLogger, conn connection) error {
+	remoteDir := remoteBlobDir(conn.destination)
+	remotePath := remoteBlobComposePath(conn.destination)
+
+	// Ensure remote blob directory exists
+	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
+	if err := remotely(l, conn.SSH, mkdirCmd); err != nil {
+		return fmt.Errorf("failed to create remote blob directory: %w", err)
+	}
+
+	l.Infow("transferring blob compose file...", "from", blobComposePath, "to", fmt.Sprintf("%s:%s", conn.host, remotePath))
+	if err := transfer(l, conn.SSH, blobComposePath, remotePath); err != nil {
+		return fmt.Errorf("failed to transfer blob compose file: %w", err)
+	}
+
+	chownCmd := fmt.Sprintf("chown benchmarks:benchmarks_group %s", remotePath)
+	l.Infow("chowning blob compose file to benchmarks user and group...", "host", conn.destination.host, "cmd", chownCmd)
+	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.destination.pass)); err != nil {
+		return fmt.Errorf("failed to chown blob compose file on %s: %w", conn.destination.host, err)
+	}
+	return nil
+}
+
+// manageBlobRedis handles the redis.conf file deployment for a destination.
+// Checks if file exists, compares hashes and transfers updated file if needed.
+// Returns an error if blob redis management fails.
+func manageBlobRedis(l *zap.SugaredLogger, conn connection, localHash []byte) error {
+	remotePath := remoteBlobRedisPath(conn.destination)
+	checkCmd := "test -f " + remotePath
+
+	if err := remotely(l, conn.SSH, checkCmd); err != nil {
+		l.Infof("no blob redis file found on %s - will transfer...", conn.destination.host)
+		if err := transferBlobRedis(l, conn); err != nil {
+			return fmt.Errorf("failed to transfer blob redis file: %w", err)
+		}
+	} else {
+		// File exists, compare local and remote file hashes
+		l.Debugw("comparing blob redis file hashes...", "host", conn.destination.host)
+
+		// Get remote blob redis file hash
+		remoteHash, err := calculateFileHash(remotePath, conn.SSH)
+		if err != nil {
+			return fmt.Errorf("failed to get remote blob redis file hash: %w", err)
+		}
+
+		l.Debugw("blob redis hashes", "connection", conn.destination.host, "local", localHash, "remote", remoteHash)
+
+		// Compare and replace if different
+		if string(localHash) != string(remoteHash) {
+			l.Infow("blob redis file differs! replacing...", "host", conn.destination.host)
+			if err := transferBlobRedis(l, conn); err != nil {
+				return fmt.Errorf("failed to transfer blob redis file: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+// transferBlobRedis transfers the redis.conf file to a destination.
+// Returns an error if transfer fails.
+func transferBlobRedis(l *zap.SugaredLogger, conn connection) error {
+	remoteDir := remoteBlobDir(conn.destination)
+	remotePath := remoteBlobRedisPath(conn.destination)
+
+	// Ensure remote blob directory exists (should already exist from compose file transfer)
+	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
+	if err := remotely(l, conn.SSH, mkdirCmd); err != nil {
+		return fmt.Errorf("failed to create remote blob directory: %w", err)
+	}
+
+	l.Infow("transferring blob redis file...", "from", blobRedisPath, "to", fmt.Sprintf("%s:%s", conn.host, remotePath))
+	if err := transfer(l, conn.SSH, blobRedisPath, remotePath); err != nil {
+		return fmt.Errorf("failed to transfer blob redis file: %w", err)
+	}
+
+	chownCmd := fmt.Sprintf("chown benchmarks:benchmarks_group %s", remotePath)
+	l.Infow("chowning blob redis file to benchmarks user and group...", "host", conn.destination.host, "cmd", chownCmd)
+	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.destination.pass)); err != nil {
+		return fmt.Errorf("failed to chown blob redis file on %s: %w", conn.destination.host, err)
 	}
 	return nil
 }

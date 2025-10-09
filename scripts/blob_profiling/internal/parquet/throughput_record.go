@@ -18,10 +18,6 @@ type ThroughputRecord struct {
 	SubmittedCount int64 `parquet:"name=submitted_count,type=INT64"`
 	SubmittedKiB   int64 `parquet:"name=submitted_kib,type=INT64"`
 
-	// Buffer metrics
-	UpcomingCount int64 `parquet:"name=upcoming_count,type=INT64"`
-	UpcomingKiB   int64 `parquet:"name=upcoming_kib,type=INT64"`
-
 	// Blobpool metrics
 	PendingBlobpoolCount int64 `parquet:"name=pending_blobpool_count,type=INT64"`
 
@@ -33,22 +29,19 @@ type ThroughputRecord struct {
 func NewThroughputRecord(
 	expectedKiBPerSec, actualKiBPerSec int64,
 	submittedTxs, submittedCount, submittedKiB int64,
-	upcomingCount, upcomingKiB int64,
-	pendingBlobpoolCount int64,
+	// pendingBlobpoolCount int64,
 	durationSeconds float64,
 	timestamp time.Time,
 ) *ThroughputRecord {
 	return &ThroughputRecord{
-		Timestamp:            timestamp.UnixNano(),
-		ExpectedKiBPerSec:    expectedKiBPerSec,
-		ActualKiBPerSec:      actualKiBPerSec,
-		SubmittedTxs:         submittedTxs,
-		SubmittedCount:       submittedCount,
-		SubmittedKiB:         submittedKiB,
-		UpcomingCount:        upcomingCount,
-		UpcomingKiB:          upcomingKiB,
-		PendingBlobpoolCount: pendingBlobpoolCount,
-		DurationSeconds:      durationSeconds,
+		Timestamp:         timestamp.UnixNano(),
+		ExpectedKiBPerSec: expectedKiBPerSec,
+		ActualKiBPerSec:   actualKiBPerSec,
+		SubmittedTxs:      submittedTxs,
+		SubmittedCount:    submittedCount,
+		SubmittedKiB:      submittedKiB,
+		// PendingBlobpoolCount: pendingBlobpoolCount,
+		DurationSeconds: durationSeconds,
 	}
 }
 
