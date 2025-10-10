@@ -33,7 +33,7 @@ var (
 	dataDir     = makefileDir + "/e2e/cluster/data"                           // Directory with template data
 	servicePath = makefileDir + "/e2e/cluster/systemd/fuelsequencerd.service" // Path to the systemd service file
 	systemdPath = "/etc/systemd/system/fuelsequencerd.service"                // Path to the systemd service file on the remote machine
-	binaryName  = "fuelsequencerd"                                            // Name of the binary
+	remoteBinaryName = "fuelsequencerd"                                            // Name of the binary on remote
 
 	// Blob Parameters
 	blobComposePath = makefileDir + "/e2e/cluster/blob/docker-compose.blobpool.yml" // Path to the docker compose file
@@ -90,7 +90,7 @@ func chainHomeDir(d destination) string {
 
 // remoteBinaryPath returns the path where the binary should be installed on the remote host
 func remoteBinaryPath(d destination) string {
-	return filepath.Join(d.dir, binaryName)
+	return filepath.Join(d.dir, remoteBinaryName)
 }
 
 // remoteBlobDir returns the path where blob files should be stored on the remote host
