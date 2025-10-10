@@ -98,13 +98,13 @@ func remoteBlobDir(d destination) string {
 	return filepath.Join(d.dir, "blob")
 }
 
-// remoteBlobComposePath returns the path where the docker compose file should be stored on the remote host
-func remoteBlobComposePath(d destination) string {
+// remoteBlobpoolComposePath returns the path where the docker compose file should be stored on the remote host
+func remoteBlobpoolComposePath(d destination) string {
 	return filepath.Join(remoteBlobDir(d), "docker-compose.blobpool.yml")
 }
 
-// remoteBlobRedisPath returns the path where the Redis config file should be stored on the remote host
-func remoteBlobRedisPath(d destination) string {
+// remoteBlobStorageRedisConfPath returns the path where the Redis config file should be stored on the remote host
+func remoteBlobStorageRedisConfPath(d destination) string {
 	return filepath.Join(remoteBlobDir(d), "redis.conf")
 }
 

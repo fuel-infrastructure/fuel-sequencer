@@ -14,10 +14,40 @@ import (
 func deployNetwork(connections []connection) error {
 	l := logging.Named("Deploy")
 
-	for i, conn := range connections {
-		if err := deployNode(l, conn); err != nil {
-			return fmt.Errorf("failed to deploy node %d: %w", i, err)
+	for _, operation := range []func(l *zap.SugaredLogger, id int, conn connection) error{
+		blobpoolStore, node,
+	} {
+		for i, conn := range connections {
+			if err := operation(l, i, conn); err != nil {
+				return err
+			}
 		}
+	}
+
+	return nil
+}
+
+func blobpoolStore(l *zap.SugaredLogger, i int, conn connection) error {
+	if err := deployBlobpoolStore(l, conn); err != nil {
+		return fmt.Errorf("failed to deploy node %d: %w", i, err)
+	}
+	return nil
+}
+
+// deployBlobpoolStore starts the blobpool storage using docker compose on the remote host.
+// It executes the docker compose up command (in detached mode) for the blobpool compose file on the target node.
+// Returns an error if the blobpool store fails to start.
+func deployBlobpoolStore(l *zap.SugaredLogger, conn connection) error {
+	cmd := "docker compose -f=" + remoteBlobpoolComposePath(conn.destination) + " up -d"
+	if err := remotely(l, conn.SSH, withSudo(cmd, conn.destination.pass)); err != nil {
+		return fmt.Errorf("failed to start blobpool store: %w", err)
+	}
+	return nil
+}
+
+func node(l *zap.SugaredLogger, i int, conn connection) error {
+	if err := deployNode(l, conn); err != nil {
+		return fmt.Errorf("failed to deploy node %d: %w", i, err)
 	}
 	return nil
 }
