@@ -26,8 +26,9 @@ const (
 	remoteBinaryName = "fuelsequencerd"                                            // Name of the binary on remote
 
 	// Blob Parameters
-	blobComposePath = makefileDir + "/e2e/cluster/blob/docker-compose.blobpool.yml" // Path to the docker compose file
-	blobRedisPath   = makefileDir + "/e2e/cluster/blob/redis.conf"                  // Path to the Redis configuration file
+	blobRedisPath       = makefileDir + "/e2e/cluster/blob/redis.conf"                  // Path to the Redis configuration file
+	blobpoolComposePath = makefileDir + "/e2e/cluster/blob/docker-compose.blobpool.yml" // Path to the docker compose file
+	blobhubComposePath  = makefileDir + "/e2e/cluster/blob/docker-compose.blobhub.yml"  // Path to the docker compose file
 )
 
 var (
@@ -35,6 +36,7 @@ var (
 	defaultOptions = options{
 		sequencer: true,
 		blobpool:  true,
+		blobhub:   false,
 	}
 
 	// Remote System Parameters
@@ -67,12 +69,17 @@ func remoteBlobDir(d destination) string {
 	return filepath.Join(d.dir, "blob")
 }
 
+// remoteBlobStorageRedisConfPath returns the path where the Redis config file should be stored on the remote host
+func remoteBlobStorageRedisConfPath(d destination) string {
+	return filepath.Join(remoteBlobDir(d), "redis.conf")
+}
+
 // remoteBlobpoolComposePath returns the path where the docker compose file should be stored on the remote host
 func remoteBlobpoolComposePath(d destination) string {
 	return filepath.Join(remoteBlobDir(d), "docker-compose.blobpool.yml")
 }
 
-// remoteBlobStorageRedisConfPath returns the path where the Redis config file should be stored on the remote host
-func remoteBlobStorageRedisConfPath(d destination) string {
-	return filepath.Join(remoteBlobDir(d), "redis.conf")
+// remoteBlobhubComposePath returns the path where the docker compose file should be stored on the remote host
+func remoteBlobhubComposePath(d destination) string {
+	return filepath.Join(remoteBlobDir(d), "docker-compose.blobhub.yml")
 }

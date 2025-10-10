@@ -32,6 +32,7 @@ type destination struct {
 type options struct {
 	sequencer bool
 	blobpool  bool
+	blobhub   bool
 }
 
 // establishConnections creates SSH connections to all systems in parallel.
