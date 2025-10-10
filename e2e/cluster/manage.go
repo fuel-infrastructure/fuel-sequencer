@@ -122,7 +122,7 @@ func transferService(l *zap.SugaredLogger, conn connection) error {
 	tmpServicePath := filepath.Join(conn.dir, "tmp-fuelsequencerd.service")
 	l.Debugw("transferring service to tmp file...", "from", servicePath, "to", fmt.Sprintf("%s:%s", conn.host, tmpServicePath))
 
-	if err := transfer(l, conn.SSH, servicePath, tmpServicePath); err != nil {
+	if err := transfer(l, conn, servicePath, tmpServicePath); err != nil {
 		return fmt.Errorf("failed to transfer service file to temp location: %w", err)
 	}
 
@@ -175,7 +175,7 @@ func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte,
 // Returns an error if transfer fails.
 func transferBinary(l *zap.SugaredLogger, conn connection, localBinaryPath, remoteBinaryPath string) error {
 	logging.Infow("transferring binary...", "from", localBinaryPath, "to", fmt.Sprintf("%s:%s", conn.host, remoteBinaryPath))
-	if err := transfer(l, conn.SSH, localBinaryPath, remoteBinaryPath); err != nil {
+	if err := transfer(l, conn, localBinaryPath, remoteBinaryPath); err != nil {
 		return fmt.Errorf("failed to transfer binary to %s: %w", conn.destination.host, err)
 	}
 
@@ -220,7 +220,7 @@ func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
 	remoteDataDir := chainHomeDir(conn.destination)
 
 	l.Infow("transferring config as chain home directory...", "from", instanceDir, "to", fmt.Sprintf("%s:%s", conn.host, remoteDataDir))
-	if err := transfer(l, conn.SSH, instanceDir, remoteDataDir); err != nil {
+	if err := transfer(l, conn, instanceDir, remoteDataDir); err != nil {
 		return fmt.Errorf("failed to transfer config to %s: %w", conn.destination.host, err)
 	}
 
@@ -295,7 +295,7 @@ func transferBlobCompose(l *zap.SugaredLogger, conn connection) error {
 	}
 
 	l.Infow("transferring blob compose file...", "from", blobComposePath, "to", fmt.Sprintf("%s:%s", conn.host, remotePath))
-	if err := transfer(l, conn.SSH, blobComposePath, remotePath); err != nil {
+	if err := transfer(l, conn, blobComposePath, remotePath); err != nil {
 		return fmt.Errorf("failed to transfer blob compose file: %w", err)
 	}
 
@@ -355,7 +355,7 @@ func transferBlobRedis(l *zap.SugaredLogger, conn connection) error {
 	}
 
 	l.Infow("transferring blob redis file...", "from", blobRedisPath, "to", fmt.Sprintf("%s:%s", conn.host, remotePath))
-	if err := transfer(l, conn.SSH, blobRedisPath, remotePath); err != nil {
+	if err := transfer(l, conn, blobRedisPath, remotePath); err != nil {
 		return fmt.Errorf("failed to transfer blob redis file: %w", err)
 	}
 

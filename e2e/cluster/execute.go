@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"go.uber.org/zap"
@@ -24,7 +25,7 @@ type executor interface {
 
 // execute runs a command through the provided executor, capturing and logging output.
 // It streams stdout and stderr through the logger and returns any error encountered.
-func execute(l *zap.SugaredLogger, e executor) error {
+func execute(l *zap.SugaredLogger, e executor, commandName string) error {
 
 	// Capture output for logging by creating pipes for stdout and stderr
 	stdout, err := e.StdoutPipe()
@@ -40,12 +41,19 @@ func execute(l *zap.SugaredLogger, e executor) error {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// Stream stdout
+	// Stream stdout with smart progress detection
 	go func() {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			l.Info(scanner.Text())
+			line := scanner.Text()
+			if isProgressLine(line) {
+				// This is a progress update, log it as progress info
+				l.Infow(fmt.Sprintf("running %s...", commandName), "progress", strings.TrimSpace(line))
+			} else if strings.TrimSpace(line) != "" {
+				// Regular output line (skip empty lines)
+				l.Info(line)
+			}
 		}
 	}()
 
@@ -54,7 +62,10 @@ func execute(l *zap.SugaredLogger, e executor) error {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			l.Warn(scanner.Text())
+			line := scanner.Text()
+			if strings.TrimSpace(line) != "" {
+				l.Warn(line)
+			}
 		}
 	}()
 
@@ -78,12 +89,21 @@ func execute(l *zap.SugaredLogger, e executor) error {
 // locally executes a command on the local machine with the given name and arguments.
 // Returns an error if the command fails.
 func locally(l *zap.SugaredLogger, name string, args ...string) error {
-	return execute(l.Named("CMD"), exec.Command(name, args...))
+	return execute(l.Named("CMD"), exec.Command(name, args...), name)
+}
+
+func locallyWithCustomName(l *zap.SugaredLogger, name, cmdname string, args ...string) error {
+	return execute(l.Named("CMD"), exec.Command(name, args...), cmdname)
 }
 
 // remotely executes a command on a remote machine through an SSH connection.
 // Returns an error if the command fails.
 func remotely(l *zap.SugaredLogger, client *ssh.Client, cmd string) error {
+	cmdname := strings.Split(cmd, " ")[0]
+	return remotelyWithCustomName(l, client, cmd, cmdname)
+}
+
+func remotelyWithCustomName(l *zap.SugaredLogger, client *ssh.Client, cmd, cmdname string) error {
 	// Create new SSH client
 	session, err := client.NewSession()
 	if err != nil {
@@ -91,7 +111,7 @@ func remotely(l *zap.SugaredLogger, client *ssh.Client, cmd string) error {
 	}
 	defer session.Close()
 
-	return execute(l.Named("SSH"), &sshSessionExecutor{Session: session, cmd: cmd})
+	return execute(l.Named("SSH"), &sshSessionExecutor{Session: session, cmd: cmd}, cmdname)
 }
 
 // sshSessionExecutor wraps an SSH session to implement the executor interface
@@ -160,4 +180,45 @@ func calculateFileHash(filepath string, client *ssh.Client) ([]byte, error) {
 	defer session.Close()
 	session.Stdout = nil // Disable stdout to capture output
 	return session.Output(cmd)
+}
+
+// isProgressLine determines if a command output line represents a progress update.
+// This function identifies lines that contain progress information typically generated
+// by tools like rsync, wget, curl, and other transfer/download utilities.
+//
+// Progress lines are characterized by:
+//   - Percentage indicators (%)
+//   - Transfer speed indicators (MB/s, KB/s, etc.)
+//   - Transfer completion indicators (xfer#, to-check, etc.)
+//
+// Examples of progress lines:
+//   - "5046272   5%    4.75MB/s   00:00:19"
+//   - "100204544 100%    1.64MB/s   00:00:00 (xfer#1, to-check=0/1)"
+//   - "Downloading: 45% [2.3MB/s] [00:15<00:12]"
+//
+// This detection allows for structured logging of progress updates while
+// maintaining regular logging for other command output.
+func isProgressLine(line string) bool {
+	// Must contain a percentage indicator
+	if !strings.Contains(line, "%") {
+		return false
+	}
+
+	// Must contain at least one of the common progress indicators
+	progressIndicators := []string{
+		"MB/s", "KB/s", "GB/s", // Transfer speeds
+		"xfer#", "to-check", // rsync completion indicators
+		"ETA", "ETA:", // Estimated time remaining
+		"Downloading:", // Download progress
+		"Uploading:",   // Upload progress
+		"Progress:",    // Generic progress indicator
+	}
+
+	for _, indicator := range progressIndicators {
+		if strings.Contains(line, indicator) {
+			return true
+		}
+	}
+
+	return false
 }
