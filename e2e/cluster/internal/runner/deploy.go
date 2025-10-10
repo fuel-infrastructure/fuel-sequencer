@@ -11,10 +11,10 @@ import (
 
 // deployNetwork deploys the fuelsequencerd service to all nodes in the cluster.
 // Takes a slice of connections and returns an error if any node deployment fails.
-func deployNetwork(connections []connection) error {
+func deployNetwork(connections []system) error {
 	l := logging.Named("Deploy")
 
-	for _, operation := range []func(l *zap.SugaredLogger, id int, conn connection) error{
+	for _, operation := range []func(l *zap.SugaredLogger, id int, conn system) error{
 		blobpoolStore, node,
 	} {
 		for i, conn := range connections {
@@ -27,7 +27,10 @@ func deployNetwork(connections []connection) error {
 	return nil
 }
 
-func blobpoolStore(l *zap.SugaredLogger, i int, conn connection) error {
+func blobpoolStore(l *zap.SugaredLogger, i int, conn system) error {
+	if !conn.options.blobpool {
+		return nil
+	}
 	if err := deployBlobpoolStore(l, conn); err != nil {
 		return fmt.Errorf("failed to deploy node %d: %w", i, err)
 	}
@@ -37,7 +40,7 @@ func blobpoolStore(l *zap.SugaredLogger, i int, conn connection) error {
 // deployBlobpoolStore starts the blobpool storage using docker compose on the remote host.
 // It executes the docker compose up command (in detached mode) for the blobpool compose file on the target node.
 // Returns an error if the blobpool store fails to start.
-func deployBlobpoolStore(l *zap.SugaredLogger, conn connection) error {
+func deployBlobpoolStore(l *zap.SugaredLogger, conn system) error {
 	cmd := "docker compose -f=" + remoteBlobpoolComposePath(conn.destination) + " up -d"
 	if err := remotely(l, conn.SSH, withSudo(cmd, conn.destination.pass)); err != nil {
 		return fmt.Errorf("failed to start blobpool store: %w", err)
@@ -45,7 +48,10 @@ func deployBlobpoolStore(l *zap.SugaredLogger, conn connection) error {
 	return nil
 }
 
-func node(l *zap.SugaredLogger, i int, conn connection) error {
+func node(l *zap.SugaredLogger, i int, conn system) error {
+	if !conn.options.sequencer {
+		return nil
+	}
 	if err := deployNode(l, conn); err != nil {
 		return fmt.Errorf("failed to deploy node %d: %w", i, err)
 	}
@@ -55,7 +61,7 @@ func node(l *zap.SugaredLogger, i int, conn connection) error {
 // deployNode deploys the fuelsequencerd service to a single node.
 // Enables and starts the systemd service on the remote host.
 // Returns an error if service deployment fails.
-func deployNode(l *zap.SugaredLogger, conn connection) error {
+func deployNode(l *zap.SugaredLogger, conn system) error {
 	cmd := "systemctl enable fuelsequencerd"
 	if err := remotely(l, conn.SSH, withSudo(cmd, conn.destination.pass)); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)

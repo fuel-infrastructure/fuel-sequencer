@@ -11,10 +11,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// manageDestinations handles the management of all destination nodes including
+// manageSystems handles the management of all systems including
 // service configuration, binary deployment, data management and blob file deployment.
-// Returns an error if management of any destination fails.
-func manageDestinations(connections []connection, localBinaryPath string) error {
+// Returns an error if management of any system fails.
+func manageSystems(systems []system, localBinaryPath string) error {
 	l := logging.Named("Manage")
 
 	localServiceHash, err := calculateFileHash(servicePath, nil)
@@ -37,9 +37,9 @@ func manageDestinations(connections []connection, localBinaryPath string) error 
 		return fmt.Errorf("failed to get local blob redis hash: %w", err)
 	}
 
-	for i, conn := range connections {
-		if err := manage(l, conn, i, localBinaryPath, localServiceHash, localBinaryHash, localBlobComposeHash, localBlobRedisHash); err != nil {
-			return fmt.Errorf("failed to manage destination %s: %w", conn.destination.host, err)
+	for i, sys := range systems {
+		if err := manage(l, sys, i, localBinaryPath, localServiceHash, localBinaryHash, localBlobComposeHash, localBlobRedisHash); err != nil {
+			return fmt.Errorf("failed to manage destination %s: %w", sys.destination.host, err)
 		}
 	}
 	return nil
@@ -48,20 +48,26 @@ func manageDestinations(connections []connection, localBinaryPath string) error 
 // manage handles the management of a single destination including service,
 // binary, data and blob file management.
 // Returns an error if any management step fails.
-func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath string, localServiceHash, localBinaryHash, localBlobComposeHash, localBlobRedisHash []byte) error {
-	if err := manageService(l, conn, localServiceHash); err != nil {
+func manage(l *zap.SugaredLogger, sys system, nodeId int, localBinaryPath string, localServiceHash, localBinaryHash, localBlobComposeHash, localBlobRedisHash []byte) error {
+	// Sequencer Related
+	if err := manageService(l, sys, localServiceHash); err != nil {
 		return fmt.Errorf("failed to manage service: %w", err)
 	}
 
-	if err := manageBinary(l, conn, localBinaryHash, localBinaryPath); err != nil {
+	if err := manageBinary(l, sys, localBinaryHash, localBinaryPath); err != nil {
 		return fmt.Errorf("failed to manage binary: %w", err)
 	}
 
-	if err := manageData(l, conn, nodeId); err != nil {
+	if err := manageData(l, sys, nodeId); err != nil {
 		return fmt.Errorf("failed to manage data: %w", err)
 	}
 
-	if err := manageBlobpoolStorage(l, conn, localBlobComposeHash, localBlobRedisHash); err != nil {
+	// Blobpool Related
+	if err := manageBlobpoolStorage(l, sys, localBlobComposeHash, localBlobRedisHash); err != nil {
+		return fmt.Errorf("failed to manage blob files: %w", err)
+	}
+
+	if err := manageBlobpoolStorage(l, sys, localBlobComposeHash, localBlobRedisHash); err != nil {
 		return fmt.Errorf("failed to manage blob files: %w", err)
 	}
 
@@ -71,44 +77,55 @@ func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath s
 // manageService handles the systemd service configuration for a destination.
 // Checks if service exists, compares hashes and transfers updated service file if needed.
 // Returns an error if service management fails.
-func manageService(l *zap.SugaredLogger, conn connection, localHash []byte) error {
+func manageService(l *zap.SugaredLogger, sys system, localHash []byte) error {
+	onlyShutdown := !sys.options.sequencer
+
 	// Check if systemd service exists
 	checkCmd := "test -f /etc/systemd/system/fuelsequencerd.service"
-	l.Infow("checking for fuelsequencerd service...", "host", conn.destination.host, "cmd", checkCmd)
-	if err := remotely(l, conn.SSH, checkCmd); err != nil {
-		l.Infof("no fuelsequencerd service found on %s - will transfer service file...", conn.destination.host)
-		if err := transferService(l, conn); err != nil {
+	l.Infow("checking for fuelsequencerd service...", "host", sys.destination.host, "cmd", checkCmd)
+	if err := remotely(l, sys.SSH, checkCmd); err != nil {
+		if onlyShutdown {
+			l.Infow("only shutdown, no need to transfer service", "host", sys.destination.host)
+			return nil
+		}
+		l.Infof("no fuelsequencerd service found on %s - will transfer service file...", sys.destination.host)
+		if err := transferService(l, sys); err != nil {
 			return fmt.Errorf("failed to transfer service file: %w", err)
 		}
 	} else {
 		// Service exists, make sure it is disabled and stopped
 		disableCmd := "systemctl disable fuelsequencerd"
-		l.Infow("disabling fuelsequencerd...", "host", conn.destination.host, "cmd", disableCmd)
-		if err := remotely(l, conn.SSH, withSudo(disableCmd, conn.destination.pass)); err != nil {
-			return fmt.Errorf("failed to disable service on %s: %w", conn.destination.host, err)
+		l.Infow("disabling fuelsequencerd...", "host", sys.destination.host, "cmd", disableCmd)
+		if err := remotely(l, sys.SSH, withSudo(disableCmd, sys.destination.pass)); err != nil {
+			return fmt.Errorf("failed to disable service on %s: %w", sys.destination.host, err)
 		}
 
 		stopCmd := "systemctl stop fuelsequencerd"
-		l.Infow("stopping fuelsequencerd...", "host", conn.destination.host, "cmd", stopCmd)
-		if err := remotely(l, conn.SSH, withSudo(stopCmd, conn.destination.pass)); err != nil {
-			return fmt.Errorf("failed to stop service on %s: %w", conn.destination.host, err)
+		l.Infow("stopping fuelsequencerd...", "host", sys.destination.host, "cmd", stopCmd)
+		if err := remotely(l, sys.SSH, withSudo(stopCmd, sys.destination.pass)); err != nil {
+			return fmt.Errorf("failed to stop service on %s: %w", sys.destination.host, err)
+		}
+
+		if onlyShutdown {
+			l.Infow("only shutdown, no need to compare hashes", "host", sys.destination.host)
+			return nil // only shutdown, no need to compare hashes
 		}
 
 		// Compare local and remote service file hashes
-		l.Infow("comparing service file hashes...", "host", conn.destination.host)
+		l.Infow("comparing service file hashes...", "host", sys.destination.host)
 
 		// Get remote service file hash
-		remoteHash, err := calculateFileHash(systemdPath, conn.SSH)
+		remoteHash, err := calculateFileHash(systemdPath, sys.SSH)
 		if err != nil {
 			return fmt.Errorf("failed to get remote service file hash: %w", err)
 		}
 
-		l.Debugw("hashes", "connection", conn.destination.host, "local", localHash, "remote", remoteHash)
+		l.Debugw("hashes", "connection", sys.destination.host, "local", localHash, "remote", remoteHash)
 
 		// Compare and replace if different
 		if string(localHash) != string(remoteHash) {
-			l.Infow("service file differs! replacing...", "host", conn.destination.host)
-			if err := transferService(l, conn); err != nil {
+			l.Infow("service file differs! replacing...", "host", sys.destination.host)
+			if err := transferService(l, sys); err != nil {
 				return fmt.Errorf("failed to transfer service file: %w", err)
 			}
 		}
@@ -118,7 +135,7 @@ func manageService(l *zap.SugaredLogger, conn connection, localHash []byte) erro
 
 // transferService transfers the systemd service file to a destination.
 // Returns an error if transfer fails.
-func transferService(l *zap.SugaredLogger, conn connection) error {
+func transferService(l *zap.SugaredLogger, conn system) error {
 	// First transfer to temporary location
 	tmpServicePath := filepath.Join(conn.dir, "tmp-fuelsequencerd.service")
 	l.Debugw("transferring service to tmp file...", "from", servicePath, "to", fmt.Sprintf("%s:%s", conn.host, tmpServicePath))
@@ -140,7 +157,12 @@ func transferService(l *zap.SugaredLogger, conn connection) error {
 // manageBinary handles the binary deployment for a destination.
 // Checks if binary exists, compares hashes and transfers updated binary if needed.
 // Returns an error if binary management fails.
-func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte, localBinaryPath string) error {
+func manageBinary(l *zap.SugaredLogger, conn system, localBinaryHash []byte, localBinaryPath string) error {
+	if !conn.options.sequencer {
+		l.Infow("only shutdown, no need to compare hashes nor transfer binary", "host", conn.destination.host)
+		return nil // only shutdown, no need to compare hashes nor transfer binary
+	}
+
 	// check if binary exists
 	remoteBinaryPath := remoteBinaryPath(conn.destination)
 	checkCmd := "test -f " + remoteBinaryPath
@@ -174,7 +196,7 @@ func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte,
 
 // transferBinary transfers the fuelsequencerd binary to a destination.
 // Returns an error if transfer fails.
-func transferBinary(l *zap.SugaredLogger, conn connection, localBinaryPath, remoteBinaryPath string) error {
+func transferBinary(l *zap.SugaredLogger, conn system, localBinaryPath, remoteBinaryPath string) error {
 	logging.Infow("transferring binary...", "from", localBinaryPath, "to", fmt.Sprintf("%s:%s", conn.host, remoteBinaryPath))
 	if err := transfer(l, conn, localBinaryPath, remoteBinaryPath); err != nil {
 		return fmt.Errorf("failed to transfer binary to %s: %w", conn.destination.host, err)
@@ -191,17 +213,27 @@ func transferBinary(l *zap.SugaredLogger, conn connection, localBinaryPath, remo
 // manageData handles the chain data management for a destination.
 // Cleans existing data and transfers new configuration.
 // Returns an error if data management fails.
-func manageData(l *zap.SugaredLogger, conn connection, nodeId int) error {
+func manageData(l *zap.SugaredLogger, conn system, nodeId int) error {
+	onlyDelete := !conn.options.sequencer
+
 	// if data on remote exists, remove it
 	homeDir := chainHomeDir(conn.destination)
 	checkCmd := "test -d " + homeDir
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infof("no chain home directory found on %s", conn.destination.host)
+		if onlyDelete {
+			l.Infow("no chain home directory found on %s, but only delete, so no need to transfer config", conn.destination.host)
+			return nil // only delete, found nothing, and no need to transfer config
+		}
 	} else {
 		removeCmd := "rm -rf " + homeDir
 		l.Infow("removing chain home directory...", "host", conn.destination.host, "cmd", removeCmd)
 		if err := remotely(l, conn.SSH, withSudo(removeCmd, conn.destination.pass)); err != nil {
 			return fmt.Errorf("failed to remove home directory on %s: %w", conn.destination.host, err)
+		}
+		if onlyDelete {
+			l.Infow("chain home directory found on %s, but only delete, so no need to transfer config", conn.destination.host)
+			return nil
 		}
 	}
 
@@ -216,7 +248,7 @@ func manageData(l *zap.SugaredLogger, conn connection, nodeId int) error {
 // Takes a logger, connection details, and node ID.
 // Transfers the configuration files and sets appropriate permissions.
 // Returns an error if transfer fails.
-func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
+func transferConfig(l *zap.SugaredLogger, conn system, nodeId int) error {
 	instanceDir := filepath.Join(dataDir, sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", nodeId))
 	remoteDataDir := chainHomeDir(conn.destination)
 
@@ -236,7 +268,7 @@ func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
 // manageBlobpoolStorage handles the blobpool storage compose file deployment for a destination.
 // Checks if blobpool storage files exist, compares hashes and transfers updated files if needed.
 // Returns an error if blob management fails.
-func manageBlobpoolStorage(l *zap.SugaredLogger, conn connection, localBlobpoolComposeHash, localBlobpoolRedisHash []byte) error {
+func manageBlobpoolStorage(l *zap.SugaredLogger, conn system, localBlobpoolComposeHash, localBlobpoolRedisHash []byte) error {
 	if err := manageBlobpoolCompose(l, conn, localBlobpoolComposeHash); err != nil {
 		return fmt.Errorf("failed to manage blobpool storage compose file: %w", err)
 	}
@@ -251,16 +283,34 @@ func manageBlobpoolStorage(l *zap.SugaredLogger, conn connection, localBlobpoolC
 // manageBlobpoolCompose handles the docker-compose.blobpool.yml file deployment for a destination.
 // Checks if file exists, compares hashes and transfers updated file if needed.
 // Returns an error if blob compose management fails.
-func manageBlobpoolCompose(l *zap.SugaredLogger, conn connection, localHash []byte) error {
+func manageBlobpoolCompose(l *zap.SugaredLogger, conn system, localHash []byte) error {
 	remotePath := remoteBlobpoolComposePath(conn.destination)
 	checkCmd := "test -f " + remotePath
+	onlyShutdown := !conn.options.blobpool
 
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
+		if onlyShutdown {
+			l.Infow("only shutdown, no need to transfer blobpool storage compose file", "host", conn.destination.host)
+			return nil
+		}
 		l.Infof("no blobpool storage compose file found on %s - will transfer...", conn.destination.host)
 		if err := transferBlobpoolCompose(l, conn); err != nil {
 			return fmt.Errorf("failed to transfer blobpool storage compose file: %w", err)
 		}
 	} else {
+		// Shutdown existing blobpool containers and reset their volumes (will be redeployed later)
+		composeDir := remoteBlobpoolComposePath(conn.destination)
+		downCmd := fmt.Sprintf("docker compose -f=%s down -v", composeDir)
+		l.Infow("shutting down and resetting blobpool storage...", "host", conn.destination.host, "cmd", downCmd)
+		if err := remotely(l, conn.SSH, withSudo(downCmd, conn.destination.pass)); err != nil {
+			return fmt.Errorf("failed to shutdown and reset blobpool storage on %s: %w", conn.destination.host, err)
+		}
+
+		if onlyShutdown {
+			l.Infow("only shutdown, no need to compare hashes", "host", conn.destination.host)
+			return nil
+		}
+
 		// File exists, compare local and remote file hashes
 		l.Debugw("comparing blobpool storage compose file hashes...", "host", conn.destination.host)
 
@@ -279,21 +329,13 @@ func manageBlobpoolCompose(l *zap.SugaredLogger, conn connection, localHash []by
 				return fmt.Errorf("failed to transfer blobpool storage compose file: %w", err)
 			}
 		}
-
-		// Shutdown blobpool containers and reset their volumes (will be redeployed later)
-		composeDir := remoteBlobpoolComposePath(conn.destination)
-		downCmd := fmt.Sprintf("docker compose -f=%s down -v", composeDir)
-		l.Infow("shutting down and resetting blobpool storage...", "host", conn.destination.host, "cmd", downCmd)
-		if err := remotely(l, conn.SSH, withSudo(downCmd, conn.destination.pass)); err != nil {
-			return fmt.Errorf("failed to shutdown and reset blobpool storage on %s: %w", conn.destination.host, err)
-		}
 	}
 	return nil
 }
 
 // transferBlobpoolCompose transfers the docker-compose.blobpool.yml file to a destination.
 // Returns an error if transfer fails.
-func transferBlobpoolCompose(l *zap.SugaredLogger, conn connection) error {
+func transferBlobpoolCompose(l *zap.SugaredLogger, conn system) error {
 	remoteDir := remoteBlobDir(conn.destination)
 	remotePath := remoteBlobpoolComposePath(conn.destination)
 
@@ -319,16 +361,30 @@ func transferBlobpoolCompose(l *zap.SugaredLogger, conn connection) error {
 // manageBlobStorageRedisConf handles the redis.conf file deployment for a destination.
 // Checks if file exists, compares hashes and transfers updated file if needed.
 // Returns an error if blob redis management fails.
-func manageBlobStorageRedisConf(l *zap.SugaredLogger, conn connection, localHash []byte) error {
+func manageBlobStorageRedisConf(l *zap.SugaredLogger, conn system, localHash []byte) error {
 	remotePath := remoteBlobStorageRedisConfPath(conn.destination)
 	checkCmd := "test -f " + remotePath
+	onlyDelete := !conn.options.blobpool
 
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infof("no blob-storage redis conf file found on %s - will transfer...", conn.destination.host)
+		if onlyDelete {
+			l.Infow("only delete, no need to transfer blob-storage redis conf file", "host", conn.destination.host)
+			return nil
+		}
 		if err := transferBlobStorageRedisConf(l, conn); err != nil {
 			return fmt.Errorf("failed to transfer blob-storage redis conf file: %w", err)
 		}
 	} else {
+		if onlyDelete {
+			removeCmd := "rm -f " + remotePath
+			l.Infow("blob-storage redis conf file found on %s, but only delete, so removing blob-storage redis conf file...", "host", conn.destination.host, "cmd", removeCmd)
+			if err := remotely(l, conn.SSH, withSudo(removeCmd, conn.destination.pass)); err != nil {
+				return fmt.Errorf("failed to remove blob-storage redis conf file on %s: %w", conn.destination.host, err)
+			}
+			return nil
+		}
+
 		// File exists, compare local and remote file hashes
 		l.Debugw("comparing blob-storage redis conf file hashes...", "host", conn.destination.host)
 
@@ -353,7 +409,7 @@ func manageBlobStorageRedisConf(l *zap.SugaredLogger, conn connection, localHash
 
 // transferBlobStorageRedisConf transfers the redis.conf file to a destination.
 // Returns an error if transfer fails.
-func transferBlobStorageRedisConf(l *zap.SugaredLogger, conn connection) error {
+func transferBlobStorageRedisConf(l *zap.SugaredLogger, conn system) error {
 	remoteDir := remoteBlobDir(conn.destination)
 	remotePath := remoteBlobStorageRedisConfPath(conn.destination)
 

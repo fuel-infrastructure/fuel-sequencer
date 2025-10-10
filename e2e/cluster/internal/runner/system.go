@@ -12,6 +12,13 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// system represents the state of a remote host with configs and connection
+type system struct {
+	destination
+	options
+	SSH *ssh.Client
+}
+
 // destination represents a remote host configuration for SSH connections
 type destination struct {
 	peer_ip string // IP address used for P2P communication
@@ -21,55 +28,47 @@ type destination struct {
 	dir     string // Working directory on remote host
 }
 
-// connection wraps a destination with its active SSH client connection
-type connection struct {
-	destination
-	SSH *ssh.Client
+// options represents the options for the system that need to be configured
+type options struct {
+	sequencer bool
+	blobpool  bool
 }
 
-// establishConnections creates SSH connections to all destinations in parallel.
-// Returns a slice of connections and any error encountered.
-func establishConnections() ([]connection, error) {
-	var connections []connection
-	var mu sync.Mutex
+// establishConnections creates SSH connections to all systems in parallel.
+// Returns any error encountered.
+func establishConnections() error {
 	var wg sync.WaitGroup
-	errChan := make(chan error, len(destinations))
+	errChan := make(chan error, len(systems))
 
-	for _, dest := range destinations {
+	for i := range systems {
 		wg.Add(1)
-		go func(dest destination) {
+		go func(i int) {
 			defer wg.Done()
 
-			client, err := connectSSH(dest)
+			client, err := connectSSH(systems[i].destination)
 			if err != nil {
 				errChan <- err
 				return
 			}
-
-			mu.Lock()
-			connections = append(connections, connection{
-				destination: dest,
-				SSH:         client,
-			})
-			mu.Unlock()
-		}(dest)
+			systems[i].SSH = client
+		}(i)
 	}
 
 	wg.Wait()
 	close(errChan)
 
 	if err := <-errChan; err != nil {
-		return nil, err
+		return err
 	}
 
-	return connections, nil
+	return nil
 }
 
 // closeConnections closes all SSH connections in the provided slice.
-func closeConnections(connections []connection) {
-	for _, conn := range connections {
-		if conn.SSH != nil {
-			conn.SSH.Close()
+func closeConnections() {
+	for _, sys := range systems {
+		if sys.SSH != nil {
+			sys.SSH.Close()
 		}
 	}
 }

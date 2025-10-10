@@ -31,9 +31,9 @@ func logAndWrapErr(msg string, err error) error {
 func Setup() error {
 	sequencer.CheckParameters(logging)
 
-	ld, lm := len(destinations), len(sequencer.Mnemonics)
-	if ld != lm {
-		logging.Fatalw("check config: number of destinations (%d) does not match number of mnemonics (%d)", ld, lm)
+	ls, lm := len(systems), len(sequencer.Mnemonics)
+	if ls != lm {
+		logging.Fatalw("check config: number of systems (%d) does not match number of mnemonics (%d)", ls, lm)
 	}
 
 	// TODO: build against existing git tag
@@ -45,8 +45,8 @@ func Setup() error {
 	}
 
 	// Configure the network
-	peerIPs := make([]string, len(destinations))
-	for i, val := range destinations {
+	peerIPs := make([]string, len(systems))
+	for i, val := range systems {
 		peerIPs[i] = val.peer_ip
 	}
 	if err := sequencer.ConfigureNetwork(logging, dataDir, locally, peerIPs); err != nil {
@@ -54,19 +54,18 @@ func Setup() error {
 	}
 
 	// Establish connection to all destinations
-	connections, err := establishConnections()
-	if err != nil {
+	if err := establishConnections(); err != nil {
 		return logAndWrapErr("connection establishment failed", err)
 	}
-	defer closeConnections(connections)
+	defer closeConnections()
 
 	// Manage destinations (clean existing instances and transfer necessary files)
-	if err := manageDestinations(connections, binaryPath); err != nil {
+	if err := manageSystems(systems, binaryPath); err != nil {
 		return logAndWrapErr("destination cleanup failed", err)
 	}
 
 	// Setup and run each node in the cluster
-	if err := deployNetwork(connections); err != nil {
+	if err := deployNetwork(systems); err != nil {
 		return logAndWrapErr("cluster setup failed", err)
 	}
 

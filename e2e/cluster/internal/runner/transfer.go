@@ -17,7 +17,7 @@ import (
 // transfer copies a file or directory from the local machine to a remote destination using rsync.
 // Takes a logger, connection, local path, and remote path.
 // Returns an error if the transfer fails.
-func transfer(l *zap.SugaredLogger, conn connection, localPath, remotePath string) error {
+func transfer(l *zap.SugaredLogger, conn system, localPath, remotePath string) error {
 	if err := ensureDir(l, conn.SSH, filepath.Dir(remotePath)); err != nil {
 		return fmt.Errorf("failed to ensure remote directory: %w", err)
 	}
@@ -46,7 +46,7 @@ func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) erro
 // transferPath handles the actual rsync transfer of files or directories.
 // Implements rsync with progress reporting and retry mechanism.
 // Returns an error if the transfer fails after all retry attempts.
-func transferPath(l *zap.SugaredLogger, conn connection, localPath, remotePath string) error {
+func transferPath(l *zap.SugaredLogger, conn system, localPath, remotePath string) error {
 	const maxRetries = 3
 	const retryDelay = 2 * time.Second
 
@@ -74,7 +74,7 @@ func transferPath(l *zap.SugaredLogger, conn connection, localPath, remotePath s
 }
 
 // attemptTransfer performs a single transfer attempt using rsync.
-func attemptTransfer(l *zap.SugaredLogger, conn connection, localPath, remotePath string) error {
+func attemptTransfer(l *zap.SugaredLogger, conn system, localPath, remotePath string) error {
 	// Get file info for size and type
 	stat, err := os.Stat(localPath)
 	if err != nil {

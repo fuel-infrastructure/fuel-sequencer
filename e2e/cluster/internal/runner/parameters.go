@@ -31,14 +31,23 @@ const (
 )
 
 var (
-	// Remote Parameters
-	destinations = []destination{
+	// defaultOptions are the intended options for each system, which may be overridden as needed
+	defaultOptions = options{
+		sequencer: true,
+		blobpool:  true,
+	}
+
+	// Remote System Parameters
+	systems = []system{
 		{
-			peer_ip: "127.0.0.1",
-			host:    "localhost",
-			user:    "benchmarks",
-			pass:    "password",
-			dir:     "/home/benchmarks",
+			destination: destination{
+				peer_ip: "127.0.0.1",
+				host:    "localhost",
+				user:    "benchmarks",
+				pass:    "password",
+				dir:     "/home/benchmarks",
+			},
+			options: defaultOptions,
 		},
 	}
 )
