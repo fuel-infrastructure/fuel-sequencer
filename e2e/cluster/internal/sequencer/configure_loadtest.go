@@ -1,4 +1,4 @@
-package cluster
+package sequencer
 
 import (
 	cmconfig "github.com/cometbft/cometbft/config"

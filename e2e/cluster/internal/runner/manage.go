@@ -1,12 +1,13 @@
-// Package cluster provides functionality for setting up and managing a distributed
+// Package runner provides functionality for setting up and managing a distributed
 // network of Fuel Sequencer validator nodes. It handles binary building, configuration,
 // deployment and management of the network.
-package cluster
+package runner
 
 import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
 	"go.uber.org/zap"
 )
 
@@ -216,7 +217,7 @@ func manageData(l *zap.SugaredLogger, conn connection, nodeId int) error {
 // Transfers the configuration files and sets appropriate permissions.
 // Returns an error if transfer fails.
 func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
-	instanceDir := filepath.Join(dataDir, chainName, fmt.Sprintf("fuelsequencer%d", nodeId))
+	instanceDir := filepath.Join(dataDir, sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", nodeId))
 	remoteDataDir := chainHomeDir(conn.destination)
 
 	l.Infow("transferring config as chain home directory...", "from", instanceDir, "to", fmt.Sprintf("%s:%s", conn.host, remoteDataDir))

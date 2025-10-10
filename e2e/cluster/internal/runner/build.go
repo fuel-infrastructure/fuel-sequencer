@@ -1,7 +1,7 @@
-// Package cluster provides functionality for setting up and managing a distributed
+// Package runner provides functionality for setting up and managing a distributed
 // network of Fuel Sequencer validator nodes. It handles binary building, configuration,
 // deployment and management of the network.
-package cluster
+package runner
 
 import (
 	"fmt"

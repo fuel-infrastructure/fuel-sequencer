@@ -1,7 +1,7 @@
-// Package cluster provides functionality for setting up and managing a distributed
+// Package runner provides functionality for setting up and managing a distributed
 // network of Fuel Sequencer validator nodes. It handles binary building, configuration,
 // deployment and management of the network.
-package cluster
+package runner
 
 import (
 	"bufio"
@@ -86,9 +86,11 @@ func execute(l *zap.SugaredLogger, e executor, commandName string) error {
 	return nil
 }
 
+type LocalExec = func(l *zap.SugaredLogger, name string, args ...string) error
+
 // locally executes a command on the local machine with the given name and arguments.
 // Returns an error if the command fails.
-func locally(l *zap.SugaredLogger, name string, args ...string) error {
+var locally LocalExec = func(l *zap.SugaredLogger, name string, args ...string) error {
 	return execute(l.Named("CMD"), exec.Command(name, args...), name)
 }
 
