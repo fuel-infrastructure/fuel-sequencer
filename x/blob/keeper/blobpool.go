@@ -39,7 +39,8 @@ type stats struct {
 func newBlobpool(ctx context.Context, logger log.Logger, redisAddress string) (*Blobpool, error) {
 
 	l := logger.With("module", "blobpool")
-	store, err := redis.Store(ctx, redisAddress, "", 0, true)
+	store, err := redis.Store(ctx, redisAddress, "", 0, false)
+	// TODO: Use Cosmos SDK telemetry instead of bundled blob-storage metrics
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to blobpool redis store: %w", err)
 	}
