@@ -151,7 +151,7 @@ func manageData(l *zap.SugaredLogger, conn System, nodeId int) error {
 	onlyDelete := !conn.Options.Sequencer
 
 	// if data on remote exists, remove it
-	homeDir := chainHomeDir(conn.Destination)
+	homeDir := remoteChainHomeDir(conn.Destination)
 	checkCmd := "test -d " + homeDir
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infof("no chain home directory found on %s", conn.Destination.Host)
@@ -184,7 +184,7 @@ func manageData(l *zap.SugaredLogger, conn System, nodeId int) error {
 // Returns an error if transfer fails.
 func transferConfig(l *zap.SugaredLogger, conn System, nodeId int) error {
 	instanceDir := filepath.Join(DataDir(), sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", nodeId))
-	remoteDataDir := chainHomeDir(conn.Destination)
+	remoteDataDir := remoteChainHomeDir(conn.Destination)
 
 	l.Infow("transferring config as chain home directory...", "from", instanceDir, "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remoteDataDir))
 	if err := transfer(l, conn, instanceDir, remoteDataDir); err != nil {

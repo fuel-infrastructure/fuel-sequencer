@@ -28,9 +28,9 @@ type Binary struct {
 
 // Blob holds blob-related configuration
 type Blob struct {
-	RedisPath       string `mapstructure:"redis_path"`
-	PoolComposePath string `mapstructure:"pool_compose_path"`
-	HubComposePath  string `mapstructure:"hub_compose_path"`
+	RedisPath           string `mapstructure:"redis_path"`
+	BlobpoolComposePath string `mapstructure:"blobpool_compose_path"`
+	BlobhubDirPath      string `mapstructure:"blobhub_dir_path"`
 }
 
 // System holds system configuration and runtime state
@@ -52,8 +52,8 @@ type Destination struct {
 // Options holds system options
 type Options struct {
 	Sequencer bool `mapstructure:"sequencer"`
-	BlobPool  bool `mapstructure:"blobpool"`
-	BlobHub   bool `mapstructure:"blobhub"`
+	Blobpool  bool `mapstructure:"blobpool"`
+	Blobhub   bool `mapstructure:"blobhub"`
 }
 
 var (
@@ -138,16 +138,16 @@ func BlobRedisPath() string {
 
 // BlobpoolComposePath returns the path to the docker compose file for blobpool
 func BlobpoolComposePath() string {
-	return filepath.Join(config.Binary.MakefileDir, config.Blob.PoolComposePath)
+	return filepath.Join(config.Binary.MakefileDir, config.Blob.BlobpoolComposePath)
 }
 
-// BlobhubComposePath returns the path to the docker compose file for blobhub
-func BlobhubComposePath() string {
-	return filepath.Join(config.Binary.MakefileDir, config.Blob.HubComposePath)
+// BlobhubDirPath returns the path to the docker compose file for blobhub
+func BlobhubDirPath() string {
+	return filepath.Join(config.Blob.BlobhubDirPath)
 }
 
-// chainHomeDir returns the path to the chain's home directory on the remote host
-func chainHomeDir(d Destination) string {
+// remoteChainHomeDir returns the path to the chain's home directory on the remote host
+func remoteChainHomeDir(d Destination) string {
 	return filepath.Join(d.Dir, ".fuelsequencer")
 }
 
@@ -171,7 +171,12 @@ func remoteBlobpoolComposePath(d Destination) string {
 	return filepath.Join(remoteBlobDir(d), "docker-compose.blobpool.yml")
 }
 
-// remoteBlobhubComposePath returns the path where the docker compose file should be stored on the remote host
-func remoteBlobhubComposePath(d Destination) string {
-	return filepath.Join(remoteBlobDir(d), "docker-compose.blobhub.yml")
+// remoteBlobhubDir returns the path where the blobhub project is stored
+func remoteBlobhubDir(d Destination) string {
+	return filepath.Join(remoteBlobDir(d), "blob-storage")
+}
+
+// remoteBlobhubComposeDir returns the path where the blobhub compose is stored
+func remoteBlobhubComposeDir(d Destination) string {
+	return filepath.Join(remoteBlobhubDir(d), "docker-compose.yml")
 }

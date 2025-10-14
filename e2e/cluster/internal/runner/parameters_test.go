@@ -88,10 +88,10 @@ blob_hub = false
 		if !system.Options.Sequencer {
 			t.Error("Expected Sequencer to be true")
 		}
-		if !system.Options.BlobPool {
+		if !system.Options.Blobpool {
 			t.Error("Expected BlobPool to be true")
 		}
-		if system.Options.BlobHub {
+		if system.Options.Blobhub {
 			t.Error("Expected BlobHub to be false")
 		}
 	}
@@ -171,8 +171,8 @@ blob_hub = false
 		t.Errorf("Expected BlobpoolComposePath to be '%s', got '%s'", expectedBlobpoolComposePath, BlobpoolComposePath())
 	}
 
-	expectedBlobhubComposePath := filepath.Join("/test/path", "test/hub-compose.yml")
-	if BlobhubComposePath() != expectedBlobhubComposePath {
-		t.Errorf("Expected BlobhubComposePath to be '%s', got '%s'", expectedBlobhubComposePath, BlobhubComposePath())
+	expectedBlobhubDirPath := filepath.Join("/test/path", "test/hub-compose.yml")
+	if BlobhubDirPath() != expectedBlobhubDirPath {
+		t.Errorf("Expected BlobhubDirPath to be '%s', got '%s'", expectedBlobhubDirPath, BlobhubDirPath())
 	}
 }

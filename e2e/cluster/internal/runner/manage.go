@@ -35,14 +35,9 @@ func manageSystems(systems []System, localBinaryPath string) error {
 		return fmt.Errorf("failed to get local blob compose hash: %w", err)
 	}
 
-	localBlobhubComposeHash, err := calculateFileHash(BlobhubComposePath(), nil)
-	if err != nil {
-		return fmt.Errorf("failed to get local blobhub compose hash: %w", err)
-	}
-
 	for i, sys := range systems {
 		if err := manage(l, sys, i, localBinaryPath, localServiceHash, localBinaryHash,
-			localBlobRedisHash, localBlobpoolComposeHash, localBlobhubComposeHash); err != nil {
+			localBlobRedisHash, localBlobpoolComposeHash); err != nil {
 			return fmt.Errorf("failed to manage destination %s: %w", sys.Destination.Host, err)
 		}
 	}
@@ -54,7 +49,7 @@ func manageSystems(systems []System, localBinaryPath string) error {
 // Returns an error if any management step fails.
 func manage(l *zap.SugaredLogger, sys System, nodeId int,
 	localBinaryPath string, localServiceHash, localBinaryHash,
-	localBlobRedisHash, localBlobpoolComposeHash, localBlobhubComposeHash []byte,
+	localBlobRedisHash, localBlobpoolComposeHash []byte,
 ) error {
 	// Sequencer Related
 	if err := manageService(l, sys, localServiceHash); err != nil {
@@ -78,8 +73,8 @@ func manage(l *zap.SugaredLogger, sys System, nodeId int,
 		return fmt.Errorf("failed to manage blobpool storage compose file: %w", err)
 	}
 
-	if err := manageBlobhubCompose(l, sys, localBlobhubComposeHash); err != nil {
-		return fmt.Errorf("failed to manage blobhub storage compose file: %w", err)
+	if err := manageBlobhub(l, sys); err != nil {
+		return fmt.Errorf("failed to manage blobhub storage: %w", err)
 	}
 
 	return nil

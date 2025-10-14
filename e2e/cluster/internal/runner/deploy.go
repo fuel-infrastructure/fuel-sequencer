@@ -15,7 +15,7 @@ func deployNetwork(connections []System) error {
 	l := logging.Named("Deploy")
 
 	for _, operation := range []func(l *zap.SugaredLogger, id int, conn System) error{
-		blobpoolStore, node,
+		blobpoolStore, blobhub, node,
 	} {
 		for i, conn := range connections {
 			if err := operation(l, i, conn); err != nil {
@@ -28,11 +28,43 @@ func deployNetwork(connections []System) error {
 }
 
 func blobpoolStore(l *zap.SugaredLogger, i int, conn System) error {
-	if !conn.Options.BlobPool {
+	if !conn.Options.Blobpool {
 		return nil
 	}
 	if err := deployBlobpoolStore(l, conn); err != nil {
 		return fmt.Errorf("failed to deploy node %d: %w", i, err)
+	}
+	return nil
+}
+
+func blobhub(l *zap.SugaredLogger, i int, conn System) error {
+	if !conn.Options.Blobhub {
+		return nil
+	}
+	if err := deployBlobhub(l, conn); err != nil {
+		return fmt.Errorf("failed to deploy blobhub %d: %w", i, err)
+	}
+	return nil
+}
+
+// deployBlobhub starts the blobhub storage using docker compose on the remote host.
+// It executes the docker compose build and up commands (in detached mode) for the blobhub directory on the target node.
+// Returns an error if the blobhub store fails to start.
+func deployBlobhub(l *zap.SugaredLogger, conn System) error {
+	composeDir := remoteBlobhubComposeDir(conn.Destination)
+
+	// Build the containers first
+	buildCmd := fmt.Sprintf("docker compose -f=%s build", composeDir)
+	l.Infow("building blobhub containers...", "host", conn.Destination.Host, "cmd", buildCmd)
+	if err := remotely(l, conn.SSH, withSudo(buildCmd, conn.Destination.Pass)); err != nil {
+		return fmt.Errorf("failed to build blobhub containers: %w", err)
+	}
+
+	// Start the containers
+	upCmd := fmt.Sprintf("docker compose -f=%s up -d", composeDir)
+	l.Infow("starting blobhub containers...", "host", conn.Destination.Host, "cmd", upCmd)
+	if err := remotely(l, conn.SSH, withSudo(upCmd, conn.Destination.Pass)); err != nil {
+		return fmt.Errorf("failed to start blobhub: %w", err)
 	}
 	return nil
 }

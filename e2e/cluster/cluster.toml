@@ -15,9 +15,9 @@ systemd_path = "/etc/systemd/system/fuelsequencerd.service"
 # Path to the Redis configuration file (relative to makefile_dir)
 redis_path = "e2e/cluster/blob/redis.conf"
 # Path to the docker compose file for blobpool (relative to makefile_dir)
-pool_compose_path = "e2e/cluster/blob/docker-compose.blobpool.yml"
-# Path to the docker compose file for blobhub (relative to makefile_dir)
-hub_compose_path = "e2e/cluster/blob/docker-compose.blobhub.yml"
+blobpool_compose_path = "e2e/cluster/blob/docker-compose.blobpool.yml"
+# Absolute path to the blobhub project (fuel-infrastructure/blob-storage)
+blobhub_dir_path = "/home/user/blob-storage"
 
 # Remote System Parameters
 [[systems]]
