@@ -16,6 +16,9 @@ func TestBlobValidationIntegration(t *testing.T) {
 	// Create test keeper directly
 	k, _ := keepertest.BlobKeeper(t)
 	ctx := context.TODO()
+	if err := k.Initialize(ctx); err != nil {
+		require.NoError(t, err, "failed to initialize blob keeper")
+	}
 
 	// Create test blob data
 	data := []byte("test blob data")
@@ -49,6 +52,9 @@ func TestBlobValidationIntegration(t *testing.T) {
 func TestBlobHashVerification(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
 	ctx := context.TODO()
+	if err := k.Initialize(ctx); err != nil {
+		require.NoError(t, err, "failed to initialize blob keeper")
+	}
 
 	// Create test blob data
 	data := []byte("test blob data")
@@ -70,6 +76,9 @@ func TestBlobHashVerification(t *testing.T) {
 func TestBlobPoolOperations(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
 	ctx := context.TODO()
+	if err := k.Initialize(ctx); err != nil {
+		require.NoError(t, err, "failed to initialize blob keeper")
+	}
 
 	// Create test blob data
 	data := []byte("test blob data")
@@ -115,6 +124,10 @@ func TestBlobMessageTypes(t *testing.T) {
 
 func TestBlobKeeperAuthority(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
+	ctx := context.TODO()
+	if err := k.Initialize(ctx); err != nil {
+		require.NoError(t, err, "failed to initialize blob keeper")
+	}
 
 	// Test that the blob keeper has the correct authority
 	authority := k.GetAuthority()
@@ -125,6 +138,9 @@ func TestBlobKeeperAuthority(t *testing.T) {
 func TestBlobValidationLogic(t *testing.T) {
 	k, _ := keepertest.BlobKeeper(t)
 	ctx := context.TODO()
+	if err := k.Initialize(ctx); err != nil {
+		require.NoError(t, err, "failed to initialize blob keeper")
+	}
 
 	// Test the validation logic that would be used in ABCI handlers
 	data := []byte("test blob data")
