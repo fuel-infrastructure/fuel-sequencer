@@ -3,7 +3,7 @@
 
 [binary]
 # Absolute path to the directory where makefile is located
-makefile_dir = "/home/user/fuel-sequencer"
+makefile_dir = "/Users/thaabl/Documents/Research/Fuel/fuel-sequencer"
 # Architecture specified from build binary suffix
 want_arch = "linux-amd64"
 # Name of the binary on remote
@@ -17,19 +17,61 @@ redis_path = "e2e/cluster/blob/redis.conf"
 # Path to the docker compose file for blobpool (relative to makefile_dir)
 blobpool_compose_path = "e2e/cluster/blob/docker-compose.blobpool.yml"
 # Absolute path to the blobhub project (fuel-infrastructure/blob-storage)
-blobhub_dir_path = "/home/user/blob-storage"
+blobhub_dir_path = "/Users/thaabl/Documents/Research/Fuel/blob-storage"
 
 # Remote System Parameters
+# "fuel-benchnet-us"
 [[systems]]
-# Example localhost configuration (comment out)
 [systems.destination]
-peer_ip = "127.0.0.1"
-host = "localhost"
-user = "benchmarks"
-pass = "password"
+peer_ip = "194.140.197.62"
+host = "194.140.197.62"
+user = "tharen"
+pass = "Cheese5-Barbecue-Reappear-Freebee-Preplan"
 dir = "/home/benchmarks"
 
 [systems.options]
-sequencer = true
-blobpool = true
+sequencer = false
+blobpool = false
 blobhub = false
+
+# "fuel-benchnet-eu"
+[[systems]]
+[systems.destination]
+peer_ip = "5.189.150.214"
+host = "5.189.150.214"
+user = "tharen"
+pass = "Immovably-Freemason-Corset1-Ritzy-Scrambled"
+dir = "/home/benchmarks"
+
+[systems.options]
+sequencer = false
+blobpool = false
+blobhub = false
+
+# "fuel-benchnet-au"
+[[systems]]
+[systems.destination]
+peer_ip = "154.26.154.38"
+host = "154.26.154.38"
+user = "tharen"
+pass = "Depraved-Gainfully-Catlike2-Regretful-Amplifier"
+dir = "/home/benchmarks"
+
+[systems.options]
+sequencer = false
+blobpool = false
+blobhub = false
+
+# Example localhost configuration (comment out)
+# [[systems]]
+# [systems.destination]
+# peer_ip = "127.0.0.1"
+# host = "localhost"
+# user = "benchmarks"
+# pass = "password"
+# dir = "/home/benchmarks"
+
+# [systems.options]
+# sequencer = true
+# blobpool = true
+# blobhub = false

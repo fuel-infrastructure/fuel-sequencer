@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/fullcluster"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/builtin"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 		log.Fatalf("no config path defined")
 	}
 
-	if err := fullcluster.SetupWithConfig(*configPath); err != nil {
+	if err := builtin.SetupWithConfig(*configPath); err != nil {
 		log.Fatalf("Setup failed: %v", err)
 	}
 }
