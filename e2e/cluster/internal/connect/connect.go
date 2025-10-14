@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )

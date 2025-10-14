@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 )
 
 func TestSetupLoadsConfig(t *testing.T) {

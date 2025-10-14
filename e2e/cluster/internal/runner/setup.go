@@ -8,7 +8,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/connect"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
 
