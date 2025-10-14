@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"cosmossdk.io/log"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
@@ -30,7 +32,7 @@ func TestBlobpool_HasBlob(t *testing.T) {
 	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
 	require.NoError(t, err)
 
-	data := []byte("test data")
+	data := []byte(fmt.Sprintf("test blobpool has data-%s", time.Now().Format(time.RFC3339)))
 	key := store.NewKey(data)
 
 	// Test non-existent blob

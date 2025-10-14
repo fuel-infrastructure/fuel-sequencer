@@ -2,7 +2,9 @@ package abci_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -81,7 +83,7 @@ func TestBlobPoolOperations(t *testing.T) {
 	}
 
 	// Create test blob data
-	data := []byte("test blob data")
+	data := []byte(fmt.Sprintf("test blob data for pool ops-%s", time.Now().Format(time.RFC3339)))
 	key := store.NewKey(data)
 
 	// Initially, blob should not be available
@@ -143,7 +145,7 @@ func TestBlobValidationLogic(t *testing.T) {
 	}
 
 	// Test the validation logic that would be used in ABCI handlers
-	data := []byte("test blob data")
+	data := []byte(fmt.Sprintf("test blob data for validation-%s", time.Now().Format(time.RFC3339)))
 	key := store.NewKey(data)
 
 	// Initially, blob should not be available for validation
