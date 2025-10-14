@@ -3,6 +3,7 @@ package runner
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -15,7 +16,7 @@ func manageBlobStorageRedisConf(l *zap.SugaredLogger, conn setup.System, localHa
 	checkCmd := "test -f " + remotePath
 	onlyDelete := !conn.Options.Blobpool && !conn.Options.Blobhub // only delete if neither blobpool nor blobhub are enabled
 
-	if err := remotely(l, conn.SSH, checkCmd); err != nil {
+	if err := execute.Remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infof("no blob-storage redis conf file found on %s - will transfer...", conn.Destination.Host)
 		if onlyDelete {
 			l.Infow("only delete, no need to transfer blob-storage redis conf file", "host", conn.Destination.Host)
@@ -28,7 +29,7 @@ func manageBlobStorageRedisConf(l *zap.SugaredLogger, conn setup.System, localHa
 		if onlyDelete {
 			removeCmd := "rm -f " + remotePath
 			l.Infow("blob-storage redis conf file found on %s, but only delete, so removing blob-storage redis conf file...", "host", conn.Destination.Host, "cmd", removeCmd)
-			if err := remotely(l, conn.SSH, withSudo(removeCmd, conn.Destination.Pass)); err != nil {
+			if err := execute.Remotely(l, conn.SSH, execute.WithSudo(removeCmd, conn.Destination.Pass)); err != nil {
 				return fmt.Errorf("failed to remove blob-storage redis conf file on %s: %w", conn.Destination.Host, err)
 			}
 			return nil
@@ -38,7 +39,7 @@ func manageBlobStorageRedisConf(l *zap.SugaredLogger, conn setup.System, localHa
 		l.Debugw("comparing blob-storage redis conf file hashes...", "host", conn.Destination.Host)
 
 		// Get remote blob redis file hash
-		remoteHash, err := calculateFileHash(remotePath, conn.SSH)
+		remoteHash, err := execute.CalculateFileHash(remotePath, conn.SSH)
 		if err != nil {
 			return fmt.Errorf("failed to get remote blob-storage redis conf file hash: %w", err)
 		}
@@ -64,7 +65,7 @@ func transferBlobStorageRedisConf(l *zap.SugaredLogger, conn setup.System) error
 
 	// Ensure remote blob directory exists (should already exist from compose file transfer)
 	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
-	if err := remotely(l, conn.SSH, mkdirCmd); err != nil {
+	if err := execute.Remotely(l, conn.SSH, mkdirCmd); err != nil {
 		return fmt.Errorf("failed to create remote blob-storage directory: %w", err)
 	}
 
@@ -75,7 +76,7 @@ func transferBlobStorageRedisConf(l *zap.SugaredLogger, conn setup.System) error
 
 	chownCmd := fmt.Sprintf("chown benchmarks:benchmarks_group %s", remotePath)
 	l.Infow("chowning blob-storage redis conf file to benchmarks user and group...", "host", conn.Destination.Host, "cmd", chownCmd)
-	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chownCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to chown blob-storage redis conf file on %s: %w", conn.Destination.Host, err)
 	}
 	return nil
@@ -89,7 +90,7 @@ func manageBlobpoolCompose(l *zap.SugaredLogger, conn setup.System, localHash []
 	checkCmd := "test -f " + remotePath
 	onlyShutdown := !conn.Options.Blobpool
 
-	if err := remotely(l, conn.SSH, checkCmd); err != nil {
+	if err := execute.Remotely(l, conn.SSH, checkCmd); err != nil {
 		if onlyShutdown {
 			l.Infow("only shutdown, no need to transfer blobpool storage compose file", "host", conn.Destination.Host)
 			return nil
@@ -103,7 +104,7 @@ func manageBlobpoolCompose(l *zap.SugaredLogger, conn setup.System, localHash []
 		composeDir := setup.RemoteBlobpoolComposePath(conn.Destination)
 		downCmd := fmt.Sprintf("docker compose -f=%s down -v", composeDir)
 		l.Infow("shutting down and resetting blobpool storage...", "host", conn.Destination.Host, "cmd", downCmd)
-		if err := remotely(l, conn.SSH, withSudo(downCmd, conn.Destination.Pass)); err != nil {
+		if err := execute.Remotely(l, conn.SSH, execute.WithSudo(downCmd, conn.Destination.Pass)); err != nil {
 			return fmt.Errorf("failed to shutdown and reset blobpool storage on %s: %w", conn.Destination.Host, err)
 		}
 
@@ -116,7 +117,7 @@ func manageBlobpoolCompose(l *zap.SugaredLogger, conn setup.System, localHash []
 		l.Debugw("comparing blobpool storage compose file hashes...", "host", conn.Destination.Host)
 
 		// Get remote blob compose file hash
-		remoteHash, err := calculateFileHash(remotePath, conn.SSH)
+		remoteHash, err := execute.CalculateFileHash(remotePath, conn.SSH)
 		if err != nil {
 			return fmt.Errorf("failed to get remote blobpool storage compose file hash: %w", err)
 		}
@@ -142,7 +143,7 @@ func transferBlobpoolCompose(l *zap.SugaredLogger, conn setup.System) error {
 
 	// Ensure remote blob directory exists
 	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
-	if err := remotely(l, conn.SSH, mkdirCmd); err != nil {
+	if err := execute.Remotely(l, conn.SSH, mkdirCmd); err != nil {
 		return fmt.Errorf("failed to create remote blob directory: %w", err)
 	}
 
@@ -153,7 +154,7 @@ func transferBlobpoolCompose(l *zap.SugaredLogger, conn setup.System) error {
 
 	chownCmd := fmt.Sprintf("chown benchmarks:benchmarks_group %s", remotePath)
 	l.Infow("chowning blobpool storage compose file to benchmarks user and group...", "host", conn.Destination.Host, "cmd", chownCmd)
-	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chownCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to chown blobpool storage compose file on %s: %w", conn.Destination.Host, err)
 	}
 	return nil
@@ -167,7 +168,7 @@ func manageBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 	checkCmd := "test -d " + remotePath
 	onlyShutdown := !conn.Options.Blobhub
 
-	if err := remotely(l, conn.SSH, checkCmd); err != nil {
+	if err := execute.Remotely(l, conn.SSH, checkCmd); err != nil {
 		if onlyShutdown {
 			l.Infow("only shutdown, no need to transfer blobhub storage", "host", conn.Destination.Host)
 			return nil
@@ -181,7 +182,7 @@ func manageBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 		composeDir := setup.RemoteBlobhubComposeDir(conn.Destination)
 		downCmd := fmt.Sprintf("docker compose -f=%s down -v", composeDir)
 		l.Infow("shutting down and resetting blobhub storage...", "host", conn.Destination.Host, "cmd", downCmd)
-		if err := remotely(l, conn.SSH, withSudo(downCmd, conn.Destination.Pass)); err != nil {
+		if err := execute.Remotely(l, conn.SSH, execute.WithSudo(downCmd, conn.Destination.Pass)); err != nil {
 			return fmt.Errorf("failed to shutdown and reset blobhub storage on %s: %w", conn.Destination.Host, err)
 		}
 
@@ -207,7 +208,7 @@ func transferBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 
 	// Ensure remote blob directory exists
 	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
-	if err := remotely(l, conn.SSH, mkdirCmd); err != nil {
+	if err := execute.Remotely(l, conn.SSH, mkdirCmd); err != nil {
 		return fmt.Errorf("failed to create remote blob directory: %w", err)
 	}
 
@@ -218,7 +219,7 @@ func transferBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 
 	chownCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remotePath)
 	l.Infow("chowning blobhub storage to benchmarks user and group...", "host", conn.Destination.Host, "cmd", chownCmd)
-	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chownCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to chown blobhub storage on %s: %w", conn.Destination.Host, err)
 	}
 	return nil

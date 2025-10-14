@@ -6,6 +6,7 @@ package runner
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -57,14 +58,14 @@ func deployBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 	// Build the containers first
 	buildCmd := fmt.Sprintf("docker compose -f=%s build", composeDir)
 	l.Infow("building blobhub containers...", "host", conn.Destination.Host, "cmd", buildCmd)
-	if err := remotely(l, conn.SSH, withSudo(buildCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(buildCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to build blobhub containers: %w", err)
 	}
 
 	// Start the containers
 	upCmd := fmt.Sprintf("docker compose -f=%s up -d", composeDir)
 	l.Infow("starting blobhub containers...", "host", conn.Destination.Host, "cmd", upCmd)
-	if err := remotely(l, conn.SSH, withSudo(upCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(upCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to start blobhub: %w", err)
 	}
 	return nil
@@ -75,7 +76,7 @@ func deployBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 // Returns an error if the blobpool store fails to start.
 func deployBlobpoolStore(l *zap.SugaredLogger, conn setup.System) error {
 	cmd := "docker compose -f=" + setup.RemoteBlobpoolComposePath(conn.Destination) + " up -d"
-	if err := remotely(l, conn.SSH, withSudo(cmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(cmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to start blobpool store: %w", err)
 	}
 	return nil
@@ -96,13 +97,13 @@ func node(l *zap.SugaredLogger, i int, conn setup.System) error {
 // Returns an error if service deployment fails.
 func deployNode(l *zap.SugaredLogger, conn setup.System) error {
 	cmd := "systemctl enable fuelsequencerd"
-	if err := remotely(l, conn.SSH, withSudo(cmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(cmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)
 	}
 
 	// Start the node using the systemd service
 	cmd = "systemctl start fuelsequencerd"
-	if err := remotely(l, conn.SSH, withSudo(cmd, conn.Destination.Pass)); err != nil {
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(cmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to start node: %w", err)
 	}
 

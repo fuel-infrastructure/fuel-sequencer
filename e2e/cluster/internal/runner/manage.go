@@ -6,6 +6,7 @@ package runner
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -16,22 +17,22 @@ import (
 func manageSystems(systems []setup.System, localBinaryPath string) error {
 	l := logging.Named("Manage")
 
-	localServiceHash, err := calculateFileHash(setup.ServicePath(), nil)
+	localServiceHash, err := execute.CalculateFileHash(setup.ServicePath(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local service hash: %w", err)
 	}
 
-	localBinaryHash, err := calculateFileHash(localBinaryPath, nil)
+	localBinaryHash, err := execute.CalculateFileHash(localBinaryPath, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local binary hash: %w", err)
 	}
 
-	localBlobRedisHash, err := calculateFileHash(setup.BlobRedisPath(), nil)
+	localBlobRedisHash, err := execute.CalculateFileHash(setup.BlobRedisPath(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local blob redis hash: %w", err)
 	}
 
-	localBlobpoolComposeHash, err := calculateFileHash(setup.BlobpoolComposePath(), nil)
+	localBlobpoolComposeHash, err := execute.CalculateFileHash(setup.BlobpoolComposePath(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local blob compose hash: %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/connect"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -57,7 +58,7 @@ func Setup(configPath string) error {
 	for i, val := range systems {
 		peerIPs[i] = val.Destination.PeerIP
 	}
-	if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), locally, peerIPs); err != nil {
+	if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), execute.Locally, peerIPs); err != nil {
 		return logAndWrapErr("network configuration failed", err)
 	}
 

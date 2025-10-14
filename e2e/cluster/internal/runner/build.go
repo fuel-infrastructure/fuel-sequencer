@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -23,7 +24,7 @@ func buildBinary() (string, error) {
 	wantArch := binaryConfig.WantArch
 
 	// Remove any existing build directory
-	err := locally(l, "rm", "-rf", setup.BuildPath())
+	err := execute.Locally(l, "rm", "-rf", setup.BuildPath())
 	if err != nil {
 		l.Errorw("failed to remove build directory", "error", err)
 		return "", fmt.Errorf("failed to remove build directory: %w", err)
@@ -31,7 +32,7 @@ func buildBinary() (string, error) {
 
 	// Run make target
 	l.Info("running make build...")
-	if err := locally(l, "make", "--directory", makefileDir, fmt.Sprintf("build-fuelsequencerd-%s", wantArch)); err != nil {
+	if err := execute.Locally(l, "make", "--directory", makefileDir, fmt.Sprintf("build-fuelsequencerd-%s", wantArch)); err != nil {
 		l.Errorw("make build failed", "error", err)
 		return "", fmt.Errorf("make build failed: %w", err)
 	}

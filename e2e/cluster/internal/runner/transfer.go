@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
@@ -37,7 +38,7 @@ func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) erro
 	// First, ensure the remote directory exists
 	remoteDir := filepath.Dir(remotePath)
 	mkdirCmd := fmt.Sprintf("mkdir -vp %s", remoteDir)
-	if err := remotely(l, client, mkdirCmd); err != nil {
+	if err := execute.Remotely(l, client, mkdirCmd); err != nil {
 		return fmt.Errorf("failed to create remote directory: %w", err)
 	}
 
@@ -108,7 +109,7 @@ func attemptTransfer(l *zap.SugaredLogger, conn setup.System, localPath, remoteP
 	args := []string{"-p", conn.Destination.Pass, "rsync"}
 	args = append(args, strings.Fields(flags)...)
 	args = append(args, sourcePath, remoteDest)
-	if err := locallyWithCustomName(l, "sshpass", "rsync", args...); err != nil {
+	if err := execute.LocallyWithCustomName(l, "sshpass", "rsync", args...); err != nil {
 		return fmt.Errorf("rsync with sshpass failed: %w", err)
 	}
 
