@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 	"go.uber.org/zap"
 )
 
@@ -17,12 +18,12 @@ import (
 func buildBinary() (string, error) {
 	l := logging.Named("Build")
 
-	binaryConfig := BinaryConfig()
+	binaryConfig := setup.BinaryConfig()
 	makefileDir := binaryConfig.MakefileDir
 	wantArch := binaryConfig.WantArch
 
 	// Remove any existing build directory
-	err := locally(l, "rm", "-rf", BuildPath())
+	err := locally(l, "rm", "-rf", setup.BuildPath())
 	if err != nil {
 		l.Errorw("failed to remove build directory", "error", err)
 		return "", fmt.Errorf("failed to remove build directory: %w", err)
@@ -49,8 +50,8 @@ func buildBinary() (string, error) {
 // matching the desired architecture. Returns the path to the binary if found
 // or an error if not found or multiple matches exist.
 func findBuild(l *zap.SugaredLogger) (string, error) {
-	binaryConfig := BinaryConfig()
-	buildPath := BuildPath()
+	binaryConfig := setup.BinaryConfig()
+	buildPath := setup.BuildPath()
 
 	// Verify binary exists
 	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+binaryConfig.WantArch))

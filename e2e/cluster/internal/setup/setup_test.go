@@ -1,9 +1,11 @@
-package runner
+package setup_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -43,19 +45,19 @@ blob_hub = false
 	}
 
 	// Load the configuration
-	err = LoadConfig(configPath)
+	err = setup.LoadConfig(configPath)
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
 
 	// Verify the configuration was loaded correctly
-	config := LoadedConfig()
+	config := setup.LoadedConfig()
 	if config == nil {
 		t.Fatal("Config is nil")
 	}
 
 	// Test binary configuration
-	binaryConfig := BinaryConfig()
+	binaryConfig := setup.BinaryConfig()
 	if binaryConfig.MakefileDir != "/test/path" {
 		t.Errorf("Expected MakefileDir to be '/test/path', got '%s'", binaryConfig.MakefileDir)
 	}
@@ -67,13 +69,13 @@ blob_hub = false
 	}
 
 	// Test blob configuration
-	blobConfig := BlobConfig()
+	blobConfig := setup.BlobConfig()
 	if blobConfig.RedisPath != "test/redis.conf" {
 		t.Errorf("Expected RedisPath to be 'test/redis.conf', got '%s'", blobConfig.RedisPath)
 	}
 
 	// Test systems configuration
-	systems := SystemConfigs()
+	systems := setup.SystemConfigs()
 	if len(systems) != 1 {
 		t.Errorf("Expected 1 system, got %d", len(systems))
 	}
@@ -97,7 +99,7 @@ blob_hub = false
 	}
 
 	// Test systems with connections
-	systemsWithConnections := Systems()
+	systemsWithConnections := setup.Systems()
 	if len(systemsWithConnections) != 1 {
 		t.Errorf("Expected 1 system with connections, got %d", len(systemsWithConnections))
 	}
@@ -140,39 +142,39 @@ blob_hub = false
 	}
 
 	// Load the configuration
-	err = LoadConfig(configPath)
+	err = setup.LoadConfig(configPath)
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
 
 	// Test helper functions
 	expectedBuildPath := filepath.Join("/test/path", "build")
-	if BuildPath() != expectedBuildPath {
-		t.Errorf("Expected BuildPath to be '%s', got '%s'", expectedBuildPath, BuildPath())
+	if setup.BuildPath() != expectedBuildPath {
+		t.Errorf("Expected BuildPath to be '%s', got '%s'", expectedBuildPath, setup.BuildPath())
 	}
 
 	expectedDataDir := filepath.Join("/test/path", "e2e/cluster/data")
-	if DataDir() != expectedDataDir {
-		t.Errorf("Expected DataDir to be '%s', got '%s'", expectedDataDir, DataDir())
+	if setup.DataDir() != expectedDataDir {
+		t.Errorf("Expected DataDir to be '%s', got '%s'", expectedDataDir, setup.DataDir())
 	}
 
 	expectedServicePath := filepath.Join("/test/path", "e2e/cluster/systemd/fuelsequencerd.service")
-	if ServicePath() != expectedServicePath {
-		t.Errorf("Expected ServicePath to be '%s', got '%s'", expectedServicePath, ServicePath())
+	if setup.ServicePath() != expectedServicePath {
+		t.Errorf("Expected ServicePath to be '%s', got '%s'", expectedServicePath, setup.ServicePath())
 	}
 
 	expectedBlobRedisPath := filepath.Join("/test/path", "test/redis.conf")
-	if BlobRedisPath() != expectedBlobRedisPath {
-		t.Errorf("Expected BlobRedisPath to be '%s', got '%s'", expectedBlobRedisPath, BlobRedisPath())
+	if setup.BlobRedisPath() != expectedBlobRedisPath {
+		t.Errorf("Expected BlobRedisPath to be '%s', got '%s'", expectedBlobRedisPath, setup.BlobRedisPath())
 	}
 
 	expectedBlobpoolComposePath := filepath.Join("/test/path", "test/pool-compose.yml")
-	if BlobpoolComposePath() != expectedBlobpoolComposePath {
-		t.Errorf("Expected BlobpoolComposePath to be '%s', got '%s'", expectedBlobpoolComposePath, BlobpoolComposePath())
+	if setup.BlobpoolComposePath() != expectedBlobpoolComposePath {
+		t.Errorf("Expected BlobpoolComposePath to be '%s', got '%s'", expectedBlobpoolComposePath, setup.BlobpoolComposePath())
 	}
 
 	expectedBlobhubDirPath := filepath.Join("/test/path", "test/hub-compose.yml")
-	if BlobhubDirPath() != expectedBlobhubDirPath {
-		t.Errorf("Expected BlobhubDirPath to be '%s', got '%s'", expectedBlobhubDirPath, BlobhubDirPath())
+	if setup.BlobhubDirPath() != expectedBlobhubDirPath {
+		t.Errorf("Expected BlobhubDirPath to be '%s', got '%s'", expectedBlobhubDirPath, setup.BlobhubDirPath())
 	}
 }

@@ -6,16 +6,17 @@ package runner
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 	"go.uber.org/zap"
 )
 
 // manageSystems handles the management of all systems including
 // service configuration, binary deployment, data management and blob file deployment.
 // Returns an error if management of any system fails.
-func manageSystems(systems []System, localBinaryPath string) error {
+func manageSystems(systems []setup.System, localBinaryPath string) error {
 	l := logging.Named("Manage")
 
-	localServiceHash, err := calculateFileHash(ServicePath(), nil)
+	localServiceHash, err := calculateFileHash(setup.ServicePath(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local service hash: %w", err)
 	}
@@ -25,12 +26,12 @@ func manageSystems(systems []System, localBinaryPath string) error {
 		return fmt.Errorf("failed to get local binary hash: %w", err)
 	}
 
-	localBlobRedisHash, err := calculateFileHash(BlobRedisPath(), nil)
+	localBlobRedisHash, err := calculateFileHash(setup.BlobRedisPath(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local blob redis hash: %w", err)
 	}
 
-	localBlobpoolComposeHash, err := calculateFileHash(BlobpoolComposePath(), nil)
+	localBlobpoolComposeHash, err := calculateFileHash(setup.BlobpoolComposePath(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get local blob compose hash: %w", err)
 	}
@@ -47,7 +48,7 @@ func manageSystems(systems []System, localBinaryPath string) error {
 // manage handles the management of a single destination including service,
 // binary, data and blob file management.
 // Returns an error if any management step fails.
-func manage(l *zap.SugaredLogger, sys System, nodeId int,
+func manage(l *zap.SugaredLogger, sys setup.System, nodeId int,
 	localBinaryPath string, localServiceHash, localBinaryHash,
 	localBlobRedisHash, localBlobpoolComposeHash []byte,
 ) error {

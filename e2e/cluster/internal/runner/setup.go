@@ -6,7 +6,9 @@ package runner
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/connect"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 	"go.uber.org/zap"
 )
 
@@ -30,13 +32,13 @@ func logAndWrapErr(msg string, err error) error {
 // the network. Returns an error if any step fails.
 func Setup(configPath string) error {
 	// Load configuration first
-	if err := LoadConfig(configPath); err != nil {
+	if err := setup.LoadConfig(configPath); err != nil {
 		return logAndWrapErr("failed to load configuration", err)
 	}
 
 	sequencer.CheckParameters(logging)
 
-	systems := Systems()
+	systems := setup.Systems()
 	ls, lm := len(systems), len(sequencer.Mnemonics)
 	if ls != lm {
 		logging.Fatalw("check config: number of systems (%d) does not match number of mnemonics (%d)", ls, lm)
@@ -55,15 +57,15 @@ func Setup(configPath string) error {
 	for i, val := range systems {
 		peerIPs[i] = val.Destination.PeerIP
 	}
-	if err := sequencer.ConfigureNetwork(logging, DataDir(), locally, peerIPs); err != nil {
+	if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), locally, peerIPs); err != nil {
 		return logAndWrapErr("network configuration failed", err)
 	}
 
 	// Establish connection to all destinations
-	if err := establishConnections(); err != nil {
+	if err := connect.EstablishConnections(logging, systems); err != nil {
 		return logAndWrapErr("connection establishment failed", err)
 	}
-	defer closeConnections()
+	defer connect.CloseConnections(systems)
 
 	// Manage destinations (clean existing instances and transfer necessary files)
 	if err := manageSystems(systems, binaryPath); err != nil {

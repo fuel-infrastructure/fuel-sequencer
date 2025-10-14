@@ -6,15 +6,16 @@ package runner
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 	"go.uber.org/zap"
 )
 
 // deployNetwork deploys the fuelsequencerd service to all nodes in the cluster.
 // Takes a slice of connections and returns an error if any node deployment fails.
-func deployNetwork(connections []System) error {
+func deployNetwork(connections []setup.System) error {
 	l := logging.Named("Deploy")
 
-	for _, operation := range []func(l *zap.SugaredLogger, id int, conn System) error{
+	for _, operation := range []func(l *zap.SugaredLogger, id int, conn setup.System) error{
 		blobpoolStore, blobhub, node,
 	} {
 		for i, conn := range connections {
@@ -27,7 +28,7 @@ func deployNetwork(connections []System) error {
 	return nil
 }
 
-func blobpoolStore(l *zap.SugaredLogger, i int, conn System) error {
+func blobpoolStore(l *zap.SugaredLogger, i int, conn setup.System) error {
 	if !conn.Options.Blobpool {
 		return nil
 	}
@@ -37,7 +38,7 @@ func blobpoolStore(l *zap.SugaredLogger, i int, conn System) error {
 	return nil
 }
 
-func blobhub(l *zap.SugaredLogger, i int, conn System) error {
+func blobhub(l *zap.SugaredLogger, i int, conn setup.System) error {
 	if !conn.Options.Blobhub {
 		return nil
 	}
@@ -50,8 +51,8 @@ func blobhub(l *zap.SugaredLogger, i int, conn System) error {
 // deployBlobhub starts the blobhub storage using docker compose on the remote host.
 // It executes the docker compose build and up commands (in detached mode) for the blobhub directory on the target node.
 // Returns an error if the blobhub store fails to start.
-func deployBlobhub(l *zap.SugaredLogger, conn System) error {
-	composeDir := remoteBlobhubComposeDir(conn.Destination)
+func deployBlobhub(l *zap.SugaredLogger, conn setup.System) error {
+	composeDir := setup.RemoteBlobhubComposeDir(conn.Destination)
 
 	// Build the containers first
 	buildCmd := fmt.Sprintf("docker compose -f=%s build", composeDir)
@@ -72,15 +73,15 @@ func deployBlobhub(l *zap.SugaredLogger, conn System) error {
 // deployBlobpoolStore starts the blobpool storage using docker compose on the remote host.
 // It executes the docker compose up command (in detached mode) for the blobpool compose file on the target node.
 // Returns an error if the blobpool store fails to start.
-func deployBlobpoolStore(l *zap.SugaredLogger, conn System) error {
-	cmd := "docker compose -f=" + remoteBlobpoolComposePath(conn.Destination) + " up -d"
+func deployBlobpoolStore(l *zap.SugaredLogger, conn setup.System) error {
+	cmd := "docker compose -f=" + setup.RemoteBlobpoolComposePath(conn.Destination) + " up -d"
 	if err := remotely(l, conn.SSH, withSudo(cmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to start blobpool store: %w", err)
 	}
 	return nil
 }
 
-func node(l *zap.SugaredLogger, i int, conn System) error {
+func node(l *zap.SugaredLogger, i int, conn setup.System) error {
 	if !conn.Options.Sequencer {
 		return nil
 	}
@@ -93,7 +94,7 @@ func node(l *zap.SugaredLogger, i int, conn System) error {
 // deployNode deploys the fuelsequencerd service to a single node.
 // Enables and starts the systemd service on the remote host.
 // Returns an error if service deployment fails.
-func deployNode(l *zap.SugaredLogger, conn System) error {
+func deployNode(l *zap.SugaredLogger, conn setup.System) error {
 	cmd := "systemctl enable fuelsequencerd"
 	if err := remotely(l, conn.SSH, withSudo(cmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)

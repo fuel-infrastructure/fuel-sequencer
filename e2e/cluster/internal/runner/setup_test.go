@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 )
 
 func TestSetupLoadsConfig(t *testing.T) {
@@ -43,13 +45,13 @@ blob_hub = false
 	}
 
 	// Test that LoadConfig works
-	err = LoadConfig(configPath)
+	err = setup.LoadConfig(configPath)
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
 
 	// Verify that Systems() now returns the loaded systems
-	systems := Systems()
+	systems := setup.Systems()
 	if len(systems) != 1 {
 		t.Errorf("Expected 1 system, got %d", len(systems))
 	}

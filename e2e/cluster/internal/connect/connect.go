@@ -1,7 +1,4 @@
-// Package runner provides functionality for setting up and managing a distributed
-// network of Fuel Sequencer validator nodes. It handles binary building, configuration,
-// deployment and management of the network.
-package runner
+package connect
 
 import (
 	"fmt"
@@ -9,14 +6,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
 
-// establishConnections creates SSH connections to all systems in parallel.
+// EstablishConnections creates SSH connections to all systems in parallel.
 // Returns any error encountered.
-func establishConnections() error {
+func EstablishConnections(logging *zap.SugaredLogger, systems []setup.System) error {
 	var wg sync.WaitGroup
-	systems := Systems()
 	errChan := make(chan error, len(systems))
 
 	for i := range systems {
@@ -24,7 +22,7 @@ func establishConnections() error {
 		go func(i int) {
 			defer wg.Done()
 
-			client, err := connectSSH(systems[i].Destination)
+			client, err := ConnectSSH(logging, systems[i].Destination)
 			if err != nil {
 				errChan <- err
 				return
@@ -43,9 +41,8 @@ func establishConnections() error {
 	return nil
 }
 
-// closeConnections closes all SSH connections in the provided slice.
-func closeConnections() {
-	systems := Systems()
+// CloseConnections closes all SSH connections in the provided slice.
+func CloseConnections(systems []setup.System) {
 	for _, sys := range systems {
 		if sys.SSH != nil {
 			sys.SSH.Close()
@@ -53,9 +50,9 @@ func closeConnections() {
 	}
 }
 
-// connectSSH establishes an SSH connection to a single destination.
+// ConnectSSH establishes an SSH connection to a single destination.
 // Returns the SSH client and any error encountered.
-func connectSSH(dest Destination) (*ssh.Client, error) {
+func ConnectSSH(logging *zap.SugaredLogger, dest setup.Destination) (*ssh.Client, error) {
 	l := logging.Named("Connection")
 
 	l.Debugw("establishing SSH connection", "host", dest.Host, "user", dest.User)

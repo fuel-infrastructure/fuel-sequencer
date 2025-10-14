@@ -5,13 +5,14 @@ import (
 	"path/filepath"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/setup"
 	"go.uber.org/zap"
 )
 
 // manageService handles the systemd service configuration for a destination.
 // Checks if service exists, compares hashes and transfers updated service file if needed.
 // Returns an error if service management fails.
-func manageService(l *zap.SugaredLogger, sys System, localHash []byte) error {
+func manageService(l *zap.SugaredLogger, sys setup.System, localHash []byte) error {
 	onlyShutdown := !sys.Options.Sequencer
 
 	// Check if systemd service exists
@@ -49,7 +50,7 @@ func manageService(l *zap.SugaredLogger, sys System, localHash []byte) error {
 		l.Infow("comparing service file hashes...", "host", sys.Destination.Host)
 
 		// Get remote service file hash
-		remoteHash, err := calculateFileHash(BinaryConfig().SystemdPath, sys.SSH)
+		remoteHash, err := calculateFileHash(setup.BinaryConfig().SystemdPath, sys.SSH)
 		if err != nil {
 			return fmt.Errorf("failed to get remote service file hash: %w", err)
 		}
@@ -69,36 +70,36 @@ func manageService(l *zap.SugaredLogger, sys System, localHash []byte) error {
 
 // transferService transfers the systemd service file to a destination.
 // Returns an error if transfer fails.
-func transferService(l *zap.SugaredLogger, conn System) error {
+func transferService(l *zap.SugaredLogger, conn setup.System) error {
 	// First transfer to temporary location
 	tmpServicePath := filepath.Join(conn.Destination.Dir, "tmp-fuelsequencerd.service")
-	l.Debugw("transferring service to tmp file...", "from", ServicePath(), "to", fmt.Sprintf("%s:%s", conn.Destination.Host, tmpServicePath))
+	l.Debugw("transferring service to tmp file...", "from", setup.ServicePath(), "to", fmt.Sprintf("%s:%s", conn.Destination.Host, tmpServicePath))
 
-	if err := transfer(l, conn, ServicePath(), tmpServicePath); err != nil {
+	if err := transfer(l, conn, setup.ServicePath(), tmpServicePath); err != nil {
 		return fmt.Errorf("failed to transfer service file to temp location: %w", err)
 	}
 
 	// Then move to final location with sudo
-	moveCmd := fmt.Sprintf("mv %s %s", tmpServicePath, BinaryConfig().SystemdPath)
+	moveCmd := fmt.Sprintf("mv %s %s", tmpServicePath, setup.BinaryConfig().SystemdPath)
 	if err := remotely(l, conn.SSH, withSudo(moveCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to move service file to system directory: %w", err)
 	}
 
-	l.Infow("...transferred service file to system directory", "from", ServicePath(), "to", fmt.Sprintf("%s:%s", conn.Destination.Host, BinaryConfig().SystemdPath))
+	l.Infow("...transferred service file to system directory", "from", setup.ServicePath(), "to", fmt.Sprintf("%s:%s", conn.Destination.Host, setup.BinaryConfig().SystemdPath))
 	return nil
 }
 
 // manageBinary handles the binary deployment for a destination.
 // Checks if binary exists, compares hashes and transfers updated binary if needed.
 // Returns an error if binary management fails.
-func manageBinary(l *zap.SugaredLogger, conn System, localBinaryHash []byte, localBinaryPath string) error {
+func manageBinary(l *zap.SugaredLogger, conn setup.System, localBinaryHash []byte, localBinaryPath string) error {
 	if !conn.Options.Sequencer {
 		l.Infow("only shutdown, no need to compare hashes nor transfer binary", "host", conn.Destination.Host)
 		return nil // only shutdown, no need to compare hashes nor transfer binary
 	}
 
 	// check if binary exists
-	remoteBinaryPath := remoteBinaryPath(conn.Destination)
+	remoteBinaryPath := setup.RemoteBinaryPath(conn.Destination)
 	checkCmd := "test -f " + remoteBinaryPath
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infow("no binary found - will transfer binary...", "host", conn.Destination.Host)
@@ -110,7 +111,7 @@ func manageBinary(l *zap.SugaredLogger, conn System, localBinaryHash []byte, loc
 		l.Debugw("comparing binary hashes...", "host", conn.Destination.Host)
 
 		// Get remote binary hash
-		remoteHash, err := calculateFileHash(remoteBinaryPath, conn.SSH)
+		remoteHash, err := calculateFileHash(setup.RemoteBinaryPath(conn.Destination), conn.SSH)
 		if err != nil {
 			return fmt.Errorf("failed to get remote binary hash: %w", err)
 		}
@@ -130,7 +131,7 @@ func manageBinary(l *zap.SugaredLogger, conn System, localBinaryHash []byte, loc
 
 // transferBinary transfers the fuelsequencerd binary to a destination.
 // Returns an error if transfer fails.
-func transferBinary(l *zap.SugaredLogger, conn System, localBinaryPath, remoteBinaryPath string) error {
+func transferBinary(l *zap.SugaredLogger, conn setup.System, localBinaryPath, remoteBinaryPath string) error {
 	logging.Infow("transferring binary...", "from", localBinaryPath, "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remoteBinaryPath))
 	if err := transfer(l, conn, localBinaryPath, remoteBinaryPath); err != nil {
 		return fmt.Errorf("failed to transfer binary to %s: %w", conn.Destination.Host, err)
@@ -147,11 +148,11 @@ func transferBinary(l *zap.SugaredLogger, conn System, localBinaryPath, remoteBi
 // manageData handles the chain data management for a destination.
 // Cleans existing data and transfers new configuration.
 // Returns an error if data management fails.
-func manageData(l *zap.SugaredLogger, conn System, nodeId int) error {
+func manageData(l *zap.SugaredLogger, conn setup.System, nodeId int) error {
 	onlyDelete := !conn.Options.Sequencer
 
 	// if data on remote exists, remove it
-	homeDir := remoteChainHomeDir(conn.Destination)
+	homeDir := setup.RemoteChainHomeDir(conn.Destination)
 	checkCmd := "test -d " + homeDir
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infof("no chain home directory found on %s", conn.Destination.Host)
@@ -182,9 +183,9 @@ func manageData(l *zap.SugaredLogger, conn System, nodeId int) error {
 // Takes a logger, connection details, and node ID.
 // Transfers the configuration files and sets appropriate permissions.
 // Returns an error if transfer fails.
-func transferConfig(l *zap.SugaredLogger, conn System, nodeId int) error {
-	instanceDir := filepath.Join(DataDir(), sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", nodeId))
-	remoteDataDir := remoteChainHomeDir(conn.Destination)
+func transferConfig(l *zap.SugaredLogger, conn setup.System, nodeId int) error {
+	instanceDir := filepath.Join(setup.DataDir(), sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", nodeId))
+	remoteDataDir := setup.RemoteChainHomeDir(conn.Destination)
 
 	l.Infow("transferring config as chain home directory...", "from", instanceDir, "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remoteDataDir))
 	if err := transfer(l, conn, instanceDir, remoteDataDir); err != nil {
