@@ -28,9 +28,15 @@ func logAndWrapErr(msg string, err error) error {
 // Setup orchestrates the entire cluster setup process including building binaries,
 // configuring the network, establishing connections, managing destinations and deploying
 // the network. Returns an error if any step fails.
-func Setup() error {
+func Setup(configPath string) error {
+	// Load configuration first
+	if err := LoadConfig(configPath); err != nil {
+		return logAndWrapErr("failed to load configuration", err)
+	}
+
 	sequencer.CheckParameters(logging)
 
+	systems := Systems()
 	ls, lm := len(systems), len(sequencer.Mnemonics)
 	if ls != lm {
 		logging.Fatalw("check config: number of systems (%d) does not match number of mnemonics (%d)", ls, lm)
@@ -47,9 +53,9 @@ func Setup() error {
 	// Configure the network
 	peerIPs := make([]string, len(systems))
 	for i, val := range systems {
-		peerIPs[i] = val.peer_ip
+		peerIPs[i] = val.Destination.PeerIP
 	}
-	if err := sequencer.ConfigureNetwork(logging, dataDir, locally, peerIPs); err != nil {
+	if err := sequencer.ConfigureNetwork(logging, DataDir(), locally, peerIPs); err != nil {
 		return logAndWrapErr("network configuration failed", err)
 	}
 

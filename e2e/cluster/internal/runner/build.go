@@ -17,8 +17,12 @@ import (
 func buildBinary() (string, error) {
 	l := logging.Named("Build")
 
+	binaryConfig := BinaryConfig()
+	makefileDir := binaryConfig.MakefileDir
+	wantArch := binaryConfig.WantArch
+
 	// Remove any existing build directory
-	err := locally(l, "rm", "-rf", buildPath)
+	err := locally(l, "rm", "-rf", BuildPath())
 	if err != nil {
 		l.Errorw("failed to remove build directory", "error", err)
 		return "", fmt.Errorf("failed to remove build directory: %w", err)
@@ -45,8 +49,11 @@ func buildBinary() (string, error) {
 // matching the desired architecture. Returns the path to the binary if found
 // or an error if not found or multiple matches exist.
 func findBuild(l *zap.SugaredLogger) (string, error) {
+	binaryConfig := BinaryConfig()
+	buildPath := BuildPath()
+
 	// Verify binary exists
-	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+wantArch))
+	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+binaryConfig.WantArch))
 	if err != nil {
 		l.Errorw("failed to find binary", "error", err)
 		return "", fmt.Errorf("failed to find binary: %w", err)

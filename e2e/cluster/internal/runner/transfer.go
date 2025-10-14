@@ -17,7 +17,7 @@ import (
 // transfer copies a file or directory from the local machine to a remote destination using rsync.
 // Takes a logger, connection, local path, and remote path.
 // Returns an error if the transfer fails.
-func transfer(l *zap.SugaredLogger, conn system, localPath, remotePath string) error {
+func transfer(l *zap.SugaredLogger, conn System, localPath, remotePath string) error {
 	if err := ensureDir(l, conn.SSH, filepath.Dir(remotePath)); err != nil {
 		return fmt.Errorf("failed to ensure remote directory: %w", err)
 	}
@@ -46,7 +46,7 @@ func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) erro
 // transferPath handles the actual rsync transfer of files or directories.
 // Implements rsync with progress reporting and retry mechanism.
 // Returns an error if the transfer fails after all retry attempts.
-func transferPath(l *zap.SugaredLogger, conn system, localPath, remotePath string) error {
+func transferPath(l *zap.SugaredLogger, conn System, localPath, remotePath string) error {
 	const maxRetries = 3
 	const retryDelay = 2 * time.Second
 
@@ -74,7 +74,7 @@ func transferPath(l *zap.SugaredLogger, conn system, localPath, remotePath strin
 }
 
 // attemptTransfer performs a single transfer attempt using rsync.
-func attemptTransfer(l *zap.SugaredLogger, conn system, localPath, remotePath string) error {
+func attemptTransfer(l *zap.SugaredLogger, conn System, localPath, remotePath string) error {
 	// Get file info for size and type
 	stat, err := os.Stat(localPath)
 	if err != nil {
@@ -96,15 +96,15 @@ func attemptTransfer(l *zap.SugaredLogger, conn system, localPath, remotePath st
 	}
 
 	// Try rsync with sshpass first, fallback to SCP if not available
-	remoteDest := fmt.Sprintf("%s@%s:%s", conn.destination.user, conn.destination.host, remotePath)
+	remoteDest := fmt.Sprintf("%s@%s:%s", conn.Destination.User, conn.Destination.Host, remotePath)
 
 	// Construct rsync command with sshpass
-	rsyncCmd := fmt.Sprintf("sshpass -p '%s' rsync %s %s %s", conn.destination.pass, flags, sourcePath, remoteDest)
+	rsyncCmd := fmt.Sprintf("sshpass -p '%s' rsync %s %s %s", conn.Destination.Pass, flags, sourcePath, remoteDest)
 
 	l.Debugw("executing rsync command", "command", rsyncCmd)
 
 	// Execute rsync command with sshpass
-	args := []string{"-p", conn.destination.pass, "rsync"}
+	args := []string{"-p", conn.Destination.Pass, "rsync"}
 	args = append(args, strings.Fields(flags)...)
 	args = append(args, sourcePath, remoteDest)
 	if err := locallyWithCustomName(l, "sshpass", "rsync", args...); err != nil {

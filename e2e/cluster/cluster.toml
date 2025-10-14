@@ -1,0 +1,35 @@
+# Cluster configuration for Fuel Sequencer deployment
+# This file contains all the parameters needed for cluster deployment and management
+
+[binary]
+# Absolute path to the directory where makefile is located
+makefile_dir = "/home/user/fuel-sequencer"
+# Architecture specified from build binary suffix
+want_arch = "linux-amd64"
+# Name of the binary on remote
+remote_binary_name = "fuelsequencerd"
+# Path to the systemd service file on the remote machine
+systemd_path = "/etc/systemd/system/fuelsequencerd.service"
+
+[blob]
+# Path to the Redis configuration file (relative to makefile_dir)
+redis_path = "e2e/cluster/blob/redis.conf"
+# Path to the docker compose file for blobpool (relative to makefile_dir)
+pool_compose_path = "e2e/cluster/blob/docker-compose.blobpool.yml"
+# Path to the docker compose file for blobhub (relative to makefile_dir)
+hub_compose_path = "e2e/cluster/blob/docker-compose.blobhub.yml"
+
+# Remote System Parameters
+[[systems]]
+# Example localhost configuration (comment out)
+[systems.destination]
+peer_ip = "127.0.0.1"
+host = "localhost"
+user = "benchmarks"
+pass = "password"
+dir = "/home/benchmarks"
+
+[systems.options]
+sequencer = true
+blobpool = true
+blobhub = false

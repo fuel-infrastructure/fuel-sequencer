@@ -37,31 +37,47 @@ This package is primarily used for testing and development purposes. It is not i
 
 ## Running the Cluster
 
-1. Configure parameters in `parameters.go`
+1. Configure parameters in `cluster.toml`
 
-```go
-// Example configuration
-var (
-    makefileDir string = "/path/to/fuel-sequencer"
-    wantArch    string = "linux-amd64"
-    chainName   string = "clusternet-1"
-    ...
-    
-    // Configure destinations array for validator nodes
-    destinations = []destination{
-        {
-            peer_ip: "80.64.208.13",
-            host:    "validator-01.example.com",
-            user:    "username",
-            pass:    "password",
-            dir:     "/home/benchmarks",
-        },
-        // Add more validator nodes as needed
-    }
-)
+The cluster configuration is now managed through a TOML file located at `e2e/cluster/cluster.toml`. This file contains all the parameters needed for cluster deployment and management.
+
+```toml
+[binary]
+# Absolute path to the directory where makefile is located
+makefile_dir = "/path/to/fuel-sequencer"
+# Architecture specified from build binary suffix
+want_arch = "linux-amd64"
+# Name of the binary on remote
+remote_binary_name = "fuelsequencerd"
+# Path to the systemd service file on the remote machine
+systemd_path = "/etc/systemd/system/fuelsequencerd.service"
+
+[blob]
+# Path to the Redis configuration file (relative to makefile_dir)
+redis_path = "e2e/cluster/blob/redis.conf"
+# Path to the docker compose file for blobpool (relative to makefile_dir)
+pool_compose_path = "e2e/cluster/blob/docker-compose.blobpool.yml"
+# Path to the docker compose file for blobhub (relative to makefile_dir)
+hub_compose_path = "e2e/cluster/blob/docker-compose.blobhub.yml"
+
+# Remote System Parameters
+[[systems]]
+[systems.destination]
+peer_ip = "80.64.208.13"
+host = "validator-01.example.com"
+user = "username"
+pass = "password"
+dir = "/home/benchmarks"
+
+[systems.options]
+sequencer = true
+blob_pool = true
+blob_hub = false
+
+# Add more systems as needed
 ```
 
-As noted in `e2e/cluster/parameters.go`, mainly makefileDir and destinations are the parameters to configure.
+The main parameters to configure are `makefile_dir` and the `systems` array for validator nodes.
 
 2. Run the cluster setup:
 

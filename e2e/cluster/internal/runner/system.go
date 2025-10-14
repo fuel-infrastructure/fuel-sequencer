@@ -12,33 +12,11 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// system represents the state of a remote host with configs and connection
-type system struct {
-	destination
-	options
-	SSH *ssh.Client
-}
-
-// destination represents a remote host configuration for SSH connections
-type destination struct {
-	peer_ip string // IP address used for P2P communication
-	host    string // Hostname or IP for SSH connection
-	user    string // SSH username
-	pass    string // SSH password
-	dir     string // Working directory on remote host
-}
-
-// options represents the options for the system that need to be configured
-type options struct {
-	sequencer bool
-	blobpool  bool
-	blobhub   bool
-}
-
 // establishConnections creates SSH connections to all systems in parallel.
 // Returns any error encountered.
 func establishConnections() error {
 	var wg sync.WaitGroup
+	systems := Systems()
 	errChan := make(chan error, len(systems))
 
 	for i := range systems {
@@ -46,7 +24,7 @@ func establishConnections() error {
 		go func(i int) {
 			defer wg.Done()
 
-			client, err := connectSSH(systems[i].destination)
+			client, err := connectSSH(systems[i].Destination)
 			if err != nil {
 				errChan <- err
 				return
@@ -67,6 +45,7 @@ func establishConnections() error {
 
 // closeConnections closes all SSH connections in the provided slice.
 func closeConnections() {
+	systems := Systems()
 	for _, sys := range systems {
 		if sys.SSH != nil {
 			sys.SSH.Close()
@@ -76,25 +55,25 @@ func closeConnections() {
 
 // connectSSH establishes an SSH connection to a single destination.
 // Returns the SSH client and any error encountered.
-func connectSSH(dest destination) (*ssh.Client, error) {
+func connectSSH(dest Destination) (*ssh.Client, error) {
 	l := logging.Named("Connection")
 
-	l.Debugw("establishing SSH connection", "host", dest.host, "user", dest.user)
+	l.Debugw("establishing SSH connection", "host", dest.Host, "user", dest.User)
 
 	config := &ssh.ClientConfig{
-		User:            dest.user,
-		Auth:            []ssh.AuthMethod{ssh.Password(dest.pass)},
+		User:            dest.User,
+		Auth:            []ssh.AuthMethod{ssh.Password(dest.Pass)},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Note: In production, use ssh.FixedHostKey() or ssh.KnownHosts()
 		Timeout:         30 * time.Second,
 	}
 
 	// Establish connection
-	client, err := ssh.Dial("tcp", net.JoinHostPort(dest.host, "22"), config)
+	client, err := ssh.Dial("tcp", net.JoinHostPort(dest.Host, "22"), config)
 	if err != nil {
-		l.Errorw("ssh connection failed", "host", dest.host, "user", dest.user, "error", err)
-		return nil, fmt.Errorf("failed to connect to %s: %w", dest.host, err)
+		l.Errorw("ssh connection failed", "host", dest.Host, "user", dest.User, "error", err)
+		return nil, fmt.Errorf("failed to connect to %s: %w", dest.Host, err)
 	}
 
-	l.Debugw("successfully established ssh connection", "host", dest.host, "user", dest.user)
+	l.Debugw("successfully established ssh connection", "host", dest.Host, "user", dest.User)
 	return client, nil
 }
