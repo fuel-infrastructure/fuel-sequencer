@@ -23,8 +23,10 @@ type (
 		authority string
 
 		// Configuration
-		blobhubAddress       string
-		blobpoolRedisAddress string
+		blobhubAddress        string
+		blobpoolRedisAddress  string
+		blobpoolServerEnabled bool
+		blobpoolServerAddress string
 
 		initialised bool           // initialise blobhub and blobpool connections
 		*Blobpool                  // node storage for unconfirmed blob transactions
@@ -43,13 +45,15 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:                  cdc,
-		storeService:         storeService,
-		authority:            authority,
-		logger:               logger,
-		blobhubAddress:       "localhost:31035", // default value
-		blobpoolRedisAddress: "localhost:6380",  // default value
-		initialised:          false,             // Don't initialize yet
+		cdc:                   cdc,
+		storeService:          storeService,
+		authority:             authority,
+		logger:                logger,
+		blobhubAddress:        "localhost:31035", // default value
+		blobpoolRedisAddress:  "localhost:6380",  // default value
+		blobpoolServerEnabled: false,             // default value
+		blobpoolServerAddress: "localhost:21025", // default value
+		initialised:           false,             // Don't initialize yet
 	}
 }
 
@@ -60,7 +64,7 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 		return nil // Already initialized
 	}
 
-	blobpool, err := newBlobpool(ctx, k.logger, k.blobpoolRedisAddress)
+	blobpool, err := newBlobpool(ctx, k.logger, k.blobpoolRedisAddress, k.blobpoolServerEnabled)
 	if err != nil {
 		return err
 	}
@@ -69,19 +73,18 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 		return err
 	}
 
-	// Blobpool Server exists to query blobpool, mainly used by the profiler
-	// Server performance characteristics have not yet been identified.
-	// To avoid unnecessary bottlenecks:
-	// opting to disable blobpool server, and corresponding profiler measures.
-	// go func() {
-	// 	sl := k.logger.With("server")
-	// 	sl.Info("starting blobpool server", "address", BlobpoolAddress)
-	// 	err := k.server.StartServer(BlobpoolAddress)
-	// 	if err != nil {
-	// 		sl.Error("blobpool server failed", "error", err)
-	// 		panic(err)
-	// 	}
-	// }()
+	// Start blobpool server if enabled
+	if k.blobpoolServerEnabled {
+		go func() {
+			sl := k.logger.With("server")
+			sl.Info("starting blobpool server", "address", k.blobpoolServerAddress)
+			err := blobpool.server.StartServer(k.blobpoolServerAddress)
+			if err != nil {
+				sl.Error("blobpool server failed", "error", err)
+				panic(err)
+			}
+		}()
+	}
 
 	k.Blobpool = blobpool
 	k.blobhub = blobhubClient
@@ -99,6 +102,16 @@ func (k *Keeper) SetBlobhubAddress(address string) {
 // SetBlobpoolRedisAddress sets the blobpool redis address for the keeper
 func (k *Keeper) SetBlobpoolRedisAddress(address string) {
 	k.blobpoolRedisAddress = address
+}
+
+// SetBlobpoolServerEnabled sets whether the blobpool server should be enabled
+func (k *Keeper) SetBlobpoolServerEnabled(enabled bool) {
+	k.blobpoolServerEnabled = enabled
+}
+
+// SetBlobpoolServerAddress sets the blobpool server address for the keeper
+func (k *Keeper) SetBlobpoolServerAddress(address string) {
+	k.blobpoolServerAddress = address
 }
 
 // GetAuthority returns the module's authority.

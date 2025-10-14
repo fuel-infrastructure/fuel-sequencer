@@ -78,8 +78,10 @@ func DefaultCustomAppConfig() (string, interface{}) {
 			PathToCertFile: sidecarconfig.DefaultSidecarPathToCertFile,
 		},
 		BlobConfig: blobconfig.Config{
-			BlobhubAddress:       blobconfig.DefaultBlobhubAddress,
-			BlobpoolRedisAddress: blobconfig.DefaultBlobpoolRedisAddress,
+			BlobhubAddress:        blobconfig.DefaultBlobhubAddress,
+			BlobpoolRedisAddress:  blobconfig.DefaultBlobpoolRedisAddress,
+			BlobpoolServerEnabled: blobconfig.DefaultBlobpoolServerEnabled,
+			BlobpoolServerAddress: blobconfig.DefaultBlobpoolServerAddress,
 		},
 		CommitmentsConfig: commitmentsconfig.Config{
 			ApiEnabled:    commitmentsconfig.DefaultCommitmentsApiEnabled,
@@ -107,6 +109,10 @@ path_to_cert_file = "{{ .SidecarConfig.PathToCertFile }}"
 blobhub-address = "{{ .BlobConfig.BlobhubAddress }}"
 # This defines the Redis server address for blobpool storage.
 blobpool-redis-address = "{{ .BlobConfig.BlobpoolRedisAddress }}"
+# This dictates whether the blobpool server should be enabled for querying and profiling.
+blobpool-server-enabled = {{ .BlobConfig.BlobpoolServerEnabled }}
+# This defines the blobpool server address for querying and profiling.
+blobpool-server-address = "{{ .BlobConfig.BlobpoolServerAddress }}"
 
 [commitments]
 # This dictates whether the commitments API (with bridge commitment queries) is enabled.

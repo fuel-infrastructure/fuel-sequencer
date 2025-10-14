@@ -70,7 +70,7 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	// Start mock server
@@ -97,7 +97,7 @@ func TestBlobhubClient_Connect(t *testing.T) {
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	// Start mock server

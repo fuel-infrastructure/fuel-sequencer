@@ -332,6 +332,8 @@ func NewFuelSequencerApp(
 	// Set the blobhub address on the keeper
 	app.BlobKeeper.SetBlobhubAddress(blobCfg.BlobhubAddress)
 	app.BlobKeeper.SetBlobpoolRedisAddress(blobCfg.BlobpoolRedisAddress)
+	app.BlobKeeper.SetBlobpoolServerEnabled(blobCfg.BlobpoolServerEnabled)
+	app.BlobKeeper.SetBlobpoolServerAddress(blobCfg.BlobpoolServerAddress)
 
 	if initialiseBlobhub {
 		// BLOB :: Initialize blobhub and blobpool connections
