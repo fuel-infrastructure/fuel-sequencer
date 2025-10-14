@@ -68,6 +68,9 @@ validators:
       commitments:
         api-enabled: true
         max-query-range: "4096"
+      blob:
+        blobhub-address: "localhost:31035"
+        blobpool-redis-address: "localhost:6380"
       telemetry:
         enabled: true
         prometheus-retention-time: "60"  # 1 minute, like the text telemetry sink (ref: https://docs.cosmos.network/main/learn/advanced/telemetry)

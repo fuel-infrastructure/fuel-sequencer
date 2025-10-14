@@ -60,6 +60,7 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/multi_vesting_accounts"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	blobconfig "github.com/fuel-infrastructure/fuel-sequencer/x/blob/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 	commitmentsservice "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/service"
 	_ "github.com/fuel-infrastructure/fuel-sequencer/x/mint" // import for side-effects
@@ -120,6 +121,9 @@ type FuelSequencerApp struct {
 
 	// sidecar
 	sidecar sidecarclient.AppSidecarClient
+
+	// blob
+	blobConfig blobconfig.Config
 
 	// commitments
 	commitmentsConfig commitmentsconfig.Config
@@ -313,6 +317,21 @@ func NewFuelSequencerApp(
 		panic(err)
 	}
 	app.commitmentsConfig = commitmentsCfg
+
+	// BLOB :: Configure
+	blobCfg, err := blobconfig.NewConfigFromAppOptions(appOpts)
+	if err != nil {
+		panic(err)
+	}
+	err = blobCfg.ValidateBasic()
+	if err != nil {
+		panic(err)
+	}
+	app.blobConfig = blobCfg
+
+	// Set the blobhub address on the keeper
+	app.BlobKeeper.SetBlobhubAddress(blobCfg.BlobhubAddress)
+	app.BlobKeeper.SetBlobpoolRedisAddress(blobCfg.BlobpoolRedisAddress)
 
 	if initialiseBlobhub {
 		// BLOB :: Initialize blobhub and blobpool connections

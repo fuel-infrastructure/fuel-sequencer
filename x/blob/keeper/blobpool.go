@@ -36,10 +36,10 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(ctx context.Context, logger log.Logger) (*Blobpool, error) {
+func newBlobpool(ctx context.Context, logger log.Logger, redisAddress string) (*Blobpool, error) {
 
 	l := logger.With("module", "blobpool")
-	store, err := redis.Store(ctx, "localhost:6380", "", 0, true)
+	store, err := redis.Store(ctx, redisAddress, "", 0, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to blobpool redis store: %w", err)
 	}

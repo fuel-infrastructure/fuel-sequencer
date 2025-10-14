@@ -22,6 +22,10 @@ type (
 		// should be the x/gov module account.
 		authority string
 
+		// Configuration
+		blobhubAddress       string
+		blobpoolRedisAddress string
+
 		initialised bool           // initialise blobhub and blobpool connections
 		*Blobpool                  // node storage for unconfirmed blob transactions
 		blobhub     *blobhubClient // client for syncing with blobhub
@@ -39,11 +43,13 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:          cdc,
-		storeService: storeService,
-		authority:    authority,
-		logger:       logger,
-		initialised:  false, // Don't initialize yet
+		cdc:                  cdc,
+		storeService:         storeService,
+		authority:            authority,
+		logger:               logger,
+		blobhubAddress:       "localhost:31035", // default value
+		blobpoolRedisAddress: "localhost:6380",  // default value
+		initialised:          false,             // Don't initialize yet
 	}
 }
 
@@ -54,11 +60,11 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 		return nil // Already initialized
 	}
 
-	blobpool, err := newBlobpool(ctx, k.logger)
+	blobpool, err := newBlobpool(ctx, k.logger, k.blobpoolRedisAddress)
 	if err != nil {
 		return err
 	}
-	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool)
+	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress)
 	if err != nil {
 		return err
 	}
@@ -83,6 +89,16 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 
 	k.logger.Info("blob keeper initialized")
 	return nil
+}
+
+// SetBlobhubAddress sets the blobhub address for the keeper
+func (k *Keeper) SetBlobhubAddress(address string) {
+	k.blobhubAddress = address
+}
+
+// SetBlobpoolRedisAddress sets the blobpool redis address for the keeper
+func (k *Keeper) SetBlobpoolRedisAddress(address string) {
+	k.blobpoolRedisAddress = address
 }
 
 // GetAuthority returns the module's authority.

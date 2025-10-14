@@ -45,6 +45,7 @@ import (
 	sidecarserver "github.com/fuel-infrastructure/fuel-sequencer/sidecar/service"
 	scstore "github.com/fuel-infrastructure/fuel-sequencer/sidecar/store"
 	"github.com/fuel-infrastructure/fuel-sequencer/utils/credentials"
+	blobconfig "github.com/fuel-infrastructure/fuel-sequencer/x/blob/config"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 
@@ -85,6 +86,7 @@ func addStartFlags(startCmd *cobra.Command) {
 	// Crisis module is not wired, therefore, no related flags need to be added
 	//crisis.AddModuleInitFlags(startCmd)
 	sidecarconfig.AddStartCmdFlags(startCmd)
+	blobconfig.AddStartCmdFlags(startCmd)
 	commitmentsconfig.AddStartCmdFlags(startCmd)
 }
 

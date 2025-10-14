@@ -13,7 +13,7 @@ import (
 func TestNewBlobpool(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
 	require.NoError(t, err)
 
 	require.NotNil(t, pool)
@@ -27,7 +27,7 @@ func TestNewBlobpool(t *testing.T) {
 func TestBlobpool_HasBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
 	require.NoError(t, err)
 
 	data := []byte("test data")
@@ -44,7 +44,7 @@ func TestBlobpool_HasBlob(t *testing.T) {
 func TestBlobpool_GetBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
 	require.NoError(t, err)
 
 	// Test getting non-existent blob
@@ -67,7 +67,7 @@ func TestBlobpool_GetBlob(t *testing.T) {
 func TestBlobpool_StoreBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress)
 	require.NoError(t, err)
 
 	data := []byte("test data")
