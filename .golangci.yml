@@ -3,9 +3,13 @@ linters:
   enable:
     - lll
     - misspell
+    - gosec
   settings:
     lll:
       line-length: 120
+    gosec:
+      severity: high
+      confidence: medium
   exclusions:
     generated: lax
     presets:
