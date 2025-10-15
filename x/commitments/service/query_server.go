@@ -157,7 +157,7 @@ func fetchBridgeCommitmentLeaves(
 
 		bridgeCommitmentLeaves = append(bridgeCommitmentLeaves, types.BridgeCommitmentLeaf{
 			Height:          height,
-			LastResultsHash: commit.Header.LastResultsHash,
+			LastResultsHash: commit.LastResultsHash,
 		})
 	}
 

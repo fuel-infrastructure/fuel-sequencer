@@ -54,6 +54,7 @@ linters:
         source: \s+[A-Z][A-Za-z]+\s+.*\s+`.*`
       - linters:
           - lll # Don't enforce line length for Starport scaffolding comments
+          - govet # Don't enforce govet rules for Starport scaffolding comments
         source: '// this line is used by starport scaffolding # stargate/.*'
     paths:
       - third_party$

@@ -172,6 +172,7 @@ func ParseMetricsDir(dir string, structName string) (TemplateData, error) {
 
 	// Grab the package name.
 	var pkgName string
+	//nolint:staticcheck // ast.Package is deprecated but still needed for this use case
 	var pkg *ast.Package
 	// TODO(thane): Figure out a more readable way of implementing this.
 	//nolint:revive
