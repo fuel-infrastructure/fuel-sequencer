@@ -32,7 +32,7 @@ func (k msgServer) supplyDelta(ctx sdk.Context) (*types.MsgSupplyDeltaResponse, 
 
 	// Confirm that MsgSupplyDelta was injected at the correct height.
 	blockHeight := ctx.BlockHeight()
-	if !bridgeParams.IsMsgSupplyDeltaBlock(uint64(blockHeight)) {
+	if !bridgeParams.IsMsgSupplyDeltaBlock(uint64(blockHeight)) { //nolint:gosec // BlockHeight is int64, safe conversion
 		return nil, types.ErrUnexpectedOperation.Wrapf(
 			"MsgSupplyDelta not expected at height %d", blockHeight,
 		)
