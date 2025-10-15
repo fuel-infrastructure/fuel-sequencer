@@ -39,10 +39,9 @@ func Setup(configPath string) error {
 
 	sequencer.CheckParameters(logging)
 
-	systems := setup.Systems()
-	ls, lm := len(systems), len(sequencer.Mnemonics)
-	if ls != lm {
-		logging.Fatalw("check config: number of systems (%d) does not match number of mnemonics (%d)", ls, lm)
+	systems, err := setup.CheckParameters(logging)
+	if err != nil {
+		return logAndWrapErr("loaded configuration has errors", err)
 	}
 
 	// TODO: build against existing git tag

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -86,6 +88,18 @@ func LoadConfig(configPath string) error {
 	}
 
 	return nil
+}
+
+func CheckParameters(logging *zap.SugaredLogger) ([]System, error) {
+	systems := Systems()
+	ls, lm := len(systems), len(sequencer.Mnemonics)
+	if ls != lm {
+		err := fmt.Errorf("check config: number of systems (%d) does not match number of mnemonics (%d)", ls, lm)
+		logging.Fatalw(err.Error())
+		return nil, err
+	}
+
+	return systems, nil
 }
 
 // LoadedConfig returns the loaded configuration
