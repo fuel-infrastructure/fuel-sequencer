@@ -46,7 +46,12 @@ BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
 GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
-REQUIRE_GO_VERSION = 1.22.11
+# Extract Go version from go.mod file
+GO_MOD_VERSION = $(shell grep '^go ' go.mod | cut -d' ' -f2)
+REQUIRE_GO_VERSION = $(GO_MOD_VERSION)
+
+# Alpine version for Docker images (can be updated to latest stable)
+ALPINE_VERSION = 3.20
 
 export GO111MODULE = on
 
@@ -438,6 +443,7 @@ build-docker-image:
 	@$(DOCKER) build \
 		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} \
 		--build-arg GO_VERSION=${REQUIRE_GO_VERSION} \
+		--build-arg ALPINE_VERSION=${ALPINE_VERSION} \
 		.
 	@$(DOCKER) tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
