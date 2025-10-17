@@ -5,8 +5,6 @@ go 1.23.0
 replace (
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
-	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
-	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// replace broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
