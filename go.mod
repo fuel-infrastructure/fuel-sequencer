@@ -7,6 +7,8 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.14-0.20251015111716-1162db9c0e36
 	// replace broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	// upgrade ledger-go for compatibility
+	github.com/zondax/ledger-go => github.com/zondax/ledger-go v1.0.0
 )
 
 require (
