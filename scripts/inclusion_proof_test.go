@@ -84,7 +84,7 @@ func TestBridgeCommitmentInclusionProof(t *testing.T) {
 	// Construct BridgeCommitmentLeaf from the inclusion proof data.
 
 	bridgeCommitmentLeaf := BridgeCommitmentLeafForEthereum{
-		Height:      big.NewInt(int64(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.Height)),
+		Height:      big.NewInt(int64(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.Height)), //nolint:gosec // Height is uint64, safe conversion
 		ResultsHash: common.BytesToHash(bridgeCommitmentInclusionProof.BridgeCommitmentLeaf.LastResultsHash),
 	}
 

@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/cometbft/cometbft/crypto/merkle"
-	"github.com/cometbft/cometbft/libs/bytes"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 )
 
@@ -14,7 +13,7 @@ type (
 // NewBinaryMerkleProof creates a BinaryMerkleProof from a merkle.Proof.
 func NewBinaryMerkleProof(proof merkle.Proof) *BinaryMerkleProof {
 
-	var newAunts []bytes.HexBytes
+	var newAunts []cmtbytes.HexBytes
 	for _, aunt := range proof.Aunts {
 		newAunts = append(newAunts, aunt)
 	}

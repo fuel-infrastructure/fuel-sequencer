@@ -55,7 +55,7 @@ func (s *KeeperTestHelper) Setup() {
 func (s *KeeperTestHelper) Ctx() sdk.Context {
 
 	// Return a mock context
-	return s.App.BaseApp.NewContext(false)
+	return s.App.NewContext(false)
 }
 
 // CreateTestContext creates a test context.

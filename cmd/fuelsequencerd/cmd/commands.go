@@ -88,7 +88,8 @@ func addStartFlags(startCmd *cobra.Command) {
 	commitmentsconfig.AddStartCmdFlags(startCmd)
 }
 
-// genesisCommand builds genesis-related `fuelsequencerd genesis` command. Users may provide application specific commands as a parameter
+// genesisCommand builds genesis-related `fuelsequencerd genesis` command.
+// Users may provide application specific commands as a parameter
 func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
 	cmd := genutilcli.Commands(txConfig, basicManager, app.DefaultNodeHome)
 

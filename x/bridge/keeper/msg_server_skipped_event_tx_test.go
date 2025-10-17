@@ -31,6 +31,7 @@ func (s *KeeperTestSuite) TestMsgSkippedEventTx_SingleTransaction() {
 
 	testBlockTime := time.Now().Round(0)
 	heightToAvoidSupplyDelta := int64(999)
+	//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 	heightForSupplyDelta := int64(testtypes.TestSupplyDeltaPeriod)
 
 	testCases := []struct {

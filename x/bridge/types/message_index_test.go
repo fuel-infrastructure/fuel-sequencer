@@ -123,12 +123,14 @@ func TestCorrelationBetweenNumberOfEventsWithMaxBytesAndRawTxBytes(t *testing.T)
 		testtypes.TestCdc, testtypes.TestGovernanceAddress, testtypes.TestMsgIndex.Events, msgIndexSequence+1,
 	)
 
-	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize
+	totalSize := int(utils.TxSize(txRawBytes)) + eventsSize //nolint:gosec // Safe conversion, size is small
 
+	//nolint:gosec // Safe conversion, size is small
 	numEvents, err := msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, numEvents) // just enough bytes
 
+	//nolint:gosec // Safe conversion, size is small
 	numEvents, err = msgIndexTx.NumberOfEventsWithMaxBytes(events, uint64(totalSize-1), msgIndexSequence)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, numEvents) // just under enough
@@ -175,7 +177,7 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 		testtypes.TestCdc, testtypes.TestGovernanceAddress, events, msgIndexSequence+1,
 	)
 
-	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize
+	txAndEventsSize := int(utils.TxSize(msgIndexRawBytes)) + eventsSize //nolint:gosec // Safe conversion, size is small
 
 	testCases := []struct {
 		name           string
@@ -193,13 +195,13 @@ func TestMsgIndex_NumberOfEventsWithMaxBytes(t *testing.T) {
 		{
 			name:           "exact size fits all events",
 			eventTx:        &testtypes.TestMsgIndex,
-			maxBytes:       uint64(txAndEventsSize),
+			maxBytes:       uint64(txAndEventsSize), //nolint:gosec // Safe conversion, size is small
 			expNumOfEvents: len(testtypes.TestMsgIndex.Events),
 		},
 		{
 			name:           "just under exact size fits n-1 events",
 			eventTx:        &testtypes.TestMsgIndex,
-			maxBytes:       uint64(txAndEventsSize) - 1,
+			maxBytes:       uint64(txAndEventsSize) - 1, //nolint:gosec // Safe conversion, size is small
 			expNumOfEvents: len(testtypes.TestMsgIndex.Events) - 1,
 		},
 		{
