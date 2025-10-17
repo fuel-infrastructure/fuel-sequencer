@@ -9,6 +9,8 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	// replace broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	// upgrade ledger-go for compatibility
+	github.com/zondax/ledger-go => github.com/zondax/ledger-go v1.0.0
 )
 
 require (
