@@ -1,6 +1,6 @@
 module github.com/fuel-infrastructure/fuel-sequencer
 
-go 1.23.0
+go 1.23.12
 
 replace (
 	// use custom cosmos-sdk with the targeted fixes

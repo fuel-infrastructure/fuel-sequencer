@@ -54,7 +54,7 @@ BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
 # Alpine version for Docker images (can be updated to latest stable)
-ALPINE_VERSION = 3.20
+ALPINE_VERSION = 3.22
 
 export GO111MODULE = on
 

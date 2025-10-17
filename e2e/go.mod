@@ -1,6 +1,6 @@
 module github.com/fuel-infrastructure/fuel-sequencer/e2e
 
-go 1.23.0
+go 1.23.12
 
 replace (
 	// use local FuelSequencer
