@@ -200,27 +200,41 @@ func manageBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 	return nil
 }
 
-// transferBlobhub transfers the blobhub directory to a destination.
-// Returns an error if transfer fails.
 func transferBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 	remoteDir := setup.RemoteBlobDir(conn.Destination)
 	remotePath := setup.RemoteBlobhubDir(conn.Destination)
 
-	// Ensure remote blob directory exists
+	// Ensure remote blob directory exists with proper ownership and permissions
 	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
 	if err := execute.Remotely(l, conn.SSH, mkdirCmd); err != nil {
 		return fmt.Errorf("failed to create remote blob directory: %w", err)
 	}
 
+	// Set ownership and permissions BEFORE transfer
+	setupCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remoteDir)
+	l.Infow("setting up ownership before transfer...", "host", conn.Destination.Host, "cmd", setupCmd)
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(setupCmd, conn.Destination.Pass)); err != nil {
+		return fmt.Errorf("failed to setup ownership on %s: %w", conn.Destination.Host, err)
+	}
+
+	chmodCmd := fmt.Sprintf("chmod -R g+rwx %s", remoteDir)
+	l.Infow("setting up permissions before transfer...", "host", conn.Destination.Host, "cmd", chmodCmd)
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chmodCmd, conn.Destination.Pass)); err != nil {
+		return fmt.Errorf("failed to setup permissions on %s: %w", conn.Destination.Host, err)
+	}
+
+	// Now transfer will work because tharen has group write access
 	l.Infow("transferring blobhub storage...", "from", setup.BlobhubDirPath(), "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remotePath))
 	if err := transfer(l, conn, setup.BlobhubDirPath(), remotePath); err != nil {
 		return fmt.Errorf("failed to transfer blobhub storage: %w", err)
 	}
 
+	// Optional: Reset ownership after transfer in case local files had different ownership
 	chownCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remotePath)
-	l.Infow("chowning blobhub storage to benchmarks user and group...", "host", conn.Destination.Host, "cmd", chownCmd)
+	l.Infow("ensuring correct ownership after transfer...", "host", conn.Destination.Host, "cmd", chownCmd)
 	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chownCmd, conn.Destination.Pass)); err != nil {
 		return fmt.Errorf("failed to chown blobhub storage on %s: %w", conn.Destination.Host, err)
 	}
+
 	return nil
 }
