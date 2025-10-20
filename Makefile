@@ -402,18 +402,6 @@ open-coverage:
 	@echo "🌐 Opening coverage report..."
 	@open $(BUILDDIR)/coverage/coverage.html
 
-test-coverage:
-	@echo "🤖 Generating test coverage..."
-	@mkdir -p $(BUILDDIR)/coverage
-	@go test -mod=readonly -coverprofile=$(BUILDDIR)/coverage/coverage.out ./x/... ./app/... ./sidecar/...
-	@go tool cover -html=$(BUILDDIR)/coverage/coverage.out -o $(BUILDDIR)/coverage/coverage.html
-	@go tool cover -func=$(BUILDDIR)/coverage/coverage.out
-	@echo "✅ Coverage report generated at $(BUILDDIR)/coverage/coverage.html"
-
-open-coverage:
-	@echo "🌐 Opening coverage report..."
-	@open $(BUILDDIR)/coverage/coverage.html
-
 test-e2e: \
 	check-docker-image-exists \
 	check-eth-deployment-docker-image-exists \
@@ -581,15 +569,6 @@ test-e2e-with-proxy: check-docker-image-exists
 	@echo "  • RPC (HTTPS):  https://localhost:$(PROXY_RPC_PORT)"
 	@echo "🔒 Note: Self-signed certificates will be used"
 	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./proxy/... --test.timeout 0
-
-# Run e2e tests with HTTPS proxy for fuel-explorer integration
-test-e2e-with-proxy: check-docker-image-exists
-	@echo "🔐 Running E2E tests with integrated HTTPS proxy"
-	@echo "📊 Endpoints available during tests:"
-	@echo "  • API (HTTPS):  https://localhost:$(PROXY_API_PORT)"
-	@echo "  • RPC (HTTPS):  https://localhost:$(PROXY_RPC_PORT)"
-	@echo "🔒 Note: Self-signed certificates will be used"
-	@cd e2e/tests && go test -mod=readonly -race -v ./proxy/... --test.timeout 0
 
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
