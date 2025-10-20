@@ -43,7 +43,7 @@ func (k msgServer) index(ctx sdk.Context, msg *types.MsgIndex) (*types.MsgIndexR
 		return nil, fmt.Errorf("SupplyDeltaPeriod cannot be zero")
 	}
 	supplyDeltaCount := uint64(0)
-	if uint64(ctx.BlockHeight())%supplyDeltaPeriod == 0 {
+	if uint64(ctx.BlockHeight())%supplyDeltaPeriod == 0 { //nolint:gosec // BlockHeight is int64, safe conversion
 		supplyDeltaCount += 1
 	}
 

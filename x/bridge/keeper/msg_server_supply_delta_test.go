@@ -38,7 +38,8 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
 			supplyDeltaInfo:   testSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
+			//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
+			chainHeight: int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
@@ -55,7 +56,8 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
 			supplyDeltaInfo:   testSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod * 4), // height % period == 0
+			//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
+			chainHeight: int64(testtypes.TestSupplyDeltaPeriod * 4), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
@@ -72,7 +74,8 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
 			supplyDeltaInfo:   testSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod + 1), // height % period != 0
+			//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
+			chainHeight: int64(testtypes.TestSupplyDeltaPeriod + 1), // height % period != 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},
@@ -86,7 +89,8 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
 			supplyDeltaInfo:   testSupplyDeltaInfo,
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod),
+			//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
+			chainHeight: int64(testtypes.TestSupplyDeltaPeriod),
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: "invalid address",
 			},
@@ -101,8 +105,9 @@ func (s *KeeperTestSuite) TestMsgSupplyDelta() {
 			name:              "valid MsgSupplyDelta - SupplyDelta is zero",
 			supplyDeltaPeriod: testtypes.TestSupplyDeltaPeriod,
 			lastEthereumNonce: testtypes.TestLastEthereumNonce,
-			supplyDeltaInfo:   testSupplyDeltaInfoZero,                // zeros
-			chainHeight:       int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
+			supplyDeltaInfo:   testSupplyDeltaInfoZero, // zeros
+			//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
+			chainHeight: int64(testtypes.TestSupplyDeltaPeriod), // height % period == 0
 			msg: &bridgetypes.MsgSupplyDelta{
 				Authority: testtypes.TestGovernanceAddress,
 			},

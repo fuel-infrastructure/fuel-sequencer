@@ -79,6 +79,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		ctx.Logger().Info("preparing proposal", "proposer", proposerConsAddress, "num_txs", len(req.Txs))
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		//nolint:gosec // Height is int64, safe conversion
 		injectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
 
 		// Get the transaction sequences for MsgIndex, MsgSupplyDelta, and the first sequence for event transactions.
@@ -103,7 +104,7 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			supplyDeltaBytesSize = utils.TxSize(supplyDeltaBytes)
 
 			// Ensure that supply delta fits in the block on its own
-			if supplyDeltaBytesSize > uint64(req.MaxTxBytes) {
+			if supplyDeltaBytesSize > uint64(req.MaxTxBytes) { //nolint:gosec // MaxTxBytes is int64, safe conversion
 				return nil, fmt.Errorf(
 					"could not fit MsgSupplyDelta of size %d in block's max bytes %d",
 					supplyDeltaBytesSize, req.MaxTxBytes,
@@ -155,10 +156,11 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 		// calling msgIndex.NumberOfEventsWithMaxBytes. We should never be in a position where there isn't enough block
 		// space for MsgIndex as it is relatively small.
 		sequencerTxsSize := utils.TxsSize(req.Txs) - supplyDeltaBytesSize
-		maxBlockSpace := uint64(req.MaxTxBytes) - supplyDeltaBytesSize
+		maxBlockSpace := uint64(req.MaxTxBytes) - supplyDeltaBytesSize //nolint:gosec // MaxTxBytes is int64, safe conversion
 
 		// Reserve a percentage of the available block space for Sequencer-native transactions. We are sure that this
 		// will not cover the entire block space since there are limits imposed on bridgeParams.SequencerTxsAllocation.
+		//nolint:gosec // TruncateInt64 is int64, safe conversion
 		sequencerTxsBlockSpace := uint64(bridgeParams.SequencerTxsAllocation.MulInt(
 			sdkmath.NewIntFromUint64(maxBlockSpace),
 		).TruncateInt64())
@@ -186,6 +188,9 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 			return nil, fmt.Errorf("failed to calculate number of events with max bytes %d: %w", maxBytesForEvents, err)
 		}
 		originalNumberOfEvents := len(eventTxs)
+		if maxNumberOfEvents < 0 {
+			return nil, fmt.Errorf("maxNumberOfEvents cannot be negative: %d", maxNumberOfEvents)
+		}
 		eventTxs, trimmed, err := msgIndex.KeepEventsFromHead(eventTxs, uint64(maxNumberOfEvents))
 		if err != nil {
 			return nil, fmt.Errorf("failed to trim event txs from tail: %w", err)
@@ -264,6 +269,8 @@ func (h *FuelSequencerProposalHandler) PrepareProposalHandler() sdk.PreparePropo
 // Reference: https://github.com/cosmos/cosmos-sdk/blob/a248d05f70f4ad7b8ff7b521e3d23086867d07dc/baseapp/abci.go#L541-L545
 func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error) {
+		ctx.Logger().Info("processing new block proposal", "height", req.Height, "proposer", req.ProposerAddress)
+
 		// Expect that there is at least one transaction (MsgIndex must be there)
 		if len(req.Txs) == 0 {
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, errors.New(
@@ -272,6 +279,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 		}
 
 		bridgeParams := h.bridgeKeeper.GetParams(ctx)
+		//nolint:gosec // Height is int64, safe conversion
 		expectMsgSupplyDelta := bridgeParams.IsMsgSupplyDeltaBlock(uint64(req.Height))
 
 		// Get the transaction sequences for MsgIndex, MsgSupplyDelta, and the first sequence for event transactions.
@@ -447,7 +455,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
-		ctx.Logger().Debug("processed proposal", "height", req.Height, "num_txs", len(req.Txs))
+		ctx.Logger().Debug("processed proposal", "height", req.Height, "proposer", req.ProposerAddress, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
@@ -514,7 +522,7 @@ func verifyTransactionsInProposal(ctx sdk.Context, txs [][]byte, txDecoder sdk.T
 				totalTxGas += gasTx.GetGas()
 			}
 
-			if totalTxGas > uint64(maxBlockGas) {
+			if totalTxGas > uint64(maxBlockGas) { //nolint:gosec // maxBlockGas is int64, safe conversion
 				return errors.New(
 					"block gas limit exceeded",
 				)

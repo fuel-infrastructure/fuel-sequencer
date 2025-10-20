@@ -343,6 +343,9 @@ func calculateForLastN(w *tabwriter.Writer, latestHeight string, n int) float64 
 
 func toInt(s string) int {
 	var i int
-	fmt.Sscanf(s, "%d", &i)
+	_, err := fmt.Sscanf(s, "%d", &i)
+	if err != nil {
+		return 0
+	}
 	return i
 }
