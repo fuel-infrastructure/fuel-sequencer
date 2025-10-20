@@ -41,7 +41,7 @@ COPY --from=builder /fuel-sequencer/build/fuelsequencerd /usr/local/bin/fuelsequ
 COPY --from=builder /fuel-sequencer/scripts/node_and_sidecar.sh /usr/local/bin/node_and_sidecar
 
 # Install some packages and create a fuelsequencer user
-RUN apk add bash vim sudo dasel \
+RUN apk add --no-cache bash sudo dasel \
     && addgroup -g 1000 fuelsequencer \
     && adduser -S -h /home/fuelsequencer -D fuelsequencer -u 1000 -G fuelsequencer
 
