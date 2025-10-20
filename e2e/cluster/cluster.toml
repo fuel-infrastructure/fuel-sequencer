@@ -30,8 +30,8 @@ pass = "Cheese5-Barbecue-Reappear-Freebee-Preplan"
 dir = "/home/benchmarks"
 
 [systems.options]
-sequencer = false
-blobpool = false
+sequencer = true
+blobpool = true
 blobhub = false
 
 # "fuel-benchnet-eu"
@@ -44,9 +44,9 @@ pass = "Immovably-Freemason-Corset1-Ritzy-Scrambled"
 dir = "/home/benchmarks"
 
 [systems.options]
-sequencer = false
-blobpool = false
-blobhub = false
+sequencer = true
+blobpool = true
+blobhub = true
 
 # "fuel-benchnet-au"
 [[systems]]
@@ -58,8 +58,8 @@ pass = "Depraved-Gainfully-Catlike2-Regretful-Amplifier"
 dir = "/home/benchmarks"
 
 [systems.options]
-sequencer = false
-blobpool = false
+sequencer = true
+blobpool = true
 blobhub = false
 
 # Example localhost configuration (comment out)
