@@ -35,21 +35,21 @@ func (s *E2ETestSuite) PollForEthereumEventIndexOffset(
 
 	s.T().Log(fmt.Sprintf("Polling for Ethereum event index offset %d", offset))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		resp, err := s.Chain.grpcClients.BridgeQueryClient.EthereumEventIndexOffset(ctx,
 			&bridgetypes.QueryGetEthereumEventIndexOffsetRequest{},
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if resp.Offset != offset {
-			return nil, fmt.Errorf("offset (%d) does not match expected: (%d)", resp.Offset, offset)
+			return fmt.Errorf("offset (%d) does not match expected: (%d)", resp.Offset, offset)
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, fmt.Errorf("exact offset (%d) not found in expected number of blocks", offset))
 }
 
@@ -59,23 +59,22 @@ func (s *E2ETestSuite) PollForLastEthereumBlockSynced(
 	h, err := s.Chain.FuelSequencerHeight(ctx)
 	s.Require().NoError(err)
 
-	s.T().Log(fmt.Sprintf("Polling for last Ethereum block synced %d", block))
+	s.T().Logf("Polling for last Ethereum block synced %d", block)
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		resp, err := s.Chain.grpcClients.BridgeQueryClient.LastEthereumBlockSynced(ctx,
 			&bridgetypes.QueryGetLastEthereumBlockSyncedRequest{},
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if resp.Block != block {
-			return nil, fmt.Errorf("last Ethereum block synced (%d) does not match expected: (%d)", resp.Block, block)
+			return fmt.Errorf("last Ethereum block synced (%d) still not reached expected: (%d)", resp.Block, block)
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, fmt.Errorf("last Ethereum block synced %d not found in expected number of blocks", block))
 }
 

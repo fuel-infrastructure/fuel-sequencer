@@ -50,21 +50,21 @@ func (s *E2ETestSuite) PollForDelegationBalance(
 		validatorAddress,
 	))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		res, err := s.QueryDelegationRaw(ctx, delegatorAddress, validatorAddress)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if !res.DelegationResponse.Balance.Equal(balance) {
-			return nil, fmt.Errorf(
+			return fmt.Errorf(
 				"delegation balance (%s) does not match expected: (%s)", res.DelegationResponse.Balance, balance,
 			)
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "delegation balance not found in expected number of blocks")
 }
 
@@ -81,7 +81,7 @@ func (s *E2ETestSuite) PollForNoDelegation(
 		validatorAddress,
 	))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		res, err := s.QueryDelegationRaw(ctx, delegatorAddress, validatorAddress)
 
 		// We need to match the following error message to confirm that there are no delegations
@@ -91,7 +91,7 @@ func (s *E2ETestSuite) PollForNoDelegation(
 
 		// If the error is nil, it means that a delegation was found
 		if err == nil {
-			return nil, fmt.Errorf(
+			return fmt.Errorf(
 				"unexpected delegation balance found (%s)", res.DelegationResponse.Balance,
 			)
 		}
@@ -99,13 +99,13 @@ func (s *E2ETestSuite) PollForNoDelegation(
 		// If a different error than what we expected is sent, we need to retry again as we are not sure if the
 		// delegation is still there or not
 		if !strings.Contains(err.Error(), expectedErrMsg) {
-			return nil, err
+			return err
 		}
 
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "delegation balance never missing in expected number of blocks")
 }
