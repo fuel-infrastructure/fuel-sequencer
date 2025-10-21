@@ -7,32 +7,29 @@ import (
 
 // From: https://github.com/strangelove-ventures/interchaintest
 
-type BlockPoller[T any] struct {
+type BlockPoller struct {
 	CurrentHeight func(ctx context.Context) (uint64, error)
-	PollFunc      func(ctx context.Context, height uint64) (T, error)
+	PollFunc      func(ctx context.Context, height uint64) error
 }
 
-func (p BlockPoller[T]) DoPoll(ctx context.Context, startHeight, maxHeight uint64) (T, error) {
+func (p BlockPoller) DoPoll(ctx context.Context, startHeight, maxHeight uint64) error {
 	if maxHeight < startHeight {
 		panic("maxHeight must be greater than or equal to startHeight")
 	}
 
-	var (
-		pollErr error
-		zero    T
-	)
+	var pollErr error
 
 	cursor := startHeight
 	for cursor <= maxHeight {
 		curHeight, err := p.CurrentHeight(ctx)
 		if err != nil {
-			return zero, err
+			return err
 		}
 		if cursor > curHeight {
 			continue
 		}
 
-		found, findErr := p.PollFunc(ctx, cursor)
+		findErr := p.PollFunc(ctx, cursor)
 
 		if findErr != nil {
 			pollErr = findErr
@@ -40,9 +37,9 @@ func (p BlockPoller[T]) DoPoll(ctx context.Context, startHeight, maxHeight uint6
 			continue
 		}
 
-		return found, nil
+		return nil
 	}
-	return zero, pollErr
+	return pollErr
 }
 
 type TimePoller[T any] struct {
