@@ -68,6 +68,8 @@ func (s *E2ETestSuite) PollForLastEthereumBlockSynced(
 		if err != nil {
 			return err
 		}
+		// assuming if LastEthereumBlockSynced >= height, height has been synced
+		if resp.Block < block {
 			return fmt.Errorf("last Ethereum block synced (%d) still not reached expected: (%d)", resp.Block, block)
 		}
 		return nil
