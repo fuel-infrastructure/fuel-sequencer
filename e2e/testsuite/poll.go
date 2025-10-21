@@ -25,9 +25,6 @@ func (p BlockPoller) DoPoll(ctx context.Context, startHeight, maxHeight uint64) 
 		if err != nil {
 			return err
 		}
-		if curHeight > startHeight {
-
-		}
 		if cursor > curHeight {
 			continue
 		}
