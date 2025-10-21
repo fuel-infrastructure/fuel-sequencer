@@ -138,9 +138,9 @@ func (s *E2ETestSuite) getCurrentCommitHash() (string, error) {
 }
 
 func (s *E2ETestSuite) targetBuildCommit(commitHash string, fuelSequencerDockerImageTag string) (targetCommit string) {
-	// If the requested tag is a short commit hash (7 chars), we need to checkout the full commit hash to that specific commit
+	// If the requested tag is a short commit hash (7 or 8 chars), we need to checkout that specific commit
 	// TODO: change this to match any existing git commit hash in the sequencer repo
-	if len(fuelSequencerDockerImageTag) == 7 {
+	if lenTag := len(fuelSequencerDockerImageTag); lenTag == 7 || lenTag == 8 {
 		// This looks like a short commit hash, use it as the target commit
 		targetCommit = fuelSequencerDockerImageTag
 	} else {
