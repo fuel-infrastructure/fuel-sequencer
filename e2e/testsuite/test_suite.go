@@ -331,6 +331,24 @@ func (s *E2ETestSuite) SetupTest() {
 	s.govProposalIdCounter = 1
 }
 
+// patientRemoveAll attempts to remove a directory with retries to handle race conditions
+// where files might still be in use by processes that haven't fully released them.
+func patientRemoveAll(path string) error {
+	const maxRetries = 5
+	const retryDelay = 100 * time.Millisecond
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
+		err = os.RemoveAll(path)
+		if err == nil {
+			return nil
+		}
+		time.Sleep(retryDelay)
+	}
+
+	return err
+}
+
 func (s *E2ETestSuite) TearDownTest() {
 	if str := os.Getenv("E2E_SKIP_CLEANUP"); len(str) > 0 {
 		skipCleanup, err := strconv.ParseBool(str)
@@ -348,7 +366,7 @@ func (s *E2ETestSuite) TearDownTest() {
 		s.Require().NoError(s.Chain.rpcClient.Stop())
 	}
 	if s.Chain != nil {
-		s.Require().NoError(os.RemoveAll(s.Chain.DataDir))
+		s.Require().NoError(patientRemoveAll(s.Chain.DataDir))
 	}
 	if s.ethNodeResource != nil {
 		s.Require().NoError(s.dockerPool.Purge(s.ethNodeResource))
