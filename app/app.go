@@ -57,7 +57,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/multi_vesting_accounts"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vulnerability_mitigations"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -337,9 +337,10 @@ func NewFuelSequencerApp(
 		}()
 	}
 
+	// UPGRADE :: Set the upgrade handler for the recent/upcoming upgrade
 	app.UpgradeKeeper.SetUpgradeHandler(
-		multi_vesting_accounts.UpgradeName,
-		multi_vesting_accounts.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		vulnerability_mitigations.UpgradeName,
+		vulnerability_mitigations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS

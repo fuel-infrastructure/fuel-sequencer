@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 )
@@ -38,7 +37,7 @@ func (s *E2ETestSuite) WaitForSequencerBlocks(ctx context.Context, delta int, ti
 	// Wait for blocks and timeout if it takes too long.
 	select {
 	case <-time.After(timeoutAfter):
-		return errors.New(fmt.Sprintf("timed out waiting for %d blocks", delta))
+		return fmt.Errorf("timed out waiting for %d blocks", delta)
 	case <-done:
 		return nil
 	}
@@ -66,7 +65,7 @@ func (s *E2ETestSuite) WaitUntilSequencerBlock(ctx context.Context, block int, t
 	// Wait for block and timeout if it takes too long.
 	select {
 	case <-time.After(timeoutAfter):
-		return errors.New(fmt.Sprintf("timed out waiting for block %d", block))
+		return fmt.Errorf("timed out waiting for block %d", block)
 	case <-done:
 		return nil
 	}
@@ -98,7 +97,7 @@ func (s *E2ETestSuite) WaitForEthereumBlocks(ctx context.Context, delta int, tim
 	// Wait for blocks and timeout if it takes too long.
 	select {
 	case <-time.After(timeoutAfter):
-		return errors.New(fmt.Sprintf("timed out waiting for %d blocks", delta))
+		return fmt.Errorf("timed out waiting for %d blocks", delta)
 	case <-done:
 		return nil
 	}
@@ -126,7 +125,7 @@ func (s *E2ETestSuite) WaitUntilEthereumBlock(ctx context.Context, block int, ti
 	// Wait for block and timeout if it takes too long.
 	select {
 	case <-time.After(timeoutAfter):
-		return errors.New(fmt.Sprintf("timed out waiting for block %d", block))
+		return fmt.Errorf("timed out waiting for block %d", block)
 	case <-done:
 		return nil
 	}

@@ -79,20 +79,20 @@ func (s *E2ETestSuite) PollForProposalStatus(
 
 	s.T().Log(fmt.Sprintf("Polling for status %s of proposal %d", status, proposalID))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		proposal, err := s.QueryProposal(ctx, proposalID)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if proposal.Status != status {
-			return nil, fmt.Errorf("status (%s) does not match expected: (%s)", proposal.Status, status)
+			return fmt.Errorf("status (%s) does not match expected: (%s)", proposal.Status, status)
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "status not found in expected number of blocks")
 }
 
@@ -105,16 +105,16 @@ func (s *E2ETestSuite) PollForNumberOfVotes(
 
 	s.T().Log(fmt.Sprintf("Polling for number of votes %d of proposal %d", numberOfVotes, proposalID))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		votes := s.QueryVotes(ctx, proposalID)
 
 		if len(votes) != int(numberOfVotes) {
-			return nil, fmt.Errorf("number of votes (%d) does not match expected: (%d)", len(votes), numberOfVotes)
+			return fmt.Errorf("number of votes (%d) does not match expected: (%d)", len(votes), numberOfVotes)
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "number of votes not found in expected number of blocks")
 }

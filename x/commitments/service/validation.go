@@ -28,7 +28,7 @@ func (q queryServer) validateBridgeCommitmentRange(ctx context.Context, start, e
 	if err != nil {
 		return err
 	}
-	if end > uint64(height)+1 {
+	if end > uint64(height)+1 { //nolint:gosec // height is int64, safe conversion
 		return fmt.Errorf(
 			"end block %d is higher than current chain height %d",
 			end,

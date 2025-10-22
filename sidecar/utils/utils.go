@@ -316,7 +316,7 @@ func ExtractLogDataToEvent(
 		authorizeEvent.Data, err = AuthorizeTxFromMsg(&govtypesv1.MsgVote{
 			ProposalId: proposalId,
 			Voter:      voter,
-			Option:     govtypesv1.VoteOption(option),
+			Option:     govtypesv1.VoteOption(option), //nolint:gosec // VoteOption is uint32, safe conversion
 			Metadata:   metadata,
 		})
 		if err != nil {
@@ -482,8 +482,8 @@ func ExtractLogDataToEvent(
 // ValidateIsLogSequential checks if the log is sequential based on TxIndex and LogIndex.
 func ValidateIsLogSequential(vLog ethereumtypes.Log, lastBlockNumber *uint64, lastTxIndex, lastLogIndex *int) error {
 	currentBlockNumber := vLog.BlockNumber
-	currentTxIndex := int(vLog.TxIndex)
-	currentLogIndex := int(vLog.Index)
+	currentTxIndex := int(vLog.TxIndex) //nolint:gosec // TxIndex is uint, safe conversion
+	currentLogIndex := int(vLog.Index)  //nolint:gosec // Index is uint, safe conversion
 
 	// Initial verification to ascertain that the current block's number
 	// sequentially follows the last processed block's number.

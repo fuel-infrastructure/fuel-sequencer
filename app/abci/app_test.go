@@ -39,7 +39,7 @@ func (s *AppTestSuite) CreateDummyTxs(amount uint64, gasLimit uint64) []sdk.Tx {
 	txBuilder := s.App.NewTxBuilder()
 
 	for i := uint64(0); i < amount; i++ {
-		tx := s.KeeperTestHelper.BuildTx(
+		tx := s.BuildTx(
 			txBuilder,
 			[]sdk.Msg{
 				&banktypes.MsgSend{
@@ -140,7 +140,7 @@ func (s *AppTestSuite) EncodeMsgIndexWithEvents(
 ) (txs [][]byte) {
 	sequence := uint64(1)
 
-	msgIndexBz, err := tx.MsgIndex.RawTxBytes(sequence)
+	msgIndexBz, err := tx.RawTxBytes(sequence)
 	if err != nil {
 		panic(err)
 	}

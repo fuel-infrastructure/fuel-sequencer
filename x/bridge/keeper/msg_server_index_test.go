@@ -21,6 +21,7 @@ func (s *KeeperTestSuite) TestMsgIndex_SingleTransaction() {
 
 	testBlockTime := time.Now().Round(0)
 	heightToAvoidSupplyDelta := int64(999)
+	//nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 	heightForSupplyDelta := int64(testtypes.TestSupplyDeltaPeriod)
 
 	// Get Ethereum block synced event type

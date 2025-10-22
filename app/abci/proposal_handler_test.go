@@ -94,7 +94,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -201,7 +201,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				// since the generated MsgIndex will have NewEthereumBlock set to true at first until the proposer
 				// updates it. When NewEthereumBlock is set to true, it consumes 2 bytes, otherwise it does not consume
 				// anything.
-				MaxTxBytes: int64(utils.TxsSize(encodedMsgIndexPartialBlock(false))) + 2,
+				MaxTxBytes: int64(utils.TxsSize(encodedMsgIndexPartialBlock(false))) + 2, //nolint:gosec // Safe conversion, result is small
 
 				Txs:    encodedDummyTxs,
 				Height: 1, // We do not expect MsgSupplyDelta to be injected
@@ -331,9 +331,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to the size of MsgSupplyDeltaTx so that MsgIndex does not fit
-				MaxTxBytes: int64(utils.TxSize(msgSupplyDeltaTx)),
+				MaxTxBytes: int64(utils.TxSize(msgSupplyDeltaTx)), //nolint:gosec // Safe conversion, size is small
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -352,9 +352,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to EXACTLY the size of MsgSupplyDelta transaction plus MsgIndex
-				MaxTxBytes: int64(utils.TxsSize(append(encodedMsgIndexWithEvents(true), msgSupplyDeltaTx))),
+				MaxTxBytes: int64(utils.TxsSize(append(encodedMsgIndexWithEvents(true), msgSupplyDeltaTx))), //nolint:gosec // Safe conversion, size is small
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -377,9 +377,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				// Set to expected size - 1 to omit last tx
-				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta - 1),
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta - 1), //nolint:gosec // Safe conversion, size is small
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -408,7 +408,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas - 1, // Set to total - 1 so that the last transaction is omitted
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -435,7 +435,7 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
 				MaxTxBytes: math.MaxInt64,
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -562,9 +562,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
-				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), // All transactions should exactly fit
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), //nolint:gosec // Safe conversion, size is small
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion // supply delta height
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -609,12 +609,12 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 
 				// We set the maximum size such that we are able to fit in four events to demonstrate that even though
 				// we can fit all events, some limited block space is reserve for Sequencer-native transactions.
-				MaxTxBytes: int64(totalTxsBytesWithFourEventsAndSupplyDeltaOnly),
+				MaxTxBytes: int64(totalTxsBytesWithFourEventsAndSupplyDeltaOnly), //nolint:gosec // Safe conversion, size is small
 
 				// We add another transaction to demonstrate that it gets trimmed because there is not enough space.
 				Txs: append(encodedDummyTxs, encodedDummyTxs[0]),
 
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion // supply delta height
 			},
 			maxBlockGas:                  4000, // Enough gas for 4 dummy transactions so that Gas is not a variable
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -655,9 +655,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				Response: testtypes.TestSidecarResponse, Error: nil,
 			},
 			requestPrepareProposal: &abcitypes.RequestPrepareProposal{
-				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta),
+				MaxTxBytes: int64(totalTxsBytesWithEventsAndSupplyDelta), //nolint:gosec // Safe conversion, size is small
 				Txs:        encodedDummyTxs,
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion // supply delta height
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -704,9 +704,9 @@ func (s *AppTestSuite) TestPrepareProposalHandler() {
 				// MaxTxBytes is set to the size of three events + supply delta + 5 dummy transactions to demonstrate
 				// that event number 4 is still included in the block even though there is fixed block space reserved
 				// for when the bridge is under heavy usage.
-				MaxTxBytes: int64(totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs),
-				Txs:        [][]byte{encodedDummyTxs[0]},               // Just 1 dummy transaction
-				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2), // supply delta height
+				MaxTxBytes: int64(totalTxsBytesWithEventsSupplyDeltaAndFiveDummyTxs), //nolint:gosec // Safe conversion, size is small
+				Txs:        [][]byte{encodedDummyTxs[0]},                             // Just 1 dummy transaction
+				Height:     int64(testtypes.TestSupplyDeltaPeriod * 2),               //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion // supply delta height
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -996,7 +996,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			},
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				Txs:    validTxsWithEventsAndSupplyDelta,
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
 			ethereumProxyContractAddress: testtypes.TestEthereumProxyContractAddress,
@@ -1408,7 +1408,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				// MsgSupplyDelta not injected even though expected in height
 				Txs:    validTxsWithEventsWithMissingSupplyDelta[:1],
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
@@ -1426,7 +1426,7 @@ func (s *AppTestSuite) TestProcessProposalHandler() {
 			requestProcessProposal: &abcitypes.RequestProcessProposal{
 				// MsgSupplyDelta not injected even though expected in height
 				Txs:    validTxsWithEventsWithMissingSupplyDelta,
-				Height: int64(testtypes.TestSupplyDeltaPeriod * 2),
+				Height: int64(testtypes.TestSupplyDeltaPeriod * 2), //nolint:gosec // TestSupplyDeltaPeriod is 100, safe conversion
 			},
 			maxBlockGas:                  totalTxsGas,
 			supplyDeltaPeriod:            testtypes.TestSupplyDeltaPeriod,
