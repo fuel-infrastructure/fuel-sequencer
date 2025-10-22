@@ -605,25 +605,25 @@ func (s *E2ETestSuite) RemoveSequencer(i int) {
 }
 
 func (s *E2ETestSuite) PauseAllSequencerNodes() {
-	for i, _ := range s.valResources {
+	for i := range s.valResources {
 		s.PauseSequencer(i)
 	}
 }
 
 func (s *E2ETestSuite) UnpauseAllSequencerNodes() {
-	for i, _ := range s.valResources {
+	for i := range s.valResources {
 		s.UnpauseSequencer(i)
 	}
 }
 
 func (s *E2ETestSuite) StopAllSequencerNodes() {
-	for i, _ := range s.valResources {
+	for i := range s.valResources {
 		s.StopSequencer(i)
 	}
 }
 
 func (s *E2ETestSuite) RemoveAllSequencerNodes() {
-	for i, _ := range s.valResources {
+	for i := range s.valResources {
 		s.RemoveSequencer(i)
 	}
 }

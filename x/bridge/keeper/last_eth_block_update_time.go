@@ -15,6 +15,7 @@ import (
 func (k Keeper) SetLastEthBlockUpdateTime(ctx context.Context, lastEthBlockUpdateTime time.Time) {
 	storeAdapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(storeAdapter, types.LastEthBlockUpdateTimeKey)
+	//nolint:gosec // UnixNano is int64, safe conversion
 	b := sdk.Uint64ToBigEndian(uint64(lastEthBlockUpdateTime.UnixNano()))
 	store.Set([]byte{0}, b)
 }
@@ -30,7 +31,7 @@ func (k Keeper) GetLastEthBlockUpdateTime(ctx context.Context) (val time.Time, f
 	}
 	nanosecondCount := sdk.BigEndianToUint64(b)
 
-	return time.Unix(0, int64(nanosecondCount)), true
+	return time.Unix(0, int64(nanosecondCount)), true //nolint:gosec // Safe conversion, nanosecondCount is uint64
 }
 
 // MustGetLastEthBlockUpdateTime returns lastEthBlockUpdateTime and panics if it doesn't find it

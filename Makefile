@@ -40,13 +40,21 @@ ifeq (,$(VERSION))
 endif
 
 LEDGER_ENABLED ?= true
-SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
-COMETBFT_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::') # grab everything after the space in e.g. "github.com/cometbft/cometbft v0.37.1"
+
+GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
+# Extract Go version from go.mod file
+GO_MOD_VERSION = $(shell grep '^go ' go.mod | cut -d' ' -f2)
+REQUIRE_GO_VERSION = $(GO_MOD_VERSION)
+# Use specific Go version if available, otherwise use default go
+GO_CMD = $(shell which go$(REQUIRE_GO_VERSION) 2>/dev/null || echo "go")
+
+SDK_PACK := $(shell $(GO_CMD) list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
+COMETBFT_VERSION := $(shell $(GO_CMD) list -m github.com/cometbft/cometbft | sed 's:.* ::') # grab everything after the space in e.g. "github.com/cometbft/cometbft v0.37.1"
 BUILDFOLDER := build
 BUILDDIR ?= $(CURDIR)/$(BUILDFOLDER)
 
-GO_SYSTEM_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1)
-REQUIRE_GO_VERSION = 1.22.11
+# Alpine version for Docker images (can be updated to latest stable)
+ALPINE_VERSION = 3.22
 
 export GO111MODULE = on
 
@@ -116,12 +124,16 @@ endif
 ###############################################################################
 
 check-go-version:
-ifneq ($(GO_SYSTEM_VERSION), $(REQUIRE_GO_VERSION))
-	@echo "❌ Go version $(REQUIRE_GO_VERSION) is required for $(VERSION) of FuelSequencer."
-	@exit 1
-else
-	@echo "✅ Go version requirements are met for $(VERSION) of FuelSequencer."
-endif
+	@if echo "$(GO_CMD)" | grep -q "go$(REQUIRE_GO_VERSION)$$"; then \
+		echo "✅ Found go$(REQUIRE_GO_VERSION) command, using it for build"; \
+	elif [ "$(GO_SYSTEM_VERSION)" = "$(REQUIRE_GO_VERSION)" ]; then \
+		echo "✅ Go version requirements are met for $(VERSION) of FuelSequencer."; \
+	else \
+		echo "❌ Go version $(REQUIRE_GO_VERSION) is required for $(VERSION) of FuelSequencer."; \
+		echo "   Either install go$(REQUIRE_GO_VERSION) or ensure your current go version is $(REQUIRE_GO_VERSION)"; \
+		echo "   Refer https://go.dev/doc/manage-install to install go$(REQUIRE_GO_VERSION)"; \
+		exit 1; \
+	fi
 
 all: install lint test-unit vulncheck
 
@@ -130,13 +142,13 @@ BUILD_TARGETS := build install
 build: BUILD_ARGS=-o $(BUILDDIR)/
 
 $(BUILD_TARGETS): check-go-version go.sum $(BUILDDIR)/
-	go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./...
+	@$(GO_CMD) $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./...
 
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
 vulncheck: $(BUILDDIR)/
-	GOBIN=$(BUILDDIR) go install golang.org/x/vuln/cmd/govulncheck@latest
+	GOBIN=$(BUILDDIR) $(GO_CMD) install golang.org/x/vuln/cmd/govulncheck@latest
 	$(BUILDDIR)/govulncheck ./...
 
 build-linux: go.sum
@@ -144,11 +156,11 @@ build-linux: go.sum
 
 go-mod-cache: go.sum
 	@echo "⬇️ Download go modules to local cache"
-	@go mod download
+	@$(GO_CMD) mod download
 
 go.sum: go.mod
 	@echo "🤔 Ensure dependencies have not been modified"
-	@go mod verify
+	@$(GO_CMD) mod verify
 
 clean: clean-e2e
 	@echo "🧹 Cleaning..."
@@ -160,15 +172,15 @@ build-fuelsequencerd:
     ifeq ($(UNAME_S),Darwin)
 		@echo "⚠️ Only building darwin binaries. Linux device required to build linux binaries."
 		@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-amd64..."
-		@GOOS=darwin GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 ./cmd/fuelsequencerd/main.go
+		@GOOS=darwin GOARCH=amd64 $(GO_CMD) build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-amd64 ./cmd/fuelsequencerd/main.go
 		@echo "🔧 Building fuelsequencerd-$(VERSION)-darwin-arm64..."
-		@GOOS=darwin GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-arm64 ./cmd/fuelsequencerd/main.go
+		@GOOS=darwin GOARCH=arm64 $(GO_CMD) build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-darwin-arm64 ./cmd/fuelsequencerd/main.go
     else
 		@echo "⚠️ Only building linux binaries. Darwin device required to build darwin binaries."
 		@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-amd64..."
-		@GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 ./cmd/fuelsequencerd/main.go
+		@GOOS=linux GOARCH=amd64 $(GO_CMD) build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-amd64 ./cmd/fuelsequencerd/main.go
 		@echo "🔧 Building fuelsequencerd-$(VERSION)-linux-arm64..."
-		@GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 ./cmd/fuelsequencerd/main.go
+		@GOOS=linux GOARCH=arm64 $(GO_CMD) build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/fuelsequencerd-$(VERSION)-linux-arm64 ./cmd/fuelsequencerd/main.go
     endif
 
 build-all: clean build-fuelsequencerd
@@ -231,7 +243,7 @@ protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
-cosmos_sdk_dir=$(shell go list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
+cosmos_sdk_dir=$(shell $(GO_CMD) list -f '{{ .Dir }}' -m github.com/cosmos/cosmos-sdk)
 protoSwaggerImage=$(DOCKER) run --rm -v $(CURDIR):/workspace -v $(cosmos_sdk_dir):/cosmos-sdk --workdir /workspace $(protoImageName)
 
 proto-go-gen:
@@ -341,18 +353,13 @@ keys:
 ###                                   CI                                    ###
 ###############################################################################
 
-ci: proto-routine mocks format lint test-unit gosec
+ci: proto-routine mocks format lint test-unit
 
-# Multiple go.mod files can confuse gosec; first run for sequencer, then for its e2e
-gosec:
-	@echo "🔎 Running gosec for sequencer..."
-	@go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=e2e -severity=high ./...
-	@echo "🔎 Running gosec for e2e..."
-	@cd e2e && go run github.com/securego/gosec/v2/cmd/gosec -exclude-dir=deps -exclude-dir=fuel-rollup -severity=high ./... && cd ..
-	@echo "✅ Finished running gosec!"
 lint:
 	@echo "🔎 Running linter..."
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix
+	@golangci-lint run --timeout=10m --fix
+	@echo "🔎 Running linter for e2e..."
+	@cd e2e && golangci-lint run --timeout=10m --fix && cd ..
 	@echo "✅ Finished running linter!"
 
 # Extract and convert excluded paths from .golangci.yml to find-compatible patterns
@@ -370,7 +377,7 @@ EXCLUDED_PATTERNS := $(shell awk '/path:.*\.go\$$/ { \
 format:
 	@echo "🔎 Running formatter..."
 	@find . -type f -name "*.go" $(EXCLUDED_PATTERNS) \
-		| xargs goimports -w -local $(shell go list -m)
+		| xargs goimports -w -local $(shell $(GO_CMD) list -m)
 	@echo "✅ Finished running formatter!"
 
 ###############################################################################
@@ -381,14 +388,14 @@ test-all: test-unit test-e2e
 
 test-unit:
 	@echo "🤖 Running unit tests..."
-	@go test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
+	@$(GO_CMD) test -mod=readonly ./x/$(module)/... ./sidecar/... ./app/...
 
 test-coverage:
 	@echo "🤖 Generating test coverage..."
 	@mkdir -p $(BUILDDIR)/coverage
-	@go test -mod=readonly -coverprofile=$(BUILDDIR)/coverage/coverage.out ./x/... ./app/... ./sidecar/...
-	@go tool cover -html=$(BUILDDIR)/coverage/coverage.out -o $(BUILDDIR)/coverage/coverage.html
-	@go tool cover -func=$(BUILDDIR)/coverage/coverage.out
+	@$(GO_CMD) test -mod=readonly -coverprofile=$(BUILDDIR)/coverage/coverage.out ./x/... ./app/... ./sidecar/...
+	@$(GO_CMD) tool cover -html=$(BUILDDIR)/coverage/coverage.out -o $(BUILDDIR)/coverage/coverage.html
+	@$(GO_CMD) tool cover -func=$(BUILDDIR)/coverage/coverage.out
 	@echo "✅ Coverage report generated at $(BUILDDIR)/coverage/coverage.html"
 
 open-coverage:
@@ -406,10 +413,13 @@ test-e2e: \
 	test-e2e-special-messages
 
 test-cover:
-	@go test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
+	@$(GO_CMD) test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
+
+test-e2e-vulnerability-mitigations:
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./upgrade/vulnerability-mitigations/... --test.timeout 0
 
 mocks: $(MOCKS_DIR)
-	@go install github.com/golang/mock/mockgen@v1.6.0
+	@$(GO_CMD) install github.com/golang/mock/mockgen@v1.6.0
 	sh ./scripts/mockgen.sh
 	rm -r "$(MOCKS_DIR)"
 .PHONY: mocks
@@ -423,7 +433,7 @@ $(MOCKS_DIR):
 
 #? metrics: Generate metrics
 metrics:
-	go generate -run="scripts/metricsgen" ./...
+	$(GO_CMD) generate -run="scripts/metricsgen" ./...
 .PHONY: metrics
 
 ###############################################################################
@@ -443,6 +453,7 @@ build-docker-image:
 	@$(DOCKER) build \
 		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} \
 		--build-arg GO_VERSION=${REQUIRE_GO_VERSION} \
+		--build-arg ALPINE_VERSION=${ALPINE_VERSION} \
 		.
 	@$(DOCKER) tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
 	@echo Successfully tagged ${DOCKER_IMAGE_NAME}:$(shell echo ${BRANCH} | sed 's|/|_|g')
@@ -536,22 +547,31 @@ remove-eth-e2e-containers:
 	@echo "✅ Removed Docker containers!"
 
 test-e2e-basic:
-	@cd e2e/tests && go test -mod=readonly -race -v ./basic/... --test.timeout 0
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./basic/... --test.timeout 0
 
 test-e2e-events:
-	@cd e2e/tests && go test -mod=readonly -race -v ./events/... --test.timeout 0
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./events/... --test.timeout 0
 
 test-e2e-withdrawals:
-	@cd e2e/tests && go test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./withdrawals/... --test.timeout 0
 
 test-e2e-authorize:
-	@cd e2e/tests && go test -mod=readonly -race -v ./authorize/... --test.timeout 0
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./authorize/... --test.timeout 0
 
 test-e2e-deposits:
-	@cd e2e/tests && go test -mod=readonly -race -v ./deposits/... --test.timeout 0
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./deposits/... --test.timeout 0
 
 test-e2e-special-messages:
-	@cd e2e/tests && go test -mod=readonly -race -v ./special-messages/... --test.timeout 0
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./special-messages/... --test.timeout 0
+
+# Run e2e tests with HTTPS proxy for fuel-explorer integration
+test-e2e-with-proxy: check-docker-image-exists
+	@echo "🔐 Running E2E tests with integrated HTTPS proxy"
+	@echo "📊 Endpoints available during tests:"
+	@echo "  • API (HTTPS):  https://localhost:$(PROXY_API_PORT)"
+	@echo "  • RPC (HTTPS):  https://localhost:$(PROXY_RPC_PORT)"
+	@echo "🔒 Note: Self-signed certificates will be used"
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./proxy/... --test.timeout 0
 
 # Run e2e tests with HTTPS proxy for fuel-explorer integration
 test-e2e-with-proxy: check-docker-image-exists

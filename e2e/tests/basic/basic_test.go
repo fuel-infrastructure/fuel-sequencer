@@ -87,7 +87,7 @@ func (s *BasicTestSuite) TestSequencerAndSidecarBasics() {
 		from := s.EthKeys[0]
 		to := s.EthKeys[1]
 		transfer := testsuite.PackTransfer(to.Address, big.NewInt(sendAmount))
-		msgSendBz := s.E2ETestSuite.GenerateMsgSendBz(
+		msgSendBz := s.GenerateMsgSendBz(
 			from.AddressHex, to.AddressHex,
 			sdk.NewCoins(sdk.NewCoin(testsuite.BridgeDenom, sdkmath.NewInt(sendAmount))),
 		)

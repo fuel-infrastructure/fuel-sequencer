@@ -78,7 +78,7 @@ func (s *E2ETestSuite) PollForDelegationRewards(
 		validatorAddress,
 	))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		res, err := s.Chain.grpcClients.DistributionQueryClient.DelegationRewards(
 			ctx, &types.QueryDelegationRewardsRequest{
 				DelegatorAddress: delegatorAddress,
@@ -86,17 +86,17 @@ func (s *E2ETestSuite) PollForDelegationRewards(
 			},
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if !res.Rewards.Equal(balance) {
-			return nil, fmt.Errorf(
+			return fmt.Errorf(
 				"rewards balance (%s) does not match expected: (%s)", res.Rewards, balance,
 			)
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "rewards balance not found in expected number of blocks")
 }

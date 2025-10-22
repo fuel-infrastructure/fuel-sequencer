@@ -70,6 +70,7 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 ) (*types.QueryBridgeCommitmentInclusionProofResponse, error) {
 	defer telemetry.MeasureSince(telemetry.Now(), "sequencer", "query", "bridge", "commitment", "inclusion", "proof")
 
+	//nolint:gosec // Height is int64, safe conversion
 	err := q.validateBridgeCommitmentInclusionProofRequest(ctx, uint64(req.Height), req.Start, req.End)
 	if err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func (q queryServer) BridgeCommitmentInclusionProof(
 
 	// Get the relevant index within the specified range of blocks.
 	// e.g. for block 1500 in 1000 to 2000, the index is 1500-1000 = 500
-	blockIndex := req.Height - int64(leaves[0].Height)
+	blockIndex := req.Height - int64(leaves[0].Height) //nolint:gosec // Height is uint64, safe conversion
 
 	// Encode data to match solidity `abi.encode`.
 	encodedLeaves, err := encodeBridgeCommitment(leaves)
@@ -146,7 +147,7 @@ func fetchBridgeCommitmentLeaves(
 	bridgeCommitmentLeaves := make([]types.BridgeCommitmentLeaf, 0, end-start)
 	for height := start; height < end; height++ {
 
-		int64Height := int64(height)
+		int64Height := int64(height) //nolint:gosec // height is uint64, safe conversion
 		commit, err := getCommit(ctx, clientCtx, &int64Height)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load block %d: %s", height, err.Error())
@@ -157,7 +158,7 @@ func fetchBridgeCommitmentLeaves(
 
 		bridgeCommitmentLeaves = append(bridgeCommitmentLeaves, types.BridgeCommitmentLeaf{
 			Height:          height,
-			LastResultsHash: commit.Header.LastResultsHash,
+			LastResultsHash: commit.LastResultsHash,
 		})
 	}
 

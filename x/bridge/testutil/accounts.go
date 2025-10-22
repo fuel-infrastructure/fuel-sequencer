@@ -55,16 +55,16 @@ func MatchesEthOwnedContinuousVestingAccRaw(cva *vestingtypes.ContinuousVestingA
 func MatchesEthOwnedMultiContinuousVestingAcc(expected *types.EthOwnedMultiContinuousVestingAccount) AccountValidator {
 	return func(acc sdk.AccountI) bool {
 		vAcc, ok := acc.(*types.EthOwnedMultiContinuousVestingAccount)
-		if !(ok &&
-			(vAcc.AccountOwner == expected.AccountOwner) &&
-			len(vAcc.Infos) == len(expected.Infos) &&
-			MatchesEthOwnedAcc(expected.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount())) {
+		if !ok ||
+			vAcc.AccountOwner != expected.AccountOwner ||
+			len(vAcc.Infos) != len(expected.Infos) ||
+			!MatchesEthOwnedAcc(expected.ToEthOwnedBaseAccount())(vAcc.ToEthOwnedBaseAccount()) {
 			return false
 		}
 		for i := 0; i < len(vAcc.Infos); i++ {
-			if !((vAcc.Infos[i].StartTime == expected.Infos[i].StartTime) &&
-				(vAcc.Infos[i].OriginalVesting.Equal(expected.Infos[i].OriginalVesting)) &&
-				(vAcc.Infos[i].EndTime == expected.Infos[i].EndTime)) {
+			if vAcc.Infos[i].StartTime != expected.Infos[i].StartTime ||
+				!vAcc.Infos[i].OriginalVesting.Equal(expected.Infos[i].OriginalVesting) ||
+				vAcc.Infos[i].EndTime != expected.Infos[i].EndTime {
 				return false
 			}
 		}
