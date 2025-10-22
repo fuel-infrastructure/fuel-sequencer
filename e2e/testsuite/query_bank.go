@@ -106,22 +106,22 @@ func (s *E2ETestSuite) PollForBalance(
 
 	s.T().Log(fmt.Sprintf("Polling for balance %s of %s", balance.String(), address))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		bal, err := s.Chain.grpcClients.BankQueryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
 			Address: address,
 			Denom:   balance.Denom,
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if !bal.Balance.Equal(balance) {
-			return nil, fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balance.Amount.String())
+			return fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balance.Amount.String())
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "balance not found in expected number of blocks")
 }
 
@@ -135,21 +135,21 @@ func (s *E2ETestSuite) PollForExactBalance(
 
 	s.T().Log(fmt.Sprintf("Polling for all balance %s of %s", balances.String(), address))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		bal, err := s.Chain.grpcClients.BankQueryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: address,
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if !bal.Balances.Equal(balances) {
-			return nil, fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balances.String())
+			return fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balances.String())
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "exact balance not found in expected number of blocks")
 }
 
@@ -163,22 +163,22 @@ func (s *E2ETestSuite) PollForMultipleBalances(
 
 	s.T().Log(fmt.Sprintf("Polling for multiple balances %s of %s", balances.String(), address))
 
-	doPoll := func(ctx context.Context, height uint64) (any, error) {
+	doPoll := func(ctx context.Context, height uint64) error {
 		bal, err := s.Chain.grpcClients.BankQueryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: address,
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 		for _, expectedBalance := range balances {
 			if !bal.Balances.AmountOf(expectedBalance.Denom).Equal(expectedBalance.Amount) {
-				return nil, fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balances.String())
+				return fmt.Errorf("balance (%s) does not match expected: (%s)", bal, balances.String())
 			}
 		}
-		return nil, nil
+		return nil
 	}
 
-	bp := BlockPoller[any]{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
-	_, err = bp.DoPoll(ctx, h, h+deltaBlocks)
+	bp := BlockPoller{CurrentHeight: s.Chain.FuelSequencerHeight, PollFunc: doPoll}
+	err = bp.DoPoll(ctx, h, h+deltaBlocks)
 	s.Require().NoError(err, "matching balances not found in expected number of blocks")
 }

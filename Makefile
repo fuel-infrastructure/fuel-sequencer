@@ -415,6 +415,9 @@ test-e2e: \
 test-cover:
 	@$(GO_CMD) test -mod=readonly -race -coverprofile=coverage.out -covermode=atomic ./x/$(module)/... ./sidecar/... ./app/...
 
+test-e2e-vulnerability-mitigations:
+	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./upgrade/vulnerability-mitigations/... --test.timeout 0
+
 mocks: $(MOCKS_DIR)
 	@$(GO_CMD) install github.com/golang/mock/mockgen@v1.6.0
 	sh ./scripts/mockgen.sh
