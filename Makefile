@@ -573,15 +573,6 @@ test-e2e-with-proxy: check-docker-image-exists
 	@echo "🔒 Note: Self-signed certificates will be used"
 	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./proxy/... --test.timeout 0
 
-# Run e2e tests with HTTPS proxy for fuel-explorer integration
-test-e2e-with-proxy: check-docker-image-exists
-	@echo "🔐 Running E2E tests with integrated HTTPS proxy"
-	@echo "📊 Endpoints available during tests:"
-	@echo "  • API (HTTPS):  https://localhost:$(PROXY_API_PORT)"
-	@echo "  • RPC (HTTPS):  https://localhost:$(PROXY_RPC_PORT)"
-	@echo "🔒 Note: Self-signed certificates will be used"
-	@cd e2e/tests && go test -mod=readonly -race -v ./proxy/... --test.timeout 0
-
 clean-e2e:
 	@echo "🧹 Stopping Docker containers..."
 	@$(DOCKER) ps -aq --filter "name=fuelsequencer0" | xargs -r $(DOCKER) stop
