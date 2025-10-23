@@ -43,7 +43,7 @@ func (s *EventsTestSuite) TestEventTrimming() {
 		from := s.EthKeys[0]
 		validator := s.SeqKeys[0]
 
-		msgDelegateBz := s.E2ETestSuite.GenerateMsgDelegateBz(from.AddressHex, validator.ValAddressHex, sendCoin)
+		msgDelegateBz := s.GenerateMsgDelegateBz(from.AddressHex, validator.ValAddressHex, sendCoin)
 
 		// Generate a deposit & delegate
 		depositEvent := types.DepositEvent{

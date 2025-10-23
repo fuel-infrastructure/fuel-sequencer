@@ -1,8 +1,6 @@
 package basic_test
 
 import (
-	"fmt"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -38,7 +36,7 @@ func (s *BasicTestSuite) TestSequencerTransactions_NativeTxGetsRejectedIfTooLarg
 		s.Require().NoError(err)
 
 		// This is the error message we expect.
-		expectedErr := fmt.Sprintf("transaction is too large")
+		expectedErr := "transaction is too large"
 		s.Require().Contains(resp.RawLog, expectedErr)
 	})
 }

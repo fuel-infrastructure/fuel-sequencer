@@ -80,7 +80,7 @@ func (s *VestingDemoTestSuite) TestSetupVestingDemoAccounts() {
 		s.MultiVestingAccount = s.EthKeys[2]
 
 		// Check initial ETH balances
-		err := s.E2ETestSuite.EnsureEthereumMinimumBalances(s.MinimumEthereumBalance,
+		err := s.EnsureEthereumMinimumBalances(s.MinimumEthereumBalance,
 			s.NormalAccount, s.SingleVestingAccount, s.MultiVestingAccount)
 		s.Require().NoError(err)
 
@@ -455,17 +455,17 @@ func (s *VestingDemoTestSuite) keepEnvironmentRunning() {
 func (s *VestingDemoTestSuite) DepositTokenToSequencerFromEthereumKey(ethKey *testsuite.EthereumKey, amount *big.Int) *types.Receipt {
 	// First, mint V2 tokens to the account using the deployer key (following testsuite pattern)
 	mintData := testsuite.PackMintToken(ethKey.Address, amount)
-	_, err := s.E2ETestSuite.SendEthTransactionToTokenContract(mintData) // Uses s.EthKeys[0] by default
+	_, err := s.SendEthTransactionToTokenContract(mintData) // Uses s.EthKeys[0] by default
 	s.Require().NoError(err)
 
 	// Approve V2 tokens for use by sequencer interface contract using the specific key
 	approveData := testsuite.PackApproveToken(testsuite.SequencerInterfaceContractAddress, amount)
-	_, err = s.E2ETestSuite.SendEthTransactionFromToTokenContract(ethKey.PrivateKey, approveData)
+	_, err = s.SendEthTransactionFromToTokenContract(ethKey.PrivateKey, approveData)
 	s.Require().NoError(err)
 
 	// Deposit using the specific key
 	depositData := testsuite.PackDeposit(amount)
-	receipt, err := s.E2ETestSuite.SendEthTransactionFromToSequencerInterfaceContract(ethKey.PrivateKey, depositData)
+	receipt, err := s.SendEthTransactionFromToSequencerInterfaceContract(ethKey.PrivateKey, depositData)
 	s.Require().NoError(err)
 
 	return receipt
@@ -478,22 +478,22 @@ func (s *VestingDemoTestSuite) DepositTokenToSequencerFromMigrationNoDelegationF
 
 	// First, mint V1 tokens to the account for migration using the deployer key (following testsuite pattern)
 	mintV1Data := testsuite.PackMintMigratedToken(ethKey.Address, amountToMigrate)
-	_, err := s.E2ETestSuite.SendEthTransactionToMigratedTokenContract(mintV1Data) // Uses s.EthKeys[0] by default
+	_, err := s.SendEthTransactionToMigratedTokenContract(mintV1Data) // Uses s.EthKeys[0] by default
 	s.Require().NoError(err)
 
 	// Approve V1 tokens for use by token migrator using specific key
 	approveData := testsuite.PackApproveMigratedToken(testsuite.TokenMigratorContractAddress, amountToMigrate)
-	_, err = s.E2ETestSuite.SendEthTransactionFromToMigratedTokenContract(ethKey.PrivateKey, approveData)
+	_, err = s.SendEthTransactionFromToMigratedTokenContract(ethKey.PrivateKey, approveData)
 	s.Require().NoError(err)
 
 	// Mint V2 tokens to token migrator using the deployer key (following testsuite pattern)
 	migratorMintData := testsuite.PackMintToken(testsuite.TokenMigratorContractAddress, amountToMigrate)
-	_, err = s.E2ETestSuite.SendEthTransactionToTokenContract(migratorMintData) // Uses s.EthKeys[0] by default
+	_, err = s.SendEthTransactionToTokenContract(migratorMintData) // Uses s.EthKeys[0] by default
 	s.Require().NoError(err)
 
 	// Migrate V1 tokens to V2 tokens using specific key
 	depositData := testsuite.PackMigrate(amountToMigrate, new(big.Int).SetInt64(int64(vestingDuration.Seconds())))
-	receipt, err := s.E2ETestSuite.SendEthTransactionFromToTokenMigratorContract(ethKey.PrivateKey, depositData)
+	receipt, err := s.SendEthTransactionFromToTokenMigratorContract(ethKey.PrivateKey, depositData)
 	s.Require().NoError(err)
 
 	return receipt

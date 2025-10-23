@@ -249,7 +249,7 @@ func (s *Sidecar) subscribeToNewEthereumLogs(
 			headerTimeoutTimer.Reset(ethwrappedclient.HeaderSyncTimeout) // header successfully detected
 
 			now := time.Now()
-			headerTime := time.Unix(int64(header.Time), 0)
+			headerTime := time.Unix(int64(header.Time), 0) //nolint:gosec // header.Time is uint64 timestamp, safe conversion
 			s.metrics.ObserveHeaderDelay(headerTime, now)
 			s.metrics.SetLastHeaderSeen(header.Number)
 

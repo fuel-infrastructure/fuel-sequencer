@@ -63,7 +63,7 @@ func SetupTestingApp(isCheckTx bool) *fuelsequencerapp.FuelSequencerApp {
 		panic(err)
 	}
 	if !isCheckTx {
-		_, _ = app.BaseApp.InitChain(
+		_, _ = app.InitChain(
 			&abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: simtestutil.DefaultConsensusParams,

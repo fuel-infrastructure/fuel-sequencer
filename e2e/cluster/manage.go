@@ -28,7 +28,7 @@ func manageDestinations(connections []connection, localBinaryPath string) error 
 
 	for i, conn := range connections {
 		if err := manage(l, conn, i, localBinaryPath, localServiceHash, localBinaryHash); err != nil {
-			return fmt.Errorf("failed to manage destination %s: %w", conn.destination.host, err)
+			return fmt.Errorf("failed to manage destination %s: %w", conn.host, err)
 		}
 	}
 	return nil
@@ -59,28 +59,28 @@ func manage(l *zap.SugaredLogger, conn connection, nodeId int, localBinaryPath s
 func manageService(l *zap.SugaredLogger, conn connection, localHash []byte) error {
 	// Check if systemd service exists
 	checkCmd := "test -f /etc/systemd/system/fuelsequencerd.service"
-	l.Infow("checking for fuelsequencerd service...", "host", conn.destination.host, "cmd", checkCmd)
+	l.Infow("checking for fuelsequencerd service...", "host", conn.host, "cmd", checkCmd)
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
-		l.Infof("no fuelsequencerd service found on %s - will transfer service file...", conn.destination.host)
+		l.Infof("no fuelsequencerd service found on %s - will transfer service file...", conn.host)
 		if err := transferService(l, conn); err != nil {
 			return fmt.Errorf("failed to transfer service file: %w", err)
 		}
 	} else {
 		// Service exists, make sure it is disabled and stopped
 		disableCmd := "systemctl disable fuelsequencerd"
-		l.Infow("disabling fuelsequencerd...", "host", conn.destination.host, "cmd", disableCmd)
-		if err := remotely(l, conn.SSH, withSudo(disableCmd, conn.destination.pass)); err != nil {
-			return fmt.Errorf("failed to disable service on %s: %w", conn.destination.host, err)
+		l.Infow("disabling fuelsequencerd...", "host", conn.host, "cmd", disableCmd)
+		if err := remotely(l, conn.SSH, withSudo(disableCmd, conn.pass)); err != nil {
+			return fmt.Errorf("failed to disable service on %s: %w", conn.host, err)
 		}
 
 		stopCmd := "systemctl stop fuelsequencerd"
-		l.Infow("stopping fuelsequencerd...", "host", conn.destination.host, "cmd", stopCmd)
-		if err := remotely(l, conn.SSH, withSudo(stopCmd, conn.destination.pass)); err != nil {
-			return fmt.Errorf("failed to stop service on %s: %w", conn.destination.host, err)
+		l.Infow("stopping fuelsequencerd...", "host", conn.host, "cmd", stopCmd)
+		if err := remotely(l, conn.SSH, withSudo(stopCmd, conn.pass)); err != nil {
+			return fmt.Errorf("failed to stop service on %s: %w", conn.host, err)
 		}
 
 		// Compare local and remote service file hashes
-		l.Infow("comparing service file hashes...", "host", conn.destination.host)
+		l.Infow("comparing service file hashes...", "host", conn.host)
 
 		// Get remote service file hash
 		remoteHash, err := calculateFileHash(systemdPath, conn.SSH)
@@ -88,11 +88,11 @@ func manageService(l *zap.SugaredLogger, conn connection, localHash []byte) erro
 			return fmt.Errorf("failed to get remote service file hash: %w", err)
 		}
 
-		l.Debugw("hashes", "connection", conn.destination.host, "local", localHash, "remote", remoteHash)
+		l.Debugw("hashes", "connection", conn.host, "local", localHash, "remote", remoteHash)
 
 		// Compare and replace if different
 		if string(localHash) != string(remoteHash) {
-			l.Infow("service file differs! replacing...", "host", conn.destination.host)
+			l.Infow("service file differs! replacing...", "host", conn.host)
 			if err := transferService(l, conn); err != nil {
 				return fmt.Errorf("failed to transfer service file: %w", err)
 			}
@@ -114,7 +114,7 @@ func transferService(l *zap.SugaredLogger, conn connection) error {
 
 	// Then move to final location with sudo
 	moveCmd := fmt.Sprintf("mv %s %s", tmpServicePath, systemdPath)
-	if err := remotely(l, conn.SSH, withSudo(moveCmd, conn.destination.pass)); err != nil {
+	if err := remotely(l, conn.SSH, withSudo(moveCmd, conn.pass)); err != nil {
 		return fmt.Errorf("failed to move service file to system directory: %w", err)
 	}
 
@@ -130,13 +130,13 @@ func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte,
 	remoteBinaryPath := remoteBinaryPath(conn.destination)
 	checkCmd := "test -f " + remoteBinaryPath
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
-		l.Infow("no binary found - will transfer binary...", "host", conn.destination.host)
+		l.Infow("no binary found - will transfer binary...", "host", conn.host)
 		if err := transferBinary(l, conn, localBinaryPath, remoteBinaryPath); err != nil {
 			return fmt.Errorf("failed to transfer binary: %w", err)
 		}
 	} else {
 		// if it does, compare local and remote binary hashes
-		l.Debugw("comparing binary hashes...", "host", conn.destination.host)
+		l.Debugw("comparing binary hashes...", "host", conn.host)
 
 		// Get remote binary hash
 		remoteHash, err := calculateFileHash(remoteBinaryPath, conn.SSH)
@@ -144,11 +144,11 @@ func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte,
 			return fmt.Errorf("failed to get remote binary hash: %w", err)
 		}
 
-		l.Debugw("hashes", "connection", conn.destination.host, "local", localBinaryHash, "remote", remoteHash)
+		l.Debugw("hashes", "connection", conn.host, "local", localBinaryHash, "remote", remoteHash)
 
 		// if they are different, replace the remote binary with the local one
 		if string(localBinaryHash) != string(remoteHash) {
-			l.Infof("binary differs on %s, replacing...", conn.destination.host)
+			l.Infof("binary differs on %s, replacing...", conn.host)
 			if err := transferBinary(l, conn, localBinaryPath, remoteBinaryPath); err != nil {
 				return fmt.Errorf("failed to transfer binary: %w", err)
 			}
@@ -162,13 +162,13 @@ func manageBinary(l *zap.SugaredLogger, conn connection, localBinaryHash []byte,
 func transferBinary(l *zap.SugaredLogger, conn connection, localBinaryPath, remoteBinaryPath string) error {
 	logging.Infow("transferring binary...", "from", localBinaryPath, "to", fmt.Sprintf("%s:%s", conn.host, remoteBinaryPath))
 	if err := transfer(l, conn.SSH, localBinaryPath, remoteBinaryPath); err != nil {
-		return fmt.Errorf("failed to transfer binary to %s: %w", conn.destination.host, err)
+		return fmt.Errorf("failed to transfer binary to %s: %w", conn.host, err)
 	}
 
 	chownCmd := fmt.Sprintf("chown benchmarks:benchmarks_group %s", remoteBinaryPath)
-	l.Infow("chowning binary to benchmarks user and group...", "host", conn.destination.host, "cmd", chownCmd)
-	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.destination.pass)); err != nil {
-		return fmt.Errorf("failed to chown binary on %s: %w", conn.destination.host, err)
+	l.Infow("chowning binary to benchmarks user and group...", "host", conn.host, "cmd", chownCmd)
+	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.pass)); err != nil {
+		return fmt.Errorf("failed to chown binary on %s: %w", conn.host, err)
 	}
 	return nil
 }
@@ -181,12 +181,12 @@ func manageData(l *zap.SugaredLogger, conn connection, nodeId int) error {
 	homeDir := chainHomeDir(conn.destination)
 	checkCmd := "test -d " + homeDir
 	if err := remotely(l, conn.SSH, checkCmd); err != nil {
-		l.Infof("no chain home directory found on %s", conn.destination.host)
+		l.Infof("no chain home directory found on %s", conn.host)
 	} else {
 		removeCmd := "rm -rf " + homeDir
-		l.Infow("removing chain home directory...", "host", conn.destination.host, "cmd", removeCmd)
-		if err := remotely(l, conn.SSH, withSudo(removeCmd, conn.destination.pass)); err != nil {
-			return fmt.Errorf("failed to remove home directory on %s: %w", conn.destination.host, err)
+		l.Infow("removing chain home directory...", "host", conn.host, "cmd", removeCmd)
+		if err := remotely(l, conn.SSH, withSudo(removeCmd, conn.pass)); err != nil {
+			return fmt.Errorf("failed to remove home directory on %s: %w", conn.host, err)
 		}
 	}
 
@@ -207,13 +207,13 @@ func transferConfig(l *zap.SugaredLogger, conn connection, nodeId int) error {
 
 	l.Infow("transferring config as chain home directory...", "from", instanceDir, "to", fmt.Sprintf("%s:%s", conn.host, remoteDataDir))
 	if err := transfer(l, conn.SSH, instanceDir, remoteDataDir); err != nil {
-		return fmt.Errorf("failed to transfer config to %s: %w", conn.destination.host, err)
+		return fmt.Errorf("failed to transfer config to %s: %w", conn.host, err)
 	}
 
 	chownCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remoteDataDir)
-	l.Infow("chowning chain home directory to benchmarks user and group...", "host", conn.destination.host, "cmd", chownCmd)
-	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.destination.pass)); err != nil {
-		return fmt.Errorf("failed to chown chain home directory on %s: %w", conn.destination.host, err)
+	l.Infow("chowning chain home directory to benchmarks user and group...", "host", conn.host, "cmd", chownCmd)
+	if err := remotely(l, conn.SSH, withSudo(chownCmd, conn.pass)); err != nil {
+		return fmt.Errorf("failed to chown chain home directory on %s: %w", conn.host, err)
 	}
 	return nil
 }
