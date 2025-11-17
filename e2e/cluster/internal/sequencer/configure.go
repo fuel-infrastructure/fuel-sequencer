@@ -361,6 +361,10 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string) error {
 		appConfig.Telemetry.Enabled = true
 		appConfig.Telemetry.PrometheusRetentionTime = 60 // 1 minute
 		appConfig.SidecarConfig.Enabled = false
+		appConfig.BlobConfig.BlobhubAddress = "5.189.150.214:31035"
+		appConfig.BlobConfig.BlobpoolRedisAddress = "localhost:6380"
+		appConfig.BlobConfig.BlobpoolServerEnabled = true
+		appConfig.BlobConfig.BlobpoolServerAddress = "localhost:21025"
 
 		srvconfig.SetConfigTemplate(customAppTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
