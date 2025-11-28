@@ -1,11 +1,15 @@
-// Package cluster provides functionality for setting up and managing a distributed
+// Package runner provides functionality for setting up and managing a distributed
 // network of Fuel Sequencer validator nodes. It handles binary building, configuration,
 // deployment and management of the network.
-package cluster
+package runner
 
 import (
 	"fmt"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/connect"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
 
@@ -27,11 +31,17 @@ func logAndWrapErr(msg string, err error) error {
 // Setup orchestrates the entire cluster setup process including building binaries,
 // configuring the network, establishing connections, managing destinations and deploying
 // the network. Returns an error if any step fails.
-func Setup() error {
+func Setup(configPath string) error {
+	// Load configuration first
+	if err := setup.LoadConfig(configPath); err != nil {
+		return logAndWrapErr("failed to load configuration", err)
+	}
 
-	ld, lm := len(destinations), len(mnemonics)
-	if ld != lm {
-		logging.Fatalw("check config: number of destinations (%d) does not match number of mnemonics (%d)", ld, lm)
+	sequencer.CheckParameters(logging)
+
+	systems, err := setup.CheckParameters(logging)
+	if err != nil {
+		return logAndWrapErr("loaded configuration has errors", err)
 	}
 
 	// TODO: build against existing git tag
@@ -43,24 +53,27 @@ func Setup() error {
 	}
 
 	// Configure the network
-	if err := configureNetwork(); err != nil {
+	peerIPs := make([]string, len(systems))
+	for i, val := range systems {
+		peerIPs[i] = val.Destination.PeerIP
+	}
+	if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), execute.Locally, peerIPs); err != nil {
 		return logAndWrapErr("network configuration failed", err)
 	}
 
 	// Establish connection to all destinations
-	connections, err := establishConnections()
-	if err != nil {
+	if err := connect.EstablishConnections(logging, systems); err != nil {
 		return logAndWrapErr("connection establishment failed", err)
 	}
-	defer closeConnections(connections)
+	defer connect.CloseConnections(systems)
 
 	// Manage destinations (clean existing instances and transfer necessary files)
-	if err := manageDestinations(connections, binaryPath); err != nil {
+	if err := manageSystems(systems, binaryPath); err != nil {
 		return logAndWrapErr("destination cleanup failed", err)
 	}
 
 	// Setup and run each node in the cluster
-	if err := deployNetwork(connections); err != nil {
+	if err := deployNetwork(systems); err != nil {
 		return logAndWrapErr("cluster setup failed", err)
 	}
 

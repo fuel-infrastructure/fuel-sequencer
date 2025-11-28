@@ -14,18 +14,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 )
 
-const (
-	BlobhubPort = ":31035"
-
-	LocalIP      = "localhost"
-	BenchnetEUIP = "5.189.150.214"
-)
-
-// Default blobhub address - can be overridden for testing
-var BlobhubAddress = LocalIP + BlobhubPort
-
-// var BlobhubAddress = BenchnetEUIP + BlobhubPort
-
 type blobMessage struct {
 	Type      string `json:"type"`
 	ID        string `json:"id"`
@@ -35,19 +23,21 @@ type blobMessage struct {
 }
 
 type blobhubClient struct {
-	logger   log.Logger
-	blobpool *Blobpool // reference to the blobpool, where blobs are stored
+	logger         log.Logger
+	blobpool       *Blobpool // reference to the blobpool, where blobs are stored
+	blobhubAddress string    // configurable blobhub address
 
 	conn *websocket.Conn
 
 	blobs chan store.StoredBlob
 }
 
-func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool) (*blobhubClient, error) {
+func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool, blobhubAddress string) (*blobhubClient, error) {
 	client := &blobhubClient{
-		logger:   logger.With("module", "blobhub_sync"),
-		blobpool: blobpool,
-		blobs:    make(chan store.StoredBlob),
+		logger:         logger.With("module", "blobhub_sync"),
+		blobpool:       blobpool,
+		blobhubAddress: blobhubAddress,
+		blobs:          make(chan store.StoredBlob),
 	}
 
 	if err := client.connect(ctx); err != nil {
@@ -62,7 +52,7 @@ func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool
 }
 
 func (c *blobhubClient) connect(ctx context.Context) error {
-	u := url.URL{Scheme: "ws", Host: BlobhubAddress, Path: "/stream"}
+	u := url.URL{Scheme: "ws", Host: c.blobhubAddress, Path: "/stream"}
 	c.logger.Info("connecting to blobhub", "url", u.String())
 
 	start := time.Now()

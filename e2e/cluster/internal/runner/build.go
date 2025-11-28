@@ -1,12 +1,14 @@
-// Package cluster provides functionality for setting up and managing a distributed
+// Package runner provides functionality for setting up and managing a distributed
 // network of Fuel Sequencer validator nodes. It handles binary building, configuration,
 // deployment and management of the network.
-package cluster
+package runner
 
 import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
 
@@ -17,8 +19,12 @@ import (
 func buildBinary() (string, error) {
 	l := logging.Named("Build")
 
+	binaryConfig := setup.BinaryConfig()
+	makefileDir := binaryConfig.MakefileDir
+	wantArch := binaryConfig.WantArch
+
 	// Remove any existing build directory
-	err := locally(l, "rm", "-rf", buildPath)
+	err := execute.Locally(l, "rm", "-rf", setup.BuildPath())
 	if err != nil {
 		l.Errorw("failed to remove build directory", "error", err)
 		return "", fmt.Errorf("failed to remove build directory: %w", err)
@@ -26,7 +32,7 @@ func buildBinary() (string, error) {
 
 	// Run make target
 	l.Info("running make build...")
-	if err := locally(l, "make", "--directory", makefileDir, fmt.Sprintf("build-fuelsequencerd-%s", wantArch)); err != nil {
+	if err := execute.Locally(l, "make", "--directory", makefileDir, fmt.Sprintf("build-fuelsequencerd-%s", wantArch)); err != nil {
 		l.Errorw("make build failed", "error", err)
 		return "", fmt.Errorf("make build failed: %w", err)
 	}
@@ -45,8 +51,11 @@ func buildBinary() (string, error) {
 // matching the desired architecture. Returns the path to the binary if found
 // or an error if not found or multiple matches exist.
 func findBuild(l *zap.SugaredLogger) (string, error) {
+	binaryConfig := setup.BinaryConfig()
+	buildPath := setup.BuildPath()
+
 	// Verify binary exists
-	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+wantArch))
+	files, err := filepath.Glob(filepath.Join(buildPath, "fuelsequencerd-*-"+binaryConfig.WantArch))
 	if err != nil {
 		l.Errorw("failed to find binary", "error", err)
 		return "", fmt.Errorf("failed to find binary: %w", err)

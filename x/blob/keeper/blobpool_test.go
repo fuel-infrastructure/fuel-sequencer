@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"cosmossdk.io/log"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
@@ -13,7 +15,7 @@ import (
 func TestNewBlobpool(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	require.NotNil(t, pool)
@@ -27,10 +29,10 @@ func TestNewBlobpool(t *testing.T) {
 func TestBlobpool_HasBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
-	data := []byte("test data")
+	data := []byte(fmt.Sprintf("test blobpool has data-%s", time.Now().Format(time.RFC3339)))
 	key := store.NewKey(data)
 
 	// Test non-existent blob
@@ -44,7 +46,7 @@ func TestBlobpool_HasBlob(t *testing.T) {
 func TestBlobpool_GetBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	// Test getting non-existent blob
@@ -67,7 +69,7 @@ func TestBlobpool_GetBlob(t *testing.T) {
 func TestBlobpool_StoreBlob(t *testing.T) {
 	ctx := context.TODO()
 	logger := log.NewTestLogger(t)
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	data := []byte("test data")

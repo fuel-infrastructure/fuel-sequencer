@@ -16,6 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	testBlobhubAddress       = "localhost:31035"
+	testBlobpoolRedisAddress = "localhost:6380"
+)
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -65,7 +70,7 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	// Start mock server
@@ -73,26 +78,26 @@ func TestBlobhubClient_Connect(t *testing.T) {
 	defer server.Close()
 
 	// Override default blobhub address with mock server
-	origAddr := BlobhubAddress
-	BlobhubAddress = strings.TrimPrefix(server.URL, "http://")
-	defer func() { BlobhubAddress = origAddr }()
+	origAddr := testBlobhubAddress
+	testBlobhubAddress = strings.TrimPrefix(server.URL, "http://")
+	defer func() { testBlobhubAddress = origAddr }()
 
 	// Test successful connection
-	client, err := newBlobhubClient(ctx, logger, pool)
+	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	require.NotNil(t, client.conn)
 
 	// Test connection to invalid address
-	BlobhubAddress = "invalid:1234"
-	_, err = newBlobhubClient(ctx, logger, pool)
+	testBlobhubAddress = "invalid:1234"
+	_, err = newBlobhubClient(ctx, logger, pool, testBlobhubAddress)
 	assert.Error(t, err)
 }
 
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool, err := newBlobpool(ctx, logger)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
 	require.NoError(t, err)
 
 	// Start mock server
@@ -100,15 +105,15 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	defer server.Close()
 
 	// Override default blobhub address with mock server
-	origAddr := BlobhubAddress
-	BlobhubAddress = strings.TrimPrefix(server.URL, "http://")
-	defer func() { BlobhubAddress = origAddr }()
+	origAddr := testBlobhubAddress
+	testBlobhubAddress = strings.TrimPrefix(server.URL, "http://")
+	defer func() { testBlobhubAddress = origAddr }()
 
 	// Create client
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	client, err := newBlobhubClient(ctx, logger, pool)
+	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 

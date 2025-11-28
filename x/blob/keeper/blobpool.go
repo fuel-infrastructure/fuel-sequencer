@@ -15,8 +15,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
 
-const BlobpoolAddress = ":21025"
-
 // Blobpool manages blob storage at the application level
 type Blobpool struct {
 	logger log.Logger
@@ -36,14 +34,20 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(ctx context.Context, logger log.Logger) (*Blobpool, error) {
+func newBlobpool(ctx context.Context, logger log.Logger, redisAddress string, serverEnabled bool) (*Blobpool, error) {
 
 	l := logger.With("module", "blobpool")
-	store, err := redis.Store(ctx, "localhost:6380", "", 0, true)
+	store, err := redis.Store(ctx, redisAddress, "", 0, false)
+	// TODO: Use Cosmos SDK telemetry instead of bundled blob-storage metrics
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to blobpool redis store: %w", err)
 	}
-	server := blobserver.NewProductionServer(ctx, store, false)
+
+	var server *blobserver.Server
+	if serverEnabled {
+		server = blobserver.NewProductionServer(ctx, store, false)
+		// TODO: Use Cosmos SDK telemetry instead of bundled blob-storage metrics
+	}
 
 	p := &Blobpool{
 		logger: l,
@@ -53,7 +57,7 @@ func newBlobpool(ctx context.Context, logger log.Logger) (*Blobpool, error) {
 	}
 
 	metrics.SetBlobpoolCount(p.count)
-	p.logger.Info("initialized new blobpool")
+	p.logger.Info("initialized new blobpool", "server_enabled", serverEnabled)
 	return p, nil
 }
 

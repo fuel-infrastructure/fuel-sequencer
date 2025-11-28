@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
+	blobconfig "github.com/fuel-infrastructure/fuel-sequencer/x/blob/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
 )
 
@@ -38,10 +39,11 @@ func InitCometBFTConfig() *cmtcfg.Config {
 }
 
 // CustomAppConfig defines a configuration for a custom app.toml file.
-// It essentially just adds the Sidecar and Commitments config to the typical Cosmos SDK Config.
+// It essentially just adds the Sidecar, Blob, and Commitments config to the typical Cosmos SDK Config.
 type CustomAppConfig struct {
 	serverconfig.Config `mapstructure:",squash"`
 	SidecarConfig       sidecarconfig.SidecarConfig `mapstructure:"sidecar"`
+	BlobConfig          blobconfig.Config           `mapstructure:"blob"`
 	CommitmentsConfig   commitmentsconfig.Config    `mapstructure:"commitments"`
 }
 
@@ -75,6 +77,12 @@ func DefaultCustomAppConfig() (string, interface{}) {
 			Timeout:        sidecarconfig.DefaultSidecarTimeout,
 			PathToCertFile: sidecarconfig.DefaultSidecarPathToCertFile,
 		},
+		BlobConfig: blobconfig.Config{
+			BlobhubAddress:        blobconfig.DefaultBlobhubAddress,
+			BlobpoolRedisAddress:  blobconfig.DefaultBlobpoolRedisAddress,
+			BlobpoolServerEnabled: blobconfig.DefaultBlobpoolServerEnabled,
+			BlobpoolServerAddress: blobconfig.DefaultBlobpoolServerAddress,
+		},
 		CommitmentsConfig: commitmentsconfig.Config{
 			ApiEnabled:    commitmentsconfig.DefaultCommitmentsApiEnabled,
 			MaxQueryRange: commitmentsconfig.DefaultCommitmentsMaxQueryRange,
@@ -95,6 +103,16 @@ timeout = "{{ .SidecarConfig.Timeout }}"
 # Should only be modified if the sidecar is to be configured with TLS.
 # It can also be set to 'use_default_tls' for TLS with default credentials.
 path_to_cert_file = "{{ .SidecarConfig.PathToCertFile }}"
+
+[blob]
+# This defines the blobhub server address for blob synchronization.
+blobhub-address = "{{ .BlobConfig.BlobhubAddress }}"
+# This defines the Redis server address for blobpool storage.
+blobpool-redis-address = "{{ .BlobConfig.BlobpoolRedisAddress }}"
+# This dictates whether the blobpool server should be enabled for querying and profiling.
+blobpool-server-enabled = {{ .BlobConfig.BlobpoolServerEnabled }}
+# This defines the blobpool server address for querying and profiling.
+blobpool-server-address = "{{ .BlobConfig.BlobpoolServerAddress }}"
 
 [commitments]
 # This dictates whether the commitments API (with bridge commitment queries) is enabled.
