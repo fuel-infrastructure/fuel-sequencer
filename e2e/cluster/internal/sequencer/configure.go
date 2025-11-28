@@ -111,6 +111,14 @@ func (s *sequencer) initNodes() error {
 		}
 	}
 
+	// Add 60 additional non-validator accounts to genesis
+	for i, mnemonic := range AdditionalGenesisMnemonics {
+		key := testsuite.MustNewSequencerKeyFromMnemonic(mnemonic)
+		if err := testsuite.AddGenesisAccount(val0ConfigDir, "", additionalAccountBalanceCoin.String(), sdk.MustAccAddressFromBech32(key.AddressSeq)); err != nil {
+			return fmt.Errorf("failed to add additional genesis account %d: %w", i, err)
+		}
+	}
+
 	// copy the genesis file to the remaining validators
 	for _, val := range s.chain.Validators[1:] {
 		err := testsuite.CopyFile(
@@ -177,13 +185,15 @@ func (s *sequencer) initGenesis() error {
 	}
 	appGenState[minttypes.ModuleName] = bz
 
-	// TODO: genesis supply will be incorrect if we add more accounts
+	// Calculate total genesis supply: validator balances + additional account balances
 	var bankGenState banktypes.GenesisState
 	err = cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bank genesis state: %w", err)
 	}
-	genesisSupply := initBalanceCoin.Amount.MulRaw(int64(len(s.chain.Validators)))
+	validatorSupply := initBalanceCoin.Amount.MulRaw(int64(len(s.chain.Validators)))
+	additionalAccountSupply := additionalAccountBalanceCoin.Amount.MulRaw(int64(len(AdditionalGenesisMnemonics)))
+	genesisSupply := validatorSupply.Add(additionalAccountSupply)
 	bankGenState.Supply = sdk.NewCoins(sdk.NewCoin(bridgeDenom, genesisSupply))
 	bz, err = cdc.MarshalJSON(&bankGenState)
 	if err != nil {
