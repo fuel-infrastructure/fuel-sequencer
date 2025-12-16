@@ -17,11 +17,21 @@ WORKDIR /fuel-sequencer
 COPY . /fuel-sequencer
 
 # Install important system dependencies.
-RUN apk add --no-cache make git gcc musl-dev openssl-dev linux-headers
+RUN apk add --no-cache make git gcc musl-dev openssl-dev linux-headers openssh-client
+
+# Configure Git to use SSH for GitHub
+RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+# Add GitHub to known_hosts to avoid host key verification failures
+# GitHub host keys: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+RUN mkdir -p /root/.ssh && \
+    ssh-keyscan github.com >> /root/.ssh/known_hosts 2>/dev/null || \
+    (echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> /root/.ssh/known_hosts)
 
 # Download go dependencies.
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=ssh \
     go mod download
 
 # Build the fuelsequencerd binary.
