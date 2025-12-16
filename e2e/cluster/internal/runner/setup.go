@@ -46,10 +46,20 @@ func Setup(configPath string) error {
 
 	// TODO: build against existing git tag
 
-	// Build binary
-	binaryPath, err := buildBinary()
+	// // Build binary
+	// binaryPath, err := buildBinary()
+	// if err != nil {
+	// 	return logAndWrapErr("binary build failed", err)
+	// }
+
+	// build docker image
+	destinations := make([]setup.Destination, len(systems))
+	for i, val := range systems {
+		destinations[i] = val.Destination
+	}
+	imagePaths, err := buildImage(logging, setup.DockerImageName(), destinations...)
 	if err != nil {
-		return logAndWrapErr("binary build failed", err)
+		return logAndWrapErr("docker image build failed", err)
 	}
 
 	// Configure the network
@@ -68,7 +78,7 @@ func Setup(configPath string) error {
 	defer connect.CloseConnections(systems)
 
 	// Manage destinations (clean existing instances and transfer necessary files)
-	if err := manageSystems(systems, binaryPath); err != nil {
+	if err := manageSystems(systems, imagePaths); err != nil {
 		return logAndWrapErr("destination cleanup failed", err)
 	}
 

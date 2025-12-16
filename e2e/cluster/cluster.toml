@@ -28,6 +28,7 @@ host = "194.140.197.62"
 user = "tharen"
 pass = "Cheese5-Barbecue-Reappear-Freebee-Preplan"
 dir = "/home/benchmarks"
+platform = "linux/amd64"  # Platform for Docker image build (e.g., "linux/amd64", "darwin/arm64")
 
 [systems.options]
 sequencer = true
@@ -42,6 +43,7 @@ host = "5.189.150.214"
 user = "tharen"
 pass = "Immovably-Freemason-Corset1-Ritzy-Scrambled"
 dir = "/home/benchmarks"
+platform = "linux/amd64"  # Platform for Docker image build
 
 [systems.options]
 sequencer = true
@@ -56,6 +58,7 @@ host = "154.26.154.38"
 user = "tharen"
 pass = "Depraved-Gainfully-Catlike2-Regretful-Amplifier"
 dir = "/home/benchmarks"
+platform = "linux/amd64"  # Platform for Docker image build
 
 [systems.options]
 sequencer = true

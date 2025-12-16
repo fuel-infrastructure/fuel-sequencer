@@ -86,28 +86,52 @@ func node(l *zap.SugaredLogger, i int, conn setup.System) error {
 	if !conn.Options.Sequencer {
 		return nil
 	}
-	if err := deployNode(l, conn); err != nil {
+	if err := deployNode(l, conn, i); err != nil {
 		return fmt.Errorf("failed to deploy node %d: %w", i, err)
 	}
 	return nil
 }
 
-// deployNode deploys the fuelsequencerd service to a single node.
-// Enables and starts the systemd service on the remote host.
-// Returns an error if service deployment fails.
-func deployNode(l *zap.SugaredLogger, conn setup.System) error {
-	cmd := "systemctl enable fuelsequencerd"
-	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(cmd, conn.Destination.Pass)); err != nil {
-		return fmt.Errorf("failed to enable service: %w", err)
-	}
+// deployNode deploys the fuelsequencerd service to a single node using Docker.
+// Uses host networking for P2P communication across nodes.
+// Returns an error if deployment fails.
+func deployNode(l *zap.SugaredLogger, conn setup.System, nodeId int) error {
 
-	// Start the node using the systemd service
-	cmd = "systemctl start fuelsequencerd"
-	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(cmd, conn.Destination.Pass)); err != nil {
-		return fmt.Errorf("failed to start node: %w", err)
+	// Prepare container configuration
+	containerName := setup.DockerContainerName(nodeId)
+	imageName, _ := setup.DockerImageTagLatest(conn.Destination)
+	homeDir := setup.RemoteChainHomeDir(conn.Destination)
+	containerHomeDir := "/home/fuelsequencer/.fuelsequencer"
+
+	// Get user ID for container user mapping
+	userIdCmd := "id -u benchmarks"
+	uid, err := execute.RemotelyWithOutput(l, conn.SSH, userIdCmd, "id")
+	if err != nil {
+		return fmt.Errorf("failed to get user ID: %w", err)
+	}
+	// Map host user to container user (1000:1000 is fuelsequencer user in container)
+	userMap := fmt.Sprintf("%s:1000", uid)
+
+	// Build docker run command
+	// Mount data directory, use host network for P2P communication across nodes,
+	// use Docker network for local container communication, set user mapping
+	dockerRunCmd := fmt.Sprintf(
+		"docker run -d --name %s --network host --restart unless-stopped "+
+			"-v %s:%s "+
+			"--user %s "+
+			"%s fuelsequencerd start",
+		containerName,
+		homeDir, containerHomeDir,
+		userMap,
+		imageName,
+	)
+
+	l.Infow("starting Docker container...", "host", conn.Destination.Host, "container", containerName, "image", imageName)
+	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(dockerRunCmd, conn.Destination.Pass)); err != nil {
+		return fmt.Errorf("failed to start Docker container on %s: %w", conn.Destination.Host, err)
 	}
 
 	// TODO: Check if node is ready
-	l.Infow("deployed node", "host", conn.Destination.Host)
+	l.Infow("deployed node", "host", conn.Destination.Host, "container", containerName)
 	return nil
 }

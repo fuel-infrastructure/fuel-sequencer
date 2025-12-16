@@ -3,6 +3,7 @@ package setup
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
 	"github.com/spf13/viper"
@@ -41,11 +42,12 @@ type System struct {
 
 // Destination holds destination configuration
 type Destination struct {
-	PeerIP string `mapstructure:"peer_ip"`
-	Host   string `mapstructure:"host"`
-	User   string `mapstructure:"user"`
-	Pass   string `mapstructure:"pass"`
-	Dir    string `mapstructure:"dir"`
+	PeerIP   string `mapstructure:"peer_ip"`
+	Host     string `mapstructure:"host"`
+	User     string `mapstructure:"user"`
+	Pass     string `mapstructure:"pass"`
+	Dir      string `mapstructure:"dir"`
+	Platform string `mapstructure:"platform"` // e.g., "linux/amd64", "linux/arm64"
 }
 
 // Options holds system options
@@ -190,4 +192,51 @@ func RemoteBlobhubDir(d Destination) string {
 // RemoteBlobhubComposeDir returns the path where the blobhub compose is stored
 func RemoteBlobhubComposeDir(d Destination) string {
 	return filepath.Join(RemoteBlobhubDir(d), "docker-compose.yml")
+}
+
+// DockerImageName returns the Docker image name for the sequencer
+func DockerImageName() string {
+	return "fuel-infrastructure/fuel-sequencer"
+}
+
+// DockerImageTag returns the Docker image tag (defaults to latest)
+// The value may change if the tag is updated by the caller.
+var latestDockerImageTag = "latest" // TODO: replace this from global variable
+func DockerImageTag(updateTag string) string {
+	if updateTag != "" {
+		latestDockerImageTag = updateTag
+	}
+	return latestDockerImageTag
+}
+
+func DockerImageTagLatest(d Destination) (string, string) {
+	imageName := DockerImageName()
+	imageTag := DockerImageTag("")
+	platform := DockerPlatform(d)
+
+	// Use platform-specific tag to avoid conflicts between different architectures
+	platformTag := fmt.Sprintf("%s-%s", imageTag, platform)
+	platformTag = strings.ReplaceAll(platformTag, "/", "-") // Replace / with - for valid tag name
+	platformTag = strings.ReplaceAll(platformTag, ".", "_") // Replace . with _ for valid tag name
+	fullImageName := fmt.Sprintf("%s:%s", imageName, platformTag)
+
+	return fullImageName, platformTag
+}
+
+// DockerContainerName returns the container name for a sequencer instance
+func DockerContainerName(nodeId int) string {
+	return fmt.Sprintf("fuelsequencer%d", nodeId)
+}
+
+// DockerNetworkName returns the Docker network name for sequencer communication
+func DockerNetworkName() string {
+	return "fuel-sequencer-network"
+}
+
+// DockerPlatform returns the Docker platform for a destination, defaulting to linux/amd64 if not specified
+func DockerPlatform(d Destination) string {
+	if d.Platform != "" {
+		return d.Platform
+	}
+	return "linux/amd64" // Default platform
 }

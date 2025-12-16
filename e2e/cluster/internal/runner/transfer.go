@@ -19,12 +19,12 @@ import (
 // transfer copies a file or directory from the local machine to a remote destination using rsync.
 // Takes a logger, connection, local path, and remote path.
 // Returns an error if the transfer fails.
-func transfer(l *zap.SugaredLogger, conn setup.System, localPath, remotePath string) error {
+func transfer(l *zap.SugaredLogger, conn setup.System, localPath, remotePath string, excludes ...string) error {
 	if err := ensureDir(l, conn.SSH, filepath.Dir(remotePath)); err != nil {
 		return fmt.Errorf("failed to ensure remote directory: %w", err)
 	}
 
-	if err := transferPath(l, conn, localPath, remotePath); err != nil {
+	if err := transferPath(l, conn, localPath, remotePath, excludes); err != nil {
 		return fmt.Errorf("failed to transfer file: %w", err)
 	}
 
@@ -48,7 +48,7 @@ func ensureDir(l *zap.SugaredLogger, client *ssh.Client, remotePath string) erro
 // transferPath handles the actual rsync transfer of files or directories.
 // Implements rsync with progress reporting and retry mechanism.
 // Returns an error if the transfer fails after all retry attempts.
-func transferPath(l *zap.SugaredLogger, conn setup.System, localPath, remotePath string) error {
+func transferPath(l *zap.SugaredLogger, conn setup.System, localPath, remotePath string, excludes []string) error {
 	const maxRetries = 3
 	const retryDelay = 2 * time.Second
 
@@ -56,7 +56,7 @@ func transferPath(l *zap.SugaredLogger, conn setup.System, localPath, remotePath
 		l.Debugf("transferring to %s (attempt %d/%d)", remotePath, attempt, maxRetries)
 
 		startTime := time.Now()
-		err := attemptTransfer(l, conn, localPath, remotePath)
+		err := attemptTransfer(l, conn, localPath, remotePath, excludes)
 		duration := time.Since(startTime)
 
 		if err == nil {
@@ -76,7 +76,7 @@ func transferPath(l *zap.SugaredLogger, conn setup.System, localPath, remotePath
 }
 
 // attemptTransfer performs a single transfer attempt using rsync.
-func attemptTransfer(l *zap.SugaredLogger, conn setup.System, localPath, remotePath string) error {
+func attemptTransfer(l *zap.SugaredLogger, conn setup.System, localPath, remotePath string, excludes []string) error {
 	// Get file info for size and type
 	stat, err := os.Stat(localPath)
 	if err != nil {
@@ -90,6 +90,11 @@ func attemptTransfer(l *zap.SugaredLogger, conn setup.System, localPath, remoteP
 	// -h: human-readable
 	// -P: progress and partial (resume)
 	flags := "-rvzhP"
+
+	// Add exclude patterns if provided
+	for _, exclude := range excludes {
+		flags += fmt.Sprintf(" --exclude=%s", exclude)
+	}
 
 	// Ensure trailing slash for directories to sync contents
 	sourcePath := localPath
