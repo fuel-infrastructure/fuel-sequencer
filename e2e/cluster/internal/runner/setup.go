@@ -52,23 +52,33 @@ func Setup(configPath string) error {
 	// 	return logAndWrapErr("binary build failed", err)
 	// }
 
-	// build docker image
-	destinations := make([]setup.Destination, len(systems))
-	for i, val := range systems {
-		destinations[i] = val.Destination
-	}
-	imagePaths, err := buildImage(logging, setup.DockerImageName(), destinations...)
-	if err != nil {
-		return logAndWrapErr("docker image build failed", err)
-	}
+	// build docker image and configure the network, if at least one system has sequencer enabled
+	var imagePaths map[string]string
+	if func() bool {
+		for _, val := range systems {
+			if val.Options.Sequencer {
+				return true
+			}
+		}
+		return false
+	}() {
+		destinations := make([]setup.Destination, len(systems))
+		for i, val := range systems {
+			destinations[i] = val.Destination
+		}
+		imagePaths, err = buildImage(logging, setup.DockerImageName(), destinations...)
+		if err != nil {
+			return logAndWrapErr("docker image build failed", err)
+		}
 
-	// Configure the network
-	peerIPs := make([]string, len(systems))
-	for i, val := range systems {
-		peerIPs[i] = val.Destination.PeerIP
-	}
-	if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), execute.Locally, peerIPs); err != nil {
-		return logAndWrapErr("network configuration failed", err)
+		// Configure the network
+		peerIPs := make([]string, len(systems))
+		for i, val := range systems {
+			peerIPs[i] = val.Destination.PeerIP
+		}
+		if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), execute.Locally, peerIPs); err != nil {
+			return logAndWrapErr("network configuration failed", err)
+		}
 	}
 
 	// Establish connection to all destinations
