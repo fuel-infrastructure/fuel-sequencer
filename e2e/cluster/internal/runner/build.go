@@ -113,12 +113,14 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 	gitHash = strings.TrimSpace(string(gitHash))
 	setup.DockerImageTag(gitHash)
 
+	absDockerfilePath, err := filepath.Abs(dockerfilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path for Dockerfile path %s: %w", dockerfilePath, err)
+	}
+
 	imagePaths := make(map[string]string)
 
 	// Build with buildx
-	// Use --file with path relative to build context (absMakefileDir)
-	// Since Dockerfile is in the root of makefileDir, we use "Dockerfile" as relative path
-	// The build context is the absolute path to the repository root
 	for _, destination := range destinations {
 		platform := setup.DockerPlatform(destination)
 		fullImageName, platformTag := setup.DockerImageTagLatest(destination)
@@ -127,11 +129,11 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 			continue
 		}
 
-		if err := execute.Locally(l, "cd", absMakefileDir, "&&", "docker", "buildx", "build",
+		if err := execute.Locally(l, "docker", "buildx", "build",
 			"--platform", platform,
 			"--tag", fullImageName,
 			"--ssh", "default", // Use default SSH agent to access private repositories
-			"--file", "Dockerfile", // Relative to build context (repository root)
+			"--file", absDockerfilePath, // Path relative to build context
 			"--load",       // Load into local Docker daemon
 			absMakefileDir, // Build context - absolute path to repo root where Dockerfile is
 		); err != nil {
