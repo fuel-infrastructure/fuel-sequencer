@@ -131,15 +131,22 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 			continue
 		}
 
-		if err := execute.Locally(l, "docker", "buildx", "build",
-			"--platform", platform,
-			"--tag", fullImageName,
-			"--ssh", "default", // Use default SSH agent to access private repositories
-			"--file", absDockerfilePath, // Path relative to build context
-			"--load",       // Load into local Docker daemon
-			absMakefileDir, // Build context - absolute path to repo root where Dockerfile is
-		); err != nil {
-			return nil, fmt.Errorf("docker buildx build failed: %w", err)
+		// Skip build if image already exists
+		// Use docker image inspect which returns an error if the image doesn't exist
+		if _, err := execute.LocallyWithOutput(l, "docker", "image", "inspect", fullImageName); err == nil {
+			l.Infow("docker image already exists, skipping build", "image", fullImageName, "platform", platform)
+		} else {
+			// Image doesn't exist, build it
+			if err := execute.Locally(l, "docker", "buildx", "build",
+				"--platform", platform,
+				"--tag", fullImageName,
+				"--ssh", "default", // Use default SSH agent to access private repositories
+				"--file", absDockerfilePath, // Path relative to build context
+				"--load",       // Load into local Docker daemon
+				absMakefileDir, // Build context - absolute path to repo root where Dockerfile is
+			); err != nil {
+				return nil, fmt.Errorf("docker buildx build failed: %w", err)
+			}
 		}
 
 		// Also tag as latest for this platform (extract base image name)
