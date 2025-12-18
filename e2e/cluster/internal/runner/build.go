@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+/*
 // buildBinary builds or finds an existing fuelsequencerd binary.
 // Returns the path to the binary and any error encountered.
 // If an existing binary is found with matching architecture, it will be used.
@@ -69,6 +70,7 @@ func findBuild(l *zap.SugaredLogger) (string, error) {
 
 	return binaryPath, nil
 }
+*/
 
 // buildImage builds a Docker image for a specific platform using buildx.
 func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.Destination) (map[string]string, error) {

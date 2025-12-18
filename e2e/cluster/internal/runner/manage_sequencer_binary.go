@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+/*
 // manageService handles the systemd service configuration for a destination.
 // Checks if service exists, compares hashes and transfers updated service file if needed.
 // Returns an error if service management fails.
@@ -145,6 +146,7 @@ func transferBinary(l *zap.SugaredLogger, conn setup.System, localBinaryPath, re
 	}
 	return nil
 }
+*/
 
 // manageData handles the chain data management for a destination.
 // Cleans existing data and transfers new configuration.
