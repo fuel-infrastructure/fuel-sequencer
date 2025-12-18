@@ -12,14 +12,14 @@ import (
 // manageImage handles the Docker image for a destination.
 // Builds the image locally for the specified platform if needed, then transfers and loads it on the remote host.
 // Returns an error if Docker image management fails.
-func manageImage(l *zap.SugaredLogger, sys setup.System, nodeId int, imagePath string) error {
+func manageImage(l *zap.SugaredLogger, sys setup.System, nodeId int, instanceId int, imagePath string) error {
 	onlyShutdown := !sys.Options.Sequencer
 
 	platform := setup.DockerPlatform(sys.Destination)
 	fullImageName, _ := setup.DockerImageTagLatest(sys.Destination)
 
 	// Stop and remove existing containers if they exist
-	containerName := setup.DockerContainerName(nodeId)
+	containerName := setup.DockerContainerName(nodeId, instanceId)
 	stopCmd := fmt.Sprintf("docker stop %s 2>/dev/null || true", containerName)
 	l.Infow("stopping existing container...", "host", sys.Destination.Host, "container", containerName)
 	if err := execute.Remotely(l, sys.SSH, execute.WithSudo(stopCmd, sys.Destination.Pass)); err != nil {

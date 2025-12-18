@@ -151,11 +151,11 @@ func transferBinary(l *zap.SugaredLogger, conn setup.System, localBinaryPath, re
 // manageData handles the chain data management for a destination.
 // Cleans existing data and transfers new configuration.
 // Returns an error if data management fails.
-func manageData(l *zap.SugaredLogger, conn setup.System, nodeId int) error {
+func manageData(l *zap.SugaredLogger, conn setup.System, nodeId int, instanceId int) error {
 	onlyDelete := !conn.Options.Sequencer
 
 	// if data on remote exists, remove it
-	homeDir := setup.RemoteChainHomeDir(conn.Destination)
+	homeDir := setup.RemoteChainHomeDir(conn.Destination, instanceId)
 	checkCmd := "test -d " + homeDir
 	if err := execute.Remotely(l, conn.SSH, checkCmd); err != nil {
 		l.Infof("no chain home directory found on %s", conn.Destination.Host)
@@ -176,19 +176,28 @@ func manageData(l *zap.SugaredLogger, conn setup.System, nodeId int) error {
 	}
 
 	// now transfer the updated config
-	if err := transferConfig(l, conn, nodeId); err != nil {
+	if err := transferConfig(l, conn, nodeId, instanceId); err != nil {
 		return fmt.Errorf("failed to transfer config: %w", err)
 	}
 	return nil
 }
 
 // transferConfig transfers the chain configuration files to a destination node.
-// Takes a logger, connection details, and node ID.
-// Transfers the configuration files and sets appropriate permissions.
+// Takes a logger, connection details, node ID (system index), and instance ID.
+// Calculates the validator index from nodeId and instanceId to find the correct config.
 // Returns an error if transfer fails.
-func transferConfig(l *zap.SugaredLogger, conn setup.System, nodeId int) error {
-	instanceDir := filepath.Join(setup.DataDir(), sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", nodeId))
-	remoteDataDir := setup.RemoteChainHomeDir(conn.Destination)
+func transferConfig(l *zap.SugaredLogger, conn setup.System, nodeId int, instanceId int) error {
+	// Calculate validator index: sum of sequencer instances from all previous systems + instanceId
+	systems := setup.Systems()
+	validatorIndex := instanceId
+	for i := 0; i < nodeId; i++ {
+		if i < len(systems) && systems[i].Options.Sequencer {
+			validatorIndex += systems[i].Options.Instances
+		}
+	}
+
+	instanceDir := filepath.Join(setup.DataDir(), sequencer.ChainName, fmt.Sprintf("fuelsequencer%d", validatorIndex))
+	remoteDataDir := setup.RemoteChainHomeDir(conn.Destination, instanceId)
 
 	l.Infow("transferring config as chain home directory...", "from", instanceDir, "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remoteDataDir))
 	if err := transfer(l, conn, instanceDir, remoteDataDir); err != nil {
