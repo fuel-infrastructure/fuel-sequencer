@@ -3,10 +3,9 @@ package setup
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -41,11 +40,12 @@ type System struct {
 
 // Destination holds destination configuration
 type Destination struct {
-	PeerIP string `mapstructure:"peer_ip"`
-	Host   string `mapstructure:"host"`
-	User   string `mapstructure:"user"`
-	Pass   string `mapstructure:"pass"`
-	Dir    string `mapstructure:"dir"`
+	PeerIP   string `mapstructure:"peer_ip"`
+	Host     string `mapstructure:"host"`
+	User     string `mapstructure:"user"`
+	Pass     string `mapstructure:"pass"`
+	Dir      string `mapstructure:"dir"`
+	Platform string `mapstructure:"platform"` // e.g., "linux/amd64", "linux/arm64"
 }
 
 // Options holds system options
@@ -53,6 +53,7 @@ type Options struct {
 	Sequencer bool `mapstructure:"sequencer"`
 	Blobpool  bool `mapstructure:"blobpool"`
 	Blobhub   bool `mapstructure:"blobhub"`
+	Instances int  `mapstructure:"instances"` // Number of instances to deploy on this system (default: 1)
 }
 
 var (
@@ -80,6 +81,10 @@ func LoadConfig(configPath string) error {
 	// Convert SystemConfig to System slice
 	systems = make([]System, len(config.Systems))
 	for i, sysConfig := range config.Systems {
+		// Default to 1 instance if not specified
+		if sysConfig.Options.Instances <= 0 {
+			sysConfig.Options.Instances = 1
+		}
 		systems[i] = System{
 			Destination: sysConfig.Destination,
 			Options:     sysConfig.Options,
@@ -88,18 +93,6 @@ func LoadConfig(configPath string) error {
 	}
 
 	return nil
-}
-
-func CheckParameters(logging *zap.SugaredLogger) ([]System, error) {
-	systems := Systems()
-	ls, lm := len(systems), len(sequencer.Mnemonics)
-	if ls != lm {
-		err := fmt.Errorf("check config: number of systems (%d) does not match number of mnemonics (%d)", ls, lm)
-		logging.Fatalw(err.Error())
-		return nil, err
-	}
-
-	return systems, nil
 }
 
 // LoadedConfig returns the loaded configuration
@@ -158,8 +151,8 @@ func BlobhubDirPath() string {
 }
 
 // RemoteChainHomeDir returns the path to the chain's home directory on the remote host
-func RemoteChainHomeDir(d Destination) string {
-	return filepath.Join(d.Dir, ".fuelsequencer")
+func RemoteChainHomeDir(d Destination, instanceId int) string {
+	return filepath.Join(d.Dir, fmt.Sprintf(".fuelsequencer-%d", instanceId))
 }
 
 // RemoteBinaryPath returns the path where the binary should be installed on the remote host
@@ -168,26 +161,104 @@ func RemoteBinaryPath(d Destination) string {
 }
 
 // RemoteBlobDir returns the path where blob files should be stored on the remote host
-func RemoteBlobDir(d Destination) string {
-	return filepath.Join(d.Dir, "blob")
+func RemoteBlobDir(d Destination, instanceId int) string {
+	return filepath.Join(d.Dir, fmt.Sprintf("blob-%d", instanceId))
 }
 
 // RemoteBlobStorageRedisConfPath returns the path where the Redis config file should be stored on the remote host
-func RemoteBlobStorageRedisConfPath(d Destination) string {
-	return filepath.Join(RemoteBlobDir(d), "redis.conf")
+func RemoteBlobStorageRedisConfPath(d Destination, instanceId int) string {
+	return filepath.Join(RemoteBlobDir(d, instanceId), "redis.conf")
 }
 
 // RemoteBlobpoolComposePath returns the path where the docker compose file should be stored on the remote host
-func RemoteBlobpoolComposePath(d Destination) string {
-	return filepath.Join(RemoteBlobDir(d), "docker-compose.blobpool.yml")
+func RemoteBlobpoolComposePath(d Destination, instanceId int) string {
+	return filepath.Join(RemoteBlobDir(d, instanceId), "docker-compose.blobpool.yml")
 }
 
 // RemoteBlobhubDir returns the path where the blobhub project is stored
-func RemoteBlobhubDir(d Destination) string {
-	return filepath.Join(RemoteBlobDir(d), "blob-storage")
+func RemoteBlobhubDir(d Destination, instanceId int) string {
+	return filepath.Join(RemoteBlobDir(d, instanceId), "blob-storage")
 }
 
 // RemoteBlobhubComposeDir returns the path where the blobhub compose is stored
-func RemoteBlobhubComposeDir(d Destination) string {
-	return filepath.Join(RemoteBlobhubDir(d), "docker-compose.yml")
+func RemoteBlobhubComposeDir(d Destination, instanceId int) string {
+	return filepath.Join(RemoteBlobhubDir(d, instanceId), "docker-compose.yml")
+}
+
+// DockerImageName returns the Docker image name for the sequencer
+func DockerImageName() string {
+	return "fuel-infrastructure/fuel-sequencer"
+}
+
+// DockerImageTag returns the Docker image tag (defaults to latest)
+// The value may change if the tag is updated by the caller.
+var latestDockerImageTag = "latest" // TODO: replace this from global variable
+func DockerImageTag(updateTag string) string {
+	if updateTag != "" {
+		latestDockerImageTag = updateTag
+	}
+	return latestDockerImageTag
+}
+
+func DockerImageTagLatest(d Destination) (string, string) {
+	imageName := DockerImageName()
+	imageTag := DockerImageTag("")
+	platform := DockerPlatform(d)
+
+	// Use platform-specific tag to avoid conflicts between different architectures
+	platformTag := fmt.Sprintf("%s-%s", imageTag, platform)
+	platformTag = strings.ReplaceAll(platformTag, "/", "-") // Replace / with - for valid tag name
+	platformTag = strings.ReplaceAll(platformTag, ".", "_") // Replace . with _ for valid tag name
+	fullImageName := fmt.Sprintf("%s:%s", imageName, platformTag)
+
+	return fullImageName, platformTag
+}
+
+// DockerContainerName returns the container name for a sequencer instance
+func DockerContainerName(nodeId int, instanceId int) string {
+	return fmt.Sprintf("fuelsequencer%d-%d", nodeId, instanceId)
+}
+
+// DockerNetworkName returns the Docker network name for sequencer communication
+func DockerNetworkName() string {
+	return "fuel-sequencer-network"
+}
+
+// DockerPlatform returns the Docker platform for a destination, defaulting to linux/amd64 if not specified
+func DockerPlatform(d Destination) string {
+	if d.Platform != "" {
+		return d.Platform
+	}
+	return "linux/amd64" // Default platform
+}
+
+// TotalInstances returns the total number of instances across all systems
+func TotalInstances(systems []System) int {
+	total := 0
+	for _, sys := range systems {
+		total += sys.Options.Instances
+	}
+	return total
+}
+
+type Ports struct {
+	P2P            int
+	RPC            int
+	API            int
+	GRPC           int
+	Prometheus     int
+	BlobpoolRedis  int
+	BlobpoolServer int
+}
+
+func InstancePorts(instanceId int) Ports {
+	return Ports{
+		P2P:            26656 + instanceId*100,
+		RPC:            26657 + instanceId*100,
+		API:            1317 + instanceId*100,
+		GRPC:           9090 + instanceId*100,
+		Prometheus:     26660 + instanceId*100,
+		BlobpoolRedis:  6380 + instanceId*10,
+		BlobpoolServer: 21025 + instanceId*10,
+	}
 }

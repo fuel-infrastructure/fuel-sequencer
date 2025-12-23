@@ -18,23 +18,26 @@ type executor interface {
 	Wait() error
 }
 
-// execute runs a command through the provided executor, capturing and logging output.
-// It streams stdout and stderr through the logger and returns any error encountered.
-func execute(l *zap.SugaredLogger, e executor, commandName string) error {
+// execute runs a command through the provided executor, capturing output and optionally logging it.
+// It streams stdout and stderr through the logger (unless silent) and returns the combined stdout output with any error encountered.
+func execute(l *zap.SugaredLogger, e executor, commandName string, silent bool) (string, error) {
 
 	// Capture output for logging by creating pipes for stdout and stderr
 	stdout, err := e.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("failed to create stdout pipe: %w", err)
+		return "", fmt.Errorf("failed to create stdout pipe: %w", err)
 	}
 	stderr, err := e.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("failed to create stderr pipe: %w", err)
+		return "", fmt.Errorf("failed to create stderr pipe: %w", err)
 	}
 
 	// Create a wait group to ensure both goroutines complete
 	var wg sync.WaitGroup
 	wg.Add(2)
+
+	// Capture stdout for return
+	var stdoutBuf strings.Builder
 
 	// Stream stdout with smart progress detection
 	go func() {
@@ -42,12 +45,18 @@ func execute(l *zap.SugaredLogger, e executor, commandName string) error {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			line := scanner.Text()
-			if isProgressLine(line) {
-				// This is a progress update, log it as progress info
-				l.Infow(fmt.Sprintf("running %s...", commandName), "progress", strings.TrimSpace(line))
-			} else if strings.TrimSpace(line) != "" {
-				// Regular output line (skip empty lines)
-				l.Info(line)
+			if trimmed := strings.TrimSpace(line); trimmed != "" {
+				stdoutBuf.WriteString(line)
+				stdoutBuf.WriteByte('\n')
+				if !silent {
+					if isProgressLine(line) {
+						// This is a progress update, log it as progress info
+						l.Infow(fmt.Sprintf("running %s...", commandName), "progress", trimmed)
+					} else {
+						// Regular output line (skip empty lines)
+						l.Info(line)
+					}
+				}
 			}
 		}
 	}()
@@ -58,7 +67,7 @@ func execute(l *zap.SugaredLogger, e executor, commandName string) error {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 			line := scanner.Text()
-			if strings.TrimSpace(line) != "" {
+			if trimmed := strings.TrimSpace(line); trimmed != "" && !silent {
 				l.Warn(line)
 			}
 		}
@@ -66,7 +75,7 @@ func execute(l *zap.SugaredLogger, e executor, commandName string) error {
 
 	// Start the command
 	if err := e.Start(); err != nil {
-		return fmt.Errorf("failed to start command: %w", err)
+		return "", fmt.Errorf("failed to start command: %w", err)
 	}
 
 	// Wait for both output streams to complete
@@ -74,9 +83,11 @@ func execute(l *zap.SugaredLogger, e executor, commandName string) error {
 
 	// Wait for the command to complete
 	if err := e.Wait(); err != nil {
-		l.Errorw("command failed", "error", err)
-		return fmt.Errorf("command failed: %w", err)
+		if !silent {
+			l.Errorw("command failed", "error", err)
+		}
+		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	return nil
+	return strings.TrimSpace(stdoutBuf.String()), nil
 }

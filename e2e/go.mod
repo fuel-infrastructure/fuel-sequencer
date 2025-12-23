@@ -3,8 +3,8 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.23.11
 
 replace (
-	// use custom blob-storage with the targeted fixes (branch: feature/blob-storage-for-profiling)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20251008101352-8969f1455088
+	// use custom blob-storage with the targeted fixes (branch: feature/optimised-stream)
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20251222173433-899bf2590daf
 	// github.com/fuel-infrastructure/blob-storage => ../../blob-storage
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../

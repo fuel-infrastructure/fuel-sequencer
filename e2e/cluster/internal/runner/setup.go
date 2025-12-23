@@ -39,26 +39,57 @@ func Setup(configPath string) error {
 
 	sequencer.CheckParameters(logging)
 
-	systems, err := setup.CheckParameters(logging)
+	systems, err := sequencer.CheckNetworkMnemonics(logging)
 	if err != nil {
 		return logAndWrapErr("loaded configuration has errors", err)
 	}
 
 	// TODO: build against existing git tag
 
-	// Build binary
-	binaryPath, err := buildBinary()
-	if err != nil {
-		return logAndWrapErr("binary build failed", err)
-	}
+	// // Build binary
+	// binaryPath, err := buildBinary()
+	// if err != nil {
+	// 	return logAndWrapErr("binary build failed", err)
+	// }
 
-	// Configure the network
-	peerIPs := make([]string, len(systems))
-	for i, val := range systems {
-		peerIPs[i] = val.Destination.PeerIP
-	}
-	if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), execute.Locally, peerIPs); err != nil {
-		return logAndWrapErr("network configuration failed", err)
+	// build docker image and configure the network, if at least one system has sequencer enabled
+	var imagePaths map[string]string
+	if func() bool {
+		for _, val := range systems {
+			if val.Options.Sequencer {
+				return true
+			}
+		}
+		return false
+	}() {
+		destinations := make([]setup.Destination, len(systems))
+		for i, val := range systems {
+			destinations[i] = val.Destination
+		}
+		imagePaths, err = buildImage(logging, setup.DockerImageName(), destinations...)
+		if err != nil {
+			return logAndWrapErr("docker image build failed", err)
+		}
+
+		// Configure the network - generate peer IPs and instance IDs for all instances
+		totalInstances := setup.TotalInstances(systems)
+		peerIPs := make([]string, 0, totalInstances)
+		instanceIds := make([]int, 0, totalInstances)
+		var blobhubAddress string
+		for _, sys := range systems {
+			// Find the first system with blobhub enabled to get its address
+			if sys.Options.Blobhub && blobhubAddress == "" {
+				// Blobhub typically uses port 31035
+				blobhubAddress = fmt.Sprintf("%s:31035", sys.Destination.Host)
+			}
+			for instanceId := 0; instanceId < sys.Options.Instances; instanceId++ {
+				peerIPs = append(peerIPs, sys.Destination.PeerIP)
+				instanceIds = append(instanceIds, instanceId)
+			}
+		}
+		if err := sequencer.ConfigureNetwork(logging, setup.DataDir(), execute.Locally, peerIPs, instanceIds, blobhubAddress); err != nil {
+			return logAndWrapErr("network configuration failed", err)
+		}
 	}
 
 	// Establish connection to all destinations
@@ -68,7 +99,7 @@ func Setup(configPath string) error {
 	defer connect.CloseConnections(systems)
 
 	// Manage destinations (clean existing instances and transfer necessary files)
-	if err := manageSystems(systems, binaryPath); err != nil {
+	if err := manageSystems(systems, imagePaths); err != nil {
 		return logAndWrapErr("destination cleanup failed", err)
 	}
 

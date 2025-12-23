@@ -12,12 +12,14 @@ package sequencer
 // The rest are applied remotely or intended to be consistent across a deployment. Ultimately depends on the usecase.
 
 import (
+	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"go.uber.org/zap"
 
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 )
 
@@ -148,4 +150,17 @@ func CheckParameters(logging *zap.SugaredLogger) {
 
 	// Log the number of additional genesis accounts that will be created
 	logging.Infow("additional genesis accounts configured", "count", len(AdditionalGenesisMnemonics))
+}
+
+func CheckNetworkMnemonics(logging *zap.SugaredLogger) ([]setup.System, error) {
+	systems := setup.Systems()
+	totalInstances := setup.TotalInstances(systems)
+	lm := len(Mnemonics)
+	if totalInstances != lm {
+		err := fmt.Errorf("check config: total number of instances (%d) does not match number of mnemonics (%d)", totalInstances, lm)
+		logging.Fatalw(err.Error())
+		return nil, err
+	}
+
+	return systems, nil
 }

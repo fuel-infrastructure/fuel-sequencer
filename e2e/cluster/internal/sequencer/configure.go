@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/testsuite"
 	bridgetypes "github.com/fuel-infrastructure/fuel-sequencer/x/bridge/types"
 	sequencingtypes "github.com/fuel-infrastructure/fuel-sequencer/x/sequencing/types"
@@ -46,7 +47,7 @@ type sequencer struct {
 // Returns an error if any configuration step fails.
 func ConfigureNetwork(logger *zap.SugaredLogger,
 	dataDir string, locally func(logger *zap.SugaredLogger, cmd string, args ...string) error,
-	peerIPs []string,
+	peerIPs []string, instanceIds []int, blobhubAddress string,
 ) error {
 	l := logger.Named("Configure")
 
@@ -82,7 +83,7 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 		return fmt.Errorf("failed to initialise genesis: %w", err)
 	}
 
-	err = s.initValidatorConfigs(peerIPs)
+	err = s.initValidatorConfigs(peerIPs, instanceIds, blobhubAddress)
 	if err != nil {
 		return fmt.Errorf("failed to initialise validator configs: %w", err)
 	}
@@ -304,8 +305,13 @@ func (s *sequencer) initGenesis() error {
 // initValidatorConfigs initializes validator-specific configurations including
 // P2P settings, RPC endpoints, and application parameters.
 // Returns an error if validator configuration fails.
-func (s *sequencer) initValidatorConfigs(peerIPs []string) error {
+func (s *sequencer) initValidatorConfigs(peerIPs []string, instanceIds []int, blobhubAddress string) error {
 	for i, val := range s.chain.Validators {
+		instanceId := 0
+		if i < len(instanceIds) {
+			instanceId = instanceIds[i]
+		}
+
 		cmCfgPath := filepath.Join(val.ConfigDir(), "config", "config.toml")
 
 		vpr := viper.New()
@@ -319,16 +325,31 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string) error {
 			return fmt.Errorf("failed to unmarshal config file: %w", err)
 		}
 
+		// Get per-instance ports
+		ports := setup.InstancePorts(instanceId)
+
 		valConfig.Mempool.MaxTxBytes = mempoolMaxTxBytes
 		valConfig.Mempool.MaxTxsBytes = mempoolMaxTxsBytes
-		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
+		valConfig.P2P.ListenAddress = fmt.Sprintf("tcp://0.0.0.0:%d", ports.P2P)
 		valConfig.P2P.AddrBookStrict = false
-		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", peerIPs[i], 26656)
-		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
+		valConfig.P2P.ExternalAddress = fmt.Sprintf("%s:%d", peerIPs[i], ports.P2P)
+
+		// Check if multiple validators share the same IP - if so, allow duplicate IP connections
+		// This is needed when deploying multiple instances on the same host
+		hasDuplicateIPs := false
+		for k := 0; k < len(peerIPs); k++ {
+			if k != i && peerIPs[k] == peerIPs[i] {
+				hasDuplicateIPs = true
+				break
+			}
+		}
+		valConfig.P2P.AllowDuplicateIP = hasDuplicateIPs
+		valConfig.RPC.ListenAddress = fmt.Sprintf("tcp://0.0.0.0:%d", ports.RPC)
 		valConfig.RPC.MaxBodyBytes = int64(blockMaxGas)
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
 		valConfig.Instrumentation.Prometheus = true
+		valConfig.Instrumentation.PrometheusListenAddr = fmt.Sprintf(":%d", ports.Prometheus)
 
 		// speed up blocks
 		valConfig.Consensus.TimeoutCommit = 5 * time.Second
@@ -339,13 +360,17 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string) error {
 
 		var peers []string
 
-		for j := 0; j < len(s.chain.Validators); j++ {
+		for j, peer := range s.chain.Validators {
 			if i == j {
 				continue
 			}
 
-			peer := s.chain.Validators[j]
-			peerID := fmt.Sprintf("%s@%s:26656", peer.NodeKey.ID(), peerIPs[j])
+			peerInstanceId := 0
+			if j < len(instanceIds) {
+				peerInstanceId = instanceIds[j]
+			}
+			peerPorts := setup.InstancePorts(peerInstanceId)
+			peerID := fmt.Sprintf("%s@%s:%d", peer.NodeKey.ID(), peerIPs[j], peerPorts.P2P)
 			peers = append(peers, peerID)
 		}
 
@@ -361,9 +386,9 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string) error {
 		appConfig.Mempool.MaxTxs = 0 // unlimited txs
 		appConfig.QueryGasLimit = 0  // unlimited gas
 		appConfig.API.Enable = true
-		appConfig.API.Address = "tcp://0.0.0.0:1317"
+		appConfig.API.Address = fmt.Sprintf("tcp://0.0.0.0:%d", ports.API)
 		appConfig.API.RPCMaxBodyBytes = uint(blockMaxGas)
-		appConfig.GRPC.Address = "0.0.0.0:9090"
+		appConfig.GRPC.Address = fmt.Sprintf("0.0.0.0:%d", ports.GRPC)
 		appConfig.Pruning = "nothing"
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrices, bridgeDenom)
 		appConfig.CommitmentsConfig.ApiEnabled = true
@@ -371,10 +396,15 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string) error {
 		appConfig.Telemetry.Enabled = true
 		appConfig.Telemetry.PrometheusRetentionTime = 60 // 1 minute
 		appConfig.SidecarConfig.Enabled = false
-		appConfig.BlobConfig.BlobhubAddress = "5.189.150.214:31035"
-		appConfig.BlobConfig.BlobpoolRedisAddress = "localhost:6380"
+		// Use the provided blobhub address, or default if not set
+		if blobhubAddress != "" {
+			appConfig.BlobConfig.BlobhubAddress = blobhubAddress
+		} else {
+			appConfig.BlobConfig.BlobhubAddress = "5.189.150.214:31035" // fallback default
+		}
+		appConfig.BlobConfig.BlobpoolRedisAddress = fmt.Sprintf("localhost:%d", ports.BlobpoolRedis)
 		appConfig.BlobConfig.BlobpoolServerEnabled = true
-		appConfig.BlobConfig.BlobpoolServerAddress = "localhost:21025"
+		appConfig.BlobConfig.BlobpoolServerAddress = fmt.Sprintf("localhost:%d", ports.BlobpoolServer)
 
 		srvconfig.SetConfigTemplate(customAppTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)

@@ -2,137 +2,128 @@ package keeper
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
-	"net/url"
+	"strings"
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/fuel-infrastructure/blob-storage/pkg/store"
-	"github.com/gorilla/websocket"
+	blobclient "github.com/fuel-infrastructure/blob-storage/pkg/client"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 )
 
-type blobMessage struct {
-	Type      string `json:"type"`
-	ID        string `json:"id"`
-	Data      string `json:"data"`
-	Timestamp int64  `json:"timestamp"`
-	Size      int    `json:"size"`
-}
-
 type blobhubClient struct {
 	logger         log.Logger
 	blobpool       *Blobpool // reference to the blobpool, where blobs are stored
-	blobhubAddress string    // configurable blobhub address
+	blobhubAddress string    // configurable blobhub address (HTTP base URL)
 
-	conn *websocket.Conn
+	client *blobclient.Client
+}
 
-	blobs chan store.StoredBlob
+// normalizeBlobhubAddress converts a blobhub address to HTTP URL format.
+// If the address already contains a scheme (http:// or https://), it's returned as-is.
+// Otherwise, it's assumed to be host:port and http:// is prepended.
+func normalizeBlobhubAddress(address string) string {
+	if strings.HasPrefix(address, "http://") || strings.HasPrefix(address, "https://") {
+		return address
+	}
+	return "http://" + address
 }
 
 func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool, blobhubAddress string) (*blobhubClient, error) {
-	client := &blobhubClient{
+	// Normalize address to HTTP URL format
+	httpURL := normalizeBlobhubAddress(blobhubAddress)
+
+	// Create client with HTTP base URL
+	// Note: Logger is optional - client library will use no-op logger if nil
+	config := &blobclient.ClientConfig{
+		BaseURL: httpURL,
+		Logger:  nil, // Use no-op logger from client library
+	}
+	client := blobclient.NewClient(config)
+
+	blobhubClient := &blobhubClient{
 		logger:         logger.With("module", "blobhub_sync"),
 		blobpool:       blobpool,
-		blobhubAddress: blobhubAddress,
-		blobs:          make(chan store.StoredBlob),
+		blobhubAddress: httpURL,
+		client:         client,
 	}
 
-	if err := client.connect(ctx); err != nil {
-		client.logger.Error("failed to create blobhub client", "error", err)
-		return nil, err
-	}
+	blobhubClient.logger.Info("created new blobhub client", "url", httpURL)
+	go blobhubClient.sync(ctx)
 
-	client.logger.Info("created new blobhub client")
-	go client.sync(ctx)
-
-	return client, nil
-}
-
-func (c *blobhubClient) connect(ctx context.Context) error {
-	u := url.URL{Scheme: "ws", Host: c.blobhubAddress, Path: "/stream"}
-	c.logger.Info("connecting to blobhub", "url", u.String())
-
-	start := time.Now()
-	conn, _, err := websocket.DefaultDialer.DialContext(ctx, u.String(), nil)
-	if err != nil {
-		c.logger.Error("failed to connect to blobhub", "error", err, "url", u.String())
-		metrics.IncrementBlobhubErrors()
-		return fmt.Errorf("failed to connect to blobhub: %w", err)
-	}
-
-	c.conn = conn
-
-	// Record metrics
-	connectionTime := time.Since(start)
-	metrics.SetBlobhubConnectionStatus(true)
-	metrics.ObserveBlobSyncLatency(connectionTime)
-
-	c.logger.Info("connected to blobhub successfully")
-	return nil
+	return blobhubClient, nil
 }
 
 func (c *blobhubClient) sync(ctx context.Context) {
 	defer func() {
 		c.logger.Info("closing blobhub connection")
 		metrics.SetBlobhubConnectionStatus(false)
-		c.conn.Close()
 	}()
 
-	c.logger.Info("starting blob sync")
+	c.logger.Info("starting blob sync", "url", c.blobhubAddress)
 
+	// Retry loop for reconnection
 	for {
 		select {
 		case <-ctx.Done():
 			c.logger.Info("context cancelled, stopping sync")
 			return
 		default:
-			var msg blobMessage
-			err := c.conn.ReadJSON(&msg)
+			start := time.Now()
+
+			// StreamBlobs establishes WebSocket connection and returns a channel
+			blobChan, err := c.client.StreamBlobs(ctx)
 			if err != nil {
-				// Handle connection errors
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					c.logger.Error("unexpected websocket close", "error", err)
-					metrics.SetBlobhubConnectionStatus(false)
-					// Try to reconnect
-					if err := c.connect(ctx); err != nil {
-						c.logger.Error("failed to reconnect", "error", err)
-						metrics.IncrementBlobhubErrors()
+				c.logger.Error("failed to connect to blobhub", "error", err, "url", c.blobhubAddress)
+				metrics.IncrementBlobhubErrors()
+				metrics.SetBlobhubConnectionStatus(false)
+
+				// Wait before retrying
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(5 * time.Second):
+					continue
+				}
+			}
+
+			// Record successful connection metrics
+			connectionTime := time.Since(start)
+			metrics.SetBlobhubConnectionStatus(true)
+			metrics.ObserveBlobSyncLatency(connectionTime)
+			c.logger.Info("connected to blobhub successfully")
+
+			// Process blobs from the stream
+			for {
+				select {
+				case <-ctx.Done():
+					c.logger.Info("context cancelled, stopping sync")
+					return
+				case blob, ok := <-blobChan:
+					if !ok {
+						// Channel closed, connection lost
+						c.logger.Warn("blob stream channel closed, reconnecting")
+						metrics.SetBlobhubConnectionStatus(false)
+						metrics.IncrementBlobhubReconnections()
+						break // Break inner loop to retry connection
+					}
+
+					if blob == nil {
+						c.logger.Debug("received nil blob, skipping")
 						continue
 					}
-					metrics.IncrementBlobhubReconnections()
-					c.logger.Info("reconnected successfully")
-				} else {
-					c.logger.Debug("websocket read error", "error", err)
+
+					// Skip if we already have this blob
+					if c.blobpool.Has(ctx, blob.Key) {
+						c.logger.Debug("skipping existing blob", "id", blob.Key.String())
+						continue
+					}
+
+					// Store the blob
+					c.logger.Info("storing new blob", "id", blob.Key.String(), "size", len(blob.Data))
+					c.blobpool.Insert(ctx, blob.Data)
 				}
-				continue
 			}
-
-			// Decode base64 blob data
-			data, err := base64.StdEncoding.DecodeString(msg.Data)
-			if err != nil {
-				c.logger.Error("failed to decode blob data", "error", err, "id", msg.ID)
-				continue
-			}
-
-			// Parse blob key
-			key, err := store.ParseKey(msg.ID)
-			if err != nil {
-				c.logger.Error("failed to parse blob key", "error", err, "id", msg.ID)
-				continue
-			}
-
-			// Skip if we already have this blob
-			if c.blobpool.Has(ctx, key) {
-				c.logger.Debug("skipping existing blob", "id", msg.ID)
-				continue
-			}
-
-			// Store the blob
-			c.logger.Info("storing new blob", "id", msg.ID, "size", msg.Size)
-			c.blobpool.Insert(ctx, data)
 		}
 	}
 }

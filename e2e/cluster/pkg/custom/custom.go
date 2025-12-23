@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/connect"
+	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/internal/sequencer"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -32,7 +33,7 @@ func Run(service Service, clusterConfigPath string) error {
 		return logAndWrapErr("failed to load configuration", err)
 	}
 
-	systems, err := setup.CheckParameters(logging)
+	systems, err := sequencer.CheckNetworkMnemonics(logging)
 	if err != nil {
 		return logAndWrapErr("loaded configuration has errors", err)
 	}

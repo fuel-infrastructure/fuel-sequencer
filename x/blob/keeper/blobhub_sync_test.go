@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"context"
-	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
+	blobclient "github.com/fuel-infrastructure/blob-storage/pkg/client"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -29,39 +30,70 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// mockBlobhubServer creates a test server that simulates the blobhub websocket server
+// mockBlobhubServer creates a test server that simulates the blobhub server
+// It handles both WebSocket /stream endpoint and HTTP GET /get/{key} endpoint
 func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 	blobChan := make(chan store.StoredBlob, 10)
+	// Store blobs in a map so they can be retrieved via HTTP GET
+	blobStore := make(map[string]store.StoredBlob)
+	var mu sync.RWMutex
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasSuffix(r.URL.Path, "/stream") {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
+		// Handle HTTP GET /get/{key} endpoint
+		if strings.HasPrefix(r.URL.Path, "/get/") && r.Method == http.MethodGet {
+			keyStr := strings.TrimPrefix(r.URL.Path, "/get/")
+			mu.RLock()
+			blob, exists := blobStore[keyStr]
+			mu.RUnlock()
 
-		// Upgrade connection to WebSocket
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			t.Errorf("Failed to upgrade connection: %v", err)
-			return
-		}
-		defer conn.Close()
-
-		// Send blobs received on the channel to the websocket client
-		for blob := range blobChan {
-			msg := blobMessage{
-				Type:      "blob",
-				ID:        blob.Key.String(),
-				Data:      base64.StdEncoding.EncodeToString(blob.Data),
-				Timestamp: blob.StoredAt.Unix(),
-				Size:      len(blob.Data),
-			}
-
-			if err := conn.WriteJSON(msg); err != nil {
-				t.Errorf("Failed to write message: %v", err)
+			if !exists {
+				http.Error(w, "not found", http.StatusNotFound)
 				return
 			}
+
+			// Set X-Stored-At header
+			w.Header().Set("X-Stored-At", blob.StoredAt.Format(time.RFC3339))
+			w.Header().Set("Content-Type", "application/octet-stream")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(blob.Data)
+			return
 		}
+
+		// Handle WebSocket /stream endpoint
+		if strings.HasSuffix(r.URL.Path, "/stream") {
+			// Upgrade connection to WebSocket
+			conn, err := upgrader.Upgrade(w, r, nil)
+			if err != nil {
+				t.Errorf("Failed to upgrade connection: %v", err)
+				return
+			}
+			defer conn.Close()
+
+			// Send blob_notification messages for blobs received on the channel
+			for blob := range blobChan {
+				// Store blob for HTTP GET retrieval
+				mu.Lock()
+				blobStore[blob.Key.String()] = blob
+				mu.Unlock()
+
+				// Send blob_notification (without data)
+				msg := blobclient.BlobNotification{
+					Type:      "blob_notification",
+					ID:        blob.Key.String(),
+					Timestamp: blob.StoredAt.Unix(),
+					Size:      len(blob.Data),
+				}
+
+				if err := conn.WriteJSON(msg); err != nil {
+					t.Errorf("Failed to write message: %v", err)
+					return
+				}
+			}
+			return
+		}
+
+		// Unknown endpoint
+		http.Error(w, "not found", http.StatusNotFound)
 	}))
 
 	return server, blobChan
@@ -86,12 +118,14 @@ func TestBlobhubClient_Connect(t *testing.T) {
 	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	require.NotNil(t, client.conn)
+	require.NotNil(t, client.client)
 
 	// Test connection to invalid address
 	testBlobhubAddress = "invalid:1234"
 	_, err = newBlobhubClient(ctx, logger, pool, testBlobhubAddress)
-	assert.Error(t, err)
+	// Note: The client creation itself succeeds, but connection will fail during sync
+	// The error will be logged but won't fail client creation
+	assert.NoError(t, err)
 }
 
 func TestBlobhubClient_Sync(t *testing.T) {
@@ -128,46 +162,38 @@ func TestBlobhubClient_Sync(t *testing.T) {
 		Data: data,
 	}
 
-	// Send blob through mock server
+	// Send blob through mock server (will trigger blob_notification via WebSocket)
 	blobChan <- blob
 
 	// Wait for blob to be processed
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob was stored in pool
-	assert.True(t, pool.Has(ctx, key))
+	require.True(t, pool.Has(ctx, key))
 	retrieved, err := pool.Get(ctx, key)
 	require.NoError(t, err)
 	assert.Equal(t, blob.Key, retrieved.Key)
 	assert.Equal(t, blob.Data, retrieved.Data)
 
-	// Test duplicate blob
+	// Test duplicate blob (should be skipped - already exists)
 	blobChan <- blob
-	time.Sleep(100 * time.Millisecond)
 
 	// Verify blob is still stored correctly
 	retrieved, err = pool.Get(ctx, key)
 	require.NoError(t, err)
 	assert.Equal(t, blob.Data, retrieved.Data)
 
-	// Test invalid blob data
-	invalidMsg := blobMessage{
-		Type:      "blob",
-		ID:        "invalid",
-		Data:      "invalid base64",
-		Timestamp: time.Now().Unix(),
-		Size:      0,
+	// Test invalid blob key (notification with invalid key)
+	invalidBlob := store.StoredBlob{
+		Receipt: store.Receipt{
+			Key:      store.Key{}, // Invalid/empty key
+			StoredAt: time.Now(),
+		},
+		Data: []byte("invalid"),
 	}
-	require.NoError(t, client.conn.WriteJSON(invalidMsg))
-	time.Sleep(100 * time.Millisecond)
+	blobChan <- invalidBlob // Invalid keys are skipped
 
 	// Test context cancellation
 	cancel()
-	close(blobChan)                    // Close the blob channel to stop the mock server
-	time.Sleep(200 * time.Millisecond) // Wait for goroutines to clean up
-
-	// Try to write to the closed connection - should fail
-	err = client.conn.WriteMessage(websocket.TextMessage, []byte("test"))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "closed")
+	close(blobChan) // Close the blob channel to stop the mock server
 }
