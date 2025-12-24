@@ -70,7 +70,7 @@ validators:
         max-query-range: "4096"
       blob:
         blobhub-address: "localhost:31035"
-        blobpool-redis-address: "localhost:6380"
+        blobpool-sqlite-path: "./data/blobpool.db"
         blobpool-server-enabled: false
         blobpool-server-address: "localhost:21025"
       telemetry:

@@ -247,7 +247,6 @@ type Ports struct {
 	API            int
 	GRPC           int
 	Prometheus     int
-	BlobpoolRedis  int
 	BlobpoolServer int
 }
 
@@ -258,7 +257,6 @@ func InstancePorts(instanceId int) Ports {
 		API:            1317 + instanceId*100,
 		GRPC:           9090 + instanceId*100,
 		Prometheus:     26660 + instanceId*100,
-		BlobpoolRedis:  6380 + instanceId*10,
 		BlobpoolServer: 21025 + instanceId*10,
 	}
 }

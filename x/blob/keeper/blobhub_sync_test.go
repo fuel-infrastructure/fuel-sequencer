@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	testBlobhubAddress       = "localhost:31035"
-	testBlobpoolRedisAddress = "localhost:6380"
+	testBlobhubAddress     = "localhost:31035"
+	testBlobpoolSqlitePath = ":memory:" // Use in-memory SQLite for tests
 )
 
 var upgrader = websocket.Upgrader{
@@ -102,7 +102,7 @@ func mockBlobhubServer(t *testing.T) (*httptest.Server, chan store.StoredBlob) {
 func TestBlobhubClient_Connect(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolSqlitePath, false)
 	require.NoError(t, err)
 
 	// Start mock server
@@ -131,7 +131,7 @@ func TestBlobhubClient_Connect(t *testing.T) {
 func TestBlobhubClient_Sync(t *testing.T) {
 	logger := log.NewTestLogger(t)
 	ctx := context.Background()
-	pool, err := newBlobpool(ctx, logger, testBlobpoolRedisAddress, false)
+	pool, err := newBlobpool(ctx, logger, testBlobpoolSqlitePath, false)
 	require.NoError(t, err)
 
 	// Start mock server

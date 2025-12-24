@@ -9,7 +9,7 @@ import (
 
 	blobserver "github.com/fuel-infrastructure/blob-storage/pkg/server"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
-	"github.com/fuel-infrastructure/blob-storage/pkg/store/redis"
+	"github.com/fuel-infrastructure/blob-storage/pkg/store/sqlite"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
@@ -34,13 +34,13 @@ type stats struct {
 }
 
 // newBlobpool creates a new blob pool
-func newBlobpool(ctx context.Context, logger log.Logger, redisAddress string, serverEnabled bool) (*Blobpool, error) {
+func newBlobpool(ctx context.Context, logger log.Logger, sqlitePath string, serverEnabled bool) (*Blobpool, error) {
 
 	l := logger.With("module", "blobpool")
-	store, err := redis.Store(ctx, redisAddress, "", 0, false)
+	store, err := sqlite.Store(ctx, sqlitePath, false)
 	// TODO: Use Cosmos SDK telemetry instead of bundled blob-storage metrics
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to blobpool redis store: %w", err)
+		return nil, fmt.Errorf("failed to connect to blobpool sqlite store: %w", err)
 	}
 
 	var server *blobserver.Server

@@ -12,8 +12,8 @@ const (
 	FlagBlobhubAddress    = "blob.blobhub-address"
 	DefaultBlobhubAddress = "localhost:31035"
 
-	FlagBlobpoolRedisAddress    = "blob.blobpool-redis-address"
-	DefaultBlobpoolRedisAddress = "localhost:6380"
+	FlagBlobpoolSqlitePath    = "blob.blobpool-sqlite-path"
+	DefaultBlobpoolSqlitePath = "./data/blobpool.db"
 
 	FlagBlobpoolServerEnabled    = "blob.blobpool-server-enabled"
 	DefaultBlobpoolServerEnabled = false
@@ -29,9 +29,9 @@ func AddStartCmdFlags(startCmd *cobra.Command) {
 		"Blobhub server address for blob synchronization",
 	)
 	startCmd.Flags().String(
-		FlagBlobpoolRedisAddress,
-		DefaultBlobpoolRedisAddress,
-		"Redis server address for blobpool storage",
+		FlagBlobpoolSqlitePath,
+		DefaultBlobpoolSqlitePath,
+		"SQLite database path for blobpool storage",
 	)
 	startCmd.Flags().Bool(
 		FlagBlobpoolServerEnabled,
@@ -49,8 +49,8 @@ func AddStartCmdFlags(startCmd *cobra.Command) {
 type Config struct {
 	// BlobhubAddress defines the address of the blobhub server for blob synchronization.
 	BlobhubAddress string `mapstructure:"blobhub-address"`
-	// BlobpoolRedisAddress defines the address of the Redis server for blobpool storage.
-	BlobpoolRedisAddress string `mapstructure:"blobpool-redis-address"`
+	// BlobpoolSqlitePath defines the path to the SQLite database for blobpool storage.
+	BlobpoolSqlitePath string `mapstructure:"blobpool-sqlite-path"`
 	// BlobpoolServerEnabled defines whether the blobpool server should be enabled for querying and profiling.
 	BlobpoolServerEnabled bool `mapstructure:"blobpool-server-enabled"`
 	// BlobpoolServerAddress defines the address of the blobpool server for querying and profiling.
@@ -67,13 +67,13 @@ func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg Config, err error
 		cfg.BlobhubAddress = DefaultBlobhubAddress
 	}
 
-	// determine the blobpool redis address
-	if v := opts.Get(FlagBlobpoolRedisAddress); v != nil {
-		if cfg.BlobpoolRedisAddress, err = cast.ToStringE(v); err != nil {
+	// determine the blobpool sqlite path
+	if v := opts.Get(FlagBlobpoolSqlitePath); v != nil {
+		if cfg.BlobpoolSqlitePath, err = cast.ToStringE(v); err != nil {
 			return
 		}
 	} else {
-		cfg.BlobpoolRedisAddress = DefaultBlobpoolRedisAddress
+		cfg.BlobpoolSqlitePath = DefaultBlobpoolSqlitePath
 	}
 
 	// determine the blobpool server enabled setting
@@ -102,8 +102,8 @@ func (cfg *Config) ValidateBasic() error {
 	if cfg.BlobhubAddress == "" {
 		return fmt.Errorf("blobhub address cannot be empty")
 	}
-	if cfg.BlobpoolRedisAddress == "" {
-		return fmt.Errorf("blobpool redis address cannot be empty")
+	if cfg.BlobpoolSqlitePath == "" {
+		return fmt.Errorf("blobpool sqlite path cannot be empty")
 	}
 	if cfg.BlobpoolServerEnabled && cfg.BlobpoolServerAddress == "" {
 		return fmt.Errorf("blobpool server address cannot be empty when server is enabled")
