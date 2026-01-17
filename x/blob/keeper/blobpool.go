@@ -43,6 +43,10 @@ func newBlobpool(ctx context.Context, logger log.Logger, sqlitePath string, serv
 		return nil, fmt.Errorf("failed to connect to blobpool sqlite store: %w", err)
 	}
 
+	// TODO: Make this configurable
+	// NOTE: Hardcoded to 20 minutes for development purposes
+	store.Prune(ctx, 20*time.Minute)
+
 	var server *blobserver.Server
 	if serverEnabled {
 		server = blobserver.NewProductionServer(ctx, store, false)

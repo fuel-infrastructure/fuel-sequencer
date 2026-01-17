@@ -3,8 +3,8 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.23.11
 
 replace (
-	// use custom blob-storage with the targeted fixes (branch: feature/add-sqlite)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20251223164446-85b0e89dbddc
+	// use custom blob-storage with the targeted fixes (branch: feature/store-pruning)
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260117000028-d1c2fa1b996e
 	// github.com/fuel-infrastructure/blob-storage => ../../blob-storage
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../

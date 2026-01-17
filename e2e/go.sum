@@ -467,8 +467,8 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
-github.com/fuel-infrastructure/blob-storage v0.0.0-20251223164446-85b0e89dbddc h1:Do/eKUC808SnuMnKzWVJMym1fO0qnWq9D88mqUU1+oI=
-github.com/fuel-infrastructure/blob-storage v0.0.0-20251223164446-85b0e89dbddc/go.mod h1:f9yFgamJ7mTApV14Fe7lonkQLhqw8X4xUP9Q6ZsgF0w=
+github.com/fuel-infrastructure/blob-storage v0.0.0-20260117000028-d1c2fa1b996e h1:NdnYaP8bucVejufx52VKc/V0ZeiYXnpS2gugWmK+fZc=
+github.com/fuel-infrastructure/blob-storage v0.0.0-20260117000028-d1c2fa1b996e/go.mod h1:f9yFgamJ7mTApV14Fe7lonkQLhqw8X4xUP9Q6ZsgF0w=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff h1:tY80oXqGNY4FhTFhk+o9oFHGINQ/+vhlm8HFzi6znCI=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff/go.mod h1:x7DCsMOv1taUwEWCzT4cmDeAkigA5/QCwUodaVOe8Ww=
 github.com/getsentry/sentry-go v0.27.0 h1:Pv98CIbtB3LkMWmXi4Joa5OOcwbmnX88sF5qbK3r3Ps=
