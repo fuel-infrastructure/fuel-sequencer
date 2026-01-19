@@ -24,7 +24,7 @@ type (
 
 		// Configuration
 		blobhubAddress        string
-		blobpoolRedisAddress  string
+		blobpoolSqlitePath    string
 		blobpoolServerEnabled bool
 		blobpoolServerAddress string
 
@@ -49,11 +49,11 @@ func NewKeeper(
 		storeService:          storeService,
 		authority:             authority,
 		logger:                logger,
-		blobhubAddress:        "localhost:31035", // default value
-		blobpoolRedisAddress:  "localhost:6380",  // default value
-		blobpoolServerEnabled: false,             // default value
-		blobpoolServerAddress: "localhost:21025", // default value
-		initialised:           false,             // Don't initialize yet
+		blobhubAddress:        "localhost:31035",    // default value
+		blobpoolSqlitePath:    "./data/blobpool.db", // default value
+		blobpoolServerEnabled: false,                // default value
+		blobpoolServerAddress: "localhost:21025",    // default value
+		initialised:           false,                // Don't initialize yet
 	}
 }
 
@@ -64,7 +64,7 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 		return nil // Already initialized
 	}
 
-	blobpool, err := newBlobpool(ctx, k.logger, k.blobpoolRedisAddress, k.blobpoolServerEnabled)
+	blobpool, err := newBlobpool(ctx, k.logger, k.blobpoolSqlitePath, k.blobpoolServerEnabled)
 	if err != nil {
 		return err
 	}
@@ -99,9 +99,9 @@ func (k *Keeper) SetBlobhubAddress(address string) {
 	k.blobhubAddress = address
 }
 
-// SetBlobpoolRedisAddress sets the blobpool redis address for the keeper
-func (k *Keeper) SetBlobpoolRedisAddress(address string) {
-	k.blobpoolRedisAddress = address
+// SetBlobpoolSqlitePath sets the blobpool sqlite path for the keeper
+func (k *Keeper) SetBlobpoolSqlitePath(path string) {
+	k.blobpoolSqlitePath = path
 }
 
 // SetBlobpoolServerEnabled sets whether the blobpool server should be enabled

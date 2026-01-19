@@ -79,7 +79,7 @@ func DefaultCustomAppConfig() (string, interface{}) {
 		},
 		BlobConfig: blobconfig.Config{
 			BlobhubAddress:        blobconfig.DefaultBlobhubAddress,
-			BlobpoolRedisAddress:  blobconfig.DefaultBlobpoolRedisAddress,
+			BlobpoolSqlitePath:    blobconfig.DefaultBlobpoolSqlitePath,
 			BlobpoolServerEnabled: blobconfig.DefaultBlobpoolServerEnabled,
 			BlobpoolServerAddress: blobconfig.DefaultBlobpoolServerAddress,
 		},
@@ -107,8 +107,8 @@ path_to_cert_file = "{{ .SidecarConfig.PathToCertFile }}"
 [blob]
 # This defines the blobhub server address for blob synchronization.
 blobhub-address = "{{ .BlobConfig.BlobhubAddress }}"
-# This defines the Redis server address for blobpool storage.
-blobpool-redis-address = "{{ .BlobConfig.BlobpoolRedisAddress }}"
+# This defines the SQLite database path for blobpool storage.
+blobpool-sqlite-path = "{{ .BlobConfig.BlobpoolSqlitePath }}"
 # This dictates whether the blobpool server should be enabled for querying and profiling.
 blobpool-server-enabled = {{ .BlobConfig.BlobpoolServerEnabled }}
 # This defines the blobpool server address for querying and profiling.

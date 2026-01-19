@@ -11,15 +11,15 @@ import (
 func TestConfig(t *testing.T) {
 	// Test default configuration
 	cfg := Config{
-		BlobhubAddress:       DefaultBlobhubAddress,
-		BlobpoolRedisAddress: DefaultBlobpoolRedisAddress,
+		BlobhubAddress:     DefaultBlobhubAddress,
+		BlobpoolSqlitePath: DefaultBlobpoolSqlitePath,
 	}
 	err := cfg.ValidateBasic()
 	require.NoError(t, err)
 
 	// Test with custom addresses
 	cfg.BlobhubAddress = "custom-blobhub:8080"
-	cfg.BlobpoolRedisAddress = "custom-redis:6379"
+	cfg.BlobpoolSqlitePath = "./custom/blobpool.db"
 	err = cfg.ValidateBasic()
 	require.NoError(t, err)
 
@@ -28,9 +28,9 @@ func TestConfig(t *testing.T) {
 	err = cfg.ValidateBasic()
 	require.Error(t, err)
 
-	// Test with empty blobpool redis address (should fail)
+	// Test with empty blobpool sqlite path (should fail)
 	cfg.BlobhubAddress = "custom-blobhub:8080"
-	cfg.BlobpoolRedisAddress = ""
+	cfg.BlobpoolSqlitePath = ""
 	err = cfg.ValidateBasic()
 	require.Error(t, err)
 }
@@ -39,7 +39,7 @@ func TestNewConfigFromAppOptions(t *testing.T) {
 	// Create a viper instance with test values
 	v := viper.New()
 	v.Set(FlagBlobhubAddress, "test-blobhub:9090")
-	v.Set(FlagBlobpoolRedisAddress, "test-redis:6379")
+	v.Set(FlagBlobpoolSqlitePath, "./test/blobpool.db")
 
 	// Convert to AppOptions
 	appOpts := servertypes.AppOptions(v)
@@ -47,7 +47,7 @@ func TestNewConfigFromAppOptions(t *testing.T) {
 	cfg, err := NewConfigFromAppOptions(appOpts)
 	require.NoError(t, err)
 	require.Equal(t, "test-blobhub:9090", cfg.BlobhubAddress)
-	require.Equal(t, "test-redis:6379", cfg.BlobpoolRedisAddress)
+	require.Equal(t, "./test/blobpool.db", cfg.BlobpoolSqlitePath)
 
 	// Test with default values
 	v = viper.New()
@@ -56,5 +56,5 @@ func TestNewConfigFromAppOptions(t *testing.T) {
 	cfg, err = NewConfigFromAppOptions(appOpts)
 	require.NoError(t, err)
 	require.Equal(t, DefaultBlobhubAddress, cfg.BlobhubAddress)
-	require.Equal(t, DefaultBlobpoolRedisAddress, cfg.BlobpoolRedisAddress)
+	require.Equal(t, DefaultBlobpoolSqlitePath, cfg.BlobpoolSqlitePath)
 }

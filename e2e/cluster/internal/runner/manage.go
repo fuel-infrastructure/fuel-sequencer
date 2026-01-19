@@ -6,7 +6,6 @@ package runner
 import (
 	"fmt"
 
-	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/execute"
 	"github.com/fuel-infrastructure/fuel-sequencer/e2e/cluster/pkg/setup"
 	"go.uber.org/zap"
 )
@@ -17,11 +16,6 @@ import (
 func manageSystems(systems []setup.System, localImagePaths map[string]string) error {
 	l := logging.Named("Manage")
 
-	localBlobRedisHash, err := execute.CalculateFileHash(setup.BlobRedisPath(), nil)
-	if err != nil {
-		return fmt.Errorf("failed to get local blob redis hash: %w", err)
-	}
-
 	for nodeId, sys := range systems {
 		// Manage blobhub only once per system (for instance 0 only)
 		if err := manageBlobhub(l, sys); err != nil {
@@ -30,7 +24,7 @@ func manageSystems(systems []setup.System, localImagePaths map[string]string) er
 		for instanceId := 0; instanceId < sys.Options.Instances; instanceId++ {
 			platform := setup.DockerPlatform(sys.Destination)
 			localImagePath := localImagePaths[platform]
-			if err := manage(l, sys, nodeId, instanceId, localImagePath, localBlobRedisHash); err != nil {
+			if err := manage(l, sys, nodeId, instanceId, localImagePath); err != nil {
 				return fmt.Errorf("failed to manage destination %s instance %d: %w", sys.Destination.Host, instanceId, err)
 			}
 		}
@@ -42,7 +36,7 @@ func manageSystems(systems []setup.System, localImagePaths map[string]string) er
 // data and blob file management.
 // Returns an error if any management step fails.
 func manage(l *zap.SugaredLogger, sys setup.System, nodeId int, instanceId int,
-	localImagePath string, localBlobRedisHash []byte,
+	localImagePath string,
 ) error {
 	// Sequencer Related - Docker image management
 	if err := manageImage(l, sys, nodeId, instanceId, localImagePath); err != nil {
@@ -51,15 +45,6 @@ func manage(l *zap.SugaredLogger, sys setup.System, nodeId int, instanceId int,
 
 	if err := manageData(l, sys, nodeId, instanceId); err != nil {
 		return fmt.Errorf("failed to manage data: %w", err)
-	}
-
-	// Blobpool & Blobhub Related
-	if err := manageBlobStorageRedisConf(l, sys, instanceId, localBlobRedisHash); err != nil {
-		return fmt.Errorf("failed to manage blobpool storage redis file: %w", err)
-	}
-
-	if err := manageBlobpoolCompose(l, sys, instanceId); err != nil {
-		return fmt.Errorf("failed to manage blobpool storage compose file: %w", err)
 	}
 
 	// Blobhub is managed separately (once per system), not per instance

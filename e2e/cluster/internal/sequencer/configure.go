@@ -402,7 +402,9 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string, instanceIds []int, bl
 		} else {
 			appConfig.BlobConfig.BlobhubAddress = "5.189.150.214:31035" // fallback default
 		}
-		appConfig.BlobConfig.BlobpoolRedisAddress = fmt.Sprintf("localhost:%d", ports.BlobpoolRedis)
+		// Use relative path that will be resolved within the container's home directory
+		// The container mounts the home dir at /home/fuelsequencer/.fuelsequencer
+		appConfig.BlobConfig.BlobpoolSqlitePath = "data/blobpool.db"
 		appConfig.BlobConfig.BlobpoolServerEnabled = true
 		appConfig.BlobConfig.BlobpoolServerAddress = fmt.Sprintf("localhost:%d", ports.BlobpoolServer)
 

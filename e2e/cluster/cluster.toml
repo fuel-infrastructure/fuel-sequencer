@@ -12,10 +12,6 @@ remote_binary_name = "fuelsequencerd"
 systemd_path = "/etc/systemd/system/fuelsequencerd.service"
 
 [blob]
-# Path to the Redis configuration file (relative to makefile_dir)
-redis_path = "e2e/cluster/blob/redis.conf"
-# Path to the docker compose file for blobpool (relative to makefile_dir)
-blobpool_compose_path = "e2e/cluster/blob/docker-compose.blobpool.yml"
 # Absolute path to the blobhub project (fuel-infrastructure/blob-storage)
 blobhub_dir_path = "/Users/thaabl/Documents/Research/Fuel/blob-storage"
 
@@ -38,9 +34,9 @@ blobhub_dir_path = "/Users/thaabl/Documents/Research/Fuel/blob-storage"
 # "fuel-benchnet-eu"
 # instances on 1 node
 # Each instance will have different ports:
-# - Instance 0: P2P 26656, RPC 26657, API 1317, gRPC 9090, blobpool Redis 6380, blobpool Server 21025
-# - Instance 1: P2P 26756, RPC 26757, API 1417, gRPC 9190, blobpool Redis 6390, blobpool Server 21035
-# - Instance 2: P2P 26856, RPC 26857, API 1517, gRPC 9290, blobpool Redis 6400, blobpool Server 21045
+# - Instance 0: P2P 26656, RPC 26657, API 1317, gRPC 9090, blobpool Server 21025
+# - Instance 1: P2P 26756, RPC 26757, API 1417, gRPC 9190, blobpool Server 21035
+# - Instance 2: P2P 26856, RPC 26857, API 1517, gRPC 9290, blobpool Server 21045
 [[systems]]
 [systems.destination]
 peer_ip = "5.189.150.214"
