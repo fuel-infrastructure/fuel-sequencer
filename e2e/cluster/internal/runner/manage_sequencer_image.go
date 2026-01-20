@@ -22,13 +22,13 @@ func manageImage(l *zap.SugaredLogger, sys setup.System, nodeId int, instanceId 
 	containerName := setup.DockerContainerName(nodeId, instanceId)
 	stopCmd := fmt.Sprintf("docker stop %s 2>/dev/null || true", containerName)
 	l.Infow("stopping existing container...", "host", sys.Destination.Host, "container", containerName)
-	if err := execute.Remotely(l, sys.SSH, execute.WithSudo(stopCmd, sys.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, sys, stopCmd); err != nil {
 		return fmt.Errorf("failed to stop container on %s: %w", sys.Destination.Host, err)
 	}
 
 	removeCmd := fmt.Sprintf("docker rm %s 2>/dev/null || true", containerName)
 	l.Infow("removing existing container...", "host", sys.Destination.Host, "container", containerName)
-	if err := execute.Remotely(l, sys.SSH, execute.WithSudo(removeCmd, sys.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, sys, removeCmd); err != nil {
 		return fmt.Errorf("failed to remove container on %s: %w", sys.Destination.Host, err)
 	}
 
@@ -46,6 +46,11 @@ func manageImage(l *zap.SugaredLogger, sys setup.System, nodeId int, instanceId 
 		return fmt.Errorf("docker image not found locally, should be already built: %w", err)
 	}
 
+	if sys.IsLocal {
+		l.Infow("docker image confirmed to be available locally", "host", sys.Destination.Host)
+		return nil
+	}
+
 	// Transfer image tar file to remote
 	remoteTarPath := filepath.Join(sys.Destination.Dir, filepath.Base(imagePath))
 	l.Infow("transferring Docker image tar...", "from", imagePath, "to", fmt.Sprintf("%s:%s", sys.Destination.Host, remoteTarPath))
@@ -56,7 +61,7 @@ func manageImage(l *zap.SugaredLogger, sys setup.System, nodeId int, instanceId 
 	// Load image on remote
 	l.Infow("loading Docker image on remote...", "host", sys.Destination.Host)
 	loadCmd := fmt.Sprintf("docker load -i %s", remoteTarPath)
-	if err := execute.Remotely(l, sys.SSH, execute.WithSudo(loadCmd, sys.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, sys, loadCmd); err != nil {
 		return fmt.Errorf("failed to load Docker image on %s: %w", sys.Destination.Host, err)
 	}
 

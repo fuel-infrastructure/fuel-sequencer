@@ -80,10 +80,21 @@ func Setup(configPath string) error {
 			// Find the first system with blobhub enabled to get its address
 			if sys.Options.Blobhub && blobhubAddress == "" {
 				// Blobhub typically uses port 31035
-				blobhubAddress = fmt.Sprintf("%s:31035", sys.Destination.Host)
+				// For local deployments, use host.docker.internal so containers can reach the host
+				host := sys.Destination.Host
+				if setup.IsLocal(sys.Destination) {
+					host = "host.docker.internal"
+				}
+				blobhubAddress = fmt.Sprintf("%s:31035", host)
 			}
 			for instanceId := 0; instanceId < sys.Options.Instances; instanceId++ {
-				peerIPs = append(peerIPs, sys.Destination.PeerIP)
+				// For local deployments, use host.docker.internal so containers can reach each other via the host
+				peerIP := sys.Destination.PeerIP
+				if setup.IsLocal(sys.Destination) {
+					// Replace with host.docker.internal for container-to-container communication
+					peerIP = "host.docker.internal"
+				}
+				peerIPs = append(peerIPs, peerIP)
 				instanceIds = append(instanceIds, instanceId)
 			}
 		}
