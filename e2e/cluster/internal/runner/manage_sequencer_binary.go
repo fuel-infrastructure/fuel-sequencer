@@ -154,10 +154,10 @@ func transferBinary(l *zap.SugaredLogger, conn setup.System, localBinaryPath, re
 func manageData(l *zap.SugaredLogger, conn setup.System, nodeId int, instanceId int) error {
 	onlyDelete := !conn.Options.Sequencer
 
-	// if data on remote exists, remove it
+	// if data exists, remove it
 	homeDir := setup.RemoteChainHomeDir(conn.Destination, instanceId)
 	checkCmd := "test -d " + homeDir
-	if err := execute.Remotely(l, conn.SSH, checkCmd); err != nil {
+	if err := execute.OnSystem(l, conn, checkCmd); err != nil {
 		l.Infof("no chain home directory found on %s", conn.Destination.Host)
 		if onlyDelete {
 			l.Infow("no chain home directory found on %s, but only delete, so no need to transfer config", conn.Destination.Host)
@@ -166,7 +166,7 @@ func manageData(l *zap.SugaredLogger, conn setup.System, nodeId int, instanceId 
 	} else {
 		removeCmd := "rm -rf " + homeDir
 		l.Infow("removing chain home directory...", "host", conn.Destination.Host, "cmd", removeCmd)
-		if err := execute.Remotely(l, conn.SSH, execute.WithSudo(removeCmd, conn.Destination.Pass)); err != nil {
+		if err := execute.OnSystemWithSudo(l, conn, removeCmd); err != nil {
 			return fmt.Errorf("failed to remove home directory on %s: %w", conn.Destination.Host, err)
 		}
 		if onlyDelete {
@@ -204,9 +204,13 @@ func transferConfig(l *zap.SugaredLogger, conn setup.System, nodeId int, instanc
 		return fmt.Errorf("failed to transfer config to %s: %w", conn.Destination.Host, err)
 	}
 
+	if conn.IsLocal {
+		return nil
+	}
+
 	chownCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remoteDataDir)
 	l.Infow("chowning chain home directory to benchmarks user and group...", "host", conn.Destination.Host, "cmd", chownCmd)
-	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chownCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, conn, chownCmd); err != nil {
 		return fmt.Errorf("failed to chown chain home directory on %s: %w", conn.Destination.Host, err)
 	}
 	return nil

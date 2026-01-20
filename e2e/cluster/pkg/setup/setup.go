@@ -36,6 +36,7 @@ type System struct {
 	Destination `mapstructure:"destination"`
 	Options     `mapstructure:"options"`
 	SSH         *ssh.Client `mapstructure:"-"` // Don't serialize SSH connection
+	IsLocal     bool        `mapstructure:"-"` // Whether the system is local (localhost, 127.0.0.1, or ::1)
 }
 
 // Destination holds destination configuration
@@ -180,9 +181,17 @@ func RemoteBlobhubDir(d Destination, instanceId int) string {
 	return filepath.Join(RemoteBlobDir(d, instanceId), "blob-storage")
 }
 
+func LocalBlobhubDir() string {
+	return config.Blob.BlobhubDirPath
+}
+
 // RemoteBlobhubComposeDir returns the path where the blobhub compose is stored
 func RemoteBlobhubComposeDir(d Destination, instanceId int) string {
 	return filepath.Join(RemoteBlobhubDir(d, instanceId), "docker-compose.yml")
+}
+
+func LocalBlobhubComposeDir() string {
+	return filepath.Join(LocalBlobhubDir(), "docker-compose.yml")
 }
 
 // DockerImageName returns the Docker image name for the sequencer
@@ -230,6 +239,13 @@ func DockerPlatform(d Destination) string {
 		return d.Platform
 	}
 	return "linux/amd64" // Default platform
+}
+
+// IsLocal checks if a destination is local (localhost, 127.0.0.1, or ::1)
+// NOTE: This was only tested on macOS; on Linux `--network host` shares the network, so might need more changes
+func IsLocal(dest Destination) bool {
+	host := strings.ToLower(dest.Host)
+	return host == "localhost" || host == "127.0.0.1" || host == "::1"
 }
 
 // TotalInstances returns the total number of instances across all systems

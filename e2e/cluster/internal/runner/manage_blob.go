@@ -14,11 +14,16 @@ import (
 // Returns an error if any part of the management fails.
 func manageBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 	// Always use instance 0 directory for blobhub (shared across all instances on this system)
-	remotePath := setup.RemoteBlobhubDir(conn.Destination, 0)
+	var remotePath string
+	if conn.IsLocal {
+		remotePath = setup.LocalBlobhubDir()
+	} else {
+		remotePath = setup.RemoteBlobhubDir(conn.Destination, 0)
+	}
 	checkCmd := "test -d " + remotePath
 	onlyShutdown := !conn.Options.Blobhub
 
-	if err := execute.Remotely(l, conn.SSH, checkCmd); err != nil {
+	if err := execute.OnSystem(l, conn, checkCmd); err != nil {
 		if onlyShutdown {
 			l.Infow("only shutdown, no need to transfer blobhub storage", "host", conn.Destination.Host)
 			return nil
@@ -29,10 +34,15 @@ func manageBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 		}
 	} else {
 		// Shutdown existing blobhub containers and reset their volumes
-		composeDir := setup.RemoteBlobhubComposeDir(conn.Destination, 0)
+		var composeDir string
+		if conn.IsLocal {
+			composeDir = setup.LocalBlobhubComposeDir()
+		} else {
+			composeDir = setup.RemoteBlobhubComposeDir(conn.Destination, 0)
+		}
 		downCmd := fmt.Sprintf("docker compose -f=%s down -v", composeDir)
 		l.Infow("shutting down and resetting blobhub storage...", "host", conn.Destination.Host, "cmd", downCmd)
-		if err := execute.Remotely(l, conn.SSH, execute.WithSudo(downCmd, conn.Destination.Pass)); err != nil {
+		if err := execute.OnSystemWithSudo(l, conn, downCmd); err != nil {
 			return fmt.Errorf("failed to shutdown and reset blobhub storage on %s: %w", conn.Destination.Host, err)
 		}
 
@@ -51,26 +61,31 @@ func manageBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 }
 
 func transferBlobhub(l *zap.SugaredLogger, conn setup.System) error {
+	if conn.IsLocal {
+		l.Infow("skipping blobhub transfer for local destination", "host", conn.Destination.Host)
+		return nil
+	}
+
 	// Always use instance 0 directory for blobhub (shared across all instances)
 	remoteDir := setup.RemoteBlobDir(conn.Destination, 0)
 	remotePath := setup.RemoteBlobhubDir(conn.Destination, 0)
 
-	// Ensure remote blob directory exists with proper ownership and permissions
+	// Ensure blob directory exists with proper ownership and permissions
 	mkdirCmd := fmt.Sprintf("mkdir -p %s", remoteDir)
-	if err := execute.Remotely(l, conn.SSH, mkdirCmd); err != nil {
-		return fmt.Errorf("failed to create remote blob directory: %w", err)
+	if err := execute.OnSystem(l, conn, mkdirCmd); err != nil {
+		return fmt.Errorf("failed to create blob directory: %w", err)
 	}
 
 	// Set ownership and permissions BEFORE transfer
 	setupCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remoteDir)
 	l.Infow("setting up ownership before transfer...", "host", conn.Destination.Host, "cmd", setupCmd)
-	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(setupCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, conn, setupCmd); err != nil {
 		return fmt.Errorf("failed to setup ownership on %s: %w", conn.Destination.Host, err)
 	}
 
 	chmodCmd := fmt.Sprintf("chmod -R g+rwx %s", remoteDir)
 	l.Infow("setting up permissions before transfer...", "host", conn.Destination.Host, "cmd", chmodCmd)
-	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chmodCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, conn, chmodCmd); err != nil {
 		return fmt.Errorf("failed to setup permissions on %s: %w", conn.Destination.Host, err)
 	}
 
@@ -83,7 +98,7 @@ func transferBlobhub(l *zap.SugaredLogger, conn setup.System) error {
 	// Optional: Reset ownership after transfer in case local files had different ownership
 	chownCmd := fmt.Sprintf("chown -R benchmarks:benchmarks_group %s", remotePath)
 	l.Infow("ensuring correct ownership after transfer...", "host", conn.Destination.Host, "cmd", chownCmd)
-	if err := execute.Remotely(l, conn.SSH, execute.WithSudo(chownCmd, conn.Destination.Pass)); err != nil {
+	if err := execute.OnSystemWithSudo(l, conn, chownCmd); err != nil {
 		return fmt.Errorf("failed to chown blobhub storage on %s: %w", conn.Destination.Host, err)
 	}
 

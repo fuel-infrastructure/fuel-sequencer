@@ -12,6 +12,7 @@ import (
 )
 
 // EstablishConnections creates SSH connections to all systems in parallel.
+// For local destinations, SSH connection is skipped and set to nil.
 // Returns any error encountered.
 func EstablishConnections(logging *zap.SugaredLogger, systems []setup.System) error {
 	var wg sync.WaitGroup
@@ -21,6 +22,14 @@ func EstablishConnections(logging *zap.SugaredLogger, systems []setup.System) er
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
+
+			// Skip SSH connection for local destinations
+			if setup.IsLocal(systems[i].Destination) {
+				logging.Named("Connection").Infow("skipping SSH connection for local destination", "host", systems[i].Destination.Host)
+				systems[i].IsLocal = true
+				systems[i].SSH = nil
+				return
+			}
 
 			client, err := ConnectSSH(logging, systems[i].Destination)
 			if err != nil {

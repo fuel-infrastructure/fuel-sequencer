@@ -1,0 +1,52 @@
+# Cluster configuration for Fuel Sequencer deployment
+# This file contains all the parameters needed for cluster deployment and management
+
+[binary]
+# Absolute path to the directory where makefile is located
+makefile_dir = "/Users/thaabl/Documents/Research/Fuel/fuel-sequencer"
+# Architecture specified from build binary suffix
+want_arch = "linux-amd64"
+# Name of the binary on remote
+remote_binary_name = "fuelsequencerd"
+# Path to the systemd service file on the remote machine
+systemd_path = "/etc/systemd/system/fuelsequencerd.service"
+
+[blob]
+# Absolute path to the blobhub project (fuel-infrastructure/blob-storage)
+blobhub_dir_path = "/Users/thaabl/Documents/Research/Fuel/blob-storage"
+
+# Remote System Parameters
+# "fuel-benchnet-eu"
+# instances on 1 node
+# Each instance will have different ports:
+# - Instance 0: P2P 26656, RPC 26657, API 1317, gRPC 9090, blobpool Server 21025
+# - Instance 1: P2P 26756, RPC 26757, API 1417, gRPC 9190, blobpool Server 21035
+# - Instance 2: P2P 26856, RPC 26857, API 1517, gRPC 9290, blobpool Server 21045
+[[systems]]
+[systems.destination]
+peer_ip = "5.189.150.214"
+host = "5.189.150.214"
+user = "tharen"
+pass = "Immovably-Freemason-Corset1-Ritzy-Scrambled"
+dir = "/home/benchmarks"
+platform = "linux/amd64"                             # Platform for Docker image build
+
+[systems.options]
+sequencer = true
+blobpool = true
+blobhub = true
+instances = 3    # Number of instances to deploy on this node
+
+# Example localhost configuration (comment out)
+# [[systems]]
+# [systems.destination]
+# peer_ip = "127.0.0.1"
+# host = "localhost"
+# user = "benchmarks"
+# pass = "password"
+# dir = "/home/benchmarks"
+
+# [systems.options]
+# sequencer = true
+# blobpool = true
+# blobhub = false
