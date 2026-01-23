@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -52,6 +53,15 @@ func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool
 		blobhubAddress: httpURL,
 		client:         client,
 		validatorID:    validatorID,
+	}
+
+	// Register validator with Blobhub before starting sync (required for signing)
+	if validatorID != "" {
+		if err := client.Register(ctx, validatorID); err != nil {
+			blobhubClient.logger.Error("failed to register validator with Blobhub", "error", err, "validator_id", validatorID)
+			return nil, fmt.Errorf("failed to register validator: %w", err)
+		}
+		blobhubClient.logger.Info("registered validator with Blobhub", "validator_id", validatorID)
 	}
 
 	blobhubClient.logger.Info("created new blobhub client", "url", httpURL, "validator_id", validatorID)

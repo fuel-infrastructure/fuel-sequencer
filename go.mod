@@ -1,12 +1,12 @@
 module github.com/fuel-infrastructure/fuel-sequencer
 
-go 1.23.11
+go 1.23.12
 
 replace (
 	// use custom cosmos-sdk with the targeted fixes
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.13-custom
 	// use custom blob-storage with the targeted fixes (branch: feature/attested-store)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260123022952-345603d3de59
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260123081707-47f4bc2889ba
 	// github.com/fuel-infrastructure/blob-storage => ../blob-storage
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7

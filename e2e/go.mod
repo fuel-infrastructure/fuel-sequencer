@@ -1,10 +1,10 @@
 module github.com/fuel-infrastructure/fuel-sequencer/e2e
 
-go 1.23.11
+go 1.23.12
 
 replace (
 	// use custom blob-storage with the targeted fixes (branch: feature/attested-store)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260123022952-345603d3de59
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260123081707-47f4bc2889ba
 	// github.com/fuel-infrastructure/blob-storage => ../../blob-storage
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
@@ -24,7 +24,7 @@ require (
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/fuel-infrastructure/fuel-sequencer v0.0.0-00010101000000-000000000000
+	github.com/fuel-infrastructure/fuel-sequencer v0.0.0-20260123070109-8f64e9fbff17
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.2
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/securego/gosec/v2 v2.19.0
