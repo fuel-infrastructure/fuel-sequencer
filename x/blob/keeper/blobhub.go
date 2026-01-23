@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	blobclient "github.com/fuel-infrastructure/blob-storage/pkg/client"
+	blobhub "github.com/fuel-infrastructure/blob-storage/pkg/client"
+	"github.com/fuel-infrastructure/blob-storage/pkg/store"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 )
@@ -16,7 +17,8 @@ type blobhubClient struct {
 	blobpool       *Blobpool // reference to the blobpool, where blobs are stored
 	blobhubAddress string    // configurable blobhub address (HTTP base URL)
 
-	client *blobclient.Client
+	client      *blobhub.Client
+	validatorID string // validator ID derived from consensus key (empty for non-validator nodes)
 }
 
 // normalizeBlobhubAddress converts a blobhub address to HTTP URL format.
@@ -29,26 +31,30 @@ func normalizeBlobhubAddress(address string) string {
 	return "http://" + address
 }
 
-func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool, blobhubAddress string) (*blobhubClient, error) {
+// newBlobhubClient creates a blobhub client. If client is nil, a new one is created.
+// If validatorID is provided, ACK (signature submission) will be performed after blob sync.
+func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool, blobhubAddress string, client *blobhub.Client, validatorID string) (*blobhubClient, error) {
 	// Normalize address to HTTP URL format
 	httpURL := normalizeBlobhubAddress(blobhubAddress)
 
-	// Create client with HTTP base URL
-	// Note: Logger is optional - client library will use no-op logger if nil
-	config := &blobclient.ClientConfig{
-		BaseURL: httpURL,
-		Logger:  nil, // Use no-op logger from client library
+	// Create client if not provided
+	if client == nil {
+		config := &blobhub.ClientConfig{
+			BaseURL: httpURL,
+			Logger:  nil, // Use no-op logger from client library
+		}
+		client = blobhub.NewClient(config)
 	}
-	client := blobclient.NewClient(config)
 
 	blobhubClient := &blobhubClient{
 		logger:         logger.With("module", "blobhub_sync"),
 		blobpool:       blobpool,
 		blobhubAddress: httpURL,
 		client:         client,
+		validatorID:    validatorID,
 	}
 
-	blobhubClient.logger.Info("created new blobhub client", "url", httpURL)
+	blobhubClient.logger.Info("created new blobhub client", "url", httpURL, "validator_id", validatorID)
 	go blobhubClient.sync(ctx)
 
 	return blobhubClient, nil
@@ -122,8 +128,65 @@ func (c *blobhubClient) sync(ctx context.Context) {
 					// Store the blob
 					c.logger.Info("storing new blob", "id", blob.Key.String(), "size", len(blob.Data))
 					c.blobpool.Insert(ctx, blob.Data)
+
+					// Submit signature (ACK) if validator ID is set
+					if c.validatorID != "" {
+						c.signBlobAsync(ctx, blob.Key)
+					}
 				}
 			}
 		}
 	}
+}
+
+// signBlob submits a signature for a blob to Blobhub.
+// This method is called asynchronously and includes retry logic matching
+// existing patterns in the sync loop.
+func (c *blobhubClient) signBlob(ctx context.Context, key store.Key) error {
+	start := time.Now()
+
+	// Retry logic matching sync reconnection pattern
+	maxRetries := 3
+	retryDelay := 5 * time.Second
+
+	var lastErr error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			c.logger.Debug("retrying signature submission", "attempt", attempt+1, "key", key.String())
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(retryDelay):
+			}
+		}
+
+		err := c.client.Sign(ctx, c.validatorID, key)
+		if err == nil {
+			// Success - record metrics
+			latency := time.Since(start)
+			metrics.IncrementACKSubmissions()
+			metrics.ObserveACKLatency(latency)
+			c.logger.Debug("successfully submitted signature", "key", key.String(), "validator", c.validatorID)
+			return nil
+		}
+
+		lastErr = err
+		c.logger.Warn("failed to submit signature", "error", err, "key", key.String(), "attempt", attempt+1)
+		metrics.IncrementACKErrors()
+	}
+
+	// All retries failed
+	c.logger.Error("failed to submit signature after retries", "error", lastErr, "key", key.String())
+	return lastErr
+}
+
+// signBlobAsync submits a signature asynchronously in a goroutine.
+// This ensures that signature submission doesn't block the sync flow.
+func (c *blobhubClient) signBlobAsync(ctx context.Context, key store.Key) {
+	go func() {
+		if err := c.signBlob(ctx, key); err != nil {
+			// Log error but don't block sync - errors are already logged in signBlob
+			c.logger.Error("async signature submission failed", "error", err, "key", key.String())
+		}
+	}()
 }

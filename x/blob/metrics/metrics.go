@@ -205,3 +205,31 @@ func UpdateBlobpoolHitMissRatios(hits, misses uint) {
 		}
 	})
 }
+
+// ============================================================================
+// ACK Service Metrics
+// ============================================================================
+
+// IncrementACKSubmissions increments the ACK submission counter
+func IncrementACKSubmissions() {
+	utils.SafeSetMetric(func() {
+		telemetry.IncrCounter(1, append(utils.KeysBlobhub, "ack", "submissions")...)
+	})
+}
+
+// IncrementACKErrors increments the ACK error counter
+func IncrementACKErrors() {
+	utils.SafeSetMetric(func() {
+		telemetry.IncrCounter(1, append(utils.KeysBlobhub, "ack", "errors")...)
+	})
+}
+
+// ObserveACKLatency records the time taken to submit an ACK signature
+func ObserveACKLatency(duration time.Duration) {
+	utils.SafeSetMetric(func() {
+		telemetry.SetGauge(
+			float32(duration.Milliseconds()),
+			append(utils.KeysBlobhub, "ack", "latency", "ms")...,
+		)
+	})
+}

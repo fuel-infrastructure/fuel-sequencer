@@ -2,12 +2,17 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
+	"path/filepath"
 
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
+	"github.com/cometbft/cometbft/privval"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	blobclient "github.com/fuel-infrastructure/blob-storage/pkg/client"
 
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
@@ -27,10 +32,11 @@ type (
 		blobpoolSqlitePath    string
 		blobpoolServerEnabled bool
 		blobpoolServerAddress string
+		validatorID           string // derived from consensus key
 
 		initialised bool           // initialise blobhub and blobpool connections
 		*Blobpool                  // node storage for unconfirmed blob transactions
-		blobhub     *blobhubClient // client for syncing with blobhub
+		blobhub     *blobhubClient // client for syncing with blobhub (handles both sync and ACK)
 	}
 )
 
@@ -53,6 +59,7 @@ func NewKeeper(
 		blobpoolSqlitePath:    "./data/blobpool.db", // default value
 		blobpoolServerEnabled: false,                // default value
 		blobpoolServerAddress: "localhost:21025",    // default value
+		validatorID:           "",                   // will be set from consensus key during Initialize
 		initialised:           false,                // Don't initialize yet
 	}
 }
@@ -68,7 +75,16 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress)
+
+	// Create blobhub client config
+	config := &blobclient.ClientConfig{
+		BaseURL: normalizeBlobhubAddress(k.blobhubAddress),
+		Logger:  nil, // Use no-op logger from client library
+	}
+	client := blobclient.NewClient(config)
+
+	// Create blobhub client with validator ID (ACK is standard, handled by client)
+	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress, client, k.validatorID)
 	if err != nil {
 		return err
 	}
@@ -112,6 +128,47 @@ func (k *Keeper) SetBlobpoolServerEnabled(enabled bool) {
 // SetBlobpoolServerAddress sets the blobpool server address for the keeper
 func (k *Keeper) SetBlobpoolServerAddress(address string) {
 	k.blobpoolServerAddress = address
+}
+
+// SetValidatorID sets the validator ID for the keeper (derived from consensus key)
+func (k *Keeper) SetValidatorID(id string) {
+	k.validatorID = id
+}
+
+// DeriveValidatorIDFromConsensusKey derives the validator ID from the node's consensus key.
+// It loads the priv_validator_key.json file and extracts the public key address.
+// Returns empty string if the key file doesn't exist (non-validator node).
+func DeriveValidatorIDFromConsensusKey(nodeHome string) (string, error) {
+	serverCtx := server.NewDefaultContext()
+	config := serverCtx.Config
+	config.SetRoot(nodeHome)
+
+	pvKeyFile := config.PrivValidatorKeyFile()
+	pvStateFile := config.PrivValidatorStateFile()
+
+	// Check if priv_validator_key.json exists
+	if _, err := filepath.Abs(pvKeyFile); err != nil {
+		return "", fmt.Errorf("failed to resolve priv validator key file path: %w", err)
+	}
+
+	filePV := privval.LoadOrGenFilePV(pvKeyFile, pvStateFile)
+	if filePV == nil {
+		return "", fmt.Errorf("failed to load priv validator key")
+	}
+
+	// Extract public key address and encode as hex
+	pubKey, err := filePV.GetPubKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to get public key from priv validator: %w", err)
+	}
+	if pubKey == nil {
+		return "", fmt.Errorf("public key is nil")
+	}
+
+	address := pubKey.Address()
+	validatorID := hex.EncodeToString(address)
+
+	return validatorID, nil
 }
 
 // GetAuthority returns the module's authority.

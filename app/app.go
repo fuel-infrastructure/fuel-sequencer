@@ -20,6 +20,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkAddressCodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -334,6 +335,18 @@ func NewFuelSequencerApp(
 	app.BlobKeeper.SetBlobpoolSqlitePath(blobCfg.BlobpoolSqlitePath)
 	app.BlobKeeper.SetBlobpoolServerEnabled(blobCfg.BlobpoolServerEnabled)
 	app.BlobKeeper.SetBlobpoolServerAddress(blobCfg.BlobpoolServerAddress)
+
+	// Derive validator ID from consensus key
+	if homePath, ok := appOpts.Get(flags.FlagHome).(string); ok && homePath != "" {
+		validatorID, err := blobmodulekeeper.DeriveValidatorIDFromConsensusKey(homePath)
+		if err != nil {
+			// Log warning but don't fail - non-validator nodes won't have the key file
+			logger.Debug("failed to derive validator ID from consensus key (non-validator node?)", "error", err)
+		} else if validatorID != "" {
+			app.BlobKeeper.SetValidatorID(validatorID)
+			logger.Info("derived validator ID from consensus key", "validator_id", validatorID)
+		}
+	}
 
 	if initialiseBlobhub {
 		// BLOB :: Initialize blobhub and blobpool connections
