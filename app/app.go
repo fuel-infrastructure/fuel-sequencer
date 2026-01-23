@@ -57,7 +57,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vulnerability_mitigations"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/vulnerability_mitigations_2"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -339,8 +339,8 @@ func NewFuelSequencerApp(
 
 	// UPGRADE :: Set the upgrade handler for the recent/upcoming upgrade
 	app.UpgradeKeeper.SetUpgradeHandler(
-		vulnerability_mitigations.UpgradeName,
-		vulnerability_mitigations.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		vulnerability_mitigations_2.UpgradeName,
+		vulnerability_mitigations_2.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
