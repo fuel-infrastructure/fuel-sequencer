@@ -135,8 +135,10 @@ func main() {
 		blocksUntilUpgrade := int(timeUntilUpgrade.Seconds() / avgBlockTime)
 
 		estimatedHeight := toInt(latestHeight) + blocksUntilUpgrade
-		fmt.Printf("Current time: %s\n", latestBlockTime)
-		fmt.Printf("Target upgrade time: %s\n", upgradeTime)
+		fmt.Printf("Current time (CET): %s\n", latestBlockTime.In(loc))
+		fmt.Printf("Current time (UTC): %s\n", latestBlockTime.UTC())
+		fmt.Printf("Target upgrade time (CET): %s\n", upgradeTime.In(loc))
+		fmt.Printf("Target upgrade time (UTC): %s\n", upgradeTime.UTC())
 		fmt.Printf("Time until upgrade: %s\n", timeUntilUpgrade)
 		fmt.Printf("Blocks until upgrade (@ %.2fs per block): %d\n", avgBlockTime, blocksUntilUpgrade)
 		fmt.Printf("Estimated raw block height at upgrade time: %d\n", estimatedHeight)
