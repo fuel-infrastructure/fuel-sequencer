@@ -455,11 +455,7 @@ func (h *FuelSequencerProposalHandler) ProcessProposalHandler() sdk.ProcessPropo
 			return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 		}
 
-		ctx.Logger().Debug("processed proposal",
-			"height", req.Height,
-			"proposer", req.ProposerAddress,
-			"num_txs", len(req.Txs),
-		)
+		ctx.Logger().Debug("processed proposal", "height", req.Height, "proposer", req.ProposerAddress, "num_txs", len(req.Txs))
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
