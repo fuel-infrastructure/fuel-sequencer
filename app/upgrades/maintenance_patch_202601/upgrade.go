@@ -1,4 +1,4 @@
-package vulnerability_mitigations_2
+package maintenance_patch_202601
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "vulnerability-mitigations-2"
+const UpgradeName = "maintenance-patch-202601"
 
 func CreateUpgradeHandler(
 	mm *module.Manager,
