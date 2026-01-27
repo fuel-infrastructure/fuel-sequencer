@@ -1,6 +1,6 @@
 # Cosmos SDK Validator Location Scanner
 
-Determines the geographic location of the top 66.7% of validators (by voting power) in a Cosmos SDK network using multiple geolocation sources for reliability.
+Determines the geographic location of the top N% of validators (by voting power, default 66.7%) in a Cosmos SDK network using multiple geolocation sources for reliability.
 
 ## Why Multiple Sources?
 
@@ -27,14 +27,20 @@ go build -o validator-locator .
 
 **Usage:**
 ```bash
-# Basic usage
+# Basic usage (top 66.7% by voting power)
 ./validator-locator
 
-# With traceroute verification
-./validator-locator --traceroute
+# Custom percentage threshold (e.g. top 50%)
+./validator-locator --percentage 50
+
+# With traceroute verification (enabled by default, disable with --traceroute=false)
+./validator-locator --traceroute=false
 
 # JSON output
 ./validator-locator --json
+
+# All validators (100%)
+./validator-locator -p 100
 
 # Custom endpoints
 RPC_URL=https://rpc.cosmos.network REST_URL=https://rest.cosmos.network ./validator-locator
@@ -121,6 +127,14 @@ Rank: 1
 1. **Run during off-peak hours** to avoid API rate limits
 2. **Check ASN info** - datacenter ASNs (Hetzner, AWS, GCP) indicate cloud hosting
 3. **Website IPs are fallback** - they may point to CDN edges (Cloudflare, Vercel), not the validator itself
+
+## CLI Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--percentage` | `-p` | `66.7` | Voting power percentage threshold |
+| `--traceroute` | `-t` | `true` | Enable traceroute verification |
+| `--json` | `-j` | `false` | Output results as JSON |
 
 ## Environment Variables
 
