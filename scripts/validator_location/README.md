@@ -55,7 +55,7 @@ RPC_URL=https://rpc.cosmos.network REST_URL=https://rest.cosmos.network ./valida
 | freeipapi.com | Generous | Returns full country names, no key needed |
 | ipwho.is | Unlimited | Includes ISP/org/connection info |
 | WHOIS | N/A | Authoritative for ASN/org data, country codes only |
-| Reverse DNS | N/A | Parses PTR hostnames for datacenter location codes (e.g. `fsn` → Falkenstein) |
+| Reverse DNS | N/A | Parses PTR hostnames for datacenter location codes (e.g. `fsn` → Falkenstein) and ccTLDs (e.g. `.br` → Brazil) |
 | Traceroute | N/A | Optional, only contributes when route reaches destination |
 
 ## How IP Discovery Works
