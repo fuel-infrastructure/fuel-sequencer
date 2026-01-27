@@ -127,6 +127,8 @@ func main() {
 	flag.BoolVar(useTraceroute, "t", true, "Use traceroute (shorthand)")
 	outputJSON := flag.Bool("json", false, "Output results as JSON")
 	flag.BoolVar(outputJSON, "j", false, "Output JSON (shorthand)")
+	pct := flag.Float64("percentage", 66.7, "Voting power percentage threshold (e.g. 66.7 for top 2/3)")
+	flag.Float64Var(pct, "p", 66.7, "Voting power percentage (shorthand)")
 	flag.Parse()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -163,12 +165,12 @@ func main() {
 
 	// Calculate total voting power and threshold
 	totalPower := calculateTotalPower(bondedValidators)
-	threshold := totalPower / 1000 * 667
+	threshold := int64(float64(totalPower) * (*pct / 100.0))
 
 	fmt.Fprintf(os.Stderr, "Total voting power: %d\n", totalPower)
-	fmt.Fprintf(os.Stderr, "66.7%% threshold: %d\n\n", threshold)
+	fmt.Fprintf(os.Stderr, "%.1f%% threshold: %d\n\n", *pct, threshold)
 
-	// Get top validators up to 66.7% threshold
+	// Get top validators up to threshold
 	topValidators := getTopValidators(bondedValidators, totalPower, threshold)
 
 	// Create peer lookup maps
@@ -183,9 +185,9 @@ func main() {
 
 	// Output results
 	if *outputJSON {
-		outputJSONResults(results, totalPower, threshold)
+		outputJSONResults(results, totalPower, threshold, *pct)
 	} else {
-		outputTextResults(results, totalPower, threshold)
+		outputTextResults(results, totalPower, threshold, *pct)
 	}
 }
 
@@ -1073,7 +1075,7 @@ func getMostVoted(votes map[string]int) string {
 	return maxKey
 }
 
-func outputTextResults(results []ValidatorLocation, totalPower, threshold int64) {
+func outputTextResults(results []ValidatorLocation, totalPower, threshold int64, pct float64) {
 	var cumulativePower int64
 
 	for _, r := range results {
@@ -1142,10 +1144,10 @@ func outputTextResults(results []ValidatorLocation, totalPower, threshold int64)
 	// Summary
 	fmt.Println("========================================")
 	fmt.Println("Summary:")
-	fmt.Printf("  Validators in top 66.7%%: %d\n", len(results))
+	fmt.Printf("  Validators in top %.1f%%: %d\n", pct, len(results))
 	fmt.Printf("  Cumulative voting power: %d tokens (%.2f%%)\n",
 		cumulativePower, float64(cumulativePower)/float64(totalPower)*100)
-	fmt.Printf("  Target threshold: %d tokens (66.7%%)\n", threshold)
+	fmt.Printf("  Target threshold: %d tokens (%.1f%%)\n", threshold, pct)
 
 	// Geographic distribution
 	countryCount := make(map[string]int)
@@ -1179,16 +1181,18 @@ func outputTextResults(results []ValidatorLocation, totalPower, threshold int64)
 	}
 }
 
-func outputJSONResults(results []ValidatorLocation, totalPower, threshold int64) {
+func outputJSONResults(results []ValidatorLocation, totalPower, threshold int64, pct float64) {
 	output := struct {
 		TotalPower     int64               `json:"total_power"`
 		Threshold      int64               `json:"threshold"`
+		Percentage     float64             `json:"percentage"`
 		ValidatorCount int                 `json:"validator_count"`
 		Validators     []ValidatorLocation `json:"validators"`
 		CountryDistrib map[string]int      `json:"country_distribution"`
 	}{
 		TotalPower:     totalPower,
 		Threshold:      threshold,
+		Percentage:     pct,
 		ValidatorCount: len(results),
 		Validators:     results,
 		CountryDistrib: make(map[string]int),
