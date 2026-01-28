@@ -16,7 +16,7 @@ require (
 	cosmossdk.io/math v1.4.0
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
-	github.com/cometbft/cometbft v0.38.20
+	github.com/cometbft/cometbft v0.38.21
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.50.15
 	github.com/cosmos/go-bip39 v1.0.0
