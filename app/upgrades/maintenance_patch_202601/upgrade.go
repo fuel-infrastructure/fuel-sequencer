@@ -1,4 +1,4 @@
-package maintenance_patch_20260129
+package maintenance_patch_202601
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "maintenance-patch-20260129"
+const UpgradeName = "maintenance-patch-202601"
 
 func CreateUpgradeHandler(
 	mm *module.Manager,

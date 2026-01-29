@@ -57,7 +57,7 @@ import (
 
 	"github.com/fuel-infrastructure/fuel-sequencer/app/abci"
 	appcodec "github.com/fuel-infrastructure/fuel-sequencer/app/codec"
-	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/maintenance_patch_20260129"
+	"github.com/fuel-infrastructure/fuel-sequencer/app/upgrades/maintenance_patch_202601"
 	sidecarclient "github.com/fuel-infrastructure/fuel-sequencer/sidecar/client"
 	sidecarconfig "github.com/fuel-infrastructure/fuel-sequencer/sidecar/config"
 	commitmentsconfig "github.com/fuel-infrastructure/fuel-sequencer/x/commitments/config"
@@ -339,8 +339,8 @@ func NewFuelSequencerApp(
 
 	// UPGRADE :: Set the upgrade handler for the recent/upcoming upgrade
 	app.UpgradeKeeper.SetUpgradeHandler(
-		maintenance_patch_20260129.UpgradeName,
-		maintenance_patch_20260129.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
+		maintenance_patch_202601.UpgradeName,
+		maintenance_patch_202601.CreateUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// PREPARE AND PROCESS PROPOSAL HANDLERS
