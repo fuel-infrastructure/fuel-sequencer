@@ -38,28 +38,37 @@ func buildBlobhubImages(l *zap.SugaredLogger, destinations []setup.Destination) 
 		seenPlatform[platform] = true
 
 		// Build with docker compose from blobhub dir. Use DOCKER_DEFAULT_PLATFORM for cross-build when set.
-		buildCmd := fmt.Sprintf("cd %s && DOCKER_DEFAULT_PLATFORM=%s docker compose -f docker-compose.yml build", quoteForShell(blobhubDir), platform)
+		// DOCKER_BUILDKIT=1 and compose build with ssh: default allow private Go modules (e.g. fuel-sequencer) via SSH.
+		buildCmd := fmt.Sprintf("cd %s && DOCKER_BUILDKIT=1 DOCKER_DEFAULT_PLATFORM=%s docker compose -f docker-compose.yml build --ssh default", quoteForShell(blobhubDir), platform)
 		l.Infow("building blobhub Docker image(s)...", "platform", platform, "dir", blobhubDir)
 		if err := execute.Locally(l, "sh", "-c", buildCmd); err != nil {
 			return nil, fmt.Errorf("docker compose build failed for blobhub (platform %s): %w", platform, err)
 		}
 
-		// Get image IDs produced by this compose project (run from same dir).
-		imagesCmd := fmt.Sprintf("cd %s && docker compose -f docker-compose.yml images -q", quoteForShell(blobhubDir))
-		output, err := execute.LocallyWithOutput(l, "sh", "-c", imagesCmd)
+		// Get image names for services that are built (not pulled). docker compose images -q
+		// only lists images of created containers, so use config --images and take local-built
+		// ones (no "/" in name, e.g. blob-storage-server).
+		configCmd := fmt.Sprintf("cd %s && docker compose -f docker-compose.yml config --images", quoteForShell(blobhubDir))
+		output, err := execute.LocallyWithOutput(l, "sh", "-c", configCmd)
 		if err != nil {
-			return nil, fmt.Errorf("failed to list blobhub compose images: %w", err)
+			return nil, fmt.Errorf("failed to list blobhub compose image names: %w", err)
 		}
-		lines := strings.Split(strings.TrimSpace(output), "\n")
 		var imageRefs []string
-		for _, line := range lines {
-			line = strings.TrimSpace(line)
-			if line != "" {
-				imageRefs = append(imageRefs, line)
+		for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
+			name := strings.TrimSpace(line)
+			if name == "" {
+				continue
+			}
+			// Only include local-built images (project_service, no registry slash)
+			if !strings.Contains(name, "/") {
+				if !strings.Contains(name, ":") {
+					name = name + ":latest"
+				}
+				imageRefs = append(imageRefs, name)
 			}
 		}
 		if len(imageRefs) == 0 {
-			return nil, fmt.Errorf("blobhub compose produced no images (platform %s)", platform)
+			return nil, fmt.Errorf("blobhub compose produced no built images (platform %s)", platform)
 		}
 
 		// Save all images to one tar (docker save accepts multiple refs).
