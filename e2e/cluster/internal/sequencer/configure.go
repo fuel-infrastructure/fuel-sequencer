@@ -51,8 +51,9 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 ) error {
 	l := logger.Named("Configure")
 
-	// Initialize chain with defined number of nodes
-	chain, err := testsuite.NewNamedChain(ChainName, dataDir, len(Mnemonics))
+	numNodes := len(peerIPs)
+	// Initialize chain with number of nodes from total instances (cluster config), not from mnemonics count
+	chain, err := testsuite.NewNamedChain(ChainName, dataDir, numNodes)
 	if err != nil {
 		return fmt.Errorf("failed to create chain: %w", err)
 	}
@@ -62,18 +63,19 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 		locally(l, "rm", "-rf", chain.ConfigDir())
 	}
 
-	l.Infow("setting up data for new chain...", "name", ChainName, "path", chain.ConfigDir())
+	l.Infow("setting up data for new chain...", "name", ChainName, "path", chain.ConfigDir(), "numNodes", numNodes)
 
 	s := &sequencer{chain: chain}
 
-	// Derive and output the Sequencer keys with the hex and bech32 representation of the addresses.
-	for i, mnemonic := range Mnemonics {
+	// Derive and output the Sequencer keys for the validators that will run (first numNodes mnemonics)
+	for i := 0; i < numNodes; i++ {
+		mnemonic := Mnemonics[i]
 		key := testsuite.MustNewSequencerKeyFromMnemonic(mnemonic)
 		l.Infow("generated sequencer key", "index", i, "mnemonic", mnemonic, "acc", key.AddressSeq, "val", key.ValAddressSeq, "hex", key.AddressHex)
 		s.keys = append(s.keys, key)
 	}
 
-	err = s.initNodes()
+	err = s.initNodes(numNodes)
 	if err != nil {
 		return fmt.Errorf("failed to initialise nodes: %w", err)
 	}
@@ -97,9 +99,10 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 }
 
 // initNodes initializes validator nodes and their genesis accounts.
+// numNodes must match the chain size and must be <= len(Mnemonics) (enforced by CheckNetworkMnemonics).
 // Returns an error if node initialization fails.
-func (s *sequencer) initNodes() error {
-	err := s.chain.CreateAndInitFuelSequencerValidators(Mnemonics)
+func (s *sequencer) initNodes(numNodes int) error {
+	err := s.chain.CreateAndInitFuelSequencerValidators(Mnemonics[:numNodes])
 	if err != nil {
 		return fmt.Errorf("failed to setup nodes from genesis: %w", err)
 	}
