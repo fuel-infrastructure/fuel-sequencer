@@ -141,7 +141,10 @@ func (c *blobhubClient) sync(ctx context.Context) {
 
 					// Submit signature (ACK) if validator ID is set
 					if c.validatorID != "" {
+						c.logger.Info("submitting signature for blob", "id", blob.Key.String(), "validator_id", c.validatorID)
 						c.signBlobAsync(ctx, blob.Key)
+					} else {
+						c.logger.Info("skipping signature (non-validator node)", "id", blob.Key.String())
 					}
 				}
 			}
@@ -176,7 +179,7 @@ func (c *blobhubClient) signBlob(ctx context.Context, key store.Key) error {
 			latency := time.Since(start)
 			metrics.IncrementACKSubmissions()
 			metrics.ObserveACKLatency(latency)
-			c.logger.Debug("successfully submitted signature", "key", key.String(), "validator", c.validatorID)
+			c.logger.Info("signature submitted to blobhub", "key", key.String(), "validator_id", c.validatorID, "latency_ms", latency.Milliseconds())
 			return nil
 		}
 
