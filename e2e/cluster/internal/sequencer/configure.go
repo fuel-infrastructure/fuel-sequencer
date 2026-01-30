@@ -304,9 +304,15 @@ func (s *sequencer) initGenesis() error {
 
 // initValidatorConfigs initializes validator-specific configurations including
 // P2P settings, RPC endpoints, and application parameters.
+// Only validators with a corresponding instance (i < len(peerIPs)) are configured,
+// so running with fewer instances than mnemonics (e.g. 1 or 2) is safe.
 // Returns an error if validator configuration fails.
 func (s *sequencer) initValidatorConfigs(peerIPs []string, instanceIds []int, blobhubAddress string) error {
+	numInstances := len(peerIPs)
 	for i, val := range s.chain.Validators {
+		if i >= numInstances {
+			break
+		}
 		instanceId := 0
 		if i < len(instanceIds) {
 			instanceId = instanceIds[i]
@@ -361,10 +367,9 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string, instanceIds []int, bl
 		var peers []string
 
 		for j, peer := range s.chain.Validators {
-			if i == j {
+			if i == j || j >= numInstances {
 				continue
 			}
-
 			peerInstanceId := 0
 			if j < len(instanceIds) {
 				peerInstanceId = instanceIds[j]
