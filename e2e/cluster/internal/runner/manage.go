@@ -12,13 +12,18 @@ import (
 
 // manageSystems handles the management of all systems including
 // Docker image, data management and blob file deployment.
+// localImagePaths is platform -> sequencer image tar path; blobhubImagePaths is platform -> blobhub image tar path.
 // Returns an error if management of any system fails.
-func manageSystems(systems []setup.System, localImagePaths map[string]string) error {
+func manageSystems(systems []setup.System, localImagePaths map[string]string, blobhubImagePaths map[string]string) error {
 	l := logging.Named("Manage")
 
 	for nodeId, sys := range systems {
 		// Manage blobhub only once per system (for instance 0 only)
-		if err := manageBlobhub(l, sys); err != nil {
+		var blobhubImagePath string
+		if blobhubImagePaths != nil {
+			blobhubImagePath = blobhubImagePaths[setup.DockerPlatform(sys.Destination)]
+		}
+		if err := manageBlobhub(l, sys, blobhubImagePath); err != nil {
 			return fmt.Errorf("failed to manage blobhub on %s: %w", sys.Destination.Host, err)
 		}
 		for instanceId := 0; instanceId < sys.Options.Instances; instanceId++ {
