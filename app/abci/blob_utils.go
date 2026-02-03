@@ -86,19 +86,20 @@ func (h *FuelSequencerProposalHandler) validateBlobTransactions(ctx context.Cont
 					return
 				}
 
-				// Get blob data from local pool and verify hash
-				blob, err := h.blobKeeper.Get(ctx, metadataKey)
-				if err != nil {
-					validateError = fmt.Errorf("failed to get blob data from local pool: %s", metadataKey)
-					return
-				}
+				// NOTE: Disabled to reduce overhead
+				// // Get blob data from local pool and verify hash
+				// blob, err := h.blobKeeper.Get(ctx, metadataKey)
+				// if err != nil {
+				// 	validateError = fmt.Errorf("failed to get blob data from local pool: %s", metadataKey)
+				// 	return
+				// }
 
-				// Verify hash matches
-				recomputedKey := store.NewKey(blob.Data)
-				if recomputedKey.String() != metadataKey.String() {
-					validateError = fmt.Errorf("blob hash mismatch: %s", metadataKey)
-					return
-				}
+				// // Verify hash matches
+				// recomputedKey := store.NewKey(blob.Data)
+				// if recomputedKey.String() != metadataKey.String() {
+				// 	validateError = fmt.Errorf("blob hash mismatch: %s", metadataKey)
+				// 	return
+				// }
 
 				metrics.IncrementBlobProposalValidationSuccess()
 			}
