@@ -52,6 +52,17 @@ func IncrementBlobhubErrors() {
 	})
 }
 
+// SetBlobhubIngestionRate sets the current blob ingestion rate (blobs per second) from the stream.
+// Used to observe when the sequencer becomes the bottleneck (rate drops under sustained load).
+func SetBlobhubIngestionRate(blobsPerSec float32) {
+	utils.SafeSetMetric(func() {
+		telemetry.SetGauge(
+			blobsPerSec,
+			append(utils.KeysBlobhub, "ingestion", "rate", "blobs_per_sec")...,
+		)
+	})
+}
+
 // ============================================================================
 // Blobpool Management Metrics
 // ============================================================================

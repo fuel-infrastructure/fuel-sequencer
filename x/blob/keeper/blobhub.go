@@ -119,7 +119,11 @@ func (c *blobhubClient) sync(ctx context.Context) {
 				c.logger.Info("connected to blobhub successfully", "url", c.blobhubAddress, "attempt", attempt)
 			}
 
-			// Process blobs from the stream
+			// Process blobs from the stream; meter ingestion rate to spot sequencer backpressure
+			const ingestionRateLogInterval = 30 * time.Second
+			lastRateLog := time.Now()
+			blobsInWindow := 0
+
 			for {
 				select {
 				case <-ctx.Done():
@@ -143,6 +147,16 @@ func (c *blobhubClient) sync(ctx context.Context) {
 					if c.blobpool.Has(ctx, blob.Key) {
 						c.logger.Debug("skipping existing blob", "id", blob.Key.String())
 						continue
+					}
+
+					blobsInWindow++
+					elapsed := time.Since(lastRateLog)
+					if elapsed >= ingestionRateLogInterval {
+						rate := float32(blobsInWindow) / float32(elapsed.Seconds())
+						metrics.SetBlobhubIngestionRate(rate)
+						c.logger.Info("blobhub ingestion rate", "blobs_per_sec", rate, "blobs_in_window", blobsInWindow, "window_sec", elapsed.Seconds())
+						lastRateLog = time.Now()
+						blobsInWindow = 0
 					}
 
 					// Store the blob
