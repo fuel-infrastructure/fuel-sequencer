@@ -78,27 +78,33 @@ func (c *blobhubClient) sync(ctx context.Context) {
 
 	c.logger.Info("starting blob sync", "url", c.blobhubAddress)
 
+	const reconnectBackoff = 5 * time.Second
+
 	// Retry loop for reconnection
-	for {
+	for attempt := 1; ; attempt++ {
 		select {
 		case <-ctx.Done():
 			c.logger.Info("context cancelled, stopping sync")
 			return
 		default:
+			if attempt > 1 {
+				c.logger.Info("blobhub reconnect attempt", "attempt", attempt, "url", c.blobhubAddress)
+			}
+
 			start := time.Now()
 
 			// StreamBlobs establishes WebSocket connection and returns a channel
 			blobChan, err := c.client.StreamBlobs(ctx)
 			if err != nil {
-				c.logger.Error("failed to connect to blobhub", "error", err, "url", c.blobhubAddress)
+				c.logger.Error("failed to connect to blobhub", "error", err, "url", c.blobhubAddress, "attempt", attempt)
 				metrics.IncrementBlobhubErrors()
 				metrics.SetBlobhubConnectionStatus(false)
 
-				// Wait before retrying
+				c.logger.Info("backing off before reconnect", "duration", reconnectBackoff, "attempt", attempt)
 				select {
 				case <-ctx.Done():
 					return
-				case <-time.After(5 * time.Second):
+				case <-time.After(reconnectBackoff):
 					continue
 				}
 			}
@@ -107,7 +113,11 @@ func (c *blobhubClient) sync(ctx context.Context) {
 			connectionTime := time.Since(start)
 			metrics.SetBlobhubConnectionStatus(true)
 			metrics.ObserveBlobSyncLatency(connectionTime)
-			c.logger.Info("connected to blobhub successfully")
+			if attempt > 1 {
+				c.logger.Info("connected to blobhub successfully", "url", c.blobhubAddress, "attempt", attempt, "reconnected_after_failures", attempt-1)
+			} else {
+				c.logger.Info("connected to blobhub successfully", "url", c.blobhubAddress, "attempt", attempt)
+			}
 
 			// Process blobs from the stream
 			for {
@@ -117,8 +127,8 @@ func (c *blobhubClient) sync(ctx context.Context) {
 					return
 				case blob, ok := <-blobChan:
 					if !ok {
-						// Channel closed, connection lost
-						c.logger.Warn("blob stream channel closed, reconnecting")
+						// Channel closed by remote or transport (client API does not expose close reason)
+						c.logger.Warn("blob stream channel closed, reconnecting", "url", c.blobhubAddress)
 						metrics.SetBlobhubConnectionStatus(false)
 						metrics.IncrementBlobhubReconnections()
 						break // Break inner loop to retry connection
