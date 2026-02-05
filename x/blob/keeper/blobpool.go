@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"cosmossdk.io/log"
@@ -14,6 +15,22 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
+
+// insertRetryMaxAttempts is the number of application-level retries for Insert when store returns lock errors.
+// The blob-storage store already retries Put internally; this adds another layer for sync under load.
+const insertRetryMaxAttempts = 3
+
+// insertRetryInitialSleep is the initial backoff before the first retry.
+const insertRetryInitialSleep = 100 * time.Millisecond
+
+// isStoreLockError reports whether err is a SQLite "database is locked" / busy error from the store.
+func isStoreLockError(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "database is locked") || strings.Contains(s, "sqlite_busy")
+}
 
 // Blobpool manages blob storage at the application level
 type Blobpool struct {
@@ -37,6 +54,7 @@ type stats struct {
 func newBlobpool(ctx context.Context, logger log.Logger, sqlitePath string, serverEnabled bool) (*Blobpool, error) {
 
 	l := logger.With("module", "blobpool")
+	// blob-storage sqlite.Store enables WAL and busy_timeout (30s) by default; no extra config here
 	store, err := sqlite.Store(ctx, sqlitePath, false)
 	// TODO: Use Cosmos SDK telemetry instead of bundled blob-storage metrics
 	if err != nil {
@@ -113,31 +131,56 @@ func (p *Blobpool) Get(ctx context.Context, hash store.Key) (*store.StoredBlob, 
 	return blob, nil
 }
 
-// Insert stores a blob in the pool
-func (p *Blobpool) Insert(ctx context.Context, data []byte) {
+// Insert stores a blob in the pool. It retries on "database is locked" with backoff so the blob
+// can appear in the local pool and proposal validation can succeed. Returns an error only after
+// exhausting retries.
+func (p *Blobpool) Insert(ctx context.Context, data []byte) error {
 	if data == nil {
 		p.logger.Error("attempted to store nil blob")
-		return
+		return fmt.Errorf("nil blob data")
 	}
 
-	start := time.Now()
-	receipt, err := p.store.Put(ctx, data)
-	if err != nil {
-		p.logger.Error("failed to store blob", "error", err)
-		return
-	}
-	storageLatency := time.Since(start)
-
-	// Record metrics
 	blobSize := len(data)
-	metrics.ObserveBlobStorageLatency(storageLatency)
-	metrics.ObserveBlobSize(blobSize)
-	metrics.IncrementBlobThroughput(blobSize)
-	metrics.IncrementBlobLifecycleEvents("insert", receipt.Key.String())
+	start := time.Now()
+	var receipt *store.Receipt
+	var lastErr error
+	sleep := insertRetryInitialSleep
 
-	// Update pool size metric
-	p.count++
-	metrics.SetBlobpoolCount(p.count)
+	for attempt := 0; attempt < insertRetryMaxAttempts; attempt++ {
+		receipt, lastErr = p.store.Put(ctx, data)
+		if lastErr == nil {
+			storageLatency := time.Since(start)
+			metrics.ObserveBlobStorageLatency(storageLatency)
+			metrics.ObserveBlobSize(blobSize)
+			metrics.IncrementBlobThroughput(blobSize)
+			metrics.IncrementBlobLifecycleEvents("insert", receipt.Key.String())
+			p.count++
+			metrics.SetBlobpoolCount(p.count)
+			p.logger.Debug("stored blob", "hash", receipt.Key.String(), "size", blobSize)
+			return nil
+		}
+		if lastErr == store.ErrAlreadyExists {
+			// Blob already in store (e.g. concurrent insert); treat as success
+			key := store.NewKey(data)
+			p.logger.Debug("blob already in pool", "hash", key.String())
+			return nil
+		}
+		if !isStoreLockError(lastErr) {
+			p.logger.Error("failed to store blob", "error", lastErr)
+			return lastErr
+		}
+		p.logger.Warn("blobpool insert database locked, retrying",
+			"attempt", attempt+1, "max_attempts", insertRetryMaxAttempts, "error", lastErr)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(sleep):
+		}
+		if sleep < 2*time.Second {
+			sleep *= 2
+		}
+	}
 
-	p.logger.Debug("stored blob", "hash", receipt.Key.String(), "size", len(data))
+	p.logger.Error("failed to store blob after retries", "error", lastErr)
+	return fmt.Errorf("failed to store blob after %d attempts: %w", insertRetryMaxAttempts, lastErr)
 }
