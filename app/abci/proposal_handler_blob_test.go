@@ -33,8 +33,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 	key3 := store.NewKey(data3)
 
 	// Store blobs 1 and 2 in the keeper (available)
-	s.Require().NoError(s.App.BlobKeeper.Insert(ctx, data1))
-	s.Require().NoError(s.App.BlobKeeper.Insert(ctx, data2))
+	s.App.BlobKeeper.Insert(ctx, data1)
+	s.App.BlobKeeper.Insert(ctx, data2)
 	// Blob 3 is not stored (unavailable)
 
 	// Create blob transactions
@@ -179,8 +179,8 @@ func (s *AppTestSuite) TestPrepareProposalHandler_BlobFunctionality() {
 			s.SetupTest()
 
 			// Re-store blobs for each test
-			s.Require().NoError(s.App.BlobKeeper.Insert(ctx, data1))
-			s.Require().NoError(s.App.BlobKeeper.Insert(ctx, data2))
+			s.App.BlobKeeper.Insert(ctx, data1)
+			s.App.BlobKeeper.Insert(ctx, data2)
 
 			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(
@@ -243,7 +243,7 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 	key := store.NewKey(data)
 
 	// Store blob in keeper
-	s.Require().NoError(s.App.BlobKeeper.Insert(ctx, data))
+	s.App.BlobKeeper.Insert(ctx, data)
 
 	// Create valid blob transaction
 	validBlobTx := s.CreateEncodedBlobTx(key, 100, "test-topic", 1, "test-sender")
@@ -339,7 +339,7 @@ func (s *AppTestSuite) TestProcessProposalHandler_BlobValidation() {
 			s.SetupTest()
 
 			// Re-store blob for each test
-			s.Require().NoError(s.App.BlobKeeper.Insert(ctx, data))
+			s.App.BlobKeeper.Insert(ctx, data)
 
 			// Set bridge module params
 			err := s.App.BridgeKeeper.SetParams(

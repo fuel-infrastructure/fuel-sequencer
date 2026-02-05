@@ -3,7 +3,6 @@ package abci
 import (
 	"context"
 	"fmt"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/fuel-infrastructure/blob-storage/pkg/store"
@@ -11,30 +10,6 @@ import (
 	"github.com/fuel-infrastructure/fuel-sequencer/x/blob/metrics"
 	blobtypes "github.com/fuel-infrastructure/fuel-sequencer/x/blob/types"
 )
-
-// poolCheckRetries is the number of times to recheck the blob pool when blob is not yet present.
-// Gives sync a moment to finish insert after transient DB lock (avoids failing proposal unnecessarily).
-const poolCheckRetries = 3
-
-const poolCheckRetryDelay = 40 * time.Millisecond
-
-// hasBlobInPoolWithRetry returns true if the blob is in the local pool, rechecking after short delays.
-// Used to distinguish "blob not in pool yet" (insert delayed by lock) from "blob will never be in pool".
-func (h *FuelSequencerProposalHandler) hasBlobInPoolWithRetry(ctx context.Context, key store.Key) bool {
-	for i := 0; i < poolCheckRetries; i++ {
-		if h.blobKeeper.Has(ctx, key) {
-			return true
-		}
-		if i < poolCheckRetries-1 {
-			select {
-			case <-ctx.Done():
-				return false
-			case <-time.After(poolCheckRetryDelay):
-			}
-		}
-	}
-	return false
-}
 
 // filterBlobTransactions filters blob transactions early in the process, before block space calculation
 func (h *FuelSequencerProposalHandler) filterBlobTransactions(ctx sdk.Context, txs [][]byte) ([][]byte, error) {
@@ -60,8 +35,8 @@ func (h *FuelSequencerProposalHandler) filterBlobTransactions(ctx sdk.Context, t
 					return nil, fmt.Errorf("failed to parse blob hash: %w", err)
 				}
 
-				// Only check local blob pool; recheck briefly so insert delayed by lock can complete
-				if !h.hasBlobInPoolWithRetry(ctx, hash) {
+				// Only check local blob pool - no external downloads
+				if !h.blobKeeper.Has(ctx, hash) {
 					canInclude = false
 					ctx.Logger().Debug("skipping blob transaction with unavailable blob in local pool", "hash", hash)
 					break
@@ -105,8 +80,8 @@ func (h *FuelSequencerProposalHandler) validateBlobTransactions(ctx context.Cont
 					return
 				}
 
-				// Only check local blob pool; recheck briefly so insert delayed by lock can complete
-				if !h.hasBlobInPoolWithRetry(ctx, metadataKey) {
+				// Only check local blob pool - no external downloads
+				if !h.blobKeeper.Has(ctx, metadataKey) {
 					validateError = fmt.Errorf("blob not available in local pool: %s", metadataKey)
 					return
 				}

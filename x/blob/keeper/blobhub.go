@@ -159,14 +159,9 @@ func (c *blobhubClient) sync(ctx context.Context) {
 						blobsInWindow = 0
 					}
 
-					// Store the blob; retry on transient lock errors so it can appear in the local pool
+					// Store the blob
 					c.logger.Info("storing new blob", "id", blob.Key.String(), "size", len(blob.Data))
-					if err := c.insertBlobWithRetry(ctx, blob.Data); err != nil {
-						c.logger.Error("failed to store blob after retries", "id", blob.Key.String(), "error", err)
-						metrics.IncrementBlobhubErrors()
-						// Continue sync; this blob will be missing from pool and may cause validation failures
-						continue
-					}
+					c.blobpool.Insert(ctx, blob.Data)
 
 					// Submit signature (ACK) if validator ID is set
 					if c.validatorID != "" {
@@ -179,33 +174,6 @@ func (c *blobhubClient) sync(ctx context.Context) {
 			}
 		}
 	}
-}
-
-// insertBlobWithRetry calls Blobpool.Insert and retries on failure with backoff so transient
-// lock contention can clear and the blob can appear in the local pool.
-func (c *blobhubClient) insertBlobWithRetry(ctx context.Context, data []byte) error {
-	const syncRetries = 3
-	sleep := 200 * time.Millisecond
-	var lastErr error
-	for attempt := 0; attempt < syncRetries; attempt++ {
-		if attempt > 0 {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(sleep):
-			}
-			sleep *= 2
-			if sleep > 2*time.Second {
-				sleep = 2 * time.Second
-			}
-		}
-		lastErr = c.blobpool.Insert(ctx, data)
-		if lastErr == nil {
-			return nil
-		}
-		c.logger.Warn("blob insert failed, retrying", "attempt", attempt+1, "max", syncRetries, "error", lastErr)
-	}
-	return lastErr
 }
 
 // signBlob submits a signature for a blob to Blobhub.

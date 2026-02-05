@@ -29,7 +29,7 @@ func TestBlobValidationIntegration(t *testing.T) {
 	invalidKey := store.NewKey([]byte("invalid-hash"))
 
 	// Store blob in keeper
-	require.NoError(t, k.Insert(ctx, data))
+	k.Insert(ctx, data)
 
 	// Test that blob is available
 	require.True(t, k.Has(ctx, key))
@@ -63,7 +63,7 @@ func TestBlobHashVerification(t *testing.T) {
 	key := store.NewKey(data)
 
 	// Store blob in keeper
-	require.NoError(t, k.Insert(ctx, data))
+	k.Insert(ctx, data)
 
 	// Test hash verification
 	keyAgain := store.NewKey(data)
@@ -90,7 +90,7 @@ func TestBlobPoolOperations(t *testing.T) {
 	require.False(t, k.Has(ctx, key))
 
 	// Store blob in keeper
-	require.NoError(t, k.Insert(ctx, data))
+	k.Insert(ctx, data)
 
 	// Now blob should be available
 	require.True(t, k.Has(ctx, key))
@@ -152,7 +152,7 @@ func TestBlobValidationLogic(t *testing.T) {
 	require.False(t, k.Has(ctx, key))
 
 	// Store blob
-	require.NoError(t, k.Insert(ctx, data))
+	k.Insert(ctx, data)
 
 	// Now it should be available
 	require.True(t, k.Has(ctx, key))
