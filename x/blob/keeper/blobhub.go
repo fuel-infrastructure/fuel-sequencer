@@ -78,7 +78,10 @@ func (c *blobhubClient) sync(ctx context.Context) {
 
 	c.logger.Info("starting blob sync", "url", c.blobhubAddress)
 
-	const reconnectBackoff = 5 * time.Second
+	const (
+		initialReconnectBackoff = 2 * time.Second
+		maxReconnectBackoff     = 60 * time.Second
+	)
 
 	// Retry loop for reconnection
 	for attempt := 1; ; attempt++ {
@@ -88,7 +91,21 @@ func (c *blobhubClient) sync(ctx context.Context) {
 			return
 		default:
 			if attempt > 1 {
-				c.logger.Info("blobhub reconnect attempt", "attempt", attempt, "url", c.blobhubAddress)
+				// Exponential backoff before reconnect (same for connection errors and channel-close)
+				backoff := initialReconnectBackoff
+				for i := 0; i < attempt-2; i++ {
+					backoff *= 2
+					if backoff > maxReconnectBackoff {
+						backoff = maxReconnectBackoff
+						break
+					}
+				}
+				c.logger.Info("blobhub reconnect attempt", "attempt", attempt, "url", c.blobhubAddress, "backoff", backoff)
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(backoff):
+				}
 			}
 
 			start := time.Now()
@@ -99,14 +116,7 @@ func (c *blobhubClient) sync(ctx context.Context) {
 				c.logger.Error("failed to connect to blobhub", "error", err, "url", c.blobhubAddress, "attempt", attempt)
 				metrics.IncrementBlobhubErrors()
 				metrics.SetBlobhubConnectionStatus(false)
-
-				c.logger.Info("backing off before reconnect", "duration", reconnectBackoff, "attempt", attempt)
-				select {
-				case <-ctx.Done():
-					return
-				case <-time.After(reconnectBackoff):
-					continue
-				}
+				continue
 			}
 
 			// Record successful connection metrics
