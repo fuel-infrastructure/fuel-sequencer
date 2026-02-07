@@ -335,6 +335,8 @@ func NewFuelSequencerApp(
 	app.BlobKeeper.SetBlobpoolSqlitePath(blobCfg.BlobpoolSqlitePath)
 	app.BlobKeeper.SetBlobpoolServerEnabled(blobCfg.BlobpoolServerEnabled)
 	app.BlobKeeper.SetBlobpoolServerAddress(blobCfg.BlobpoolServerAddress)
+	app.BlobKeeper.SetChunkMode(blobCfg.ChunkMode)
+	app.BlobKeeper.SetChunkValidatorIndex(blobCfg.ChunkValidatorIndex)
 
 	// Derive validator ID from consensus key
 	if homePath, ok := appOpts.Get(flags.FlagHome).(string); ok && homePath != "" {

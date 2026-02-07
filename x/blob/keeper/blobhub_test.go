@@ -115,14 +115,14 @@ func TestBlobhubClient_Connect(t *testing.T) {
 	defer func() { testBlobhubAddress = origAddr }()
 
 	// Test successful connection
-	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress, nil, "")
+	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress, nil, "", false, 0)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	require.NotNil(t, client.client)
 
 	// Test connection to invalid address
 	testBlobhubAddress = "invalid:1234"
-	_, err = newBlobhubClient(ctx, logger, pool, testBlobhubAddress, nil, "")
+	_, err = newBlobhubClient(ctx, logger, pool, testBlobhubAddress, nil, "", false, 0)
 	// Note: The client creation itself succeeds, but connection will fail during sync
 	// The error will be logged but won't fail client creation
 	assert.NoError(t, err)
@@ -147,7 +147,7 @@ func TestBlobhubClient_Sync(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress, nil, "")
+	client, err := newBlobhubClient(ctx, logger, pool, testBlobhubAddress, nil, "", false, 0)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 

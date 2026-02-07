@@ -32,6 +32,8 @@ type (
 		blobpoolSqlitePath    string
 		blobpoolServerEnabled bool
 		blobpoolServerAddress string
+		chunkMode             bool // enable chunk-mode attestation
+		chunkValidatorIndex   int  // which chunk this validator attests
 		validatorID           string // derived from consensus key
 
 		initialised bool           // initialise blobhub and blobpool connections
@@ -84,7 +86,7 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 	client := blobclient.NewClient(config)
 
 	// Create blobhub client with validator ID (ACK is standard, handled by client)
-	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress, client, k.validatorID)
+	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress, client, k.validatorID, k.chunkMode, k.chunkValidatorIndex)
 	if err != nil {
 		return err
 	}
@@ -128,6 +130,16 @@ func (k *Keeper) SetBlobpoolServerEnabled(enabled bool) {
 // SetBlobpoolServerAddress sets the blobpool server address for the keeper
 func (k *Keeper) SetBlobpoolServerAddress(address string) {
 	k.blobpoolServerAddress = address
+}
+
+// SetChunkMode enables or disables chunk-mode attestation.
+func (k *Keeper) SetChunkMode(enabled bool) {
+	k.chunkMode = enabled
+}
+
+// SetChunkValidatorIndex sets the validator chunk index for chunk-mode attestation.
+func (k *Keeper) SetChunkValidatorIndex(index int) {
+	k.chunkValidatorIndex = index
 }
 
 // SetValidatorID sets the validator ID for the keeper (derived from consensus key)
