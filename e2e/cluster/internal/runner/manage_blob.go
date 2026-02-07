@@ -10,7 +10,7 @@ import (
 )
 
 // manageBlobhub handles the Blobhub deployment for a destination.
-// Transfers the pre-built image tar and compose file to the remote, loads the image(s), and leaves deploy to compose up.
+// Rsyncs the full blobhub project and pre-built image tar to the remote, loads the image(s), and leaves deploy to compose up.
 // Blobhub is deployed once per system (using instanceId 0 directory) and shared across all instances.
 // blobhubImagePath is the local path to the blobhub image tar for this destination's platform; empty for local-only or shutdown-only.
 // Returns an error if any part of the management fails.
@@ -59,19 +59,10 @@ func manageBlobhub(l *zap.SugaredLogger, conn setup.System, blobhubImagePath str
 		return fmt.Errorf("failed to setup permissions on %s: %w", conn.Destination.Host, err)
 	}
 
-	// Transfer only the compose file (and .env if present) so compose up can run; no source rsync.
-	composeSrc := filepath.Join(setup.BlobhubDirPath(), "docker-compose.yml")
-	remoteComposePath := setup.RemoteBlobhubComposeDir(conn.Destination, 0)
-	l.Infow("transferring blobhub compose file...", "from", composeSrc, "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remoteComposePath))
-	if err := transfer(l, conn, composeSrc, remoteComposePath); err != nil {
-		return fmt.Errorf("failed to transfer blobhub compose file: %w", err)
-	}
-	envSrc := filepath.Join(setup.BlobhubDirPath(), ".env")
-	if err := execute.Locally(l, "test", "-f", envSrc); err == nil {
-		remoteEnvPath := filepath.Join(remoteBlobhubDir, ".env")
-		if err := transfer(l, conn, envSrc, remoteEnvPath); err != nil {
-			l.Warnw("failed to transfer blobhub .env, continuing", "error", err)
-		}
+	// Rsync entire blobhub project so compose (including nested) and all code are on the remote.
+	l.Infow("transferring blobhub project...", "from", setup.BlobhubDirPath(), "to", fmt.Sprintf("%s:%s", conn.Destination.Host, remoteBlobhubDir))
+	if err := transfer(l, conn, setup.BlobhubDirPath(), remoteBlobhubDir, ".git", "node_modules"); err != nil {
+		return fmt.Errorf("failed to transfer blobhub project: %w", err)
 	}
 
 	if blobhubImagePath == "" {
