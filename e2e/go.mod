@@ -4,7 +4,7 @@ go 1.23.12
 
 replace (
 	// use custom blob-storage with the targeted fixes (branch: feature/attested-store)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260207191525-92053e9ed10a
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260207193727-465d51833f73
 	// github.com/fuel-infrastructure/blob-storage => ../../blob-storage
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
