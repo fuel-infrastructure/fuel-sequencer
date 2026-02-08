@@ -37,6 +37,17 @@ func Setup(configPath string) error {
 		return logAndWrapErr("failed to load configuration", err)
 	}
 
+	// Resolve sequencer_version / blob_storage_version (temp copy + checkout if branch/commit); clean up temp dirs when done
+	versionCleanups, err := resolveVersions(logging)
+	if err != nil {
+		return logAndWrapErr("failed to resolve versions", err)
+	}
+	defer func() {
+		for _, f := range versionCleanups {
+			f()
+		}
+	}()
+
 	sequencer.CheckParameters(logging)
 
 	systems, err := sequencer.CheckNetworkMnemonics(logging)

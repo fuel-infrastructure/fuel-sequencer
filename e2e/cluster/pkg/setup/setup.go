@@ -22,6 +22,7 @@ type Binary struct {
 	WantArch         string `mapstructure:"want_arch"`
 	RemoteBinaryName string `mapstructure:"remote_binary_name"`
 	SystemdPath      string `mapstructure:"systemd_path"`
+	SequencerVersion string `mapstructure:"sequencer_version"` // "current", branch name, or commit hash; empty = same as "current"
 }
 
 // Blob holds blob-related configuration
@@ -29,6 +30,7 @@ type Blob struct {
 	RedisPath           string `mapstructure:"redis_path"`
 	BlobpoolComposePath string `mapstructure:"blobpool_compose_path"`
 	BlobhubDirPath      string `mapstructure:"blobhub_dir_path"`
+	BlobStorageVersion  string `mapstructure:"blob_storage_version"` // "current", branch name, or commit hash; empty = same as "current"
 }
 
 // System holds system configuration and runtime state
@@ -62,6 +64,9 @@ var (
 	config *Config
 	// systems holds the converted system configurations with SSH connections
 	systems []System
+	// resolved paths when building from a specific version (temp copy); empty means use config paths
+	resolvedMakefileDir string
+	resolvedBlobhubDir  string
 )
 
 // LoadConfig loads the configuration from the specified TOML file
@@ -106,6 +111,35 @@ func BinaryConfig() Binary {
 	return config.Binary
 }
 
+// SetResolvedPaths sets the effective directories for sequencer and blob-storage builds (e.g. temp copy for a version).
+// Empty string means use the path from config. Cleared when temp dirs are removed.
+func SetResolvedPaths(sequencerDir, blobDir string) {
+	resolvedMakefileDir = sequencerDir
+	resolvedBlobhubDir = blobDir
+}
+
+// ClearResolvedSequencerDir clears the resolved sequencer path (used when removing its temp dir).
+func ClearResolvedSequencerDir() { resolvedMakefileDir = "" }
+
+// ClearResolvedBlobhubDir clears the resolved blob path (used when removing its temp dir).
+func ClearResolvedBlobhubDir() { resolvedBlobhubDir = "" }
+
+// EffectiveMakefileDir returns the directory to use for building the sequencer (resolved temp or config path).
+func EffectiveMakefileDir() string {
+	if resolvedMakefileDir != "" {
+		return resolvedMakefileDir
+	}
+	return config.Binary.MakefileDir
+}
+
+// EffectiveBlobhubDirPath returns the directory to use for blobhub (resolved temp or config path).
+func EffectiveBlobhubDirPath() string {
+	if resolvedBlobhubDir != "" {
+		return resolvedBlobhubDir
+	}
+	return config.Blob.BlobhubDirPath
+}
+
 // BlobConfig returns the blob configuration
 func BlobConfig() Blob {
 	return config.Blob
@@ -123,32 +157,32 @@ func Systems() []System {
 
 // BuildPath returns the path where binary will be built
 func BuildPath() string {
-	return filepath.Join(config.Binary.MakefileDir, "build")
+	return filepath.Join(EffectiveMakefileDir(), "build")
 }
 
 // DataDir returns the directory with template data
 func DataDir() string {
-	return filepath.Join(config.Binary.MakefileDir, "e2e/cluster/data")
+	return filepath.Join(EffectiveMakefileDir(), "e2e/cluster/data")
 }
 
 // ServicePath returns the path to the systemd service file
 func ServicePath() string {
-	return filepath.Join(config.Binary.MakefileDir, "e2e/cluster/systemd/fuelsequencerd.service")
+	return filepath.Join(EffectiveMakefileDir(), "e2e/cluster/systemd/fuelsequencerd.service")
 }
 
 // BlobRedisPath returns the path to the Redis configuration file
 func BlobRedisPath() string {
-	return filepath.Join(config.Binary.MakefileDir, config.Blob.RedisPath)
+	return filepath.Join(EffectiveMakefileDir(), config.Blob.RedisPath)
 }
 
 // BlobpoolComposePath returns the path to the docker compose file for blobpool
 func BlobpoolComposePath() string {
-	return filepath.Join(config.Binary.MakefileDir, config.Blob.BlobpoolComposePath)
+	return filepath.Join(EffectiveMakefileDir(), config.Blob.BlobpoolComposePath)
 }
 
-// BlobhubDirPath returns the path to the docker compose file for blobhub
+// BlobhubDirPath returns the path to the blobhub project directory
 func BlobhubDirPath() string {
-	return filepath.Join(config.Blob.BlobhubDirPath)
+	return EffectiveBlobhubDirPath()
 }
 
 // RemoteChainHomeDir returns the path to the chain's home directory on the remote host
@@ -182,7 +216,7 @@ func RemoteBlobhubDir(d Destination, instanceId int) string {
 }
 
 func LocalBlobhubDir() string {
-	return config.Blob.BlobhubDirPath
+	return EffectiveBlobhubDirPath()
 }
 
 // RemoteBlobhubComposeDir returns the path where the blobhub compose is stored

@@ -79,6 +79,12 @@ blob_hub = false
 
 The main parameters to configure are `makefile_dir` and the `systems` array for validator nodes.
 
+**Version selection (optional):** You can build and deploy a specific version of fuel-sequencer and/or blob-storage using your local clones:
+
+- `sequencer_version` and `blob_storage_version` in `cluster.toml` can be:
+  - unset or `"current"` — use the current tree at `makefile_dir` and `blobhub_dir_path` (default)
+  - a **branch name** or **commit hash** — the repo is copied to a temp dir, `git checkout <ref>` is run there, build uses that tree, then the temp dir is removed when setup finishes
+
 2. Run the cluster setup:
 
 ```bash

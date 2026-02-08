@@ -73,6 +73,7 @@ func buildBlobhubImages(l *zap.SugaredLogger, destinations []setup.Destination) 
 		}
 		if allExist {
 			l.Infow("blobhub image(s) already exist, skipping build", "platform", platform, "version", versionTag)
+			// :latest is still updated below so tar and remote compose see the right image
 		} else {
 			// Build with docker compose from blobhub dir. Use DOCKER_DEFAULT_PLATFORM for cross-build when set.
 			// DOCKER_BUILDKIT=1 and compose build with ssh: default allow private Go modules (e.g. fuel-sequencer) via SSH.
@@ -91,7 +92,7 @@ func buildBlobhubImages(l *zap.SugaredLogger, destinations []setup.Destination) 
 			}
 		}
 
-		// Ensure :latest tags exist so tar works with remote compose (expects :latest)
+		// Ensure :latest tags exist (runs whether we built or skipped) so tar and remote compose see this version
 		for _, base := range builtImageBaseNames {
 			versionedRef := base + ":" + versionTag
 			latestRef := base + ":latest"
@@ -104,10 +105,14 @@ func buildBlobhubImages(l *zap.SugaredLogger, destinations []setup.Destination) 
 		}
 		tarFilename := fmt.Sprintf("blobhub-image-%s.tar", platformTag)
 		tarPath := filepath.Join(buildPath, tarFilename)
-		saveArgs := append([]string{"save", "-o", tarPath}, latestRefs...)
-		l.Infow("saving blobhub Docker image(s) to tar...", "tar", tarPath, "count", len(latestRefs))
-		if err := execute.Locally(l, "docker", saveArgs...); err != nil {
-			return nil, fmt.Errorf("failed to save blobhub image(s) to %s: %w", tarPath, err)
+		if allExist && execute.Locally(l, "test", "-f", tarPath) == nil {
+			l.Infow("reusing existing blobhub image tar", "tar", tarPath, "platform", platform)
+		} else {
+			saveArgs := append([]string{"save", "-o", tarPath}, latestRefs...)
+			l.Infow("saving blobhub Docker image(s) to tar...", "tar", tarPath, "count", len(latestRefs))
+			if err := execute.Locally(l, "docker", saveArgs...); err != nil {
+				return nil, fmt.Errorf("failed to save blobhub image(s) to %s: %w", tarPath, err)
+			}
 		}
 		imagePaths[platform] = tarPath
 	}
