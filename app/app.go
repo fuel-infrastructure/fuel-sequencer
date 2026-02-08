@@ -338,7 +338,7 @@ func NewFuelSequencerApp(
 	app.BlobKeeper.SetChunkMode(blobCfg.ChunkMode)
 	app.BlobKeeper.SetChunkValidatorIndex(blobCfg.ChunkValidatorIndex)
 
-	// Derive validator ID from consensus key
+	// Derive validator ID and load consensus key pair
 	if homePath, ok := appOpts.Get(flags.FlagHome).(string); ok && homePath != "" {
 		validatorID, err := blobmodulekeeper.DeriveValidatorIDFromConsensusKey(homePath)
 		if err != nil {
@@ -347,6 +347,15 @@ func NewFuelSequencerApp(
 		} else if validatorID != "" {
 			app.BlobKeeper.SetValidatorID(validatorID)
 			logger.Info("derived validator ID from consensus key", "validator_id", validatorID)
+		}
+
+		// Load consensus key pair for Ed25519 attestation signing
+		priv, pub, keyErr := blobmodulekeeper.LoadConsensusKeyPair(homePath)
+		if keyErr != nil {
+			logger.Debug("failed to load consensus key pair (non-validator node?)", "error", keyErr)
+		} else {
+			app.BlobKeeper.SetConsensusKeyPair(priv, pub)
+			logger.Info("loaded consensus key pair for attestation signing")
 		}
 	}
 

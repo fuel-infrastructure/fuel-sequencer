@@ -20,4 +20,10 @@ var (
 	ErrSizeZero             = sdkerrors.Register(ModuleName, 1114, "metadata-specified size is 0")
 	ErrTopicEmpty           = sdkerrors.Register(ModuleName, 1115, "metadata-specified topic is empty")
 	ErrNonceZero            = sdkerrors.Register(ModuleName, 1116, "metadata-specified nonce is 0")
+
+	// DA attestation errors
+	ErrInvalidAttestation      = sdkerrors.Register(ModuleName, 1200, "invalid DA attestation")
+	ErrInsufficientVotingPower = sdkerrors.Register(ModuleName, 1201, "insufficient voting power for DA attestation")
+	ErrUnknownValidator        = sdkerrors.Register(ModuleName, 1202, "unknown validator in DA attestation")
+	ErrInvalidSignature        = sdkerrors.Register(ModuleName, 1203, "invalid Ed25519 signature in DA attestation")
 )
