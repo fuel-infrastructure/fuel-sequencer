@@ -51,8 +51,9 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 ) error {
 	l := logger.Named("Configure")
 
-	// Initialize chain with defined number of nodes
-	chain, err := testsuite.NewNamedChain(ChainName, dataDir, len(Mnemonics))
+	numNodes := len(peerIPs)
+	// Initialize chain with number of nodes from total instances (cluster config), not from mnemonics count
+	chain, err := testsuite.NewNamedChain(ChainName, dataDir, numNodes)
 	if err != nil {
 		return fmt.Errorf("failed to create chain: %w", err)
 	}
@@ -62,18 +63,19 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 		locally(l, "rm", "-rf", chain.ConfigDir())
 	}
 
-	l.Infow("setting up data for new chain...", "name", ChainName, "path", chain.ConfigDir())
+	l.Infow("setting up data for new chain...", "name", ChainName, "path", chain.ConfigDir(), "numNodes", numNodes)
 
 	s := &sequencer{chain: chain}
 
-	// Derive and output the Sequencer keys with the hex and bech32 representation of the addresses.
-	for i, mnemonic := range Mnemonics {
+	// Derive and output the Sequencer keys for the validators that will run (first numNodes mnemonics)
+	for i := 0; i < numNodes; i++ {
+		mnemonic := Mnemonics[i]
 		key := testsuite.MustNewSequencerKeyFromMnemonic(mnemonic)
 		l.Infow("generated sequencer key", "index", i, "mnemonic", mnemonic, "acc", key.AddressSeq, "val", key.ValAddressSeq, "hex", key.AddressHex)
 		s.keys = append(s.keys, key)
 	}
 
-	err = s.initNodes()
+	err = s.initNodes(numNodes)
 	if err != nil {
 		return fmt.Errorf("failed to initialise nodes: %w", err)
 	}
@@ -97,9 +99,10 @@ func ConfigureNetwork(logger *zap.SugaredLogger,
 }
 
 // initNodes initializes validator nodes and their genesis accounts.
+// numNodes must match the chain size and must be <= len(Mnemonics) (enforced by CheckNetworkMnemonics).
 // Returns an error if node initialization fails.
-func (s *sequencer) initNodes() error {
-	err := s.chain.CreateAndInitFuelSequencerValidators(Mnemonics)
+func (s *sequencer) initNodes(numNodes int) error {
+	err := s.chain.CreateAndInitFuelSequencerValidators(Mnemonics[:numNodes])
 	if err != nil {
 		return fmt.Errorf("failed to setup nodes from genesis: %w", err)
 	}
@@ -304,9 +307,15 @@ func (s *sequencer) initGenesis() error {
 
 // initValidatorConfigs initializes validator-specific configurations including
 // P2P settings, RPC endpoints, and application parameters.
+// Only validators with a corresponding instance (i < len(peerIPs)) are configured,
+// so running with fewer instances than mnemonics (e.g. 1 or 2) is safe.
 // Returns an error if validator configuration fails.
 func (s *sequencer) initValidatorConfigs(peerIPs []string, instanceIds []int, blobhubAddress string) error {
+	numInstances := len(peerIPs)
 	for i, val := range s.chain.Validators {
+		if i >= numInstances {
+			break
+		}
 		instanceId := 0
 		if i < len(instanceIds) {
 			instanceId = instanceIds[i]
@@ -361,10 +370,9 @@ func (s *sequencer) initValidatorConfigs(peerIPs []string, instanceIds []int, bl
 		var peers []string
 
 		for j, peer := range s.chain.Validators {
-			if i == j {
+			if i == j || j >= numInstances {
 				continue
 			}
-
 			peerInstanceId := 0
 			if j < len(instanceIds) {
 				peerInstanceId = instanceIds[j]

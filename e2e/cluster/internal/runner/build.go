@@ -79,8 +79,7 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 		return nil, fmt.Errorf("failed to ensure buildx: %w", err)
 	}
 
-	binaryConfig := setup.BinaryConfig()
-	makefileDir := binaryConfig.MakefileDir
+	makefileDir := setup.EffectiveMakefileDir()
 
 	// Build using buildx with platform specification
 	// We need to build directly with docker buildx since make build-docker-image doesn't support platform
@@ -107,8 +106,8 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 		return nil, fmt.Errorf("failed to create build directory: %w", err)
 	}
 
-	// Get git hash for the image tag, and update the global variable
-	gitHash, err := execute.LocallyWithOutput(l, "git", "describe", "--always", "--dirty", "--long")
+	// Get git hash from the tree we're building so the image tag matches that version (skip rebuild on redeploy)
+	gitHash, err := execute.LocallyWithOutput(l, "git", "-C", makefileDir, "describe", "--always", "--dirty", "--long")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get git hash: %w", err)
 	}
@@ -131,10 +130,12 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 			continue
 		}
 
-		// Skip build if image already exists
-		// Use docker image inspect which returns an error if the image doesn't exist
+		// Skip build if image already exists (same version tag from git hash above)
+		imageExists := false
 		if _, err := execute.LocallyWithOutput(l, "docker", "image", "inspect", fullImageName); err == nil {
+			imageExists = true
 			l.Infow("docker image already exists, skipping build", "image", fullImageName, "platform", platform)
+			// latest-platform tag is still updated below so it points at this image
 		} else {
 			// Image doesn't exist, build it
 			if err := execute.Locally(l, "docker", "buildx", "build",
@@ -149,7 +150,7 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 			}
 		}
 
-		// Also tag as latest for this platform (extract base image name)
+		// Also tag as latest for this platform (runs whether we built or skipped)
 		imageParts := strings.Split(fullImageName, ":")
 		if len(imageParts) == 2 {
 			latestTag := fmt.Sprintf("%s:latest-%s", imageParts[0], strings.ReplaceAll(platform, "/", "-"))
@@ -159,12 +160,16 @@ func buildImage(l *zap.SugaredLogger, imageName string, destinations ...setup.De
 			}
 		}
 
-		// Save image as tar file (use platform in filename to avoid conflicts)
 		tarFilename := fmt.Sprintf("fuel-sequencer-image-%s.tar", platformTag)
 		tarPath := filepath.Join(buildPath, tarFilename)
-		l.Infow("saving Docker image to tar...", "image", fullImageName, "tar", tarPath)
-		if err := execute.Locally(l, "docker", "save", fullImageName, "-o", tarPath); err != nil {
-			return nil, fmt.Errorf("failed to save Docker %s image: %w", platform, err)
+		// Skip save if we skipped build and tar already exists (reuse on redeploy)
+		if imageExists && execute.Locally(l, "test", "-f", tarPath) == nil {
+			l.Infow("reusing existing image tar", "tar", tarPath, "platform", platform)
+		} else {
+			l.Infow("saving Docker image to tar...", "image", fullImageName, "tar", tarPath)
+			if err := execute.Locally(l, "docker", "save", fullImageName, "-o", tarPath); err != nil {
+				return nil, fmt.Errorf("failed to save Docker %s image: %w", platform, err)
+			}
 		}
 		imagePaths[platform] = tarPath
 	}

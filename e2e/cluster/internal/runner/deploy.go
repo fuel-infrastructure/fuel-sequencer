@@ -54,19 +54,11 @@ func blobhub(l *zap.SugaredLogger, nodeId int, instanceId int, conn setup.System
 	return nil
 }
 
-// deployBlobhub starts the blobhub storage using docker compose on the remote host.
-// It executes the docker compose build and up commands (in detached mode) for the blobhub directory on the target node.
+// deployBlobhub starts the blobhub storage using docker compose on the target node.
+// Images are already built locally and loaded on the host during manage; this only runs compose up.
 // Blobhub is deployed once per system (using instanceId 0 directory) and shared across all instances.
 // Returns an error if the blobhub store fails to start.
 func deployBlobhub(l *zap.SugaredLogger, conn setup.System, composeDir string, instanceId int) error {
-	// Build the containers first
-	buildCmd := fmt.Sprintf("docker compose -f=%s build", composeDir)
-	l.Infow("building blobhub containers...", "host", conn.Destination.Host, "instance", instanceId, "cmd", buildCmd)
-	if err := execute.OnSystemWithSudo(l, conn, buildCmd); err != nil {
-		return fmt.Errorf("failed to build blobhub containers: %w", err)
-	}
-
-	// Start the containers
 	upCmd := fmt.Sprintf("docker compose -f=%s up -d", composeDir)
 	l.Infow("starting blobhub containers...", "host", conn.Destination.Host, "instance", instanceId, "cmd", upCmd)
 	if err := execute.OnSystemWithSudo(l, conn, upCmd); err != nil {

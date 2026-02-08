@@ -4,6 +4,7 @@
 [binary]
 # Absolute path to the directory where makefile is located
 makefile_dir = "/Users/thaabl/Documents/Research/Fuel/fuel-sequencer"
+sequencer_version = "current"   # optional: "current" (default), branch name, or commit hash; if branch/commit, copy to temp dir, checkout, build, then remove temp
 # Architecture specified from build binary suffix
 want_arch = "linux-amd64"
 # Name of the binary on remote
@@ -14,6 +15,7 @@ systemd_path = "/etc/systemd/system/fuelsequencerd.service"
 [blob]
 # Absolute path to the blobhub project (fuel-infrastructure/blob-storage)
 blobhub_dir_path = "/Users/thaabl/Documents/Research/Fuel/blob-storage"
+blob_storage_version = "current"   # optional: "current" (default), branch name, or commit hash; if branch/commit, copy to temp dir, checkout, build, then remove temp
 
 # Remote System Parameters
 # # "fuel-benchnet-us"

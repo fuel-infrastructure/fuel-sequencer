@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Definition of arg variables.
-ARG GO_VERSION="1.23.11"
+ARG GO_VERSION="1.23.12"
 ARG RUNNER_VERSION="3.22"
 
 # --------------------------------------------------------

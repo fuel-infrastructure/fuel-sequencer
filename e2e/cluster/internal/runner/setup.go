@@ -37,6 +37,17 @@ func Setup(configPath string) error {
 		return logAndWrapErr("failed to load configuration", err)
 	}
 
+	// Resolve sequencer_version / blob_storage_version (temp copy + checkout if branch/commit); clean up temp dirs when done
+	versionCleanups, err := resolveVersions(logging)
+	if err != nil {
+		return logAndWrapErr("failed to resolve versions", err)
+	}
+	defer func() {
+		for _, f := range versionCleanups {
+			f()
+		}
+	}()
+
 	sequencer.CheckParameters(logging)
 
 	systems, err := sequencer.CheckNetworkMnemonics(logging)
@@ -103,6 +114,29 @@ func Setup(configPath string) error {
 		}
 	}
 
+	// Build blobhub image(s) locally when at least one system has blobhub enabled
+	var blobhubImagePaths map[string]string
+	if func() bool {
+		for _, val := range systems {
+			if val.Options.Blobhub {
+				return true
+			}
+		}
+		return false
+	}() {
+		destinations := make([]setup.Destination, 0, len(systems))
+		for _, val := range systems {
+			if val.Options.Blobhub {
+				destinations = append(destinations, val.Destination)
+			}
+		}
+		var errBuild error
+		blobhubImagePaths, errBuild = buildBlobhubImages(logging, destinations)
+		if errBuild != nil {
+			return logAndWrapErr("blobhub image build failed", errBuild)
+		}
+	}
+
 	// Establish connection to all destinations
 	if err := connect.EstablishConnections(logging, systems); err != nil {
 		return logAndWrapErr("connection establishment failed", err)
@@ -110,7 +144,7 @@ func Setup(configPath string) error {
 	defer connect.CloseConnections(systems)
 
 	// Manage destinations (clean existing instances and transfer necessary files)
-	if err := manageSystems(systems, imagePaths); err != nil {
+	if err := manageSystems(systems, imagePaths, blobhubImagePaths); err != nil {
 		return logAndWrapErr("destination cleanup failed", err)
 	}
 

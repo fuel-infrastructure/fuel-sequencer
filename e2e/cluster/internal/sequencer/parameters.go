@@ -156,8 +156,8 @@ func CheckNetworkMnemonics(logging *zap.SugaredLogger) ([]setup.System, error) {
 	systems := setup.Systems()
 	totalInstances := setup.TotalInstances(systems)
 	lm := len(Mnemonics)
-	if totalInstances != lm {
-		err := fmt.Errorf("check config: total number of instances (%d) does not match number of mnemonics (%d)", totalInstances, lm)
+	if totalInstances > lm {
+		err := fmt.Errorf("check config: total number of instances (%d) exceeds number of mnemonics (%d)", totalInstances, lm)
 		logging.Fatalw(err.Error())
 		return nil, err
 	}
