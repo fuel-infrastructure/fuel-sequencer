@@ -5,8 +5,9 @@ go 1.23.12
 replace (
 	// use custom cosmos-sdk with the targeted fixes
 	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.13-custom
-	// use local blob-storage with chunk-mode support
-	github.com/fuel-infrastructure/blob-storage => ../blob-storage
+	// use local blob-storage with chunk-mode support (feature/vitaly-work)
+	// github.com/fuel-infrastructure/blob-storage => ../blob-storage
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260208001404-cf7575a7600e
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	// replace broken goleveldb
