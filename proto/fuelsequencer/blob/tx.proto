@@ -21,8 +21,10 @@ service Msg {
   // PostBlobMetadata posts metadata for a blob
   rpc PostBlobMetadata(MsgBlobMetadataTx) returns (MsgBlobMetadataTxResponse);
 
-  // SubmitDAAttestation submits DA attestation signatures for on-chain verification
-  rpc SubmitDAAttestation(MsgSubmitDAAttestation) returns (MsgSubmitDAAttestationResponse);
+  // SubmitDAAttestation submits DA attestation signatures for on-chain
+  // verification
+  rpc SubmitDAAttestation(MsgSubmitDAAttestation)
+      returns (MsgSubmitDAAttestationResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -65,23 +67,24 @@ message MsgBlobMetadataTxResponse {}
 message DAChunkSig {
   string validator_address = 1; // CometBFT consensus address (hex)
   uint32 chunk_index = 2;
-  bytes  chunk_hash = 3;        // 32 bytes
-  bytes  signature = 4;         // 64 bytes Ed25519
+  bytes chunk_hash = 3; // 32 bytes
+  bytes signature = 4;  // 64 bytes Ed25519
 }
 
-// MsgSubmitDAAttestation submits DA attestation signatures for on-chain verification.
+// MsgSubmitDAAttestation submits DA attestation signatures for on-chain
+// verification.
 message MsgSubmitDAAttestation {
   option (cosmos.msg.v1.signer) = "sender";
 
   string sender = 1;
-  bytes  blob_key = 2;          // 32 bytes
+  bytes blob_key = 2; // 32 bytes
   uint64 blob_size = 3;
   repeated DAChunkSig attestations = 4;
 }
 
 // MsgSubmitDAAttestationResponse is the response from SubmitDAAttestation.
 message MsgSubmitDAAttestationResponse {
-  bool   confirmed = 1;        // whether voting power threshold was met
-  string total_power = 2;      // total bonded voting power
-  string attested_power = 3;   // power of valid attestors
+  bool confirmed = 1;        // whether voting power threshold was met
+  string total_power = 2;    // total bonded voting power
+  string attested_power = 3; // power of valid attestors
 }
