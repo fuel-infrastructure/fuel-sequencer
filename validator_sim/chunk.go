@@ -84,6 +84,24 @@ func runChunkMode(ctx context.Context, client *blobclient.Client, blobhubURL, va
 
 func runChunkPipeline(ctx context.Context, client *blobclient.Client, blobhubURL, validatorID string, privKey ed25519.PrivateKey, notifChan <-chan *blobclient.ChunkNotification) {
 	var signed, errors, verified, verifyFailed atomic.Int64
+
+	// Status logging (matches keeper's 10s ticker)
+	statusCtx, statusCancel := context.WithCancel(ctx)
+	defer statusCancel()
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-statusCtx.Done():
+				return
+			case <-ticker.C:
+				log.Printf("chunk attestation status signed=%d verified=%d verify_failed=%d errors=%d",
+					signed.Load(), verified.Load(), verifyFailed.Load(), errors.Load())
+			}
+		}
+	}()
+
 	verifyCh := make(chan *blobclient.ChunkNotification, 1024)
 	attestCh := make(chan blobclient.ChunkAttestation, 1024)
 	sendCh := make(chan []blobclient.ChunkAttestation, 64)
@@ -176,12 +194,14 @@ func runChunkPipeline(ctx context.Context, client *blobclient.Client, blobhubURL
 		select {
 		case <-ctx.Done():
 			close(verifyCh)
+			verifyWg.Wait()
 			log.Printf("chunk pipeline shutting down signed=%d verified=%d verify_failed=%d errors=%d",
 				signed.Load(), verified.Load(), verifyFailed.Load(), errors.Load())
 			return
 		case msg, ok := <-notifChan:
 			if !ok {
 				close(verifyCh)
+				verifyWg.Wait()
 				log.Printf("chunk notification channel closed signed=%d verified=%d verify_failed=%d errors=%d",
 					signed.Load(), verified.Load(), verifyFailed.Load(), errors.Load())
 				return

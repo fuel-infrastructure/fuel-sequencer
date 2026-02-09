@@ -45,7 +45,7 @@ Implement the same flows in a **standalone** binary that depends only on `github
 
 ## CLI compatibility with run_benchmark.sh
 
-The script [run_benchmark.sh](file:///Users/thaabl/Documents/Research/Fuel/blob-storage-vitaly/run_benchmark.sh) invokes validator_sim as:
+The script [run_benchmark.sh](file:///Users/thaabl/Documents/Research/Fuel/blob-storage/run_benchmark.sh) invokes validator_sim as:
 
 ```bash
 /tmp/validator_sim validator-1 http://localhost:31035 --chunk-mode --index 0
@@ -113,7 +113,7 @@ Keep the implementation as close as possible to [x/blob/keeper/blobhub.go](x/blo
 
 ## Testing
 
-- Manual: (1) Whole-blob: run blobhub locally, run `validator_sim` with blobhub URL and optional validator-id/key (positionals or flags), confirm blobs in sqlite and acks sent. (2) Chunk-mode / script: run as in [run_benchmark.sh](file:///Users/thaabl/Documents/Research/Fuel/blob-storage-vitaly/run_benchmark.sh): `validator_sim validator-1 http://localhost:31035 --chunk-mode --index 0` (and index 1, 2 for two more); confirm chunk attestations submitted. To use from the script, point the script’s build at fuel-sequencer’s `validator_sim` dir (e.g. `(cd /path/to/fuel-sequencer && go build -o /tmp/validator_sim ./validator_sim)`).
+- Manual: (1) Whole-blob: run blobhub locally, run `validator_sim` with blobhub URL and optional validator-id/key (positionals or flags), confirm blobs in sqlite and acks sent. (2) Chunk-mode / script: run as in [run_benchmark.sh](file:///Users/thaabl/Documents/Research/Fuel/blob-storage/run_benchmark.sh): `validator_sim validator-1 http://localhost:31035 --chunk-mode --index 0` (and index 1, 2 for two more); confirm chunk attestations submitted. To use from the script, point the script’s build at fuel-sequencer’s `validator_sim` dir (e.g. `(cd /path/to/fuel-sequencer && go build -o /tmp/validator_sim ./validator_sim)`).
 - Optional later: unit test with a mock blobhub (e.g. similar to [x/blob/keeper/blobhub_test.go](x/blob/keeper/blobhub_test.go) mock) to assert sync + sign behavior without a real server.
 
 ## Build

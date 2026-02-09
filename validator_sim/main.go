@@ -125,6 +125,7 @@ func runWholeBlobSync(ctx context.Context, client *blobclient.Client, st store.S
 			continue
 		}
 		log.Printf("connected to blobhub url=%s", blobhubURL)
+	stream:
 		for {
 			select {
 			case <-ctx.Done():
@@ -132,7 +133,7 @@ func runWholeBlobSync(ctx context.Context, client *blobclient.Client, st store.S
 			case blob, ok := <-blobChan:
 				if !ok {
 					log.Printf("blob stream channel closed, reconnecting url=%s", blobhubURL)
-					break
+					break stream
 				}
 				if blob == nil {
 					continue
