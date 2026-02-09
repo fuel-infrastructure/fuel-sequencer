@@ -4,8 +4,8 @@ go 1.23.12
 
 replace (
 	// use blob-storage with chunk-mode support (align with root go.mod)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260208001404-cf7575a7600e
-	// github.com/fuel-infrastructure/blob-storage => ../../blob-storage
+	github.com/fuel-infrastructure/blob-storage => ../../blob-storage
+	// github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260208001404-cf7575a7600e
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
 	// fix upstream GHSA-h395-qcrw-5vmq vulnerability.
