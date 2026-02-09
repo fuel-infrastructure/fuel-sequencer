@@ -29,17 +29,30 @@ const (
 )
 
 func main() {
+	// Go's flag package stops at the first non-flag argument.
+	// The script invokes: validator_sim <id> <url> --chunk-mode --index N
+	// so we must separate leading positional args before calling flag.Parse().
+	var positionals []string
+	flagArgs := os.Args[1:]
+	for len(flagArgs) > 0 && !strings.HasPrefix(flagArgs[0], "-") {
+		positionals = append(positionals, flagArgs[0])
+		flagArgs = flagArgs[1:]
+	}
+
 	chunkMode := flag.Bool("chunk-mode", false, "chunk-mode attestation: stream chunk notifications, verify and sign chunks only")
 	chunkIndex := flag.Int("index", 0, "chunk index this validator attests (used when -chunk-mode)")
 	blobpoolPath := flag.String("blobpool", "./data/blobpool.db", "SQLite path for blob store (whole-blob mode only)")
 	keyPath := flag.String("key", "", "path to Ed25519 private key file (hex or raw 32 bytes)")
 	validatorIDFlag := flag.String("validator-id", "", "validator ID (fallback when not using positionals)")
 	blobhubFlag := flag.String("blobhub", "http://localhost:31035", "blobhub URL (fallback when not using positionals)")
-	flag.Parse()
+	flag.CommandLine.Parse(flagArgs)
 
 	// Positionals: first two non-flag args = validator-id, blobhub URL (script style)
 	var validatorID, blobhubURL string
-	if args := flag.Args(); len(args) >= 2 {
+	if len(positionals) >= 2 {
+		validatorID = positionals[0]
+		blobhubURL = positionals[1]
+	} else if args := flag.Args(); len(args) >= 2 {
 		validatorID = args[0]
 		blobhubURL = args[1]
 	} else {
@@ -63,8 +76,10 @@ func main() {
 	}()
 
 	client := blobclient.NewClient(&blobclient.ClientConfig{
-		BaseURL: blobhubURL,
-		Logger:  nil,
+		BaseURL:    blobhubURL,
+		Timeout:    30 * time.Second,
+		MaxRetries: 3,
+		RetryDelay: 1 * time.Second,
 	})
 
 	var privKey ed25519.PrivateKey
