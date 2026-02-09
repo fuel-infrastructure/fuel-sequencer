@@ -3,8 +3,8 @@ module github.com/fuel-infrastructure/fuel-sequencer/e2e
 go 1.23.12
 
 replace (
-	// use custom blob-storage with the targeted fixes (branch: feature/attested-store)
-	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260205133254-bd20dcbd1ea0
+	// use blob-storage with chunk-mode support (align with root go.mod)
+	github.com/fuel-infrastructure/blob-storage => github.com/fuel-infrastructure/blob-storage v0.0.0-20260208001404-cf7575a7600e
 	// github.com/fuel-infrastructure/blob-storage => ../../blob-storage
 	// use local FuelSequencer
 	github.com/fuel-infrastructure/fuel-sequencer => ../
@@ -33,6 +33,11 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.40.0
 	google.golang.org/grpc v1.70.0
+)
+
+require (
+	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
+	github.com/klauspost/reedsolomon v1.13.2 // indirect
 )
 
 require (
