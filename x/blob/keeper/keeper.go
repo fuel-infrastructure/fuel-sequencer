@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
 	"path/filepath"
@@ -32,7 +33,16 @@ type (
 		blobpoolSqlitePath    string
 		blobpoolServerEnabled bool
 		blobpoolServerAddress string
+		chunkMode             bool   // enable chunk-mode attestation
+		chunkValidatorIndex   int    // which chunk this validator attests
 		validatorID           string // derived from consensus key
+
+		// Consensus key pair for Ed25519 attestation signing
+		privKey ed25519.PrivateKey
+		pubKey  ed25519.PublicKey
+
+		// Staking keeper for on-chain DA attestation verification
+		stakingKeeper types.StakingKeeper
 
 		initialised bool           // initialise blobhub and blobpool connections
 		*Blobpool                  // node storage for unconfirmed blob transactions
@@ -83,8 +93,8 @@ func (k *Keeper) Initialize(ctx context.Context) error {
 	}
 	client := blobclient.NewClient(config)
 
-	// Create blobhub client with validator ID (ACK is standard, handled by client)
-	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress, client, k.validatorID)
+	// Create blobhub client with validator ID and consensus key pair
+	blobhubClient, err := newBlobhubClient(ctx, k.logger, blobpool, k.blobhubAddress, client, k.validatorID, k.chunkMode, k.chunkValidatorIndex, k.privKey, k.pubKey)
 	if err != nil {
 		return err
 	}
@@ -130,15 +140,32 @@ func (k *Keeper) SetBlobpoolServerAddress(address string) {
 	k.blobpoolServerAddress = address
 }
 
-// SetValidatorID sets the validator ID for the keeper (derived from consensus key)
-func (k *Keeper) SetValidatorID(id string) {
-	k.validatorID = id
+// SetChunkMode enables or disables chunk-mode attestation.
+func (k *Keeper) SetChunkMode(enabled bool) {
+	k.chunkMode = enabled
 }
 
-// DeriveValidatorIDFromConsensusKey derives the validator ID from the node's consensus key.
-// It loads the priv_validator_key.json file and extracts the public key address.
-// Returns empty string if the key file doesn't exist (non-validator node).
-func DeriveValidatorIDFromConsensusKey(nodeHome string) (string, error) {
+// SetChunkValidatorIndex sets the validator chunk index for chunk-mode attestation.
+func (k *Keeper) SetChunkValidatorIndex(index int) {
+	k.chunkValidatorIndex = index
+}
+
+// SetConsensusKeyInfo sets the validator ID and Ed25519 consensus key pair for attestation signing.
+func (k *Keeper) SetConsensusKeyInfo(validatorID string, priv ed25519.PrivateKey, pub ed25519.PublicKey) {
+	k.validatorID = validatorID
+	k.privKey = priv
+	k.pubKey = pub
+}
+
+// SetStakingKeeper sets the staking keeper for on-chain DA attestation verification.
+func (k *Keeper) SetStakingKeeper(sk types.StakingKeeper) {
+	k.stakingKeeper = sk
+}
+
+// LoadConsensusKeyInfo loads the Ed25519 consensus key pair from priv_validator_key.json
+// and derives the validator ID (hex-encoded CometBFT address) from the public key.
+// Returns all three values from a single file load to avoid duplicate I/O.
+func LoadConsensusKeyInfo(nodeHome string) (validatorID string, priv ed25519.PrivateKey, pub ed25519.PublicKey, err error) {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
 	config.SetRoot(nodeHome)
@@ -146,29 +173,38 @@ func DeriveValidatorIDFromConsensusKey(nodeHome string) (string, error) {
 	pvKeyFile := config.PrivValidatorKeyFile()
 	pvStateFile := config.PrivValidatorStateFile()
 
-	// Check if priv_validator_key.json exists
 	if _, err := filepath.Abs(pvKeyFile); err != nil {
-		return "", fmt.Errorf("failed to resolve priv validator key file path: %w", err)
+		return "", nil, nil, fmt.Errorf("failed to resolve priv validator key file path: %w", err)
 	}
 
 	filePV := privval.LoadOrGenFilePV(pvKeyFile, pvStateFile)
 	if filePV == nil {
-		return "", fmt.Errorf("failed to load priv validator key")
+		return "", nil, nil, fmt.Errorf("failed to load priv validator key")
 	}
 
-	// Extract public key address and encode as hex
-	pubKey, err := filePV.GetPubKey()
+	// Derive validator ID from the CometBFT public key address (SHA256(pubkey)[:20]).
+	cmtPubKey, err := filePV.GetPubKey()
 	if err != nil {
-		return "", fmt.Errorf("failed to get public key from priv validator: %w", err)
+		return "", nil, nil, fmt.Errorf("failed to get public key from priv validator: %w", err)
 	}
-	if pubKey == nil {
-		return "", fmt.Errorf("public key is nil")
+	if cmtPubKey == nil {
+		return "", nil, nil, fmt.Errorf("public key is nil")
+	}
+	validatorID = hex.EncodeToString(cmtPubKey.Address())
+
+	// Extract the Ed25519 key pair for attestation signing.
+	// CometBFT's ed25519.PrivKey is []byte — 64 bytes in seed||pubkey format,
+	// identical to Go stdlib crypto/ed25519.
+	privBytes := filePV.Key.PrivKey.Bytes()
+	if len(privBytes) != 64 {
+		return "", nil, nil, fmt.Errorf("unexpected private key length: %d (expected 64)", len(privBytes))
 	}
 
-	address := pubKey.Address()
-	validatorID := hex.EncodeToString(address)
+	priv = ed25519.PrivateKey(make([]byte, 64))
+	copy(priv, privBytes)
+	pub = priv.Public().(ed25519.PublicKey)
 
-	return validatorID, nil
+	return validatorID, priv, pub, nil
 }
 
 // GetAuthority returns the module's authority.

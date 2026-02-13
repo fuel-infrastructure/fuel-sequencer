@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -18,8 +20,13 @@ type blobhubClient struct {
 	blobpool       *Blobpool // reference to the blobpool, where blobs are stored
 	blobhubAddress string    // configurable blobhub address (HTTP base URL)
 
-	client      *blobhub.Client
-	validatorID string // validator ID derived from consensus key (empty for non-validator nodes)
+	client              *blobhub.Client
+	validatorID         string // validator ID derived from consensus key (empty for non-validator nodes)
+	chunkMode           bool   // enable chunk-mode attestation
+	chunkValidatorIndex int    // which chunk this validator attests
+
+	privKey ed25519.PrivateKey // Ed25519 private key for signing attestations
+	pubKey  ed25519.PublicKey  // Ed25519 public key registered with hub
 }
 
 // normalizeBlobhubAddress converts a blobhub address to HTTP URL format.
@@ -34,7 +41,12 @@ func normalizeBlobhubAddress(address string) string {
 
 // newBlobhubClient creates a blobhub client. If client is nil, a new one is created.
 // If validatorID is provided, ACK (signature submission) will be performed after blob sync.
-func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool, blobhubAddress string, client *blobhub.Client, validatorID string) (*blobhubClient, error) {
+// privKey/pubKey should be the consensus Ed25519 key pair; if nil, a random pair is generated (for testing).
+func newBlobhubClient(ctx context.Context, logger log.Logger,
+	blobpool *Blobpool, blobhubAddress string, client *blobhub.Client,
+	validatorID string, chunkMode bool, chunkValidatorIndex int,
+	privKey ed25519.PrivateKey, pubKey ed25519.PublicKey,
+) (*blobhubClient, error) {
 	// Normalize address to HTTP URL format
 	httpURL := normalizeBlobhubAddress(blobhubAddress)
 
@@ -47,25 +59,43 @@ func newBlobhubClient(ctx context.Context, logger log.Logger, blobpool *Blobpool
 		client = blobhub.NewClient(config)
 	}
 
+	// Use provided consensus key pair, or generate random (for testing/non-validator nodes)
+	pub, priv := pubKey, privKey
+	if priv == nil {
+		var keyErr error
+		pub, priv, keyErr = ed25519.GenerateKey(nil)
+		if keyErr != nil {
+			return nil, fmt.Errorf("failed to generate Ed25519 keypair: %w", keyErr)
+		}
+	}
+
 	blobhubClient := &blobhubClient{
-		logger:         logger.With("module", "blobhub_sync"),
-		blobpool:       blobpool,
-		blobhubAddress: httpURL,
-		client:         client,
-		validatorID:    validatorID,
+		logger:              logger.With("module", "blobhub_sync"),
+		blobpool:            blobpool,
+		blobhubAddress:      httpURL,
+		client:              client,
+		validatorID:         validatorID,
+		chunkMode:           chunkMode,
+		chunkValidatorIndex: chunkValidatorIndex,
+		privKey:             priv,
+		pubKey:              pub,
 	}
 
 	// Register validator with Blobhub before starting sync (required for signing)
 	if validatorID != "" {
-		if err := client.Register(ctx, validatorID); err != nil {
+		if err := client.RegisterWithKey(ctx, validatorID, pub); err != nil {
 			blobhubClient.logger.Error("failed to register validator with Blobhub", "error", err, "validator_id", validatorID)
 			return nil, fmt.Errorf("failed to register validator: %w", err)
 		}
-		blobhubClient.logger.Info("registered validator with Blobhub", "validator_id", validatorID)
+		blobhubClient.logger.Info("registered validator with Blobhub", "validator_id", validatorID, "pubkey", hex.EncodeToString(pub))
 	}
 
-	blobhubClient.logger.Info("created new blobhub client", "url", httpURL, "validator_id", validatorID)
-	go blobhubClient.sync(ctx)
+	blobhubClient.logger.Info("created new blobhub client", "url", httpURL, "validator_id", validatorID, "chunk_mode", chunkMode, "chunk_index", chunkValidatorIndex)
+	if chunkMode {
+		go blobhubClient.syncChunks(ctx)
+	} else {
+		go blobhubClient.sync(ctx)
+	}
 
 	return blobhubClient, nil
 }

@@ -32,6 +32,9 @@ release/
 build/
 tmp-swagger-gen/
 
+# Go vendor directory
+vendor/
+
 # Manual E2E
 temp-proposal.json
 temp-msg.json

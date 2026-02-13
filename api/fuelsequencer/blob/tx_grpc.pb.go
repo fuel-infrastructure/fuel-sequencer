@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_UpdateParams_FullMethodName     = "/fuelsequencer.blob.Msg/UpdateParams"
-	Msg_PostBlobMetadata_FullMethodName = "/fuelsequencer.blob.Msg/PostBlobMetadata"
+	Msg_UpdateParams_FullMethodName        = "/fuelsequencer.blob.Msg/UpdateParams"
+	Msg_PostBlobMetadata_FullMethodName    = "/fuelsequencer.blob.Msg/PostBlobMetadata"
+	Msg_SubmitDAAttestation_FullMethodName = "/fuelsequencer.blob.Msg/SubmitDAAttestation"
 )
 
 // MsgClient is the client API for Msg service.
@@ -32,6 +33,9 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// PostBlobMetadata posts metadata for a blob
 	PostBlobMetadata(ctx context.Context, in *MsgBlobMetadataTx, opts ...grpc.CallOption) (*MsgBlobMetadataTxResponse, error)
+	// SubmitDAAttestation submits DA attestation signatures for on-chain
+	// verification
+	SubmitDAAttestation(ctx context.Context, in *MsgSubmitDAAttestation, opts ...grpc.CallOption) (*MsgSubmitDAAttestationResponse, error)
 }
 
 type msgClient struct {
@@ -60,6 +64,15 @@ func (c *msgClient) PostBlobMetadata(ctx context.Context, in *MsgBlobMetadataTx,
 	return out, nil
 }
 
+func (c *msgClient) SubmitDAAttestation(ctx context.Context, in *MsgSubmitDAAttestation, opts ...grpc.CallOption) (*MsgSubmitDAAttestationResponse, error) {
+	out := new(MsgSubmitDAAttestationResponse)
+	err := c.cc.Invoke(ctx, Msg_SubmitDAAttestation_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -69,6 +82,9 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// PostBlobMetadata posts metadata for a blob
 	PostBlobMetadata(context.Context, *MsgBlobMetadataTx) (*MsgBlobMetadataTxResponse, error)
+	// SubmitDAAttestation submits DA attestation signatures for on-chain
+	// verification
+	SubmitDAAttestation(context.Context, *MsgSubmitDAAttestation) (*MsgSubmitDAAttestationResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -81,6 +97,9 @@ func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*
 }
 func (UnimplementedMsgServer) PostBlobMetadata(context.Context, *MsgBlobMetadataTx) (*MsgBlobMetadataTxResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostBlobMetadata not implemented")
+}
+func (UnimplementedMsgServer) SubmitDAAttestation(context.Context, *MsgSubmitDAAttestation) (*MsgSubmitDAAttestationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitDAAttestation not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -131,6 +150,24 @@ func _Msg_PostBlobMetadata_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_SubmitDAAttestation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSubmitDAAttestation)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SubmitDAAttestation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_SubmitDAAttestation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SubmitDAAttestation(ctx, req.(*MsgSubmitDAAttestation))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -145,6 +182,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PostBlobMetadata",
 			Handler:    _Msg_PostBlobMetadata_Handler,
+		},
+		{
+			MethodName: "SubmitDAAttestation",
+			Handler:    _Msg_SubmitDAAttestation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
