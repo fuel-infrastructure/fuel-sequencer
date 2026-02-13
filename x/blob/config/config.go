@@ -20,6 +20,11 @@ const (
 
 	FlagBlobpoolServerAddress    = "blob.blobpool-server-address"
 	DefaultBlobpoolServerAddress = "localhost:21025"
+
+	FlagChunkMode                   = "blob.chunk-mode"
+	DefaultChunkMode                = false
+	FlagChunkValidatorIndex         = "blob.chunk-validator-index"
+	DefaultChunkValidatorIndex  int = 0
 )
 
 func AddStartCmdFlags(startCmd *cobra.Command) {
@@ -43,6 +48,16 @@ func AddStartCmdFlags(startCmd *cobra.Command) {
 		DefaultBlobpoolServerAddress,
 		"Blobpool server address for querying and profiling",
 	)
+	startCmd.Flags().Bool(
+		FlagChunkMode,
+		DefaultChunkMode,
+		"Enable chunk-mode attestation (EigenDA-inspired erasure coding)",
+	)
+	startCmd.Flags().Int(
+		FlagChunkValidatorIndex,
+		DefaultChunkValidatorIndex,
+		"Validator chunk index for chunk-mode attestation (which chunk to verify)",
+	)
 }
 
 // Config contains the application side Blob configurations that must be set in the app.toml file.
@@ -55,6 +70,10 @@ type Config struct {
 	BlobpoolServerEnabled bool `mapstructure:"blobpool-server-enabled"`
 	// BlobpoolServerAddress defines the address of the blobpool server for querying and profiling.
 	BlobpoolServerAddress string `mapstructure:"blobpool-server-address"`
+	// ChunkMode enables chunk-mode attestation (erasure coding + Merkle proof verification).
+	ChunkMode bool `mapstructure:"chunk-mode"`
+	// ChunkValidatorIndex specifies which chunk this validator attests in chunk mode.
+	ChunkValidatorIndex int `mapstructure:"chunk-validator-index"`
 }
 
 func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg Config, err error) {
@@ -94,6 +113,24 @@ func NewConfigFromAppOptions(opts servertypes.AppOptions) (cfg Config, err error
 		cfg.BlobpoolServerAddress = DefaultBlobpoolServerAddress
 	}
 
+	// determine chunk mode
+	if v := opts.Get(FlagChunkMode); v != nil {
+		if cfg.ChunkMode, err = cast.ToBoolE(v); err != nil {
+			return
+		}
+	} else {
+		cfg.ChunkMode = DefaultChunkMode
+	}
+
+	// determine chunk validator index
+	if v := opts.Get(FlagChunkValidatorIndex); v != nil {
+		if cfg.ChunkValidatorIndex, err = cast.ToIntE(v); err != nil {
+			return
+		}
+	} else {
+		cfg.ChunkValidatorIndex = DefaultChunkValidatorIndex
+	}
+
 	return
 }
 
@@ -107,6 +144,9 @@ func (cfg *Config) ValidateBasic() error {
 	}
 	if cfg.BlobpoolServerEnabled && cfg.BlobpoolServerAddress == "" {
 		return fmt.Errorf("blobpool server address cannot be empty when server is enabled")
+	}
+	if cfg.ChunkMode && cfg.ChunkValidatorIndex < 0 {
+		return fmt.Errorf("chunk validator index cannot be negative")
 	}
 	return nil
 }

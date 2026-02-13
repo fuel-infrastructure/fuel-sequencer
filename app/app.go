@@ -335,16 +335,18 @@ func NewFuelSequencerApp(
 	app.BlobKeeper.SetBlobpoolSqlitePath(blobCfg.BlobpoolSqlitePath)
 	app.BlobKeeper.SetBlobpoolServerEnabled(blobCfg.BlobpoolServerEnabled)
 	app.BlobKeeper.SetBlobpoolServerAddress(blobCfg.BlobpoolServerAddress)
+	app.BlobKeeper.SetChunkMode(blobCfg.ChunkMode)
+	app.BlobKeeper.SetChunkValidatorIndex(blobCfg.ChunkValidatorIndex)
 
-	// Derive validator ID from consensus key
+	// Load consensus key info (validator ID + Ed25519 key pair) from priv_validator_key.json
 	if homePath, ok := appOpts.Get(flags.FlagHome).(string); ok && homePath != "" {
-		validatorID, err := blobmodulekeeper.DeriveValidatorIDFromConsensusKey(homePath)
+		validatorID, priv, pub, err := blobmodulekeeper.LoadConsensusKeyInfo(homePath)
 		if err != nil {
 			// Log warning but don't fail - non-validator nodes won't have the key file
-			logger.Debug("failed to derive validator ID from consensus key (non-validator node?)", "error", err)
+			logger.Warn("failed to load consensus key info (non-validator node?)", "error", err)
 		} else if validatorID != "" {
-			app.BlobKeeper.SetValidatorID(validatorID)
-			logger.Info("derived validator ID from consensus key", "validator_id", validatorID)
+			app.BlobKeeper.SetConsensusKeyInfo(validatorID, priv, pub)
+			logger.Info("loaded consensus key info for attestation signing", "validator_id", validatorID)
 		}
 	}
 
