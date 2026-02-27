@@ -4,6 +4,7 @@ set -euo pipefail
 RPC_URL="${RPC_URL:-https://rpc-fuel-seq.simplystaking.xyz/}"
 LOOKUP_DIR="${LOOKUP_DIR:-/Users/thaabl/Documents/Research/Fuel/fuel-sequencer/scripts/lookup_validator}"
 PER_PAGE="${PER_PAGE:-100}"
+EXPLORER_STAKING_URL="${EXPLORER_STAKING_URL:-https://fuel-seq.simplystaking.xyz/fuel-mainnet/staking}"
 
 BLOCKS_FILE="$(mktemp)"
 CACHE_FILE="$(mktemp)"
@@ -42,9 +43,9 @@ rpc_call() {
 
 resolve_validator_name() {
   local addr="$1"
-  local cached name out line
+  local cached name operator out line
 
-  cached="$(awk -F'\t' -v a="$addr" '$1==a {print $2; exit}' "$CACHE_FILE" || true)"
+  cached="$(awk -F'\t' -v a="$addr" '$1==a {print $2 "\t" $3; exit}' "$CACHE_FILE" || true)"
   if [[ -n "$cached" ]]; then
     printf '%s' "$cached"
     return
@@ -52,16 +53,19 @@ resolve_validator_name() {
 
   out="$(cd "$LOOKUP_DIR" && go run . "$addr" 2>/dev/null || true)"
   name="UNKNOWN"
+  operator=""
 
   while IFS= read -r line; do
     if [[ "$line" =~ Moniker:[[:space:]]*(.*)$ ]]; then
       name="$(trim "${BASH_REMATCH[1]}")"
-      break
+    fi
+    if [[ "$line" =~ Operator[[:space:]]Addr:[[:space:]]*(.*)$ ]]; then
+      operator="$(trim "${BASH_REMATCH[1]}")"
     fi
   done <<< "$out"
 
-  printf '%s\t%s\n' "$addr" "$name" >> "$CACHE_FILE"
-  printf '%s' "$name"
+  printf '%s\t%s\t%s\n' "$addr" "$name" "$operator" >> "$CACHE_FILE"
+  printf '%s\t%s' "$name" "$operator"
 }
 
 require_cmd curl
@@ -106,7 +110,7 @@ while :; do
   page=$((page + 1))
 done
 
-printf 'Block Height\tTimestamp\tValidator\tValidator Signer Address\tReason\tBurned Amount (fuel)\tPower Slashed\n'
+printf 'Block Height\tTimestamp\tValidator\tValidator Signer Address\tReason\tBurned Amount (fuel)\tPower Slashed\tValidator URL\n'
 
 while IFS=$'\t' read -r height timestamp; do
   payload="$(jq -nc --arg h "$height" '{
@@ -128,11 +132,15 @@ while IFS=$'\t' read -r height timestamp; do
     burned="$(jq -r '.burned_coins // ""' <<< "$event")"
     power="$(jq -r '.power // ""' <<< "$event")"
 
-    validator="$(resolve_validator_name "$addr")"
+    IFS=$'\t' read -r validator operator <<< "$(resolve_validator_name "$addr")"
     ts="$(normalize_ts "$timestamp")"
+    validator_url=""
+    if [[ -n "$operator" ]]; then
+      validator_url="$EXPLORER_STAKING_URL/$operator"
+    fi
 
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-      "$height" "$ts" "$validator" "$addr" "$reason" "$burned" "$power"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$height" "$ts" "$validator" "$addr" "$reason" "$burned" "$power" "$validator_url"
   done < <(
     jq -c '
       (.result.finalize_block_events // [])
