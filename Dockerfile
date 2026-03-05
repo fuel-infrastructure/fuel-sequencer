@@ -2,7 +2,7 @@
 
 # Definition of arg variables.
 # These can be overridden at build time with --build-arg
-ARG GO_VERSION="1.23.12"
+ARG GO_VERSION="1.24.13"
 ARG ALPINE_VERSION="3.22"
 ARG RUNNER_IMAGE="alpine:${ALPINE_VERSION}"
 
