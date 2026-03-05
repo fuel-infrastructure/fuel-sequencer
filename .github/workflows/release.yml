@@ -16,6 +16,10 @@ name: Build and publish Docker image
 
 on: push
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   might_release:
     runs-on: ubuntu-latest

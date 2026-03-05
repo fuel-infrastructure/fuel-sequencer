@@ -35,11 +35,6 @@ RUN make build
 
 FROM ${RUNNER_IMAGE}
 
-# Get the binary from the previous stage and add it to /usr/local/bin/fu
-COPY --from=builder /fuel-sequencer/build/fuelsequencerd /usr/local/bin/fuelsequencerd
-# Copy the bash script from the builder
-COPY --from=builder /fuel-sequencer/scripts/node_and_sidecar.sh /usr/local/bin/node_and_sidecar
-
 # Install some packages and create a fuelsequencer user
 RUN apk add bash vim sudo dasel \
     && addgroup -g 1000 fuelsequencer \
@@ -50,6 +45,11 @@ RUN mkdir -p /etc/sudoers.d \
     && echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel \
     && echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers \
     && adduser fuelsequencer wheel
+
+# Get the binary from the previous stage and add it to /usr/local/bin/fu
+COPY --from=builder /fuel-sequencer/build/fuelsequencerd /usr/local/bin/fuelsequencerd
+# Copy the bash script from the builder
+COPY --from=builder /fuel-sequencer/scripts/node_and_sidecar.sh /usr/local/bin/node_and_sidecar
 
 # Set home directory to /home/fuelsequencer
 USER 1000
