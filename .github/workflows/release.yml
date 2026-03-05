@@ -17,7 +17,7 @@ name: Build and publish Docker image
 on: push
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
