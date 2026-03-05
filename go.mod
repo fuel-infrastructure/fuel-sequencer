@@ -4,7 +4,8 @@ go 1.23.12
 
 replace (
 	// use custom cosmos-sdk with the targeted fixes
-	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.15-custom
+	// needs the resolved tag for v0.50.15-custom branch
+	github.com/cosmos/cosmos-sdk => github.com/fuel-infrastructure/cosmos-sdk v0.50.15-0.20260123103244-6da7cb74926d
 	// replace broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// upgrade ledger-go for compatibility
