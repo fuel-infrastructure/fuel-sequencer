@@ -20,6 +20,10 @@ permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   might_release:
     runs-on: ubuntu-latest
@@ -44,7 +48,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            ghcr.io/fuel-infrastructure/fuel-sequencer
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=sha,prefix=
