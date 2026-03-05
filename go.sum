@@ -552,9 +552,8 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
+github.com/fuel-infrastructure/cosmos-sdk v0.50.15-0.20260123103244-6da7cb74926d h1:vD0bJDm8l5jwU93I4DMfVqXuBX6tAakmGw+OXv24ETQ=
 github.com/fuel-infrastructure/cosmos-sdk v0.50.15-0.20260123103244-6da7cb74926d/go.mod h1:AXXW4IGyCkd9PklT+BEraI3jTs+8t9SDXw1e9/sTHKU=
-github.com/fuel-infrastructure/cosmos-sdk v0.50.15-custom h1:fhZNvqgC/h5lHWttirDym43Gj9p11DET7VjtHCJxYE4=
-github.com/fuel-infrastructure/cosmos-sdk v0.50.15-custom/go.mod h1:AXXW4IGyCkd9PklT+BEraI3jTs+8t9SDXw1e9/sTHKU=
 github.com/fzipp/gocyclo v0.6.0 h1:lsblElZG7d3ALtGMx9fmxeTKZaLLpU8mET09yN4BBLo=
 github.com/fzipp/gocyclo v0.6.0/go.mod h1:rXPyn8fnlpa0R2csP/31uerbiVBugk5whMdlyaLkLoA=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff h1:tY80oXqGNY4FhTFhk+o9oFHGINQ/+vhlm8HFzi6znCI=
