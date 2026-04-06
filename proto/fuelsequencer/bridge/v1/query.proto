@@ -7,7 +7,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "fuelsequencer/bridge/params.proto";
+import "fuelsequencer/bridge/v1/params.proto";
 import "fuelsequencer/bridge/supply_delta_info.proto";
 import "fuelsequencer/bridge/index.proto";
 import "google/protobuf/timestamp.proto";

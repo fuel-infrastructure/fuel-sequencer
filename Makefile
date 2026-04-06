@@ -564,6 +564,11 @@ test-e2e-deposits:
 test-e2e-special-messages:
 	@cd e2e/tests && $(GO_CMD) test -mod=readonly -race -v ./special-messages/... --test.timeout 0
 
+# Test legacy params compatibility against real mainnet proposals
+test-mainnet-legacy-compatibility:
+	@echo "🌐 Testing legacy params compatibility against mainnet proposals..."
+	@./scripts/test-with-local-mainnet-node.sh
+
 # Run e2e tests with HTTPS proxy for fuel-explorer integration
 test-e2e-with-proxy: check-docker-image-exists
 	@echo "🔐 Running E2E tests with integrated HTTPS proxy"
