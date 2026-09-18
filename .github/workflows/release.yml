@@ -64,6 +64,13 @@ jobs:
 
   # Native amd64 + arm64 builds (not QEMU multi-platform on one runner).
   # Pin matches fuel-o2 / FuelLabs/github-actions@master tip used elsewhere.
+  #
+  # Image path is ghcr.io/<owner>/<repo> (not …/fuel). The nested
+  # `fuel-sequencer/fuel` package was first published by Heighliner
+  # (OCI source: strangelove-ventures/heighliner), so GITHUB_TOKEN gets
+  # permission_denied: write_package until an org admin grants this repo
+  # Write under that package's "Manage Actions access". Repo-scoped
+  # packages published with GITHUB_TOKEN are auto-linked.
   docker:
     permissions:
       contents: read
@@ -74,19 +81,21 @@ jobs:
       auth-mode: registry-login
       registry: ghcr.io
       dockerfile: Dockerfile
-      # Nested package path used by fuel-deployment-v2 (…/fuel-sequencer/fuel:tag).
-      image: ghcr.io/${{ github.repository }}/fuel
+      image: ghcr.io/${{ github.repository }}
       build-backend: native
       platforms: linux/amd64,linux/arm64
       runs-on: ubuntu-latest
       runs-on-amd64: ubuntu-latest
       runs-on-arm64: ubuntu-24.04-arm
       docker-context: .
+      labels: |
+        org.opencontainers.image.source=https://github.com/${{ github.repository }}
       tags: |
         type=ref,event=branch
         type=sha,prefix=
         type=ref,event=tag
         type=raw,value=latest,enable={{is_default_branch}}
     secrets:
-      REGISTRY_USERNAME: ${{ github.actor }}
+      # Org owner login is the usual GHCR username for org packages.
+      REGISTRY_USERNAME: ${{ github.repository_owner }}
       REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

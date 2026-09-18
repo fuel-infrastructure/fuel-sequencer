@@ -45,6 +45,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM ${RUNNER_IMAGE}
 
+# Link GHCR package back to this repo when published with GITHUB_TOKEN.
+LABEL org.opencontainers.image.source="https://github.com/fuel-infrastructure/fuel-sequencer"
+
 # Install some packages and create a fuelsequencer user
 RUN apk add bash vim sudo dasel \
     && addgroup -g 1000 fuelsequencer \
