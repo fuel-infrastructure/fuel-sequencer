@@ -12,6 +12,12 @@ ARG RUNNER_IMAGE="alpine:${ALPINE_VERSION}"
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
+# BuildKit sets these per-platform. Native multi-arch CI builds each arch on a
+# matching runner so CGO/ledger compiles correctly (QEMU cross-builds of this
+# image historically produced amd64 bits under an arm64 manifest).
+ARG TARGETARCH
+ARG TARGETOS=linux
+
 # Set the working directory inside the container.
 WORKDIR /fuel-sequencer
 
@@ -19,15 +25,19 @@ WORKDIR /fuel-sequencer
 COPY . /fuel-sequencer
 
 # Install important system dependencies.
-RUN apk add --no-cache make git gcc musl-dev openssl-dev linux-headers
+RUN apk add --no-cache make git gcc musl-dev openssl-dev linux-headers file
 
 # Download go dependencies.
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     go mod download
 
-# Build the fuelsequencerd binary.
-RUN make build
+# Build the fuelsequencerd binary for the target platform.
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} make build \
+    && test -x /fuel-sequencer/build/fuelsequencerd \
+    && file /fuel-sequencer/build/fuelsequencerd
 
 # --------------------------------------------------------
 # Runner
