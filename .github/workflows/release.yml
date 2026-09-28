@@ -154,7 +154,8 @@ jobs:
           # Host-side `file` on extracted blobs — no qemu needed.
           crane export --platform="${PLATFORM}" "${IMAGE_REF}" - \
             | tar -x -C "${tmp}" bin/sh usr/local/bin/fuelsequencerd
-          sh_out=$(file "${tmp}/bin/sh")
+          # Alpine /bin/sh is a symlink to busybox — follow it or file(1) reports no arch.
+          sh_out=$(file -L "${tmp}/bin/sh")
           bin_out=$(file "${tmp}/usr/local/bin/fuelsequencerd")
           echo "platform=${PLATFORM} want=${WANT}"
           echo "/bin/sh: ${sh_out}"

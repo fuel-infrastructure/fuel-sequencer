@@ -79,13 +79,14 @@ COPY --from=builder /fuel-sequencer/scripts/node_and_sidecar.sh /usr/local/bin/n
 # Fail the build if shell or binary arch does not match the platform.
 # Guards against the Heighliner seq-mainnet-1.7 failure mode (DEVOPS-1771):
 # arm64 image shipping x86-64 /bin/sh → chain-init "exec format error" on Graviton.
+# Use file -L: Alpine /bin/sh is a symlink to busybox (file without -L reports no arch).
 RUN set -euo pipefail \
     && case "${TARGETARCH}" in \
          amd64) \
-           file /bin/sh | grep -q 'x86-64' \
+           file -L /bin/sh | grep -q 'x86-64' \
            && file /usr/local/bin/fuelsequencerd | grep -q 'x86-64' ;; \
          arm64) \
-           file /bin/sh | grep -Eq 'ARM aarch64|aarch64' \
+           file -L /bin/sh | grep -Eq 'ARM aarch64|aarch64' \
            && file /usr/local/bin/fuelsequencerd | grep -Eq 'ARM aarch64|aarch64' ;; \
          *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
        esac \
