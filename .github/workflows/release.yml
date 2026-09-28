@@ -1,25 +1,35 @@
-# This workflow is useful if you want to automate the process of:
+# Build multi-arch Docker images via FuelLabs/github-actions (native per-arch
+# runners + digest merge). Replaces Heighliner / single-runner QEMU builds that
+# published a broken arm64 variant (Graviton: `exec /bin/sh: exec format error`
+# on chain-init — DEVOPS-1771 / DEVOPS-1777).
 #
-# a) Creating a new prelease when you push a new tag with a "v" prefix (version).
-#
-#    This type of prerelease is meant to be used for production: alpha, beta, rc, etc. types of releases.
-#    After the prerelease is created, you need to make your changes on the release page at the relevant
-#    Github page and publish your release.
-#
-# b) Creating/updating the "latest" prerelease when you push to your default branch.
-#
-#    This type of prelease is useful to make your bleeding-edge binaries available to advanced users.
-#
-# The workflow will not run if there is no tag pushed with a "v" prefix and no change pushed to your
-# default branch.
-on: push
+# Also keeps Ignite release asset publishing for tags.
+name: Build and publish
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "release/**"
+    tags:
+      - "seq-*"
+      - "v*"
+      - "internal-*"
+      - "telescope-*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  might_release:
+  release-binaries:
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -28,8 +38,8 @@ jobs:
         uses: ignite/cli/actions/release/vars@main
 
       - name: Issue Release Assets
-        uses: ignite/cli/actions/cli@main
         if: ${{ steps.vars.outputs.should_release == 'true' }}
+        uses: ignite/cli/actions/cli@main
         with:
           args: chain build --release --release.prefix ${{ steps.vars.outputs.tarball_prefix }} -t linux:amd64 -t darwin:amd64 -t darwin:arm64 -y
         env:
@@ -45,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish the Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: ${{ steps.vars.outputs.should_release == 'true' }}
         with:
           tag_name: ${{ steps.vars.outputs.tag_name }}
@@ -53,3 +63,101 @@ jobs:
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Native amd64 + arm64 builds (not QEMU multi-platform on one runner).
+  # Pin matches fuel-o2 / FuelLabs/github-actions@master tip used elsewhere.
+  #
+  # Image path is ghcr.io/<owner>/<repo> (not …/fuel). The nested
+  # `fuel-sequencer/fuel` package was first published by Heighliner
+  # (OCI source: strangelove-ventures/heighliner), so GITHUB_TOKEN gets
+  # permission_denied: write_package until an org admin grants this repo
+  # Write under that package's "Manage Actions access". Repo-scoped
+  # packages published with GITHUB_TOKEN are auto-linked.
+  docker:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: FuelLabs/github-actions/.github/workflows/docker-build-push.yml@c2b9e5cd3e20180538f1b2d2841636e85eddfab4
+    with:
+      auth-mode: registry-login
+      registry: ghcr.io
+      dockerfile: Dockerfile
+      image: ghcr.io/${{ github.repository }}
+      build-backend: native
+      platforms: linux/amd64,linux/arm64
+      runs-on: ubuntu-latest
+      runs-on-amd64: ubuntu-latest
+      runs-on-arm64: ubuntu-24.04-arm
+      docker-context: .
+      labels: |
+        org.opencontainers.image.source=https://github.com/${{ github.repository }}
+      tags: |
+        type=ref,event=branch
+        type=sha,prefix=
+        type=ref,event=tag
+        type=raw,value=latest,enable={{is_default_branch}}
+    secrets:
+      # Org owner login is the usual GHCR username for org packages.
+      REGISTRY_USERNAME: ${{ github.repository_owner }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+  # Post-publish arch gate (DEVOPS-1777): extract each platform variant and
+  # require /bin/sh + fuelsequencerd to match the platform. Dockerfile also
+  # self-checks at build time; this catches registry/manifest merge mistakes.
+  verify-arch:
+    needs: docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            want: x86-64
+          - platform: linux/arm64
+            want: aarch64
+    steps:
+      - name: Install crane
+        uses: imjasonh/setup-crane@v0.4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image reference
+        id: image
+        env:
+          DIGEST: ${{ needs.docker.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [ -n "${DIGEST:-}" ]; then
+            echo "ref=ghcr.io/${{ github.repository }}@${DIGEST}" >> "$GITHUB_OUTPUT"
+          else
+            # metadata type=sha,prefix= → short commit sha tag
+            echo "ref=ghcr.io/${{ github.repository }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify shell and binary arch
+        env:
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          PLATFORM: ${{ matrix.platform }}
+          WANT: ${{ matrix.want }}
+        run: |
+          set -euo pipefail
+          tmp=$(mktemp -d)
+          # Host-side `file` on extracted blobs — no qemu needed.
+          crane export --platform="${PLATFORM}" "${IMAGE_REF}" - \
+            | tar -x -C "${tmp}" bin/sh usr/local/bin/fuelsequencerd
+          sh_out=$(file "${tmp}/bin/sh")
+          bin_out=$(file "${tmp}/usr/local/bin/fuelsequencerd")
+          echo "platform=${PLATFORM}"
+          echo "/bin/sh: ${sh_out}"
+          echo "fuelsequencerd: ${bin_out}"
+          echo "${sh_out}" | grep -Eq "${WANT}|ARM aarch64"
+          echo "${bin_out}" | grep -Eq "${WANT}|ARM aarch64"
