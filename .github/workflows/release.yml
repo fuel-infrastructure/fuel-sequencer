@@ -152,13 +152,14 @@ jobs:
           set -euo pipefail
           tmp=$(mktemp -d)
           # Host-side `file` on extracted blobs — no qemu needed.
+          # Extract busybox (not /bin/sh): Alpine /bin/sh is a symlink; some hosts
+          # also confuse symlink copies with binfmt/qemu stubs.
           crane export --platform="${PLATFORM}" "${IMAGE_REF}" - \
-            | tar -x -C "${tmp}" bin/sh usr/local/bin/fuelsequencerd
-          # Alpine /bin/sh is a symlink to busybox — follow it or file(1) reports no arch.
-          sh_out=$(file -L "${tmp}/bin/sh")
+            | tar -x -C "${tmp}" bin/busybox usr/local/bin/fuelsequencerd
+          sh_out=$(file "${tmp}/bin/busybox")
           bin_out=$(file "${tmp}/usr/local/bin/fuelsequencerd")
           echo "platform=${PLATFORM} want=${WANT}"
-          echo "/bin/sh: ${sh_out}"
+          echo "busybox: ${sh_out}"
           echo "fuelsequencerd: ${bin_out}"
           # Match ONLY this matrix leg's expected arch (no cross-arch alternation).
           case "${WANT}" in
