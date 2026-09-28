@@ -88,7 +88,8 @@ RUN set -euo pipefail \
            file /bin/sh | grep -Eq 'ARM aarch64|aarch64' \
            && file /usr/local/bin/fuelsequencerd | grep -Eq 'ARM aarch64|aarch64' ;; \
          *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
-       esac
+       esac \
+    && apk del --no-cache file
 
 # Set home directory to /home/fuelsequencer
 USER 1000

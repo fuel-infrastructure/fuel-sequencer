@@ -156,8 +156,21 @@ jobs:
             | tar -x -C "${tmp}" bin/sh usr/local/bin/fuelsequencerd
           sh_out=$(file "${tmp}/bin/sh")
           bin_out=$(file "${tmp}/usr/local/bin/fuelsequencerd")
-          echo "platform=${PLATFORM}"
+          echo "platform=${PLATFORM} want=${WANT}"
           echo "/bin/sh: ${sh_out}"
           echo "fuelsequencerd: ${bin_out}"
-          echo "${sh_out}" | grep -Eq "${WANT}|ARM aarch64"
-          echo "${bin_out}" | grep -Eq "${WANT}|ARM aarch64"
+          # Match ONLY this matrix leg's expected arch (no cross-arch alternation).
+          case "${WANT}" in
+            x86-64)
+              echo "${sh_out}" | grep -q 'x86-64'
+              echo "${bin_out}" | grep -q 'x86-64'
+              ;;
+            aarch64)
+              echo "${sh_out}" | grep -Eq 'ARM aarch64|aarch64'
+              echo "${bin_out}" | grep -Eq 'ARM aarch64|aarch64'
+              ;;
+            *)
+              echo "unsupported want=${WANT}" >&2
+              exit 1
+              ;;
+          esac
